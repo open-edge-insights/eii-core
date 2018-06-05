@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 import cv2
 import logging
+import numpy as np
 from influxdb import InfluxDBClient
 from DataIngestionLib.DataIngestionLib import DataIngestionLib as datain
+from ImageStore.py.imagestore import ImageStore
 from DataIngestionLib import settings
+
+measurement_name = 'bbb'
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("DATA_IN_TEST")
@@ -19,32 +23,49 @@ def send_buffer_and_point_data():
         log.error("Error opening video stream or file")
 
     # Set the measurement name.
-    di.set_measurement_name('big_buck_bunny_video')
+    di.set_measurement_name(measurement_name)
 
     frame_num = 0
 
-    # Read the first 10 frames of the video.
-    while(capture.isOpened() and frame_num < 10):
+    # Loop to read the frames of the video.
+    while(capture.isOpened() and frame_num < 50):
         # Capture frame-by-frame
         ret, frame = capture.read()
         if ret is True:
+            height, width, channels = frame.shape
             frame_num += 1
             log.info("Frame %d read successfully" % frame_num)
             # Added the buffer to datapoint after converting to byte stream.
-            ret = di.add_fields("Frame"+str(frame_num), frame.tobytes())
-            ret = di.add_fields("FrameC"+str(frame_num), frame.tobytes())
+            ret = di.add_fields("Frame{0}".format(frame_num), frame.tobytes())
             if ret is False:
-                log.warning("Adding of fields to data point failed.")
+                log.warning("Adding fields to datapoint failed."
+                            % "Frame{0}".format(frame_num))
+                continue
+            ret = di.add_fields("FrameC{0}".format(frame_num), frame.tobytes())
+            if ret is False:
+                log.warning("Adding fields to datapoint failed."
+                            % "Frame{0}".format(frame_num))
+                continue
+            # Adding Fields to datapoint.
+            if di.add_fields("Part No", 12345) is False:
+                log.warning("Adding Field %s Failed" % "Part No")
+                continue
+            if di.add_fields("Width", width) is False:
+                log.warning("Adding Field %s Failed" % "Width")
+                continue
+            if di.add_fields("Height", height) is False:
+                log.warning("Adding Field %s Failed" % "Height")
+                continue
+            if di.add_fields("Channels", channels) is False:
+                log.warning("Adding Field %s Failed" % "Channels")
+                continue
+            # Attached the tag video to the data point.
+            di.attach_tags({'stream': 'video'})
+            ret = di.save_data_point()
+            if ret is False:
+                log.error("Data point saving failed")
             else:
-                # Adding Fields to datapoint.
-                ret = di.add_fields("Part No", 12345)
-                # Attached the tag video to the data point.
-                di.attach_tags({'stream': 'video'})
-                ret = di.save_data_point()
-                if ret is False:
-                    log.error("Data point saving failed")
-                else:
-                    log.info("Data point saved successfully")
+                log.info("Data point saved successfully")
 
         else:
             log.info("Capture Closed")
@@ -88,7 +109,33 @@ def retrieve_data_from_influx(measurement, tag):
                               settings.value.password,
                               settings.value.db)
     result = influx_c.query('select ' + tag + ' from ' + measurement + ' ;')
-    print("Result: {0}".format(result))
+    # print("Result: {0}".format(result))
+    return result
+
+
+def retrieve_and_write_frames(data_points):
+    # Initialize Image Store.
+    img_store = ImageStore()
+    # Loop over the data points to retrive the frames using frame handles and
+    # write the frames.
+    for elem in data_points:
+        if elem['ImageStore'] == '1':
+            img_handles = elem['ImgHandle'].split(',')
+            img_names = elem['ImgName'].split(',')
+            for idx in range(len(img_handles)):
+                ret, frame = img_store.read(img_handles[idx])
+                if ret is True:
+                    # Convert the buffer into np array.
+                    Frame = np.frombuffer(frame, dtype=np.uint8)
+                    # Reshape the array.
+                    img_height = elem['Height']
+                    img_width = elem['Width']
+                    img_channels = elem['Channels']
+                    reshape_frame = np.reshape(Frame, (img_height, img_width,
+                                                       img_channels))
+                    cv2.imwrite(img_names[idx]+".jpg", reshape_frame)
+                else:
+                    log.error("Frame read unsuccessfull.")
 
 
 if __name__ == '__main__':
@@ -99,4 +146,10 @@ if __name__ == '__main__':
     send_buffer_and_point_data()
 
     # Retrieve data from database.
-    retrieve_data_from_influx('big_buck_bunny_video', '*')
+    data_points = retrieve_data_from_influx(measurement_name, '*')
+
+    # Get the data points in a list.
+    data_pts_list = list(data_points.get_points())
+
+    # Retrive the frames from Imagestore and write a video file.
+    retrieve_and_write_frames(data_pts_list)

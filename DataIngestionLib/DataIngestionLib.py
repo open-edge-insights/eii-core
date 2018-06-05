@@ -2,6 +2,7 @@
 import logging
 from influxdb import InfluxDBClient
 import DataIngestionLib.settings as settings
+from ImageStore.py.imagestore import ImageStore
 
 
 class DataIngestionLib:
@@ -9,10 +10,12 @@ class DataIngestionLib:
     If the data contains buffer, it stores the buffer into the image store
     and saves the handle in database.'''
 
-    def __init__(self, log_level=logging.INFO):
+    def __init__(self, storage_type='inmemory', log_level=logging.INFO):
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger('data_ingestion')
         self.data_point = {'tags': {}, 'fields': {}}
+        self.img_store = ImageStore()
+        self.img_store.setStorageType('inmemory')
         self.log.debug("Instance created successfully.")
 
     def add_fields(self, name, value, time=None):
@@ -47,36 +50,31 @@ class DataIngestionLib:
         than one buffer is present in a datapoint, the buffer and its name is
         stored in comma separated way in the field.'''
         # ToDo: Send the buffer to Image Store.
-        # handle = sned_to_image_store(value)
-        # Currently writing to local disk and opening the file.
-        handle = open(self.data_point['measurement']+".mp4", "ab")
-        if handle is None:
-            self.log.error("Could not open the file to write the buffer")
-            return False
-        # Writes the buffer into the file locally. This portion of code will be
-        # removed once integration with image store happens.
-        handle.write(value)
-        self.log.info("Wrote the buffer into the file.")
+        ret, handle = self.img_store.store(value)
+        if ret is not True:
+            self.log.error("Error in saving the buffer into ImageStore.")
+            return ret
+        self.log.info("Stored the buffer in Image Store .")
+
         # Save the handle of the image into Data Point.
         self.data_point['tags']['ImageStore'] = 1
         ImgHandle = 'ImgHandle'
         ImgName = 'ImgName'
         if ImgHandle in self.data_point['fields']:
-            self.data_point['fields']['ImgHandle'] =\
-                self.data_point['fields']['ImgHandle'] + ',' + str(handle)
+            self.data_point['fields'][ImgHandle] =\
+                self.data_point['fields'][ImgHandle] + ',' + str(handle)
         else:
-            self.data_point['fields']['ImgHandle'] = str(handle)
+            self.data_point['fields'][ImgHandle] = str(handle)
 
         if ImgName in self.data_point['fields']:
-            self.data_point['fields']['ImgName'] =\
-                self.data_point['fields']['ImgName'] + ',' + name
+            self.data_point['fields'][ImgName] =\
+                self.data_point['fields'][ImgName] + ',' + name
         else:
-            self.data_point['fields']['ImgName'] = name
+            self.data_point['fields'][ImgName] = name
 
         if time is not None:
             self.data_point['time'] = time
         self.log.debug("Added the buffer handle to Data Point.")
-        handle.close()
         return True
 
     def set_measurement_name(self, measurement_name):
@@ -133,5 +131,3 @@ class DataIngestionLib:
             del self.data_point['time']
 
         return ret
-
-    # def _send_buffer_to_img_store():
