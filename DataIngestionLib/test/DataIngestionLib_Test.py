@@ -3,11 +3,11 @@ import cv2
 import logging
 import numpy as np
 from influxdb import InfluxDBClient
+from DataAgent.da_grpc.client.client import GrpcClient
 from DataIngestionLib.DataIngestionLib import DataIngestionLib as datain
 from ImageStore.py.imagestore import ImageStore
-from DataIngestionLib import settings
 
-measurement_name = 'bbb'
+measurement_name = 'stream1'
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("DATA_IN_TEST")
@@ -78,10 +78,9 @@ def send_buffer_and_point_data():
 
 def send_point_data():
     di = datain()
-    measurement = 'PointExample'
 
     # Set the measurement name.
-    di.set_measurement_name(measurement)
+    di.set_measurement_name(measurement_name)
 
     # Adding 4 Data points each with three fields and saving them.
     for idx in range(0, 4):
@@ -103,11 +102,12 @@ def send_point_data():
 
 
 def retrieve_data_from_influx(measurement, tag):
-    influx_c = InfluxDBClient(settings.value.url,
-                              settings.value.port,
-                              settings.value.username,
-                              settings.value.password,
-                              settings.value.db)
+    config = GrpcClient.GetConfigInt("InfluxDBCfg")
+    influx_c = InfluxDBClient(config["Host"],
+                              config["Port"],
+                              config["UserName"],
+                              config["Password"],
+                              config["DBName"])
     result = influx_c.query('select ' + tag + ' from ' + measurement + ' ;')
     # print("Result: {0}".format(result))
     return result

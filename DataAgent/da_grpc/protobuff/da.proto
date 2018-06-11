@@ -1,0 +1,52 @@
+syntax="proto3";
+
+package DataAgent;
+
+// The Data Agent service definition.
+service da {
+
+    //**********Internal Interfaces***************
+    // GetConfigInt internal interface
+    rpc GetConfigInt (ConfigIntReq) returns (ConfigIntResp) {}
+
+    //**********External Interfaces***************
+    // GetConfig external interface
+    rpc Config (ConfigReq) returns (ConfigResp) {}
+
+    // GetQuery external interface
+    rpc Query (QueryReq) returns (QueryResp) {}
+
+}
+
+
+// The request message for GetConfigInt
+message ConfigIntReq {
+    string cfgType = 1;
+}
+
+// The response message for GetConfigInt
+message ConfigIntResp {
+    string jsonMsg = 1; //response will come in json format, grpc client needs to parse it
+}
+
+// The request message for GetQuery
+message QueryReq {
+
+}
+
+// The response message for GetQuery
+message QueryResp {
+
+}
+
+// The request message for GetConfig
+message ConfigReq {
+
+}
+
+// The response message for GetConfig
+message ConfigResp {
+
+}
+
+

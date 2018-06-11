@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import logging
 from influxdb import InfluxDBClient
-import DataIngestionLib.settings as settings
+from DataAgent.da_grpc.client.client import GrpcClient
 from ImageStore.py.imagestore import ImageStore
 
 
@@ -14,6 +14,10 @@ class DataIngestionLib:
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger('data_ingestion')
         self.data_point = {'tags': {}, 'fields': {}}
+        self.config = GrpcClient.GetConfigInt("InfluxDBCfg")
+        # TODO: plan a better approach to set this config later, not to be in
+        # DataAgent.conf file as it's not intended to be known to user
+        self.config["ImageStore"] = "InMemory"
         self.img_store = ImageStore()
         self.img_store.setStorageType('inmemory')
         self.log.debug("Instance created successfully.")
@@ -31,7 +35,7 @@ class DataIngestionLib:
         if isinstance(value, bytes) is True:
             return self._add_fields_buffer(name, value, time)
         elif (isinstance(value, int) or isinstance(value, float)
-              or isinstance(value, str)):
+                or isinstance(value, str)):
             if name == 'ImgHandle' or name == 'ImgName':
                 self.log.error("Name not supported.")
                 return False
@@ -107,12 +111,13 @@ class DataIngestionLib:
                 self.log.info("%s Tag not present" % tag_name)
 
     def save_data_point(self):
-        '''Saves the Data Point. Internally sends the data point to InfluxDB.'''
-        return self._send_data_to_influx(settings.value.url,
-                                         settings.value.port,
-                                         settings.value.username,
-                                         settings.value.password,
-                                         settings.value.db)
+        '''Saves the Data Point. Internally sends the data point to InfluxDB'''
+
+        return self._send_data_to_influx(self.config["Host"],
+                                         self.config["Port"],
+                                         self.config["UserName"],
+                                         self.config["Password"],
+                                         self.config["DBName"])
 
     def _send_data_to_influx(self, url, port, username, password, db):
         '''Sends the data point to Influx.'''
