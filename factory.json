@@ -1,0 +1,51 @@
+{
+    "machine_id": "video-file-example",
+    "classification": {
+        "classifiers": {
+            "tester": {
+                "trigger": "ym_visual",
+                "config": {
+                    "cascade_file": "haarcascade_frontalface_alt.xml",
+                    "reject_levels": 1.3,
+                    "level_weights": 5
+
+                }
+            }
+        }
+    },
+    "data_ingestion_manager": {
+        "ingestors": {
+            "video": {
+                "poll_interval": 1,
+                "streams": {
+                    "basler": {
+                       "22573662":{
+                       }
+                    }
+                }
+            }
+        }
+    },
+    "triggers": {
+        "robotic_arm": {
+            "mqtt_broker_host": "localhost",
+            "mqtt_broker_port": 1883
+        }
+    },
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "username": "ali_n",
+        "password": "intel123",
+        "database_name": "ali_n"
+    },
+    "storage": {
+        "folder": "~/Pictures/saved_images",
+        "image_format": {
+            "type": "png",
+            "config": {
+                "compression_level": 3
+            }
+        }
+    }
+}
