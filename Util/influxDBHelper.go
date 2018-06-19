@@ -1,15 +1,15 @@
 package util
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/influxdata/influxdb/client/v2"
 )
 
 // CreateHTTPClient returns a http client connected to Influx DB
 func CreateHTTPClient(host string, port string, userName string, passwd string) (client.Client, error) {
-	var buff strings.Builder
+	var buff bytes.Buffer
 
 	fmt.Fprintf(&buff, "http://%s:%s", host, port)
 
@@ -23,7 +23,7 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 
 // CreateSubscription creates the subscription in InfluxDB
 func CreateSubscription(cli client.Client, subName string, dbName string, udpHost string, udpPort string) (*client.Response, error) {
-	var buff strings.Builder
+	var buff bytes.Buffer
 
 	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'udp://%s:%s'", subName, dbName, udpHost, udpPort)
 
@@ -34,7 +34,7 @@ func CreateSubscription(cli client.Client, subName string, dbName string, udpHos
 
 // CreateDatabase creates the InfluxDB database
 func CreateDatabase(cli client.Client, dbName string) (*client.Response, error) {
-	var buff strings.Builder
+	var buff bytes.Buffer
 
 	fmt.Fprintf(&buff, "create database %s", dbName)
 

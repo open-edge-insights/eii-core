@@ -27,9 +27,7 @@ func main() {
 
 	if len(os.Args) < 2 {
 		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
-			"-config=<config_file_path> -log_dir=<glog_dir_path>")
-		glog.Errorf("Please note: log_dir argument is optional, " +
-			"if not provided, the logs will not be logged to file")
+			"-config=<config_file_path> [-log_dir=<glog_dir_path>]")
 		os.Exit(-1)
 	}
 
