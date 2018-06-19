@@ -100,6 +100,12 @@ class ClassifierManager:
         except ConnectionRefusedError as e:
             raise ClassifierConfigError('Failed to connect to MQTT broker')
 
+    def get_classifier(self, classifier_name):
+        if classifier_name not in self.classifiers:
+            raise ClassifierConfigError(
+                    'Classifier \'{}\' is not loaded'.format(classifier_name))
+        return self.classifiers[classifier_name]
+
     def register_classifier(self, classifier_name, trigger_name, trigger):
         """Register the specified classifier to the given triger.
 
@@ -170,8 +176,8 @@ class ClassifierManager:
                 ts = time.time()
 
                 try:
-                    self.log.debug('Classifying frame %d (qsize %d)', 
-                            frame_count, data.size())
+                    self.log.debug('Classifying frame %d',
+                            frame_count)
                     results = classifier.classify(sample_num, frame, user_data)
                 except:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())

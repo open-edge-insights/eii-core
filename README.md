@@ -23,12 +23,42 @@
 
 3. Have the TICK stack softwares and Redis installed locally
 
+4. For running the DataAnalytics, the kapacitor UDF setup is required.
+   Refer to the link : https://docs.influxdata.com/kapacitor/v1.5/guides/anomaly_detection/
+
+   The udf is DataAnalytics/kapasender.py and the tick script is DataAnalytics/classifier.tick
+   Use the below config in kapacitor.conf file for enabling the UDF.
+-------------------------------------------------------------------
+[udf]
+[udf.functions]
+    [udf.functions.kapasender]
+        # Run python
+        prog = "/usr/bin/python2"
+        args = ["-u", "~/go/src/iapoc_elephanttrunkarch/DataAnalytics/kapasender.py"]
+        timeout = "10s"
+        [udf.functions.kapasender.env]
+            PYTHONPATH = "<path to kapacitor>/kapacitor/udf/agent/py"
+-------------------------------------------------------------------
+
+   Run below steps to start analytics after doing kapacitor configuration
+
+   # python3.6 DataAnalytics/classifier.py factory.json
+
+   Start kapacitor in another terminal -
+   # kapacitor -config kapacitor.conf
+
+   Follow the below steps to start the Video ingestion and see frames processed in the UDF.
+
 # Workflow as of now (See individual modules README.md on how to run them)
 
 1. Start InfluxDB and Redis
 2. Start the DataAgent by providing the right config file having the right configs
-3. Start DataIngestionLib_Test.py to ingest the data to InfluxDB/ImageStore
-4. As DataIngestionLib_Test.py is ingesting the data, the same data can be seen coming into the DataAgent
-5. Start the 2 nats client like below to see messages being received on the interested topic (We are using the same measurement name as topic name as of now)
+3. Start VideoIngestion/VideoIngestion.py to ingest the data to InfluxDB/ImageStore
+   # python3 VideoIngestion/VideoIngestion.py --config factory.json
+4. See the terminal of classifier.py to see the analysis results.
+   The results are also published in mqtt topic.
+   The result images can be seen in the ~/saved_images (as per the factory.json configuration)
+5. As DataIngestionLib_Test.py is ingesting the data, the same data can be seen coming into the DataAgent
+6. Start the 2 nats client like below to see messages being received on the interested topic (We are using the same measurement name as topic name as of now)
     * go run StreamManager/test/natsClient.go -topic="topic name"
     * python3 StreamManager/test/natsClient.py "topic name"
