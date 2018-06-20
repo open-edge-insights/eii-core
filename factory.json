@@ -3,15 +3,8 @@
     "trigger_threads": 4,
     "data_ingestion_manager": {
         "ingestors": {
-            "video": {
-                "poll_interval": 0.01,
-                "streams": {
-                    "basler": {
-                        "22457014": {
-                            "exposure": 8000
-                        }
-                    }
-                }
+            "video_file": {
+		    "video_file": "yumei_trigger.avi"
             }
         }
     },
@@ -26,14 +19,10 @@
     },
     "triggers": {
         "key_frame_extractor": {
-            "kp_threshold": 30,
-            "no_part_in_frame_thresh": 30,
+            "kp_threshold": 3,
+            "no_part_in_frame_thresh": 3,
             "ref_imgdir": "/opt/etr/ref/",
             "ref_imgcount": 4
-        },
-        "robotic_arm": {
-            "mqtt_broker_host": "localhost",
-            "mqtt_broker_port": 1883
         }
     },
     "classification": {
