@@ -9,7 +9,7 @@ import (
 
 const count int = 20
 
-func chkErr(msg string, err error) {
+func chkErr(msg map[string]string, err error) {
 	if err != nil {
 		glog.Errorf("Error: %v", err)
 	} else {
@@ -28,13 +28,13 @@ func main() {
 	for i := 1; i <= count; i++ {
 		glog.Infof("Iter#: %d", i)
 		glog.Infof("Getting InfluxDB config:")
-		jsonMsg, err := client.GetConfigInt("InfluxDBCfg")
+		respMap, err := client.GetConfigInt("InfluxDBCfg")
 
-		chkErr(jsonMsg, err)
+		chkErr(respMap, err)
 
 		glog.Infof("Getting Redis config:")
-		jsonMsg, err = client.GetConfigInt("RedisCfg")
-		chkErr(jsonMsg, err)
+		respMap, err = client.GetConfigInt("RedisCfg")
+		chkErr(respMap, err)
 
 	}
 
