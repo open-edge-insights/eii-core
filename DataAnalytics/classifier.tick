@@ -1,0 +1,11 @@
+
+dbrp "datain"."autogen"
+
+var data0 = stream
+	|from()
+		.database('datain')
+		.retentionPolicy('autogen')
+		.measurement('stream1')
+
+data0
+	@kapasender()
