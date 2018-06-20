@@ -23,6 +23,7 @@ func main() {
 	flag.Parse()
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
+	defer glog.Flush()
 	glog.Infof("******Go client gRPC testing******")
 
 	for i := 1; i <= count; i++ {
@@ -37,6 +38,4 @@ func main() {
 		chkErr(respMap, err)
 
 	}
-
-	glog.Flush()
 }

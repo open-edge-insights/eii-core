@@ -15,6 +15,8 @@ func main() {
 	flag.Parse()
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
+	defer glog.Flush()
+
 	glog.Infof("**************STARTING DA & STREAM MANAGER**************")
 
 	var pStreamManager = new(stm.StrmMgr)
@@ -42,8 +44,6 @@ func main() {
 	if err != nil {
 		glog.Errorf("pStreamManager.SetupOutStream error: %s", err)
 	}
-
-	glog.Flush()
 
 	// TODO: For a gracefull shutdown we need a trigger from DA to tear down
 	// That will make the ever listening UDP server to stop and return control

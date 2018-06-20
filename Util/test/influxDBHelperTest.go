@@ -26,6 +26,8 @@ func main() {
 	flag.Parse()
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
+	defer glog.Flush()
+
 	glog.Infoln("Creating InfluxDB HTTP client...")
 
 	client, err := util.CreateHTTPClient(host, port, userName, password)
@@ -53,7 +55,5 @@ func main() {
 		glog.Errorf("CreateSubscription error: %v", err)
 		glog.Errorf("CreateSubscription response error: %v", response.Error())
 	}
-
-	glog.Flush()
 
 }

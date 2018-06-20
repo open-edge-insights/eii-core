@@ -25,6 +25,8 @@ func main() {
 
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
+	defer glog.Flush()
+
 	if len(os.Args) < 2 {
 		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
 			"-config=<config_file_path> [-log_dir=<glog_dir_path>]")
@@ -107,10 +109,7 @@ func main() {
 	// TODO: For a gracefull shutdown we need a trigger from DA to tear down
 	// That will make the ever listening UDP server to stop and return control
 	// to main program. A channel nned to listen to a exit cmd in UDP server
-	// code.
-
-	glog.Flush()
-	// Currently running this infinite loop to keep the goroutine running
+	// code.Currently running this infinite loop to keep the goroutine running
 	// for StreamManager
 	for {
 	}
