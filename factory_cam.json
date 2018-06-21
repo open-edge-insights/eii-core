@@ -1,0 +1,59 @@
+{
+    "machine_id": "basler-capture-example",
+    "trigger_threads": 4,
+    "classification": {
+        "classifiers": {
+            "yumei": {
+                "trigger": ["robotic_arm", "key_frame_extractor"],
+                "config": {
+                    "ref_imgdir": "./agent/ref/",
+                    "ref_imgcount": 4,
+                    "ref_config_roi": "./agent/ref/ym_roi.json"
+                }
+            }
+        }
+    },
+    "data_ingestion_manager": {
+        "ingestors": {
+            "video": {
+                "poll_interval": 0.01,
+                "streams": {
+                    "basler": {
+                       "22573662":{
+                               "exposure": 8000
+                       }
+                    }
+                }
+            }
+        }
+    },
+    "triggers": {
+	"key_frame_extractor":{
+	    "kp_threshold": 30,
+	    "no_part_in_frame_thresh": 30,
+	    "ref_imgdir": "./agent/ref",
+	    "ref_imgcount": 4
+	},
+	"robotic_arm":{
+		"mqtt_broker_host": "localhost",
+		"mqtt_broker_port": 1883
+
+	}
+    },
+    "database": {
+        "host": "localhost",
+        "port": 5432,
+        "username": "ali_n",
+        "password": "intel123",
+        "database_name": "ali_n"
+    },
+    "storage": {
+        "folder": "~/saved_images/",
+        "image_format": {
+            "type": "png",
+            "config": {
+                "compression_level": 3
+            }
+        }
+    }
+}
