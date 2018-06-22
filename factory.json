@@ -21,7 +21,7 @@
         "key_frame_extractor": {
             "kp_threshold": 3,
             "no_part_in_frame_thresh": 3,
-            "ref_imgdir": "/opt/etr/ref/",
+            "ref_imgdir": "./agent/ref/",
             "ref_imgcount": 4
         }
     },
@@ -31,11 +31,11 @@
         "max_workers": 1,
         "classifiers": {
             "yumei": {
-                "trigger": ["robotic_arm", "key_frame_extractor"],
+                "trigger": ["key_frame_extractor"],
                 "config": {
-                    "ref_imgdir": "/opt/etr/ref/",
+                    "ref_imgdir": "./agent/ref/",
                     "ref_imgcount": 4,
-                    "ref_config_roi": "/opt/etr/ref/ym_roi.json"
+                    "ref_config_roi": "./agent/ref/ym_roi.json"
                 }
             }
         }
