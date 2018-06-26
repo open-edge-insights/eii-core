@@ -26,7 +26,6 @@ func main() {
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
 	defer glog.Flush()
-
 	if len(os.Args) < 2 {
 		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
 			"-config=<config_file_path> [-log_dir=<glog_dir_path>]")
@@ -54,6 +53,7 @@ func main() {
 
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
+		os.Exit(-1)
 	}
 
 	defer client.Close()
@@ -83,7 +83,11 @@ func main() {
 	pStreamManager.MeasurementPolicy = make(map[string]bool)
 
 	glog.Infof("Going to start UDP server for influx subscription")
-	pStreamManager.Init()
+	err = pStreamManager.Init()
+	if err != nil {
+		glog.Errorf("Failed to initialize StreamManager : %v", err)
+		os.Exit(-1)
+	}
 
 	var config = new(stm.OutStreamConfig)
 
@@ -108,8 +112,10 @@ func main() {
 
 	// TODO: For a gracefull shutdown we need a trigger from DA to tear down
 	// That will make the ever listening UDP server to stop and return control
-	// to main program. A channel nned to listen to a exit cmd in UDP server
-	// code.Currently running this infinite loop to keep the goroutine running
+	// to main program. A channel need to listen to a exit cmd in UDP server
+	// code.
+
+	// Currently running this infinite loop to keep the goroutine running
 	// for StreamManager
 	for {
 	}

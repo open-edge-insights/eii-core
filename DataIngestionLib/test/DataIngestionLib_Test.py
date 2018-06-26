@@ -77,14 +77,16 @@ def send_buffer_and_point_data():
 
 
 def send_point_data():
-    di = datain()
-
-    # Set the measurement name.
+    try:
+        di = datain()
+    except Exception as e:
+        log.error(e)
+        exit(1)
     di.set_measurement_name(measurement_name)
-
     # Adding 4 Data points each with three fields and saving them.
     for idx in range(0, 4):
         ret = di.add_fields('X', 84 + idx)
+
         if ret is False:
             log.warning("Adding of field %s to data point failed." % 'X')
         ret = di.add_fields('Y', 84.234 + idx)
@@ -139,12 +141,19 @@ def retrieve_and_write_frames(data_points):
 
 
 if __name__ == '__main__':
+
     # Sending a point data to influx.
-    send_point_data()
-
+    try:
+        send_point_data()
+    except Exception as e:
+        log.error(e)
+        exit(1)
     # Sending a buffer data to influx/imagestore.
-    send_buffer_and_point_data()
-
+    try:
+        send_buffer_and_point_data()
+    except Exception as e:
+        log.error(e)
+        exit(1)
     # Retrieve data from database.
     data_points = retrieve_data_from_influx(measurement_name, '*')
 
