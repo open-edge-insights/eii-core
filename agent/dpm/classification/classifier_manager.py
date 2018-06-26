@@ -165,7 +165,7 @@ class ClassifierManager:
             start = time.time()
             part = self.db.add_part()
             defects = {}
-            
+            msg = {} 
             self.samples = self._incr_int(self.samples, 1)
 
             for res in data:
@@ -256,6 +256,7 @@ class ClassifierManager:
                         json.dumps(data, indent=4))
                 self._publish(MQTT_RESULTS_TOPIC, data)
                 self.summary_idx = self._incr_int(self.summary_idx, 1)
+            return msg
 
     def _incr_int(self, val, rollover=0):
         """Helper to safely increment an integer and roll over back to the

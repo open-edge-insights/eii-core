@@ -26,7 +26,7 @@ class classifier_udf ():
         self.queue = queue.Queue()
         self.th = th.Thread(target=self.process_point)
 
-    def init(self):
+    def init(self, results_queue):
         self.config = Configuration(self.config_file)
         self.db = DatabaseAdapter(self.config.machine_id, self.config.database)
         self.storage = LocalStorage(self.config.storage)
@@ -35,6 +35,7 @@ class classifier_udf ():
                 self.storage, self.db)
         self.classifier = self._cm.get_classifier("yumei")
         self.img_store = ImageStore()
+        self.results_queue = results_queue
         self.th.start()
         self.storage.start()
 
@@ -42,33 +43,48 @@ class classifier_udf ():
         self.queue.put(point)
 
     def process_point(self):
-        logger.info('Proess point thread')
+        logger.info('Process point thread')
         while(True):
             data = self.queue.get(block=True)
             point = json.loads(data)
-
-            # logger.info('Process point :', point)
-
-            frame_handle = point["ImgHandle"]
+            img_handle = point["ImgHandle"]
             img_height = point['Height']
             img_width = point['Width']
             img_channels = point['Channels']
-            img_handles = frame_handle.split(',')
-            for idx in range(len(img_handles)):
-                ret, frame = self.img_store.read(img_handles[idx])
-                if ret is True:
-                    # Convert the buffer into np array.
-                    Frame = np.frombuffer(frame, dtype=np.uint8)
-                    reshape_frame = np.reshape(Frame, (img_height,
-                                               img_width, img_channels))
-                    # Call classification manager API with the tuple data
-                    user_data = [-1, 0]
-                    data = [(1, user_data,
-                             ('camera-serial-number', reshape_frame))]
-                    self._cm._process_frames(self.classifier, data)
-                else:
-                    # TO Do : Log Error
-                    pass
+            ret, frame = self.img_store.read(img_handle)
+            if ret is True:
+                # Convert the buffer into np array.
+                Frame = np.frombuffer(frame, dtype=np.uint8)
+                reshape_frame = np.reshape(Frame, (img_height,
+                                                   img_width, img_channels))
+                # Call classification manager API with the tuple data
+                user_data = [-1, 0]
+                data = [(1, user_data,
+                         ('camera-serial-number', reshape_frame))]
+                ret = self._cm._process_frames(self.classifier, data)
+                ret['ImgHandle'] = img_handle
+                self.results_queue.put(json.dumps(ret))
+            else:
+                # TO Do : Log Error
+                pass
+
+
+class ResultsHandler():
+    def __init__(self, connection):
+        self.conn = connection
+        self.th_results = th.Thread(target=self.process_classified_results)
+        self.classified_results = queue.Queue()
+        self.th_results.start()
+
+    def get_results_queue(self):
+        return self.classified_results
+
+    def process_classified_results(self):
+        logger.info('Process Classified Results Thread...')
+        while(True):
+            data = self.classified_results.get(block=True)
+            result = (data.encode('utf-8'))
+            self.conn.send(result)
 
 
 if __name__ == '__main__':
@@ -93,7 +109,8 @@ if __name__ == '__main__':
     # Wait for a connection
     logger.info('Waiting for a connection')
     connection, client_address = sock.accept()
-    udf.init()
+    results_handler = ResultsHandler(connection)
+    udf.init(results_handler.get_results_queue())
 
     try:
         logger.info('Connection received')
