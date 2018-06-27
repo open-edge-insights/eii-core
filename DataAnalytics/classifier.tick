@@ -9,3 +9,8 @@ var data0 = stream
 
 data0
 	@kapasender()
+	|influxDBOut()
+		.database('datain')
+		.measurement('classifier_results')
+		.retentionPolicy('autogen')
+

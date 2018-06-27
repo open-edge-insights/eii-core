@@ -2,6 +2,7 @@ import sys
 import json
 import socket
 import logging
+import time
 # The kapacitor source code is needed for the below imports
 from kapacitor.udf.agent import Agent, Handler
 from kapacitor.udf import udf_pb2
@@ -9,6 +10,8 @@ from kapacitor.udf import udf_pb2
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(levelname)s:%(name)s: %(message)s')
 logger = logging.getLogger()
+
+TIME_MULTIPLIER_MICRO = 1000000
 
 
 # Mirrors all points it receives back to Kapacitor
@@ -50,13 +53,26 @@ class ConnHandler(Handler):
 
     def point(self, point):
         fields = {}
+        response = udf_pb2.Response()
         fields.update(dict(point.fieldsInt))
         fields.update(dict(point.fieldsDouble))
         fields.update(dict(point.fieldsString))
-        # print >>sys.stderr, "Fields: ", json.dumps(fields)
+        print >>sys.stderr, "Sending the data ", json.dumps(fields)
         self.sock.send(json.dumps(fields))
-        response = udf_pb2.Response()
-        response.point.CopyFrom(point)
+        data = self.sock.recv(1024)
+        data = str(data)
+        print >>sys.stderr, "Received the data ",  data
+        data = json.loads(data)
+        for k, v in data.iteritems():
+            if isinstance(v, float):
+                response.point.fieldsDouble[k] = v
+            elif isinstance(v, unicode):
+                response.point.fieldsString[k] = v
+            elif isinstance(v, int):
+                response.point.fieldsInt[k] = v
+            else:
+                pass
+        response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
         self._agent.write_response(response, True)
 
     def end_batch(self, end_req):
