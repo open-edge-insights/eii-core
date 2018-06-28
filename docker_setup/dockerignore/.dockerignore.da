@@ -1,0 +1,13 @@
+agent
+DataAnalytics
+DataIngestionLib
+ImageStore
+kapacitor
+StreamManager
+Util
+VideoIngestion
+.git
+*.md
+*.mp4
+*.avi
+*.json

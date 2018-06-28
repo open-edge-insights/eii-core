@@ -1,0 +1,16 @@
+agent
+DataAgent
+DataAnalytics
+DataIngestionLib
+ImageStore
+StreamManager
+StreamManager/test
+!StreamManager/test/natsClient.py
+!StreamManager/test/natsClient.go
+Util
+VideoIngestion
+.git
+*.md
+*.mp4
+*.avi
+*.json

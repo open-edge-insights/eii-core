@@ -1,0 +1,51 @@
+# Dockerfile for Classifier
+FROM python:3
+LABEL version="1.0"
+LABEL description="Classifier image"
+
+ENV DIR /ETA
+WORKDIR ${DIR}
+ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py
+ENV PATH .:${PATH}
+ENV HOME /root
+
+# Installing python3.6 and dependent python modules
+ADD classifier_requirements.txt .
+RUN python3.6 -m pip install -r classifier_requirements.txt && \
+    rm -rf classifier_requirements.txt
+
+# Installing pip2 and protobuf module needed for UDF function
+RUN apt-get update && \
+    apt-get install -y python-pip && \
+    pip2 install protobuf
+
+# creating saved images folder
+RUN mkdir -p ${HOME}/saved_images
+
+# Adding factory.py and populating PostreSQL db
+RUN mkdir -p /logs
+RUN touch ${HOME}/.pgpass && \
+    echo "localhost:5432:ali:ali:intel123" >${HOME}/.pgpass && \
+    chmod 0600 ${HOME}/.pgpass
+
+# Adding config file
+ADD factory.py .
+
+# Adding classifier program 
+ADD DataAnalytics/ .
+
+# Adding project depedency modules
+ADD agent ./agent
+ADD DataAgent/__init__.py ./DataAgent/__init__.py
+ADD DataAgent/da_grpc ./DataAgent/da_grpc 
+ADD ImageStore/py ./ImageStore/py
+ADD Util/exception.py ./Util/exception.py
+
+# Adding kapacitor related files
+ADD kapacitor ./kapacitor
+
+# Adding entrypoint script
+ADD entrypoint_classifier.sh .
+ADD enable_kapacitor_task.sh .
+
+ENTRYPOINT ./entrypoint_classifier.sh

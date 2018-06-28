@@ -1,0 +1,27 @@
+# Dockerfile for VideoIngestion
+FROM python:3
+LABEL version="1.0"
+LABEL description="VideoIngestion image"
+
+ENV DIR /ETA
+WORKDIR ${DIR}
+ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
+ENV HOME /root
+
+# Installing dependent python modules
+ADD vi_requirements.txt .
+RUN python3 -m pip install -r vi_requirements.txt && \
+    rm -rf vi_requirements.txt
+
+# Adding project depedency modules
+ADD agent ./agent
+ADD DataAgent/__init__.py ./DataAgent/__init__.py
+ADD DataAgent/da_grpc ./DataAgent/da_grpc 
+ADD DataIngestionLib ./DataIngestionLib
+ADD ImageStore/py ./ImageStore/py
+ADD Util/exception.py ./Util/exception.py
+
+# Adding VideoIngestion program 
+ADD VideoIngestion/VideoIngestion.py .
+
+ENTRYPOINT python3 VideoIngestion.py --config factory.json --log-dir /ETA/video_ingestion

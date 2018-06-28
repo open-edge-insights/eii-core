@@ -1,0 +1,16 @@
+# dockerfile for NATS client
+FROM python:3
+LABEL version="1.0"
+LABEL description="NATS go/python client image"
+
+ENV DIR /ETA
+WORKDIR ${DIR}
+
+# Adding NATS python/go files
+ADD StreamManager/test/natsClient.py . 
+ADD natsClient-go .
+
+# Installing nats library
+RUN python3 -m pip install asyncio-nats-client
+
+ENTRYPOINT python3 natsClient.py "stream1"

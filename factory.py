@@ -17,7 +17,6 @@ from agent.dpm.config import Configuration
 from agent.db import DatabaseAdapter
 from agent.dpm.storage import LocalStorage
 from agent.dpm import DataPipelineManager
-from agent.rsync_service import RsyncService
 from agent.etr_utils.log import configure_logging, LOG_LEVELS
 
 
@@ -37,9 +36,6 @@ def parse_args():
 
     test_classifier = subparsers.add_parser(
             'classifier', help='Test a classifier')
-
-    rs = subparsers.add_parser('rsync-service', help='Run rsync service')
-    rs.set_defaults(func=main_etr_sync)
 
     # Setting up command line parameters for classifier testing
     loader = pkgutil.get_loader('agent.dpm.classification')
@@ -315,22 +311,6 @@ def main_agent(args, log, config):
     finally:
         if agent is not None:
             agent.stop()
-
-
-def main_etr_sync(args, log, config):
-    """Main method for running the syncronization process for ETR.
-    Note that this is a long running process, which subscribes to the ETR
-    MQTT messages, so ETR must be running separately and have MQTT enabled.
-    """
-    rsync = RsyncService(config)
-    try:
-        rsync.run()
-    except KeyboardInterrupt:
-        log.info('Quitting...')
-    except Exception:
-        log.error('Error during execution:\n%s', tb.format_exc())
-    finally:
-        rsync.stop()
 
 
 def main():
