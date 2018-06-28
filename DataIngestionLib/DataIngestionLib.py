@@ -18,15 +18,15 @@ class DataIngestionLib:
         try:
             self.config = GrpcClient.GetConfigInt("InfluxDBCfg")
         except Exception as e:
-            raise DAException("Seems to be some issue with gRPC server. Exception: {0}".format(e))
+            raise DAException("Seems to be some issue with gRPC server."
+                              "Exception: {0}".format(e))
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
-        self.config["ImageStore"] = "InMemory"
         try:
             self.img_store = ImageStore()
+            self.img_store.setStorageType(storage_type)
         except Exception as e:
             raise e
-        self.img_store.setStorageType('inmemory')
         self.log.debug("Instance created successfully.")
 
     def add_fields(self, name, value, time=None):
@@ -127,12 +127,13 @@ class DataIngestionLib:
         '''Saves the Data Point. Internally sends the data point to InfluxDB'''
         try:
             return self._send_data_to_influx(self.config["Host"],
-                                              self.config["Port"],
-                                              self.config["UserName"],
-                                              self.config["Password"],
-                                              self.config["DBName"])
+                                             self.config["Port"],
+                                             self.config["UserName"],
+                                             self.config["Password"],
+                                             self.config["DBName"])
         except Exception as e:
-            raise DAException("Seems to be some issue with InfluxDB. Exception: {0}".format(e))
+            raise DAException("Seems to be some issue with InfluxDB."
+                              "Exception: {0}".format(e))
 
     def _send_data_to_influx(self, url, port, username, password, db):
         '''Sends the data point to Influx.'''
