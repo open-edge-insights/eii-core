@@ -8,6 +8,10 @@ Pre-requisites:
    * Download go executable at http://nats.io/download/nats-io/gnatsd/
    * Get it by running command **go get github.com/nats-io/gnatsd**
    Start NATS server by running **gnatsd** command. The NATS server (messaging bus) has to be running locally for publish and subscribe to work.
+4. Install python dependency:
+   ```sh
+   sudo -H pip3 install asyncio-nats-client
+   ```
 
 ## 3 ways to run test file from $GOPATH/src/iapoc_elephanttrunkarch - present working directory
 * go run StreamManager/test/strmMgrTest.go

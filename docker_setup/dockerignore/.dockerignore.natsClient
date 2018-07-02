@@ -1,6 +1,7 @@
 agent
 DataAgent
 DataAnalytics
+DataBusAbstraction
 DataIngestionLib
 ImageStore
 StreamManager

@@ -12,7 +12,7 @@ echo "2. Starting DataAnalytics/Classifier container..."
 docker run -d --rm --net host --name ia_data_analytics \
            -v $etaConfDir/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro \
            -v $etaDataDir/kapacitor:/var/lib/kapacitor \
-           -v $etaConfDir/factory.json:/ETA/factory.json \
+           -v $etaConfDir/factory.json:/ETA/factory.json:ro \
            -v $etaRootDir/$testFile:/ETA/yumei_trigger.avi \
            -v $etaDataDir/classifier_saved_images:/root/saved_images \
             ia/data_analytics:1.0
@@ -34,7 +34,7 @@ docker run -d --rm --net host --name ia_nats_client \
 echo "4. Starting VideoIngestion container..."
 docker run -d --rm --net host --name ia_video_ingestion \
            -v $etaRootDir/$testFile:/ETA/yumei_trigger.avi \
-           -v $etaConfDir/factory.json:/ETA/factory.json \
+           -v $etaConfDir/factory.json:/ETA/factory.json:ro \
            -v $etaLogDir/video_ingestion:/ETA/video_ingestion \
            ia/video_ingestion:1.0
 

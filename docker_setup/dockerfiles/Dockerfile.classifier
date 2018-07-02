@@ -9,15 +9,15 @@ ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py
 ENV PATH .:${PATH}
 ENV HOME /root
 
-# Installing python3.6 and dependent python modules
-ADD classifier_requirements.txt .
-RUN python3.6 -m pip install -r classifier_requirements.txt && \
-    rm -rf classifier_requirements.txt
-
 # Installing pip2 and protobuf module needed for UDF function
 RUN apt-get update && \
     apt-get install -y python-pip && \
     pip2 install protobuf
+
+# Installing python3.6 and dependent python modules
+ADD classifier_requirements.txt .
+RUN python3.6 -m pip install -r classifier_requirements.txt && \
+    rm -rf classifier_requirements.txt
 
 # creating saved images folder
 RUN mkdir -p ${HOME}/saved_images

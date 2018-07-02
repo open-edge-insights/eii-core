@@ -6,6 +6,7 @@ DataAgent/*
 !DataAgent/__init__.py
 !DataAgent/da_grpc
 DataAnalytics
+DataBusAbstraction
 ImageStore/*
 !ImageStore/py
 StreamManager
