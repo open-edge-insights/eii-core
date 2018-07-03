@@ -9,6 +9,7 @@ Pre-requisites:
    * Get it by running command **go get github.com/nats-io/gnatsd**
    Start NATS server by running **gnatsd** command. The NATS server (messaging bus) has to be running locally for publish and subscribe to work.
 4. Install python dependency:
+
    ```sh
    sudo -H pip3 install asyncio-nats-client
    ```

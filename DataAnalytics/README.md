@@ -18,7 +18,7 @@ The udf is **DataAnalytics/kapasender.py** and the tick script is **DataAnalytic
 Follow below steps to start DataAnalytics module:
 1. Kapacitor configuration:
     Use the below config in **docker_setup/kapacitor/kapacitor.conf** file for enabling the UDF. Change 
-    -------------------------------------------------------------------
+    ```
     [udf]
     [udf.functions]
         [udf.functions.kapasender]
@@ -28,7 +28,7 @@ Follow below steps to start DataAnalytics module:
             timeout = "10s"
             [udf.functions.kapasender.env]
                 PYTHONPATH = "<pathtokapacitorrepo>/kapacitor/udf/agent/py"
-    -------------------------------------------------------------------
+    ```
     > Note:
     > Please provide abosolute paths to **kapasender.py** and to PYTHONPATH in the kapacitor.conf file.
     > Pre-requisite for this step: **go get github.com/influxdata/kapacitor/cmd/kapacitor** and **go get github.com/influxdata/kapacitor/cmd/kapacitord** to get the go kapacitor lib source under **$GOPATH/src/github.com/influxdata/kapacitor**. The bins **kapacitor** and **kapacitord** would be copied to $GOPATH/bin. 
@@ -42,18 +42,24 @@ Follow below steps to start DataAnalytics module:
     ```sh
     sudo -H pip2 install protobuf
     ```
-4. Run cmds: `exportPYTHONPATH=.:"<pathtokapacitorrepo>/kapacitor/udf/agent/py"` and **python2 DataAnalytics/kapasender.py** to make sure there are no errors while running kapasender.py via kapacitord
+    
+4. Run cmds: `export PYTHONPATH=.:"<pathtokapacitorrepo>/kapacitor/udf/agent/py"` and `python2 DataAnalytics/kapasender.py` to make sure there are no errors while running kapasender.py via kapacitord
 
-5. Run this command in a terminal
+5. Run this command in a terminal:
     ```sh
     python3.6 DataAnalytics/classifier.py factory.json
     ```
-6. Run this command in another terminal (note )
+    
+6. Run this command in another terminal:
     ```sh
     sudo -E env "PATH=$PATH" kapacitord -config docker_setup/config/kapacitor.conf
     ```
+    
 5. Run this command in another terminal
     ```sh
     kapacitor define classifier_task -tick DataAnalytics/classifier.tick
+    
     kapacitor enable classifier_task
     ```
+    
+    

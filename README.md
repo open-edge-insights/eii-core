@@ -21,11 +21,11 @@
     > Note:
     > 1. While running python programs, one may face issues with missing dependency modules. Please use **sudo -H pip3 install  <module>** cmd to install each.
     > 2. Install below DataAnalytics dependencies:
-    * python3.6 package by following [this](http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/)
-    * **sudo -H pip3.6 install -r classifier_requirements.txt** - installs all dependencies for classifer program
-    * **sudo -H pip2 install protobuf** - Needed by the kapasender.py UDF file.
-    * **sudo apt-get install mosquitto** - MQTT implementation
-    * **sudo apt-get install postgresql** - database used by ETR
+    	* python3.6 package by following [this](http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/)
+    	* **sudo -H pip3.6 install -r classifier_requirements.txt** - installs all dependencies for classifer program
+    	* **sudo -H pip2 install protobuf** - Needed by the kapasender.py UDF file.
+    	* **sudo apt-get install mosquitto** - MQTT implementation
+    	* **sudo apt-get install postgresql** - database used by ETR
 
 3. Have the TICK stack softwares (influx, kapacitor - [refer](https://www.digitalocean.com/community/tutorials/how-to-monitor-system-metrics-with-the-tick-stack-on-ubuntu-16-04)) and [Redis](https://askubuntu.com/questions/868848/how-to-install-redis-on-ubuntu-16-04) installed locally. 
 
@@ -46,9 +46,8 @@
 4. Start the 2 nats client like below to see messages being received on the interested topic (We are using the same measurement name as topic name as of now). Here, the topic name is "classifier_results".
     * go run StreamManager/test/natsClient.go -topic="topic name"
     * python3 StreamManager/test/natsClient.py "topic name"
-5. Start VideoIngestion/VideoIngestion.py to ingest the data to InfluxDB/ImageStore. Refer **VideoIngestion/README.md** for more details.
-   **python3 VideoIngestion/VideoIngestion.py --config factory.json**
-   **Note**: factory.json is for the yumei_trigger.avi file. If one wants to try with Baslera camera, use factory_cam.json instead of factory.json. If using containers, copy factory_cam.json as factory.json.
+5. Start VideoIngestion/VideoIngestion.py: `python3 VideoIngestion/VideoIngestion.py --config factory.json` to ingest the data to InfluxDB/ImageStore. Refer **VideoIngestion/README.md** for more details.
+   **Note**: factory.json is for the yumei_trigger.avi file. If one wants to try with Baslera camera, use factory_cam.json instead of factory.json. If using containers, copy factory_cam.json as factory.json. In otherwords, we only mount 1 file factory.json and expects everything to be configured in that file.
 6. See the terminal of classifier.py to see the analysis results.
    The results are also published to mqtt topic.
    The result images can be seen in the ~/saved_images (as per the factory.json configuration)

@@ -4,5 +4,5 @@ Data Ingestion Module takes the data and sends it to the influx. If the data con
 
 ## Running test file from $GOPATH/src/iapoc_elephanttrunkarch - present working directory
 * Run DataAgent with the config file having the right configs for InfluxDB and Redis (DIL would be fetching these configs over grpc call). In otherwords,
-  go run DataAgent/DataAgent.go -config=<config_file> -log_dir=<log_dir>
+  go run DataAgent/DataAgent.go -config=[config_file] -log_dir=[log_dir]
 * python3 DataIngestionLib/test/DataIngestionLib_Test.py
