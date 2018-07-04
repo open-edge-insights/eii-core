@@ -1,13 +1,17 @@
-# dockerfile for DataAgent
-FROM ubuntu:16.04
+# Dockerfile for DataAgent
+FROM golang:1.10.3
 LABEL version="1.0"
 LABEL description="DataAgent image"
 
-ENV DIR /ETA
+ENV DIR /go/src/iapoc_elephanttrunkarch
 WORKDIR ${DIR}
 
-RUN mkdir -p log
-# Adding DataAgent binary
-ADD da ./DataAgent
+ADD DataAgent ./DataAgent
+ADD StreamManager ./StreamManager
+ADD Util ./Util
 
-ENTRYPOINT ./DataAgent -config=./DataAgent.conf -log_dir=${DIR}/log/DataAgent
+RUN mkdir -p ${DIR}/log && \
+    cd DataAgent && \
+    go get -v ./...
+
+ENTRYPOINT DataAgent -config=DataAgent/DataAgent.conf -log_dir=${DIR}/log/DataAgent

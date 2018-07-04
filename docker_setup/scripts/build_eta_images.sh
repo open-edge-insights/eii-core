@@ -19,10 +19,13 @@ echo "2. Building DataAnalytics/Classifier image..."
 ln -fs  $diPathFromRoot/.dockerignore.classifier  $rootDir/.dockerignore
 
 # pre-requisite - run go get <kapacitor_repo>, this would put kapacitor and kapacitord in $GOPATH/bin
-# TODO: go get by default doens't support getting a specific version. Need to git clone and do go build/install
-# locally to have a specific version
-go get github.com/influxdata/kapacitor/cmd/kapacitor
-go get github.com/influxdata/kapacitor/cmd/kapacitord
+kapacitorRepo=$rootDir/../src/github.com/influxdata/kapacitor
+git clone https://github.com/influxdata/kapacitor.git $kapacitorRepo
+workDir=`pwd`
+cd $kapacitorRepo
+git checkout tags/v1.5.0 -b v1.5.0
+go get ./...
+cd $workDir
 
 # create kapacitor directory structure for storing kapacitor agent code
 mkdir -p $rootDir/kapacitor

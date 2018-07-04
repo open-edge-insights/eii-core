@@ -2,7 +2,7 @@
 
 ## Pre-requisities:
 1. Have the Go dev env setup on your host machine. Refer **README.md** to have it setup if not done already.
-2. Install latest docker cli/docker daemon by following [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE** sections there. Also, follow the manage docker as a non-root user section at [post install](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
+2. Install latest docker cli/docker daemon by following [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [post install](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
 3. Configure proxy settings for docker client to connect to internet and for containers to access internet by following [this](https://docs.docker.com/network/proxy/).If you still see issues of not being able to access internet from container, please update the /etc/resolv.conf. The changes may go away after system restart, should be brought in back.
 Update /eta/resolv.conf file on your host system with the following content:
 
@@ -18,8 +18,9 @@ Update /eta/resolv.conf file on your host system with the following content:
 4. Configure proxy settings for docker daemon by following the steps at [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
 5. Since we are using host network namespace for containers, please make sure that individual processes/modules of ETA are stopped on host system. If they are running, the containers will fail to launch as the ports are already in use. To see if a specific port is in use, one can use this cmd:
 **sudo fuser [port_no]/tcp** - it will tell the process ID using it.
-6. Run all the docker scripts from $GOPATH/src/<youriapocrepofolder>/docker_setup/scripts
+6. Run all the docker scripts from `$GOPATH/src/<youriapocrepofolder>/docker_setup/scripts`
 7. In dockerized environment, it is observed that more points are received by kapacitor from influxdb. This is due to more subscriptions set on "datain" database. Please make sure to drop "datain" database before trying the docker setup OR drop the subscription. Eg: **drop subscription "kapacitor-65c392d7-6ef7-46f8-97c2-e5eeb7094c12" on "_internal"."monitor"** for _internal database.
+8. Copy the yumei_trigger.avi from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\test_video" shared folder and put it under the root directory
 
 ## Steps to setup ETA solution on dev system
 
@@ -48,7 +49,8 @@ Update /eta/resolv.conf file on your host system with the following content:
 ## Steps to setup ETA solution on factory system
 
 **Pre-requisite:**
-    Have the ETA images stored as tarballs from dev system: `sudo -E env "PATH=$PATH" ./deploy/save_eta_images.sh
+* Have the ETA images stored as tarballs from dev system: `sudo -E env "PATH=$PATH" ./deploy/save_eta_images.sh`
+* Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers
     
 1. Load ETA images (Input here is the ETA images tarballs)
 
@@ -76,9 +78,8 @@ Update /eta/resolv.conf file on your host system with the following content:
 >   	* **docker ps -a** - check running and stopped containers
 >   	* **docker stop $(docker ps -a -q)** - stops all the containers
 >   	* **docker rm $(docker ps -a -q)** - removes all the containers. Useful when you run into issue of already container is in use.
-> 4. If you want to run the docker images separately i.e, one by one, just do **source setenv.sh** script on the terminal and then copy & run > the individual **docker run** container commands with **-it** switch instead of **-d** to get to see the entrypoint program output inside
-> the container.
-> 4. **Known issues as of now**: 
+> 4. If you want to run the docker images separately i.e, one by one, just do **source setenv.sh** script on the terminal and then copy & run the individual **docker run** container commands with **-it** switch instead of **-d** to get to see the entrypoint program output inside the container.
+> 5. **Known issues as of now**: 
 >    * Logs of container may not be fully available at /var/lib/eta/logs location for few containers like **ia_data_analytics_cont**.
 >      Best way to check logs is to use command: **docker logs <contname>**
 >    * NATS client container is not receiving published messages

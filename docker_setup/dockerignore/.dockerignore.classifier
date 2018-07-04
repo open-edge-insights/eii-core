@@ -13,6 +13,7 @@ StreamManager
 Util
 !Util/exception.py
 VideoIngestion
+docker_setup/scripts/deploy/docker_images/*.tar
 .git
 *.md
 *.mp4

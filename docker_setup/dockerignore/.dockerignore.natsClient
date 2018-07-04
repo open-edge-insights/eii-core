@@ -10,6 +10,7 @@ StreamManager/test
 !StreamManager/test/natsClient.go
 Util
 VideoIngestion
+docker_setup/scripts/deploy/docker_images/*.tar
 .git
 *.md
 *.mp4

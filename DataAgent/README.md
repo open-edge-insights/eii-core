@@ -14,4 +14,4 @@ DataAgent module is responsible for initializing the stream manager to listen to
 ## gRPC server module testing alone
 
 * Start Go gRPC client test: go run DataAgent/da_grpc/test/clientTest.go
-* Start python gRPC client test: python3 run DataAgent/da_grpc/test/client_test.go
+* Start python gRPC client test: python3 DataAgent/da_grpc/test/client_test.py
