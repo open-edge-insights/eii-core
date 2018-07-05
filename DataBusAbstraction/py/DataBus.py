@@ -1,0 +1,193 @@
+from DataBusMqtt import databMqtt
+from DataBusOpcua import databOpcua
+from DataBusNats import databNats
+from Queue import Queue
+from threading import Thread
+from threading import Event
+
+
+busTypes = {"OPCUA": "opcua:", "MQTT": "mqtt:", "NATS": "nats:"}
+
+
+def worker(qu, ev, fn):
+    '''Worker function to fetch data from queue and trigger cb'''
+
+    while True:
+        if ev.is_set():
+            print("Worker Done")
+            break
+        try:
+            fn(qu.get(timeout=2))
+            qu.task_done()
+        except Exception:
+            # TODO: pass only for Empty exception
+            # print("Exception passed")
+            pass
+    return
+
+
+class databus:
+    '''Creates an instance of databus'''
+
+    def ContextCreate(self, contextConfig):
+        '''Create an underlying messagebus context for the databus
+        Arguments:
+            contextConfig<dict>: Messagebus params to create the context
+                <fields>
+                "direction": PUB/SUB/NONE - Mutually exclusive
+                "name": context namespace (PUB/SUB context namespaces should match)
+                "endpoint": messagebus endpoint address
+                    <format> proto://host:port/, proto://host:port/.../
+                    <examples>
+                    OPCUA -> opcua://0.0.0.0:4840/elephanttrunk/
+                    MQTT -> mqtt://localhost:1883/
+                    NATS -> nats://127.0.0.1:4222/
+        Return/Exception: Will raise Exception in case of errors'''
+
+        endpoint = contextConfig["endpoint"]
+        # TODO: Check for unique pub/sub contextName?
+        if endpoint.split('//')[0] == busTypes["OPCUA"]:
+            self.busType = busTypes["OPCUA"]
+            self.bus = databOpcua()
+            print(busTypes["OPCUA"])
+        elif endpoint.split('//')[0] == busTypes["MQTT"]:
+            self.busType = busTypes["MQTT"]
+            self.bus = databMqtt()
+            print(busTypes["MQTT"])
+        elif endpoint.split('//')[0] == busTypes["NATS"]:
+            self.busType = busTypes["NATS"]
+            self.bus = databNats()
+            print(busTypes["NATS"])
+        else:
+            raise Exception("Not a supported BusType")
+        print(contextConfig)
+        try:
+            self.bus.createContext(contextConfig)
+        except Exception as e:
+            print("{} Failure!!!".format(self.ContextCreate.__name__))
+            print(type(e).__name__)
+            raise
+        if contextConfig["direction"] == "PUB":
+            self.direction = "PUB"
+        elif contextConfig["direction"] == "SUB":
+            self.direction = "SUB"
+        else:
+            raise Exception("Not a supported BusDirection")
+
+    def Publish(self, topicConfig, data):
+        '''Publish data on the databus
+        Arguments:
+            topicConfig<dict>: Publish topic parameters
+                <fields>
+                "name": Topic name (in hierarchical form with '/' as delimiter)
+                    <example> "root/level1/level2/level3"
+                "type": Data type associated with the topic
+            data: The message whose type should match the topic data type
+        Return/Exception: Will raise Exception in case of errors'''
+
+        if self.direction == "PUB":
+            try:
+                if not self.checkMsgType(topicConfig["type"], data):
+                    raise Exception("Not a supported Message Type")
+                if topicConfig["name"] not in self.pubTopics.keys():
+                    self.bus.startTopic(topicConfig)
+                    self.pubTopics[topicConfig["name"]] = {}
+                    self.pubTopics[topicConfig["name"]]["type"] = topicConfig["type"]
+                # Now pubTopics has the topic for sure.
+                # (either created now/was present. Now check for type
+                if self.pubTopics[topicConfig["name"]]["type"] != topicConfig["type"]:
+                    raise Exception("Topic name & Type not matching")
+                # We are good to publish now
+                self.bus.send(topicConfig["name"], data)
+            except Exception as e:
+                print("{} Failure!!!".format(self.Publish.__name__))
+                print(type(e).__name__)
+                raise
+        else:
+            raise Exception("Not a supported BusDirection")
+
+    def Subscribe(self, topicConfig, trig, cb=None):
+        '''Subscribe data from the databus
+        Arguments:
+            topicConfig<dict>: Subscribe topic parameters
+                <fields>
+                "name": Topic name (in hierarchical form with '/' as delimiter)
+                    <example> "root/level1/level2/level3"
+                "type": Data type associated with the topic
+            trig: START/STOP- Start OR Stop Subscription
+            cb: A callback function with data as argument
+        Return/Exception: Will raise Exception in case of errors'''
+
+        if self.direction == "SUB":
+            try:
+                if topicConfig["name"] not in self.subTopics.keys():
+                    self.bus.startTopic(topicConfig)
+                    self.subTopics[topicConfig["name"]] = {}
+                    self.subTopics[topicConfig["name"]]["type"] = topicConfig["type"]
+                if self.subTopics[topicConfig["name"]]["type"] != topicConfig["type"]:
+                    raise Exception("Topic name & Type not matching")
+                # We are good to receive now
+                if (trig == "START") and (cb is not None):
+                    if "thread" in self.subTopics[topicConfig["name"]].keys():
+                        raise Exception("Already Subscribed!!!")
+                    qu = Queue()
+                    ev = Event()
+                    ev.clear()
+                    th = Thread(target=worker, args=(qu, ev, cb))
+                    th.deamon = True
+                    th.start()
+                    self.subTopics[topicConfig["name"]]["queue"] = qu
+                    self.subTopics[topicConfig["name"]]["event"] = ev
+                    self.subTopics[topicConfig["name"]]["thread"] = th
+                    self.bus.receive(topicConfig["name"], "START", qu)
+                elif trig == "STOP":
+                    # This should stop putting data into queue
+                    self.bus.receive(topicConfig["name"], "STOP")
+                    # Block until all data is read
+                    self.subTopics[topicConfig["name"]]["queue"].join()
+                    self.subTopics[topicConfig["name"]]["event"].set()
+                    self.subTopics[topicConfig["name"]]["thread"].join()
+                    # Remove entry from subTopics
+                    self.subTopics.pop(topicConfig["name"])
+                else:
+                    raise Exception("Unknown Trigger!!!")
+            except Exception as e:
+                print("{} Failure!!!".format(self.Subscribe.__name__))
+                print(type(e).__name__)
+                raise
+        else:
+            raise Exception("Not a supported BusDirection")
+
+    def ContextDestroy(self):
+        '''Destroys the underlying messagebus context
+        It unsubscribe all the existing subscriptions too'''
+
+        try:
+            # self.bus.stopTopic()
+            for key, item in self.subTopics.items():
+                self.bus.receive(key, "STOP")
+                self.subTopics[key]["queue"].join()
+                self.subTopics[key]["event"].set()
+                self.subTopics[key]["thread"].join()
+                self.subTopics.pop(key)
+            self.bus.destroyContext()
+        except Exception as e:
+            print("{} Failure!!!".format(self.ContextDestroy.__name__))
+            print(type(e).__name__)
+            raise
+
+    def checkMsgType(self, topicType, msgData):
+        '''Pvt function'''
+
+        if type(msgData) == str:
+            if topicType == "string":
+                return True
+            else:
+                return False
+
+    def __init__(self):
+        self.busType = None
+        self.direction = "NONE"
+        self.pubTopics = {}
+        self.subTopics = {}
+        self.bus = None
