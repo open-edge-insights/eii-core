@@ -13,6 +13,7 @@ StreamManager
 Util
 !Util/exception.py
 docker_setup/scripts/deploy/docker_images/*.tar
+test_videos/
 .git
 *.md
 *.mp4

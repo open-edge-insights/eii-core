@@ -11,6 +11,7 @@ StreamManager/test
 Util
 VideoIngestion
 docker_setup/scripts/deploy/docker_images/*.tar
+test_videos/
 .git
 *.md
 *.mp4

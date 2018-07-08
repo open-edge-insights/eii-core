@@ -1,16 +1,33 @@
 # Dockerfile for VideoIngestion
-FROM python:3
+FROM ia/pybase:1.0
 LABEL version="1.0"
 LABEL description="VideoIngestion image"
 
-ENV DIR /ETA
-WORKDIR ${DIR}
-ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
-ENV HOME /root
+ADD VideoIngestion/basler-video-capture ./basler-video-capture
+
+# Adding basler camera's essentials by referring it's repo's README
+RUN cd basler-video-capture/libs && \
+    tar xvf pylon-5.0.11.10914-x86_64.tar.gz && \
+    cd pylon-5.0.11.10914-x86_64 && \
+    pip3.6 install numpy && \
+    pip3.6 install setuptools && \
+    tar -C /opt -zxf pylonSDK-5.0.11.10914-x86_64.tar.gz && \
+    wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.gz && \
+    tar xvf boost_1_63_0.tar.gz && \
+    cd boost_1_63_0 && \
+    ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
+    ./b2 --with-python && \
+    ./b2 install && \
+    cd ../../../ && \
+    python3.6 setup.py install  
+
+# Installing python boost dependencies
+RUN apt-get update && \
+    apt-get install -y libboost-python-dev
 
 # Installing dependent python modules
 ADD vi_requirements.txt .
-RUN python3 -m pip install -r vi_requirements.txt && \
+RUN pip3.6 install -r vi_requirements.txt && \
     rm -rf vi_requirements.txt
 
 # Adding project depedency modules
@@ -21,7 +38,9 @@ ADD DataIngestionLib ./DataIngestionLib
 ADD ImageStore/py ./ImageStore/py
 ADD Util/exception.py ./Util/exception.py
 
-# Adding VideoIngestion program 
+# Adding VideoIngestion & test program 
 ADD VideoIngestion/VideoIngestion.py .
+ADD VideoIngestion/test .
 
-ENTRYPOINT python3 VideoIngestion.py --config factory.json --log-dir /ETA/video_ingestion
+ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion", "--config"]
+CMD ["factory_cam.json"]

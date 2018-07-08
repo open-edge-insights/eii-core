@@ -2,7 +2,7 @@
 
 # Excercising the ETA solution can be done in either of the 2 ways below:
 
-## Standalone installation of ETA modules (See individual modules README.md on how to run them)
+## a. Standalone installation of ETA modules (See individual modules README.md on how to run them)
 
 ### 1. Pre-requisites:
 1. Setting up GO dev env (Install latest Go 1.10.3 version or 1.9 version)
@@ -12,7 +12,7 @@
     * Install gRPC, protocal buffer compiler by following steps mentioned @ [go grpc quick start](https://grpc.io/docs/quickstart/go.html). As gRPC code file already exists, no need to re-generate the gRPC code file (da.pb.go) here, it's only needed if da.proto is been changed.
     > Note:
     > 1. **go build** puts the binary artifact in the current folder whereas **go install** puts it in the $GOPATH/bin folder. Command **go clean** deletes the artifact specific to the project
-    > 2. While running Go programs, one may face issues with missing dependency packages. Please use **go get -u <pacakage>** cmd to install each **OR** by being inside the Go project directory like DataAgent, run `go get -v ./...`, this will pull all the Go dependencies of DataAgent all at once.
+    > 2. Run cmd `dep ensure -vendor-only -v` to pull all the dependencies for all Go modules from the project directory.
 
 2. Setting up python dev env
     * Install python3. Follow guide [python3 installation](http://docs.python-guide.org/en/latest/starting/install3/linux/)
@@ -48,6 +48,6 @@
    The result images can be seen in the ~/saved_images (as per the factory.json configuration)
 7. The data being ingested can be seen coming into the DataAgent via StreamManager's UDP subscription to Influxdb which is published to message bus like NATS server and the same should be seen being received in the started nats client above.
 
-### 3. Running as docker containers
+## b. Running as docker containers
 
    Refer `docker_setup/README.md` file

@@ -2,6 +2,7 @@
 
 source ./stop_eta_containers.sh
 
+echo "Removing ETA containers..."
 # docker rm cmd removes the container
 docker rm ia_data_agent \
             ia_data_analytics \

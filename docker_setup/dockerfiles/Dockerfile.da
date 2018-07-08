@@ -1,17 +1,17 @@
 # Dockerfile for DataAgent
-FROM golang:1.10.3
+FROM ia/gobase:1.0
 LABEL version="1.0"
 LABEL description="DataAgent image"
-
-ENV DIR /go/src/iapoc_elephanttrunkarch
-WORKDIR ${DIR}
 
 ADD DataAgent ./DataAgent
 ADD StreamManager ./StreamManager
 ADD Util ./Util
 
-RUN mkdir -p ${DIR}/log && \
-    cd DataAgent && \
-    go get -v ./...
+ADD Gopkg.toml ./
+ADD Gopkg.lock ./
 
-ENTRYPOINT DataAgent -config=DataAgent/DataAgent.conf -log_dir=${DIR}/log/DataAgent
+RUN mkdir -p ${DIR}/log && \
+    dep ensure -vendor-only -v && \
+    go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
+
+ENTRYPOINT ["DataAgent", "-config=DataAgent/DataAgent.conf", "-log_dir=${DIR}/log/DataAgent"]

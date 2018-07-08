@@ -1,16 +1,13 @@
 # dockerfile for NATS client
-FROM python:3
+FROM ia/pybase:1.0
 LABEL version="1.0"
-LABEL description="NATS go/python client image"
+LABEL description="NATS python client image"
 
-ENV DIR /ETA
-WORKDIR ${DIR}
-
-# Adding NATS python/go files
+# Adding NATS python files
 ADD StreamManager/test/natsClient.py . 
-ADD natsClient-go .
 
 # Installing nats library
-RUN python3 -m pip install asyncio-nats-client
+RUN pip3.6 install asyncio-nats-client
 
-ENTRYPOINT python3 natsClient.py "stream1"
+ENTRYPOINT ["python3.6", "natsClient.py"]
+CMD ["classifier_results"]

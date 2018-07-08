@@ -2,8 +2,12 @@
 
 source ./init.sh
 
-echo "0. Removing previous dependency containers if existed..."
+echo "0.1 Removing previous dependency containers if existed..."
 source ./remove_dependency_containers.sh
+
+# Removing ETA containers also as these are dependent on dependency containers
+echo "0.2 Removing previous eta containers if existed..."
+source ./remove_eta_containers.sh
 
 # Starting dependency containers
 echo "1. Starting influxdb container..."

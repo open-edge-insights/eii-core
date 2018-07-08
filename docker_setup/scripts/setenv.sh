@@ -8,3 +8,5 @@ etaDataDir=$etaRootDir/data
 rootDir="../.."
 testFile="yumei_trigger.avi"
 configDir="../config"
+dockerfileDir="../dockerfiles"
+diPathFromRoot="docker_setup/dockerignore"
