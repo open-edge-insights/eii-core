@@ -57,7 +57,6 @@ class Trigger(BaseTrigger):
         """
         if self.start_ev.is_set():
             if self.is_triggered():
-                self.log.debug('Sending data from trigger')
                 self.send_data(data)
             else:
                 self.log.debug('Sending start signal')
@@ -84,7 +83,6 @@ class Trigger(BaseTrigger):
             datas = msg.payload.decode('utf-8')
             data = json.loads(datas)
             camera_on = data['camera_on']
-
             if camera_on == 0:
                 # The classification should stop
                 self.log.debug('Received stop signal from robotic arm')

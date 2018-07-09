@@ -9,6 +9,7 @@ import queue
 
 from .png_writer import PngWriter
 from .jpeg_writer import JpegWriter
+from agent.etr_utils import abspath
 
 
 class LocalStorageError(Exception):
@@ -100,9 +101,7 @@ class LocalStorage:
         self.stop_ev = th.Event()
 
         try:
-            self.folder = os.path.abspath(
-                    os.path.expanduser(
-                        os.path.expandvars(config['folder'])))
+            self.folder = abspath(config['folder'])
             image_format_config = config['image_format']
             self.writer = new_writer(image_format_config)
             self.image_format = image_format_config['type']

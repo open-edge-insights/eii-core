@@ -268,10 +268,10 @@ def load_trigger(trigger, config):
 
         return trigger
     except AttributeError:
-        raise TriggerError(
+        raise TriggerConfigError(
                 '"{}" module is missing the Trigger class'.format(trigger))
     except ImportError:
-        raise TriggerError('Failed to load trigger: {}'.format(trigger))
+        raise TriggerConfigError('Failed to load trigger: {}'.format(trigger))
     except KeyError as e:
         raise TriggerConfigError('Trigger config missing key: {}'.format(e))
 

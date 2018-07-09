@@ -134,6 +134,7 @@ class ClassifierManager:
         if self.mqtt_client is not None:
             self.mqtt_client.disconnect()
             self.mqtt_client.loop_stop()
+        self.db.close()
         self.log.info('Classification stopped')
 
     def _on_trigger(self, trigger, classifier, data):

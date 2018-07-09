@@ -41,6 +41,7 @@ class Ingestor:
             video_file = os.path.expanduser(config['video_file'])
             self.filename = os.path.basename(video_file)
             self.loop_video = config.get('loop_video', False)
+            self.poll_interval = config.get('poll_interval', None)
             if not os.path.exists(video_file):
                 raise IngestorError(
                         'Video file does not exist: {}'.format(video_file))
@@ -98,6 +99,9 @@ class Ingestor:
             self.on_data(
                     'video_file', (self.filename, self.frames[current_frame]))
             current_frame += 1
+
+            if self.poll_interval is not None:
+                time.sleep(self.poll_interval)
 
             if current_frame == self.frame_count:
                 if self.loop_video:

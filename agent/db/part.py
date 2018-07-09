@@ -18,7 +18,7 @@ class Part(Base):
     gateway_id = Column(String)
 
     # Relationship with the images of the part
-    images = relationship('Image')
+    images = relationship('Image', cascade='all,delete')
 
     def __repr__(self):
         return '<Part(id={0}, gateway_id={1})>'.format(self.id, self.gateway_id)

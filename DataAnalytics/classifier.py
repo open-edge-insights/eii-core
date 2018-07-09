@@ -58,7 +58,7 @@ class classifier_udf ():
                 reshape_frame = np.reshape(Frame, (img_height,
                                                    img_width, img_channels))
                 # Call classification manager API with the tuple data
-                user_data = [-1, 0]
+                user_data = point["user_data"]
                 data = [(1, user_data,
                          ('camera-serial-number', reshape_frame))]
                 ret = self._cm._process_frames(self.classifier, data)

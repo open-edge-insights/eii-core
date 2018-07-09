@@ -3,8 +3,6 @@ import numpy as np
 from skimage.filters import threshold_mean 
 
 
-bndbx = []              # Defect bounding box
-
 # Detect broken pin defect in input ROI
 # Input : defect_roi defect ROIs 
 #	  ref        reference image to compare
@@ -13,10 +11,12 @@ bndbx = []              # Defect bounding box
 # Output: list of defect bounding box coordinates
 
 def det_brokenpin(defect_roi, ref, test, thresh):
+    bndbx = []              # Defect bounding box
     # Threshold values
     red_tolerance = thresh["red_tolerance"]
     green_thresh = thresh["green_thresh"]
     blue_thresh = thresh["blue_thresh"]   
+    pinhole_6_thresh = thresh["pinhole_6_threshold"]
 
     pin_count = len(defect_roi)
     for hole in range(0, pin_count):
@@ -32,11 +32,11 @@ def det_brokenpin(defect_roi, ref, test, thresh):
        # Find the hole in test images
        cX = 51
        cY = 51
-       radius = 11
+       radius = 9
        
        # Pin hole 6 is smaller than other pin holes 
        if hole == 5 :       
-           radius = 10
+           radius = 8
 
        gray = pin_img[:, :, 2]
        thresh = threshold_mean(gray)
@@ -57,6 +57,12 @@ def det_brokenpin(defect_roi, ref, test, thresh):
                                                        # radius not clipping the edge
        pin_img = cv2.cvtColor(pin_img, cv2.COLOR_BGR2RGB)
        masked = cv2.bitwise_and(pin_img, pin_img, mask = mask)
+
+       # Need second level classifier for pinhole 6, convert to HSV space and take mean of V channel
+       cropimg_hsv = cv2.cvtColor(pin_img, cv2.COLOR_RGB2HSV)
+       v = cropimg_hsv[:,:,2].mean()
+       pinhole_6_v  = np.mean([pin_img[:,:,i].mean() for i in range(pin_img.shape[-1])])
+
 
        # Split RGB channels to read histogram distribution       
        red_chan =  cv2.split(masked)[0]
@@ -102,12 +108,14 @@ def det_brokenpin(defect_roi, ref, test, thresh):
        # Get mean of red channel distribution
        red_chan_nonzero = red_chan[np.nonzero(red_chan)]
        red_thresh = np.mean(red_chan_nonzero)
+       #print("red_metric {} green_metric {} blue_metric {}".format(red_metric, green_metric, blue_metric))
 
        # If mean red channel distribution is above red, 
        # append ROI coordinates bounding box list (bndbx)
-       if (red_metric > red_thresh + red_tolerance) & (green_metric < green_thresh) & (blue_metric < blue_thresh) :
+       if (hole != 5) & (red_metric > red_thresh + red_tolerance) & ((green_metric > green_thresh) or (blue_metric > blue_thresh)) :
            bndbx.append(defect_roi[hole])
+       elif (hole ==5):
+           if (red_metric > 150.0):
+               bndbx.append(defect_roi[hole])
        
-    return bndbx
-
-
+    return bndbx, red_metric, blue_metric, green_metric

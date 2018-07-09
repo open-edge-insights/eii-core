@@ -43,4 +43,5 @@ class Configuration:
         self.storage = config['storage']
         self.triggers = config['triggers']
         self.database = config['database']
+        self.rsync_service = config.get('rsync_service', None)
 

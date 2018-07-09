@@ -4,7 +4,7 @@
     "classification": {
         "classifiers": {
             "yumei": {
-                "trigger": ["robotic_arm", "key_frame_extractor"],
+                "trigger": ["robotic_arm", "motion_detection"],
                 "config": {
                     "ref_imgdir": "./agent/ref/",
                     "ref_imgcount": 4,
@@ -19,7 +19,7 @@
                 "poll_interval": 0.01,
                 "streams": {
                     "basler": {
-                       "22573662":{
+                       "22573664":{
                                "exposure": 8000
                        }
                     }
@@ -28,12 +28,13 @@
         }
     },
     "triggers": {
-	"key_frame_extractor":{
-	    "kp_threshold": 30,
-	    "no_part_in_frame_thresh": 30,
-	    "ref_imgdir": "./agent/ref",
-	    "ref_imgcount": 4
-	},
+        "motion_detection": {
+            "angle_sequence": [231, 629, 793, 1076],
+            "white_threshold": 2000,
+            "light_threshold": 1000,
+            "roi_y1": 0,
+            "roi_y2": 750
+        },
 	"robotic_arm":{
 		"mqtt_broker_host": "localhost",
 		"mqtt_broker_port": 1883
@@ -43,9 +44,9 @@
     "database": {
         "host": "localhost",
         "port": 5432,
-        "username": "ali_n",
+        "username": "ali",
         "password": "intel123",
-        "database_name": "ali_n"
+        "database_name": "ali"
     },
     "storage": {
         "folder": "~/saved_images/",

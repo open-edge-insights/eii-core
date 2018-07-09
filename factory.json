@@ -4,7 +4,7 @@
     "data_ingestion_manager": {
         "ingestors": {
             "video_file": {
-		    "video_file": "yumei_trigger.avi"
+		    "video_file": "defect-vid3.avi"
             }
         }
     },
@@ -18,11 +18,12 @@
         }
     },
     "triggers": {
-        "key_frame_extractor": {
-            "kp_threshold": 3,
-            "no_part_in_frame_thresh": 3,
-            "ref_imgdir": "./agent/ref/",
-            "ref_imgcount": 4
+        "motion_detection": {
+            "angle_sequence": [231, 629, 793, 1076],
+            "white_threshold": 2000,
+            "light_threshold": 1000,
+            "roi_y1": 0,
+            "roi_y2": 750
         }
     },
     "classification": {
@@ -31,7 +32,7 @@
         "max_workers": 1,
         "classifiers": {
             "yumei": {
-                "trigger": ["key_frame_extractor"],
+                "trigger": ["motion_detection"],
                 "config": {
                     "ref_imgdir": "./agent/ref/",
                     "ref_imgcount": 4,
@@ -44,6 +45,7 @@
         "host": "localhost",
         "port": 5432,
         "database_name": "ali",
-        "username": "ali"
+        "username": "ali",
+	"password": "intel123"
     }
 }

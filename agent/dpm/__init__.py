@@ -160,11 +160,20 @@ class DataPipelineManager:
         """
         # TODO: Could probably optimize to not use entire executor thread for
         # this ingestor
-        for i in data:
-            if i is None:
-                break
-            # Unpacking the data
-            sample_num, user_data, video_data = i
-            # Send the data through the trigger
-            trigger.process_data(ingestor, video_data)
+        try:
+            for i in data:
+                if i is None:
+                    break
+                # Unpacking the data
+                sample_num, user_data, video_data = i
+                # Send the data through the trigger
+                trigger.process_data(ingestor, video_data)
+        except:
+            self.log.error(
+                    'Error while passing pipelined frames to trigger %s:\n%s', 
+                    trigger, tb.format_exc())
+
+            # Set error in the TriggerIter object to prevent build up of
+            # unconsumed data
+            data.set_error()
 

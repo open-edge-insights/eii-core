@@ -62,6 +62,13 @@ class DatabaseAdapter:
         self.session_maker = sessionmaker(expire_on_commit=False)
         self.session_maker.configure(bind=self.engine)
 
+    def close(self):
+        """Close the database connection.
+
+        Note that no queries should be done after calling this method.
+        """
+        self.db_conn.close()
+
     def add_part(self):
         """Add a part to the database. This will automatically generate a UUID
         for the part using the uuid4 standard.
@@ -121,8 +128,7 @@ class DatabaseAdapter:
             assert camera is not None, 'No camera with SN: {}'.format(cam_sn)
             img_id = str(uuid4())
             ts = datetime.utcnow()
-            filename = '{0}_{1}_{2}_{3}.{4}'.format(
-                    self.gateway_id,part_id, img_id, ts, fmt)
+            filename = '{0}.{1}'.format(img_id, fmt)
             img = Image(id=img_id, filename=filename, rows=int(rows), 
                     cols=int(cols), format=fmt, timestamp=ts, cam_sn=cam_sn, 
                     cam_loc_id=camera.cam_loc_id, cam_pos_id=camera.cam_pos_id,
@@ -389,4 +395,21 @@ class DatabaseAdapter:
         image = s.query(Image).filter_by(id=image_id).options(joinedload('defects')).first()
         s.close()
         return image
+
+    def remove_part(self, part_id):
+        """Remove the specified part from the database. This removal will 
+        cascade to the image and defect entries in the database. If the part
+        does not exist in the database then nothing will happen.
+
+        Parameters
+        ----------
+        part_id : str
+            String ID of the part to remove from the database.
+        """
+        s = self.session_maker()
+        part = s.query(Part).filter_by(id=part_id).first()
+        if part is not None:
+            s.delete(part)
+            s.commit()
+        s.close()
 

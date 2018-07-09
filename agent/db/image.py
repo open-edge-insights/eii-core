@@ -21,7 +21,7 @@ class Image(Base):
     timestamp = Column(DateTime)
     
     # List of defects relationship
-    defects = relationship('Defect')
+    defects = relationship('Defect', cascade='all,delete')
 
     # Relationship with the camera that captured the image
     cam_sn = Column(String, ForeignKey('camera.serial_number'))

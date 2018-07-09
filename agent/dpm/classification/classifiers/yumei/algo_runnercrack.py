@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 
-bndbx = []	    # Defect bounding box
-
 # Detect runner crack defect in input ROI 
 # Input : defect_roi defect ROIs      
 #         ref        reference image to compare 
@@ -10,7 +8,14 @@ bndbx = []	    # Defect bounding box
 #         thresh     threshold values to compare
 # Output: list of defect bounding box coordinates   
 
+def _rotateImage(image, angle):
+    image_center = tuple(np.array(image.shape[1::-1]) /2)
+    rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
+    result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
+    return result
+
 def det_runnercrack(defect_roi, ref, test, thresh):
+    bndbx = []	    # Defect bounding box
     # Thresholds
     crack_thresh = thresh["crack_thresh"]        # lower pixel threshold value, 
                                                  # will count pixels above this threshold to
@@ -24,30 +29,50 @@ def det_runnercrack(defect_roi, ref, test, thresh):
     for crack in range(0, crack_count) :
         x, y, x1, y1 = defect_roi[crack]
         crack_img = test[y:y1, x:x1]
+        
+        red = crack_img[:,:,2]
+        redthresh = cv2.adaptiveThreshold(red, 1, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21,23)
+        img = cv2.cvtColor(crack_img, cv2.COLOR_BGR2HSV)
+        img = img[:,:,0]
          
-        # Gabor filter kernel
-        g_kernel = cv2.getGaborKernel((3, 3), 8.0, np.pi/4, 50.0, 0.5, 0, ktype = cv2.CV_32F)
-        crack_img = cv2.cvtColor(crack_img, cv2.COLOR_BGR2GRAY)
-        # Apply gabor filter to cropped crack ROI
-        filtered_img = cv2.filter2D(crack_img, cv2.CV_8UC3, g_kernel)
-        # Invert image to make it easier to visualize and count
-        filtered_img = cv2.bitwise_not(filtered_img)
-        # count pixels above 20
-        crack_metric = np.sum(filtered_img >= crack_thresh)
-
         # Choose correct thresholds for crack 
         dispo_thresh = 0  
         if crack + 1 == 1 :  
-            dispo_thresh = dispo_thresh_c1     
+            (T, thresh) = cv2.threshold(img, 150, 1, cv2.THRESH_BINARY)
+            y = thresh[10:70,:].sum(axis=0)
+            high = np.argmax(y<2)+16
+            low = np.argmax(y<2)
+            new = y[low:high]
+            maxval = np.argmax(new)+low
+            hdispo = img[10:70,maxval+8:maxval+20].sum(axis=0)
+            crack_dispo = hdispo.sum()
         elif crack + 1 == 2 :     
-            dispo_thresh = dispo_thresh_c2  
+            img = redthresh
+            img = _rotateImage(img, -43)
+            y = img[20:80,:].sum(axis=0)
+            cntr=0
+            for j in range(len(y)):
+                  if(y[j] > 30):
+                      cntr = cntr+1
+                  else:
+                      cntr = 0
+                  if cntr == 3:
+                      break
+            high = j + 18
+            low = j+6
+            crack_dispo = y[low:high].sum()
         elif crack + 1 == 3 :        
-            dispo_thresh = dispo_thresh_c3   
+            a = img[20:80:,:].sum(axis=0)
+            maxval = np.argmax(a[:])
+            rdispo = redthresh[20:80,maxval+7:maxval+13].sum(axis=0)
+            crack_dispo = rdispo.sum()
 
-        # true if crack, false if no crack
-        crack_dispo = crack_metric > dispo_thresh 
 
-        if crack_dispo == True:
+        if crack_dispo < dispo_thresh_c1 and crack == 0:
+            bndbx.append(defect_roi[crack])
+        elif crack_dispo < dispo_thresh_c2 and crack ==1:
+            bndbx.append(defect_roi[crack])
+        elif crack_dispo < dispo_thresh_c3 and crack ==2:
             bndbx.append(defect_roi[crack])
 
     return bndbx
