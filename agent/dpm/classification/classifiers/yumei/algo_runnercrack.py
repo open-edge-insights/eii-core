@@ -1,18 +1,21 @@
 import cv2
 import numpy as np
 
-# Detect runner crack defect in input ROI 
-# Input : defect_roi defect ROIs      
-#         ref        reference image to compare 
-#         test       warped test image aligned to exactly overlay reference image  
-#         thresh     threshold values to compare
-# Output: list of defect bounding box coordinates   
 
 def _rotateImage(image, angle):
     image_center = tuple(np.array(image.shape[1::-1]) /2)
     rot_mat = cv2.getRotationMatrix2D(image_center, angle, 1.0)
     result = cv2.warpAffine(image, rot_mat, image.shape[1::-1], flags=cv2.INTER_LINEAR)
     return result
+
+# Detect runner crack defect in input ROI 
+# Input : defect_roi defect ROIs      
+#         ref        reference image to compare 
+#         test       warped test image aligned to exactly overlay reference image  
+#         thresh     threshold values to compare
+# Output: list of defect bounding box coordinates   
+# Detect the double rainbow pattern on runner links => no defect
+# Double rainbow pattern detected by counting the number of black pixels vertically.
 
 def det_runnercrack(defect_roi, ref, test, thresh):
     bndbx = []	    # Defect bounding box

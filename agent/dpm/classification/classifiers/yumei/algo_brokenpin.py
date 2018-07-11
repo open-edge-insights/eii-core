@@ -2,17 +2,18 @@ import cv2
 import numpy as np
 from skimage.filters import threshold_mean 
 
-
 # Detect broken pin defect in input ROI
 # Input : defect_roi defect ROIs 
 #	  ref        reference image to compare
 #	  test       warped test image aligned to exactly overlay reference image
-#     thresh     threshold values to compare
+#         thresh     threshold values for defect classification
 # Output: list of defect bounding box coordinates
 
 def det_brokenpin(defect_roi, ref, test, thresh):
-    bndbx = []              # Defect bounding box
-    # Threshold values
+    # Initialize defect bounding box as an empty array
+    bndbx = []
+
+    # Read threshold values
     red_tolerance = thresh["red_tolerance"]
     green_thresh = thresh["green_thresh"]
     blue_thresh = thresh["blue_thresh"]   
@@ -20,7 +21,7 @@ def det_brokenpin(defect_roi, ref, test, thresh):
 
     pin_count = len(defect_roi)
     for hole in range(0, pin_count):
-       # Crop ROI region from test image
+       # Crop ROI region from test frame and ref image
        x, y, x1, y1 = defect_roi[hole]
        pin_img = test[y:y1, x:x1]
        ref_pin = ref[y:y1, x:x1]
@@ -38,6 +39,7 @@ def det_brokenpin(defect_roi, ref, test, thresh):
        if hole == 5 :       
            radius = 8
 
+       # Threshold the image and detect contours on red channel
        gray = pin_img[:, :, 2]
        thresh = threshold_mean(gray)
        ret, binary = cv2.threshold(gray, thresh, 255, cv2.THRESH_BINARY)
@@ -46,15 +48,17 @@ def det_brokenpin(defect_roi, ref, test, thresh):
        cnts = sorted(cnts, key = cv2.contourArea, reverse = False)
        for (j, c) in enumerate(cnts) :
            area = cv2.contourArea(c)
+           # Select contour that approximate the circular pinhole region in ROI
            if 600 <= area <= 1600 :
                 M = cv2.moments(c)
                 cX = int(M["m10"] / M["m00"])
                 cY = int(M["m01"] / M["m00"])
 
-       # Mask out everything except the hole 
+       # Mask out everything except the pinhole region in ROI
        mask = np.zeros(pin_img.shape[:2], dtype = 'uint8')
        cv2.circle(mask, (cX, cY), radius, 255, -1)  # assuming center of image as center of hole
-                                                       # radius not clipping the edge
+                                                    # radius not clipping the edge
+       # Convert to RGB format
        pin_img = cv2.cvtColor(pin_img, cv2.COLOR_BGR2RGB)
        masked = cv2.bitwise_and(pin_img, pin_img, mask = mask)
 
@@ -108,14 +112,15 @@ def det_brokenpin(defect_roi, ref, test, thresh):
        # Get mean of red channel distribution
        red_chan_nonzero = red_chan[np.nonzero(red_chan)]
        red_thresh = np.mean(red_chan_nonzero)
-       #print("red_metric {} green_metric {} blue_metric {}".format(red_metric, green_metric, blue_metric))
 
-       # If mean red channel distribution is above red, 
-       # append ROI coordinates bounding box list (bndbx)
+       # If mean red channel distribution of test frame is more than a tolerance value added to the same for ref image
+       # and the green and blue metrics are below threshold values, 
+       # append ROI coordinates to bounding box list (bndbx)
        if (hole != 5) & (red_metric > red_thresh + red_tolerance) & ((green_metric > green_thresh) or (blue_metric > blue_thresh)) :
            bndbx.append(defect_roi[hole])
-       elif (hole ==5):
-           if (red_metric > 150.0):
+       elif (hole == 5):
+           # If pinhole 6, check for only red channel distribution
+           if (red_metric > pinhole_6_thresh):
                bndbx.append(defect_roi[hole])
        
-    return bndbx, red_metric, blue_metric, green_metric
+    return bndbx

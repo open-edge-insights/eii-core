@@ -25,13 +25,13 @@ class Trigger(BaseTrigger):
 
         self.stop_ev.set()
 
-        self.log.debug('Connecting to MQTT broker %s:%d',
+        self.log.debug('Connecting to MQTT broker %s:%d', 
                 mqtt_broker_host, mqtt_broker_port)
         self.mqtt_client.on_message = self._on_message
         self.mqtt_client.on_connect = self._on_connect
         self.mqtt_client.on_disconnect = self._on_disconnect
         self.mqtt_client.connect(mqtt_broker_host, mqtt_broker_port)
-
+        
         self.log.debug('Subscribing to robotic arm MQTT topic')
         self.mqtt_client.subscribe(MQTT_ROBOTIC_ARM_TOPIC)
 
@@ -64,7 +64,7 @@ class Trigger(BaseTrigger):
         elif self.stop_ev.is_set() and self.is_triggered():
             self.log.debug('Sending stop signal')
             self.send_stop_signal()
-
+    
     def stop(self):
         """Overloaded stop method
         """
@@ -83,6 +83,7 @@ class Trigger(BaseTrigger):
             datas = msg.payload.decode('utf-8')
             data = json.loads(datas)
             camera_on = data['camera_on']
+            
             if camera_on == 0:
                 # The classification should stop
                 self.log.debug('Received stop signal from robotic arm')
@@ -100,10 +101,10 @@ class Trigger(BaseTrigger):
                     self.start_ev.set()
                     self.stop_ev.clear()
             else:
-                self.log.error('Received unknown \'camera_on\' value: %d',
+                self.log.error('Received unknown \'camera_on\' value: %d', 
                         camera_on)
         except:
-            self.log.error('Exception while parsing MQTT payload:\n%s',
+            self.log.error('Exception while parsing MQTT payload:\n%s', 
                     tb.format_exc())
 
     def _on_connect(self, client, userdata, flags, rc):

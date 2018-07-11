@@ -1,6 +1,6 @@
 Alibaba March PoC
 ===============
-> **NOTE:** This code uses Python 3, not 2.7.x
+> **NOTE:** This code uses Python 3.6.x, not 2.7.x
 
 Code base for simple lab setup to showcase feasibility of end-to-end factory
 automation system.
@@ -155,6 +155,13 @@ configuration file must have the following entries:
         "host": <STRING: Host running the database>,
         "database_name": <STRING: Name of the postgres db>,
         "port": <INT: Port for the database>
+    },
+    "rsync_service": {
+        "remote_host": <STRING: Edge server IP or FQDN>,
+        "remote_port": <INT: REST API port>,
+        "remote_folder": <STRING: Edge server upload location>,
+        "remote_user": <STRING: Username to use for upload>,
+        "identity_file": <STRING: SSH identity file to use for rsync> 
     }
 }
 ```
@@ -183,6 +190,9 @@ the camera location and position respectively.
 ```sh
 $ python3 factory.py db insert camera camera-serial-number 0 3
 ```
+> **NOTE:** If you are using the `video_file` ingestor, then the 
+> `camera-serial-number` must be the name (with the path) to the file that is
+> serving as the data source.
 
 An example configuration named `example-factory.json` is provided in the code
 base. For more information on using the example configuration, see 
@@ -272,6 +282,30 @@ configure them.
 The database section provides the needed values for the database adapter connect
 to the database and store data.
 
+
+### Rsync Service
+> **NOTE:** The `rsync_service` portion of the configuration is optional. It
+> only needs to be specified if you wish to run the service separately from
+> ETR running. ETR must have MQTT configured for classification in order to use
+> the rsync service.
+
+The `rsync_service` section of the `factory.json` provides the values needed to
+be able to run the Rsync service. The Rsync service is not started when you run
+the `factory.py` script alone. It is a separate command line option, which will
+**ONLY** start the rsync service. This service subscribes to the MQTT topics 
+that ETR publishes meta-data and summary data, and when a classification cycle
+is completed (i.e. a summary message is published) it will syncronize the 
+resulting data with the edge server.
+
+To run rsync service, use the following command:
+```sh
+$ python3 factory.py rsync-service
+```
+
+It is important to note that since the rsync service makes use of the MQTT
+capability of ETR, you **MUST** have MQTT configured for ETR to use, otherwise
+the rsync service will never syncronize the data.
+
 ## Usage
 
 The `factory.py` script has the following command line interface:
@@ -343,6 +377,25 @@ $ sudo systemctl stop etr
 ### Checking ETR SystemD Service Status
 ```sh
 $ sudo systemctl status etr
+```
+
+## Rsync Service SystemD Service
+The rsync service for ETR also has a SYSTEMD service available. To use it, you
+must have ETR in the same locations as specified in the previous section. Then,
+you must execute the following commands to install the systemd service:
+
+```sh
+# Copy etr-rsync.service file to the proper etc location
+$ sudo cp etr-rsync.service /etc/systemd/system
+
+# Reload services into systemd
+$ sudo systemctl daemon-reload
+
+# Enable the ETR rsync service
+$ sudo systemctl enable etr-rsync
+
+# Start the ETR rsync service
+$ sudo systemctl start etr-rsync
 ```
 
 ## Development

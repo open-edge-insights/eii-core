@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-
+# Calculate histogram and mean sliding window in range +-3
 def _calc_hist(image, mask = None):
     chans = cv2.split(image)
     hist_test = []
@@ -17,14 +17,25 @@ def _calc_hist(image, mask = None):
         hist_max = np.mean(hist_test)
     return hist_max
 
+# Detect Hole 609 block in input ROI   
+# Input : defect_roi defect ROIs      
+#         ref        reference image to compare    
+#         test       warped test image aligned to exactly overlay reference image  
+#         thresh     threshold values for defect classification   
+# Output: list of defect bounding box coordinates  
+
 def det_hole609(defect_roi, ref, test, thresh):
+    # Initialize defect bounding box as an empty array
     bndbx = []
-    # Threshold
+
+    # Read threshold values
     dispo_thresh = thresh["dispo_thresh"]
 
+    # Crop ROI region from test frame
     x, y, x1, y1 = defect_roi[0]
     img = test[y:y1, x:x1]
   
+    # Mask out everything except center hole region in H609
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (100, 100))
     img_copy = img.copy()
@@ -32,8 +43,9 @@ def det_hole609(defect_roi, ref, test, thresh):
     mask = np.zeros(img.shape[:2], dtype = 'uint8')
     cv2.circle(mask, (51, 52), 24, 255, -1)
     masked = cv2.bitwise_and(img, img, mask = mask)
-    hist = _calc_hist(img, mask)
-    newdispo = hist#np.max(hist)
+
+    # Calculate the histogram metric for classification dispo
+    newdispo = _calc_hist(img, mask)
 
     if newdispo >= dispo_thresh :
         bndbx.append(defect_roi[0])

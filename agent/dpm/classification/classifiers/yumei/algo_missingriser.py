@@ -1,12 +1,18 @@
 import cv2
 import numpy as np
 
+# Detect missing riser defect in input ROI   
+# Input : defect_roi defect ROIs   
+#         ref        reference image to compare   
+#         test       warped test image aligned to exactly overlay reference image 
+#         thresh     threshold values for defect classification 
+# Output: list of defect bounding box coordinates 
 
 def det_missingriser(defect_roi, ref, test, thresh, index):
 
-    bndbx = []                 # Defect bounding box
-    metric = 0
-    metric2 = 0
+    # Initialize defect bounding box as an empty array 
+    bndbx = []
+
     # Angle #2 defect detection
     if index == 2:
         # Get thresholds
@@ -15,7 +21,10 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
         for riser in range (0, len(defect_roi)):
             x, y, x1, y1 = defect_roi[riser]
             riser_test = test[y:y1, x:x1]
-            
+           
+            # Risers in Angle #2 use mean of red channel for classification. If riser is present,
+            # ROI has shiny metal surface to reflect light. Hence if mean red is below threshold,
+            # no metal surface => defect
             red_chan = cv2.split(riser_test)[0]
             red_chan_nonzero = red_chan[np.nonzero(red_chan)]
             if red_chan_nonzero.any():
@@ -23,7 +32,6 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
             else :
                 red_metric = 0
 
-            metric = red_metric
             if red_metric < red_thresh_A2 :
                 bndbx.append(defect_roi[riser])
                
@@ -57,13 +65,13 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
                    bin_limits = bin_r6_A3
                    dispo_th = dispo_r6_A3
                newdispo = (np.logical_and(gray >= bin_limits[0], gray <= bin_limits[1])).sum()
-               metric = newdispo
+
                if newdispo < dispo_th :
                    bndbx.append(defect_roi[riser])
 
             # Riser 2,3,5,4 use contour extraction
-            # Riser 4 : Riser 4 has a shiny front view, surrounder by a black border. 
-            #           Detected by drawing contours (similar to A4 R11-14)
+            # Riser 4 : Riser 4 has a shiny front view, surrounded by a black border. 
+            #           Detected by drawing contours
             # Riser 3,5 : Small tabs, edge is shiny than background if riser is missing. 
             #             Contour detection after binary thresholding to detect the shiny edge.
             #             If area of contour detected is above '80', shiny edge present -> no defect
@@ -108,13 +116,11 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
                                     def_det = False
                     elif riser+1 in [3, 5]:
                         if 600 >= area >= 80 :
-                            metric = area
                             def_det = False
                         else:
                             break
                     else:   # riser2
                         if area <= area_limits:
-                            metric = area
                             def_det = False
                         break           # Need to check only the largest area for riser 2
 
@@ -175,10 +181,11 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
                     red_thresh = red_thresh_r16_A4
                 else :
                     red_thresh = red_thresh_A4
-                metric = red_metric
                 if red_metric < red_thresh :
                     bndbx.append(defect_roi[riser])
             
+            # To detect defect in riser 10 - 14, use template matching.
+            # Threshold based on min val and distance from ref  
             elif 10 <= riser + 1 <= 14:
                 def_det = False
                 riser_ref = cv2.cvtColor(riser_ref, cv2.COLOR_BGR2GRAY)
@@ -219,8 +226,6 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
                 new_center = (top_left[0] + w/2, top_left[1] + h/2)
                 distance_from_ref = np.sqrt( (new_center[0] - temp_center[0])**2 + (new_center[1] - temp_center[1])**2 )
                 
-                metric = distance_from_ref
-                metric2 = min_val
                 if (riser + 1 == 10) & (distance_from_ref > distance_th_r10_A4) :
                     def_det = True
                 elif (riser + 1 == 11) & (min_val > val_th_r11_A4) :
@@ -234,7 +239,7 @@ def det_missingriser(defect_roi, ref, test, thresh, index):
                 if def_det == True:
                     bndbx.append(defect_roi[riser])            
 
-    return bndbx, metric, metric2
+    return bndbx
 
 
     
