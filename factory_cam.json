@@ -2,6 +2,9 @@
     "machine_id": "basler-capture-example",
     "trigger_threads": 4,
     "classification": {
+        "mqtt_broker_host": "localhost",
+        "mqtt_broker_port": 1883,
+        "max_workers": 1,
         "classifiers": {
             "yumei": {
                 "trigger": ["robotic_arm", "motion_detection"],
