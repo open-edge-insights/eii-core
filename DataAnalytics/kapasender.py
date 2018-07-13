@@ -70,8 +70,10 @@ class ConnHandler(Handler):
                 response.point.fieldsString[k] = v
             elif isinstance(v, int):
                 response.point.fieldsInt[k] = v
-            else:
-                pass
+            elif k == "defects":
+                    for index, defect in enumerate(v, start=1):
+                        d_k = k+'_'+str(index)
+                        response.point.fieldsString[d_k] = json.dumps(defect)
         response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
         self._agent.write_response(response, True)
 
