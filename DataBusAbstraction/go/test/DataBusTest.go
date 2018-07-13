@@ -8,70 +8,129 @@ import (
 	"os"
 )
 
+/*
+endpoint:
+<examples>
+	OPCUA -> opcua://0.0.0.0:4840/elephanttrunk/
+	MQTT -> mqtt://localhost:1883/
+	NATS -> nats://127.0.0.1:4222/
+*/
+
+func cbFunc(topic string, msg interface{}) {
+	fmt.Println("Received msg: " + msg.(string) + " on topic: " + topic)
+}
+
+//Custom flag var
+type topicType []string
+
+func (t *topicType) String() string {
+	return fmt.Sprintf("%s", *t)
+}
+
+func (t *topicType) Set(value string) error {
+	fmt.Printf("%s\n", value)
+	*t = append(*t, value)
+	return nil
+}
+
+func errHandler() {
+	if r := recover(); r != nil {
+		fmt.Println(r)
+		fmt.Println("Exting Test program with ERROR!!!")
+		os.Exit(1)
+	}
+}
+
 func main() {
-	mqtt_context := map[string]string{
-		"direction": "PUB",
-		"name":      "streammanager",
-		"endpoint":  "mqtt://localhost:1883/",
-	}
-	opcua_context := map[string]string{
-		"direction": "PUB",
-		"name":      "streammanager",
-		"endpoint":  "opcua://0.0.0.0:4840/elephanttrunk/",
-	}
-	topic_config1 := map[string]string{
-		"name": "streammanager/first/time/test",
-		"type": "string",
-	}
-	topic_config2 := map[string]string{
-		"name": "streammanager/second/test2",
-		"type": "string",
-	}
-	topic_config3 := map[string]string{
-		"name": "streammanager/second/time/test3",
-		"type": "string",
-	}
-	//for glog
+	endPoint := flag.String("endpoint", "", "Provide the message bus details")
+	direction := flag.String("direction", "", "One of PUB/SUB")
+	ns := flag.String("ns", "", "namespace")
+	var topics topicType
+	flag.Var(&topics, "topic", "List of topics")
+	msg := flag.String("msg", "", "Message to send")
+
 	flag.Parse()
+	//for glog
 	flag.Lookup("logtostderr").Value.Set("true")
 	flag.Lookup("log_dir").Value.Set("/var/log")
 	//now start the tests
-	mqttDatab := databus.NewDataBus()
-	if 0 != mqttDatab.ContextCreate(mqtt_context) {
-		panic("MQTT Context Creation failure")
+	contextConfig := map[string]string{
+		"endpoint":  *endPoint,
+		"direction": *direction,
+		"name":      *ns,
 	}
-	opcuaDatab := databus.NewDataBus()
-	if 0 != opcuaDatab.ContextCreate(opcua_context) {
-		panic("OPCUA Context Creation failure")
+
+	defer errHandler()
+	etaDatab, err := databus.NewDataBus()
+	if err != nil {
+		panic(err)
 	}
-	itr := 1
-	text := ""
+	err = etaDatab.ContextCreate(contextConfig)
+	if err != nil {
+		panic(err)
+	}
+	flag := "NONE"
+	if *direction == "PUB" {
+		for _, t := range topics {
+			topicConfig := map[string]string{
+				"name": t,
+				"type": "string",
+			}
+			etaDatab.Publish(topicConfig, *msg)
+		}
+	} else if *direction == "SUB" {
+		for _, t := range topics {
+			topicConfig := map[string]string{
+				"name": t,
+				"type": "string",
+			}
+			etaDatab.Subscribe(topicConfig, "START", cbFunc)
+		}
+		flag = "START"
+	} else {
+		panic("Wrong direction argument")
+	}
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Enter Msg: ")
+	fmt.Println("Enter CMD/MSG: ")
 	for scanner.Scan() {
-		text = scanner.Text()
-		if text == "Terminate" {
-			mqttDatab.ContextDestroy()
-			opcuaDatab.ContextDestroy()
-			break
+		fmt.Println("Enter CMD/MSG: ")
+		text := scanner.Text()
+		if *direction == "PUB" {
+			if text == "TERM" {
+				etaDatab.ContextDestroy()
+				break
+			} else {
+				for _, t := range topics {
+					topicConfig := map[string]string{
+						"name": t,
+						"type": "string",
+					}
+					etaDatab.Publish(topicConfig, text)
+				}
+			}
+		} else if *direction == "SUB" {
+			if text == "TERM" {
+				etaDatab.ContextDestroy()
+				break
+			} else if text == "STOP" && flag == "START" {
+				for _, t := range topics {
+					topicConfig := map[string]string{
+						"name": t,
+						"type": "string",
+					}
+					etaDatab.Subscribe(topicConfig, "STOP", nil)
+				}
+				flag = "STOP"
+			} else if text == "START" && flag == "STOP" {
+				for _, t := range topics {
+					topicConfig := map[string]string{
+						"name": t,
+						"type": "string",
+					}
+					etaDatab.Subscribe(topicConfig, "START", cbFunc)
+				}
+				flag = "START"
+			}
 		}
-		switch itr {
-		case 1:
-			fmt.Println("Publish '" + text + "' to topic '" + topic_config1["name"] + "'")
-			mqttDatab.Publish(topic_config1, text)
-			opcuaDatab.Publish(topic_config1, text)
-			itr = 2
-		case 2:
-			fmt.Println("Publish '" + text + "' to topic '" + topic_config2["name"] + "'")
-			mqttDatab.Publish(topic_config2, text)
-			opcuaDatab.Publish(topic_config2, text)
-			itr = 3
-		case 3:
-			fmt.Println("Publish '" + text + "' to topic '" + topic_config3["name"] + "'")
-			mqttDatab.Publish(topic_config3, text)
-			opcuaDatab.Publish(topic_config3, text)
-			itr = 1
-		}
-		fmt.Println("Enter Msg: ")
 	}
 }
