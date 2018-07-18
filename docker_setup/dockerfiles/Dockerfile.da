@@ -1,17 +1,20 @@
 # Dockerfile for DataAgent
-FROM ia/gobase:1.0
+FROM ia/gopybase:1.0
 LABEL version="1.0"
 LABEL description="DataAgent image"
 
 ADD DataAgent ./DataAgent
 ADD StreamManager ./StreamManager
+ADD DataBusAbstraction ./DataBusAbstraction
 ADD Util ./Util
 
 ADD Gopkg.toml ./
 ADD Gopkg.lock ./
+ADD databus_requirements.txt ./
 
 RUN mkdir -p ${DIR}/log && \
     dep ensure -vendor-only -v && \
+    pip2 install -r databus_requirements.txt && \
     go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
 
 ENTRYPOINT ["DataAgent", "-config=DataAgent/DataAgent.conf", "-log_dir=${DIR}/log/DataAgent"]

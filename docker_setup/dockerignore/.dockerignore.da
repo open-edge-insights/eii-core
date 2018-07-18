@@ -1,6 +1,5 @@
 agent
 DataAnalytics
-DataBusAbstraction
 DataIngestionLib
 ImageStore
 kapacitor
