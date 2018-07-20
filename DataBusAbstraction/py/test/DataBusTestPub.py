@@ -38,22 +38,24 @@ if __name__ == "__main__":
     while True:
         time.sleep(1)
         var = raw_input("Enter New Value: ")
-        print("Entered: ", var)
         if var == "Terminate":
             opc_datab.ContextDestroy()
             mqtt_datab.ContextDestroy()
             break
         if itr == 1:
+            print("Publish \'{}\' to topic \'{}\'".format(var, topic_config["name"]))
             opc_datab.Publish(topic_config, var)
             mqtt_datab.Publish(topic_config, var)
             itr = 2
             continue
         if itr == 2:
+            print("Publish \'{}\' to topic \'{}\'".format(var, topic_config2["name"]))
             opc_datab.Publish(topic_config2, var)
             mqtt_datab.Publish(topic_config2, var)
             itr = 3
             continue
         if itr == 3:
+            print("Publish \'{}\' to topic \'{}\'".format(var, topic_config3["name"]))
             opc_datab.Publish(topic_config3, var)
             mqtt_datab.Publish(topic_config3, var)
             itr = 1
