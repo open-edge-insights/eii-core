@@ -14,16 +14,10 @@ type dataBusOpcua struct {
 	direction string
 }
 
-func newOpcuaInstance() (db *dataBusOpcua) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA New Instance Creation Failed!!!")
-			db = nil
-		}
-	}()
+func newOpcuaInstance() (db *dataBusOpcua, err error) {
+	defer errHandler("OPCUA New Instance Creation Failed!!!", &err)
 	db = &dataBusOpcua{}
-	err := python.Initialize()
+	err = python.Initialize()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -31,14 +25,8 @@ func newOpcuaInstance() (db *dataBusOpcua) {
 	return
 }
 
-func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Context Creation Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err error) {
+	defer errHandler("OPCUA Context Creation Failed!!!", &err)
 	dbOpcua.direction = contextConfig["direction"]
 	if dbOpcua.direction == "PUB" {
 		serverUrl := "opc.tcp://" + strings.Split(contextConfig["endpoint"], "//")[1]
@@ -82,14 +70,8 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (ret
 	return
 }
 
-func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Topic Start Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err error) {
+	defer errHandler("OPCUA Topic Start Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
 		topicSlice := strings.Split(topicConfig["name"], "/")
 		// Restore the python thread state
@@ -127,14 +109,8 @@ func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (ret int)
 	return
 }
 
-func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Send Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) (err error) {
+	defer errHandler("OPCUA Send Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
 		topicSlice := strings.Split(topic["name"], "/")
 		// Restore the python thread state
@@ -163,36 +139,18 @@ func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) 
 	return
 }
 
-func (dbOpcua *dataBusOpcua) receive(topic string) (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Receive Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) receive(topic map[string]string, trig string, ch chan interface{}) (err error) {
+	defer errHandler("OPCUA Receive Failed!!!", &err)
 	return
 }
 
-func (dbOpcua *dataBusOpcua) stopTopic(topic string) (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Topic Stop Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) stopTopic(topic string) (err error) {
+	defer errHandler("OPCUA Topic Stop Failed!!!", &err)
 	return
 }
 
-func (dbOpcua *dataBusOpcua) destroyContext() (ret int) {
-	defer func() {
-		if r := recover(); r != nil {
-			glog.Errorln(r)
-			glog.Errorln("OPCUA Context Termination Failed!!!")
-			ret = -1
-		}
-	}()
+func (dbOpcua *dataBusOpcua) destroyContext() (err error) {
+	defer errHandler("OPCUA Context Termination Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
 		glog.Infoln("OPCUA Server Stopping....")
 		python.PyEval_RestoreThread(dbOpcua.pyThread)
