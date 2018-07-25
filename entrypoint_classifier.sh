@@ -10,4 +10,4 @@ python3.6 factory.py db insert cam-pos 0 0 0
 python3.6 factory.py db insert camera camera-serial-number 1 1
 
 # Starting classifier
-python3.6 classifier.py `echo $1`
+python3.6 classifier.py --config `echo $1` --log-dir /ETA/classifier_logs

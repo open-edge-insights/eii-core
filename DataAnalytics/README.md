@@ -71,7 +71,7 @@ Follow below steps to start DataAnalytics module:
 
 5. Run this command in a terminal:
     ```sh
-    python3.6 DataAnalytics/classifier.py factory.json
+    python3.6 DataAnalytics/classifier.py --config factory.json
     ```
     
 6. Run this command in another terminal:

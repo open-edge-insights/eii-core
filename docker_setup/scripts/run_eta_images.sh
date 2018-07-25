@@ -20,6 +20,7 @@ docker run -d --net host --name ia_data_analytics \
            -v $etaConfDir/factory_cam.json:/ETA/factory_cam.json:ro \
            -v $etaRootDir/$testFile:/ETA/yumei_trigger.avi \
            -v $etaDataDir/classifier_saved_images:/root/saved_images \
+           -v $etaLogDir/classifier_logs:/ETA/classifier_logs \
             ia/data_analytics:1.0
 docker logs ia_data_analytics &> $etaLogDir/classifier.log
 
@@ -41,7 +42,7 @@ docker run -d --net host --name ia_video_ingestion \
            -v $etaRootDir/test_videos:/ETA/test_videos \
            -v $etaConfDir/factory.json:/ETA/factory.json:ro \
            -v $etaConfDir/factory_cam.json:/ETA/factory_cam.json:ro \
-           -v $etaLogDir/video_ingestion:/ETA/video_ingestion \
+           -v $etaLogDir/video_ingestion_logs:/ETA/video_ingestion_logs \
            ia/video_ingestion:1.0
 
 docker logs ia_data_analytics &> $etaLogDir/classifier.log

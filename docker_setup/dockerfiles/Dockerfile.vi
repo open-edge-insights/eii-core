@@ -42,5 +42,5 @@ ADD Util/exception.py ./Util/exception.py
 ADD VideoIngestion/VideoIngestion.py .
 ADD VideoIngestion/test .
 
-ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion", "--config"]
+ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs", "--config"]
 CMD ["factory_cam.json"]

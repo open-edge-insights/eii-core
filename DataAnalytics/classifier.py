@@ -1,4 +1,6 @@
 import sys
+import argparse
+import datetime
 import numpy as np
 import logging
 import socket
@@ -7,6 +9,7 @@ import json
 import queue
 import threading as th
 from ImageStore.py.imagestore import ImageStore
+from agent.etr_utils.log import configure_logging, LOG_LEVELS
 
 from agent.dpm.classification.classifier_manager import ClassifierManager
 from agent.dpm.config import Configuration
@@ -16,7 +19,8 @@ from agent.dpm.storage import LocalStorage
 server_address = '/tmp/classifier'
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s %(levelname)s:%(name)s: %(message)s')
+                    format='%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 
 
 class classifier_udf ():
@@ -87,14 +91,38 @@ class ResultsHandler():
             self.conn.send(result)
 
 
+def parse_args():
+    """Parse command line arguments
+    """
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--config', default='factory.json',
+                        help='JSON configuration file')
+
+    parser.add_argument('--log', choices=LOG_LEVELS.keys(), default='INFO',
+                        help='Logging level (df: INFO)')
+
+    parser.add_argument('--log-dir', dest='log_dir', default='logs',
+                        help='Directory to for log files')
+
+    return parser.parse_args()
+
 if __name__ == '__main__':
 
-    if (len(sys.argv) < 2):
-        logger.error("Usage : python3 classifier.py factory.json")
-        sys.exit(1)
+    args = parse_args()
 
-    config_file = sys.argv[1]
+    currentDateTime = datetime.datetime.now()
+    logFileName = 'dataAnalytics_' + str(currentDateTime) + '.log'
+
+    if not os.path.exists(args.log_dir):
+        os.mkdir(args.log_dir)
+
+    configure_logging(args.log.upper(), logFileName , args.log_dir)
+
+
+    config_file = args.config
     udf = classifier_udf(config_file)
+
     # Make sure the socket does not already exist
     try:
         os.unlink(server_address)

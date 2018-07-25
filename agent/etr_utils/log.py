@@ -57,7 +57,9 @@ def configure_logging(log_level, base_log_file, log_dir,
     elif not os.path.exists(log_dir):
         raise ConfigError('Logging directory {} does not exist'.format(log_dir))
 
-    fmt_str = '%(asctime)s %(levelname)s - %(name)s: %(message)s'
+    #fmt_str = '%(asctime)s %(levelname)s - %(name)s: %(message)s'
+    fmt_str=('%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :'+
+            '%(funcName)s : in line : [%(lineno)d] : %(message)s')
     log_lvl = LOG_LEVELS[log_level]
     base_log = os.path.join(log_dir, base_log_file)
 
