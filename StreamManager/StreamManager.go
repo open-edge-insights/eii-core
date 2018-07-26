@@ -30,9 +30,9 @@ type StrmMgr struct {
 	ServerPort        string //Server Port
 	InfluxDBHost      string
 	InfluxDBPort      string
-	InfluxDBName      string            // Database Name
-	MeasurementPolicy map[string]bool   //This DS to map policy name with action
-	MsrmtTopicMap     map[string]string //A map of mesurement to topic
+	InfluxDBName      string                     // Database Name
+	MeasurementPolicy map[string]bool            //This DS to map policy name with action
+	MsrmtTopicMap     map[string]OutStreamConfig //A map of mesurement to topic
 }
 
 // OutStreamConfig type
@@ -82,7 +82,7 @@ func (pStrmMgr *StrmMgr) handlePointData(dbus databus.DataBus, addr *net.UDPAddr
 			// Publish only if a proper databus context available
 			if dbus != nil {
 				topic := map[string]string{
-					"name": val,
+					"name": val.Topic,
 					"type": "string",
 				}
 				go databPublish(dbus, topic, buf[0:n])
@@ -167,6 +167,17 @@ func startServer(pStrmMgr *StrmMgr) {
 
 	//TODO: break from for loop based on user signal,
 	// Have a way to break from infinite loop
+	//Dummy publish for OPCUA
+	for _, val := range pStrmMgr.MsrmtTopicMap {
+		if val.MsgBusType == "OPCUA" {
+			dummyMsg := ""
+			topic := map[string]string{"name": val.Topic, "type": "string"}
+			err := opcuaDatab.Publish(topic, dummyMsg)
+			if err != nil {
+				glog.Errorf("Publish Error: %v", err)
+			}
+		}
+	}
 	for {
 		//TODO: Should we break. Need channels here
 		n, addr, err := servConnFd.ReadFromUDP(buf)
@@ -185,7 +196,7 @@ func (pStrmMgr *StrmMgr) SetupOutStream(config *OutStreamConfig) error {
 	var err error
 
 	//populate the measurement->topic map
-	pStrmMgr.MsrmtTopicMap[config.Measurement] = config.Topic
+	pStrmMgr.MsrmtTopicMap[config.Measurement] = *config
 
 	return err
 }
