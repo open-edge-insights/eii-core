@@ -79,7 +79,7 @@ func main() {
 	pStreamManager.InfluxDBHost = server.DaCfg.InfluxDB.Host
 	pStreamManager.InfluxDBPort = server.DaCfg.InfluxDB.Port
 	pStreamManager.InfluxDBName = server.DaCfg.InfluxDB.DBName
-	pStreamManager.MsrmtTopicMap = make(map[string]string)
+	pStreamManager.MsrmtTopicMap = make(map[string]stm.OutStreamConfig)
 	pStreamManager.MeasurementPolicy = make(map[string]bool)
 
 	glog.Infof("Going to start UDP server for influx subscription")
