@@ -16,8 +16,19 @@ service da {
     // GetQuery external interface
     rpc Query (QueryReq) returns (QueryResp) {}
 
+    // GetBlob external interface
+    rpc GetBlob (BlobReq) returns (stream Chunk) {}
 }
 
+// The request message for GetBlob
+message BlobReq {
+    string imgHandle = 1;
+}
+
+// Chunk message for GetBlob
+message Chunk {
+    bytes chunk = 1;
+}
 
 // The request message for GetConfigInt
 message ConfigIntReq {
@@ -48,5 +59,3 @@ message ConfigReq {
 message ConfigResp {
 
 }
-
-

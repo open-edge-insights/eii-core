@@ -13,6 +13,7 @@ RUN mkdir -p ${GO_WORK_DIR}/log && \
     dep ensure -vendor-only -v
 
 ADD DataAgent ./DataAgent
+ADD ImageStore/go ./ImageStore/go
 ADD StreamManager ./StreamManager
 ADD DataBusAbstraction ./DataBusAbstraction
 ADD Util ./Util

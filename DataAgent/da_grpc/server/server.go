@@ -3,11 +3,11 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	"net"
-	"os"
-
 	"iapoc_elephanttrunkarch/DataAgent/config"
 	pb "iapoc_elephanttrunkarch/DataAgent/da_grpc/protobuff"
+	imagestore "iapoc_elephanttrunkarch/ImageStore/go/ImageStore"
+	"net"
+	"os"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -17,7 +17,8 @@ import (
 var gRPCHost = "localhost"
 
 const (
-	gRPCPort = "50051"
+	gRPCPort  = "50051"
+	chunkSize = 64 * 1024 // 64 KB
 )
 
 // DaCfg - stores parsed DataAgent config
@@ -32,6 +33,32 @@ func (s *DaServer) GetConfigInt(ctx context.Context, in *pb.ConfigIntReq) (*pb.C
 	jsonStr, err := getConfig(in.CfgType)
 	glog.Infof("Response being sent...")
 	return &pb.ConfigIntResp{JsonMsg: jsonStr}, err
+}
+
+// GetBlob implementation
+func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
+
+	type chunkerSrv []byte
+	imagestore, _ := imagestore.NewImageStore()
+	status, message := imagestore.Read(in.ImgHandle)
+	if status == false {
+		glog.Errorf("Unable to read image frame or key not found")
+		os.Exit(1)
+	}
+	byteMessage := []byte(message)
+	chnk := &pb.Chunk{}
+	//Iterating through the ByteArray for every 64 KB of chunks
+	for currentByte := 0; currentByte < len(byteMessage); currentByte += chunkSize {
+		if currentByte+chunkSize > len(byteMessage) {
+			chnk.Chunk = byteMessage[currentByte:len(byteMessage)]
+		} else {
+			chnk.Chunk = byteMessage[currentByte : currentByte+chunkSize]
+		}
+		if err := srv.Send(chnk); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Query implementation
