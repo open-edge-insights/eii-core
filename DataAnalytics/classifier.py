@@ -4,33 +4,47 @@ import datetime
 import numpy as np
 import logging
 import socket
-import os
+import time
 import json
 import queue
+import os
 import threading as th
 from ImageStore.py.imagestore import ImageStore
 from agent.etr_utils.log import configure_logging, LOG_LEVELS
+import numpy as np
+
+# The kapacitor source code is needed for the below imports
+from kapacitor.udf.agent import Agent, Handler, Server
+from kapacitor.udf import udf_pb2
+
 
 from agent.dpm.classification.classifier_manager import ClassifierManager
 from agent.dpm.config import Configuration
 from agent.db import DatabaseAdapter
 from agent.dpm.storage import LocalStorage
+server_addr = "/tmp/classifier"
 
-server_address = '/tmp/classifier'
-logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+logger = logging.getLogger()
 
+TIME_MULTIPLIER_MICRO = 1000000
 
-class classifier_udf ():
-    def __init__(self, config_file):
+# Runs ML algo on stream of points and return result back to kapacitor.
+class ConnHandler(Handler):
+    def __init__(self, agent,config_file):
+        self._agent = agent
         self.config_file = config_file
         self._cm = None
-        self.queue = queue.Queue()
-        self.th = th.Thread(target=self.process_point)
 
-    def init(self, results_queue):
+    def info(self):
+        response = udf_pb2.Response()
+        response.info.wants = udf_pb2.STREAM
+        response.info.provides = udf_pb2.STREAM
+        return response
+
+    def classifier_init(self):
         self.config = Configuration(self.config_file)
         self.db = DatabaseAdapter(self.config.machine_id, self.config.database)
         self.storage = LocalStorage(self.config.storage)
@@ -39,57 +53,85 @@ class classifier_udf ():
                 self.storage, self.db)
         self.classifier = self._cm.get_classifier("yumei")
         self.img_store = ImageStore()
-        self.results_queue = results_queue
-        self.th.start()
         self.storage.start()
 
-    def add_point(self, point):
-        self.queue.put(point)
+    def init(self, init_req):
+        response = udf_pb2.Response()
+        response.init.success = True
+        #print("INIT CALLBACK of UDF", file=sys.stderr)
+        return response
 
-    def process_point(self):
-        logger.info('Process point thread')
-        while(True):
-            data = self.queue.get(block=True)
-            point = json.loads(data)
-            img_handle = point["ImgHandle"]
-            img_height = point['Height']
-            img_width = point['Width']
-            img_channels = point['Channels']
-            ret, frame = self.img_store.read(img_handle)
-            if ret is True:
-                # Convert the buffer into np array.
-                Frame = np.frombuffer(frame, dtype=np.uint8)
-                reshape_frame = np.reshape(Frame, (img_height,
-                                                   img_width, img_channels))
-                # Call classification manager API with the tuple data
-                user_data = point["user_data"]
-                data = [(1, user_data,
-                         ('camera-serial-number', reshape_frame))]
-                ret = self._cm._process_frames(self.classifier, data)
-                ret['ImgHandle'] = img_handle
-                self.results_queue.put(json.dumps(ret))
-            else:
-                # TO Do : Log Error
-                pass
+    def snapshot(self):
+        response = udf_pb2.Response()
+        response.snapshot.snapshot = b''
+        return response
 
+    def restore(self, restore_req):
+        response = udf_pb2.Response()
+        response.restore.success = False
+        response.restore.error = 'not implemented'
+        return response
 
-class ResultsHandler():
-    def __init__(self, connection):
-        self.conn = connection
-        self.th_results = th.Thread(target=self.process_classified_results)
-        self.classified_results = queue.Queue()
-        self.th_results.start()
+    def begin_batch(self, begin_req):
+        raise Exception("not supported")
 
-    def get_results_queue(self):
-        return self.classified_results
+    def point(self, point):
+        #print("Recieved a point", file=sys.stderr)
+        response = udf_pb2.Response()
+        img_handle = point.fieldsString["ImgHandle"]
+        img_height = point.fieldsInt['Height']
+        img_width = point.fieldsInt['Width']
+        img_channels = point.fieldsInt['Channels']
+        ret, frame = self.img_store.read(img_handle)
+        if ret is True:
+            # Convert the buffer into np array.
+            Frame = np.frombuffer(frame, dtype=np.uint8)
+            reshape_frame = np.reshape(Frame, (img_height,
+                                               img_width, img_channels))
+            # Call classification manager API with the tuple data
+            user_data = point.fieldsInt['user_data']
+            data = [(1, user_data,
+                     ('camera-serial-number', reshape_frame))]
+            ret = self._cm._process_frames(self.classifier, data)
+            ret['ImgHandle'] = img_handle
+            # Process the Classifier Results into Response Structure
+            for k, v in ret.items():
+                if isinstance(v, float):
+                    response.point.fieldsDouble[k] = v
+                elif isinstance(v, str):
+                    response.point.fieldsString[k] = v
+                elif isinstance(v, int):
+                    response.point.fieldsInt[k] = v
+                elif k == "defects":
+                    for index,defect in enumerate(v, start=1):
+                        d_k = k+'_'+str(index)
+                        response.point.fieldsString[d_k] = json.dumps(defect)
+        response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
+        self._agent.write_response(response, True)
 
-    def process_classified_results(self):
-        logger.info('Process Classified Results Thread...')
-        while(True):
-            data = self.classified_results.get(block=True)
-            result = (data.encode('utf-8'))
-            self.conn.send(result)
+    def end_batch(self, end_req):
+        raise Exception("not supported")
 
+class accepter(object):
+
+    def __init__(self,config_file):
+       self.config_file = config_file
+       self._count = 0
+
+    def accept(self, conn, addr):
+        self._count += 1
+        # Create an agent
+        agent = Agent(conn, conn)
+        # Create a handler and pass it an agent so it can write points
+        h = ConnHandler(agent, self.config_file)
+        h.classifier_init()
+        # Set the handler on the agent
+        agent.handler = h
+
+        print("Starting kapacitor agent in socket mode", file=sys.stderr)
+        agent.start()
+        agent.wait()
+        print("Ending kapacitor agent in socket mode", file=sys.stderr)
 
 def parse_args():
     """Parse command line arguments
@@ -107,6 +149,7 @@ def parse_args():
 
     return parser.parse_args()
 
+
 if __name__ == '__main__':
 
     args = parse_args()
@@ -119,37 +162,7 @@ if __name__ == '__main__':
 
     configure_logging(args.log.upper(), logFileName , args.log_dir)
 
+    server = Server(server_addr, accepter(args.config))
+    logger.info("Started the server By Agent")
 
-    config_file = args.config
-    udf = classifier_udf(config_file)
-
-    # Make sure the socket does not already exist
-    try:
-        os.unlink(server_address)
-    except OSError:
-        if os.path.exists(server_address):
-            raise
-
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-    sock.bind(server_address)
-    sock.listen(1)
-
-    # Wait for a connection
-    logger.info('Waiting for a connection')
-    connection, client_address = sock.accept()
-    results_handler = ResultsHandler(connection)
-    udf.init(results_handler.get_results_queue())
-
-    try:
-        logger.info('Connection received')
-
-        while True:
-            data = connection.recv(1024)
-            data = data.decode('utf8')
-            points = data.split("}")
-            for point in points:
-                if point != '':
-                    udf.add_point(point + '}')
-
-    finally:
-        connection.close()
+    server.serve()

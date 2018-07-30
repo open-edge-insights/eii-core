@@ -8,9 +8,8 @@ var data0 = stream
 		.measurement('stream1')
 
 data0
-	@kapasender()
+	@classifier()
 	|influxDBOut()
 		.database('datain')
 		.measurement('classifier_results')
 		.retentionPolicy('autogen')
-

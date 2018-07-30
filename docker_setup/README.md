@@ -53,6 +53,11 @@
 
 7. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
 
+8. Clone the a locallly maintained kapacitor repository inside the iapoc_elephanttrunkarch folder in the name of "kapacitor_repo". For example
+   `git clone https://ldas@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor kapacitor_repo && cd "kapacitor_repo" && git config user.name "Das, Lalatendu" && git config user.email "lalatendu.das@intel.com" && curl -o .git/hooks/commit-msg https://ldas@git-amr-2.devtools.intel.com/gerrit/tools/hooks/commit-msg && chmod +x .git/hooks/commit-msg`
+
+   **Note**: Better to obtain the command from gerrit/teamforge itself as the username needs to be changed if you plan to use above command
+
 ## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/scripts` directory)
 
 1. Build ETA images (one time task unless you change something in Dockerfile of ETA images)

@@ -13,7 +13,6 @@ source ./remove_eta_containers.sh
 echo "1. Starting influxdb container..."
 docker run -d --net host --name influx_cont \
            -v $etaConfDir/influxdb.conf:/etc/influxdb/influxdb.conf:ro \
-           -v $etaDataDir/influxdb:/var/lib/influxdb \
            influxdb:1.5.3
 docker logs influx_cont &> $etaLogDir/influxdb.log
 

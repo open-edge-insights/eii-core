@@ -19,17 +19,6 @@ ADD classifier_requirements.txt .
 RUN pip3.6 install -r classifier_requirements.txt && \
     rm -rf classifier_requirements.txt
 
-# Cloning and adding kapacitor related files
-RUN git clone https://github.com/influxdata/kapacitor.git ${KAPACITOR_REPO} && \
-    cd ${KAPACITOR_REPO} && \
-    git checkout tags/v1.5.0 -b v1.5.0 && \
-    go get -v ./... && \
-    mkdir -p ${DIR}/kapacitor && \
-    cp -r udf ${DIR}/kapacitor && \
-    go build -o ${DIR}/kapacitor/kapacitor ./cmd/kapacitor && \
-    go build -o ${DIR}/kapacitor/kapacitord ./cmd/kapacitord && \
-    rm -rf ${KAPACITOR_REPO}
-
 # creating saved images folder
 RUN mkdir -p ${HOME}/saved_images
 
@@ -38,6 +27,16 @@ RUN mkdir -p /logs
 RUN touch ${HOME}/.pgpass && \
     echo "localhost:5432:ali:ali:intel123" >${HOME}/.pgpass && \
     chmod 0600 ${HOME}/.pgpass
+
+# Adding kapacitor related files
+ADD kapacitor_repo ${KAPACITOR_REPO}
+RUN cd ${KAPACITOR_REPO} && \
+    go get -v ./... && \
+    mkdir -p ${DIR}/kapacitor && \
+    cp -r udf ${DIR}/kapacitor && \
+    go build -o ${DIR}/kapacitor/kapacitor ./cmd/kapacitor && \
+    go build -o ${DIR}/kapacitor/kapacitord ./cmd/kapacitord && \
+    rm -rf ${KAPACITOR_REPO}
 
 # Adding config file
 ADD factory.py .

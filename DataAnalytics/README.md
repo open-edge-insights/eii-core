@@ -37,7 +37,7 @@ For running the DataAnalytics, the kapacitor UDF setup is required. For more det
 * Writing a sample UDF at [anomaly detection](https://docs.influxdata.com/kapacitor/v1.5/guides/anomaly_detection/)
 * UDF and kapacitor interaction [here](https://docs.influxdata.com/kapacitor/v1.5/guides/socket_udf/)
 
-The udf is **DataAnalytics/kapasender.py** and the tick script is **DataAnalytics/classifier.tick**
+The udf is **DataAnalytics/classifier.py** and the tick script is **DataAnalytics/classifier.tick**
 
 Follow below steps to start DataAnalytics module:
 1. Kapacitor configuration:
@@ -45,45 +45,42 @@ Follow below steps to start DataAnalytics module:
     ```
     [udf]
     [udf.functions]
-        [udf.functions.kapasender]
-            # Run python
-            prog = "/usr/bin/python2"
-            args = ["-u", "<pathtoiapocrepo>/DataAnalytics/kapasender.py"]
+        [udf.functions.classifier]
+            socket = "/tmp/classifier"
             timeout = "10s"
-            [udf.functions.kapasender.env]
-                PYTHONPATH = "<pathtokapacitorrepo>/kapacitor/udf/agent/py"
     ```
     > Note:
-    > Please provide abosolute paths to **kapasender.py** and to PYTHONPATH in the kapacitor.conf file.
     > Pre-requisite for this step: **go get github.com/influxdata/kapacitor/cmd/kapacitor** and **go get github.com/influxdata/kapacitor/cmd/kapacitord** to get the go kapacitor lib source under **$GOPATH/src/github.com/influxdata/kapacitor**. The bins **kapacitor** and **kapacitord** would be copied to $GOPATH/bin. 
 
 2. To install python dependencies for this module, use cmd:
     ```sh
     sudo -H pip3.6 install -r classifier_requirements.txt
     ```
+3. Run cmds: `export PYTHONPATH=.:./DataAgent/da_grpc/protobuff:"<pathtokapacitorrepo>/kapacitor/udf/agent/py"` to make sure there are no errors while running classifier.py file.
+   Note: Before exporting PYTHONPATH, Clone the a modified version of kapacitor code inside iapoc_elephanttrunkarch folder with name as "kapacitor_repo". Ensure that <pathtokapacitorrepo>/kapacitor/udf/agent/py
+   path points to the path that is being cloned in this step.
 
-3. Install protobuf dependency for kapasender.py, use cmd:
-    ```sh
-    sudo -H pip2 install protobuf
-    ```
-    
-4. Run cmds: `export PYTHONPATH=.:"<pathtokapacitorrepo>/kapacitor/udf/agent/py"` and `python2 DataAnalytics/kapasender.py` to make sure there are no errors while running kapasender.py via kapacitord
+   E.g. `git clone https://ldas@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor kapacitor_repo && cd "kapacitor_repo" && git config user.name "Das, Lalatendu" && git config user.email "lalatendu.das@intel.com" && curl -o .git/hooks/commit-msg https://ldas@git-amr-2.devtools.intel.com/gerrit/tools/hooks/commit-msg && chmod +x .git/hooks/commit-msg` 
 
-5. Run this command in a terminal:
+   **Note**: Better to obtain the command from gerrit/teamforge itself as the username needs to be changed if you plan to use above command
+
+4. Run this command in a terminal:
     ```sh
     python3.6 DataAnalytics/classifier.py --config factory.json
     ```
     
-6. Run this command in another terminal:
+5. Run this command in another terminal:
     ```sh
+    touch /tmp/classifier
+    chmod 777 /tmp/classifier
     sudo -E env "PATH=$PATH" kapacitord -config docker_setup/config/kapacitor.conf
     ```
     
-7. Run this command in another terminal
+6. Run these command in another terminal
     ```sh
+    kapacitor delete tasks classifier_task
+    
     kapacitor define classifier_task -tick DataAnalytics/classifier.tick
     
     kapacitor enable classifier_task
     ```
-    
-    
