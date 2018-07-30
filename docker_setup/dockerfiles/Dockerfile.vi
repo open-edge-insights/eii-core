@@ -30,13 +30,15 @@ ADD vi_requirements.txt .
 RUN pip3.6 install -r vi_requirements.txt && \
     rm -rf vi_requirements.txt
 
+ENV PYLON_CAMEMU 1
+
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc 
 ADD DataIngestionLib ./DataIngestionLib
 ADD ImageStore/py ./ImageStore/py
-ADD Util/exception.py ./Util/exception.py
+ADD Util ./Util
 
 # Adding VideoIngestion & test program 
 ADD VideoIngestion/VideoIngestion.py .

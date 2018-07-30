@@ -64,6 +64,7 @@ func (dbus *dataBus) ContextCreate(contextConfig map[string]string) (err error) 
 	dbus.mutex.Lock()
 	defer dbus.mutex.Unlock()
 	endPoint := contextConfig["endpoint"]
+
 	switch strings.Split(endPoint, "//")[0] {
 	case dataBusTypes["OPCUA"]:
 		dbus.busType = dataBusTypes["OPCUA"]

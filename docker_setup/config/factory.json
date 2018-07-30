@@ -27,7 +27,7 @@
         }
     },
     "classification": {
-        "mqtt_broker_host": "localhost",
+        "mqtt_broker_host": "mosquitto",
         "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {
@@ -42,7 +42,7 @@
         }
     },
     "database": {
-        "host": "localhost",
+        "host": "postgres",
         "port": 5432,
         "database_name": "ali",
         "username": "ali",

@@ -11,8 +11,9 @@ import (
 	"github.com/golang/glog"
 )
 
+var strmMgrUDPServHost = "ia_data_agent"
+
 const (
-	strmMgrUDPServHost = "localhost"
 	strmMgrUDPServPort = "61971"
 )
 
@@ -63,8 +64,8 @@ func main() {
 	if err == nil && response.Error() == nil {
 		glog.Infof("Successfully created database: %s", influxCfg.DBName)
 	} else {
-		glog.Errorf("err: %v and response.Error(): %v while creating "+
-			"database: %s", err, response.Error(), influxCfg.DBName)
+		glog.Errorf("Error: %v while creating "+
+			"database: %s", err, influxCfg.DBName)
 
 		os.Exit(-1)
 	}
@@ -73,6 +74,15 @@ func main() {
 	glog.Infof("**************STARTING STREAM MANAGER**************")
 
 	var pStreamManager = new(stm.StrmMgr)
+
+	// This change is required to tie the opcua address to localhost or container's address
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Errorf("Failed to fetch the hostname of the node: %v", err)
+	}
+	if strmMgrUDPServHost != hostname {
+		strmMgrUDPServHost = "localhost"
+	}
 
 	pStreamManager.ServerHost = strmMgrUDPServHost
 	pStreamManager.ServerPort = strmMgrUDPServPort

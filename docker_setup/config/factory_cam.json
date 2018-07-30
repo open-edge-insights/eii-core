@@ -22,7 +22,7 @@
                 "poll_interval": 0.01,
                 "streams": {
                     "basler": {
-                       "0815-0000":{
+                       "22573664":{
                                "exposure": 8000
                        }
                     }
@@ -39,13 +39,13 @@
             "roi_y2": 750
         },
 	"robotic_arm":{
-		"mqtt_broker_host": "localhost",
+		"mqtt_broker_host": "mosquitto",
 		"mqtt_broker_port": 1883
 
 	}
     },
     "database": {
-        "host": "localhost",
+        "host": "postgres",
         "port": 5432,
         "username": "ali",
         "password": "intel123",

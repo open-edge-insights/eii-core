@@ -1,0 +1,14 @@
+# dockerfile for OPCUA client
+FROM ia/pybase:1.0
+LABEL version="1.0"
+LABEL description="OPCUA python client image"
+
+ADD databus_requirements.txt ./
+
+RUN pip2 install -r databus_requirements.txt
+
+# Adding OPCUA python script
+ADD DataBusAbstraction/py ./DataBusAbstraction
+
+ENTRYPOINT ["python2", "DataBusAbstraction/test/DataBusTest.py", "--endpoint", "opcua://ia_data_agent:4840/elephanttrunk", "--direction", "SUB", "--ns", "streammanager", "--topic"]
+CMD ["classifier_results"]

@@ -60,8 +60,7 @@ Follow below steps to start DataAnalytics module:
    Note: Before exporting PYTHONPATH, Clone the a modified version of kapacitor code inside iapoc_elephanttrunkarch folder with name as "kapacitor_repo". Ensure that <pathtokapacitorrepo>/kapacitor/udf/agent/py
    path points to the path that is being cloned in this step.
 
-   E.g. `git clone https://ldas@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor kapacitor_repo && cd "kapacitor_repo" && git config user.name "Das, Lalatendu" && git config user.email "lalatendu.das@intel.com" && curl -o .git/hooks/commit-msg https://ldas@git-amr-2.devtools.intel.com/gerrit/tools/hooks/commit-msg && chmod +x .git/hooks/commit-msg` 
-
+   E.g. `git clone https://<userid>@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor`
    **Note**: Better to obtain the command from gerrit/teamforge itself as the username needs to be changed if you plan to use above command
 
 4. Run this command in a terminal:

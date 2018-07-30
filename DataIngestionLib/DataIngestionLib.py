@@ -4,6 +4,7 @@ from influxdb import InfluxDBClient
 from DataAgent.da_grpc.client.client import GrpcClient
 from ImageStore.py.imagestore import ImageStore
 from Util.exception import DAException
+from Util.proxy import ProxyHelper
 
 
 class DataIngestionLib:
@@ -18,8 +19,9 @@ class DataIngestionLib:
         try:
             self.config = GrpcClient.GetConfigInt("InfluxDBCfg")
         except Exception as e:
-            raise DAException("Seems to be some issue with gRPC server."
+            raise DAException("Seems to be some issue with gRPC server." +
                               "Exception: {0}".format(e))
+
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
         try:
@@ -132,11 +134,14 @@ class DataIngestionLib:
                                              self.config["Password"],
                                              self.config["DBName"])
         except Exception as e:
-            raise DAException("Seems to be some issue with InfluxDB."
+            raise DAException("Seems to be some issue with InfluxDB." +
                               "Exception: {0}".format(e))
 
     def _send_data_to_influx(self, url, port, username, password, db):
         '''Sends the data point to Influx.'''
+        proxyHelper = ProxyHelper()
+        proxyHelper.unsetProxies()
+
         # Creates the influxDB client handle.
         influx_c = InfluxDBClient(url, port, username, password, db)
         json_body = [self.data_point]
@@ -145,6 +150,8 @@ class DataIngestionLib:
             self.log.info("Data Point sent successfully to influx.")
         else:
             self.log.error("Data Point sending to influx failed.")
+
+        proxyHelper.resetProxies()
         # Removes the fields sections after sending successfully.
         self.data_point['fields'] = {}
         self.data_point['tags'] = {}

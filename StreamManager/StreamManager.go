@@ -1,27 +1,26 @@
 package streammanger
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"strings"
 
 	influxDBHelper "iapoc_elephanttrunkarch/Util"
 
-	"github.com/golang/glog"
 	databus "iapoc_elephanttrunkarch/DataBusAbstraction/go"
+
+	"github.com/golang/glog"
 )
 
 const (
-	//NatsServerURL is same as nats.DefaultUrl now
-	NatsServerURL = "nats://localhost:4222"
-
 	subscriptionName = "StreamManagerSubscription"
 )
 
 var opcuaContext = map[string]string{
 	"direction": "PUB",
 	"name":      "streammanager",
-	"endpoint":  "opcua://0.0.0.0:4840/elephanttrunk/",
+	"endpoint":  "opcua://%s:4840/elephanttrunk/",
 }
 
 // StrmMgr type
@@ -157,6 +156,18 @@ func startServer(pStrmMgr *StrmMgr) {
 		glog.Errorf("New DataBus Instance creation Error: %v", err)
 		os.Exit(1)
 	}
+
+	// This change is required to tie the opcua address to localhost or container's address
+	hostname, err := os.Hostname()
+	if err != nil {
+		glog.Errorf("Failed to fetch the hostname of the node: %v", err)
+	}
+	if hostname != "ia_data_agent" {
+		hostname = "localhost"
+	}
+
+	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname)
+
 	err = opcuaDatab.ContextCreate(opcuaContext)
 	if err != nil {
 		glog.Errorf("DataBus-OPCUA context creation Error: %v", err)

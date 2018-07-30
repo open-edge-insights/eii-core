@@ -1,10 +1,16 @@
-# ElephantTrunkArch project
+# ElephantTrunkArch (ETA) project
 
-# Excercising the ETA solution can be done in either of the 2 ways below:
+ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based architecture aimed at providing the scable infrastructure capability for the factory automation.
 
-## a. Standalone installation of ETA modules (See individual modules README.md on how to run them)
+## 2 ways to Install ETA:
 
-### 1. Pre-requisites:
+### a. Docker compose setup (Preferred way of installation)
+
+   Refer `docker_setup/README.md` file
+
+### b. Bate metal setup (See individual modules README.md on how to run them)
+
+#### 1. Pre-requisites:
 1. Setting up GO dev env (Install latest Go 1.10.3 version or 1.9 version)
     * Follow guide [go installation](https://golang.org/doc/install#install) to install latest golang and setting up go workspace directory (have 2 folders: src and bin here)
     * Export GOPATH to point to your go workspace dir and GOBIN to $GOPATH/bin
@@ -29,25 +35,24 @@
 
 4. Copy the yumei_trigger.avi from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\test_video" shared folder and put it under the root directory - this is needed by VideoIngestion and DataAnalytics module
 
-### 2. Steps to run ETA modules:
+#### 2. Steps to run ETA modules:
 1. Start all dependency modules:
     - influxdb: **sudo service influxd [start|stop|status|restart]**
     - redis: **sudo service redis [start|stop|status|restart]**
     - mosquitto:  **sudo service mosquitto [start|stop|status|restart]**
     - postgresql: **sudo service postgresql [start|stop|status|restart]**
-    - NATS server: Refer **StreamManager/README.md** file
+
 2. Start the DataAgent by providing the right config file having the right configs. Refer **DataAgent/README.md**.
+
 3. Start DataAnalytics module by referring to **DataAnalytics/README.md**
-4. Start the 2 nats client like below to see messages being received on the interested topic (We are using the same measurement name as topic name as of now). Here, the topic name is "classifier_results".
-    * go run StreamManager/test/natsClient.go -topic="topic name"
-    * python3 StreamManager/test/natsClient.py "topic name"
+
+4. Start OPCUA message bus client to listen on topic `classifier_tasks` by running below cmd in another terminal (For more details on dependencies to be installed, refer: (**DataBusAbstraction/README.md**):
+
+`python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+
 5. Start VideoIngestion/VideoIngestion.py: `python3 VideoIngestion/VideoIngestion.py --config factory.json` to ingest the data to InfluxDB/ImageStore. Refer **VideoIngestion/README.md** for more details.
    **Note**: factory.json is for the yumei_trigger.avi file. If one wants to try with Baslera camera, use factory_cam.json instead of factory.json. If using containers, copy factory_cam.json as factory.json. In otherwords, we only mount 1 file factory.json and expects everything to be configured in that file.
-6. See the terminal of classifier.py to see the analysis results.
-   The results are also published to mqtt topic.
-   The result images can be seen in the ~/saved_images (as per the factory.json configuration)
-7. The data being ingested can be seen coming into the DataAgent via StreamManager's UDP subscription to Influxdb which is published to message bus like NATS server and the same should be seen being received in the started nats client above.
 
-## b. Running as docker containers
+6. See the terminal of classifier.py to see the analysis results. The results are also published to mqtt topic. The result images can be seen in the ~/saved_images (as per the factory.json configuration)
 
-   Refer `docker_setup/README.md` file
+7. The data being ingested can be seen coming into the DataAgent via StreamManager's UDP subscription to Influxdb which is published to OPCUA message bus and the same should be seen being received in the OPCUA client terminal

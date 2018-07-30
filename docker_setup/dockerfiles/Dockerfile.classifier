@@ -8,10 +8,10 @@ WORKDIR ${DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py
 ENV HOME /root
 ENV KAPACITOR_REPO /root/go/src/github.com/influxdata/kapacitor
+ENV GO_ROOT_BIN /root/go/bin
 
-# Installing pip2 and protobuf module needed for UDF function
+# Installing protobuf module needed for UDF function
 RUN apt-get update && \
-    apt-get install -y python-pip && \
     pip2 install protobuf
 
 # Installing dependent python modules
@@ -25,18 +25,15 @@ RUN mkdir -p ${HOME}/saved_images
 # Adding factory.py and populating PostreSQL db
 RUN mkdir -p /logs
 RUN touch ${HOME}/.pgpass && \
-    echo "localhost:5432:ali:ali:intel123" >${HOME}/.pgpass && \
+    echo "postgres:5432:ali:ali:intel123" >${HOME}/.pgpass && \
     chmod 0600 ${HOME}/.pgpass
 
 # Adding kapacitor related files
-ADD kapacitor_repo ${KAPACITOR_REPO}
+ADD iapoc-kapacitor ${KAPACITOR_REPO}
 RUN cd ${KAPACITOR_REPO} && \
-    go get -v ./... && \
+    ./build.py --clean -o ${GO_ROOT_BIN} && \
     mkdir -p ${DIR}/kapacitor && \
-    cp -r udf ${DIR}/kapacitor && \
-    go build -o ${DIR}/kapacitor/kapacitor ./cmd/kapacitor && \
-    go build -o ${DIR}/kapacitor/kapacitord ./cmd/kapacitord && \
-    rm -rf ${KAPACITOR_REPO}
+    cp -r udf ${DIR}/kapacitor
 
 # Adding config file
 ADD factory.py .
@@ -49,11 +46,13 @@ ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc 
 ADD ImageStore/py ./ImageStore/py
-ADD Util/exception.py ./Util/exception.py
+ADD Util ./Util
 
 # Adding entrypoint script
 ADD enable_kapacitor_task.sh .
 ADD entrypoint_classifier.sh .
+ADD wait-for-it.sh .
+ADD run_kapacitord.sh .
 
-ENTRYPOINT ["./entrypoint_classifier.sh"]
+ENTRYPOINT ["./wait-for-it.sh", "postgres:5432", "--", "./entrypoint_classifier.sh"]
 CMD ["factory_cam.json"]

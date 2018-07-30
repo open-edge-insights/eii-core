@@ -6,6 +6,9 @@ import json
 import DataAgent.da_grpc.protobuff.da_pb2 as da_pb2
 import DataAgent.da_grpc.protobuff.da_pb2_grpc as da_pb2_grpc
 import os
+import socket
+from Util.proxy import ProxyHelper
+
 
 class GrpcClient(object):
 
@@ -17,28 +20,20 @@ class GrpcClient(object):
             RedisCfg etc.,) returning the dictionary object for that
             particular config
         """
-        # Unsetting proxy to address StatusCode.Unavailable/putty sessions gRPC issue
-        http_proxy = None
-        https_proxy = None
-        if 'http_proxy' in os.environ:
-            http_proxy = os.environ['http_proxy']
-            del os.environ['http_proxy']
-
-        if 'https_proxy' in os.environ:
-            https_proxy = os.environ['https_proxy']
-            del os.environ['https_proxy']
-
-        channel = grpc.insecure_channel('localhost:50051')
+        proxyHelper = ProxyHelper()
+        proxyHelper.unsetProxies()
+       
+        hostname = "ia_data_agent"
+        try:
+            #hostname ia_data_agent resolution will fail for containers
+            #running in net host namespace
+            socket.gethostbyname(hostname)
+        except socket.gaierror:
+            hostname = "localhost"
+        channel = grpc.insecure_channel("{0}:50051".format(hostname))
         stub = da_pb2_grpc.daStub(channel)
-
         response = stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
                                      timeout=1000)
 
-        # Resetting proxy variables
-        if http_proxy is not None:
-            os.environ['http_proxy'] = http_proxy
-
-        if https_proxy is not None:
-            os.environ['https_proxy'] = https_proxy
-
+        proxyHelper.resetProxies()
         return json.loads(response.jsonMsg)

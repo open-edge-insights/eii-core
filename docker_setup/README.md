@@ -1,4 +1,4 @@
-# Docker setup of ETA solution:
+# Docker compose setup of ETA solution:
 
 ## Pre-requisities:
 1. Install latest docker cli/docker daemon by following [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [post install](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
@@ -45,60 +45,43 @@
 
         Verify on the host: cat /etc/resolv.conf
     ```
-    
-5. Since we are using host network namespace for containers, please make sure that individual processes/modules of ETA are stopped on host system. If they are running, the containers will fail to launch as the ports are already in use. To see if a specific port is in use, one can use this cmd:
-**sudo fuser [port_no]/tcp** - it will tell the process ID using it. Also, one can use cmd: `sudo ./kill_local_dependency_eta_processes.sh` to kill all the native dependency and eta processes (**Note**: In the script, we are assuming that all the dependency processes are installed as services. If that's not the case, the onus is on you to kill the process manually)
+4. Install docker-compose by following this [link](https://docs.docker.com/compose/install/#install-compose)
 
-6. In dockerized environment, it is observed that more points are received by kapacitor from influxdb. This is due to more subscriptions set on "datain" database. Please make sure to drop "datain" database before trying the docker setup OR drop the subscription. Eg: **drop subscription "kapacitor-65c392d7-6ef7-46f8-97c2-e5eeb7094c12" on "_internal"."monitor"** for _internal database.
+5. In dockerized environment, it is observed that more points are received by kapacitor from influxdb if at all the bare metal setup is tried out earlier. This is due to more subscriptions set on "datain" database. Please make sure to drop "datain" database before trying the docker setup OR drop the subscription. Eg: **drop subscription "kapacitor-65c392d7-6ef7-46f8-97c2-e5eeb7094c12" on "_internal"."monitor"** for _internal database.
 
-7. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
+6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
 
 8. Clone the a locallly maintained kapacitor repository inside the iapoc_elephanttrunkarch folder in the name of "kapacitor_repo". For example
-   `git clone https://ldas@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor kapacitor_repo && cd "kapacitor_repo" && git config user.name "Das, Lalatendu" && git config user.email "lalatendu.das@intel.com" && curl -o .git/hooks/commit-msg https://ldas@git-amr-2.devtools.intel.com/gerrit/tools/hooks/commit-msg && chmod +x .git/hooks/commit-msg`
+   `git clone https://<userid>@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor`
 
    **Note**: Better to obtain the command from gerrit/teamforge itself as the username needs to be changed if you plan to use above command
 
 ## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/scripts` directory)
 
-1. Build ETA images (one time task unless you change something in Dockerfile of ETA images)
+1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
     
     ```sh
-    sudo ./build_eta_images.sh | tee build_eta_images.txt
+    sudo ./compose_startup.sh | tee compose_startup.txt
     ```
     
-    **Note**: To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** 
-
-2. Run dependency images (one time task unless there is some issue with starting off any containers or you want to change docker run cmd)
-    
-    ```sh
-    sudo ./run_dependency_images.sh | tee run_dependency_images.txt
+    > **Note**: 
+    1. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
     ```
-    
-    **Note**: To check if all the dependency containers are running, use cmd: **docker ps** 
-
-3. Run ETA images (one time task unless there is some issue with starting off any containers or you want to change docker run cmd)
-    
-    ```sh
-    sudo ./run_eta_images.sh | tee run_eta_images.txt
+        ENV http_proxy http://proxy.iind.intel.com:911
+        ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-    **Note**: There seems to be some racing condition w.r.t communication between the classifier program and kapacitord. If one sees the classifier output to stuck at `Waiting for a connection..`, please run the 3 docker exec commands that follow the DataAnalytics
-    contianer bring up in `run_eta_images.sh` script on a terminal one by one and restart the `ia_video_ingestion` container to start ingesting again.
-
-4. Triggering camera ON message to VideoIngestion module
+2. Triggering camera ON message to ia_video_ingestion container (`This step is needed only when working with basler's camera`)
 
     ```sh
-    docker exec -d ia_video_ingestion python3.6 mqtt_publish.py
+    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
-    
-    **Note**: To check if all the eta containers are running, use cmd: **docker ps** 
-
-## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/scripts` directory)
+## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
 **Pre-requisite:**
 * Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_eta_images.sh`
-* Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/scripts/deploy/docker_images`.
+* Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
     
 1. Load ETA images (Input here is the ETA images tarballs)
 
@@ -106,35 +89,28 @@
     sudo ./deploy/load_eta_images.sh | tee load_eta_images.txt
     ```
     
-2. Run dependency images (one time task unless there is some issue with starting off any containers or you want to change docker run cmd)
+2. Run dependency and ETA images 
 
 	```sh
-    sudo ./run_dependency_images.sh | tee run_dependency_images.txt
-    ```
-    
-3. Run ETA images (one time task unless there is some issue with starting off any containers or you want to change docker run cmd)
-    
-    ```sh
-    sudo ./run_eta_images.sh | tee run_eta_images.txt
+    sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.txt
     ```
 
-4. Triggering camera ON message to VideoIngestion module
-
-    ```sh
-    docker exec -d ia_video_ingestion python3.6 mqtt_publish.py
-    ```
+    **Note**: Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
 
 > Note:
-> 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion), Classifier(ia_data_analytics) and NATS client
-> 2. Dependency containers are: Influxdb(influx_cont), Redis(redis_cont), nats (nats_cont), postgres(postgres_cont), mosquitto (mosquitto_cont)
-> 3. Few useful docker commands:
->   	* **docker ps** - check running containers
->   	* **docker ps -a** - check running and stopped containers
->   	* **docker stop $(docker ps -a -q)** - stops all the containers
->   	* **docker rm $(docker ps -a -q)** - removes all the containers. Useful when you run into issue of already container is in use.
-> 4. If you want to run the docker images separately i.e, one by one, just do **source setenv.sh** script on the terminal and then copy & run the individual **docker run** container commands with **-it** switch instead of **-d** to get to see the entrypoint program output inside the container. If the container is not launching, there could be some issue with entrypoint program which could be overrided by switch **--entrypoint /bin/bash** to get inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue.
+> 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics) 
+> 2. Dependency containers are: Influxdb(influx_cont), Redis(redis_cont), postgres(postgres_cont) and mosquitto (mosquitto_cont)
+> 3. Few useful docker-compose and docker commands:
+> * `docker-compose down` - brings down the service containers
+> * `docker-compose up -d` - brings up the service containers
+> * `docker ps` - check running containers
+> * `docker ps -a` - check running and stopped containers
+> * `docker stop $(docker ps -a -q)` - stops all the containers
+> * `docker rm $(docker ps -a -q)` - removes all the containers. Useful when you run into issue of already container is in use.
+> **Note**: Some useful links:
+> * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
+> * [docker compose reference](https://docs.docker.com/compose/compose-file/)
+> * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
+4. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before ther service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
 > 5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
-> 6. **Known issues as of now**: 
->    * Logs of container may not be fully available at /var/lib/eta/logs location for few containers like **ia_data_analytics_cont**.
->      Best way to check logs is to use command: **docker logs -f <contname>**
->    * NATS client container is not receiving published messages
+> 6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`

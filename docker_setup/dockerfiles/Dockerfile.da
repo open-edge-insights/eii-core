@@ -3,18 +3,20 @@ FROM ia/gopybase:1.0
 LABEL version="1.0"
 LABEL description="DataAgent image"
 
+ADD Gopkg.toml ./
+ADD Gopkg.lock ./
+ADD databus_requirements.txt ./
+
+RUN pip2 install -r databus_requirements.txt
+
+RUN mkdir -p ${GO_WORK_DIR}/log && \
+    dep ensure -vendor-only -v
+
 ADD DataAgent ./DataAgent
 ADD StreamManager ./StreamManager
 ADD DataBusAbstraction ./DataBusAbstraction
 ADD Util ./Util
 
-ADD Gopkg.toml ./
-ADD Gopkg.lock ./
-ADD databus_requirements.txt ./
+RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
 
-RUN mkdir -p ${DIR}/log && \
-    dep ensure -vendor-only -v && \
-    pip2 install -r databus_requirements.txt && \
-    go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
-
-ENTRYPOINT ["DataAgent", "-config=DataAgent/DataAgent.conf", "-log_dir=${DIR}/log/DataAgent"]
+ENTRYPOINT ["DataAgent", "-config=DataAgent/DataAgent.conf", "-log_dir=${GO_WORK_DIR}/log/DataAgent"]
