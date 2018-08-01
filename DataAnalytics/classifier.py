@@ -85,7 +85,10 @@ class ConnHandler(Handler):
             img_height = point.fieldsInt['Height']
             img_width = point.fieldsInt['Width']
             img_channels = point.fieldsInt['Channels']
-            ret, frame = self.img_store.read(img_handle)
+            try:
+                frame = self.img_store.read(img_handle)
+            except Exception:
+                logger.error('Frame read failed')
             if frame != None:
                 # Convert the buffer into np array.
                 Frame = np.frombuffer(frame, dtype=np.uint8)
@@ -97,6 +100,8 @@ class ConnHandler(Handler):
                             ('camera-serial-number', reshape_frame))
                 self.data.append(val)
                 return
+            else:
+                logger.info("Frame read unsuccessful.")
 
 
         # Sending in the list data for one part

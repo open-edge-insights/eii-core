@@ -67,12 +67,12 @@ class DataIngestionLib:
         stored in comma separated way in the field.'''
         # ToDo: Send the buffer to Image Store.
         try:
-            ret, handle = self.img_store.store(value)
+            handle = self.img_store.store(value)
         except Exception as e:
             raise(e)
-        if ret is not True:
+        if handle == None:
             self.log.error("Error in saving the buffer into ImageStore.")
-            return ret
+            return False
         self.log.info("Stored the buffer in Image Store .")
 
         # Save the handle of the image into Data Point.

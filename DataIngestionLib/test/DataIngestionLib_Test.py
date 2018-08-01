@@ -125,8 +125,11 @@ def retrieve_and_write_frames(data_points):
             img_handles = elem['ImgHandle'].split(',')
             img_names = elem['ImgName'].split(',')
             for idx in range(len(img_handles)):
-                ret, frame = img_store.read(img_handles[idx])
-                if ret is True:
+                try:
+                    frame = img_store.read(img_handles[idx])
+                except Exception:
+                    log.error('Frame read failed')
+                if frame != None:
                     # Convert the buffer into np array.
                     Frame = np.frombuffer(frame, dtype=np.uint8)
                     # Reshape the array.
