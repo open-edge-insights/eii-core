@@ -51,12 +51,19 @@
 
 6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
 
-8. Clone the a locallly maintained kapacitor repository inside the iapoc_elephanttrunkarch folder in the name of "kapacitor_repo". For example
-   `git clone https://<userid>@git-amr-2.devtools.intel.com/gerrit/iapoc-kapacitor`
+7. Clone the a locally maintained kapacitor repository inside the iapoc_elephanttrunkarch folder by obtaining the command from gerrit/teamforge
 
-   **Note**: Better to obtain the command from gerrit/teamforge itself as the username needs to be changed if you plan to use above command
+8. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally
+running dependency and eta processes.
 
-## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/scripts` directory)
+9. It is good to stop and remove all previous containers started via docker script way by running below commands:
+
+    ```
+        docker stop $(docker ps -a -q)
+        docker rm $(docker ps -a -q)
+    ```
+
+## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
 1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
     
@@ -71,11 +78,17 @@
         ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. Triggering camera ON message to ia_video_ingestion container (`This step is needed only when working with basler's camera`)
+2. If working with video file, please follow below steps:
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
+
+3. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
 
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
+
+
 
 ## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
@@ -97,12 +110,24 @@
 
     **Note**: Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
 
+
+3. If working with video file, please follow below steps:
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
+
+4. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
+
+    ```sh
+    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
+    ```
+
 > Note:
 > 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics) 
-> 2. Dependency containers are: Influxdb(influx_cont), Redis(redis_cont), postgres(postgres_cont) and mosquitto (mosquitto_cont)
+> 2. Dependency containers are: Influxdb(influxdb), Redis(redis), Postgres(postgres) and Mosquitto (mosquitto)
 > 3. Few useful docker-compose and docker commands:
-> * `docker-compose down` - brings down the service containers
-> * `docker-compose up -d` - brings up the service containers
+> * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
+> * `docker-compose down` - stops and removes the service containers
+> * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
 > * `docker ps` - check running containers
 > * `docker ps -a` - check running and stopped containers
 > * `docker stop $(docker ps -a -q)` - stops all the containers
@@ -113,4 +138,5 @@
 > * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
 4. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before ther service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
 > 5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
-> 6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`
+> 6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
+> container logs at once, then just run `docker-compose logs -f`

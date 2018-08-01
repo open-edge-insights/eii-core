@@ -9,9 +9,6 @@ services:
     container_name: influxdb
     volumes:
       - /var/lib/eta/config/influxdb.conf:/etc/influxdb/influxdb.conf
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     ports:
       - "8086:8086"
       
@@ -20,10 +17,6 @@ services:
     image: redis:4.0.10
     container_name: redis
     hostname: redis
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     ports:
       - "6379:6379"
     
@@ -36,9 +29,6 @@ services:
       - /var/lib/eta/config/mosquitto.conf:/mosquitto/mosquitto.conf
       - /var/lib/eta/data/mosquitto:/mosquitto/data 
       - /var/lib/eta/logs:/mosquitto/log/mosquitto.log
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     ports:
       - "1883:1883"
 
@@ -50,10 +40,6 @@ services:
       - POSTGRES_USER=ali
       - POSTGRES_PASSWORD=intel123
       - POSTGRES_DB=ali
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     ports:
       - "5432:5432"
 
@@ -98,9 +84,6 @@ services:
     volumes:
       - /var/lib/eta/config/DataAgent.conf:/root/go/src/iapoc_elephanttrunkarch/DataAgent/DataAgent.conf
       - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     ports:
       - "50051:50051"
       - "4840:4840"
@@ -132,9 +115,6 @@ services:
       - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
       - /var/lib/eta/data/classifier_saved_images:/root/saved_images
       - /var/lib/eta/classifier_logs:/ETA/classifier_logs
-      - /etc/timezone:/etc/timezone:ro
-      - /etc/localtime:/etc/localtime:ro
-    restart: unless-stopped
     command: factory.json
     expose:
       - "9092"
@@ -158,7 +138,6 @@ services:
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
       - /var/lib/eta/logs/video_ingestion_logs:/ETA/video_ingestion_logs
-    restart: unless-stopped
     command: factory.json
    
   #----End: ETA Containers ----
