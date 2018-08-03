@@ -6,13 +6,18 @@ class subHandler(object):
 
     def datachange_notification(self, node, val, data):
         # print(val)
-        self.queue.put(val)
+        if not self.ignore_notification:
+            self.queue.put(val)
+        else:
+            # Only ignore first notification
+            self.ignore_notification = False
 
     def event_notification(self, event):
         print(event)
 
     def __init__(self, queue):
         self.queue = queue
+        self.ignore_notification = True
 
 
 class databOpcua:
