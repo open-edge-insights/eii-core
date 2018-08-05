@@ -29,6 +29,11 @@ class daStub(object):
         request_serializer=da__pb2.QueryReq.SerializeToString,
         response_deserializer=da__pb2.QueryResp.FromString,
         )
+    self.GetBlob = channel.unary_stream(
+        '/DataAgent.da/GetBlob',
+        request_serializer=da__pb2.BlobReq.SerializeToString,
+        response_deserializer=da__pb2.Chunk.FromString,
+        )
 
 
 class daServicer(object):
@@ -58,6 +63,13 @@ class daServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def GetBlob(self, request, context):
+    """GetBlob external interface
+    """
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
 
 def add_daServicer_to_server(servicer, server):
   rpc_method_handlers = {
@@ -75,6 +87,11 @@ def add_daServicer_to_server(servicer, server):
           servicer.Query,
           request_deserializer=da__pb2.QueryReq.FromString,
           response_serializer=da__pb2.QueryResp.SerializeToString,
+      ),
+      'GetBlob': grpc.unary_stream_rpc_method_handler(
+          servicer.GetBlob,
+          request_deserializer=da__pb2.BlobReq.FromString,
+          response_serializer=da__pb2.Chunk.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
