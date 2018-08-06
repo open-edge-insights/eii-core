@@ -10,6 +10,11 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
 
 ### b. Bate metal setup (See individual modules README.md on how to run them)
 
+#### 1. Known Issues
+
+   * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
+   * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
+
 #### 1. Pre-requisites:
 1. Setting up GO dev env (Install latest Go 1.10.3 version or 1.9 version)
     * Follow guide [go installation](https://golang.org/doc/install#install) to install latest golang and setting up go workspace directory (have 2 folders: src and bin here)

@@ -109,11 +109,8 @@ services:
       KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086/
     volumes:
       - /var/lib/eta/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf
-      - /var/lib/eta/data/kapacitor:/var/lib/kapacitor
-      - /var/lib/eta/logs/kapacitor:/var/log/kapacitor
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
-      - /var/lib/eta/data/classifier_saved_images:/root/saved_images
       - /var/lib/eta/classifier_logs:/ETA/classifier_logs
     command: factory.json
     expose:

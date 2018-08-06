@@ -62,6 +62,12 @@ running dependency and eta processes.
         docker stop $(docker ps -a -q)
         docker rm $(docker ps -a -q)
     ```
+    **Note**: If one is facing issue while building the images using `compose_startup.sh` script, please remove all docker images if you don't require the old ones by running
+    cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
+
+10. Known Issues:
+    * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
+    * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
 
 ## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
@@ -71,6 +77,8 @@ running dependency and eta processes.
     sudo ./compose_startup.sh | tee compose_startup.txt
     ```
     
+    If you don't change any source file or dockerfile and just change the `docker-compose.yml` file, then you could use `sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.sh` to recreate and start the fresh containers and do proper initialization. 
+
     > **Note**: 
     1. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
     ```
@@ -87,7 +95,8 @@ running dependency and eta processes.
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
-
+    
+    **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
 
 ## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
@@ -111,7 +120,7 @@ running dependency and eta processes.
 
 
 3. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2  DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
 4. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
