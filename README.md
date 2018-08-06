@@ -18,7 +18,7 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
     * Install gRPC, protocal buffer compiler by following steps mentioned @ [go grpc quick start](https://grpc.io/docs/quickstart/go.html). As gRPC code file already exists, no need to re-generate the gRPC code file (da.pb.go) here, it's only needed if da.proto is been changed.
     > Note:
     > 1. **go build** puts the binary artifact in the current folder whereas **go install** puts it in the $GOPATH/bin folder. Command **go clean** deletes the artifact specific to the project
-    > 2. Run cmd `dep ensure -vendor-only -v` to pull all the dependencies for all Go modules from the project directory.
+    > 2. Run cmd `dep ensure -vendor-only -v` to pull all the dependencies for all Go modules from the project directory. One can get the `dep` tool by running this cmd: `go get -u github.com/golang/dep/cmd/dep`. For more details on how to use `dep`, visit [here](https://gist.github.com/subfuzion/12342599e26f5094e4e2d08e9d4ad50d)
 
 2. Setting up python dev env
     * Install python3. Follow guide [python3 installation](http://docs.python-guide.org/en/latest/starting/install3/linux/)
@@ -46,13 +46,18 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
 
 3. Start DataAnalytics module by referring to **DataAnalytics/README.md**
 
-4. Start OPCUA message bus client to listen on topic `classifier_tasks` by running below cmd in another terminal (For more details on dependencies to be installed, refer: (**DataBusAbstraction/README.md**):
+4. Start OPCUA message bus client to listen on topic `classifier_results` by running below cmd in another terminal (For more details on dependencies to be installed, refer: (**DataBusAbstraction/README.md**):
 
-`python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+`python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+
+  **Note**: Please use the git repo itself (untar of tarball obtained from tag will not work), as `build.py` script is dependent on git. 
 
 5. Start VideoIngestion/VideoIngestion.py: `python3 VideoIngestion/VideoIngestion.py --config factory.json` to ingest the data to InfluxDB/ImageStore. Refer **VideoIngestion/README.md** for more details.
-   **Note**: factory.json is for the yumei_trigger.avi file. If one wants to try with Baslera camera, use factory_cam.json instead of factory.json. If using containers, copy factory_cam.json as factory.json. In otherwords, we only mount 1 file factory.json and expects everything to be configured in that file.
+
+   **Note**: To test with video file, use `factory.json` and to test with Basler's camera, use `factory_cam.json`. Just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
 
 6. See the terminal of classifier.py to see the analysis results. The results are also published to mqtt topic. The result images can be seen in the ~/saved_images (as per the factory.json configuration)
 
-7. The data being ingested can be seen coming into the DataAgent via StreamManager's UDP subscription to Influxdb which is published to OPCUA message bus and the same should be seen being received in the OPCUA client terminal
+7. The data being ingested can be seen coming into the DataAgent via StreamManager's UDP subscription to Influxdb which is published to OPCUA message bus and the same should be seen being received in the OPCUA client terminal started in `step 4`
+
+8. Using OPCUA client one gets to know the `classifier_results` measurement point data for the classified frames. To get the corresponding classified image itself for each of the point data, one need to call into gRPC `GetBlob(imgHandle)` interface exposed by DataAgent. There are both `go` and `py` gRPC client implementation available. For more details, refer `gRPC server module testing alone` section in `DataAgent/README.md`

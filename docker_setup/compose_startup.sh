@@ -4,6 +4,9 @@
 # images and runs them in the dependency order using 
 # docker-compose.yml
 
+# copies resolv.conf 
+cp -f resolv.conf /etc/resolv.conf
+
 # Get Docker Host IP Address
 hostIP=`hostname -I | awk '{print $1}'`
 

@@ -37,15 +37,28 @@ func (s *DaServer) GetConfigInt(ctx context.Context, in *pb.ConfigIntReq) (*pb.C
 
 // GetBlob implementation
 func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
-
-	type chunkerSrv []byte
-	imagestore, _ := imagestore.NewImageStore()
-	status, message := imagestore.Read(in.ImgHandle)
-	if status == false {
-		glog.Errorf("Unable to read image frame or key not found")
-		os.Exit(1)
+	jsonStr, err := getConfig("RedisCfg")
+	if err != nil {
+		glog.Errorf("getConfig(\"RedisCfg\") method failed. Error: %v", err)
+		return nil
 	}
-	byteMessage := []byte(message)
+
+	var configMap map[string]string
+	configBytes := []byte(jsonStr)
+	json.Unmarshal(configBytes, &configMap)
+
+	imgStore, err := imagestore.GetImageStoreInstance(configMap)
+	if err != nil {
+		glog.Errorf("Failed to instantiate NewImageStore(). Error: %v", err)
+		return err
+	}
+	data, err := imgStore.Read(in.ImgHandle)
+	if err != nil {
+		glog.Errorf("Unable to read image frame or key not found")
+		return err
+	}
+	byteMessage := []byte(data)
+
 	chnk := &pb.Chunk{}
 	//Iterating through the ByteArray for every 64 KB of chunks
 	for currentByte := 0; currentByte < len(byteMessage); currentByte += chunkSize {

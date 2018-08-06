@@ -51,7 +51,7 @@
 
 6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
 
-7. Clone the a locally maintained kapacitor repository inside the iapoc_elephanttrunkarch folder by obtaining the command from gerrit/teamforge
+7. Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
 
 8. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally
 running dependency and eta processes.
@@ -87,7 +87,6 @@ running dependency and eta processes.
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
-
 
 
 ## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)

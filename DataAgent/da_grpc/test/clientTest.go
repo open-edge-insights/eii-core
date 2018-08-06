@@ -44,37 +44,55 @@ func readFile(filename string) []byte {
 }
 
 func main() {
-	if len(os.Args) != 3 {
-		glog.Infof("Please specify an input and output path as command line arguments")
-		os.Exit(1)
-	}
-	inputFile := os.Args[1] // input Index
-	outputDir := os.Args[2] // output Index
+
+	var inputFile string
+	var outputFile string
+	flag.StringVar(&inputFile, "input_file", "", "input file path to write to ImageStore")
+	flag.StringVar(&outputFile, "output_file", "", "output file that gets" +
+				   "created from ImageStore read")
+
 	flag.Parse()
+
+	if len(os.Args) < 2 {
+		glog.Errorf("Usage: go run DataAgent/da_grpc/test/clientTest.go " +
+			"-input_file=<input_file_path> [-output_file=<output_file_path>]")
+		os.Exit(-1)
+	}
+
 	flag.Lookup("alsologtostderr").Value.Set("true")
 	defer glog.Flush()
+
 	glog.Infof("******Go client gRPC testing******")
-	glog.Infof("Getting InfluxDB config:")
+
+	glog.Infof("Testing GetConfigInt(\"InfluxDB\") gRPC interface...")
 	respMap, err := client.GetConfigInt("InfluxDBCfg")
 	chkErr(respMap, err)
-	glog.Infof("Getting Redis config:")
+
+	glog.Infof("Testing GetConfigInt(\"RedisCfg\") gRPC interface...")
 	respMap, err = client.GetConfigInt("RedisCfg")
 	chkErr(respMap, err)
+
 	imagestore, err := imagestore.NewImageStore()
 	if err != nil {
-		fmt.Println("Some Issue in Connection", err)
+		glog.Infof("Failed to instantiate ImageStore. Error: %s", err)
+		os.Exit(1)
 	}
 	imagestore.SetStorageType("inmemory")
 	readBuffer := readFile(inputFile)
-	status, Imghandle := imagestore.Store(readBuffer)
-	if status == false {
+	imgHandle, err := imagestore.Store(readBuffer)
+	if err != nil {
+		glog.Infof("Failed imagestore.Store(). Error: %v", err)
 		os.Exit(1)
 	}
-	glog.Infof("Calling GetBlob() Interface...")
-	blob, err := client.GetBlob(Imghandle)
-	ioutil.WriteFile(outputDir+"getBlobOutput.jpg", blob, 0644)
+
+	glog.Infof("imgHandle: %s", imgHandle)
+
+	glog.Infof("Testing GetBlob() Interface...")
+	blob, err := client.GetBlob(imgHandle)
+
+	ioutil.WriteFile(outputFile, blob, 0644)
 	md5SumInput, _ := hashfilemd5(inputFile)
-	md5SumOutput, _ := hashfilemd5(outputDir + "getBlobOutput.jpg")
+	md5SumOutput, _ := hashfilemd5(outputFile)
 	if md5SumInput == md5SumOutput {
 		glog.Infof("md5sum of both files match")
 	} else {
