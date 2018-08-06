@@ -37,6 +37,7 @@ class ConnHandler(Handler):
         self._agent = agent
         self.config_file = config_file
         self._cm = None
+        self.data = []
 
     def info(self):
         response = udf_pb2.Response()
@@ -78,24 +79,32 @@ class ConnHandler(Handler):
     def point(self, point):
         #print("Recieved a point", file=sys.stderr)
         response = udf_pb2.Response()
-        img_handle = point.fieldsString["ImgHandle"]
-        img_height = point.fieldsInt['Height']
-        img_width = point.fieldsInt['Width']
-        img_channels = point.fieldsInt['Channels']
-        ret, frame = self.img_store.read(img_handle)
-        if ret is True:
-            # Convert the buffer into np array.
-            Frame = np.frombuffer(frame, dtype=np.uint8)
-            reshape_frame = np.reshape(Frame, (img_height,
-                                               img_width, img_channels))
-            # Call classification manager API with the tuple data
-            user_data = point.fieldsInt['user_data']
-            data = [(1, user_data,
-                     ('camera-serial-number', reshape_frame))]
-            ret = self._cm._process_frames(self.classifier, data)
-            ret['ImgHandle'] = img_handle
+
+        if(point.fieldsInt['Width'] != 0):
+            img_handle = point.fieldsString["ImgHandle"]
+            img_height = point.fieldsInt['Height']
+            img_width = point.fieldsInt['Width']
+            img_channels = point.fieldsInt['Channels']
+            ret, frame = self.img_store.read(img_handle)
+            if frame != None:
+                # Convert the buffer into np array.
+                Frame = np.frombuffer(frame, dtype=np.uint8)
+                reshape_frame = np.reshape(Frame, (img_height,
+                                                img_width, img_channels))
+                # Call classification manager API with the tuple data
+                user_data = point.fieldsInt['user_data']
+                val = (1, user_data, img_handle,
+                            ('camera-serial-number', reshape_frame))
+                self.data.append(val)
+                return
+
+
+        # Sending in the list data for one part
+        ret = self._cm._process_frames(self.classifier, self.data)
+
+        for result in ret:
             # Process the Classifier Results into Response Structure
-            for k, v in ret.items():
+            for k, v in result.items():
                 if isinstance(v, float):
                     response.point.fieldsDouble[k] = v
                 elif isinstance(v, str):
@@ -106,6 +115,14 @@ class ConnHandler(Handler):
                     for index,defect in enumerate(v, start=1):
                         d_k = k+'_'+str(index)
                         response.point.fieldsString[d_k] = json.dumps(defect)
+
+            response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
+            self._agent.write_response(response, True)
+
+        # Sending the end of part signal
+        self.data = []
+        response = udf_pb2.Response()
+        response.point.fieldsString["end-of-part"] = "END_OF_PART"
         response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
         self._agent.write_response(response, True)
 

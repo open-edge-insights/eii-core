@@ -23,7 +23,7 @@ class ClassifierManager:
 
     The ClassifierManager is responsible for facilitating the connection
     between Trigger's and classification algorithms. It is also responsible
-    for publishing both the meta-data from each frame ran through the 
+    for publishing both the meta-data from each frame ran through the
     classification and the summary results from the classification ran over
     the entire classification period.
 
@@ -34,7 +34,7 @@ class ClassifierManager:
             "classifiers": {
                 "<CLASSIFIER NAME>": {
                     "trigger": <STRING: Trigger Name>,
-                    "config": <DICT: Classifier Configuration> 
+                    "config": <DICT: Classifier Configuration>
                 }
                 ...
             }
@@ -42,7 +42,7 @@ class ClassifierManager:
     """
     def __init__(self, machine_id, config, storage, db):
         """Constructor
-        
+
         Parameters
         ----------
         machine_id : str
@@ -84,7 +84,7 @@ class ClassifierManager:
                 self.mqtt_client.on_connect = self._on_connect
                 self.mqtt_client.on_disconnect = self._on_disconnect
                 self.mqtt_client.connect(
-                        config['mqtt_broker_host'], 
+                        config['mqtt_broker_host'],
                         config['mqtt_broker_port'],
                         10)
                 self.mqtt_client.loop_start()
@@ -138,10 +138,10 @@ class ClassifierManager:
         self.log.info('Classification stopped')
 
     def _on_trigger(self, trigger, classifier, data):
-        """Private method for handling the trigger start event, starting a 
+        """Private method for handling the trigger start event, starting a
         thread to process all of the incoming data from the trigger.
         """
-        self.log.info('Received start signal from trigger "%s"', trigger) 
+        self.log.info('Received start signal from trigger "%s"', trigger)
         fut = self.pool.submit(self._process_frames, classifier, data)
         fut.add_done_callback(self._on_process_frames_done)
 
@@ -160,20 +160,22 @@ class ClassifierManager:
         try:
             if self.stopped.is_set():
                 return
-            
+
             self.log.info('Classification started')
             frame_count = 0
             start = time.time()
-            part = self.db.add_part()
+            # part = self.db.add_part()
             defects = {}
-            msg = {} 
+            msg = {}
+            ret_point = []
             self.samples = self._incr_int(self.samples, 1)
+            part_id = str(uuid.uuid4())
 
             for res in data:
                 if res is None:
                     break
 
-                sample_num, user_data, (cam_sn, frame) = res
+                sample_num, user_data, img_handle, (cam_sn, frame) = res
                 ts = time.time()
 
                 try:
@@ -184,16 +186,22 @@ class ClassifierManager:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
                     results = []  # Because of error, no results
 
+                """
                 # Find the camera in the database
                 cam = self.db.find_camera(cam_sn)
                 assert cam is not None, 'No camera for SN: {}'.format(cam_sn)
 
                 # Inserting the image into the database
-                image = self.db.add_image(part.id, cam_sn, frame.shape[0], 
+                image = self.db.add_image(part.id, cam_sn, frame.shape[0],
                         frame.shape[1], self.storage.get_format(), results)
-                
+                """
+
+                image_id = str(uuid.uuid4())
+
                 # Saving image to the local storage
-                self.storage.write(image.filename, frame)
+                # Not saving the image locally now. It should be viewed only
+                # from the HMI
+                # self.storage.write(image_id + '.png', frame)
 
                 defect_res = []
                 for d in results:
@@ -202,8 +210,8 @@ class ClassifierManager:
                     else:
                         defects[d.defect_class] = 1
                     defect_res.append({
-                        'type': d.defect_class, 
-                        'tl': d.tl, 
+                        'type': d.defect_class,
+                        'tl': d.tl,
                         'br': d.br
                     })
 
@@ -213,8 +221,8 @@ class ClassifierManager:
                         'idx': self.meta_idx,
                         'timestamp': ts,
                         'machine_id': self.machine_id,
-                        'part_id': part.id,
-                        'image_id': image.id,
+                        'part_id': part_id,
+                        'image_id': image_id,
                         'cam_sn': cam_sn,
                         'defects': defect_res
                     }
@@ -227,8 +235,11 @@ class ClassifierManager:
                     # value that an int can store in Python
                     self.meta_idx = self._incr_int(self.meta_idx, 1)
 
+                    msg['ImgHandle'] = img_handle
+                    ret_point.append(msg)
+
                 frame_count += 1
-            
+
             delta = time.time() - start
             fps = frame_count / delta
             self.log.info('Classification finished')
@@ -248,23 +259,23 @@ class ClassifierManager:
                     'idx': self.summary_idx,
                     'timestamp': ts,
                     'machine_id': self.machine_id,
-                    'part_id': part.id,
+                    'part_id': part_id,
                     'samples': self.samples,
-                    'defects': [ 
+                    'defects': [
                         {'type': k, 'count': v} for (k, v) in defects.items() ]
                 }
                 self.log.debug('Publishing classification summary to MQTT:\n%s',
                         json.dumps(data, indent=4))
                 self._publish(MQTT_RESULTS_TOPIC, data)
                 self.summary_idx = self._incr_int(self.summary_idx, 1)
-            return msg
+            return ret_point
 
     def _incr_int(self, val, rollover=0):
         """Helper to safely increment an integer and roll over back to the
         given default value if the maximum integer value is reached.
         """
         if val == sys.maxsize:
-            return rollover 
+            return rollover
         else:
             return val + 1
 
@@ -275,7 +286,7 @@ class ClassifierManager:
         ret = self.mqtt_client.publish(topic, json.dumps(data), qos=1)
         if ret.rc == mqtt.MQTT_ERR_NO_CONN:
             self.log.error(
-                    '[%d] Publication failed, MQTT disconnected, reconnecting', 
+                    '[%d] Publication failed, MQTT disconnected, reconnecting',
                     ret.rc)
 
     def _on_connect(self, client, userdata, flags, rc):
@@ -284,7 +295,7 @@ class ClassifierManager:
         if rc == 0:
             self.log.info('MQTT client connected')
         else:
-            self.log.error('[%d] MQTT client failed to connect, reconnecting', rc) 
+            self.log.error('[%d] MQTT client failed to connect, reconnecting', rc)
             self.mqtt_client.reconnect()
 
     def _on_disconnect(self, client, userdata, rc):
