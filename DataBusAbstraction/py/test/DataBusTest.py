@@ -10,6 +10,7 @@ from DataBus import databus
 
 def cbFunc(topic, msg):
     print("Msg: {} received on topic: {}".format(msg, topic))
+    print("")
 
 
 if __name__ == "__main__":

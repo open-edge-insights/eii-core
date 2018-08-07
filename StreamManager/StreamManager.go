@@ -84,7 +84,7 @@ func (pStrmMgr *StrmMgr) handlePointData(dbus databus.DataBus, addr *net.UDPAddr
 					"name": val.Topic,
 					"type": "string",
 				}
-				go databPublish(dbus, topic, buf[0:n])
+				databPublish(dbus, topic, buf[0:n])
 			}
 		}
 	}
@@ -197,7 +197,8 @@ func startServer(pStrmMgr *StrmMgr) {
 			glog.Errorln("Stream manager: error in reading from socket")
 		}
 
-		go pStrmMgr.handlePointData(opcuaDatab, addr, string(buf[:n]), n)
+		// TODO: Need to use channels here for preventing the overflow of socket buffer
+		pStrmMgr.handlePointData(opcuaDatab, addr, string(buf[:n]), n)
 	}
 }
 
