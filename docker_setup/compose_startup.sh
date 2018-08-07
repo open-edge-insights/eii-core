@@ -23,6 +23,17 @@ sed -i 's/"mqtt_broker_host": .*/"mqtt_broker_host": "'"$hostIP"'",/g' config/fa
 echo "0.3 Setting up /var/lib/eta directory and copying all the necessary config files..."
 source ./init.sh
 
+echo "0.4 Checking if mosquitto is up..."
+
+sudo fuser 1883/tcp &> mosq.txt
+if [ `echo $?` -eq "1" ]
+then
+    echo "0.4a Starting Mosquitto..."
+    docker run -d -p 1883:1883 eclipse-mosquitto:1.4.12
+fi
+
+echo "0.5 Mosquitto is up and running."
+
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down 
 

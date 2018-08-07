@@ -11,7 +11,7 @@ import (
 /*
 endpoint:
 <examples>
-	OPCUA -> opcua://0.0.0.0:4840/elephanttrunk/
+	OPCUA -> opcua://0.0.0.0:65003/elephanttrunk/
 	MQTT -> mqtt://localhost:1883/
 	NATS -> nats://127.0.0.1:4222/
 */

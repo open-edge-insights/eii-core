@@ -53,7 +53,7 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
 
 4. Start OPCUA message bus client to listen on topic `classifier_results` by running below cmd in another terminal (For more details on dependencies to be installed, refer: (**DataBusAbstraction/README.md**):
 
-`python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+`python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
 
   **Note**: Please use the git repo itself (untar of tarball obtained from tag will not work), as `build.py` script is dependent on git. 
 

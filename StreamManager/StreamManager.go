@@ -20,7 +20,7 @@ const (
 var opcuaContext = map[string]string{
 	"direction": "PUB",
 	"name":      "streammanager",
-	"endpoint":  "opcua://%s:4840/elephanttrunk/",
+	"endpoint":  "opcua://%s:65003/elephanttrunk/",
 }
 
 // StrmMgr type

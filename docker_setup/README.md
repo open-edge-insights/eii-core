@@ -89,7 +89,7 @@ running dependency and eta processes.
     ```
 
 2. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
 3. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
@@ -125,7 +125,7 @@ running dependency and eta processes.
 
 
 3. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2  DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2  DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
 4. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:

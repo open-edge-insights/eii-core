@@ -19,17 +19,6 @@ services:
     hostname: redis
     ports:
       - "6379:6379"
-      
-  # Define an Mosquitto service
-  mosquitto:
-    image: eclipse-mosquitto:1.4.12
-    container_name: mosquitto
-    volumes:
-      - /var/lib/eta/config/mosquitto.conf:/mosquitto/mosquitto.conf
-      - /var/lib/eta/data/mosquitto:/mosquitto/data 
-      - /var/lib/eta/logs:/mosquitto/log/mosquitto.log
-    ports:
-      - "1883:1883"
 
   #---- End: ETA Dependency Services----
   
@@ -74,14 +63,13 @@ services:
       - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
     ports:
       - "50051:50051"
-      - "4840:4840"
+      - "65003:65003"
         
   # Define DataAnalytics service
   ia_data_analytics:
     depends_on:
       - influxdb
       - redis
-      - mosquitto
       - ia_data_agent
       - ia-gopybase
     build:

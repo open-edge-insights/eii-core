@@ -24,7 +24,7 @@ A test program is available under ./go/test/ and ./py/test/
 
      examples:
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:4840/ --direction PUB --ns streammanager --topic classifier_results --msg TESTMESSAGE
+     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/ --direction PUB --ns streammanager --topic classifier_results --msg TESTMESSAGE
 
      python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint mqtt://localhost:1883/ --direction PUB --ns streammanager --topic classifier_results --msg TESTMESSAGE
      ```
@@ -38,7 +38,7 @@ A test program is available under ./go/test/ and ./py/test/
 
      examples:
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/ --direction SUB --ns streammanager --topic classifier_results
+     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/ --direction SUB --ns streammanager --topic classifier_results
 
      python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint mqtt://localhost:1883/ --direction SUB --ns streammanager --topic classifier_results
      ```
