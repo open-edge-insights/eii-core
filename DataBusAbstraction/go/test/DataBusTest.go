@@ -91,14 +91,15 @@ func main() {
 		panic("Wrong direction argument")
 	}
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Enter CMD/MSG: ")
+	fmt.Print("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
 	for scanner.Scan() {
-		fmt.Println("Enter CMD/MSG: ")
 		text := scanner.Text()
 		if *direction == "PUB" {
 			if text == "TERM" {
 				etaDatab.ContextDestroy()
 				break
+			} else if text == "START" || text == "STOP" {
+				fmt.Println("Not a valid CMD in PUB context!")
 			} else {
 				for _, t := range topics {
 					topicConfig := map[string]string{
@@ -132,5 +133,6 @@ func main() {
 				flag = "START"
 			}
 		}
+		fmt.Print("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
 	}
 }

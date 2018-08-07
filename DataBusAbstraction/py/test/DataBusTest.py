@@ -41,13 +41,14 @@ if __name__ == "__main__":
     except Exception as e:
         raise
     while True:
-        time.sleep(1)
-        var = raw_input("Enter CMD/MSG: ")
+        var = raw_input("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
         try:
             if args.direction == "PUB":
                 if var == "TERM":
                     etadbus.ContextDestroy()
                     break
+                elif var == "START" or var == "STOP":
+                    print("Not a valid CMD in PUB context!")
                 else:
                     for _, topic in enumerate(args.topic):
                         topicConfig = {"name": topic, "type": "string"}
