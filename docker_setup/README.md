@@ -80,14 +80,16 @@ running dependency and eta processes.
     If you don't change any source file or dockerfile and just change the `docker-compose.yml` file, then you could use `sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.sh` to recreate and start the fresh containers and do proper initialization. 
 
     > **Note**: 
-    1. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
+    starting it off.
+    2. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
     ```
         ENV http_proxy http://proxy.iind.intel.com:911
         ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
 2. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
 3. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
@@ -101,13 +103,13 @@ running dependency and eta processes.
 ## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
 **Pre-requisite:**
-* Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_eta_images.sh`
+* Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_built_images.sh`
 * Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
     
 1. Load ETA images (Input here is the ETA images tarballs)
 
     ```sh
-    sudo ./deploy/load_eta_images.sh | tee load_eta_images.txt
+    sudo ./deploy/load_built_images.sh | tee load_built_images.txt
     ```
     
 2. Run dependency and ETA images 
@@ -116,7 +118,10 @@ running dependency and eta processes.
     sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.txt
     ```
 
-    **Note**: Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
+    **Note**:
+    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before
+    starting it off.
+    2. Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
 
 
 3. If working with video file, please follow below steps:

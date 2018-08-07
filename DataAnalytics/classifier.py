@@ -47,14 +47,15 @@ class ConnHandler(Handler):
 
     def classifier_init(self):
         self.config = Configuration(self.config_file)
-        self.db = DatabaseAdapter(self.config.machine_id, self.config.database)
-        self.storage = LocalStorage(self.config.storage)
+        # commenting this out as we won't be needing postgres
+        # self.db = DatabaseAdapter(self.config.machine_id, self.config.database)
+        # self.storage = LocalStorage(self.config.storage)
         self._cm = ClassifierManager(
                 self.config.machine_id, self.config.classification,
-                self.storage, self.db)
+                None, None)
         self.classifier = self._cm.get_classifier("yumei")
         self.img_store = ImageStore()
-        self.storage.start()
+        # self.storage.start()
 
     def init(self, init_req):
         response = udf_pb2.Response()

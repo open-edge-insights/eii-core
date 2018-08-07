@@ -8,15 +8,6 @@
             }
         }
     },
-    "storage": {
-        "folder": "~/saved_images/",
-        "image_format": {
-            "type": "png",
-            "config": {
-                "compression_level": 3
-            }
-        }
-    },
     "triggers": {
         "motion_detection": {
             "angle_sequence": [231, 629, 793, 1076],
@@ -40,12 +31,5 @@
                 }
             }
         }
-    },
-    "database": {
-        "host": "localhost",
-        "port": 5432,
-        "database_name": "ali",
-        "username": "ali",
-	    "password": "intel123"
     }
 }

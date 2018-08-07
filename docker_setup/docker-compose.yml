@@ -19,8 +19,7 @@ services:
     hostname: redis
     ports:
       - "6379:6379"
-    
-  
+      
   # Define an Mosquitto service
   mosquitto:
     image: eclipse-mosquitto:1.4.12
@@ -31,17 +30,6 @@ services:
       - /var/lib/eta/logs:/mosquitto/log/mosquitto.log
     ports:
       - "1883:1883"
-
-  # Define an Postgres service
-  postgres:
-    image: postgres:10.4
-    container_name: postgres
-    environment:
-      - POSTGRES_USER=ali
-      - POSTGRES_PASSWORD=intel123
-      - POSTGRES_DB=ali
-    ports:
-      - "5432:5432"
 
   #---- End: ETA Dependency Services----
   
@@ -93,7 +81,6 @@ services:
     depends_on:
       - influxdb
       - redis
-      - postgres
       - mosquitto
       - ia_data_agent
       - ia-gopybase

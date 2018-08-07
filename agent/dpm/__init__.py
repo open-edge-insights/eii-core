@@ -31,8 +31,8 @@ class DataPipelineManager:
         """
         self.log = logging.getLogger(__name__)
 
-        self.log.info('Initializing the Database Adapter')
-        self.db = DatabaseAdapter(config.machine_id, config.database)
+        # self.log.info('Initializing the Database Adapter')
+        # self.db = DatabaseAdapter(config.machine_id, config.database)
 
         self.log.info('Initializing Data Ingestion Manager')
         self.dim = DataIngestionManager(config.data_ingestion_manager)
@@ -45,11 +45,11 @@ class DataPipelineManager:
         self.config = config
 
         self.log.info('Initializing local storage')
-        self.storage = LocalStorage(config.storage)
+        # self.storage = LocalStorage(config.storage)
         
         self.log.info('Initializing Classifier Manager')
         self.cm = ClassifierManager(
-                config.machine_id, config.classification, self.storage, self.db)
+                config.machine_id, config.classification, None, None)
 
         # Load classifiers and connect data pipeline
         for (n, c) in config.classification['classifiers'].items():
@@ -87,7 +87,7 @@ class DataPipelineManager:
         """Run the data pipeline manager.
         """
         self.log.info('Starting the data ingestion')
-        self.storage.start()
+        # self.storage.start()
         self.dim.start()
         self.dim.join()
 
@@ -99,7 +99,7 @@ class DataPipelineManager:
         for t in self.triggers:
             t.stop()
         self.cm.stop()
-        self.storage.stop()
+        # self.storage.stop()
         self.trigger_ex.shutdown()
         self.log.info('Data pipeline manager stopped')
 

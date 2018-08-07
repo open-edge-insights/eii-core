@@ -43,21 +43,4 @@
 		"mqtt_broker_port": 1883
 
 	}
-    },
-    "database": {
-        "host": "postgres",
-        "port": 5432,
-        "username": "ali",
-        "password": "intel123",
-        "database_name": "ali"
-    },
-    "storage": {
-        "folder": "~/saved_images/",
-        "image_format": {
-            "type": "png",
-            "config": {
-                "compression_level": 3
-            }
-        }
-    }
-}
+    }}

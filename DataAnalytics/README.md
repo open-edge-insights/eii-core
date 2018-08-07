@@ -8,28 +8,11 @@ analysis. These results are streamed to DataAgent via StreamManager's subscripti
 **Pre-requisites:**
 1. Configuring ETR agent:
     * Install OpenCV 3 with Python 3 support by running command `sudo -H pip3.6 install opencv-python`
-    * Install and configure PostgreSQL (PostgreSQL is used as the underlying database by the factory agent)
-        * Install postgreSQL: `sudo apt install postgresql`
-        * Configuring postgreSQL:
-            * Create database: `sudo -u postgres createdb ali`
-            * Create user ali with password `intel123`: `sudo -u postgres createuser -l -P ali`
-            * Storing password credentials in a password file: 
-                
-                ```sh
-                    $ touch ~/.pgpass && \
-                    echo "localhost:5432:ali:ali:intel123" > ~/.pgpass && \
-                    chmod 0600 ~/.pgpass
-                ```
-        * Populating database by running below commands:
-            * Insert camera location: `python3.6 factory.py db insert cam-loc 0 0 0`
-            * Insert camera position: `python3.6 factory.py db insert cam-pos 0 0 0`
-            * Insert camera: `python3.6 factory.py db insert camera camera-serial-number 1 1`
 2. Install below DataAnalytics dependencies:
     * python3.6 package by following [this](http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/)
     * **sudo -H pip3.6 install -r classifier_requirements.txt** - installs all dependencies for classifer program
     * **sudo -H pip2 install protobuf** - Needed by the kapasender.py UDF file.
     * **sudo apt-get install mosquitto** - MQTT implementation
-    * **sudo apt-get install postgresql** - database used by ETR
 
 **Note**: For more details on the pre-requisites and ETR, please refer: `agent/README.md`
 

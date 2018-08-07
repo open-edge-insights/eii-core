@@ -51,9 +51,8 @@ ADD Util ./Util
 # Adding entrypoint script
 ADD enable_kapacitor_task.sh .
 ADD entrypoint_classifier.sh .
-ADD wait-for-it.sh .
 ADD run_kapacitord.sh .
 ADD show_kapacitor_task.sh .
 
-ENTRYPOINT ["./wait-for-it.sh", "postgres:5432", "--", "./entrypoint_classifier.sh"]
+ENTRYPOINT ["./entrypoint_classifier.sh"]
 CMD ["factory_cam.json"]

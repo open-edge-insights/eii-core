@@ -40,12 +40,5 @@
                 }
             }
         }
-    },
-    "database": {
-        "host": "postgres",
-        "port": 5432,
-        "database_name": "ali",
-        "username": "ali",
-	    "password": "intel123"
     }
 }

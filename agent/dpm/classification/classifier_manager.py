@@ -65,8 +65,8 @@ class ClassifierManager:
             into the system.
         """
         self.log = logging.getLogger(__name__)
-        self.storage = storage
-        self.db = db
+        # self.storage = storage
+        # self.db = db
         self.machine_id = machine_id
         self.stopped = th.Event()
         self.meta_idx = 1
@@ -134,7 +134,7 @@ class ClassifierManager:
         if self.mqtt_client is not None:
             self.mqtt_client.disconnect()
             self.mqtt_client.loop_stop()
-        self.db.close()
+        # self.db.close()
         self.log.info('Classification stopped')
 
     def _on_trigger(self, trigger, classifier, data):
