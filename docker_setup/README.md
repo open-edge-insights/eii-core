@@ -53,7 +53,9 @@
 
     **NOTE**: Please use the git repo of iapoc-kapacitor as is, the script `build.py` is dependent on that.
 
-8. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
+8. Clone the a locally maintained [go-python repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.go_python/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+
+9. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
 10. It is good to stop and remove all previous containers started via docker script way by running below commands:
 
