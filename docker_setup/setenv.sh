@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Sets the env variables needed for ETA build environment
 
@@ -10,5 +10,5 @@ etaLogDir=$etaRootDir/logs
 etaConfDir=$etaRootDir/config
 etaDataDir=$etaRootDir/data
 
-rootDir="../"
+rootDir=".."
 configDir="config"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Kill all processes running natively on the host m/c
 echo "Killing all dependency processes..."

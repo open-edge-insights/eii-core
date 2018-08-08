@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Creates the /var/lib/eta directory and other sub-dirs here like logs, config
 # data, test_videos which will be used during volume mount of containers

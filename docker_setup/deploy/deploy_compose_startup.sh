@@ -1,28 +1,23 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # This scripts brings down the previous containers
 # and runs them in the dependency order using 
 # docker-compose.yml
+
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
 cp -f resolv.conf /etc/resolv.conf
 
 echo "0.2 Adding Docker Host IP Address to config/DataAgent.conf, config/factory.json and config/factory_cam.json files..."
-# Get Docker Host IP Address
-hostIP=`hostname -I | awk '{print $1}'`
-
-# Replacing 'localhost or host ip address' in docker_setup/config/DataAgent.conf with host IP
-sed -i 's/Host = .*/Host = "'"$hostIP"'"/g' config/DataAgent.conf
-
-# Replacing 'localhost or any other hostname' in docker_setup/config/factory.json & factory_cam.json
-# for mosquitto and postgres with host IP
-sed -i 's/"mqtt_broker_host": .*/"mqtt_broker_host": "'"$hostIP"'",/g' config/factory.json
-sed -i 's/"mqtt_broker_host": .*/"mqtt_broker_host": "'"$hostIP"'",/g' config/factory_cam.json
+source ./update_config.sh
 
 echo "0.3 Setting up /var/lib/eta directory and copying all the necessary config files..."
 source ./init.sh
 
+echo "0.4 Checking if mosquitto is up..."
+./start_mosquitto.sh
+
 echo "1. Removing previous dependency/eta containers if existed..."
-docker-compose down 
+docker-compose down
 
 echo "2. Creating and starting the dependency/eta containers..."
 docker-compose up -d

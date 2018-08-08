@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 mkdir -p $PWD/deploy/docker_images
 cd $PWD/deploy/docker_images
