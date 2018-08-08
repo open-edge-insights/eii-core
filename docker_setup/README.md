@@ -2,7 +2,7 @@
 
 ## Pre-requisities:
 1. Install latest docker cli/docker daemon by following [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [post install](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
-2. Configure proxy settings for docker client to connect to internet and for containers to access internet by following [this](https://docs.docker.com/network/proxy/). One can copy the below json object to ~/.docker/config.json (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo`):
+2. Configure proxy settings for docker client to connect to internet and for containers to access internet by following [this](https://docs.docker.com/network/proxy/). One can copy the below json object to ~/.docker/config.json (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`):
 
     ```
     {
@@ -18,9 +18,9 @@
     }
     ```
 
-3. Configure proxy settings for docker daemon by following the steps at [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy). Use the values for http proxy and https proxy as used above (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo`)
+3. Configure proxy settings for docker daemon by following the steps at [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy). Use the values for http proxy and https proxy as used above (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`)
 
-4. If you still see issues of not being able to access internet from container, please update the /etc/resolv.conf. The changes may go away after system restart, should be brought in back. Please follow the instructions below to have /etc/resolv.conf configured correctly:
+4. If you still see issues of not being able to access internet from container, please update `resolv.conf` file at `docker_setup/resolv.conf`. The `docker_setup/compose_startup.sh` and `docker_setup/deploy/deploy_compose_startup.sh` scripts will re-copy the resolv.conf to `/etc/resolv.conf` to keep it updated across system restarts (**Note**: `This change may not be needed in non-proxy environment`):
 
     ```
     A. Ubuntu 16.04 and earlier
@@ -45,18 +45,15 @@
 
         Verify on the host: cat /etc/resolv.conf
     ```
-4. Install docker-compose by following this [link](https://docs.docker.com/compose/install/#install-compose)
+5. Install `docker-compose` tool by following this [link](https://docs.docker.com/compose/install/#install-compose)
 
-5. In dockerized environment, it is observed that more points are received by kapacitor from influxdb if at all the bare metal setup is tried out earlier. This is due to more subscriptions set on "datain" database. Please make sure to drop "datain" database before trying the docker setup OR drop the subscription. Eg: **drop subscription "kapacitor-65c392d7-6ef7-46f8-97c2-e5eeb7094c12" on "_internal"."monitor"** for _internal database.
-
-6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the test_videos folder under the project root directory
+6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `iapoc_elephanttrunkarch` folder
 
 7. Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
 
-8. Clone the a locally maintained [go-python repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.go_python/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+    **NOTE**: Please use the git repo of iapoc-kapacitor as is, the script `build.py` is dependent on that.
 
-9. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally
-running dependency and eta processes.
+8. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
 10. It is good to stop and remove all previous containers started via docker script way by running below commands:
 
@@ -64,8 +61,7 @@ running dependency and eta processes.
         docker stop $(docker ps -a -q)
         docker rm $(docker ps -a -q)
     ```
-    **Note**: If one is facing issue while building the images using `compose_startup.sh` script, please remove all docker images if you don't require the old ones by running
-    cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
+    **Note**: If one is facing issue while building the images using `compose_startup.sh` script even after doing resolv.conf and docker proxy settings, please remove all docker images if you don't require the old ones by running cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
 
 11. Known Issues:
     * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
@@ -91,7 +87,7 @@ running dependency and eta processes.
     ```
 
 2. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
+    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running).Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`): `python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
 3. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
@@ -106,8 +102,8 @@ running dependency and eta processes.
 
 **Pre-requisite:**
 * Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_built_images.sh`
-* Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
-
+* Create a tar ball of `/var/lib/eta` folder from dev system, this is where we have all the config files which would be mounted into containers in addition to `test_videos` folder. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
+    
 1. Load ETA images (Input here is the ETA images tarballs)
 
     ```sh
@@ -121,20 +117,11 @@ running dependency and eta processes.
     ```
 
     **Note**:
-    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before
-    starting it off.
+    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
     2. Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
 
 
-3. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where ia_data_agent container is running): `python2  DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`
-    * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
-
-4. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
-
-    ```sh
-    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
-    ```
+3. Follow steps 2 & 3 of `Steps to setup ETA solution on dev system` section itself
 
 > Note:
 > 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
