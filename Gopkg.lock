@@ -83,12 +83,6 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/sbinet/go-python"
-  packages = ["."]
-  revision = "f976f61134dc6f5b4920941eb1b0e7cec7e4ef4c"
-
-[[projects]]
-  branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",

@@ -59,10 +59,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/sbinet/go-python"
-
-[[constraint]]
-  branch = "master"
   name = "golang.org/x/net"
 
 [[constraint]]

@@ -53,10 +53,12 @@
 
 7. Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
 
-8. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally
+8. Clone the a locally maintained [go-python repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.go_python/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+
+9. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally
 running dependency and eta processes.
 
-9. It is good to stop and remove all previous containers started via docker script way by running below commands:
+10. It is good to stop and remove all previous containers started via docker script way by running below commands:
 
     ```
         docker stop $(docker ps -a -q)
@@ -65,21 +67,21 @@ running dependency and eta processes.
     **Note**: If one is facing issue while building the images using `compose_startup.sh` script, please remove all docker images if you don't require the old ones by running
     cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
 
-10. Known Issues:
+11. Known Issues:
     * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
     * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
 
 ## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
 
 1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
-    
+
     ```sh
     sudo ./compose_startup.sh | tee compose_startup.txt
     ```
-    
-    If you don't change any source file or dockerfile and just change the `docker-compose.yml` file, then you could use `sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.sh` to recreate and start the fresh containers and do proper initialization. 
 
-    > **Note**: 
+    If you don't change any source file or dockerfile and just change the `docker-compose.yml` file, then you could use `sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.sh` to recreate and start the fresh containers and do proper initialization.
+
+    > **Note**:
     1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     starting it off.
     2. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
@@ -97,7 +99,7 @@ running dependency and eta processes.
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
-    
+
     **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
 
 ## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
@@ -105,14 +107,14 @@ running dependency and eta processes.
 **Pre-requisite:**
 * Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_built_images.sh`
 * Create a tar ball of `/var/lib/eta` folder, this is where we have all the config files which would be mounted into containers. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
-    
+
 1. Load ETA images (Input here is the ETA images tarballs)
 
     ```sh
     sudo ./deploy/load_built_images.sh | tee load_built_images.txt
     ```
-    
-2. Run dependency and ETA images 
+
+2. Run dependency and ETA images
 
 	```sh
     sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.txt
@@ -135,7 +137,7 @@ running dependency and eta processes.
     ```
 
 > Note:
-> 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics) 
+> 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
 > 2. Dependency containers are: Influxdb(influxdb), Redis(redis), Postgres(postgres) and Mosquitto (mosquitto)
 > 3. Few useful docker-compose and docker commands:
 > * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`

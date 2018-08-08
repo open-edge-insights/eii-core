@@ -2,7 +2,7 @@ package databus
 
 import (
 	"github.com/golang/glog"
-	"github.com/sbinet/go-python"
+	"iapoc_elephanttrunkarch/iapoc-go-python"
 	"strconv"
 	"strings"
 )
