@@ -1,0 +1,15 @@
+[Unit]
+Description=ETA infrastructure service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Restart=on-failure
+WorkingDirectory=/opt/intel/eta/docker_setup/
+ExecStartPre=/opt/intel/eta/docker_setup/deploy/load_built_images.sh
+ExecStart=/opt/intel/eta/docker_setup/deploy/deploy_compose_startup.sh
+ExecStop=/opt/intel/eta/docker_setup/deploy/deploy_compose_shutdown.sh
+TimeoutSec=301s
+
+[Install]
+WantedBy=multi-user.target
