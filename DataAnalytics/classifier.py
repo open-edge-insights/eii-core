@@ -105,6 +105,9 @@ class ConnHandler(Handler):
                 logger.info("Frame read unsuccessful.")
 
 
+        if len(self.data) == 0:
+            return
+
         # Sending in the list data for one part
         ret = self._cm._process_frames(self.classifier, self.data)
 
