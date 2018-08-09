@@ -100,30 +100,50 @@
 
     **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
 
-## Steps to setup ETA solution on factory system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
+## Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)
 
 **Pre-requisite:**
-* Have the ETA images stored as tarballs from dev system: `sudo ./deploy/save_built_images.sh`
-* Create a tar ball of `/var/lib/eta` folder from dev system, this is where we have all the config files which would be mounted into containers in addition to `test_videos` folder. This needs to be copied over to the factory system along with `docker_setup` folder which has all the necessary scripts and docker images tar balls. The docker images tar balls are saved under `docker_setup/deploy/docker_images`.
-    
-1. Load ETA images (Input here is the ETA images tarballs)
+* Follow the Pre-requisites mentioned before setiing up ETA in developement system. In other words follow the previously mentioned prerequisites.
+* Deployment of ETA in target machine is two phase operation.
+	 I) Create the tarball package using setup_eta.py file.
+	II) If the tarball(eta.tar.gz) exist already or prepared in step-I, then use setup_eta.py to install it.
+
+1. Prepare the ETA package tarball. Make sure that you are in "deploy" directory as mentioned above.
 
     ```sh
-    sudo ./deploy/load_built_images.sh | tee load_built_images.txt
+    sudo ./setup_eta.py -c | tee create_eta_targz.txt
+    ```
+* This step will create an file named eta.tar.gz in the "deploy" directory. Copy this tarball to the destination node's prefered directory.
+* Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
+
+2. Untar & Uncompress the archive in your prefered location. e.g. one can execute the below command to extract the tarball:
+
+    ```sh
+    tar -xvof eta.tar.gz
+    ```
+    **Note**: This command will extract two file namely setup_eta.py & docker_setup.tar.gz file.
+
+3. Execute the following command to install ETA in the target machine and create systemd service of the same.
+
+    ```sh
+    sudo ./setup_eta.py -i
+    ```
+    **Note**: This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
+    **Note**: One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
+
+    ```sh
+    sudo systemctl status eta
     ```
 
-2. Run dependency and ETA images
+4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running).Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`): `python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
 
-	```sh
-    sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.txt
+5. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
+
+    ```sh
+    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
-    **Note**:
-    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
-    2. Please run `docker ps` cmd to see if all the dependency and ETA containers are up.
-
-
-3. Follow steps 2 & 3 of `Steps to setup ETA solution on dev system` section itself
+    **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
 
 > Note:
 > 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
