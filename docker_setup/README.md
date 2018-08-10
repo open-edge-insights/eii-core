@@ -1,8 +1,14 @@
-# Docker compose setup of ETA solution:
 
-## Pre-requisities:
-1. Install latest docker cli/docker daemon by following [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [post install](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
-2. Configure proxy settings for docker client to connect to internet and for containers to access internet by following [this](https://docs.docker.com/network/proxy/). One can copy the below json object to ~/.docker/config.json (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`):
+Docker compose setup of ETA solution:
+=====================================
+--------------------------------------
+
+## <u>Pre-requisities</u>:
+
+
+1. Install latest docker cli/docker daemon by following [https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [https://docs.docker.com/install/linux/linux-postinstall/](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
+
+2. Configure proxy settings for docker client to connect to internet and for containers to access internet by following [https://docs.docker.com/network/proxy/](https://docs.docker.com/network/proxy/). One can copy the below json object to ~/.docker/config.json (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`):
 
     ```
     {
@@ -18,7 +24,7 @@
     }
     ```
 
-3. Configure proxy settings for docker daemon by following the steps at [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy). Use the values for http proxy and https proxy as used above (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`)
+3. Configure proxy settings for docker daemon by following the steps at [https://docs.docker.com/config/daemon/systemd/#httphttps-proxy](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy). Use the values for http proxy and https proxy as used above (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`)
 
 4. If you still see issues of not being able to access internet from container, please update `resolv.conf` file at `docker_setup/resolv.conf`. The `docker_setup/compose_startup.sh` and `docker_setup/deploy/deploy_compose_startup.sh` scripts will re-copy the resolv.conf to `/etc/resolv.conf` to keep it updated across system restarts (**Note**: `This change may not be needed in non-proxy environment`):
 
@@ -45,7 +51,8 @@
 
         Verify on the host: cat /etc/resolv.conf
     ```
-5. Install `docker-compose` tool by following this [link](https://docs.docker.com/compose/install/#install-compose)
+
+5. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
 6. Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `iapoc_elephanttrunkarch` folder
 
@@ -65,11 +72,11 @@
     ```
     **Note**: If one is facing issue while building the images using `compose_startup.sh` script even after doing resolv.conf and docker proxy settings, please remove all docker images if you don't require the old ones by running cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
 
-11. Known Issues:
+11. **Known Issues**:
     * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
     * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
 
-## Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)
+## <u>Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)</u>
 
 1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
 
@@ -77,90 +84,140 @@
     sudo ./compose_startup.sh | tee compose_startup.txt
     ```
 
-    If you don't change any source file or dockerfile and just change the `docker-compose.yml` file, then you could use `sudo ./deploy/deploy_compose_startup.sh | tee deploy_compose_startup.sh` to recreate and start the fresh containers and do proper initialization.
-
     > **Note**:
-    1. Please note `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
+    > 1. `compose_startup.sh` script will start the mosquitto container outside of the docker-compose.yml file if there is no local mosquitto service OR CFSDK container is running.
+    > 2. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     starting it off.
-    2. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
-    ```
-        ENV http_proxy http://proxy.iind.intel.com:911
-        ENV https_proxy http://proxy.iind.intel.com:911
-    ```
+    > 3. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+    	
+    >    ```sh
+          ENV http_proxy http://proxy.iind.intel.com:911
+          ENV https_proxy http://proxy.iind.intel.com:911
+        ```
 
-2. If working with video file, please follow below steps:
-    * Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running).Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`): `python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
+2. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
+   
+   ```sh
+   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+   ```
+   
+   **Note**:
+   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`). The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
+
+3. If working with video file, please follow below steps:
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
-3. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
+4. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
 
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
-    **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
+    **Note**:
+    * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_cam.json` under `basler` json field
+    * Below scripts provide more control on passing CAM ON and CAM OFF message:
+    
+    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON):
+        
+          ```sh
+          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_manual.py --camera_state 1
+          ```
+        - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
+        
+          ```sh
+          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_auto.py
+          ```
+        <br/>  
+		Check `$GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/config.py` for configuration.
 
-## Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)
+## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)</u>
 
-**Pre-requisite:**
-* Follow the Pre-requisites mentioned before setiing up ETA in developement system. In other words follow the previously mentioned prerequisites.
-* Deployment of ETA in target machine is two phase operation.
-	 I) Create the tarball package using setup_eta.py file.
-	II) If the tarball(eta.tar.gz) exist already or prepared in step-I, then use setup_eta.py to install it.
+<u>Pre-requisite:</u>
+   * Follow the Pre-requisites mentioned before setiing up ETA in developement system. In other words follow the previously mentioned prerequisites.
+   * Search for `command` instruction in `../docker-compose.yml` file and change the value from `factory.json` to `factory_cam.json` or take off that line completely as in the image `factory_cam.json` is set as default.
+   * Deployment of ETA in target machine is two phase operation.
+	 	I) Create the tarball package using `setup_eta.py` file.
+		II) If the tarball(eta.tar.gz) exist already or prepared in step-I, then use `setup_eta.py` to install it.
 
+<u> Steps: </u>
 1. Prepare the ETA package tarball. Make sure that you are in "deploy" directory as mentioned above.
 
     ```sh
     sudo ./setup_eta.py -c | tee create_eta_targz.txt
     ```
-* This step will create an file named eta.tar.gz in the "deploy" directory. Copy this tarball to the destination node's prefered directory.
-* Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
+   **Note**:
+   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
+   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
 
-2. Untar & Uncompress the archive in your prefered location. e.g. one can execute the below command to extract the tarball:
+2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
 
     ```sh
     tar -xvof eta.tar.gz
     ```
-    **Note**: This command will extract two file namely setup_eta.py & docker_setup.tar.gz file.
+    **Note**: This command will extract two file namely `setup_eta.py` & `docker_setup.tar.gz` file.
 
 3. Execute the following command to install ETA in the target machine and create systemd service of the same.
 
     ```sh
     sudo ./setup_eta.py -i
     ```
-    **Note**: This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
-    **Note**: One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
+    **Note**:
+    * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
+    * Please noe: `The ETA service daemon would wait till the mosquitto port is been bounded by CFSDK container`
+    * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
 
     ```sh
     sudo systemctl status eta
     ```
 
-4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running).Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`): `python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
+4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
+   
+   ```sh
+   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo
+   ```
+   
+   **Note**:
+   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`)
 
-5. If working with basler's camera, need to send camera ON message to ia_video_ingestion container by running below command:
+5. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
 
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
-    **Note**: While testing with Basler's camera, just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
+    **Note**:
+    * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_cam.json` under `basler` json field
+    * Below scripts provide more control on passing CAM ON and CAM OFF message:
+    
+    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON):
+        
+          ```sh
+          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_manual.py --camera_state 1
+          ```
+        - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
+        
+          ```sh
+          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_auto.py
+          ```
+        <br/>
+		Check `$GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/config.py` for configuration.
 
 > Note:
-> 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
-> 2. Dependency containers are: Influxdb(influxdb), Redis(redis), Postgres(postgres) and Mosquitto (mosquitto)
-> 3. Few useful docker-compose and docker commands:
-> * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
-> * `docker-compose down` - stops and removes the service containers
-> * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
-> * `docker ps` - check running containers
-> * `docker ps -a` - check running and stopped containers
-> * `docker stop $(docker ps -a -q)` - stops all the containers
-> * `docker rm $(docker ps -a -q)` - removes all the containers. Useful when you run into issue of already container is in use.
-> **Note**: Some useful links:
-> * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
-> * [docker compose reference](https://docs.docker.com/compose/compose-file/)
-> * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
-4. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before ther service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
-> 5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
-> 6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
-> container logs at once, then just run `docker-compose logs -f`
+1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
+2. Dependency containers are: Influxdb(influxdb), Redis(redis)
+3. Few useful docker-compose and docker commands:
+     * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
+     * `docker-compose down` - stops and removes the service containers
+     * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
+     * `docker ps` - check running containers
+     * `docker ps -a` - check running and stopped containers
+     * `docker stop $(docker ps -a -q)` - stops all the containers
+     * `docker rm $(docker ps -a -q)` - removes all the containers. Useful when you run into issue of already container is in use.
+     * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
+     * [docker compose reference](https://docs.docker.com/compose/compose-file/)
+     * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
+4. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --    name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
+5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
+6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
+   container logs at once, then just run `docker-compose logs -f`
+

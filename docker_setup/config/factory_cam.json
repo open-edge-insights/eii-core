@@ -22,7 +22,7 @@
                 "poll_interval": 0.01,
                 "streams": {
                     "basler": {
-                       "22573664":{
+                       "0815-0000":{
                                "exposure": 8000
                        }
                     }
