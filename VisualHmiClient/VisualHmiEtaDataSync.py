@@ -102,11 +102,7 @@ class EtaDataSync:
 
         """
         try:
-            resps = GrpcClient.GetBlob(key)
-            # Aggregating all the byte chunks received
-            outputBytes = b''
-            for resp in resps:
-                outputBytes += resp.chunk
+            outputBytes = GrpcClient.GetBlob(key)
             return outputBytes
         except Exception as e:
             print("Exception Occured in GetBlob Module : ", str(e))

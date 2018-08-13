@@ -32,10 +32,12 @@ class GrpcClient(object):
         channel = grpc.insecure_channel("{0}:50051".format(hostname))
         stub = da_pb2_grpc.daStub(channel)
         # response = stub.GetBlob(imgHandle)
+        outputBytes = b''
         response = stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
-
+        for resp in response:
+            outputBytes += resp.chunk
         proxyHelper.resetProxies()
-        return response
+        return outputBytes
 
 
     @staticmethod

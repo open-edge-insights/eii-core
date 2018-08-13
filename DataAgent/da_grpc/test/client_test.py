@@ -42,16 +42,10 @@ if __name__ == '__main__':
         inputBytes = f.read()
 
     log.info("len(inputBytes): %s", len(inputBytes))
-    status, key = imgStore.store(inputBytes)
+    key = imgStore.store(inputBytes)
 
     log.info("Image Handle: %s", key)
-    resps = GrpcClient.GetBlob(key)
-
-    # Aggregating all the byte chunks received
-    outputBytes = b''
-    for resp in resps:
-        outputBytes += resp.chunk
-
+    outputBytes = GrpcClient.GetBlob(key)
     log.info("len(outputBytes): %s", len(outputBytes))
 
     with open(outputFile, "wb")  as outfile:
