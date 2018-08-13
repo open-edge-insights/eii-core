@@ -43,6 +43,10 @@ docker exec -d ia_data_analytics ./run_kapacitord.sh
 echo "4. Defining and enabling the classifier task in the ia_data_analytics container..."
 docker exec -d ia_data_analytics ./enable_kapacitor_task.sh
 
+#Logging the docker compose logs to file.
+DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
+docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &
+
 for (( ; ; ))
 do
    sleep 1

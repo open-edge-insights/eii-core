@@ -10,10 +10,8 @@ mkdir -p $etaRootDir
 mkdir -p $etaLogDir
 mkdir -p $etaConfDir
 
-mkdir -p $etaDataDir
-mkdir -p $etaDataDir/kapacitor
-mkdir -p $etaDataDir/influxdb
-mkdir -p $etaDataDir/classifier
+# Creating eta log directory
+mkdir -p $etaLogDir/consolidatedLogs
 mkdir -p $etaLogDir/kapacitor
 
 # Copy config files

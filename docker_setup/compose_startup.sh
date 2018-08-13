@@ -33,3 +33,7 @@ docker exec -d ia_data_analytics ./enable_kapacitor_task.sh
 
 echo "6. Restarting the ia_video_ingestion container..."
 docker restart ia_video_ingestion
+
+#Logging the docker compose logs to file.
+DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
+docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &

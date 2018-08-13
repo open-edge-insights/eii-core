@@ -205,7 +205,10 @@ Docker compose setup of ETA solution:
 > Note:
 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
 2. Dependency containers are: Influxdb(influxdb), Redis(redis)
-3. Few useful docker-compose and docker commands:
+3. '/var/lib/eta' root directory details:
+     * config/ - all the ETA configs reside here.
+     * logs/ - all the ETA logs reside here. 
+4. Few useful docker-compose and docker commands:
      * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
      * `docker-compose down` - stops and removes the service containers
      * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
@@ -216,7 +219,7 @@ Docker compose setup of ETA solution:
      * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
      * [docker compose reference](https://docs.docker.com/compose/compose-file/)
      * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
-4. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --    name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
+5. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --    name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
 5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
 6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
    container logs at once, then just run `docker-compose logs -f`
