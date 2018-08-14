@@ -35,37 +35,27 @@ class Ingestor:
         self.frames = []
         self.frame_count = 0
         self.th = None
-
-        cap = None
+        self.cap = None
         try:
-            video_file = os.path.expanduser(config['video_file'])
-            self.filename = os.path.basename(video_file)
+            self.video_file = os.path.expanduser(config['video_file'])
+            self.filename = os.path.basename(self.video_file)
+
             self.loop_video = config.get('loop_video', False)
+            print('config:', config)
+            
             self.poll_interval = config.get('poll_interval', None)
-            if not os.path.exists(video_file):
+            if not os.path.exists(self.video_file):
                 raise IngestorError(
-                        'Video file does not exist: {}'.format(video_file))
+                    'Video file does not exist: {}'.format(self.video_file))
 
-            cap = cv2.VideoCapture(video_file)
-            if not cap.isOpened():
+            self.cap = cv2.VideoCapture(self.video_file)
+            if not self.cap.isOpened():
                 raise IngestorError(
-                        'Failed to open video file: {}'.format(video_file))
+                    'Failed to open video file: {}'.format(self.video_file))
 
-            self.log.info('Reading frames from video file %s', video_file)
-            while True:
-                ret, frame = cap.read()
-
-                if not ret:
-                    break
-
-                self.frames.append(frame)
-                self.frame_count += 1
         except KeyError as e:
             raise IngestorError(
                     'Video file configuration missing key: {}'.format(e))
-        finally:
-            if cap is not None:
-                cap.release()
 
     def start(self):
         """Start the ingestor.
@@ -93,23 +83,26 @@ class Ingestor:
         """Video file ingestor run thread.
         """
         self.log.info('Video file ingestor running')
-        current_frame = 0
-
+        
         while not self.stop_ev.is_set():
-            self.on_data(
-                    'video_file', (self.filename, self.frames[current_frame]))
-            current_frame += 1
-
+            ret, frame = self.cap.read()
+            self.on_data('video_file', (self.filename, frame))
+            
             if self.poll_interval is not None:
                 time.sleep(self.poll_interval)
 
-            if current_frame == self.frame_count:
+            if not ret:
                 if self.loop_video:
                     self.log.debug('Video done playing, looping...')
-                    current_frame = 0
+                    self.cap.release()
+                    self.cap = cv2.VideoCapture(self.video_file)
+                    if not self.cap.isOpened():
+                        raise IngestorError(
+                            'Failed to open video file: {}'.format(
+                                self.video_file))
                 else:
                     self.log.debug('Video done playing, stopping...')
                     break
-
+            
         self.log.info('Video file ingestor stopped')
 
