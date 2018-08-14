@@ -17,7 +17,8 @@ class DataIngestionLib:
         self.log = logging.getLogger('data_ingestion')
         self.data_point = {'tags': {}, 'fields': {}}
         try:
-            self.config = GrpcClient.GetConfigInt("InfluxDBCfg")
+            client = GrpcClient()
+            self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with gRPC server." +
                               "Exception: {0}".format(e))

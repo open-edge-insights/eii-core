@@ -82,6 +82,7 @@ services:
       KAPACITOR_HOSTNAME: ia_data_analytics
       KAPACITOR_URL: http://ia_data_analytics:9092/
       KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086/
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
     volumes:
       - /var/lib/eta/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf
       - /var/lib/eta/config/factory.json:/ETA/factory.json
@@ -90,7 +91,7 @@ services:
     command: factory.json
     expose:
       - "9092"
-  
+
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:

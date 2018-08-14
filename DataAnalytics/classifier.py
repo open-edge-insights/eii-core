@@ -180,8 +180,10 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    currentDateTime = datetime.datetime.now()
-    logFileName = 'dataAnalytics_' + str(currentDateTime) + '.log'
+    currentDateTime = str(datetime.datetime.now())
+    listDateTime = currentDateTime.split(" ")
+    currentDateTime = "_".join(listDateTime)
+    logFileName = 'dataAnalytics_' + currentDateTime + '.log'
 
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)

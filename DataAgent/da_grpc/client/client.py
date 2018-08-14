@@ -6,62 +6,72 @@ import json
 import DataAgent.da_grpc.protobuff.da_pb2 as da_pb2
 import DataAgent.da_grpc.protobuff.da_pb2_grpc as da_pb2_grpc
 import os
-import socket
+import logging as log
 from Util.proxy import ProxyHelper
 
 
 class GrpcClient(object):
 
-    @staticmethod
-    def GetBlob(imgHandle):
+    def __init__(self, hostname="localhost", port="50051"):
         """
-               GetBlob is a wrapper around gRPC python client implementation for GetBlob interface.
-            It takes the imgHandle string(key from ImageStore) of the image frame ingested in the ImageStore
-            and returns the consolidated byte array(value from ImageStore) from ImageStore associated with
+            GrpcClient constructor.
+            Keyword Arguments:
+            hostname - refers to hostname/ip address of the m/c
+                       where DataAgent module of ETA is running
+                       (default: localhost)
+            port     - refers to gRPC port (default: 50051)
+        """
+        self.hostname = hostname
+        self.port = port
+        self.proxyHelper = ProxyHelper()
+
+
+    def __daStub(self):
+        """
+            Private method to get the DaStub object
+        """
+        self.proxyHelper.unsetProxies()
+        if 'GRPC_SERVER' in os.environ:
+            self.hostname = os.environ['GRPC_SERVER']
+        addr = "{0}:{1}".format(self.hostname, self.port)
+        log.debug("Establishing grpc channel to %s", addr)
+        channel = grpc.insecure_channel(addr)
+        stub = da_pb2_grpc.daStub(channel)
+        self.proxyHelper.resetProxies()
+        return stub
+
+    def GetBlob(self, imgHandle):
+        """
+            GetBlob is a wrapper around gRPC python client implementation
+            for GetBlob gRPC interface.
+            Arguments:
+            imgHandle(string): key for ImageStore
+            Returns:
+            The consolidated byte array(value from ImageStore) associated with
             that imgHandle
         """
-        proxyHelper = ProxyHelper()
-        proxyHelper.unsetProxies()
-        hostname = "ia_data_agent"
-        try:
-            #hostname ia_data_agent resolution will fail for containers
-            #running in net host namespace
-            socket.gethostbyname(hostname)
-        except socket.gaierror:
-            hostname = "localhost"
-        channel = grpc.insecure_channel("{0}:50051".format(hostname))
-        stub = da_pb2_grpc.daStub(channel)
-        # response = stub.GetBlob(imgHandle)
+        log.debug("Inside GetBlob() client wrapper...")
+        stub = self.__daStub()
+        response = stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
         outputBytes = b''
         response = stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
         for resp in response:
             outputBytes += resp.chunk
-        proxyHelper.resetProxies()
+        log.debug("Sending the response to the caller...")
         return outputBytes
 
-
-    @staticmethod
-    def GetConfigInt(config):
+    def GetConfigInt(self, config):
         """
-            This is a wrapper around gRPC python client implementation for
-            GetConfigInt. It takes the config as the parameter (InfluxDBCfg,
-            RedisCfg etc.,) returning the dictionary object for that
-            particular config
+            GetConfigInt is a wrapper around gRPC python client implementation
+            for GetConfigInt gRPC interface.
+            Arguments:
+            config(string): InfluxDBCfg or RedisCfg
+            Returns:
+            The dictionary object corresponding to the config value
         """
-        proxyHelper = ProxyHelper()
-        proxyHelper.unsetProxies()
-       
-        hostname = "ia_data_agent"
-        try:
-            #hostname ia_data_agent resolution will fail for containers
-            #running in net host namespace
-            socket.gethostbyname(hostname)
-        except socket.gaierror:
-            hostname = "localhost"
-        channel = grpc.insecure_channel("{0}:50051".format(hostname))
-        stub = da_pb2_grpc.daStub(channel)
+        log.debug("Inside GetConfigInt() client wrapper...")
+        stub = self.__daStub()
         response = stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
                                      timeout=1000)
-
-        proxyHelper.resetProxies()
+        log.debug("Sending the response to the caller...")
         return json.loads(response.jsonMsg)

@@ -42,7 +42,7 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
 
         * Have the TICK stack softwares (influx, kapacitor - [refer](https://www.digitalocean.com/community/tutorials/how-to-monitor-system-metrics-with-the-tick-stack-on-ubuntu-16-04)) and [Redis](https://askubuntu.com/questions/868848/how-to-install-redis-on-ubuntu-16-04) installed locally. 
 
-        * Copy the yumei_trigger.avi from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\test_video" shared folder and put it under the root directory - this is needed by VideoIngestion and DataAnalytics module
+        * Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `iapoc_elephanttrunkarch` folder
 
 	3. Steps to run ETA modules:
         * Start all dependency modules:

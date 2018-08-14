@@ -11,24 +11,46 @@ import (
 	"google.golang.org/grpc"
 )
 
-const (
-	address = "localhost:50051"
-)
+// GrpcClient structure
+type GrpcClient struct {
+	hostname string //hostname of the gRPC server
+	port     string //gRPC port
+}
+
+// NewGrpcClient : This is the constructor to initialize the GrpcClient
+func NewGrpcClient(hostname, port string) (*GrpcClient, error) {
+	return &GrpcClient{hostname: hostname, port: port}, nil
+}
+
+// getDaClient: It is a private method called to get the DaClient object
+func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
+	addr := pClient.hostname + ":" + pClient.port
+
+	glog.Infof("Addr: %s", addr)
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		glog.Errorf("Did not connect: %v", err)
+		return nil, err
+	}
+
+	daClient := pb.NewDaClient(conn)
+	return daClient, nil
+}
 
 // GetBlob is a wrapper around gRPC go client implementation for GetBlob interface.
 // It takes the imgHandle string(key from ImageStore) of the image frame ingested in the ImageStore
 // and returns the consolidated byte array(value from ImageStore) from ImageStore associated with
 // that imgHandle
-func GetBlob(imgHandle string) ([]byte, error) {
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+func (pClient *GrpcClient) GetBlob(imgHandle string) ([]byte, error) {
+
+	daClient, err := pClient.getDaClient()
 	if err != nil {
-		glog.Errorf("Did not connect: %v", err)
+		glog.Errorf("Error1: %v", err)
 		return nil, err
 	}
-	cc := pb.NewDaClient(conn)
-	client, err := cc.GetBlob(context.Background(), &pb.BlobReq{ImgHandle: imgHandle})
+	client, err := daClient.GetBlob(context.Background(), &pb.BlobReq{ImgHandle: imgHandle})
 	if err != nil {
-		glog.Errorf("Error: %v", err)
+		glog.Errorf("Error2: %v", err)
 		return nil, err
 	}
 	var blob []byte
@@ -51,32 +73,22 @@ func GetBlob(imgHandle string) ([]byte, error) {
 // GetConfigInt interface. It takes the config as the parameter
 // (InfluxDBCfg, RedisCfg etc.,) returning the json as map for that
 // particular config
-func GetConfigInt(config string) (map[string]string, error) {
+func (pClient *GrpcClient) GetConfigInt(config string) (map[string]string, error) {
 
-	var err error
-	err = nil
-
-	var configMap map[string]string
-
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	daClient, err := pClient.getDaClient()
 	if err != nil {
-		glog.Errorf("Did not connect: %v", err)
-		return configMap, err
+		glog.Errorf("Error: %v", err)
+		return nil, err
 	}
-
-	defer conn.Close()
-
-	c := pb.NewDaClient(conn)
-
 	// Set the gRPC timeout
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	var configMap map[string]string
 	// gRPC call
-	resp, err := c.GetConfigInt(ctx, &pb.ConfigIntReq{CfgType: config})
+	resp, err := daClient.GetConfigInt(ctx, &pb.ConfigIntReq{CfgType: config})
 	if err != nil {
-		glog.Errorf("Error: %v", err)
+		glog.Errorf("Error3: %v", err)
 		return configMap, err
 	}
 

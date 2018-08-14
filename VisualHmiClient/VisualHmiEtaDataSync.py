@@ -102,7 +102,11 @@ class EtaDataSync:
 
         """
         try:
-            outputBytes = GrpcClient.GetBlob(key)
+            # provide the hostname/ip addr of the m/c
+            # where DataAgent module of ETA solution is running
+            grpc_host = self.config['databus_host']
+            client = GrpcClient(hostname=grpc_host)
+            outputBytes = client.GetBlob(key)
             return outputBytes
         except Exception as e:
             print("Exception Occured in GetBlob Module : ", str(e))

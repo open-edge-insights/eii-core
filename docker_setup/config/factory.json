@@ -4,7 +4,7 @@
     "data_ingestion_manager": {
         "ingestors": {
             "video_file": {
-		    "video_file": "./test_videos/yumei_trigger.avi"
+		    "video_file": "./test_videos/defect-vid3.avi"
             }
         }
     },
@@ -27,7 +27,7 @@
         }
     },
     "classification": {
-        "mqtt_broker_host": "mosquitto",
+        "mqtt_broker_host": "10.223.109.164",
         "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {

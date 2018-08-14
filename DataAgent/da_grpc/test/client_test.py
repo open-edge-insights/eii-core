@@ -5,8 +5,11 @@ import argparse
 from DataAgent.da_grpc.client.client import GrpcClient
 from ImageStore.py.imagestore import ImageStore
 import hashlib
+import time
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 log = logging.getLogger("GRPC_TEST")
 
 def parse_args():
@@ -22,46 +25,90 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    log.info("Getting InfluxDB config:")
-    config = GrpcClient.GetConfigInt("InfluxDBCfg")
-    log.info(config)
-    log.info("Getting Redis config:")
-    config = GrpcClient.GetConfigInt("RedisCfg")
-    log.info(config)
+    # If executing this script from other m/c, provide
+    # the right hostname/ip addr of the system running
+    # DataAgent module of ETA
+    client = GrpcClient(hostname="localhost")
 
+    # Testing GetConfigInt("InfluxDBCfg") gRPC call
+    log.info("Getting InfluxDB config:")
+    totalTime1 = 0.0
+    iter = 50
+    for index in range(iter):
+        start = time.time()
+        config = client.GetConfigInt("InfluxDBCfg")
+        end = time.time()
+        timeTaken = end - start
+        totalTime1 += timeTaken
+        log.info("index: %d, time: %f secs, config: %s", index, timeTaken, config)
+
+    # Testing GetConfigInt("RedisCfg") gRPC call
+    log.info("Getting Redis config:")
+    totalTime2 = 0.0
+    for index in range(iter):
+        start = time.time()
+        config = client.GetConfigInt("RedisCfg")
+        end = time.time()
+        timeTaken = end - start
+        totalTime2 += timeTaken
+        log.info("index: %d, time: %f secs, config: %s", index, timeTaken, config)
+
+    # Testing GetBlob(imgHandle) gRPC call
     inputFile = args.input_file
     outputFile = args.output_file
-
-    log.info("GetBlob call...")
 
     imgStore = ImageStore()
     imgStore.setStorageType("inmemory")
 
-    inputBytes = None
-    with open(inputFile, "rb") as f:
-        inputBytes = f.read()
+    totalTime3 = 0.0
+    iter1 = 20
+    for index in range(iter1):
+        log.info("Binary reading of file: %s", inputFile)
+        inputBytes = None
+        with open(inputFile, "rb") as f:
+            inputBytes = f.read()
 
-    log.info("len(inputBytes): %s", len(inputBytes))
-    key = imgStore.store(inputBytes)
+        log.info("len(inputBytes): %s", len(inputBytes))
+        log.info("Storing the binary data read in ImageStore...")
+        try:
+            key = imgStore.store(inputBytes)
+        except Exception as ex:
+            log.error("Error while doing imgStore.store operation...")
+            log.error(ex)
+            continue
 
-    log.info("Image Handle: %s", key)
-    outputBytes = GrpcClient.GetBlob(key)
-    log.info("len(outputBytes): %s", len(outputBytes))
+        log.info("Image Handle obtainer after imgStore.store() operation: %s", key)
 
-    with open(outputFile, "wb")  as outfile:
-        outfile.write(outputBytes)
+        log.info("Calling GetBlob(%s) gRPC interface...", key)
+        start = time.time()
+        outputBytes = client.GetBlob(key)
+        end = time.time()
+        timeTaken = end - start
+        totalTime3 += timeTaken
 
-    digests = []
-    for filename in [inputFile, outputFile]:
-        hasher = hashlib.md5()
-        with open(filename, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
-            a = hasher.hexdigest()
-            digests.append(a)
-            log.info("Hash for filename: %s is %s", filename, a)
+        log.info("len(outputBytes): %s", len(outputBytes))
 
-    if digests[0] == digests[1]:
-        log.info("md5sum for the files match")
-    else:
-        log.info("md5sum for the files doesn't match")
+        log.info("Writing the binary data received into a file: %s", outputFile)
+        with open(outputFile, "wb")  as outfile:
+            outfile.write(outputBytes)
+
+        digests = []
+        for filename in [inputFile, outputFile]:
+            hasher = hashlib.md5()
+            with open(filename, 'rb') as f:
+                buf = f.read()
+                hasher.update(buf)
+                a = hasher.hexdigest()
+                digests.append(a)
+                log.info("Hash for filename: %s is %s", filename, a)
+
+        if digests[0] == digests[1]:
+            log.info("md5sum for the files match")
+        else:
+            log.info("md5sum for the files doesn't match")
+
+        log.info("GetBlob call...index: %d, time: %f secs", index, timeTaken)
+
+    log.info("Average time taken for GetConfigInt(\"InfluxDBCfg\") %d calls: %f secs", iter, totalTime1 / iter)
+    log.info("Average time taken for GetConfigInt(\"RedisCfg\") %d calls: %f secs", iter, totalTime2 / iter)
+    log.info("Average time taken for GetBlob() %d calls: %f secs", iter1, totalTime3 / iter1)
