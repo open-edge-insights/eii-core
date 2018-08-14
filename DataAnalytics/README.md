@@ -34,20 +34,24 @@ Follow below steps to start DataAnalytics module:
     > Note:
     > Pre-requisite for this step: 
     > 1. Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
-    > 2. Run commands `go get iapoc-kapacitor/cmd/kapacitor` and `go get iapoc-kapacitor/cmd/kapacitord` to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
+    > 2. Run commands `./build.py --clean -o $GOPATH/bin` from iapoc-kapacitor directory to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
 
 2. To install python dependencies for this module, use cmd:
+
     ```sh
     sudo -H pip3.6 install -r classifier_requirements.txt
     ```
-3. Run cmds: `export PYTHONPATH=.:./DataAgent/da_grpc/protobuff:"<pathtokapacitorrepo>/kapacitor/udf/agent/py"` to make sure there are no      errors while running classifier.py file.
+
+3. Run cmds: `export PYTHONPATH=.:./DataAgent/da_grpc/protobuff:"<pathtoiapoc-kapacitorrepo>/udf/agent/py"` to make sure there are no      errors while running classifier.py file.
    
 4. Run this command in a terminal:
+
     ```sh
     python3.6 DataAnalytics/classifier.py --config factory.json
     ```
     
 5. Run this command in another terminal:
+
     ```sh
     touch /tmp/classifier
     chmod 777 /tmp/classifier
@@ -55,6 +59,7 @@ Follow below steps to start DataAnalytics module:
     ```
     
 6. Run these command in another terminal
+
     ```sh
     kapacitor delete tasks classifier_task
     

@@ -70,7 +70,7 @@ Docker compose setup of ETA solution:
         docker stop $(docker ps -a -q)
         docker rm $(docker ps -a -q)
     ```
-    **Note**: If one is facing issue while building the images using `compose_startup.sh` script even after doing resolv.conf and docker proxy settings, please remove all docker images if you don't require the old ones by running cmd `docker rmi $(docker ps -a -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
+    **Note**: If one is facing issue while building the images using `compose_startup.sh` script even after doing resolv.conf and docker proxy settings, please remove all docker images if you don't require the old ones by running cmd `docker rmi $(docker images -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
 
 11. **Known Issues**:
     * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by runnign cmd `docker run ia_video_ingestion`
@@ -133,11 +133,15 @@ Docker compose setup of ETA solution:
 ## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)</u>
 
 <u>Pre-requisite:</u>
-   * Follow the Pre-requisites mentioned before setiing up ETA in developement system. In other words follow the previously mentioned prerequisites.
-   * Search for `command` instruction in `../docker-compose.yml` file and change the value from `factory.json` to `factory_cam.json` or take off that line completely as in the image `factory_cam.json` is set as default.
+   * Follow the Pre-requisites mentioned before setting up ETA in developement system. In other words, follow the previously mentioned prerequisites.
+   * Follow `./clear_linux_setup_guide.md` guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
+   * Follow `./edge_server_setup_guide.md` guide to install the needed stuff on Edge Server Node
+   * Follow `../VisualHmiClient/README.md` to setup Visual HMI client
+   * By default, `factory.json` is used. To use `factory_cam.json` (to work with Basler's camera), search for `command` instruction in `docker-compose.yml` file and change the value from `factory.json` to `factory_cam.json` or take off that line completely
+   * `The ETA service daemon (eta.service) would wait till the mosquitto port (1883) is been bounded by CFSDK container`. If there is no CFSDK container running, please start the mosquitto container by running cmd: `docker run -d -p 1883:1883 --restart always eclipse-mosuqitto:1.4.12` before running the eta service. Ideally, we would recommend to have CFSDK container running on the factory setup instead of mosquitto container.
    * Deployment of ETA in target machine is two phase operation.
-	 	I) Create the tarball package using `setup_eta.py` file.
-		II) If the tarball(eta.tar.gz) exist already or prepared in step-I, then use `setup_eta.py` to install it.
+       * Create the tarball package using `setup_eta.py` file.
+	   * If the tarball(eta.tar.gz) exist already or prepared in step 1 above, then use `setup_eta.py` to install it.
 
 <u> Steps: </u>
 1. Prepare the ETA package tarball. Make sure that you are in "deploy" directory as mentioned above.
@@ -163,12 +167,13 @@ Docker compose setup of ETA solution:
     ```
     **Note**:
     * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
-    * Please noe: `The ETA service daemon would wait till the mosquitto port is been bounded by CFSDK container`
     * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
 
     ```sh
     sudo systemctl status eta
     ```
+    > **Note**: 
+    > * Use command: `journalctl -n eta.service -f` to check the logs of eta.service
 
 4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
