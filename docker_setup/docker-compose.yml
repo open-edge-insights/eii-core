@@ -88,7 +88,7 @@ services:
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
       - /var/lib/eta/classifier_logs:/ETA/classifier_logs
-    command: factory.json
+    command: ${CONFIG_FILE}
     expose:
       - "9092"
 
@@ -111,6 +111,6 @@ services:
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
       - /var/lib/eta/logs/video_ingestion_logs:/ETA/video_ingestion_logs
-    command: factory.json
+    command: ${CONFIG_FILE}
    
   #----End: ETA Containers ----

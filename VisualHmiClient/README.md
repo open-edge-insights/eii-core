@@ -1,47 +1,52 @@
-VisualHMI EtaDataSync Client  - Python 2.7 Only
-    VisualHMIClient is a datasync app which takes classifier results and push to
-    VisualHmi Server.VisualHMI Should be run Only on Python2.7 as our Databus Client have python2.7 Compatibilty only.
+# VisualHMIClient Module:
 
-    VisualHMI starts subscribing on databus topic which will provide the classifier results.
-    Based on the Classifier results, VisualHMICLient Converts the data to VisualHMI Standard as a json and
-    post the data to VisualHMI.Also VisualHMIClient get the image from the ImageStore Using getblob via GRPC
-    and persist the Image in VisualHMI local filesystem.
+VisualHMIClient is a datasync app which takes classifier results and posts the same to VisualHmi Server.
 
-Pre-Requests:
---> !. Please make sure that the below libraries availability. (either in iapoc_elephanttrunkarch or yourfolder)
-        1. Databus Library  
-        2. GRPC Client      
+VisualHMI starts subscribing on databus topic (`classifier_results`) to get the classifier results from the databus server. Based on the Classifier results, VisualHMICLient converts the data to VisualHMI standard as a json and post the data to VisualHMI REST API endpoint. 
+
+Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHandle)` from DataAgent module and persist the image in VisualHMI local filesystem.
+
+> **Note**:
+> * VisualHMI runs only on Python2.7 as our OPCUA Databus Client have support for python2.7 only at present.
+
+## Pre-requisites:
+
+* Please make sure that the below libraries availability. (either in `iapoc_elephanttrunkarch` or yourfolder)
+  * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `iapoc_elephanttrunkarch` repo)
+  * GRPC Client wrapper (`client.py` and protobuff files: 
     
-    Set your PYTHONPATH Based on above libraries placed
+* Set your `PYTHONPATH` based on where libraries are placed
     For Eg:
-        If it is iapoc_elephanttrunkarch under home:
-            echo PYTHONPATH=$PYTHONPATH:~/iapoc_elephanttrunkarch:iapoc_elephanttrunkarch/DataBusAbstraction/py/
-        else:
-            set your path
+    If the pwd is `iapoc_elephanttrunkarch` and it is under home:
+    	echo PYTHONPATH=$PYTHONPATH:~/iapoc_elephanttrunkarch:iapoc_elephanttrunkarch/DataBusAbstraction/py/:iapoc_elephanttrunkarch/DataAgent/da_grpc/protobuff
+    else:
+    	set your `PYTHONPATH` appropriately
+* Install VisualHmiClient dependencies:
 
+  ```sh
+    pip2.7 install -r requirements.txt
+  ```
 
---> !. VisualHMI (RefinementApp) Should be running.
+* Configure Databus & VisualHMI Server Details using `config.json`
 
-VisualHMI Dependencies Installtion:
+## Steps to run VisualHMI (RefinementApp) module
+
+VisualHMIClient Can be run two Modes
+
+* Running VisualHMI in production mode: 
+
+  ```sh
+  python2.7 VisualHmiEtaDataSync.py
+  ```
     
-    Install Pre-Requests of VisualHMIClient.
-        pip2.7 install -r requirements.txt
+* Running VisualHMI without HMI Backend (For Testing)
 
-Configure Databus & VisualHMI Server Details using config.json
+  ```sh
+  python2.7 VisualHmiEtaDataSync.py -local <path to store image locally>
+  ```
 
-Running VisualHMIClient.
-
-    VisualHMIClient Can be run two Modes
-
-    1. Running VisualHMI in Prod Mode 
-
-        python2.7 VisualHmiEtaDataSync.py
-    
-    2. Running VisualHMI without HMI Backend (For Testing)
-
-        python2.7 VisualHmiEtaDataSync.py -local <path to store image locally>
-
-
-Currently VisualHMI Cantbe Exited Directly, Please use following Commands to Terminate the VisualHMI App
-
-    ps -ef | grep VisualHmiEtaDataSync.py | grep -v grep | awk {'print$2'} | xargs kill
+> **Note**:
+> Currently VisualHMI cannot be exited directly. Please use following command to terminate the VisualHMI App
+> ```sh
+  ps -ef | grep VisualHmiEtaDataSync.py | grep -v grep | awk {'print$2'} | xargs kill
+> ```
