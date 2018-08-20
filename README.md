@@ -40,6 +40,24 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
             > Note:
             > 1. While running python programs, one may face issues with missing dependency modules. Please use **sudo -H pip3 install  <module>** cmd to install each.
 
+        * Setting up C++ dev env
+            * Build and install gRPC for C++. Follow guide 
+              (https://github.com/grpc/grpc/blob/master/BUILDING.md)
+            * Do not try installing protobuf by building from source. 
+              * Do this instead as per the documentation:
+                * cd grpc/third_party/protobuf
+                * sudo make install
+            * Make sure to install Bazel using the following guide
+              (https://docs.bazel.build/versions/master/install.html) before the last step.
+            * To verify successfull installation, try running gRPC C++ HelloWorld example:
+              * cd grpc/examples/cpp/helloworld
+              * make
+              * ./greeter_server
+              * ./greeter_client (In a separate terminal)
+              * Terminal displaying Greeter received: Hello world on correct installation.
+            * Refer DataAgent README for further instructions on how to run gRPC C++ client.
+            
+
         * Have the TICK stack softwares (influx, kapacitor - [refer](https://www.digitalocean.com/community/tutorials/how-to-monitor-system-metrics-with-the-tick-stack-on-ubuntu-16-04)) and [Redis](https://askubuntu.com/questions/868848/how-to-install-redis-on-ubuntu-16-04) installed locally. 
 
         * Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `iapoc_elephanttrunkarch` folder
