@@ -82,6 +82,11 @@ Docker compose setup of ETA solution:
 
 1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
 
+    > **Pre-requisite**:
+    > * Provide the right value for "CONFIG_FILE" in `./.env` file. 
+    >   1. `factory.json` - value to be used if working with defect video files
+    >   2. `factory_cam.json` (default) - value to be used if working with the camera setup
+   
     ```sh
     sudo ./compose_startup.sh | tee compose_startup.txt
     ```
@@ -135,13 +140,13 @@ Docker compose setup of ETA solution:
 ## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)</u>
 
 <u>Pre-requisite:</u>
-   * Follow the Pre-requisites mentioned before setting up ETA in developement system. In other words, follow the previously mentioned prerequisites.
    * Follow `./clear_linux_setup_guide.md` guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
+   * Follow the ClearLinux specific ones in `Pre-requisites` mentioned before setting up ETA in developement system. In other words, follow the previously mentioned pre-requisites.
    * Follow `./edge_server_setup_guide.md` guide to install the needed stuff on Edge Server Node
    * Follow `../VisualHmiClient/README.md` to setup Visual HMI client
    * Provide the right value for "CONFIG_FILE" in `./.env` file. 
      1. `factory.json` - value to be used if working with defect video files
-     2. `factory_cam.json` - value to be used if working with the camera setup
+     2. `factory_cam.json` (default) - value to be used if working with the camera setup
    * `The ETA service daemon (eta.service) would wait till the mosquitto port (1883) is been bounded by CFSDK container`. If there is no CFSDK container running, please start the mosquitto container by running cmd: `docker run -d -p 1883:1883 --restart always eclipse-mosuqitto:1.4.12` before running the eta service. Ideally, we would recommend to have CFSDK container running on the factory setup instead of mosquitto container.
    * Deployment of ETA in target machine is two phase operation.
        * Create the tarball package using `setup_eta.py` file.
