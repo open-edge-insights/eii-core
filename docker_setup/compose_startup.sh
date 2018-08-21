@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # This scripts brings down the previous containers, builds the
 # images and runs them in the dependency order using 

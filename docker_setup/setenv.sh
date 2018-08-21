@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Sets the env variables needed for ETA build environment
 

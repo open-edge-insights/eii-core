@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # This scripts brings down the previous containers
 # and runs them in the dependency order using
