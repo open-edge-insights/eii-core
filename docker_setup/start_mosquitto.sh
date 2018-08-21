@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash 
 
 sudo fuser 1883/tcp
 exit_code=`echo $?`
