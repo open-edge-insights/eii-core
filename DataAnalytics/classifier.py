@@ -121,9 +121,7 @@ class ConnHandler(Handler):
                 elif isinstance(v, int):
                     response.point.fieldsInt[k] = v
                 elif k == "defects":
-                    for index,defect in enumerate(v, start=1):
-                        d_k = k+'_'+str(index)
-                        response.point.fieldsString[d_k] = json.dumps(defect)
+                    response.point.fieldsString[k] = json.dumps(v)
 
             response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
             self._agent.write_response(response, True)
