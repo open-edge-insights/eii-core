@@ -13,6 +13,7 @@ source ./update_config.sh
 echo "0.3 Setting up /var/lib/eta directory and copying all the necessary config files..."
 if [[ -d /var/lib/eta && -n "$(ls -A /var/lib/eta)" ]]; then
     echo "Found a non-empty /var/lib/eta folder, Avoid overriding the config..."
+    source ./setenv.sh
 else
     source ./init.sh
 fi
@@ -36,12 +37,6 @@ docker-compose down
 
 echo "2. Creating and starting the dependency/eta containers..."
 docker-compose up -d
-
-echo "3. Starting the kapacitor daemon in the ia_data_analytics container..."
-docker exec -d ia_data_analytics ./run_kapacitord.sh
-
-echo "4. Defining and enabling the classifier task in the ia_data_analytics container..."
-docker exec -d ia_data_analytics ./enable_kapacitor_task.sh
 
 #Logging the docker compose logs to file.
 DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`

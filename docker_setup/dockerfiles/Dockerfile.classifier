@@ -53,6 +53,7 @@ ADD enable_kapacitor_task.sh .
 ADD entrypoint_classifier.sh .
 ADD run_kapacitord.sh .
 ADD show_kapacitor_task.sh .
+ADD classifier_startup.py .
 
 ENTRYPOINT ["./entrypoint_classifier.sh"]
 CMD ["factory_cam.json"]

@@ -25,13 +25,7 @@ docker-compose build
 echo "3. Creating and starting the dependency/eta containers..."
 docker-compose up -d
 
-echo "4. Starting the kapacitor daemon in the ia_data_analytics container..."
-docker exec -d ia_data_analytics ./run_kapacitord.sh
-
-echo "5. Defining and enabling the classifier task in the ia_data_analytics container..."
-docker exec -d ia_data_analytics ./enable_kapacitor_task.sh
-
-echo "6. Restarting the ia_video_ingestion container..."
+echo "4. Restarting the ia_video_ingestion container..."
 docker restart ia_video_ingestion
 
 #Logging the docker compose logs to file.
