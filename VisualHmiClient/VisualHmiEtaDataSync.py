@@ -19,38 +19,24 @@ class EtaDataSync:
         """
             This Method Converts classifier results into
             VIsual HMI Json Format
-
-        """
-        metatext_dict = {}
+	
+	"""
+	metatext_dict = {}
         meta_data_hmi = {}
         meta_data_list = []
         meta_data_dict = {}
         try:
-            raw_text = classifier_results.replace("classifier_results ","")
-            raw_defects_text = re.findall('(defects_[0-9]+=.*}")', raw_text)
+            print("Classifier Data Conversion Started.")
+	    raw_text = classifier_results.replace("classifier_results ","")
+            raw_defects_text = re.findall('(defects=.*]")', raw_text)
+            meta_text = raw_text.replace(raw_defects_text[0] + ',','')
+            defects_list = raw_defects_text[0].split("=")[1]
+            defects_list_conversion =  json.loads(defects_list.decode('string-escape').strip('"'))
 
-            if raw_defects_text != []:
-                meta_text = raw_text.replace(raw_defects_text[0] + ',','')
-                defects_list_conversion = raw_defects_text[0].replace('\\','')
-
-                defects_text = re.split("(defects_[0-9]*)=", defects_list_conversion)
-
-                if defects_text[0] == '':
-                    defects_text.pop(0)
-
-                defects_list =  []
-                for x in range(0, len(defects_text)):
-                    if x % 2 == 0 & x <= len(defects_text):
-                        defects_list.append(json.loads(defects_text[x+1].replace('",','"').replace('"{','{').replace('}"','}')))
-
-                meta_data_dict["defects"] = defects_list
-            else:
-                meta_text = raw_text
-                meta_data_dict["defects"] = []
-
-            for x in meta_text.split(','):
+	    for x in meta_text.split(','):
                 metatext_dict[x.split('=')[0]] = x.split('=')[1].replace('"',"")
 
+            meta_data_dict["defects"] = defects_list_conversion 
             meta_data_dict["idx"] = metatext_dict["idx"]
             meta_data_dict["timestamp"] = float(metatext_dict["timestamp"].split(" ")[0])
             meta_data_dict["machine_id"] = metatext_dict["machine_id"]
@@ -61,13 +47,13 @@ class EtaDataSync:
             meta_data_hmi["part_id"] = metatext_dict['part_id']
             meta_data_hmi["meta-data"] = meta_data_list
 
+
             self.meta_data_hmi = meta_data_hmi
             self.meta_data_dict = meta_data_dict
             self.metatext_dict = metatext_dict
-
             final_json = json.dumps(meta_data_hmi,indent=4, separators=(',', ': '))
             print("Classifier Data Conversion Done Successfully")
-       
+ 
         except Exception as e:
             print("Exception Occured in Text Conversion Module : "+ str(e))
             raise Exception
@@ -75,12 +61,12 @@ class EtaDataSync:
         return final_json
 
     def post_metadata(self, host, port, data):
-        """
+	"""
             This Method post data to Visual HMI server.
 
         """
-        posturi = 'http://{0}:{1}/api/rest/v1/notify'.format(host,port)
-        print("HMI Server URI : ", posturi)
+	posturi = 'http://{0}:{1}/rest/v1/part'.format(host,port)
+	print("HMI Server URI : ", posturi)
         try:
             response = requests.post(posturi, json=data)
             if response.status_code != 200:
@@ -89,6 +75,7 @@ class EtaDataSync:
                 raise Exception
             else:
                 print("HMI Success Response Code : ", response.status_code)
+            self.final_json = {}
         except Exception as e:
             print("Exception Occured in Posting MetaData : ", str(e), data)
             self.final_json = {}
@@ -96,16 +83,16 @@ class EtaDataSync:
             raise Exception
 
     def getBlob(self, key):
-        """
+	"""
             GetBlob Method to get the data from GRPC server
             based on imagehandle returns the blob
 
         """
-        try:
+	try:
             # provide the hostname/ip addr of the m/c
             # where DataAgent module of ETA solution is running
-            grpc_host = self.config['databus_host']
-            client = GrpcClient(hostname=grpc_host)
+	    grpc_host = self.config['databus_host']
+	    client = GrpcClient(hostname=grpc_host)
             outputBytes = client.GetBlob(key)
             return outputBytes
         except Exception as e:
@@ -113,12 +100,12 @@ class EtaDataSync:
             raise Exception
 
     def writeImageToDisk(self, keyname, filename):
-        """
+	"""
             This will write Retrieved Image from Geblob
             to Visual HMI File System
 
         """
-        try:
+	try:
             blob = self.getBlob(keyname)
             print("Blob Successfully received for " + keyname)
             Frame = np.frombuffer(blob, dtype=np.uint8)
@@ -131,15 +118,14 @@ class EtaDataSync:
             raise Exception
 
 
-    def databus_callback(self, topic, msg):
-        """
+    def databus_callback(self, topic, msg)
+	"""
             This is a Callback Method happens, Whenever
             Message gets Subscribed from Databus
 
         """
-       
-        try:            
-            if 'end-of-part="END_OF_PART"' in msg:
+	try:
+	    if 'end-of-part="END_OF_PART"' in msg:
                 if self.args.savelocal is not False:
                     print("No Post Request Made to HMI as You are Running on Local Mode")
                 else:
@@ -157,17 +143,17 @@ class EtaDataSync:
         except Exception as e:
             print("Exceptin Occured in Call Back Module : ", str(e))
             raise Exception
-    
+
     def parse_arg(self):
-        """
+	"""
             Parsing the Commandline Arguments
 
         """
-        ap = argparse.ArgumentParser()
+	
+	ap = argparse.ArgumentParser()
         ap.add_argument("-c","--config", default="config.json",help="Please give the config file localtion")
         ap.add_argument("-local","--savelocal", default=False,help="This is to skip posting metaData to HMI Server & Writing Images Locally")
-        
-        return ap.parse_args()
+	return ap.parse_args()
 
     def main(self):
         self.final_json = {}
@@ -191,6 +177,7 @@ class EtaDataSync:
             topicConfig = {"name": "classifier_results", "type": "string"}
             etadbus.Subscribe(topicConfig, "START", self.databus_callback)
         except Exception as e:
+            print("came to exception ", str(e))
             raise Exception
 
 
@@ -200,3 +187,4 @@ if __name__ == "__main__":
     etaDataSync.main()
     while True:
         time.sleep(1)
+
