@@ -128,7 +128,7 @@ class EtaDataSync:
             raise Exception
 
 
-    def databus_callback(self, topic, msg)
+    def databus_callback(self, topic, msg):
 	"""
             This is a Callback Method happens, Whenever
             Message gets Subscribed from Databus
