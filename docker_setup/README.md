@@ -137,6 +137,15 @@ Docker compose setup of ETA solution:
         <br/>  
 		Check `$GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/config.py` for configuration.
 
+5. Prepare the ETA package tarball. Make sure that you are in **docker_setup/deploy** directory ((`**This step needs to be done on the build machine, the current build m/c that is supported is Ubuntu 16.04 and we have seen some build issues on ClearLinux**`)
+
+    ```sh
+    sudo ./setup_eta.py -c | tee create_eta_targz.txt
+    ```
+   **Note**:
+   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
+   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
+
 ## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)</u>
 
 <u>Pre-requisite:</u>
@@ -149,19 +158,11 @@ Docker compose setup of ETA solution:
      2. `factory_cam.json` (default) - value to be used if working with the camera setup
    * `The ETA service daemon (eta.service) would wait till the mosquitto port (1883) is been bounded by CFSDK container`. If there is no CFSDK container running, please start the mosquitto container by running cmd: `docker run -d -p 1883:1883 --restart always eclipse-mosuqitto:1.4.12` before running the eta service. Ideally, we would recommend to have CFSDK container running on the factory setup instead of mosquitto container.
    * Deployment of ETA in target machine is two phase operation.
-       * Create the tarball package using `setup_eta.py` file.
+       * Create the tarball package using `setup_eta.py` file on the build machine as indicated above in `Steps to setup ETA solution on dev system` section
 	   * If the tarball(eta.tar.gz) exist already or prepared in step 1 above, then use `setup_eta.py` to install it.
 
 <u> Steps: </u>
-1. Prepare the ETA package tarball. Make sure that you are in "deploy" directory as mentioned above.
-
-    ```sh
-    sudo ./setup_eta.py -c | tee create_eta_targz.txt
-    ```
-   **Note**:
-   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
-   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
-
+1. Using `scp` command or some other mechanism, copy the `eta.tar.gz` created from the build m/c to the ECN device
 2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
 
     ```sh
@@ -234,6 +235,6 @@ Docker compose setup of ETA solution:
      * [docker compose reference](https://docs.docker.com/compose/compose-file/)
      * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
 5. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --    name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
-5. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
-6. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
+6. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
+7. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
    container logs at once, then just run `docker-compose logs -f`

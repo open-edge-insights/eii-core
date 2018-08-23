@@ -25,4 +25,7 @@ cp -f $configDir/factory.json $etaConfDir
 cp -f $configDir/factory_cam.json $etaConfDir
 
 # Copy test video files
-cp -rf $rootDir/test_videos $etaRootDir/
+if [ -d "$rootDir/test_videos" ]; then
+    echo "test_videos exist..."
+    cp -rf $rootDir/test_videos $etaRootDir/
+fi
