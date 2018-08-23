@@ -35,15 +35,15 @@ RUN cd ${KAPACITOR_REPO} && \
     mkdir -p ${DIR}/kapacitor && \
     cp -r udf ${DIR}/kapacitor
 
-# Adding classifier program 
+# Adding classifier program
 ADD DataAnalytics/ .
 
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
-ADD DataAgent/da_grpc ./DataAgent/da_grpc 
+ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD ImageStore/py ./ImageStore/py
 ADD Util ./Util
 
-ENTRYPOINT ["./entrypoint_classifier.sh"]
+ENTRYPOINT ["python3.6", "classifier_startup.py", "--log-dir", "/ETA/classifier_logs", "--config"]
 CMD ["factory_cam.json"]
