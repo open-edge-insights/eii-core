@@ -1,0 +1,10 @@
+# InfluxDB dockerfile
+FROM influxdb:1.5.3
+
+ARG HOST_TIME_ZONE=""
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
+RUN dpkg-reconfigure -f noninteractive tzdata

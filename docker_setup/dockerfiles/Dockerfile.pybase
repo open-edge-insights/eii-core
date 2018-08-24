@@ -3,6 +3,8 @@ FROM ubuntu:16.04
 LABEL version="1.0"
 LABEL description="ETA Py Base Image"
 
+ARG HOST_TIME_ZONE=""
+
 ENV PY_WORK_DIR /ETA
 WORKDIR ${PY_WORK_DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
@@ -19,5 +21,12 @@ RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.6 get-pip.py
 RUN apt-get install -y libsm6 libxext6
 RUN apt-get install -y libfontconfig1 libxrender1
-    
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN apt-get install -y tzdata
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
+RUN dpkg-reconfigure -f noninteractive tzdata
+
 ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin

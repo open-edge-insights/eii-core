@@ -3,6 +3,8 @@ FROM ubuntu:16.04
 LABEL version="1.0"
 LABEL description="ETA Go Base Image"
 
+ARG HOST_TIME_ZONE=""
+
 ENV GO_WORK_DIR /root/go/src/iapoc_elephanttrunkarch
 WORKDIR ${GO_WORK_DIR}
 
@@ -16,5 +18,12 @@ RUN mv dep-linux-amd64 dep
 RUN chmod +x dep
 RUN mkdir -p /root/go/bin
 RUN mv dep /root/go/bin
-    
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN apt-get install -y tzdata 
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
+RUN dpkg-reconfigure -f noninteractive tzdata
+
 ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin

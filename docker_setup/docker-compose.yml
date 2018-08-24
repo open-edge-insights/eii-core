@@ -5,8 +5,11 @@ services:
   #---- Start: ETA Dependency Services----
   # Define an InfluxDB service
   influxdb:
-    image: influxdb:1.5.3
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
     container_name: influxdb
+    hostname: influxdb
     volumes:
       - /var/lib/eta/config/influxdb.conf:/etc/influxdb/influxdb.conf
     ports:
@@ -14,7 +17,9 @@ services:
       
   # Define an Redis service
   redis:
-    image: redis:4.0.10
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.redis
     container_name: redis
     hostname: redis
     ports:
@@ -36,7 +41,7 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
     image: ia/pybase:1.0
-  
+
   # Define ia-gopybase service
   ia-gopybase:
     build:
@@ -71,7 +76,6 @@ services:
       - influxdb
       - redis
       - ia_data_agent
-      - ia-gopybase
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
@@ -98,7 +102,6 @@ services:
       - influxdb
       - redis
       - ia_data_analytics
-      - ia-pybase
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.vi
