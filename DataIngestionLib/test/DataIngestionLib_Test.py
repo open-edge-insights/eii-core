@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright (c) 2018 Intel Corporation.
 
@@ -20,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#!/usr/bin/env python3
+
 import cv2
 import logging
 import numpy as np

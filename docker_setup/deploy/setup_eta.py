@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """
 Copyright (c) 2018 Intel Corporation.
 
@@ -20,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-#!/usr/bin/python3
+
 import argparse
 import subprocess
 import os
@@ -85,18 +87,18 @@ if __name__ == '__main__':
         # archive /var/lib/eta folder
         print("***Creating /var/lib/eta dir's compressed archive***")
         os.chdir("./deploy")
-        output_filename = "var_lib_eta.tar.gz"
+        var_lib_filename = "var_lib_eta.tar.gz"
         source_dir = "/var/lib/eta/"
-        with tarfile.open(output_filename, "w:gz") as tar:
+        with tarfile.open(var_lib_filename, "w:gz") as tar:
             tar.add(source_dir, arcname=os.path.basename(source_dir))
 
         # Archive and zip docker setup folder
         # TODO: Will add version to it
-        print("***Prparing compressed archive of ETA package***")
+        print("***Preparing compressed archive of ETA package***")
         cur_dir = os.getcwd()
-        output_filename = "docker_setup.tar.gz"
+        docker_setup_filename = "docker_setup.tar.gz"
         source_dir = os.path.join(cur_dir, "..", "..", "docker_setup")
-        with tarfile.open(output_filename, "w:gz") as tar:
+        with tarfile.open(docker_setup_filename, "w:gz") as tar:
             tar.add(source_dir, arcname=os.path.basename(source_dir))
 
         output_filename = "eta.tar.gz"
@@ -104,6 +106,14 @@ if __name__ == '__main__':
         with tarfile.open(output_filename, "w:gz") as tar:
             tar.add("docker_setup.tar.gz", arcname="docker_setup.tar.gz")
             tar.add("setup_eta.py", arcname="setup_eta.py")
+
+        print("Removing docker_setup.tar.gz and var_lib_eta.tar.gz files...")
+
+        if os.path.exists(var_lib_filename):
+            os.remove(var_lib_filename)
+
+        if os.path.exists(docker_setup_filename):
+            os.remove(docker_setup_filename)
 
         install_guide = '''
         Completed preparing the compressed archive for ETA package.
