@@ -1,11 +1,23 @@
 """
 Copyright (c) 2018 Intel Corporation.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 # Python grpc client implementation
@@ -18,9 +30,11 @@ import hashlib
 import time
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 log = logging.getLogger("GRPC_TEST")
+
 
 def parse_args():
     """Parse command line arguments
@@ -50,7 +64,8 @@ if __name__ == '__main__':
         end = time.time()
         timeTaken = end - start
         totalTime1 += timeTaken
-        log.info("index: %d, time: %f secs, config: %s", index, timeTaken, config)
+        log.info("index: %d, time: %f secs, config: %s",
+                 index, timeTaken, config)
 
     # Testing GetConfigInt("RedisCfg") gRPC call
     log.info("Getting Redis config:")
@@ -61,7 +76,8 @@ if __name__ == '__main__':
         end = time.time()
         timeTaken = end - start
         totalTime2 += timeTaken
-        log.info("index: %d, time: %f secs, config: %s", index, timeTaken, config)
+        log.info("index: %d, time: %f secs, config: %s",
+                 index, timeTaken, config)
 
     # Testing GetBlob(imgHandle) gRPC call
     inputFile = args.input_file
@@ -87,7 +103,8 @@ if __name__ == '__main__':
             log.error(ex)
             continue
 
-        log.info("Image Handle obtainer after imgStore.store() operation: %s", key)
+        log.info("Image Handle obtainer after imgStore.store() operation: %s",
+                 key)
 
         log.info("Calling GetBlob(%s) gRPC interface...", key)
         start = time.time()
@@ -98,8 +115,9 @@ if __name__ == '__main__':
 
         log.info("len(outputBytes): %s", len(outputBytes))
 
-        log.info("Writing the binary data received into a file: %s", outputFile)
-        with open(outputFile, "wb")  as outfile:
+        log.info("Writing the binary data received into a file: %s",
+                 outputFile)
+        with open(outputFile, "wb") as outfile:
             outfile.write(outputBytes)
 
         digests = []
@@ -119,6 +137,9 @@ if __name__ == '__main__':
 
         log.info("GetBlob call...index: %d, time: %f secs", index, timeTaken)
 
-    log.info("Average time taken for GetConfigInt(\"InfluxDBCfg\") %d calls: %f secs", iter, totalTime1 / iter)
-    log.info("Average time taken for GetConfigInt(\"RedisCfg\") %d calls: %f secs", iter, totalTime2 / iter)
-    log.info("Average time taken for GetBlob() %d calls: %f secs", iter1, totalTime3 / iter1)
+    log.info("Average time taken for GetConfigInt(\"InfluxDBCfg\") %d calls: \
+             %f secs", iter, totalTime1 / iter)
+    log.info("Average time taken for GetConfigInt(\"RedisCfg\") %d calls: \
+             %f secs", iter, totalTime2 / iter)
+    log.info("Average time taken for GetBlob() %d calls: %f secs",
+             iter1, totalTime3 / iter1)

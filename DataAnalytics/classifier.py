@@ -1,11 +1,23 @@
 """
 Copyright (c) 2018 Intel Corporation.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import sys
@@ -35,15 +47,17 @@ from agent.dpm.storage import LocalStorage
 server_addr = "/tmp/classifier"
 
 logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 logger = logging.getLogger()
 
 TIME_MULTIPLIER_MICRO = 1000000
 
+
 # Runs ML algo on stream of points and return result back to kapacitor.
 class ConnHandler(Handler):
-    def __init__(self, agent,config_file):
+    def __init__(self, agent, config_file):
         self._agent = agent
         self.config_file = config_file
         self._cm = None
@@ -58,7 +72,8 @@ class ConnHandler(Handler):
     def classifier_init(self):
         self.config = Configuration(self.config_file)
         # commenting this out as we won't be needing postgres
-        # self.db = DatabaseAdapter(self.config.machine_id, self.config.database)
+        # self.db = DatabaseAdapter(self.config.machine_id,
+        # self.config.database)
         # self.storage = LocalStorage(self.config.storage)
         self._cm = ClassifierManager(
                 self.config.machine_id, self.config.classification,
@@ -70,7 +85,7 @@ class ConnHandler(Handler):
     def init(self, init_req):
         response = udf_pb2.Response()
         response.init.success = True
-        #print("INIT CALLBACK of UDF", file=sys.stderr)
+        # print("INIT CALLBACK of UDF", file=sys.stderr)
         return response
 
     def snapshot(self):
@@ -88,7 +103,7 @@ class ConnHandler(Handler):
         raise Exception("not supported")
 
     def point(self, point):
-        #print("Recieved a point", file=sys.stderr)
+        # print("Recieved a point", file=sys.stderr)
         response = udf_pb2.Response()
 
         if(point.fieldsInt['Width'] != 0):
@@ -100,20 +115,19 @@ class ConnHandler(Handler):
                 frame = self.img_store.read(img_handle)
             except Exception:
                 logger.error('Frame read failed')
-            if frame != None:
+            if frame is not None:
                 # Convert the buffer into np array.
                 Frame = np.frombuffer(frame, dtype=np.uint8)
                 reshape_frame = np.reshape(Frame, (img_height,
-                                                img_width, img_channels))
+                                                   img_width, img_channels))
                 # Call classification manager API with the tuple data
                 user_data = point.fieldsInt['user_data']
                 val = (1, user_data, img_handle,
-                            ('camera-serial-number', reshape_frame))
+                       ('camera-serial-number', reshape_frame))
                 self.data.append(val)
                 return
             else:
                 logger.info("Frame read unsuccessful.")
-
 
         if len(self.data) == 0:
             return
@@ -146,11 +160,12 @@ class ConnHandler(Handler):
     def end_batch(self, end_req):
         raise Exception("not supported")
 
+
 class accepter(object):
 
-    def __init__(self,config_file):
-       self.config_file = config_file
-       self._count = 0
+    def __init__(self, config_file):
+        self.config_file = config_file
+        self._count = 0
 
     def accept(self, conn, addr):
         self._count += 1
@@ -166,6 +181,7 @@ class accepter(object):
         agent.start()
         agent.wait()
         print("Ending kapacitor agent in socket mode", file=sys.stderr)
+
 
 def parse_args():
     """Parse command line arguments
@@ -196,7 +212,7 @@ if __name__ == '__main__':
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
-    configure_logging(args.log.upper(), logFileName , args.log_dir)
+    configure_logging(args.log.upper(), logFileName, args.log_dir)
 
     server = Server(server_addr, accepter(args.config))
     logger.info("Started the server By Agent")

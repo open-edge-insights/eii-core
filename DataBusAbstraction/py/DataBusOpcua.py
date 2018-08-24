@@ -1,11 +1,23 @@
 """
 Copyright (c) 2018 Intel Corporation.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 from opcua import ua, Server, Client
@@ -39,7 +51,8 @@ class databOpcua:
             contextConfig<dict>: Messagebus params to create the context
                 <fields>
                 "direction": PUB/SUB/NONE - Mutually exclusive
-                "name": context namespace (PUB/SUB context namespaces should match)
+                "name": context namespace (PUB/SUB context namespaces
+                        match)
                 "endpoint": messagebus endpoint address
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
@@ -77,7 +90,8 @@ class databOpcua:
                 self.client = Client(endpoint)
                 self.client.connect()
                 # TODO: Can we avoid/delay the exception if no such namespace?
-                self.ns = self.client.get_namespace_index(contextConfig["name"])
+                self.ns = self.client.get_namespace_index(
+                    contextConfig["name"])
                 self.objNode = self.client.get_objects_node()
             except Exception as e:
                 print("{} Failure!!!".format(self.createContext.__name__))
@@ -114,15 +128,18 @@ class databOpcua:
                 obj_itr = child
             try:
                 # TODO: For now only String type
-                var = obj_itr.add_variable(self.ns, "{}_var".format(topic_ls[-1]), "NONE", ua.VariantType.String)
+                var = obj_itr.add_variable(self.ns, "{}_var".format(
+                    topic_ls[-1]), "NONE", ua.VariantType.String)
                 var.set_writable()
             except Exception as e:
                 print("{} Failure!!!".format(self.startTopic.__name__))
                 print(type(e).__name__)
                 raise
             # TODO: Convert into opcua type
-            self.pubElements[topicConfig["name"]] = {"node": var,
-                                                     "type": topicConfig["type"]}
+            self.pubElements[topicConfig["name"]] = {
+                                                "node": var,
+                                                "type": topicConfig["type"]
+                                                }
         elif self.direction == "SUB":
             # TODO: For now raise exception for non-existing server vars
             # We could avoid this exception by a polling mechanism till such
@@ -132,7 +149,10 @@ class databOpcua:
                 topic_ls[idx] = "{}:{}".format(self.ns, item)
             topic_ls.append("{}_var".format(topic_ls[-1]))
             print(topic_ls)
-            self.subElements[topicConfig["name"]] = {"node": None, "type": None}
+            self.subElements[topicConfig["name"]] = {
+                                                "node": None,
+                                                "type": None
+                                                }
             # TODO: Convert into opcua type
             self.subElements[topicConfig["name"]]["type"] = topicConfig["type"]
             try:
@@ -175,21 +195,25 @@ class databOpcua:
             queue: A queue to which the message should be pushed on arrival
         Return/Exception: Will raise Exception in case of errors'''
 
-        if (self.direction == "SUB") and (trig == "START") and (queue is not None):
+        if (self.direction == "SUB") and (trig == "START") and (queue is not
+                                                                None):
             # TODO: pass the queue
             handler = subHandler(queue)
             try:
                 # TODO: Handle multiple subscription to same topic
-                self.subElements[topic]["sub"] = self.client.create_subscription(250, handler)
+                self.subElements[topic]["sub"] = \
+                    self.client.create_subscription(250, handler)
                 self.subElements[topic]["handle"] = \
-                    self.subElements[topic]["sub"].subscribe_data_change(self.subElements[topic]["node"])
+                    self.subElements[topic]["sub"].subscribe_data_change(
+                    self.subElements[topic]["node"])
             except Exception as e:
                 print("{} Failure!!!".format(self.receive.__name__))
                 print(type(e).__name__)
                 raise
         elif (self.direction == "SUB") and (trig == "STOP"):
             try:
-                self.subElements[topic]["sub"].unsubscribe(self.subElements[topic]["handle"])
+                self.subElements[topic]["sub"].unsubscribe(
+                                self.subElements[topic]["handle"])
                 self.subElements[topic]["sub"].delete()
                 self.subElements[topic]["handle"] = None
                 self.subElements[topic]["sub"] = None
