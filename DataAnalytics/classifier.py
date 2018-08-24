@@ -111,6 +111,11 @@ class ConnHandler(Handler):
             img_height = point.fieldsInt['Height']
             img_width = point.fieldsInt['Width']
             img_channels = point.fieldsInt['Channels']
+            user_data = point.fieldsInt['user_data']
+            # Reject the frame with user_data -1
+            if user_data == -1:
+                return
+
             try:
                 frame = self.img_store.read(img_handle)
             except Exception:
@@ -121,7 +126,6 @@ class ConnHandler(Handler):
                 reshape_frame = np.reshape(Frame, (img_height,
                                                    img_width, img_channels))
                 # Call classification manager API with the tuple data
-                user_data = point.fieldsInt['user_data']
                 val = (1, user_data, img_handle,
                        ('camera-serial-number', reshape_frame))
                 self.data.append(val)
