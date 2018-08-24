@@ -15,7 +15,7 @@ RUN apt-get update && \
     pip2 install protobuf
 
 # Installing dependent python modules
-ADD classifier_requirements.txt .
+ADD DataAnalytics/classifier_requirements.txt .
 RUN pip3.6 install -r classifier_requirements.txt && \
     rm -rf classifier_requirements.txt
 
@@ -35,9 +35,6 @@ RUN cd ${KAPACITOR_REPO} && \
     mkdir -p ${DIR}/kapacitor && \
     cp -r udf ${DIR}/kapacitor
 
-# Adding config file
-ADD factory.py .
-
 # Adding classifier program 
 ADD DataAnalytics/ .
 
@@ -47,13 +44,6 @@ ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc 
 ADD ImageStore/py ./ImageStore/py
 ADD Util ./Util
-
-# Adding entrypoint script
-ADD enable_kapacitor_task.sh .
-ADD entrypoint_classifier.sh .
-ADD run_kapacitord.sh .
-ADD show_kapacitor_task.sh .
-ADD classifier_startup.py .
 
 ENTRYPOINT ["./entrypoint_classifier.sh"]
 CMD ["factory_cam.json"]

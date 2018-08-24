@@ -81,6 +81,15 @@ of Clear Linux.
         sudo systemctl enable docker
         sudo docker version
         ```
+  
+  * Add `intel` user to docker group by running cmd:
+
+        ```sh
+        sudo usermod -a -G docker intel
+        ```
+
+    > **Note**: Please logout of the system and login back to run docker without `sudo`. Ensure you are able to run `docker` commands without
+    > prefixing `sudo`.
 
   * Please follow the below steps only if the node/system on which the docker setup is tried out is running behind a HTTP proxy server. If  that's not the case, this step can be skipped.
     

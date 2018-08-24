@@ -26,7 +26,7 @@ RUN apt-get update && \
     apt-get install -y libboost-python-dev
 
 # Installing dependent python modules
-ADD vi_requirements.txt .
+ADD VideoIngestion/vi_requirements.txt .
 RUN pip3.6 install -r vi_requirements.txt && \
     rm -rf vi_requirements.txt
 
