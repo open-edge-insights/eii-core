@@ -1,11 +1,23 @@
 """
 Copyright (c) 2018 Intel Corporation.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 from DataBusMqtt import databMqtt
@@ -45,7 +57,8 @@ class databus:
             contextConfig<dict>: Messagebus params to create the context
                 <fields>
                 "direction": PUB/SUB/NONE - Mutually exclusive
-                "name": context namespace (PUB/SUB context namespaces should match)
+                "name": context namespace (PUB/SUB context namespaces should
+                        match)
                 "endpoint": messagebus endpoint address
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
@@ -108,10 +121,12 @@ class databus:
                     if topicConfig["name"] not in self.pubTopics.keys():
                         self.bus.startTopic(topicConfig)
                         self.pubTopics[topicConfig["name"]] = {}
-                        self.pubTopics[topicConfig["name"]]["type"] = topicConfig["type"]
+                        self.pubTopics[topicConfig["name"]]["type"] = \
+                            topicConfig["type"]
                     # Now pubTopics has the topic for sure.
                     # (either created now/was present. Now check for type
-                    if self.pubTopics[topicConfig["name"]]["type"] != topicConfig["type"]:
+                    pubTopicType = self.pubTopics[topicConfig["name"]]["type"]
+                    if pubTopicType != topicConfig["type"]:
                         raise Exception("Topic name & Type not matching")
                     # We are good to publish now
                     self.bus.send(topicConfig["name"], data)
@@ -143,17 +158,21 @@ class databus:
                     if topicConfig["name"] not in self.subTopics.keys():
                         self.bus.startTopic(topicConfig)
                         self.subTopics[topicConfig["name"]] = {}
-                        self.subTopics[topicConfig["name"]]["type"] = topicConfig["type"]
-                    if self.subTopics[topicConfig["name"]]["type"] != topicConfig["type"]:
+                        self.subTopics[topicConfig["name"]]["type"] = \
+                            topicConfig["type"]
+                    subTopicType = self.subTopics[topicConfig["name"]]["type"]
+                    if subTopicType != topicConfig["type"]:
                         raise Exception("Topic name & Type not matching")
                     # We are good to receive now
                     if (trig == "START") and (cb is not None):
-                        if "thread" in self.subTopics[topicConfig["name"]].keys():
+                        subTopics = self.subTopics[topicConfig["name"]]
+                        if "thread" in subTopics.keys():
                             raise Exception("Already Subscribed!!!")
                         qu = Queue()
                         ev = Event()
                         ev.clear()
-                        th = Thread(target=worker, args=(topicConfig["name"], qu, ev, cb))
+                        th = Thread(target=worker, args=(topicConfig["name"],
+                                                         qu, ev, cb))
                         th.deamon = True
                         th.start()
                         self.subTopics[topicConfig["name"]]["queue"] = qu
