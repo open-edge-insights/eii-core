@@ -2,6 +2,7 @@ import subprocess
 import argparse
 import time
 
+
 def parse_args():
     """Parse command line arguments
     """
@@ -16,7 +17,8 @@ def parse_args():
     return parser.parse_args()
 
 args = parse_args()
-subprocess.Popen(["python3.6", "classifier.py", "--config", args.config, "--log-dir", args.log_dir])
+subprocess.Popen(["python3.6", "classifier.py", "--config", args.config,
+                 "--log-dir", args.log_dir])
 
 print("starting kapacitor...")
 subprocess.Popen(["./run_kapacitord.sh"])

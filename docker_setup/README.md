@@ -183,7 +183,7 @@ Docker compose setup of ETA solution:
     sudo systemctl status eta
     ```
     > **Note**: 
-    > * Use command: `journalctl -n eta.service -f` to check the logs of eta.service
+    > * Use command: `journalctl -u eta.service` to check the logs of eta.service. For more details, check [https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs)
 
 4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    

@@ -1,6 +1,7 @@
 vendor
 kapacitor
 docker_setup/deploy/docker_images/*.tar
+docker_setup/deploy/*.tar.gz
 test_videos/
 .git
 *.md
