@@ -30,9 +30,6 @@ docker-compose build --build-arg HOST_TIME_ZONE="$hostTimezone"
 echo "3. Creating and starting the dependency/eta containers..."
 docker-compose up -d
 
-echo "4. Restarting the ia_video_ingestion container..."
-docker restart ia_video_ingestion
-
 #Logging the docker compose logs to file.
 DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
 docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &
