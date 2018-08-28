@@ -3,7 +3,7 @@
 This module gets the point data from Influxdb via kapacitor's subscription and using the image handle in the influxdb, gets the images from the ImageStore and runs the classifier's algorithm to find any detects in these images. The results are written back to influxdb after the 
 analysis. These results are streamed to DataAgent via StreamManager's subscription to influxdb and published to the message bus like NATS server which could be consumed by NATS client.
 
-## Running DataAnalytics from $GOPATH/src/iapoc_elephanttrunkarch - present working directory
+## Running DataAnalytics from $GOPATH/src/ElephantTrunkArch - present working directory
 
 **Pre-requisites:**
 1. Configuring ETR agent:
@@ -33,8 +33,8 @@ Follow below steps to start DataAnalytics module:
     ```
     > Note:
     > Pre-requisite for this step: 
-    > 1. Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
-    > 2. Run commands `./build.py --clean -o $GOPATH/bin` from iapoc-kapacitor directory to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
+    > 1. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
+    > 2. Run commands `./build.py --clean -o $GOPATH/bin` from kapacitor directory to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
 
 2. To install python dependencies for this module, use cmd:
 
@@ -42,7 +42,7 @@ Follow below steps to start DataAnalytics module:
     sudo -H pip3.6 install -r classifier_requirements.txt
     ```
 
-3. Run cmds: `export PYTHONPATH=.:./DataAgent/da_grpc/protobuff:"<pathtoiapoc-kapacitorrepo>/udf/agent/py"` to make sure there are no      errors while running classifier.py file.
+3. Run cmds: `export PYTHONPATH=.:./DataAgent/da_grpc/protobuff:"<pathtokapacitorrepo>/udf/agent/py"` to make sure there are no      errors while running classifier.py file.
    
 4. Run this command in a terminal:
 

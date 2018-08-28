@@ -15,7 +15,7 @@ import (
 
 	"github.com/golang/glog"
 
-	util "iapoc_elephanttrunkarch/Util"
+	util "ElephantTrunkArch/Util"
 )
 
 const (

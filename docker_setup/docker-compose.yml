@@ -64,7 +64,7 @@ services:
     container_name: ia_data_agent
     hostname: ia_data_agent
     volumes:
-      - /var/lib/eta/config/DataAgent.conf:/root/go/src/iapoc_elephanttrunkarch/DataAgent/DataAgent.conf
+      - /var/lib/eta/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf
       - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
     ports:
       - "50051:50051"

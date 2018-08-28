@@ -12,7 +12,7 @@ package databus
 
 import (
 	"github.com/golang/glog"
-	"iapoc_elephanttrunkarch/iapoc-go-python"
+	"ElephantTrunkArch/go-python"
 	"strconv"
 	"strings"
 )

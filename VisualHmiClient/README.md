@@ -11,14 +11,14 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
 
 ## Pre-requisites:
 
-* Please make sure that the below libraries availability. (either in `iapoc_elephanttrunkarch` or yourfolder)
-  * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `iapoc_elephanttrunkarch` repo)
+* Please make sure that the below libraries availability. (either in `ElephantTrunkArch` or yourfolder)
+  * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `ElephantTrunkArch` repo)
   * GRPC Client wrapper (`client.py` and protobuff files: 
     
 * Set your `PYTHONPATH` based on where libraries are placed
     For Eg:
-    If the pwd is `iapoc_elephanttrunkarch` and it is under home:
-    	echo PYTHONPATH=$PYTHONPATH:~/iapoc_elephanttrunkarch:iapoc_elephanttrunkarch/DataBusAbstraction/py/:iapoc_elephanttrunkarch/DataAgent/da_grpc/protobuff
+    If the pwd is `ElephantTrunkArch` and it is under home:
+    	echo PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
     else:
     	set your `PYTHONPATH` appropriately
 * Install VisualHmiClient dependencies:

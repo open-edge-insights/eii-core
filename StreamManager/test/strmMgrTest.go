@@ -15,7 +15,7 @@ package main
 import (
 	"flag"
 
-	stm "iapoc_elephanttrunkarch/StreamManager"
+	stm "ElephantTrunkArch/StreamManager"
 
 	"github.com/golang/glog"
 )

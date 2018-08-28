@@ -12,7 +12,7 @@ package client
 
 import (
 	"encoding/json"
-	pb "iapoc_elephanttrunkarch/DataAgent/da_grpc/protobuff"
+	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff"
 	"io"
 	"time"
 

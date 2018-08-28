@@ -56,13 +56,13 @@ Docker compose setup of ETA solution:
 
 3. [**`Ubuntu Only`**] Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
-4. [**`Ubuntu and ClearLinux`**] Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `iapoc_elephanttrunkarch` folder
+4. [**`Ubuntu and ClearLinux`**] Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `ElephantTrunkArch` folder
 
-5. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [kapacitor repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.kapacitor/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+5. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 
-    **NOTE**: Please use the git repo of iapoc-kapacitor as is, the script `build.py` is dependent on that.
+    **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-6. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [go-python repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.go_python/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+6. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [go-python repository](https://github.intel.com/ElephantTrunkArch/go-python) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 
 7. [**`Ubuntu and ClearLinux`**] Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
@@ -78,7 +78,7 @@ Docker compose setup of ETA solution:
     * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by running cmd `docker restart ia_video_ingestion`
     * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
 
-## <u>Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup` directory)</u>
+## <u>Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup` directory)</u>
 
 1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
 
@@ -105,11 +105,11 @@ Docker compose setup of ETA solution:
 2. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
    ```sh
-   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
+   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
    ```
    
    **Note**:
-   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`). The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo.
+   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`). The databus_requirements.txt and DataBusTest.py exist in the ElephantTrunkArch repo.
 
 3. If working with video file, please follow below steps:
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
@@ -124,18 +124,18 @@ Docker compose setup of ETA solution:
     * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_cam.json` under `basler` json field
     * Below scripts provide more control on passing CAM ON and CAM OFF message:
     
-    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON):
+    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `$GOPATH/src/<ElephantTrunkArch>`:
         
           ```sh
-          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_manual.py --camera_state 1
+          python3.6 VideoIngestion/test/RoboArm_manual.py --camera_state 1
           ```
         - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
         
           ```sh
-          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_auto.py
+          python3.6 VideoIngestion/test/RoboArm_auto.py
           ```
         <br/>  
-		Check `$GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/config.py` for configuration.
+		Check `VideoIngestion/test/config.py` for configuration.
 
 5. Prepare the ETA package tarball. Make sure that you are in **docker_setup/deploy** directory ((`**This step needs to be done on the build machine, the current build m/c that is supported is Ubuntu 16.04 and we have seen some build issues on ClearLinux**`)
 
@@ -146,13 +146,13 @@ Docker compose setup of ETA solution:
    * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
    * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
 
-## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<youriapocrepofolder>/docker_setup/deploy` directory)</u>
+## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory)</u>
 
-<u>Pre-requisite:</u>
-   * Follow `./clear_linux_setup_guide.md` guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
+<u>**Pre-requisite:**</u>
+   * Follow [clear_linux_setup_guide.md](clear_linux_setup_guide.md) guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
    * Follow the ClearLinux specific ones in `Pre-requisites` mentioned before setting up ETA in developement system. In other words, follow the previously mentioned pre-requisites.
-   * Follow `./edge_server_setup_guide.md` guide to install the needed stuff on Edge Server Node
-   * Follow `../VisualHmiClient/README.md` to setup Visual HMI client
+   * Follow [edge_server_setup_guide.md](edge_server_setup_guide.md) guide to install the needed stuff on Edge Server Node
+   * Follow [VisualHmiClient/README.md](VisualHmiClient/README.md) to setup Visual HMI client
    * Provide the right value for "CONFIG_FILE" in `./.env` file. 
      1. `factory.json` - value to be used if working with defect video files
      2. `factory_cam.json` (default) - value to be used if working with the camera setup
@@ -161,7 +161,7 @@ Docker compose setup of ETA solution:
        * Create the tarball package using `setup_eta.py` file on the build machine as indicated above in `Steps to setup ETA solution on dev system` section
 	   * If the tarball(eta.tar.gz) exist already or prepared in step 1 above, then use `setup_eta.py` to install it.
 
-<u> Steps: </u>
+<u>**Steps:**</u>
 1. Using `scp` command or some other mechanism, copy the `eta.tar.gz` created from the build m/c to the ECN device
 2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
 
@@ -188,7 +188,7 @@ Docker compose setup of ETA solution:
 4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
    ```sh
-   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the iapoc-elephanttrunkarch repo
+   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the ElephantTrunkArch-elephanttrunkarch repo
    ```
    
    **Note**:
@@ -200,22 +200,22 @@ Docker compose setup of ETA solution:
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
-    **Note**:
+    **Note**: 
     * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_cam.json` under `basler` json field
     * Below scripts provide more control on passing CAM ON and CAM OFF message:
     
-    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON):
+    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `$GOPATH/src/<ElephantTrunkArch>`:
         
           ```sh
-          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_manual.py --camera_state 1
+          python3.6 VideoIngestion/test/RoboArm_manual.py --camera_state 1
           ```
         - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
         
           ```sh
-          python3.6 $GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/RoboArm_auto.py
+          python3.6 VideoIngestion/test/RoboArm_auto.py
           ```
         <br/>
-		Check `$GOPATH/src/<youriapocrepofolder>/VideoIngestion/test/config.py` for configuration.
+		Check VideoIngestion/test/config.py` for configuration.
 
 > Note:
 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)

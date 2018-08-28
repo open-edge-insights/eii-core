@@ -6,7 +6,7 @@ LABEL description="ETA Go/Py Base Image"
 # Python envs
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 
-ENV GO_WORK_DIR /root/go/src/iapoc_elephanttrunkarch
+ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
 WORKDIR ${GO_WORK_DIR}
 
 #Installing Go and dep package manager tool for Go

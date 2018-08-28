@@ -18,9 +18,9 @@ import (
 	"os"
 	"strings"
 
-	influxDBHelper "iapoc_elephanttrunkarch/Util"
+	influxDBHelper "ElephantTrunkArch/Util"
 
-	databus "iapoc_elephanttrunkarch/DataBusAbstraction/go"
+	databus "ElephantTrunkArch/DataBusAbstraction/go"
 
 	"github.com/golang/glog"
 )

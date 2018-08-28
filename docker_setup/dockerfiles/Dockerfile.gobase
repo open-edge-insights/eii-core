@@ -5,7 +5,7 @@ LABEL description="ETA Go Base Image"
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /root/go/src/iapoc_elephanttrunkarch
+ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
 WORKDIR ${GO_WORK_DIR}
 
 #Installing Go and dep package manager tool for Go

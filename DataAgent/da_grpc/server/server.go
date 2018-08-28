@@ -15,9 +15,9 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	"iapoc_elephanttrunkarch/DataAgent/config"
-	pb "iapoc_elephanttrunkarch/DataAgent/da_grpc/protobuff"
-	imagestore "iapoc_elephanttrunkarch/ImageStore/go/ImageStore"
+	"ElephantTrunkArch/DataAgent/config"
+	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff"
+	imagestore "ElephantTrunkArch/ImageStore/go/ImageStore"
 	"net"
 	"os"
 

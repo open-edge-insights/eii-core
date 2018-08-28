@@ -14,7 +14,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	databus "iapoc_elephanttrunkarch/DataBusAbstraction/go"
+	databus "ElephantTrunkArch/DataBusAbstraction/go"
 	"os"
 )
 

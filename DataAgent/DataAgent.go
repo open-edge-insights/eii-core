@@ -16,9 +16,9 @@ import (
 	"flag"
 	"os"
 
-	server "iapoc_elephanttrunkarch/DataAgent/da_grpc/server"
-	stm "iapoc_elephanttrunkarch/StreamManager"
-	util "iapoc_elephanttrunkarch/Util"
+	server "ElephantTrunkArch/DataAgent/da_grpc/server"
+	stm "ElephantTrunkArch/StreamManager"
+	util "ElephantTrunkArch/Util"
 
 	"github.com/golang/glog"
 )

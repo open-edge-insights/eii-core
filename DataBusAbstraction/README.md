@@ -9,12 +9,12 @@ Currently supported messagebus:
 1. OPCUA
    * python2.7 (for python + golang)
    * Install databus_requirements.txt (for python + golang) by running cmd: `python2.7 install -r databus_requirements.txt`
-   * go-python (golang) - Clone the a locally maintained [go-python repository](https://teamforge-amr-01.devtools.intel.com/ctf/code/projects.iapoc/git/scm.go_python/tree) inside the `iapoc_elephanttrunkarch` folder by obtaining the command from gerrit/teamforge
+   * go-python (golang) - Clone the a locally maintained [go-python repository](https://github.intel.com/ElephantTrunkArch/go-python) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 2. MQTT
    * paho-mqtt (python)
    * eclipse/paho.mqtt.golang (golang)
 
-## How to Test from $GOPATH/src/iapoc_elephanttrunkarch - present working directory:
+## How to Test from $GOPATH/src/ElephantTrunkArch - present working directory:
 A test program is available under ./go/test/ and ./py/test/
 1. ./py/test/
    * Template for publish:

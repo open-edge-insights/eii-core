@@ -5,7 +5,7 @@ LABEL description="DataAgent image"
 
 ADD Gopkg.toml ./
 ADD Gopkg.lock ./
-ADD iapoc-go-python ./iapoc-go-python
+ADD go-python ./go-python
 ADD DataBusAbstraction/py/databus_requirements.txt ./
 
 RUN pip2 install -r databus_requirements.txt

@@ -14,7 +14,7 @@ Pre-requisites:
    sudo -H pip3 install asyncio-nats-client
    ```
 
-## 3 ways to run test file from $GOPATH/src/iapoc_elephanttrunkarch - present working directory
+## 3 ways to run test file from $GOPATH/src/ElephantTrunkArch - present working directory
 * go run StreamManager/test/strmMgrTest.go
 * go build StreamManager/test/strmMgrTest.go && ./strmMgrTest
 * go install StreamManager/test/strmMgrTest.go && strmMgrTest

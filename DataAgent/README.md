@@ -3,7 +3,7 @@
 
 DataAgent module is responsible for initializing the stream manager to listen to the data going into InfluxDB and starting off the gRPC server for rpc calls to exposed interfaces (GetConfigInt - Internal, Config and Query - External)
 
-## 3 ways to run from $GOPATH/src/iapoc_elephanttrunkarch - present working directory
+## 3 ways to run from $GOPATH/src/ElephantTrunkArch - present working directory
 * go run DataAgent/DataAgent.go -config=[configfilepath] -log_dir=[glogdirpath]
 * cd Datagent && go build DataAgent/DataAgent.go && ./DataAgent -config=[configfilepath] -log_dir=[glogdirpath]
 * go install DataAgent/DataAgent.go && DataAgent -config=[configfilepath] -log_dir=[glogdirpath]
@@ -25,7 +25,7 @@ Here, `--input_file` argument value would be read and it's data gets stored in I
 
 * Start C++ gRPC client: `./clientTest [imgHandle] [output_image_file_path]`
   Since you need to compile the test files before running them, follow the below given steps:
-  * Change to iapoc directory and run these following commands one by one:
+  * Change to ElephantTrunkArch directory and run these following commands one by one:
     * cd DataAgent/da_grpc/protobuff/
     * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.pb.o cpp/da.pb.cc
     * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.grpc.pb.o cpp/da.grpc.pb.cc
