@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 #include <fstream>
-#include "../../client/cpp/client.cc"
+#include "../client/cpp/client.cc"
 
 using namespace std;
 using grpc::Channel;

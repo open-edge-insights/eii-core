@@ -23,15 +23,13 @@ SOFTWARE.
 # Python grpc client implementation
 
 import grpc
+
 import json
+import DataAgent.da_grpc.protobuff.da_pb2 as da_pb2
+import DataAgent.da_grpc.protobuff.da_pb2_grpc as da_pb2_grpc
+import os
 import logging as log
 from Util.proxy import ProxyHelper
-import sys
-import os
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path),"../../protobuff/py/"))
-import da_pb2 as da_pb2
-import da_pb2_grpc as da_pb2_grpc
 
 
 class GrpcClient(object):
