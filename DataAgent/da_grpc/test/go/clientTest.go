@@ -11,13 +11,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
+	client "ElephantTrunkArch/DataAgent/da_grpc/client/go"
+	imagestore "ElephantTrunkArch/ImageStore/go/ImageStore"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
-	client "ElephantTrunkArch/DataAgent/da_grpc/client"
-	imagestore "ElephantTrunkArch/ImageStore/go/ImageStore"
 	"io"
 	"io/ioutil"
 	"os"

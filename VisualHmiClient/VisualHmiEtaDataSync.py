@@ -29,11 +29,10 @@ import requests
 import cv2
 import numpy as np
 import argparse
-
+from DataAgent.da_grpc.client.py.client import GrpcClient
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../"))
+sys.path.append(os.path.join(os.path.dirname(path), "../DataBusAbstraction/py"))
 from DataBus import databus
-from DataAgent.da_grpc.client.client import GrpcClient
 
 
 class EtaDataSync:
