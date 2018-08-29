@@ -229,6 +229,12 @@ Docker compose setup of ETA solution:
 3. '/var/lib/eta' root directory details:
      * config/ - all the ETA configs reside here.
      * logs/ - all the ETA logs reside here. 
+     * dist_libs/ - is the client external libs distribution package
+        * DataAgentClient -
+            * cpp - consists of gRPC cpp client wrappers, protobuff files and example programs
+            * py - consists of gRPC py client wrappers, protobuff files and example programs
+        * DataBusAbstraction - 
+            * py - consists of opcua py client wrappers and example programs
 4. Few useful docker-compose and docker commands:
      * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
      * `docker-compose down` - stops and removes the service containers

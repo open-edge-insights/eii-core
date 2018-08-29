@@ -8,7 +8,7 @@ Currently supported messagebus:
 ## Dependencies:
 1. OPCUA
    * python2.7 (for python + golang)
-   * Install databus_requirements.txt (for python + golang) by running cmd: `python2.7 install -r databus_requirements.txt`
+   * Install databus_requirements.txt (for python + golang) by running cmd: `sudo -H pip2.7 install -r databus_requirements.txt`
    * go-python (golang) - Clone the a locally maintained [go-python repository](https://github.intel.com/ElephantTrunkArch/go-python) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 2. MQTT
    * paho-mqtt (python)

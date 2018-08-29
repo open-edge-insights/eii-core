@@ -24,10 +24,14 @@ SOFTWARE.
 
 import logging
 import argparse
-from DataAgent.da_grpc.client.client import GrpcClient
 from ImageStore.py.imagestore import ImageStore
 import hashlib
 import time
+import sys
+import os
+path = os.path.abspath(__file__)
+sys.path.append(os.path.join(os.path.dirname(path), "../../client/py/"))
+from client import GrpcClient
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \

@@ -25,7 +25,7 @@ import argparse
 import sys
 import os
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../"))
+sys.path.append(os.path.join(os.path.dirname(path), "../../"))
 from DataBus import databus
 
 
@@ -48,11 +48,7 @@ if __name__ == "__main__":
     try:
         etadbus = databus()
         etadbus.ContextCreate(contextConfig)
-        if args.direction == "PUB":
-            for _, topic in enumerate(args.topic):
-                topicConfig = {"name": topic, "type": "string"}
-                etadbus.Publish(topicConfig, args.msg)
-        elif args.direction == "SUB":
+        if args.direction == "SUB":
             for _, topic in enumerate(args.topic):
                 topicConfig = {"name": topic, "type": "string"}
                 etadbus.Subscribe(topicConfig, "START", cbFunc)
@@ -64,17 +60,7 @@ if __name__ == "__main__":
     while True:
         var = raw_input("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
         try:
-            if args.direction == "PUB":
-                if var == "TERM":
-                    etadbus.ContextDestroy()
-                    break
-                elif var == "START" or var == "STOP":
-                    print("Not a valid CMD in PUB context!")
-                else:
-                    for _, topic in enumerate(args.topic):
-                        topicConfig = {"name": topic, "type": "string"}
-                        etadbus.Publish(topicConfig, var)
-            elif args.direction == "SUB":
+            if args.direction == "SUB":
                 if var == "STOP" and flag == "START":
                     for _, topic in enumerate(args.topic):
                         topicConfig = {"name": topic, "type": "string"}
@@ -88,6 +74,8 @@ if __name__ == "__main__":
                 elif var == "TERM":
                     etadbus.ContextDestroy()
                     break
+            else:
+                raise Exception("Wrong direction flag for databus!!!")
             continue
         except Exception as e:
             raise
