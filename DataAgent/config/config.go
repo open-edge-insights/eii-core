@@ -28,6 +28,7 @@ type DAConfig struct {
 	InfluxDB   influxDBCfg
 	Redis      redisCfg
 	OutStreams map[string]outStreamCfg
+	Opcua      opcuaCfg
 }
 
 type influxDBCfg struct {
@@ -47,6 +48,10 @@ type redisCfg struct {
 
 type outStreamCfg struct {
 	DatabusFormat string
+}
+
+type opcuaCfg struct {
+	Port string
 }
 
 // ParseConfig parses the DA config file and fills up the config structure.

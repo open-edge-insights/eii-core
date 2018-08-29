@@ -109,7 +109,10 @@ Docker compose setup of ETA solution:
    ```
    
    **Note**:
-   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`). The databus_requirements.txt and DataBusTest.py exist in the ElephantTrunkArch repo.
+   * Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
+   * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before starting `compose_startup.sh` script:
+     * [config/DataAgent.conf](config/DataAgent.conf)
+     * [.env](.env)
 
 3. If working with video file, please follow below steps:
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
@@ -191,8 +194,11 @@ Docker compose setup of ETA solution:
    python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the ElephantTrunkArch-elephanttrunkarch repo
    ```
    
-   **Note**:
-   Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies (For more details, refer `DataBusAbstraction/README.md`)
+  **Note**:
+   * Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
+   * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before install `eta.service`:
+     * [config/DataAgent.conf](config/DataAgent.conf)
+     * [.env](.env)
 
 5. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
 

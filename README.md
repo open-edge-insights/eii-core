@@ -13,4 +13,4 @@ ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based 
 
 * <u>**Bare metal setup (See individual modules README.md on how to run them)**</u>
 
-   Refer [README.md][baremetal_setup.md] file
+   Refer [README.md](baremetal_setup.md) file

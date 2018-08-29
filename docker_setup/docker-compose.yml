@@ -13,7 +13,7 @@ services:
     volumes:
       - /var/lib/eta/config/influxdb.conf:/etc/influxdb/influxdb.conf
     ports:
-      - "8086:8086"
+      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
       
   # Define an Redis service
   redis:
@@ -23,7 +23,7 @@ services:
     container_name: redis
     hostname: redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
 
   #---- End: ETA Dependency Services----
   
@@ -67,8 +67,8 @@ services:
       - /var/lib/eta/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf
       - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
     ports:
-      - "50051:50051"
-      - "65003:65003"
+      - "${GRPC_PORT}:${GRPC_PORT}"
+      - "${OPCUA_PORT}:${OPCUA_PORT}"
         
   # Define DataAnalytics service
   ia_data_analytics:

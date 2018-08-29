@@ -32,7 +32,7 @@ const (
 var opcuaContext = map[string]string{
 	"direction": "PUB",
 	"name":      "streammanager",
-	"endpoint":  "opcua://%s:65003/elephanttrunk/",
+	"endpoint":  "opcua://%s:%s/elephanttrunk/",
 }
 
 // StrmMgr type
@@ -44,6 +44,7 @@ type StrmMgr struct {
 	InfluxDBName      string                     // Database Name
 	MeasurementPolicy map[string]bool            //This DS to map policy name with action
 	MsrmtTopicMap     map[string]OutStreamConfig //A map of mesurement to topic
+	OpcuaPort         string
 }
 
 // OutStreamConfig type
@@ -178,7 +179,7 @@ func startServer(pStrmMgr *StrmMgr) {
 		hostname = "localhost"
 	}
 
-	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname)
+	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname, pStrmMgr.OpcuaPort)
 
 	err = opcuaDatab.ContextCreate(opcuaContext)
 	if err != nil {
