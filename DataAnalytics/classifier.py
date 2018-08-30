@@ -85,7 +85,7 @@ class ConnHandler(Handler):
     def init(self, init_req):
         response = udf_pb2.Response()
         response.init.success = True
-        # print("INIT CALLBACK of UDF", file=sys.stderr)
+        # logger.info("INIT CALLBACK of UDF")
         return response
 
     def snapshot(self):
@@ -103,7 +103,7 @@ class ConnHandler(Handler):
         raise Exception("not supported")
 
     def point(self, point):
-        # print("Recieved a point", file=sys.stderr)
+        # logger.info("Recieved a point")
         response = udf_pb2.Response()
 
         if(point.fieldsInt['Width'] != 0):
@@ -181,10 +181,10 @@ class accepter(object):
         # Set the handler on the agent
         agent.handler = h
 
-        print("Starting kapacitor agent in socket mode", file=sys.stderr)
+        logger.info("Starting kapacitor agent in socket mode")
         agent.start()
         agent.wait()
-        print("Ending kapacitor agent in socket mode", file=sys.stderr)
+        logger.info("Classifier UDF stopped.")
 
 
 def parse_args():
