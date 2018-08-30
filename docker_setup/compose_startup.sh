@@ -13,12 +13,15 @@ source ./update_config.sh
 echo "0.3 Setting up /var/lib/eta directory and copying all the necessary config files..."
 source ./init.sh
 
-echo "0.4 Updating .env for container timezone..."
+echo "0.4 Creating the external dist_libs client package..."
+./create_client_dist_package.sh
+
+echo "0.5 Updating .env for container timezone..."
 # Get Docker Host timezone
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
 
-echo "0.5 Checking if mosquitto is up..."
+echo "0.6 Checking if mosquitto is up..."
 ./start_mosquitto.sh
 
 echo "1. Removing previous dependency/eta containers if existed..."

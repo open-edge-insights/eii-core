@@ -49,6 +49,10 @@ cp $rootDir/DataAgent/__init__.py $dist_libs/DataAgentClient/protobuff/
 cp $rootDir/DataAgent/__init__.py $dist_libs/DataAgentClient/protobuff/py/
 
 echo "Removing redundant files..."
-rm $dist_libs/DataBusAbstraction/py/test/DataBusTest.py
+rm -rf $dist_libs/DataBusAbstraction/py/test/DataBusTest.py
 
-echo "dist_libs package created."
+echo "Removing __pycache__ folders generated..."
+rm -rf $dist_libs/DataBusAbstraction/py/__pycache__
+rm -rf $dist_libs/Util/__pycache__
+
+echo "Client distribution package created at $dist_libs."

@@ -29,6 +29,3 @@ if [ -d "$rootDir/test_videos" ]; then
     echo "test_videos exist..."
     cp -rf $rootDir/test_videos $etaRootDir/
 fi
-
-# Creates the external dist_libs client package
-./create_client_dist_package.sh
