@@ -17,7 +17,8 @@ if [[ -d /var/lib/eta && -n "$(ls -A /var/lib/eta)" ]]; then
 else
     source ./init.sh
 fi
-
+# Undo the set-e for capturing the negative error code.
+set +e
 for (( ; ; ))
 do
     sudo fuser 1883/tcp
@@ -31,6 +32,7 @@ do
         break
     fi
 done
+set -e
 
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down
