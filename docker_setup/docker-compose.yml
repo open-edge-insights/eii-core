@@ -4,12 +4,13 @@ services:
   
   #---- Start: ETA Dependency Services----
   # Define an InfluxDB service
-  influxdb:
+  ia_influxdb:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
-    container_name: influxdb
-    hostname: influxdb
+    container_name: ia_influxdb
+    hostname: ia_influxdb
+    image: ia/influxdb:1.5.3
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -19,12 +20,13 @@ services:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
       
   # Define an Redis service
-  redis:
+  ia_redis:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
-    container_name: redis
-    hostname: redis
+    container_name: ia_redis
+    hostname: ia_redis
+    image: ia/redis:4.0.10
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -62,7 +64,7 @@ services:
   ia_data_agent:
     depends_on:
       - ia-gobase
-      - influxdb
+      - ia_influxdb
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.da
@@ -82,8 +84,8 @@ services:
   # Define DataAnalytics service
   ia_data_analytics:
     depends_on:
-      - influxdb
-      - redis
+      - ia_influxdb
+      - ia_redis
       - ia_data_agent
     build:
       context: ../
@@ -94,7 +96,7 @@ services:
     environment:
       KAPACITOR_HOSTNAME: ia_data_analytics
       KAPACITOR_URL: http://ia_data_analytics:9092/
-      KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086/
+      KAPACITOR_INFLUXDB_0_URLS_0: http://ia_influxdb:8086/
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -110,8 +112,8 @@ services:
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
-      - influxdb
-      - redis
+      - ia_influxdb
+      - ia_redis
       - ia_data_analytics
     build:
       context: ../

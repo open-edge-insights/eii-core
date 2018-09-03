@@ -7,8 +7,8 @@ curDir=`pwd`
 echo "Saving all the docker images to $curDir folder..."
 
 # saving all docker images of eta along with its dependencies
-docker save -o influxdb-1.5.3.tar influxdb:1.5.3
-docker save -o redis-4.0.10.tar redis:4.0.10
+docker save -o influxdb-1.5.3.tar ia/influxdb:1.5.3
+docker save -o redis-4.0.10.tar ia/redis:4.0.10
 docker save -o mosquitto-1.4.12.tar eclipse-mosquitto:1.4.12
 
 docker save -o gobase-1.0.tar ia/gobase:1.0
