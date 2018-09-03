@@ -4,7 +4,8 @@
     "data_ingestion_manager": {
         "ingestors": {
             "video_file": {
-		    "video_file": "./test_videos/defect-vid3.avi"
+                "video_file": "./test_videos/defect-vid3.avi",
+                "loop_video": false
             }
         }
     },

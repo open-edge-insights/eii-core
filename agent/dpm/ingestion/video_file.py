@@ -63,8 +63,7 @@ class Ingestor:
             self.filename = os.path.basename(self.video_file)
 
             self.loop_video = config.get('loop_video', False)
-            print('config:', config)
-            
+
             self.poll_interval = config.get('poll_interval', None)
             if not os.path.exists(self.video_file):
                 raise IngestorError(
@@ -100,16 +99,16 @@ class Ingestor:
         """
         self.th.join()
         self.log.debug('Video file ingestor thread joined')
-    
+
     def _run(self):
         """Video file ingestor run thread.
         """
         self.log.info('Video file ingestor running')
-        
+
         while not self.stop_ev.is_set():
             ret, frame = self.cap.read()
             self.on_data('video_file', (self.filename, frame))
-            
+
             if self.poll_interval is not None:
                 time.sleep(self.poll_interval)
 
@@ -125,6 +124,5 @@ class Ingestor:
                 else:
                     self.log.debug('Video done playing, stopping...')
                     break
-            
-        self.log.info('Video file ingestor stopped')
 
+        self.log.info('Video file ingestor stopped')
