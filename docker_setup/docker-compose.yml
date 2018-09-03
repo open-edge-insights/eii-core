@@ -10,6 +10,9 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
     container_name: influxdb
     hostname: influxdb
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
     volumes:
       - /var/lib/eta/config/influxdb.conf:/etc/influxdb/influxdb.conf
     ports:
@@ -22,6 +25,9 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
     container_name: redis
     hostname: redis
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
 
@@ -63,6 +69,9 @@ services:
     image: ia/data_agent:1.0
     container_name: ia_data_agent
     hostname: ia_data_agent
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
     volumes:
       - /var/lib/eta/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf
       - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
@@ -87,6 +96,8 @@ services:
       KAPACITOR_URL: http://ia_data_analytics:9092/
       KAPACITOR_INFLUXDB_0_URLS_0: http://influxdb:8086/
       GRPC_SERVER: ${GRPC_SERVER_HOST}
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
     volumes:
       - /var/lib/eta/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf
       - /var/lib/eta/config/factory.json:/ETA/factory.json
@@ -109,6 +120,9 @@ services:
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
+    environment:
+      NO_PROXY: ${NO_PROXY},${HOSTNAME}
+      no_proxy: ${NO_PROXY},${HOSTNAME}
     volumes:
       - /var/lib/eta/test_videos:/ETA/test_videos
       - /var/lib/eta/config/factory.json:/ETA/factory.json

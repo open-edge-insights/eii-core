@@ -25,11 +25,10 @@ SOFTWARE.
 import grpc
 import json
 import logging as log
-from Util.proxy import ProxyHelper
 import sys
 import os
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path),"../../protobuff/py/"))
+sys.path.append(os.path.join(os.path.dirname(path), "../../protobuff/py/"))
 import da_pb2 as da_pb2
 import da_pb2_grpc as da_pb2_grpc
 
@@ -47,20 +46,17 @@ class GrpcClient(object):
         """
         self.hostname = hostname
         self.port = port
-        self.proxyHelper = ProxyHelper()
 
     def __daStub(self):
         """
             Private method to get the DaStub object
         """
-        self.proxyHelper.unsetProxies()
         if 'GRPC_SERVER' in os.environ:
             self.hostname = os.environ['GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing grpc channel to %s", addr)
         channel = grpc.insecure_channel(addr)
         stub = da_pb2_grpc.daStub(channel)
-        self.proxyHelper.resetProxies()
         return stub
 
     def GetBlob(self, imgHandle):
