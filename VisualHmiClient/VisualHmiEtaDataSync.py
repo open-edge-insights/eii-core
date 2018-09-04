@@ -15,8 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE,ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
@@ -51,16 +51,17 @@ class EtaDataSync:
             raw_defects_text = re.findall('(defects=.*]")', raw_text)
             meta_text = raw_text.replace(raw_defects_text[0] + ',', '')
             defects_list = raw_defects_text[0].split("=")[1]
-            defects_list_conversion = json.loads(defects_list.\
-                                            decode('string-escape').strip('"'))
+            defects_list_conversion =\
+                json.loads(defects_list.decode('string-escape').strip('"'))
 
             for x in meta_text.split(','):
-                metatext_dict[x.split('=')[0]] = x.split('=')[1].replace('"', "")
+                metatext_dict[x.split('=')[0]] =\
+                    x.split('=')[1].replace('"', "")
 
             meta_data_dict["defects"] = defects_list_conversion
             meta_data_dict["idx"] = metatext_dict["idx"]
-            meta_data_dict["timestamp"] = float(metatext_dict["timestamp"].\
-                                                                split(" ")[0])
+            meta_data_dict["timestamp"] = float(metatext_dict["timestamp"].
+                                                split(" ")[0])
             meta_data_dict["machine_id"] = metatext_dict["machine_id"]
             meta_data_dict["part_id"] = metatext_dict['part_id']
             meta_data_dict["image_id"] = metatext_dict["image_id"]
@@ -69,16 +70,16 @@ class EtaDataSync:
             meta_data_hmi["part_id"] = metatext_dict['part_id']
             meta_data_hmi["meta-data"] = meta_data_list
 
-
             self.meta_data_hmi = meta_data_hmi
             self.meta_data_dict = meta_data_dict
             self.metatext_dict = metatext_dict
 
-            final_json = json.dumps(meta_data_hmi, indent=4, separators=(',', ': '))
+            final_json = json.dumps(meta_data_hmi,
+                                    indent=4, separators=(',', ': '))
             print("Classifier Data Conversion Done Successfully")
 
         except Exception as e:
-            print("Exception Occured in Text Conversion Module : "+ str(e))
+            print("Exception Occured in Text Conversion Module : " + str(e))
             raise Exception
 
         return final_json
@@ -87,7 +88,7 @@ class EtaDataSync:
         """
             This Method post data to Visual HMI server.
         """
-        posturi = 'http://{0}:{1}/rest/v1/part'.format(host,port)
+        posturi = 'http://{0}:{1}/rest/v1/part'.format(host, port)
         print("HMI Server URI : ", posturi)
         try:
             response = requests.post(posturi, json=data)
@@ -132,8 +133,8 @@ class EtaDataSync:
             imgWidth = 1920
             Frame = np.frombuffer(blob, dtype=np.uint8)
             reshape_frame = np.reshape(Frame, (imgHeight, imgWidth, 3))
-            cv2.imwrite(self.config["hmi_image_folder"]+filename+".png",\
-                            reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+            cv2.imwrite(self.config["hmi_image_folder"]+filename+".png",
+                        reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
             print("Image Conversion & Written Success as " + filename)
 
         except Exception as e:
@@ -152,14 +153,15 @@ class EtaDataSync:
                     Running on Local Mode")
                 else:
                     print("Started Sending Payload to HMI Server")
-                    self.post_metadata(self.config["hmi_host"],\
-                                    self.config["hmi_port"], self.final_json)
+                    self.post_metadata(self.config["hmi_host"],
+                                       self.config["hmi_port"], self.final_json)
                     self.final_json = {}
                     self.metalist = []
             else:
-                converted_json = json.loads(self.ConvertClassfierDatatoJson(msg))
-                self.writeImageToDisk(self.metatext_dict["ImgHandle"],\
-                                            self.meta_data_dict["image_id"])
+                converted_json = json.loads(
+                                    self.ConvertClassfierDatatoJson(msg))
+                self.writeImageToDisk(self.metatext_dict["ImgHandle"],
+                                      self.meta_data_dict["image_id"])
                 self.final_json['part_id'] = converted_json['part_id']
                 self.metalist.append(converted_json['meta-data'][0])
                 self.final_json['meta-data'] = self.metalist
@@ -173,10 +175,10 @@ class EtaDataSync:
             Parsing the Commandline Arguments
         """
         ap = argparse.ArgumentParser()
-        ap.add_argument("-c", "--config", default="config.json",\
-                                help="Please give the config file localtion")
-        ap.add_argument("-local", "--savelocal", default=False,\
-            help="This is to skip posting metaData\
+        ap.add_argument("-c", "--config", default="config.json",
+                        help="Please give the config file localtion")
+        ap.add_argument("-local", "--savelocal", default=False,
+                        help="This is to skip posting metaData\
             to HMI Server & Writing Images Locally")
         return ap.parse_args()
 
@@ -190,14 +192,14 @@ class EtaDataSync:
         if self.args.savelocal is not False:
             self.config["hmi_image_folder"] = self.args.savelocal + "/"
         else:
-            self.config["hmi_image_folder"] = self.config["hmi_image_folder"] + "/"
+            self.config["hmi_image_folder"] =\
+                self.config["hmi_image_folder"] + "/"
 
-        contextConfig = { "endpoint": "opcua://" +\
-                        self.config['databus_host'] + ":" +\
-                        self.config['databus_port'],
-                          "direction": "SUB",
-                          "name": "streammanager"
-                        }
+        contextConfig = {"endpoint": "opcua://" +
+                         self.config['databus_host'] + ":" +
+                         self.config['databus_port'],
+                         "direction": "SUB",
+                         "name": "streammanager"}
         try:
             etadbus = databus()
             etadbus.ContextCreate(contextConfig)
