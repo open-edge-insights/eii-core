@@ -71,7 +71,7 @@ func main() {
 
 	defer client.Close()
 
-	response, err := util.CreateDatabase(client, influxCfg.DBName)
+	response, err := util.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
 
 	if err == nil && response.Error() == nil {
 		glog.Infof("Successfully created database: %s", influxCfg.DBName)

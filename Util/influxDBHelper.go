@@ -43,10 +43,14 @@ func CreateSubscription(cli client.Client, subName string, dbName string, udpHos
 }
 
 // CreateDatabase creates the InfluxDB database
-func CreateDatabase(cli client.Client, dbName string) (*client.Response, error) {
+func CreateDatabase(cli client.Client, dbName string, retentionPolicy string) (*client.Response, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "create database %s", dbName)
+	if(retentionPolicy != "" ){
+		fmt.Fprintf(&buff, "create database %s with duration %s", dbName, retentionPolicy)
+	}else{
+		fmt.Fprintf(&buff, "create database %s", dbName)
+	}
 
 	q := client.NewQuery(buff.String(), "", "")
 	response, err := cli.Query(q)
