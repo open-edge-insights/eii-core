@@ -6,7 +6,7 @@ After=docker.service
 [Service]
 Restart=on-failure
 WorkingDirectory=/opt/intel/eta/docker_setup/
-ExecStartPre=/opt/intel/eta/docker_setup/deploy/load_built_images.sh
+ExecStartPre=/opt/intel/eta/docker_setup/deploy/wait_for_mosquitto_port.sh
 ExecStart=/opt/intel/eta/docker_setup/deploy/deploy_compose_startup.sh
 ExecStop=/opt/intel/eta/docker_setup/deploy/deploy_compose_shutdown.sh
 TimeoutSec=301s

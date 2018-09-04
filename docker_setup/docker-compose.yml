@@ -11,6 +11,7 @@ services:
     container_name: ia_influxdb
     hostname: ia_influxdb
     image: ia/influxdb:1.5.3
+    restart: on-failure:5
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -27,6 +28,7 @@ services:
     container_name: ia_redis
     hostname: ia_redis
     image: ia/redis:4.0.10
+    restart: on-failure:5
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -71,6 +73,7 @@ services:
     image: ia/data_agent:1.0
     container_name: ia_data_agent
     hostname: ia_data_agent
+    restart: on-failure:5
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -93,6 +96,7 @@ services:
     image: ia/data_analytics:1.0
     container_name: ia_data_analytics
     hostname: ia_data_analytics
+    restart: on-failure:5
     environment:
       KAPACITOR_HOSTNAME: ia_data_analytics
       KAPACITOR_URL: http://ia_data_analytics:9092/
@@ -122,6 +126,7 @@ services:
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
+    restart: on-failure:5
     environment:
       NO_PROXY: ${NO_PROXY},${HOSTNAME}
       no_proxy: ${NO_PROXY},${HOSTNAME}

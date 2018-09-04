@@ -181,6 +181,8 @@ Docker compose setup of ETA solution:
     **Note**:
     * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
     * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
+    * If one gets a warning to do systemctl daemon-reload, run the below command:
+        * sudo systemctl daemon-reload
 
     ```sh
     sudo systemctl status eta

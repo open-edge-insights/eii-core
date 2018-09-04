@@ -33,11 +33,14 @@ SYSTEMD_PATH = "/etc/systemd/system"
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # TODO: Add --unnstall_ETA option
+
     parser.add_argument('-c', '--create_eta_pkg',
                         help='Creates a ETA package', action="store_true")
 
     parser.add_argument('-i', '--install_eta', help='install eta pkg',
+                        action="store_true")
+
+    parser.add_argument('-u', '--uninstall_eta', help='uninstall eta pkg',
                         action="store_true")
 
     return parser.parse_args()
@@ -52,6 +55,16 @@ def enable_systemd_service():
         print("Unable to copy the systemd service file")
         exit(-1)
     # TODO: Need to copy var_lib_eta_tar dir also. Some investigation needed.
+
+    # Load the images
+    os.chdir("/opt/intel/eta/docker_setup/")
+    output = subprocess.run(["./deploy/deploy_compose_load.sh", "|", "tee",
+                             "docker_compose_load_log.txt"])
+    if output.returncode != 0:
+        print("Failed to run deploy_compose_load.sh successfully")
+        exit(-1)
+
+    os.chdir("/opt/intel/eta/docker_setup/deploy/")
     print("systemctl start of ETA service in progress...")
     output = subprocess.run(["systemctl", "start", "eta"])
     if output.returncode != 0:
@@ -152,3 +165,19 @@ if __name__ == '__main__':
         enable_systemd_service()
 
         print("***********Installation Finished***********")
+
+    if args.uninstall_eta:
+        uninstall_list = ["/var/lib/eta/", "/opt/intel/eta/",
+                          "/etc/systemd/system/eta.service"]
+        print("systemctl stop of ETA service in progress...")
+        output = subprocess.run(["systemctl", "stop", "eta"])
+        if output.returncode != 0:
+            print("Unable to stop ETA systemd service file")
+            exit(-1)
+
+        for i in uninstall_list:
+            print("Removing "+i+" ...")
+            output = subprocess.run(["rm", "-rf", i])
+            if output.returncode != 0:
+                print("Unable to remove" + i)
+                exit(-1)
