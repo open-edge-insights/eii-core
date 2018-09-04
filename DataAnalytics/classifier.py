@@ -208,7 +208,8 @@ if __name__ == '__main__':
 
     args = parse_args()
 
-    if os.path.isfile(server_addr):
+    if os.path.exists(server_addr):
+        logger.info("Deleting %s", server_addr)
         os.remove(server_addr)
 
     currentDateTime = str(datetime.datetime.now())
