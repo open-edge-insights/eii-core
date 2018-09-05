@@ -10,6 +10,7 @@ var data0 = stream
 data0
 	@classifier()
 	|influxDBOut()
+		.buffer(0)
 		.database('datain')
 		.measurement('classifier_results')
 		.retentionPolicy('autogen')
