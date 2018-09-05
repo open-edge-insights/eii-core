@@ -48,8 +48,8 @@ def start_classifier():
     """Starts the classifier module
     """
     try:
-        subprocess.call("python3.6 classifier.py --config "+args.config+
-         " --log-dir "+args.log_dir+ "&",shell=True)
+        subprocess.call("python3.6 classifier.py --config "+ args.config +
+         " --log-dir "+ args.log_dir + "&",shell=True)
         logger.info("classifier started successfully")
         return True
     except Exception as e:
@@ -103,7 +103,7 @@ def enable_classifier_task(host_name):
     retry_count = 5
     retry = 0
     while not kapacitor_port_open(host_name):
-        time.sleep(0.01)
+        time.sleep(1)
     logger.info("Kapacitor Port is Open for Communication....")
     while(retry < retry_count):
         if (subprocess.check_call(
@@ -127,7 +127,7 @@ if __name__ == '__main__':
     host_name = read_kapacitor_hostname()
     if not host_name:
         exit_with_failure_message()
-    if (start_classifier()== True):
+    if (start_classifier() == True):
         grant_permission_socket()
         if(start_kapacitor(host_name) == True):
             enable_classifier_task(host_name)
