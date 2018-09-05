@@ -9,7 +9,8 @@ copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+copies or substantial portions of the Software. Software to be used for
+Made in China 2025 initiatives.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -35,6 +36,7 @@ from .algo_brokenpin import det_brokenpin
 from .algo_missingriser import det_missingriser
 from .algo_runnercrack import det_runnercrack
 from .algo_hole609 import det_hole609
+from .algo_warpagemetric import calc_warpage_metric
 
 minMatches = 10
 
@@ -204,6 +206,9 @@ class Classifier:
             [0, maxHeight - 1]], dtype = "float32")
         mat = cv2.getPerspectiveTransform(rect, destination)
         img_warp = cv2.warpPerspective(img_clahe_copy, mat, (maxWidth, maxHeight))
+   
+        img_warp_red = cv2.warpPerspective(img_orig, mat, (maxWidth, maxHeight))
+#        cv2.imshow('red', img_warp_red)
 
         src = ref_img.copy()
         overlay = img_warp.copy()
@@ -213,6 +218,7 @@ class Classifier:
         RC_roi = []
         H609_roi = []
         R_roi = []
+        WM_roi = []
         if index == 1 :
             # Defects in Angle #1 : Broken Pin
             BP_roi = self.config_roi["brokenpin"]["A1_roi"]
@@ -223,6 +229,8 @@ class Classifier:
             RC_thresh = self.config_roi["runnercrack"]["thresholds"]
             R_roi = self.config_roi["missingriser"]["A2_roi"]
             R_thresh = self.config_roi["missingriser"]["thresholds"]
+            WM_roi = self.config_roi["warpage_metric"]["A2_roi"]
+            WM_thresh = self.config_roi["warpage_metric"]["thresholds"] 
         if index == 3 :
             # Defects in Angle #3 : Hole 609 block, Missing riser
             H609_roi = self.config_roi["hole609"]["A3_roi"]
@@ -312,6 +320,12 @@ class Classifier:
                 # (x1,y1) -> bottom right bounding box coordinates
                 defects.append(Defect(3,(x, y), (x1, y1)))
 
+        # Warpage metric calculation
+        if len(WM_roi) > 0 :
+            thresh = WM_thresh
+            warpage_metric = calc_warpage_metric(WM_roi, src, img_warp_red, thresh)
+            # Sending warpage metric as an integer. Multiplying by 10000 to maintain the precision
+            defects.append(Defect(4, (warpage_metric*10000, 0.0), (0.0, 0.0)))
         # Set state of random number generator after every frame to overcome the probabilistic 
         # nature of Flann matcher. This might need to be changed. 
         cv2.setRNGSeed(0)

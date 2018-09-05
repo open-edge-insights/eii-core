@@ -103,6 +103,20 @@
         "thresholds" : {
             "dispo_thresh" : 36
         }
+    },
+    
+    "warpage_metric" : {
+        "A2_roi" : [ [778, 587, 866, 658],
+                     [837, 809, 910, 862],
+                     [1644, 410, 1843, 538]
+                   ], 
+        "thresholds" : {
+            "upperRef" : [22, 23],
+            "lowerRef" : [25, 25],
+            "runnerRef" : [46, 45],
+            "minDis_upper" : 9,
+            "minDis_lower" : 7 
+        } 
     }
 }
 
