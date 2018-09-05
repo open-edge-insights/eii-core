@@ -15,24 +15,27 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
   * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `ElephantTrunkArch` repo)
   * GRPC Client wrapper (`client.py` and protobuff files:
 
-* Set your `PYTHONPATH` based on where libraries are placed
-    For Eg:
-    If the pwd is `ElephantTrunkArch` and it is under home:
-    	echo PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
-    else:
-    	set your `PYTHONPATH` appropriately
-* Install VisualHmiClient dependencies:
 
+**VisualHMIClient Can be run two Modes**
+    * 1. Production Mode - Docker Based Containers
+    * 2. BareMetal Setup - For Development Machines
+
+## Setting Up VisualHMI in EdgeServer - Production Mode
+
+* Login as root User `sudo su`
+
+* Clone or Copy `ElephantTrunkArch` Src under `/root/` Directory
+
+* Configure Databus & VisualHMI Server Details
   ```sh
-    pip2.7 install -r requirements.txt
+    vi /root/ElephantTrunkArch/VisualHMIClient/config.json
   ```
+  Change the Databus Host & Port Details.
+  **(Your ETA running machine IP & Opcua Port)**
 
-* Configure Databus & VisualHMI Server Details using `config.json`
+
 
 ## Steps to run VisualHMI (RefinementApp) module
-
-
-VisualHMIClient Can be run two Modes
 
 * Running VisualHMI in production mode as Docker Container:
     * Installing & Starting Docker Daemon Service in CentOS
@@ -47,20 +50,21 @@ VisualHMIClient Can be run two Modes
 
     * Building Docker Container
 
-        * Go to `ElephantTrunkArch` root Directory. **From ElephantTrunkArch dir follow below Steps**
+        * Go to `/root/ElephantTrunkArch`  Directory. **From ElephantTrunkArch dir follow below Steps**
 
         ```sh
           docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
         ```
     * Running VisualHmiEtaDataSync App as Container
         ```sh
-          docker run -v "$(pwd)"/VisualHmiClient/config.json:eta/VisualHmiClient/config.json: -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
+          docker run -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
         ```
         > **Note**:
         > Please make sure you have given required information in config.json
         > Don't change mounted volumes directory. If you want to change make sure config.json also updated
         > Docker run will consider the local config.json as in VisualHmiClient/config.json
         > Please make sure your config.json is updated
+        > If you want to change the config.json again No need to build again. As the host /root/ElephantTrunkArch/VisualHMIClient/config.json is mounted to docker container.
 
     * Stopping VisualHmi Container.
     ```sh
@@ -75,7 +79,26 @@ VisualHMIClient Can be run two Modes
       docker logs -f visualhmi
     ```
 > **Note**:
+> `VisualHmiEtaDataSync` setup Ends by here.
+> End of Setup.
+
+
+> **Note**:
 > Below Execution is not Recommnedded for Production Scenario:
+
+## Setting Up VisualHMI in Development EdgeServer - BareMetal Setup
+
+* Set your `PYTHONPATH` based on where libraries are placed
+    For Eg:
+    If the pwd is `ElephantTrunkArch` and it is under home which /root/:
+    	echo PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
+    else:
+    	set your `PYTHONPATH` appropriately
+* Install VisualHmiClient dependencies:
+
+  ```sh
+    pip2.7 install -r requirements.txt
+  ```
 
 * Running VisualHMI on Host (BareMetal - Not Recommnedded for Factory):
   ```sh
@@ -90,9 +113,10 @@ VisualHMIClient Can be run two Modes
 
 > **Note**:
 > Currently VisualHMI cannot be exited directly. Please use following command to terminate the VisualHMI App
-> ```sh
+
+```sh
   ps -ef | grep VisualHmiEtaDataSync.py | grep -v grep | awk {'print$2'} | xargs kill
-> ```
+```
 
 >**Removing All Images Data from VisualHmi**
 >Remove All Stored Images
@@ -112,3 +136,6 @@ VisualHMIClient Can be run two Modes
     DELETE FROM image *;
     DELETE FROM part *;
   ```
+  > **Note**:
+  > The Removing Images Part is advised if you are doing pre-production Mode Validation.
+  > Typically the above Scenario should not be handled. As it deletes all the Images.
