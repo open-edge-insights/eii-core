@@ -81,9 +81,15 @@ if __name__ == "__main__":
                         etadbus.Subscribe(topicConfig, "STOP", cbFunc)
                     flag = "STOP"
                 elif var == "START" and flag == "STOP":
-                    for _, topic in enumerate(args.topic):
-                        topicConfig = {"name": topic, "type": "string"}
-                        etadbus.Subscribe(topicConfig, "START", cbFunc)
+                    try:
+                        for _, topic in enumerate(args.topic):
+                            topicConfig = {"name": topic, "type": "string"}
+                            etadbus.Subscribe(topicConfig, "START", cbFunc)
+                    except Exception as ex:
+                        if "refused" in ex.message:
+                            print("opcua server seems to have exited. Exception: ",
+                              ex)
+                            os._exit(1)
                     flag = "START"
                 elif var == "TERM":
                     etadbus.ContextDestroy()

@@ -212,16 +212,20 @@ class EtaDataSync:
 
 
 if __name__ == "__main__":
-    try:
-        etaDataSync = EtaDataSync().main()
-        while True:
-            time.sleep(1)
 
-    except KeyboardInterrupt:
-        print("Recevied Ctrl+C & VisualHMIClient App is shutting down now !!!")
+    while True:
         try:
-            etaDataSync.ContextDestroy()
+            etaDataSync = EtaDataSync().main()
         except Exception as e:
-            print("Exiting..")
+            print("Error: ", e)
+            if "refused" in e.message:
+                print("Retrying to establish connection with opcua server...")
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print("Recevied Ctrl+C & VisualHMIClient App is shutting down now !!!")
+            try:
+                etaDataSync.ContextDestroy()
+            except Exception as e:
+                print("Exiting..")
 
-        os._exit(1)
+            os._exit(1)

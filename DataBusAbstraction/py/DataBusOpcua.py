@@ -21,6 +21,8 @@ SOFTWARE.
 """
 
 from opcua import ua, Server, Client
+import time
+
 
 
 class subHandler(object):
@@ -84,6 +86,7 @@ class databOpcua:
             # Create default endpoint protocol for opcua from given endpoint
             endpoint = contextConfig["endpoint"]
             endpoint = "opc.tcp://" + endpoint.split('//')[1]
+            self.endpoint = endpoint
             print("SUB:: ", endpoint)
             try:
                 # Connect to server
@@ -205,7 +208,10 @@ class databOpcua:
                     self.client.create_subscription(250, handler)
                 self.subElements[topic]["handle"] = \
                     self.subElements[topic]["sub"].subscribe_data_change(
-                    self.subElements[topic]["node"])
+                                    self.subElements[topic]["node"])
+                while True:
+                    self._check_opcua_server_health()
+                    time.sleep(2)
             except Exception as e:
                 print("{} Failure!!!".format(self.receive.__name__))
                 print(type(e).__name__)
@@ -278,6 +284,14 @@ class databOpcua:
                 raise
         else:
             raise Exception("Wrong Bus Direction!!!")
+
+    def _check_opcua_server_health(self):
+        try:
+            client = Client(self.endpoint)
+            client.connect()
+        except Exception as ex:
+            print("Not able to connect to opcua server. Exception: ", ex)
+            raise ex
 
     def __init__(self):
         self.server = None
