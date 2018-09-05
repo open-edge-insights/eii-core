@@ -140,7 +140,12 @@ Docker compose setup of ETA solution:
         <br/>  
 		Check `VideoIngestion/test/config.py` for configuration.
 
-5. Prepare the ETA package tarball. Make sure that you are in **docker_setup/deploy** directory ((`**This step needs to be done on the build machine, the current build m/c that is supported is Ubuntu 16.04 and we have seen some build issues on ClearLinux**`)
+5. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
+
+    ```sh
+    sudo ./setup_eta.py -a | tee deploy_eta_dvlpmnt_envrnmnt
+    ```
+6. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory ((`**This step needs to be done on the build machine, the current build m/c that is supported is Ubuntu 16.04 and we have seen some build issues on ClearLinux**`)
 
     ```sh
     sudo ./setup_eta.py -c | tee create_eta_targz.txt
@@ -149,7 +154,7 @@ Docker compose setup of ETA solution:
    * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
    * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
 
-## <u>Steps to setup ETA solution on factory system (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory)</u>
+## <u>Steps to setup ETA solution on factory system with deployment image created in Step 6 (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory) (Note: Skip this if you are deploying the dev machine itself.</u>
 
 <u>**Pre-requisite:**</u>
    * Follow [clear_linux_setup_guide.md](clear_linux_setup_guide.md) guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
