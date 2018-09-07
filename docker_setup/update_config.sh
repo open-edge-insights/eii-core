@@ -10,10 +10,11 @@ if [ ! "$hostIP" ]; then
     if [ ! "$hostIP" ]; then
         cat << EOF
         NO IP ADDRESS FOUND IN .env file.
-        Please update the IP address present in docker_setup/.env file.
+        Please update the IP address present in INSTALL PATH's docker_setup/.env file.
         And add the proper IP ADDRESS of the host against the HOST_IP
         field. For example the line in file should look like below
                  HOST_IP=10.223.97.5
+        Kindly re-run the ./setup_eta -i if you are installing with "-i" option.
 EOF
 	exit -1
     fi

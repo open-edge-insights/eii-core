@@ -192,9 +192,14 @@ if __name__ == '__main__':
         create_install_dir()
 
         # untar the docker setup files
-        print("Decompressing docker_setup in install path...")
-        with tarfile.open('docker_setup.tar.gz') as tar:
-            tar.extractall(path=INSTALL_PATH)
+        if not os.listdir(INSTALL_PATH):
+            print("Decompressing docker_setup in install path...")
+            with tarfile.open('docker_setup.tar.gz') as tar:
+                tar.extractall(path=INSTALL_PATH)
+        else:
+            print("Found a pre-existing nonempty " + INSTALL_PATH +
+                  " directory")
+            print("Hence avoiding overwrite of it.")
 
         # Load the images
         os.chdir("/opt/intel/eta/docker_setup/")
