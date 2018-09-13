@@ -31,7 +31,7 @@ from . import IngestorError
 
 
 class Ingestor:
-    """Ingestor for ingesting a video file and repeatedly uses the frames from 
+    """Ingestor for ingesting a video file and repeatedly uses the frames from
     that video to send through the data pipeline.
     """
     def __init__(self, config, stop_ev, on_data):
@@ -43,7 +43,7 @@ class Ingestor:
             Configuration object for the video ingestor
         stop_ev : Event
             Threading event telling the ingestor to stop
-        on_data : function 
+        on_data : function
             Callback to be called when data is available
 
         Exceptions
@@ -107,7 +107,8 @@ class Ingestor:
 
         while not self.stop_ev.is_set():
             ret, frame = self.cap.read()
-            self.on_data('video_file', (self.filename, frame))
+            if ret:
+                self.on_data('video_file', (self.filename, frame))
 
             if self.poll_interval is not None:
                 time.sleep(self.poll_interval)
