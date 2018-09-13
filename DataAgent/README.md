@@ -27,6 +27,12 @@ Here, `--input_file` argument value would be read and it's data gets stored in I
   Since you need to compile the test files before running them, follow the below given steps:
   * Change to ElephantTrunkArch directory and run these following commands one by one:
     * cd DataAgent/da_grpc/protobuff/
+    
+    # Below two commands for compiling the protocol buffer. This is not required if protoc version not changed.
+    * protoc -I . --cpp_out=cpp/ da.proto
+    * protoc -I . --grpc_out=cpp/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` da.proto
+    
+    # Compile the test app
     * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.pb.o cpp/da.pb.cc
     * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.grpc.pb.o cpp/da.grpc.pb.cc
     * cd ../test/cpp/

@@ -3,6 +3,24 @@
 
 DataAgentClient program is used for demonstrating GetBlob(imgHandle) gRPC interface.
 
+Pre-requisites:
+* **Setting up C++ dev env**
+    * Build and install gRPC for C++. Follow guide 
+        (https://github.com/grpc/grpc/blob/master/BUILDING.md)
+    * Do not try installing protobuf by building from source. 
+        * Do this instead as per the documentation:
+        * cd grpc/third_party/protobuf
+        * sudo make install
+    * Make sure to install Bazel using the following guide
+        (https://docs.bazel.build/versions/master/install.html) before the last step.
+    * To verify successfull installation, try running gRPC C++ HelloWorld example:
+        * cd grpc/examples/cpp/helloworld
+        * make
+        * ./greeter_server
+        * ./greeter_client (In a separate terminal)
+        * Terminal displaying Greeter received: Hello world on correct installation.
+    * Refer DataAgent README for further instructions on how to run gRPC C++ client.
+
 * Start C++ gRPC client: `sudo ./clientTest [imgHandle] [output_image_file_path]`
   Since you need to compile the test files before running them, follow the below given steps:
   * Change to parent directory of cpp client directory and run these following commands one by one:

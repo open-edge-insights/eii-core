@@ -28,6 +28,7 @@ cp -rf $rootDir/DataAgent/da_grpc/protobuff/py/da_pb2.py $dist_libs/DataAgentCli
 
 mkdir -p $dist_libs/DataAgentClient/protobuff/cpp
 cp -rf $rootDir/DataAgent/da_grpc/protobuff/cpp/. $dist_libs/DataAgentClient/protobuff/cpp/
+cp -rf $rootDir/DataAgent/da_grpc/protobuff/da.proto $dist_libs/DataAgentClient/protobuff/
 
 mkdir -p $dist_libs/DataAgentClient/test/py
 mkdir -p $dist_libs/DataAgentClient/test/py/examples
