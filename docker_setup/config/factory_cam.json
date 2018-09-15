@@ -1,46 +1,49 @@
 {
     "machine_id": "basler-capture-example",
-    "trigger_threads": 4,
-    "classification": {
-        "mqtt_broker_host": "mosquitto",
-        "mqtt_broker_port": 1883,
-        "max_workers": 1,
-        "classifiers": {
-            "yumei": {
-                "trigger": ["robotic_arm", "motion_detection"],
-                "config": {
-                    "ref_imgdir": "./agent/ref/",
-                    "ref_imgcount": 4,
-                    "ref_config_roi": "./agent/ref/ym_roi.json"
-                }
-            }
-        }
-    },
+    "trigger_threads": 2,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
                 "poll_interval": 0.01,
                 "streams": {
                     "basler": {
-                       "0815-0000":{
-                               "exposure": 8000
-                       }
+                        "0815-0000": {
+                            "exposure": 3250
+                        }
                     }
                 }
             }
         }
     },
+    
     "triggers": {
+        "robotic_arm":{ 
+            "mqtt_broker_host":"localhost",
+            "mqtt_broker_port":1883
+        },
         "motion_detection": {
-            "angle_sequence": [231, 629, 793, 1076],
-            "white_threshold": 2000,
+            "angle_sequence": [47, 175, 223, 271],
+            "white_threshold": 10000,
             "light_threshold": 1000,
             "roi_y1": 0,
             "roi_y2": 750
-        },
-	"robotic_arm":{
-		"mqtt_broker_host": "mosquitto",
-		"mqtt_broker_port": 1883
+        }
+    },
+    "classification": {
+        "mqtt_broker_host": "localhost",
+        "mqtt_broker_port": 1883,
+        "max_workers": 1,
+        "classifiers": {
+            "yumei": {
+                "trigger": ["robotic_arm","motion_detection"],
+                 "config": {
+                    "ref_imgdir": "./agent/ref/",
+                    "ref_imgcount": 4,
+                    "ref_config_roi": "./agent/ref/ym_roi.json"
+                }
 
-	}
-    }}
+            }
+        }
+    }
+    
+}
