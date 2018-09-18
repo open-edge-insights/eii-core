@@ -15,7 +15,6 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
   * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `ElephantTrunkArch` repo)
   * GRPC Client wrapper (`client.py` and protobuff files:
 
-
 **VisualHMIClient Can be run two Modes**
     * 1. Production Mode - Docker Based Containers
     * 2. BareMetal Setup - For Development Machines
@@ -33,7 +32,10 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
   Change the Databus Host & Port Details.
   **(Your ETA running machine IP & Opcua Port)**
 
-
+> **NOTE**:
+  If the ETA is running on a node behind a coporate network/proxy server, please set IP address      of the node in the no_proxy/NO_PROXY env variable on the system where you are executing VisualHmiClient app so that the communication doesn't go via the proxy server.
+  Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
+  If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`      
 
 ## Steps to run VisualHMI (RefinementApp) module
 
