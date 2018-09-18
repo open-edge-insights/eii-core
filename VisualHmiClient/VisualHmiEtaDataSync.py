@@ -20,90 +20,82 @@ OTHERWISE,ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import re
+import datetime
 import json
 import time
 import sys
 import os
 import requests
-import cv2
-import numpy as np
 import argparse
+import logging
+from agent.etr_utils.log import configure_logging, LOG_LEVELS
+
 from DataAgent.da_grpc.client.py.client import GrpcClient
 path = os.path.abspath(__file__)
 sys.path.append(os.path.join(os.path.dirname(path), "../DataBusAbstraction/py"))
 from DataBus import databus
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+
+logging.getLogger("opcua").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
+
 
 class EtaDataSync:
-    def ConvertClassfierDatatoJson(self, classifier_results):
+    def ConvertClassfierDatatoVisualHmiData(self, classifier_results):
         """
             This Method Converts classifier results into
             VIsual HMI Json Format
         """
-        metatext_dict = {}
+        meta_data_dict = {}
         meta_data_hmi = {}
         meta_data_list = []
-        meta_data_dict = {}
         try:
-            print("Classifier Data Conversion Started.")
-            raw_text = classifier_results.replace("classifier_results ", "")
-            raw_defects_text = re.findall('(defects=.*]")', raw_text)
-            meta_text = raw_text.replace(raw_defects_text[0] + ',', '')
-            defects_list = raw_defects_text[0].split("=")[1]
-            defects_list_conversion =\
-                json.loads(defects_list.decode('string-escape').strip('"'))
-
-            for x in meta_text.split(','):
-                metatext_dict[x.split('=')[0]] =\
-                    x.split('=')[1].replace('"', "")
-
-            meta_data_dict["defects"] = defects_list_conversion
-            meta_data_dict["idx"] = metatext_dict["idx"]
-            meta_data_dict["timestamp"] = float(metatext_dict["timestamp"].
-                                                split(" ")[0])
-            meta_data_dict["machine_id"] = metatext_dict["machine_id"]
-            meta_data_dict["part_id"] = metatext_dict['part_id']
-            meta_data_dict["image_id"] = metatext_dict["image_id"]
-            meta_data_dict["cam_sn"] = metatext_dict["cam_sn"]
+            logger.info("Classifier Results to VisualHMI \
+            Json Structure Conversion Started")
+            meta_data_dict["defects"] =\
+                json.loads(classifier_results["defects"])
+            meta_data_dict["idx"] = classifier_results["idx"]
+            meta_data_dict["timestamp"] =\
+                float(classifier_results["timestamp"])
+            meta_data_dict["machine_id"] = classifier_results["machine_id"]
+            meta_data_dict["part_id"] = classifier_results['part_id']
+            meta_data_dict["image_id"] = classifier_results["image_id"]
+            meta_data_dict["cam_sn"] = classifier_results["cam_sn"]
             meta_data_list.append(meta_data_dict)
-            meta_data_hmi["part_id"] = metatext_dict['part_id']
+            meta_data_hmi["part_id"] = classifier_results['part_id']
             meta_data_hmi["meta-data"] = meta_data_list
 
-            self.meta_data_hmi = meta_data_hmi
-            self.meta_data_dict = meta_data_dict
-            self.metatext_dict = metatext_dict
-
-            final_json = json.dumps(meta_data_hmi,
-                                    indent=4, separators=(',', ': '))
-            print("Classifier Data Conversion Done Successfully")
-
+            logger.info("Classifier Results \
+            to VisualHMI Json Structure Conversion Finished")
         except Exception as e:
             print("Exception Occured in Text Conversion Module : " + str(e))
             raise Exception
 
-        return final_json
+        return meta_data_hmi
 
     def post_metadata(self, host, port, data):
         """
             This Method post data to Visual HMI server.
         """
         posturi = 'http://{0}:{1}/rest/v1/part'.format(host, port)
-        print("HMI Server URI : ", posturi)
+        logger.info("HMI Server URI : %s", posturi)
         try:
             response = requests.post(posturi, json=data)
             if response.status_code != 200:
-                print("HMI Failure Response Code : ", response.status_code)
-                self.final_json = {}
-                raise Exception
+                logger.error("HMI Failure Response Code : %s",
+                             response.status_code)
+                raise
             else:
-                print("HMI Success Response Code : ", response.status_code)
-            self.final_json = {}
+                logger.info("HMI Success Response Code : %s",
+                            response.status_code)
         except Exception as e:
-            print("Exception Occured in Posting MetaData : ", str(e), data)
-            self.final_json = {}
-            self.metalist = []
-            raise Exception
+            logger.error("Exception Occured: %s in Posting MetaData : %s",
+                         str(e), data)
+            raise
 
     def getBlob(self, key):
         """
@@ -118,8 +110,8 @@ class EtaDataSync:
             outputBytes = client.GetBlob(key)
             return outputBytes
         except Exception as e:
-            print("Exception Occured in GetBlob Module : ", str(e))
-            raise Exception
+            logger.error("Exception: %s", str(e))
+            raise
 
     def writeImageToDisk(self, keyname, filename):
         """
@@ -128,64 +120,53 @@ class EtaDataSync:
         """
         try:
             blob = self.getBlob(keyname)
-            print("Blob Successfully received for " + keyname)
-            imgHeight = 1200
-            imgWidth = 1920
-            Frame = np.frombuffer(blob, dtype=np.uint8)
-            reshape_frame = np.reshape(Frame, (imgHeight, imgWidth, 3))
-            cv2.imwrite(self.config["hmi_image_folder"]+filename+".png",
-                        reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-            print("Image Conversion & Written Success as " + filename)
-
+            logger.info("Blob Successfully received for key: %s", keyname)
+            imgName = self.config["hmi_image_folder"] + filename + ".png"
+            with open(imgName, "wb") as fp:
+                fp.write(blob)
+            logger.info("Image Conversion & Written Success as : %s", imgName)
         except Exception as e:
-            print("Exception Occured in WriteImagetoDisk Module : ", str(e))
-            raise Exception
+            logger.error("Exception: %s", str(e))
+            raise
 
     def databus_callback(self, topic, msg):
         """
-            This is a Callback Method happens, Whenever
-            Message gets Subscribed from Databus
+            Callback method called whenever message to the
+            subscribed topic comes via Databus
         """
         try:
-            if 'end-of-part="END_OF_PART"' in msg:
+            if "END_OF_PART" in msg:
                 if self.args.savelocal is not False:
-                    print("No Post Request Made to HMI as You are\
+                    logger.info("No Post Request Made to HMI as You are\
                     Running on Local Mode")
                 else:
-                    print("Started Sending Payload to HMI Server")
+                    logger.info("Started Sending Payload to HMI Server")
                     self.post_metadata(self.config["hmi_host"],
-                                       self.config["hmi_port"], self.final_json)
-                    self.final_json = {}
+                                       self.config["hmi_port"],
+                                       self.databus_data)
+
+                    self.databus_data = {}
                     self.metalist = []
+
             else:
-                converted_json = json.loads(
-                                    self.ConvertClassfierDatatoJson(msg))
-                self.writeImageToDisk(self.metatext_dict["ImgHandle"],
-                                      self.meta_data_dict["image_id"])
-                self.final_json['part_id'] = converted_json['part_id']
-                self.metalist.append(converted_json['meta-data'][0])
-                self.final_json['meta-data'] = self.metalist
-
+                logger.info("Message: %s", msg)
+                classifier_results = json.loads(msg)
+                classifier_visualhmi_dict =\
+                    self.ConvertClassfierDatatoVisualHmiData(classifier_results)
+                self.writeImageToDisk(classifier_results["ImgHandle"],
+                                      classifier_results["image_id"])
+                self.databus_data['part_id'] =\
+                    classifier_visualhmi_dict['part_id']
+                self.metalist.append(classifier_visualhmi_dict['meta-data'][0])
+                self.databus_data['meta-data'] = self.metalist
         except Exception as e:
-            print("Exception Occured in Call Back Module : ", str(e))
-            raise Exception
+            logger.error("Exception: %s", str(e))
+            raise
 
-    def parse_arg(self):
-        """
-            Parsing the Commandline Arguments
-        """
-        ap = argparse.ArgumentParser()
-        ap.add_argument("-c", "--config", default="config.json",
-                        help="Please give the config file localtion")
-        ap.add_argument("-local", "--savelocal", default=False,
-                        help="This is to skip posting metaData\
-            to HMI Server & Writing Images Locally")
-        return ap.parse_args()
-
-    def main(self):
-        self.final_json = {}
+    def main(self, args):
+        self.databus_data = {}
         self.metalist = []
-        self.args = self.parse_arg()
+        self.args = args
         with open(self.args.config, 'r') as f:
             self.config = json.load(f)
 
@@ -206,26 +187,59 @@ class EtaDataSync:
             topicConfig = {"name": "classifier_results", "type": "string"}
             etadbus.Subscribe(topicConfig, "START", self.databus_callback)
         except Exception as e:
-            print("Exception Occured : ", str(e))
+            logger.error("Exception: %s", str(e))
             raise
         return etadbus
 
 
+def parse_arg():
+    """
+        Parsing the Commandline Arguments
+    """
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-c", "--config", default="config.json",
+                    help="Please give the config file localtion")
+    ap.add_argument("-local", "--savelocal", default=False,
+                    help="This is to skip posting metaData\
+        to HMI Server & Writing Images Locally")
+
+    ap.add_argument('-log', choices=LOG_LEVELS.keys(), default='INFO',
+                    help='Logging level (df: INFO)')
+
+    ap.add_argument('-log-dir', dest='log_dir', default='logs',
+                    help='Directory to for log files')
+
+    return ap.parse_args()
+
+
 if __name__ == "__main__":
+    args = parse_arg()
+
+    currentDateTime = str(datetime.datetime.now())
+    listDateTime = currentDateTime.split(" ")
+    currentDateTime = "_".join(listDateTime)
+    logFileName = 'visual_hmi_eta_data_sync_' + currentDateTime + '.log'
+
+    if not os.path.exists(args.log_dir):
+        os.mkdir(args.log_dir)
+
+    configure_logging(args.log.upper(), logFileName, args.log_dir)
 
     while True:
         try:
-            etaDataSync = EtaDataSync().main()
+            etaDataSync = EtaDataSync().main(args)
         except Exception as e:
-            print("Error: ", e)
+            logger.error("Exception: %s", str(e))
             if "refused" in e.message:
-                print("Retrying to establish connection with opcua server...")
+                logger.error("Retrying to establish connection with opcua \
+                             server...")
                 time.sleep(10)
         except KeyboardInterrupt:
-            print("Recevied Ctrl+C & VisualHMIClient App is shutting down now !!!")
+            logger.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
+                         down now !!!")
             try:
                 etaDataSync.ContextDestroy()
             except Exception as e:
-                print("Exiting..")
+                logger.error("Exiting..")
 
             os._exit(1)

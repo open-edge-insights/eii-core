@@ -34,6 +34,7 @@ import threading as th
 from ImageStore.py.imagestore import ImageStore
 from agent.etr_utils.log import configure_logging, LOG_LEVELS
 import numpy as np
+import cv2
 
 # The kapacitor source code is needed for the below imports
 from kapacitor.udf.agent import Agent, Handler, Server
@@ -80,6 +81,7 @@ class ConnHandler(Handler):
                 None, None)
         self.classifier = self._cm.get_classifier("yumei")
         self.img_store = ImageStore()
+        self.img_store.setStorageType('inmemory')
         # self.storage.start()
 
     def init(self, init_req):
@@ -125,8 +127,13 @@ class ConnHandler(Handler):
                 Frame = np.frombuffer(frame, dtype=np.uint8)
                 reshape_frame = np.reshape(Frame, (img_height,
                                                    img_width, img_channels))
+                cv2.imwrite("image.png",
+                            reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+                with open("image.png", "rb") as file:
+                    data = file.read()
+                    png_handle = self.img_store.store(data)
                 # Call classification manager API with the tuple data
-                val = (1, user_data, img_handle,
+                val = (1, user_data, png_handle,
                        ('camera-serial-number', reshape_frame))
                 self.data.append(val)
                 return

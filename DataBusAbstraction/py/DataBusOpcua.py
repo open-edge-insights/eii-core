@@ -293,7 +293,10 @@ class databOpcua:
         except Exception as ex:
             logger.error("Not able to connect to opcua server. \
                          Exception: {}".format(ex))
+            client.disconnect()
             raise ex
+        finally:
+            client.disconnect()
 
     def __init__(self):
         self.server = None
