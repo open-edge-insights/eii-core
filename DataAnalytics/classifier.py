@@ -142,12 +142,10 @@ class ConnHandler(Handler):
         for result in ret:
             # Process the Classifier Results into Response Structure
             for k, v in result.items():
-                if isinstance(v, float):
-                    response.point.fieldsDouble[k] = v
-                elif isinstance(v, str):
+                if isinstance(v, str):
                     response.point.fieldsString[k] = v
-                elif isinstance(v, int):
-                    response.point.fieldsInt[k] = v
+                elif isinstance(v, int) or isinstance(v, float):
+                    response.point.fieldsDouble[k] = v
                 elif k == "defects":
                     response.point.fieldsString[k] = json.dumps(v)
 
