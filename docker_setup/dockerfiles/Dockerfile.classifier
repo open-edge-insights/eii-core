@@ -19,19 +19,10 @@ ADD DataAnalytics/classifier_requirements.txt .
 RUN pip3.6 install -r classifier_requirements.txt && \
     rm -rf classifier_requirements.txt
 
-# creating saved images folder
-RUN mkdir -p ${HOME}/saved_images
-
-# Adding factory.py and populating PostreSQL db
-RUN mkdir -p /logs
-RUN touch ${HOME}/.pgpass && \
-    echo "postgres:5432:ali:ali:intel123" >${HOME}/.pgpass && \
-    chmod 0600 ${HOME}/.pgpass
-
 # Adding kapacitor related files
 ADD kapacitor ${KAPACITOR_REPO}
 RUN cd ${KAPACITOR_REPO} && \
-    ./build.py --clean -o ${GO_ROOT_BIN} && \
+    python2.7 build.py --clean -o ${GO_ROOT_BIN} && \
     mkdir -p ${DIR}/kapacitor && \
     cp -r udf ${DIR}/kapacitor
 
