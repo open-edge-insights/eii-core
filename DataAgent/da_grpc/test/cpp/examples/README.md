@@ -5,14 +5,9 @@ DataAgentClient program is used for demonstrating GetBlob(imgHandle) gRPC interf
 
 Pre-requisites:
 * **Setting up C++ dev env**
-    * Build and install gRPC for C++. Follow guide 
+    * Run the [setup_ubuntu_dev_env_cpp.sh](setup_ubuntu_dev_env_cpp.sh) script file after copying it to the directory where you need grpc to be installed. Give necessary permissions required.
+    * In case of any issues running the above script file, use the following guide
         (https://github.com/grpc/grpc/blob/master/BUILDING.md)
-    * Do not try installing protobuf by building from source. 
-        * Do this instead as per the documentation:
-        * cd grpc/third_party/protobuf
-        * sudo make install
-    * Make sure to install Bazel using the following guide
-        (https://docs.bazel.build/versions/master/install.html) before the last step.
     * To verify successfull installation, try running gRPC C++ HelloWorld example:
         * cd grpc/examples/cpp/helloworld
         * make
@@ -23,14 +18,10 @@ Pre-requisites:
 
 * Start C++ gRPC client: `sudo ./clientTest [imgHandle] [output_image_file_path]`
   Since you need to compile the test files before running them, follow the below given steps:
-  * Change to parent directory of cpp client directory and run these following commands one by one:
-    * cd protobuff/
-    * sudo g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.pb.o cpp/da.pb.cc
-    * sudo g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.grpc.pb.o cpp/da.grpc.pb.cc
-    * cd ../test/cpp/examples/
-    * sudo g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o clientTest.o clientTest.cc
-    * sudo g++ ../../../protobuff/cpp/da.pb.o ../../../protobuff/cpp/da.grpc.pb.o clientTest.o -L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc` -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl -o clientTest
-  * If all of these steps are run successfully, a clientTest file should be generated within your    test folder.
+  * Replace all occurences of PROTOPATH & PROTOCPPPATH to PROTODPATH & PROTODCPPPATH respectively from lines 17-34 in the Makefile.
+  * Run the [Makefile](Makefile) present in test/cpp/examples folder using the command:
+    * sudo make
+  * If make file is run successfully, a clientTest file should be generated within your examples folder.
     * Pre-requisite: Run python gRPC client and get imgHandle of the Image frame which was given
       as input.
     * Run the clientTest using the following command:

@@ -25,20 +25,9 @@ Here, `--input_file` argument value would be read and it's data gets stored in I
 
 * Start C++ gRPC client: `./clientTest [imgHandle] [output_image_file_path]`
   Since you need to compile the test files before running them, follow the below given steps:
-  * Change to ElephantTrunkArch directory and run these following commands one by one:
-    * cd DataAgent/da_grpc/protobuff/
-    
-    # Below two commands for compiling the protocol buffer. This is not required if protoc version not changed.
-    * protoc -I . --cpp_out=cpp/ da.proto
-    * protoc -I . --grpc_out=cpp/ --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` da.proto
-    
-    # Compile the test app
-    * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.pb.o cpp/da.pb.cc
-    * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o cpp/da.grpc.pb.o cpp/da.grpc.pb.cc
-    * cd ../test/cpp/
-    * g++ -std=c++11 `pkg-config --cflags protobuf grpc`  -c -o clientTest.o clientTest.cc
-    * g++ ../../protobuff/cpp/da.pb.o ../../protobuff/cpp/da.grpc.pb.o clientTest.o -L/usr/local/lib `pkg-config --libs protobuf grpc++ grpc` -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl -o clientTest
-  * If all of these steps are run successfully, a clientTest file should be generated within your    test folder.
+  * Run the [da_grpc/test/cpp/Makefile](da_grpc/test/cpp/Makefile) present in test/cpp folder using the command:
+    * make
+  * If make file is run successfully, a clientTest file should be generated within your test/cpp folder.
     * Pre-requisite: Run python gRPC client and get imgHandle of the Image frame which was given
       as input.
     * Run the clientTest using the following command:

@@ -28,14 +28,9 @@ Bare-metal setup of ETA solution:
     > 1. While running python programs, one may face issues with missing dependency modules. Please use **sudo -H pip3 install  <module>** cmd to install each.
 
 * **Setting up C++ dev env**
-    * Build and install gRPC for C++. Follow guide 
+    * Run the [DataAgent/da_grpc/test/cpp/examples/setup_ubuntu_dev_env_cpp.sh](DataAgent/da_grpc/test/cpp/examples/setup_ubuntu_dev_env_cpp.sh) script file after copying it to the directory where you need grpc to be installed. Give necessary permissions required.
+    * In case of any issues running the above script file, use the following guide
         (https://github.com/grpc/grpc/blob/master/BUILDING.md)
-    * Do not try installing protobuf by building from source. 
-        * Do this instead as per the documentation:
-        * cd grpc/third_party/protobuf
-        * sudo make install
-    * Make sure to install Bazel using the following guide
-        (https://docs.bazel.build/versions/master/install.html) before the last step.
     * To verify successfull installation, try running gRPC C++ HelloWorld example:
         * cd grpc/examples/cpp/helloworld
         * make

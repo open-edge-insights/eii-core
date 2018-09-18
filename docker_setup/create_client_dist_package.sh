@@ -39,6 +39,7 @@ cp -rf $rootDir/DataAgent/da_grpc/test/py/client_test.py $dist_libs/DataAgentCli
 mkdir -p $dist_libs/DataAgentClient/test/cpp
 mkdir -p $dist_libs/DataAgentClient/test/cpp/examples
 cp -rf $rootDir/DataAgent/da_grpc/test/cpp/examples/. $dist_libs/DataAgentClient/test/cpp/examples/
+cp -rf $rootDir/DataAgent/da_grpc/test/cpp/Makefile $dist_libs/DataAgentClient/test/cpp/examples/
 
 cp $rootDir/DataAgent/__init__.py $dist_libs/DataAgentClient/
 cp $rootDir/DataAgent/__init__.py $dist_libs/DataAgentClient/client/
