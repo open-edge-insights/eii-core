@@ -22,14 +22,20 @@ SOFTWARE.
 
 from opcua import ua, Server, Client
 import time
+import logging
 
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+logging.getLogger("opcua").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 class subHandler(object):
     '''cb object on message arrival'''
 
     def datachange_notification(self, node, val, data):
-        # print(val)
         if not self.ignore_notification:
             self.queue.put(val)
         else:
@@ -37,7 +43,7 @@ class subHandler(object):
             self.ignore_notification = False
 
     def event_notification(self, event):
-        print(event)
+        logger.info("Event: {}".format(event))
 
     def __init__(self, queue):
         self.queue = queue
@@ -68,7 +74,7 @@ class databOpcua:
             # Create default endpoint protocol for opcua from given endpoint
             endpoint = contextConfig["endpoint"]
             endpoint = "opc.tcp://" + endpoint.split('//')[1]
-            print("PUB:: ", endpoint)
+            logger.info("PUB:: {}".format(endpoint))
             try:
                 # TODO: For now no checking for existing server;
                 # Always assumes new server for new context
@@ -79,15 +85,15 @@ class databOpcua:
                 self.server.start()
                 self.objNode = self.server.get_objects_node()
             except Exception as e:
-                print("{} Failure!!!".format(self.createContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.createContext.__name__))
                 raise
         elif self.direction == "SUB":
             # Create default endpoint protocol for opcua from given endpoint
             endpoint = contextConfig["endpoint"]
             endpoint = "opc.tcp://" + endpoint.split('//')[1]
             self.endpoint = endpoint
-            print("SUB:: ", endpoint)
+            logger.info("SUB:: {}".format(endpoint))
             try:
                 # Connect to server
                 self.client = Client(endpoint)
@@ -97,8 +103,8 @@ class databOpcua:
                     contextConfig["name"])
                 self.objNode = self.client.get_objects_node()
             except Exception as e:
-                print("{} Failure!!!".format(self.createContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.createContext.__name__))
                 raise
         else:
             raise Exception("Wrong Bus Direction!!!")
@@ -125,8 +131,8 @@ class databOpcua:
                     if type(e).__name__ == "BadNoMatch":
                         child = obj_itr.add_object(self.ns, topic)
                     else:
-                        print("{} Failure!!!".format(self.startTopic.__name__))
-                        print(type(e).__name__)
+                        logger.error("{} Failure!!!".format(
+                            self.startTopic.__name__))
                         raise
                 obj_itr = child
             try:
@@ -135,8 +141,7 @@ class databOpcua:
                     topic_ls[-1]), "NONE", ua.VariantType.String)
                 var.set_writable()
             except Exception as e:
-                print("{} Failure!!!".format(self.startTopic.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.startTopic.__name__))
                 raise
             # TODO: Convert into opcua type
             self.pubElements[topicConfig["name"]] = {
@@ -151,7 +156,7 @@ class databOpcua:
             for idx, item in enumerate(topic_ls):
                 topic_ls[idx] = "{}:{}".format(self.ns, item)
             topic_ls.append("{}_var".format(topic_ls[-1]))
-            print(topic_ls)
+            logger.info("Topic list: {}".format(topic_ls))
             self.subElements[topicConfig["name"]] = {
                                                 "node": None,
                                                 "type": None
@@ -163,8 +168,7 @@ class databOpcua:
                     self.objNode.get_child(topic_ls)
                 # TODO: Compare data type
             except Exception as e:
-                print("{} Failure!!!".format(self.startTopic.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.startTopic.__name__))
                 raise
         else:
             raise Exception("Wrong Bus Direction!!!")
@@ -182,8 +186,7 @@ class databOpcua:
                 try:
                     self.pubElements[topic]["node"].set_value(data)
                 except Exception as e:
-                    print("{} Failure!!!".format(self.send.__name__))
-                    print(type(e).__name__)
+                    logger.error("{} Failure!!!".format(self.send.__name__))
                     raise
             else:
                 raise Exception("Wrong Data Type!!!")
@@ -213,8 +216,7 @@ class databOpcua:
                     self._check_opcua_server_health()
                     time.sleep(2)
             except Exception as e:
-                print("{} Failure!!!".format(self.receive.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise
         elif (self.direction == "SUB") and (trig == "STOP"):
             try:
@@ -224,8 +226,7 @@ class databOpcua:
                 self.subElements[topic]["handle"] = None
                 self.subElements[topic]["sub"] = None
             except Exception as e:
-                print("{} Failure!!!".format(self.receive.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise
         else:
             raise Exception("Wrong Bus Direction or Trigger!!!")
@@ -265,22 +266,22 @@ class databOpcua:
         '''Destroy the messagebus context'''
 
         if self.direction == "PUB":
-            print("OPCUA Server Stopping...")
+            logger.info("OPCUA Server Stopping...")
             try:
                 self.server.stop()
             except Exception as e:
-                print("{} Failure!!!".format(self.destroyContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.destroyContext.__name__))
                 raise
-            print("OPCUA Server Stopped")
+            logger.error("OPCUA Server Stopped")
         elif self.direction == "SUB":
             try:
-                print("OPCUA Client Disconnecting...")
+                logger.info("OPCUA Client Disconnecting...")
                 self.client.disconnect()
-                print("OPCUA Client Disconnected")
+                logger.info("OPCUA Client Disconnected")
             except Exception as e:
-                print("{} Failure!!!".format(self.destroyContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.destroyContext.__name__))
                 raise
         else:
             raise Exception("Wrong Bus Direction!!!")
@@ -290,7 +291,8 @@ class databOpcua:
             client = Client(self.endpoint)
             client.connect()
         except Exception as ex:
-            print("Not able to connect to opcua server. Exception: ", ex)
+            logger.error("Not able to connect to opcua server. \
+                         Exception: {}".format(ex))
             raise ex
 
     def __init__(self):

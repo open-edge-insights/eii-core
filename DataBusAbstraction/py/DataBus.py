@@ -26,9 +26,16 @@ from DataBusNats import databNats
 from Queue import Queue
 from threading import Thread, Lock
 from threading import Event
-
+import logging
 
 busTypes = {"OPCUA": "opcua:", "MQTT": "mqtt:", "NATS": "nats:"}
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+logging.getLogger("opcua").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 def worker(topic, qu, ev, fn):
@@ -36,14 +43,14 @@ def worker(topic, qu, ev, fn):
 
     while True:
         if ev.is_set():
-            print("Worker Done")
+            logger.info("Worker Done")
             break
         try:
             fn(topic, qu.get(timeout=2))
             qu.task_done()
         except Exception:
             # TODO: pass only for Empty exception
-            # print("Exception passed")
+            # logger.error("Exception passed")
             pass
     return
 
@@ -74,23 +81,24 @@ class databus:
             if endpoint.split('//')[0] == busTypes["OPCUA"]:
                 self.busType = busTypes["OPCUA"]
                 self.bus = databOpcua()
-                print(busTypes["OPCUA"])
+                logger.info("DataBus type: {}".format(busTypes["OPCUA"]))
             elif endpoint.split('//')[0] == busTypes["MQTT"]:
                 self.busType = busTypes["MQTT"]
                 self.bus = databMqtt()
-                print(busTypes["MQTT"])
+                logger.info("DataBus type: {}".format(busTypes["MQTT"]))
+                logger.info(busTypes["MQTT"])
             elif endpoint.split('//')[0] == busTypes["NATS"]:
                 self.busType = busTypes["NATS"]
                 self.bus = databNats()
-                print(busTypes["NATS"])
+                logger.info("DataBus type: {}".format(busTypes["NATS"]))
             else:
                 raise Exception("Not a supported BusType")
-            print(contextConfig)
+            logger.info(contextConfig)
             try:
                 self.bus.createContext(contextConfig)
             except Exception as e:
-                print("{} Failure!!!".format(self.ContextCreate.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.ContextCreate.__name__))
                 raise
             if contextConfig["direction"] == "PUB":
                 self.direction = "PUB"
@@ -131,8 +139,7 @@ class databus:
                     # We are good to publish now
                     self.bus.send(topicConfig["name"], data)
                 except Exception as e:
-                    print("{} Failure!!!".format(self.Publish.__name__))
-                    print(type(e).__name__)
+                    logger.error("{} Failure!!!".format(self.Publish.__name__))
                     raise
             else:
                 raise Exception("Not a supported BusDirection")
@@ -191,8 +198,8 @@ class databus:
                     else:
                         raise Exception("Unknown Trigger!!!")
                 except Exception as e:
-                    print("{} Failure!!!".format(self.Subscribe.__name__))
-                    print(type(e).__name__)
+                    logger.error("{} Failure!!!".format(
+                        self.Subscribe.__name__))
                     raise
             else:
                 raise Exception("Not a supported BusDirection")
@@ -215,8 +222,8 @@ class databus:
                     self.subTopics.pop(key)
                 self.bus.destroyContext()
             except Exception as e:
-                print("{} Failure!!!".format(self.ContextDestroy.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.ContextDestroy.__name__))
                 raise
         finally:
             self.mutex.release()

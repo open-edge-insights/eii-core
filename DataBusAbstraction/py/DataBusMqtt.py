@@ -21,13 +21,21 @@ SOFTWARE.
 """
 
 import paho.mqtt.client as mqtt
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+logging.getLogger("opcua").setLevel(logging.WARNING)
+logger = logging.getLogger(__name__)
 
 
 def onMsgCb(client, udata, msg):
     '''cb function on message arrival'''
 
-    # print("topic: ", msg.topic)
-    # print("msg: ", str(msg.payload.decode("utf-8")))
+    # logger.info("topic: {}".format(msg.topic))
+    # logger.info("msg: {}".format(str(msg.payload.decode("utf-8"))))
     udata.subElements[msg.topic]["queue"].put(str(msg.payload.decode("utf-8")))
 
 
@@ -56,7 +64,7 @@ class databMqtt:
         endpoint = contextConfig["endpoint"]
         host = endpoint.split('//')[1].split(':')[0]
         port = endpoint.split('//')[1].split(':')[1].split('/')[0]
-        print(host, port)
+        logger.info("Host: {}, port: {}".format(host, port))
         if self.direction == "PUB":
             try:
                 self.client = mqtt.Client(userdata=self)
@@ -66,8 +74,8 @@ class databMqtt:
                 self.client.connect(host, int(port))
                 self.client.loop_start()
             except Exception as e:
-                print("{} Failure!!!".format(self.createContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.createContext.__name__))
                 raise
         if self.direction == "SUB":
             try:
@@ -78,8 +86,8 @@ class databMqtt:
                 self.client.connect(host, int(port))
                 self.client.loop_start()
             except Exception as e:
-                print("{} Failure!!!".format(self.createContext.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(
+                    self.createContext.__name__))
                 raise
 
     def startTopic(self, topicConfig):
@@ -111,8 +119,7 @@ class databMqtt:
             if type(data) == str:
                 self.client.publish(topic, data)
         except Exception as e:
-            print("{} Failure!!!".format(self.send.__name__))
-            print(type(e).__name__)
+            logger.error("{} Failure!!!".format(self.send.__name__))
             raise
 
     def receive(self, topic, trig, queue=None):
@@ -125,25 +132,23 @@ class databMqtt:
 
         if (self.direction == "SUB") and (trig == "START") and (queue is
                                                                 not None):
-            # print("MQTT recieve START....")
-            # print(topic)
+            # logger.info("MQTT recieve START....")
+            # logger.info(topic)
             self.subElements[topic]["queue"] = queue
-            # print(self.subElements)
+            # logger.info(self.subElements)
             try:
                 self.client.subscribe(topic)
             except Exception as e:
-                print("{} Failure!!!".format(self.receive.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise
         elif (self.direction == "SUB") and (trig == "STOP"):
-            # print("MQTT recieve STOP....")
-            # print(topic)
+            # logger.info("MQTT recieve STOP....")
+            # logger.info(topic)
             try:
                 self.client.unsubscribe(topic)
                 self.subElements[topic]["queue"] = None
             except Exception as e:
-                print("{} Failure!!!".format(self.receive.__name__))
-                print(type(e).__name__)
+                logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise
         else:
             raise Exception("Wrong Bus Direction or Trigger!!!")
@@ -167,7 +172,7 @@ class databMqtt:
         '''Destroy the messagebus context'''
 
         try:
-            print("MQTT Client Disconnecting...")
+            logger.info("MQTT Client Disconnecting...")
             if self.direction == "PUB":
                 self.client.loop_stop()
                 self.client.disconnect()
@@ -176,10 +181,9 @@ class databMqtt:
                 self.client.disconnect()
             else:
                 raise Exception("Wrong Bus Direction!!!")
-            print("MQTT Client Disconnected")
+            logger.info("MQTT Client Disconnected")
         except Exception as e:
-            print("{} Failure!!!".format(self.destroyContext.__name__))
-            print(type(e).__name__)
+            logger.error("{} Failure!!!".format(self.destroyContext.__name__))
             raise
 
     def __init__(self):
