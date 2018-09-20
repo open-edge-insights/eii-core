@@ -53,7 +53,7 @@ logging.basicConfig(level=logging.DEBUG,
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 logger = logging.getLogger()
 
-TIME_MULTIPLIER_MICRO = 1000000
+TIME_MULTIPLIER_NANO = 1000000000
 
 
 # Runs ML algo on stream of points and return result back to kapacitor.
@@ -156,14 +156,14 @@ class ConnHandler(Handler):
                 elif k == "defects":
                     response.point.fieldsString[k] = json.dumps(v)
 
-            response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
+            response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
             self._agent.write_response(response, True)
 
         # Sending the end of part signal
         self.data = []
         response = udf_pb2.Response()
         response.point.fieldsString["end-of-part"] = "END_OF_PART"
-        response.point.time = int(time.time()*TIME_MULTIPLIER_MICRO)
+        response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
         self._agent.write_response(response, True)
 
     def end_batch(self, end_req):
