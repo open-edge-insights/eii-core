@@ -45,6 +45,17 @@ class DataIngestionLib:
             raise DAException("Seems to be some issue with gRPC server." +
                               "Exception: {0}".format(e))
 
+        # Creates the influxDB client handle.
+        try:
+            self.influx_c = InfluxDBClient(self.config["Host"],
+                                           self.config["Port"],
+                                           self.config["UserName"],
+                                           self.config["Password"],
+                                           self.config["DBName"])
+        except Exception as e:
+            raise DAException("Failed creating the InfluxDB client " +
+                              "Exception: {0}".format(e))
+
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
         try:
@@ -151,21 +162,15 @@ class DataIngestionLib:
     def save_data_point(self):
         '''Saves the Data Point. Internally sends the data point to InfluxDB'''
         try:
-            return self._send_data_to_influx(self.config["Host"],
-                                             self.config["Port"],
-                                             self.config["UserName"],
-                                             self.config["Password"],
-                                             self.config["DBName"])
+            return self._send_data_to_influx()
         except Exception as e:
             raise DAException("Seems to be some issue with InfluxDB." +
                               "Exception: {0}".format(e))
 
-    def _send_data_to_influx(self, url, port, username, password, db):
+    def _send_data_to_influx(self):
         '''Sends the data point to Influx.'''
-        # Creates the influxDB client handle.
-        influx_c = InfluxDBClient(url, port, username, password, db)
         json_body = [self.data_point]
-        ret = influx_c.write_points(json_body)
+        ret = self.influx_c.write_points(json_body)
         if ret is True:
             self.log.info("Data Point sent successfully to influx.")
         else:
