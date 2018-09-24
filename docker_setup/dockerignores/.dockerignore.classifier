@@ -1,0 +1,17 @@
+DataBusAbstraction/go
+DataIngestionLib
+ImageStore/go
+StreamManager
+VideoIngestion
+VisualHmiClient
+go-python
+docker_setup
+docker_setup/deploy/docker_images/*.tar
+docker_setup/deploy/*.tar.gz
+test_videos/
+vendor
+.git
+*.md
+*.mp4
+*.avi
+*.json

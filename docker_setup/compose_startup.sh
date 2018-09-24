@@ -28,7 +28,25 @@ echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down 
 
 echo "2. Buidling the dependency/eta containers..."
-docker-compose build --build-arg HOST_TIME_ZONE="$hostTimezone"
+
+# set .dockerignore to the base one
+ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
+
+services=(ia_influxdb ia_redis ia_data_agent ia_data_analytics ia_video_ingestion)
+servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.classifier .dockerignore.vi)
+
+count=0
+echo "services: ${services[@]}"
+for service in "${services[@]}"
+do
+    echo "Building $service image..."
+    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
+	docker-compose build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+    count=$((count+1))
+done
+
+# Relinking back to the base one
+ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
 echo "3. Creating and starting the dependency/eta containers..."
 docker-compose up -d
