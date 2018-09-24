@@ -15,7 +15,6 @@
             }
         }
     },
-    
     "triggers": {
         "robotic_arm":{ 
             "mqtt_broker_host":"localhost",

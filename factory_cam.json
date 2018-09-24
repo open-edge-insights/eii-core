@@ -1,6 +1,6 @@
 {
     "machine_id": "basler-capture-example",
-    "trigger_threads": 4,
+    "trigger_threads": 2,
     "classification": {
         "mqtt_broker_host": "mosquitto",
         "mqtt_broker_port": 1883,
