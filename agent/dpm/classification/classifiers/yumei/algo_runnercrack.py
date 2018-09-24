@@ -42,10 +42,8 @@ def _rotateImage(image, angle):
 
 def det_runnercrack(defect_roi, ref, test, thresh):
     bndbx = []	    # Defect bounding box
+
     # Thresholds
-    crack_thresh = thresh["crack_thresh"]        # lower pixel threshold value, 
-                                                 # will count pixels above this threshold to
-                                                 # filter out noise
     dispo_thresh_c1 = thresh["dispo_thresh_c1"]  # final threshold to use for dispo crack 1
     dispo_thresh_c2 = thresh["dispo_thresh_c2"]  # final threshold to use for dispo crack 2
     dispo_thresh_c3 = thresh["dispo_thresh_c3"]  # final threshold to use for dispo crack 3
@@ -55,44 +53,54 @@ def det_runnercrack(defect_roi, ref, test, thresh):
     for crack in range(0, crack_count) :
         x, y, x1, y1 = defect_roi[crack]
         crack_img = test[y:y1, x:x1]
-        
-        red = crack_img[:,:,2]
-        redthresh = cv2.adaptiveThreshold(red, 1, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 21,23)
-        img = cv2.cvtColor(crack_img, cv2.COLOR_BGR2HSV)
-        img = img[:,:,0]
-         
-        # Choose correct thresholds for crack 
-        dispo_thresh = 0  
-        if crack + 1 == 1 :  
-            (T, thresh) = cv2.threshold(img, 150, 1, cv2.THRESH_BINARY)
-            y = thresh[10:70,:].sum(axis=0)
-            high = np.argmax(y<2)+16
-            low = np.argmax(y<2)
-            new = y[low:high]
-            maxval = np.argmax(new)+low
-            hdispo = img[10:70,maxval+8:maxval+20].sum(axis=0)
-            crack_dispo = hdispo.sum()
-        elif crack + 1 == 2 :     
-            img = redthresh
-            img = _rotateImage(img, -43)
-            y = img[20:80,:].sum(axis=0)
-            cntr=0
-            for j in range(len(y)):
-                  if(y[j] > 30):
-                      cntr = cntr+1
-                  else:
-                      cntr = 0
-                  if cntr == 3:
-                      break
-            high = j + 18
-            low = j+6
-            crack_dispo = y[low:high].sum()
-        elif crack + 1 == 3 :        
-            a = img[20:80:,:].sum(axis=0)
-            maxval = np.argmax(a[:])
-            rdispo = redthresh[20:80,maxval+7:maxval+13].sum(axis=0)
-            crack_dispo = rdispo.sum()
+        img = crack_img.copy()
+       
+        if crack + 1 == 1:  
+            red = img[:, :, 0] 
+            redthresh = cv2.adaptiveThreshold(red, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,21,23)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV) 
+            img = img[:,:,0]       
 
+            (T, thresh) = cv2.threshold(img, 150, 1, cv2.THRESH_BINARY)
+            y = thresh[10:70,:].sum(axis=0) 
+            high = np.argmax(y<2)+16 
+            low = np.argmax(y<2)  
+            new = y[low:high] 
+            maxval = np.argmax(new)+low   
+
+            hdispo = img[10:70,maxval+8:maxval+20].sum(axis=0) 
+            crack_dispo = hdispo.sum() 
+
+        elif crack + 1 == 2:  
+            img = img[:,:,0]  
+            img = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,21,23) 
+            img = _rotateImage(img, -43) 
+            y = img[0:80,:].sum(axis=0)
+
+            cntr=0 
+            for j in range(len(y)): 
+                if y[j]>30: 
+                    cntr = cntr+1 
+                else: 
+                    cntr=0
+                if cntr ==3:  
+                    break 
+
+            high = j+18 
+            low = j+6 
+            crack_dispo = y[low:high].sum() 
+
+        elif crack + 1 == 3:
+            red = img[:,:,0]
+            redthresh = cv2.adaptiveThreshold(red,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,21,23) 
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)   
+            img = img[:,:,0]   
+
+            a = img[20:80,:].sum(axis=0)      
+            maxval = np.argmax(a[:])  
+
+            rdispo = redthresh[10:80,maxval+7:maxval+13].sum(axis=0)    
+            crack_dispo = rdispo.sum() 
 
         if crack_dispo < dispo_thresh_c1 and crack == 0:
             bndbx.append(defect_roi[crack])
