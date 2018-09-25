@@ -80,9 +80,11 @@ func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
 			chnk.Chunk = byteMessage[currentByte : currentByte+chunkSize]
 		}
 		if err := srv.Send(chnk); err != nil {
+			byteMessage = nil
 			return err
 		}
 	}
+	byteMessage = nil
 	return nil
 }
 

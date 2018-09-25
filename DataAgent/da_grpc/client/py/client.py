@@ -46,18 +46,12 @@ class GrpcClient(object):
         """
         self.hostname = hostname
         self.port = port
-
-    def __daStub(self):
-        """
-            Private method to get the DaStub object
-        """
         if 'GRPC_SERVER' in os.environ:
             self.hostname = os.environ['GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing grpc channel to %s", addr)
         channel = grpc.insecure_channel(addr)
-        stub = da_pb2_grpc.daStub(channel)
-        return stub
+        self.stub = da_pb2_grpc.daStub(channel)
 
     def GetBlob(self, imgHandle):
         """
@@ -70,10 +64,8 @@ class GrpcClient(object):
             that imgHandle
         """
         log.debug("Inside GetBlob() client wrapper...")
-        stub = self.__daStub()
-        response = stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
+        response = self.stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
         outputBytes = b''
-        response = stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
         for resp in response:
             outputBytes += resp.chunk
         log.debug("Sending the response to the caller...")
@@ -89,8 +81,7 @@ class GrpcClient(object):
             The dictionary object corresponding to the config value
         """
         log.debug("Inside GetConfigInt() client wrapper...")
-        stub = self.__daStub()
-        response = stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
+        response = self.stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
                                      timeout=1000)
         log.debug("Sending the response to the caller...")
         return json.loads(response.jsonMsg)

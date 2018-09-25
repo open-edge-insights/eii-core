@@ -28,7 +28,7 @@ RUN go get -v github.com/golang/glog && \
 
 RUN go get -v github.com/go-redis/redis && \
     cd ${GOPATH}/src/github.com/go-redis/redis && \
-    git checkout -b v6.12.0 tags/v6.12.0
+    git checkout -b v6.14.1 tags/v6.14.1
 
 RUN go get -v github.com/google/uuid && \
     cd ${GOPATH}/src/github.com/google/uuid && \
