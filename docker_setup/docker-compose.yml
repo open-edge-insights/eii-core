@@ -109,7 +109,7 @@ services:
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
       - /var/lib/eta/config/ref:/ETA/agent/ref
-      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_cam
+      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_prod
       - /var/lib/eta/logs/classifier_logs:/ETA/classifier_logs
     expose:
       - "9092"
@@ -137,7 +137,7 @@ services:
       - /var/lib/eta/config/factory.json:/ETA/factory.json
       - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
       - /var/lib/eta/config/ref:/ETA/agent/ref
-      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_cam
+      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_prod
       - /var/lib/eta/logs/video_ingestion_logs:/ETA/video_ingestion_logs
     command: ${CONFIG_FILE}
    
