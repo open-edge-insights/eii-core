@@ -12,5 +12,6 @@ docker-compose down
 source ./init.sh
 
 echo "2. Creating and starting the dependency/eta containers..."
-DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
-docker-compose up &> $etaLogDir/consolidatedLogs/eta_$DATE.log
+#DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
+#docker-compose up &> $etaLogDir/consolidatedLogs/eta_$DATE.log
+docker-compose up

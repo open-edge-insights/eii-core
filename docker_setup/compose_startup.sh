@@ -52,5 +52,5 @@ echo "3. Creating and starting the dependency/eta containers..."
 docker-compose up -d
 
 #Logging the docker compose logs to file.
-DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
-docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &
+#DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
+#docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &
