@@ -5,7 +5,7 @@
         "ingestors": {
             "video_file": {
                 "video_file": "./test_videos/defect-vid3.avi",
-                "loop_video": false
+                "loop_video": true
             }
         }
     },

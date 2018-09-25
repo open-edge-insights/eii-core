@@ -10,8 +10,8 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
     container_name: ia_influxdb
     hostname: ia_influxdb
-    image: ia/influxdb:1.5.3
-    restart: on-failure:5
+    image: ia/influxdb:${INFLUXDB_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -27,8 +27,8 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
     container_name: ia_redis
     hostname: ia_redis
-    image: ia/redis:4.0.10
-    restart: on-failure:5
+    image: ia/redis:${REDIS_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -73,7 +73,7 @@ services:
     image: ia/data_agent:1.0
     container_name: ia_data_agent
     hostname: ia_data_agent
-    restart: on-failure:5
+    restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
@@ -96,7 +96,7 @@ services:
     image: ia/data_analytics:1.0
     container_name: ia_data_analytics
     hostname: ia_data_analytics
-    restart: on-failure:5
+    restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       KAPACITOR_HOSTNAME: ia_data_analytics
       KAPACITOR_URL: http://ia_data_analytics:9092/
@@ -107,12 +107,14 @@ services:
     volumes:
       - /var/lib/eta/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf
       - /var/lib/eta/config/factory.json:/ETA/factory.json
-      - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
-      - /var/lib/eta/classifier_logs:/ETA/classifier_logs
-    command: ${CONFIG_FILE}
+      - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
+      - /var/lib/eta/config/ref:/ETA/agent/ref
+      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_cam
+      - /var/lib/eta/logs/classifier_logs:/ETA/classifier_logs
     expose:
       - "9092"
-
+    command: ${CONFIG_FILE}
+    
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
@@ -126,14 +128,16 @@ services:
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
-    restart: on-failure:5
+    restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY},${HOSTNAME}
       no_proxy: ${NO_PROXY},${HOSTNAME}
     volumes:
       - /var/lib/eta/test_videos:/ETA/test_videos
       - /var/lib/eta/config/factory.json:/ETA/factory.json
-      - /var/lib/eta/config/factory_cam.json:/ETA/factory_cam.json
+      - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
+      - /var/lib/eta/config/ref:/ETA/agent/ref
+      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_cam
       - /var/lib/eta/logs/video_ingestion_logs:/ETA/video_ingestion_logs
     command: ${CONFIG_FILE}
    

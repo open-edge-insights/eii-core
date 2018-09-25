@@ -37,4 +37,4 @@ ADD ImageStore/py ./ImageStore/py
 ADD Util ./Util
 
 ENTRYPOINT ["python3.6", "classifier_startup.py", "--log-dir", "/ETA/classifier_logs", "--config"]
-CMD ["factory_cam.json"]
+CMD ["factory_prod.json"]

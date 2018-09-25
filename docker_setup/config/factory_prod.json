@@ -36,9 +36,9 @@
             "yumei": {
                 "trigger": ["robotic_arm","motion_detection"],
                  "config": {
-                    "ref_imgdir": "./agent/ref/",
+                    "ref_imgdir": "./agent/ref_prod/",
                     "ref_imgcount": 4,
-                    "ref_config_roi": "./agent/ref/ym_roi.json"
+                    "ref_config_roi": "./agent/ref_prod/ym_roi.json"
                 }
 
             }

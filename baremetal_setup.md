@@ -63,7 +63,7 @@ Bare-metal setup of ETA solution:
 
 * Start VideoIngestion/VideoIngestion.py: `python3 VideoIngestion/VideoIngestion.py --config factory.json` to ingest the data to InfluxDB/ImageStore. Refer **VideoIngestion/README.md** for more details.
 
-    **Note**: To test with video file, use `factory.json` and to test with Basler's camera, use `factory_cam.json`. Just provide the right serial number for the camera in `factory_cam.json` under `basler` json field
+    **Note**: To test with video file, use `factory.json` and to test with Basler's camera, use `factory_prod.json`. Just provide the right serial number for the camera in `factory_prod.json` under `basler` json field
 
 * See the terminal of classifier.py to see the analysis results. The results are also published to mqtt topic. The result images can be seen in the ~/saved_images (as per the factory.json configuration)
 

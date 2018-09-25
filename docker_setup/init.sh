@@ -22,7 +22,10 @@ cp -f $configDir/mosquitto.conf $etaConfDir
 cp -f $configDir/DataAgent.conf $etaConfDir
 
 cp -f $configDir/factory.json $etaConfDir
-cp -f $configDir/factory_cam.json $etaConfDir
+cp -f $configDir/factory_prod.json $etaConfDir
+
+cp -rf $rootDir/agent/ref $etaConfDir
+cp -rf $rootDir/agent/ref_prod $etaConfDir
 
 # Copy test video files
 if [ -d "$rootDir/test_videos" ]; then

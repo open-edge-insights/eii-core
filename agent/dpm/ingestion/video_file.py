@@ -115,6 +115,9 @@ class Ingestor:
 
             if not ret:
                 if self.loop_video:
+                    self.log.debug('Sleeping start...')
+                    time.sleep(35)
+                    self.log.debug('Sleeping stop...')
                     self.log.debug('Video done playing, looping...')
                     self.cap.release()
                     self.cap = cv2.VideoCapture(self.video_file)
