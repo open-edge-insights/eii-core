@@ -28,7 +28,6 @@ import logging
 import cv2
 import numpy as np
 import json
-from skimage.measure import compare_ssim
 from agent.db.defect import Defect
 
 # YuMei algorithm files
