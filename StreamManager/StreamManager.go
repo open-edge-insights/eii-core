@@ -170,7 +170,7 @@ func (pStrmMgr *StrmMgr) Init() error {
 		glog.Infoln("Successfully created subscription")
 		go startServer(pStrmMgr)
 	} else if response.Error() != nil {
-		glog.Errorf("Response error: %v", response.Error())
+		glog.Errorf("Response error: %v while creating subscription", response.Error())
 		const str = "already exists"
 
 		// TODO: we need to handle this situation in a more better way in
