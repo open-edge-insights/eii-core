@@ -27,6 +27,7 @@ import logging
 import threading
 import time
 import cv2
+import os
 from . import IngestorError
 
 try:
@@ -260,8 +261,17 @@ class Ingestor:
         cam = None
         if cam_type == 'basler':
             self.log.info('Initializing basler camera %s', cam_sn)
-            cam = bvc.BaslerVideoCapture(cam_sn)
-
+            try:
+                cam = bvc.BaslerVideoCapture(cam_sn)
+            except:
+                for i in range(5):
+                    try:
+                        cam = bvc.BaslerVideoCapture(cam_sn)
+                        break
+                    except:
+                        self.log.error("Camera not responding, retrying %d", i+1)
+                if cam is None:
+                    os._exit(1)
             if 'gain' in config:
                 self.log.info('Setting gain to %d on camera %s', 
                         config['gain'], cam_sn)
