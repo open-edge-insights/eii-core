@@ -93,7 +93,7 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
 * Set your `PYTHONPATH` based on where libraries are placed
     For Eg:
     If the pwd is `ElephantTrunkArch` and it is under home which /root/:
-    	echo PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
+    	export PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
     else:
     	set your `PYTHONPATH` appropriately
 * Install VisualHmiClient dependencies:
