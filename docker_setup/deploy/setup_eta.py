@@ -56,12 +56,11 @@ def parse_args():
 def enable_systemd_service():
     # Copy the systemd service file to /etc/systemd/system
     print("Copying the service file to systemd path...")
-    os.chdir("/opt/intel/eta/docker_setup/deploy/")
+    os.chdir("{0}{1}".format(INSTALL_PATH, "deploy/"))
     output = subprocess.run(["cp", "eta.service", SYSTEMD_PATH])
     if output.returncode != 0:
         print("Unable to copy the systemd service file")
         exit(-1)
-    # TODO: Need to copy var_lib_eta_tar dir also. Some investigation needed.
 
     # This is to keep systemctl DB sane after adding ETA service.
     print("systemctl daemon reload in progress...")
@@ -70,7 +69,7 @@ def enable_systemd_service():
         print("Failed to execute systemctl daemon-reload")
         exit(-1)
 
-    os.chdir("/opt/intel/eta/docker_setup/deploy/")
+    os.chdir("{0}{1}".format(INSTALL_PATH, "deploy/"))
     print("systemctl start of ETA service in progress...")
     output = subprocess.run(["systemctl", "start", "eta"])
     if output.returncode != 0:
@@ -85,87 +84,136 @@ def enable_systemd_service():
 
 
 def create_install_dir():
-    print("Creating /opt/intel/eta before install if it doesn't exist...")
+    print("Creating {0} before install if it doesn't exist...".format(
+        INSTALL_PATH))
     output = subprocess.run(["mkdir", "-p", INSTALL_PATH])
     if output.returncode != 0:
         print("Unable to create install path" + INSTALL_PATH)
         exit(-1)
 
 
+def copy_docker_setup_files():
+    # Copy docker setup files to install path
+    try:
+        shutil.copytree(os.getcwd(), INSTALL_PATH,
+                        ignore=shutil.ignore_patterns('*.tar.gz', '*.tar'))
+        print("docker setup files copied to %s path" % INSTALL_PATH)
+    except OSError as e:
+        print('Directory docker_setup failed to be copied. Error: %s' % e)
+        exit(-1)
+
+
+def execute_compose_startup():
+
+    os.chdir("../")
+    copy_docker_setup_files()
+
+    output = subprocess.run(["./compose_startup.sh", "0", "|", "tee",
+                            "compose_startup.txt"])
+    if output.returncode != 0:
+        print("Failed to run compose_startup.sh successfully")
+        exit(-1)
+
+
+def uninstall_eta():
+    print("***********Un-installing ETA***********")
+    uninstall_list = ["/opt/intel/eta/",
+                      "/etc/systemd/system/eta.service"]
+    print("systemctl stop of ETA service in progress...")
+    output = subprocess.run(["systemctl", "stop", "eta"])
+    if output.returncode != 0:
+        print("Unable to stop ETA systemd service file")
+
+    for i in uninstall_list:
+        print("Removing "+i+" ...")
+        output = subprocess.run(["rm", "-rf", i])
+        if output.returncode != 0:
+            print("Unable to remove" + i)
+
+    # This is to keep systemctl DB sane after deleting ETA service.
+    print("systemctl daemon reload in progress...")
+    output = subprocess.run(["systemctl", "daemon-reload"])
+    if output.returncode != 0:
+        print("Unable to do systemd daemon-reload")
+
+    print("***********Finished Un-installing ETA***********")
+
+
 if __name__ == '__main__':
     args = parse_args()
+    docker_setup_tar_name = "docker_setup.tar.gz"
+    test_videos_tar_name = "test_videos.tar.gz"
+    dist_libs_tar_name = "dist_libs.tar.gz"
+
     if args.add_eta_without_tar:
+        # uninstall previous eta instance and files
+        uninstall_eta()
         print("*****Installing ETA without any pre-created container*******")
-
-        os.chdir("../")
-        output = subprocess.run(["./compose_startup.sh", "|", "tee",
-                                 "compose_startup.txt"])
-        if output.returncode != 0:
-            print("Failed to run compose_startup.sh successfully")
-            exit(-1)
-
-        create_install_dir()
-
-        # Copy docker setup files to install path
-        # NOTE: Don't chnage the curent working Directory in code. else below
-        # code may break.
-        try:
-            shutil.copytree(os.getcwd(), INSTALL_PATH + "docker_setup",
-                            ignore=shutil.ignore_patterns('*.tar.gz', '*.tar'))
-        except OSError as e:
-            print('Directory docker_setup failed to be copied. Error: %s' % e)
-
+        execute_compose_startup()
         enable_systemd_service()
-
         print("***********Installation Finished***********")
 
     if args.create_eta_pkg:
-        print("******Preparing ETA tarball for deloyment box********")
-
-        os.chdir("../")
-        output = subprocess.run(["./compose_startup.sh", "|", "tee",
-                                 "compose_startup.txt"])
-        if output.returncode != 0:
-            print("Failed to run compose_startup.sh successfully")
-            exit(-1)
+        print("******Preparing ETA tarball for deployment box********")
+        uninstall_eta()
+        execute_compose_startup()
 
         # Save the images
         output = subprocess.run(["./deploy/save_built_images.sh", "|", "tee",
-                                 "docker_save_log.txt"])
+                                "docker_save_log.txt"])
         if output.returncode != 0:
             print("Failed to run save_built_images.sh successfully")
             exit(-1)
 
-        # archive /var/lib/eta folder
-        print("***Creating /var/lib/eta dir's compressed archive***")
-        os.chdir("./deploy")
-        var_lib_filename = "var_lib_eta.tar.gz"
-        source_dir = "/var/lib/eta/"
-        with tarfile.open(var_lib_filename, "w:gz") as tar:
-            tar.add(source_dir, arcname=os.path.basename(source_dir))
-
-        # Archive and zip docker setup folder
-        # TODO: Will add version to it
         print("***Preparing compressed archive of ETA package***")
-        cur_dir = os.getcwd()
-        docker_setup_filename = "docker_setup.tar.gz"
-        source_dir = os.path.join(cur_dir, "..", "..", "docker_setup")
-        with tarfile.open(docker_setup_filename, "w:gz") as tar:
-            tar.add(source_dir, arcname=os.path.basename(source_dir))
+        docker_setup_dir = os.getcwd()
+        os.chdir(INSTALL_PATH + "dist_libs/")
+        dist_libs_dir = os.getcwd()
+        dist_libs_path = docker_setup_dir + "/deploy/" + \
+            dist_libs_tar_name
+        print("Preparing {0}".format(dist_libs_path))
+        with tarfile.open(dist_libs_path, "w:gz") as tar:
+            for file in os.listdir(dist_libs_dir):
+                tar.add(file)
 
-        output_filename = "eta.tar.gz"
-        source_dir = os.path.join(cur_dir, "..", "..", "docker_setup")
-        with tarfile.open(output_filename, "w:gz") as tar:
-            tar.add("docker_setup.tar.gz", arcname="docker_setup.tar.gz")
-            tar.add("setup_eta.py", arcname="setup_eta.py")
+        os.chdir(docker_setup_dir)
+        docker_setup_path = docker_setup_dir + "/deploy/" + \
+            docker_setup_tar_name
+        print("Preparing {0}".format(docker_setup_path))
+        with tarfile.open(docker_setup_path, "w:gz") as tar:
+            for file in os.listdir(docker_setup_dir):
+                tar.add(file)
 
-        print("Removing docker_setup.tar.gz and var_lib_eta.tar.gz files...")
+        test_videos_path = docker_setup_dir + "/deploy/" + \
+            test_videos_tar_name
+        test_videos_dir = os.getcwd() + "/../test_videos/"
+        os.chdir(test_videos_dir)  # ETA root directory
 
-        if os.path.exists(var_lib_filename):
-            os.remove(var_lib_filename)
+        if os.path.exists(os.getcwd()):
+            print("Preparing {0}".format(test_videos_path))
+            print(test_videos_dir)
+            with tarfile.open(test_videos_path, "w:gz") as tar:
+                for file in os.listdir(test_videos_dir):
+                    tar.add(file)
 
-        if os.path.exists(docker_setup_filename):
-            os.remove(docker_setup_filename)
+        eta_tar_name = "eta.tar.gz"
+        eta_path = docker_setup_dir + "/deploy/" + \
+            eta_tar_name
+        eta_setup_file = "setup_eta.py"
+        print("Preparing {0}. It consists of {1}, {2} and {3}".format(
+              eta_path, test_videos_tar_name, docker_setup_tar_name,
+              eta_setup_file))
+        os.chdir("../docker_setup/deploy")
+        with tarfile.open(eta_path, "w:gz") as tar:
+            tar.add(dist_libs_tar_name)
+            tar.add(test_videos_tar_name)
+            tar.add(docker_setup_tar_name)
+            tar.add(eta_setup_file)
+
+        for file in [docker_setup_path, test_videos_path, dist_libs_path]:
+            print("Removing {0}...".format(file))
+            if os.path.exists(file):
+                os.remove(file)
 
         install_guide = '''
         Completed preparing the compressed archive for ETA package.
@@ -188,21 +236,24 @@ if __name__ == '__main__':
         print(install_guide)
 
     if args.install_eta:
-
+        # uninstall previous eta instance and files
+        uninstall_eta()
         create_install_dir()
 
         # untar the docker setup files
-        if not os.listdir(INSTALL_PATH):
-            print("Decompressing docker_setup in install path...")
-            with tarfile.open('docker_setup.tar.gz') as tar:
-                tar.extractall(path=INSTALL_PATH)
-        else:
-            print("Found a pre-existing nonempty " + INSTALL_PATH +
-                  " directory")
-            print("Hence avoiding overwrite of it.")
+        for file in [docker_setup_tar_name, test_videos_tar_name,
+                     dist_libs_tar_name]:
+            print("Extracting {0} at {1}".format(file, INSTALL_PATH))
+            with tarfile.open(file) as tar:
+                if "test_videos" in file:
+                    tar.extractall(path=(INSTALL_PATH + "/test_videos"))
+                elif "dist_libs" in file:
+                    tar.extractall(path=(INSTALL_PATH + "/dist_libs"))
+                else:
+                    tar.extractall(path=INSTALL_PATH)
 
+        os.chdir(INSTALL_PATH)
         # Load the images
-        os.chdir("/opt/intel/eta/docker_setup/")
         output = subprocess.run(["./deploy/deploy_compose_load.sh", "|", "tee",
                                  "docker_compose_load_log.txt"])
         if output.returncode != 0:
@@ -215,26 +266,4 @@ if __name__ == '__main__':
         print("***********Installation Finished***********")
 
     if args.uninstall_eta:
-        uninstall_list = ["/var/lib/eta/", "/opt/intel/eta/",
-                          "/etc/systemd/system/eta.service"]
-        print("systemctl stop of ETA service in progress...")
-        output = subprocess.run(["systemctl", "stop", "eta"])
-        if output.returncode != 0:
-            print("Unable to stop ETA systemd service file")
-            exit(-1)
-
-        for i in uninstall_list:
-            print("Removing "+i+" ...")
-            output = subprocess.run(["rm", "-rf", i])
-            if output.returncode != 0:
-                print("Unable to remove" + i)
-                exit(-1)
-
-        # This is to keep systemctl DB sane after deleting ETA service.
-        print("systemctl daemon reload in progress...")
-        output = subprocess.run(["systemctl", "daemon-reload"])
-        if output.returncode != 0:
-            print("Unable to do systemd daemon-reload")
-            exit(-1)
-
-        print("***********Finished Un-installing ETA***********")
+        uninstall_eta()

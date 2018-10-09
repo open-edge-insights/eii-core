@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Creates the /var/lib/eta directory and other sub-dirs here like logs, config
+# Creates the ETA_INSTALL_PATH directory and other sub-dirs here like logs, config
 # data, test_videos which will be used during volume mount of containers
 
 source ./setenv.sh
@@ -12,19 +12,9 @@ mkdir -p $etaConfDir
 
 # Creating eta log directory
 mkdir -p $etaLogDir/consolidatedLogs
-mkdir -p $etaLogDir/kapacitor
 
 # Copy config files
-cp -f $configDir/influxdb.conf $etaConfDir
-cp -f $configDir/redis.conf $etaConfDir
-cp -f $configDir/kapacitor.conf $etaConfDir
-cp -f $configDir/mosquitto.conf $etaConfDir
-cp -f $configDir/DataAgent.conf $etaConfDir
-
-cp -f $configDir/factory.json $etaConfDir
-cp -f $configDir/factory_prod.json $etaConfDir
-cp -rf $configDir/ref $etaConfDir
-cp -rf $configDir/ref_prod $etaConfDir
+cp -rf $configDir $etaRootDir
 
 # Copy test video files
 if [ -d "$rootDir/test_videos" ]; then

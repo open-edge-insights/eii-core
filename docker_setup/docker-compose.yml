@@ -16,7 +16,7 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
-      - /var/lib/eta/config/influxdb.conf:/etc/influxdb/influxdb.conf
+      - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
     ports:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
       
@@ -43,21 +43,21 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
-    image: ia/gobase:1.0
+    image: ia/gobase:${ETA_CONT_VERSION}
 
   # Define ia-pybase service
   ia-pybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
-    image: ia/pybase:1.0
+    image: ia/pybase:${ETA_CONT_VERSION}
 
   # Define ia-gopybase service
   ia-gopybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
-    image: ia/gopybase:1.0
+    image: ia/gopybase:${ETA_CONT_VERSION}
   
   #----End: ETA Base Images----
   
@@ -70,7 +70,7 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.da
-    image: ia/data_agent:1.0
+    image: ia/data_agent:${ETA_CONT_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -78,8 +78,7 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
-      - /var/lib/eta/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf
-      - /var/lib/eta/logs/DataAgent:/ETA/log/DataAgent
+      - "${ETA_INSTALL_PATH}/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf"
     ports:
       - "${GRPC_PORT}:${GRPC_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
@@ -93,7 +92,7 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
-    image: ia/data_analytics:1.0
+    image: ia/data_analytics:${ETA_CONT_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -105,12 +104,12 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
-      - /var/lib/eta/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf
-      - /var/lib/eta/config/factory.json:/ETA/factory.json
-      - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
-      - /var/lib/eta/config/ref:/ETA/agent/ref
-      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_prod
-      - /var/lib/eta/logs/classifier_logs:/ETA/classifier_logs
+      - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
+      - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
+      - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
+      - "${ETA_INSTALL_PATH}/config/ref:/ETA/agent/ref"
+      - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
+      - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
       - "9092"
     command: ${CONFIG_FILE}
@@ -124,21 +123,21 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.vi
-    image: ia/video_ingestion:1.0
+    image: ia/video_ingestion:${ETA_CONT_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      NO_PROXY: ${NO_PROXY},${HOSTNAME}
-      no_proxy: ${NO_PROXY},${HOSTNAME}
+      NO_PROXY: ${NO_PROXY},${HOST_IP}
+      no_proxy: ${NO_PROXY},${HOST_IP}
     volumes:
-      - /var/lib/eta/test_videos:/ETA/test_videos
-      - /var/lib/eta/config/factory.json:/ETA/factory.json
-      - /var/lib/eta/config/factory_prod.json:/ETA/factory_prod.json
-      - /var/lib/eta/config/ref:/ETA/agent/ref
-      - /var/lib/eta/config/ref_prod:/ETA/agent/ref_prod
-      - /var/lib/eta/logs/video_ingestion_logs:/ETA/video_ingestion_logs
+      - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
+      - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
+      - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
+      - "${ETA_INSTALL_PATH}/config/ref:/ETA/agent/ref"
+      - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
+      - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
     command: ${CONFIG_FILE}
    
   #----End: ETA Containers ----

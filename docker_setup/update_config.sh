@@ -30,4 +30,4 @@ sed -i 's/"mqtt_broker_host": .*/"mqtt_broker_host": "'"$hostIP"'",/g' config/fa
 sed -i 's/"mqtt_broker_host": .*/"mqtt_broker_host": "'"$hostIP"'",/g' config/factory_prod.json
 
 # Replacing 'localhost or host ip address' in docker_setup/config/DataAgent.conf with host IP
-sed -i 's/HOSTNAME=.*/HOSTNAME='$hostIP'/g' .env
+sed -i 's/HOST_IP=.*/HOST_IP='$hostIP'/g' .env

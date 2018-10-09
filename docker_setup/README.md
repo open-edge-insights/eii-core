@@ -141,14 +141,14 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
           python3.6 VideoIngestion/test/RoboArm_auto.py
           ```
         <br/>  
-		Check `VideoIngestion/test/config.py` for configuration.
+	Check `VideoIngestion/test/config.py` for configuration.
 
 5. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
 
     ```sh
     sudo ./setup_eta.py -a | tee deploy_eta_dvlpmnt_envrnmnt
     ```
-6. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory ((`**This step needs to be done on the build machine, the current build m/c that is supported is Ubuntu 16.04 and we have seen some build issues on ClearLinux**`)
+6. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory
 
     ```sh
     sudo ./setup_eta.py -c | tee create_eta_targz.txt
@@ -157,7 +157,9 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
    * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
    * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
 
-## <u>Steps to setup ETA solution on factory system with deployment image created in Step 6 (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory) (Note: Skip this if you are deploying the dev machine itself.</u>
+## <u>Steps to setup ETA solution on factory system  (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory) 
+
+> **Note**: For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
 
 <u>**Pre-requisite:**</u>
    * Follow [clear_linux_setup_guide.md](clear_linux_setup_guide.md) guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
@@ -172,31 +174,33 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
        * Create the tarball package using `setup_eta.py` file on the build machine as indicated above in `Steps to setup ETA solution on dev system` section
 	   * If the tarball(eta.tar.gz) exist already or prepared in step 1 above, then use `setup_eta.py` to install it.
 
-<u>**Steps:**</u>
-1. Using `scp` command or some other mechanism, copy the `eta.tar.gz` created from the build m/c to the ECN device
-2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
+<u>**2 ways to deploy**</u>
+   * Directly building the eta containers from source and starting them using eta.service without creating tar balls
+     
+     ```sh
+     sudo ./setup_eta -a | tee setup_eta_install_from_source.txt
+     ```
+   * Using the `eta.tar.gz` created on the build m/c where eta images are tar balled and deploying the same on the ECN device
+     
+     <u>**Steps:**</u>
+     1. Using `scp` command or some other mechanism, copy the `eta.tar.gz` created from the build m/c to the ECN device
+     2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
 
-    ```sh
-    tar -xvof eta.tar.gz
-    ```
-    **Note**: This command will extract two file namely `setup_eta.py` & `docker_setup.tar.gz` file.
+        ```sh
+        tar -xvof eta.tar.gz
+        ```
 
-3. Execute the following command to install ETA in the target machine and create systemd service of the same.
+     3. Execute the following command to install ETA in the target machine and create systemd service of the same.
 
-    ```sh
-    sudo ./setup_eta.py -i
-    ```
-    **Note**:
-    * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally it copied all installation files in "/opt/intel/eta/" path.
-    * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to check the eta service status. It should be in running state.
-    * If one gets a warning to do systemctl daemon-reload, run the below command:
-        * sudo systemctl daemon-reload
-
-    ```sh
-    sudo systemctl status eta
-    ```
-    > **Note**: 
-    > * Use command: `journalctl -u eta.service` to check the logs of eta.service. For more details, check [https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs)
+        ```sh
+        sudo ./setup_eta.py -i | tee setup_eta_install.txt
+        ```
+        **Note**:
+        * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally    it copies all installation files in "/opt/intel/eta/" path.
+        * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to      check the eta service status. It should be in running state.
+          ```
+         > **Note**: 
+         > * Use command: `journalctl -u eta.service` to check the logs of eta.service. For more details, check [https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs)
 
 4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
@@ -231,12 +235,12 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
           python3.6 VideoIngestion/test/RoboArm_auto.py
           ```
         <br/>
-		Check VideoIngestion/test/config.py` for configuration.
+ 	Check `VideoIngestion/test/config.py` for configuration.
 
 > Note:
 1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
 2. Dependency containers are: Influxdb(influxdb), Redis(redis)
-3. '/var/lib/eta' root directory details:
+3. '/opt/intel/eta' root directory details:
      * config/ - all the ETA configs reside here.
      * logs/ - all the ETA logs reside here. 
      * dist_libs/ - is the client external libs distribution package

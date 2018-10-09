@@ -1,5 +1,6 @@
 #!/bin/bash
 
+source ./setenv.sh
 mkdir -p $PWD/deploy/docker_images
 cd $PWD/deploy/docker_images
 curDir=`pwd`
@@ -7,13 +8,13 @@ curDir=`pwd`
 echo "Loading all the docker images from $curDir folder..."
 
 # loading all docker images of eta along with its dependencies
-docker load -i influxdb-1.5.3.tar
-docker load -i redis-4.0.10.tar
-docker load -i mosquitto-1.4.12.tar
+docker load -i influxdb-$INFLUXDB_VERSION.tar && echo "Loaded influxdb docker image.."
+docker load -i redis-$REDIS_VERSION.tar && echo "Loaded redis docker image.."
+docker load -i mosquitto-$MOSQUITTO_VERSION.tar && echo "Loaded mosquitto docker image.."
 
-docker load -i gobase-1.0.tar
-docker load -i pybase-1.0.tar
-docker load -i gopybase-1.0.tar
-docker load -i data_agent-1.0.tar
-docker load -i classifier-1.0.tar
-docker load -i video_ingestion-1.0.tar
+docker load -i gobase-$ETA_CONT_VERSION.tar && echo "Loaded gobase docker image.."
+docker load -i pybase-$ETA_CONT_VERSION.tar && echo "Loaded pybase docker image.."
+docker load -i gopybase-$ETA_CONT_VERSION.tar && echo "Loaded gopybase docker image.."
+docker load -i data_agent-$ETA_CONT_VERSION.tar && echo "Loaded data_agent docker image.."
+docker load -i data_analytics-$ETA_CONT_VERSION.tar && echo "Loaded data_analytics docker image.."
+docker load -i video_ingestion-$ETA_CONT_VERSION.tar && echo "Loaded video_ingestion docker image.."

@@ -5,7 +5,9 @@
 # Exit the script if any one command fails
 set -e
 
-etaRootDir="/var/lib/eta"
+source .env
+
+etaRootDir=$ETA_INSTALL_PATH
 etaLogDir=$etaRootDir/logs
 etaConfDir=$etaRootDir/config
 etaDataDir=$etaRootDir/data

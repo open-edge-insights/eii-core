@@ -1,9 +1,14 @@
 vendor
-docker_setup/deploy/docker_images/*.tar
 docker_setup/deploy/*.tar.gz
 test_videos/
 .git
-*.md
-*.mp4
-*.avi
-*.json
+
+# Recursively remove all unwanted files
+**/*.md
+**/*.mp4
+**/*.avi
+**/*.json
+**/*.pyc
+**/*.tar
+**/*.log
+**/*.log.*
