@@ -6,10 +6,10 @@ import stat
 import logging
 import socket
 
-
 SUCCESS = 0
 FAILURE = -1
 KAPACITOR_PORT = 9092
+KAPACITOR_NAME = 'kapacitord'
 logger = None
 args = None
 SOCKET_FILE = "/tmp/classifier"
@@ -78,9 +78,22 @@ def start_kapacitor(host_name):
         logger.info("Exception Occured in Starting the Kapacitor "+str(e))
         return False
 
+def process_zombie(process_name):
+    """Checks the given process is Zombie State & returns True or False
+    """
+    try:
+        out = subprocess.check_output('ps -eaf | grep '+ process_name + '| grep -v grep | grep defunct | wc -l',
+                           shell  = True).strip()
+        return True if (out == b'1') else False
+    except Exception as e:
+        logger.info("Exception Occured in Starting Kapacitor "+str(e))
+    
+
 def kapacitor_port_open(host_name):
     """Verify Kapacitor's port is ready for accepting connection
     """
+    if process_zombie(KAPACITOR_NAME):
+        exit_with_failure_message("Kapacitor failed to start.Please verify the ia_data_analytics logs for UDF/kapacitor Errors.")
     sock   = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     logger.info("Attempting to connect to Kapacitor on port 9092")
     result = sock.connect_ex((host_name,KAPACITOR_PORT))
@@ -92,8 +105,8 @@ def kapacitor_port_open(host_name):
         return False
 
 
-def exit_with_failure_message():
-    logger.info("Kapacitor hostname is not Set in the container.So exiting..")
+def exit_with_failure_message(message):
+    logger.info(message)
     exit(FAILURE)
 
 
@@ -126,7 +139,7 @@ if __name__ == '__main__':
     logger = init_logger()
     host_name = read_kapacitor_hostname()
     if not host_name:
-        exit_with_failure_message()
+        exit_with_failure_message('Kapacitor hostname is not Set in the container.So exiting..')
     if (start_classifier() == True):
         grant_permission_socket()
         if(start_kapacitor(host_name) == True):

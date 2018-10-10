@@ -85,6 +85,7 @@ class ConnHandler(Handler):
         # self.storage.start()
 
     def init(self, init_req):
+        self.classifier_init()
         response = udf_pb2.Response()
         response.init.success = True
         # logger.info("INIT CALLBACK of UDF")
@@ -182,7 +183,6 @@ class accepter(object):
         agent = Agent(conn, conn)
         # Create a handler and pass it an agent so it can write points
         h = ConnHandler(agent, self.config_file)
-        h.classifier_init()
         # Set the handler on the agent
         agent.handler = h
 
