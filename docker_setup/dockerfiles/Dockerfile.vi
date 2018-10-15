@@ -7,24 +7,24 @@ ADD VideoIngestion/basler-video-capture ./basler-video-capture
 
 # Adding basler camera's essentials by referring it's repo's README
 RUN cd basler-video-capture/libs && \
-    tar xvf pylon-5.0.11.10914-x86_64.tar.gz && \
-    cd pylon-5.0.11.10914-x86_64 && \
+    tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
+    cd pylon-5.1.0.12682-x86_64 && \
     pip3.6 install numpy && \
     pip3.6 install setuptools && \
-    tar -C /opt -zxf pylonSDK-5.0.11.10914-x86_64.tar.gz && \
-    wget https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.gz && \
-    tar xvf boost_1_63_0.tar.gz && \
-    cd boost_1_63_0 && \
+    tar -C /opt -zxf pylonSDK-5.1.0.12682-x86_64.tar.gz && \
+    wget https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.gz && \
+    tar xvf boost_1_66_0.tar.gz && \
+    cd boost_1_66_0 && \
     ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
     ./b2 --with-python && \
     ./b2 install && \
     cd ../../../ && \
-    python3.6 setup.py install  
+    python3.6 setup.py install
 
 # Removing unwanted files
-RUN rm -rf basler-video-capture/libs/pylon-5.0.11.10914-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.0.11.10914-x86_64/pylonSDK-5.0.11.10914-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.0.11.10914-x86_64/boost_1_63_0.tar.gz
+RUN rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64.tar.gz && \
+    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz && \
+    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/boost_1_66_0.tar.gz
 
 # Installing python boost dependencies
 RUN apt-get update && \

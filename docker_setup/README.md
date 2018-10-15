@@ -147,7 +147,7 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
           ```sh
           python3.6 VideoIngestion/test/RoboArm_auto.py
           ```
-        <br/>  
+        <br/>
 	Check `VideoIngestion/test/config.py` for configuration.
 
 5. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
