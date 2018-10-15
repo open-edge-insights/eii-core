@@ -1,0 +1,14 @@
+{
+  "hmi_image_folder": "/root/saved_images/",
+  "retention_days": 0,
+  "docker_eta_home": "/eta",
+  "dailyjobscedulehrs": 0,
+  "dailyjobscedulemins": 0,
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "database_name": "ali",
+    "username": "ali",
+    "password": "intel123"
+  }
+}
