@@ -59,7 +59,14 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
 3. [**`Ubuntu Only`**] Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
-4. [**`Ubuntu and ClearLinux`**] Copy all the video files from "\\Vmspfsfsbg01\qsd_sw_ba\FOG\Validation\validation_videos" in the `test_videos` folder under `ElephantTrunkArch` folder
+4. [**`Ubuntu and ClearLinux`**] Copy the Yumei acceptance test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
+
+    ```
+	cd ElephantTrunkArch/test_videos
+	wget -q http://wheeljack.ch.intel.com/test_videos/defect-video1.avi
+	wget -q http://wheeljack.ch.intel.com/test_videos/defect-vid2.avi
+	wget -q http://wheeljack.ch.intel.com/test_videos/defect-vid3.avi
+    ```
 
 5. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 
