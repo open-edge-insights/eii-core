@@ -2,6 +2,29 @@ version: '3'
 
 services:
   
+  # Define a log_rotate service
+  ia_log_rotate:
+    container_name: ia_log_rotate
+    hostname: ia_log_rotate
+    image: blacklabelops/logrotate:1.2
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      LOGS_DIRECTORIES: ${ETA_INSTALL_PATH}/logs
+      # Logrotate can rotate logfile according to the following intervals:
+      # hourly
+      # daily
+      # weekly
+      # monthly
+      # yearly
+      # For more details, refer the following link
+      # https://hub.docker.com/r/blacklabelops/logrotate/
+      LOGROTATE_INTERVAL: "daily"
+      LOGROTATE_COPIES: ${LOGROTATE_COPIES}
+      LOGROTATE_DATEFORMAT: "%Y%m%d_%H:%M:%S"
+      TZ: ${HOST_TIME_ZONE}
+    volumes:  
+      - "${ETA_INSTALL_PATH}/logs:${ETA_INSTALL_PATH}/logs"
+
   #---- Start: ETA Dependency Services----
   # Define an InfluxDB service
   ia_influxdb:
@@ -19,6 +42,11 @@ services:
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
     ports:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
       
   # Define an Redis service
   ia_redis:
@@ -34,7 +62,12 @@ services:
       no_proxy: ${NO_PROXY}
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
-
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    
   #---- End: ETA Dependency Services----
   
   #----Start: ETA Base Images----
@@ -44,21 +77,27 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
     image: ia/gobase:${ETA_CONT_VERSION}
-
+    depends_on:
+      - ia_log_rotate
+    
   # Define ia-pybase service
   ia-pybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
     image: ia/pybase:${ETA_CONT_VERSION}
-
+    depends_on:
+      - ia_log_rotate
+  
   # Define ia-gopybase service
   ia-gopybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
     image: ia/gopybase:${ETA_CONT_VERSION}
-  
+    depends_on:
+      - ia_log_rotate
+
   #----End: ETA Base Images----
   
   #----Start: ETA Containers ----
@@ -82,6 +121,11 @@ services:
     ports:
       - "${GRPC_PORT}:${GRPC_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
         
   # Define DataAnalytics service
   ia_data_analytics:
@@ -113,7 +157,12 @@ services:
     expose:
       - "9092"
     command: ${CONFIG_FILE}
-    
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+       
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
@@ -139,5 +188,10 @@ services:
       - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
       - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
     command: ${CONFIG_FILE}
-   
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    
   #----End: ETA Containers ----

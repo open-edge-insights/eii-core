@@ -23,6 +23,9 @@ echo "0.5 Updating .env for container timezone..."
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
 
+# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
+sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
+
 echo "0.6 Checking if mosquitto is up..."
 ./start_mosquitto.sh
 
@@ -34,8 +37,8 @@ echo "2. Buidling the dependency/eta containers..."
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia_influxdb ia_redis ia-gobase ia-pybase ia-gopybase ia_data_agent ia_data_analytics ia_video_ingestion)
-servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.classifier .dockerignore.vi)
+services=(ia_log_rotate ia_influxdb ia_redis ia-gobase ia-pybase ia-gopybase ia_data_agent ia_data_analytics ia_video_ingestion)
+servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.classifier .dockerignore.vi)
 
 count=0
 echo "services: ${services[@]}"
@@ -61,7 +64,11 @@ if [ -z "$1" ]; then
    echo "3. Creating and starting the dependency/eta containers..."
    docker-compose up -d
 
+   if [ -e $etaLogDir/consolidatedLogs/eta.log ]; then
+       DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
+       mv $etaLogDir/consolidatedLogs/eta.log $etaLogDir/consolidatedLogs/eta_$DATE.log.bkp
+   fi
    #Logging the docker compose logs to file.
-   #DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
-   #docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta_$DATE.log &
+   docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta.log &
+
 fi

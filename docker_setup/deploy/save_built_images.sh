@@ -7,6 +7,7 @@ curDir=`pwd`
 echo "Saving all the docker images to $curDir folder..."
 
 # saving all docker images of eta along with its dependencies
+docker save -o log_rotate-$LOG_ROTATE_VERSION.tar blacklabelops/logrotate:$LOG_ROTATE_VERSION && echo "Saved log_rotate docker image.."
 docker save -o influxdb-$INFLUXDB_VERSION.tar ia/influxdb:$INFLUXDB_VERSION && echo "Saved influxdb docker image.."
 docker save -o redis-$REDIS_VERSION.tar ia/redis:$REDIS_VERSION && echo "Saved redis docker image.."
 docker save -o mosquitto-$MOSQUITTO_VERSION.tar eclipse-mosquitto:$MOSQUITTO_VERSION && echo "Saved mosquitto docker image.."
