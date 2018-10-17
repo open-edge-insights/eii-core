@@ -254,10 +254,10 @@ if __name__ == '__main__':
 
         os.chdir(INSTALL_PATH)
         # Load the images
-        output = subprocess.run(["./deploy/deploy_compose_load.sh", "|", "tee",
-                                 "docker_compose_load_log.txt"])
+        output = subprocess.run(["./deploy/load_built_images.sh", "|", "tee",
+                                 "docker_compose_load_built_images_log.txt"])
         if output.returncode != 0:
-            print("Failed to run deploy_compose_load.sh successfully")
+            print("Failed to run load_built_images.sh successfully")
             exit(-1)
 
         print("Creating systemd entry for eta and enabling it ...")

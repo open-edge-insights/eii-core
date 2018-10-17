@@ -8,6 +8,20 @@
 
 source ./setenv.sh
 
+echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
+cp -f resolv.conf /etc/resolv.conf
+
+echo "0.2 Adding Docker Host IP Address to config/DataAgent.conf, config/factory.json and config/factory_prod.json files..."
+source ./update_config.sh
+
+echo "0.3 Updating .env for container timezone..."
+# Get Docker Host timezone
+hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
+hostTimezone=`echo $hostTimezone`
+
+# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
+sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
+
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down
 
