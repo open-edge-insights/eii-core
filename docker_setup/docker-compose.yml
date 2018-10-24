@@ -156,7 +156,7 @@ services:
       - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
       - "9092"
-    command: ${CONFIG_FILE}
+    command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -187,7 +187,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/ref:/ETA/agent/ref"
       - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
       - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
-    command: ${CONFIG_FILE}
+    command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:

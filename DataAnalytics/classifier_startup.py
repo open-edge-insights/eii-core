@@ -5,6 +5,8 @@ import time
 import stat
 import logging
 import socket
+import datetime
+from Util.log import configure_logging, LOG_LEVELS
 
 SUCCESS = 0
 FAILURE = -1
@@ -14,14 +16,7 @@ logger = None
 args = None
 SOCKET_FILE = "/tmp/classifier"
 
-def init_logger():
-    """Initialize the logger
-    """
-    logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : \
-                    %(name)s : [%(filename)s] :' +
-                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
-    return  logging.getLogger()
+logger = None
 
 
 def read_kapacitor_hostname():
@@ -39,22 +34,30 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', dest='config', default='factory.json',
                         help='JSON configuration file')
+    parser.add_argument('--log', choices=LOG_LEVELS.keys(), default='DEBUG',
+                        help='Logging level (df: DEBUG)')
+
+    parser.add_argument('--log-name', help='Logfile name')
+
     parser.add_argument('--log-dir', dest='log_dir', default='logs',
                         help='Directory to for log files')
     return parser.parse_args()
 
 
-def start_classifier():
+def start_classifier(logFileName):
     """Starts the classifier module
     """
     try:
-        subprocess.call("python3.6 classifier.py --config "+ args.config +
-         " --log-dir "+ args.log_dir + "&",shell=True)
+
+        subprocess.call("python3.6 classifier.py --config " + args.config +
+            " --log-dir " + args.log_dir + " --log-name " + logFileName +
+            " --log " + args.log.upper() + "&", shell=True)
         logger.info("classifier started successfully")
         return True
     except Exception as e:
-        logger.info("Exception Occured in Starting the Classifier "+ str(e))
+        logger.info("Exception Occured in Starting the Classifier " + str(e))
         return False
+
 
 def grant_permission_socket():
     """Grants chmod 0x777 permission for the classifier's socket file
@@ -71,19 +74,20 @@ def start_kapacitor(host_name):
     """Starts the kapacitor Daemon in the background
     """
     try:
-        subprocess.call("kapacitord -hostname "+host_name+" &",shell=True)
+        subprocess.call("kapacitord -hostname "+host_name+" &", shell=True)
         logger.info("Started kapacitor Successfully...")
         return True
     except Exception as e:
         logger.info("Exception Occured in Starting the Kapacitor "+str(e))
         return False
 
+
 def process_zombie(process_name):
     """Checks the given process is Zombie State & returns True or False
     """
     try:
-        out = subprocess.check_output('ps -eaf | grep '+ process_name + '| grep -v grep | grep defunct | wc -l',
-                           shell  = True).strip()
+        out = subprocess.check_output('ps -eaf | grep ' + process_name +
+         '| grep -v grep | grep defunct | wc -l', shell=True).strip()
         return True if (out == b'1') else False
     except Exception as e:
         logger.info("Exception Occured in Starting Kapacitor "+str(e))
@@ -93,10 +97,11 @@ def kapacitor_port_open(host_name):
     """Verify Kapacitor's port is ready for accepting connection
     """
     if process_zombie(KAPACITOR_NAME):
-        exit_with_failure_message("Kapacitor failed to start.Please verify the ia_data_analytics logs for UDF/kapacitor Errors.")
-    sock   = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        exit_with_failure_message("Kapacitor failed to start.Please verify the \
+            ia_data_analytics logs for UDF/kapacitor Errors.")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     logger.info("Attempting to connect to Kapacitor on port 9092")
-    result = sock.connect_ex((host_name,KAPACITOR_PORT))
+    result = sock.connect_ex((host_name, KAPACITOR_PORT))
     logger.info("Attempted  Kapacitor on port 9092 : Result " + str(result))
     if result == SUCCESS:
         logger.info("Successful in connecting to Kapacitor on port 9092")
@@ -136,11 +141,19 @@ def enable_classifier_task(host_name):
 
 if __name__ == '__main__':
     args = parse_args()
-    logger = init_logger()
+
+    currentDateTime = str(datetime.datetime.now())
+    listDateTime = currentDateTime.split(" ")
+    currentDateTime = "_".join(listDateTime)
+    logFileName = 'dataAnalytics_' + currentDateTime + '.log'
+
+    logger = configure_logging(args.log.upper(), logFileName, 
+                    args.log_dir, __name__)
     host_name = read_kapacitor_hostname()
     if not host_name:
-        exit_with_failure_message('Kapacitor hostname is not Set in the container.So exiting..')
-    if (start_classifier() == True):
+        exit_with_failure_message('Kapacitor hostname is not Set in the \
+         container.So exiting..')
+    if (start_classifier(logFileName) == True):
         grant_permission_socket()
         if(start_kapacitor(host_name) == True):
             enable_classifier_task(host_name)
@@ -148,11 +161,10 @@ if __name__ == '__main__':
             logger.info("Kapacitor is not starting.So Exiting...")
             exit(FAILURE)
         logger.info(
-            "DataAnalytics Initialized Successfully.Ready to Receive the Data....")
+            "DataAnalytics Initialized Successfully.Ready to Receive the \
+            Data....")
         while(True):
             time.sleep(10)
     else:
         logger.info("Classifier is not able to start.Fix all the Errors &\
                     try again")
-
-
