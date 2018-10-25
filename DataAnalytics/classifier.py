@@ -20,19 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import sys
 import argparse
-import datetime
 import numpy as np
-import logging
-import socket
 import time
 import json
-import queue
 import os
-import threading as th
 from ImageStore.py.imagestore import ImageStore
-import numpy as np
 import cv2
 
 from Util.log import configure_logging, LOG_LEVELS
@@ -42,11 +35,10 @@ from kapacitor.udf.agent import Agent, Handler, Server
 from kapacitor.udf import udf_pb2
 from agent.dpm.classification.classifier_manager import ClassifierManager
 from agent.dpm.config import Configuration
-from agent.db import DatabaseAdapter
-from agent.dpm.storage import LocalStorage
 server_addr = "/tmp/classifier"
 
 TIME_MULTIPLIER_NANO = 1000000000
+
 
 # Runs ML algo on stream of points and return result back to kapacitor.
 class ConnHandler(Handler):
@@ -72,7 +64,8 @@ class ConnHandler(Handler):
         self._cm = ClassifierManager(
                 self.config.machine_id, self.config.classification,
                 None, None)
-        self.classifier = self._cm.get_classifier("yumei")
+        classifier_name = next(iter(self.config.classification['classifiers']))
+        self.classifier = self._cm.get_classifier(classifier_name)
         self.img_store = ImageStore()
         self.img_store.setStorageType('inmemory')
         # self.storage.start()
@@ -212,8 +205,8 @@ if __name__ == '__main__':
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
-    logger = configure_logging(args.log.upper(), args.log_name, 
-                    args.log_dir, __name__)
+    logger = configure_logging(args.log.upper(), args.log_name,
+                               args.log_dir, __name__)
 
     if os.path.exists(server_addr):
         logger.info("Deleting %s", server_addr)
