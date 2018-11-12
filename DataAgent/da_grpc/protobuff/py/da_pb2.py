@@ -7,7 +7,6 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
 from google.protobuf import reflection as _reflection
 from google.protobuf import symbol_database as _symbol_database
-from google.protobuf import descriptor_pb2
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
@@ -19,7 +18,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='da.proto',
   package='DataAgent',
   syntax='proto3',
-  serialized_pb=_b('\n\x08\x64\x61.proto\x12\tDataAgent\"\x1c\n\x07\x42lobReq\x12\x11\n\timgHandle\x18\x01 \x01(\t\"\x16\n\x05\x43hunk\x12\r\n\x05\x63hunk\x18\x01 \x01(\x0c\"\x1f\n\x0c\x43onfigIntReq\x12\x0f\n\x07\x63\x66gType\x18\x01 \x01(\t\" \n\rConfigIntResp\x12\x0f\n\x07jsonMsg\x18\x01 \x01(\t\"\n\n\x08QueryReq\"\x0b\n\tQueryResp\"\x0b\n\tConfigReq\"\x0c\n\nConfigResp2\xed\x01\n\x02\x64\x61\x12\x43\n\x0cGetConfigInt\x12\x17.DataAgent.ConfigIntReq\x1a\x18.DataAgent.ConfigIntResp\"\x00\x12\x37\n\x06\x43onfig\x12\x14.DataAgent.ConfigReq\x1a\x15.DataAgent.ConfigResp\"\x00\x12\x34\n\x05Query\x12\x13.DataAgent.QueryReq\x1a\x14.DataAgent.QueryResp\"\x00\x12\x33\n\x07GetBlob\x12\x12.DataAgent.BlobReq\x1a\x10.DataAgent.Chunk\"\x00\x30\x01\x62\x06proto3')
+  serialized_options=None,
+  serialized_pb=_b('\n\x08\x64\x61.proto\x12\tDataAgent\"\x1c\n\x07\x42lobReq\x12\x11\n\timgHandle\x18\x01 \x01(\t\"\x16\n\x05\x43hunk\x12\r\n\x05\x63hunk\x18\x01 \x01(\x0c\"\n\n\x08QueryReq\"\x0b\n\tQueryResp\"\x0b\n\tConfigReq\"\x0c\n\nConfigResp2\xa8\x01\n\x02\x64\x61\x12\x37\n\x06\x43onfig\x12\x14.DataAgent.ConfigReq\x1a\x15.DataAgent.ConfigResp\"\x00\x12\x34\n\x05Query\x12\x13.DataAgent.QueryReq\x1a\x14.DataAgent.QueryResp\"\x00\x12\x33\n\x07GetBlob\x12\x12.DataAgent.BlobReq\x1a\x10.DataAgent.Chunk\"\x00\x30\x01\x62\x06proto3')
 )
 
 
@@ -38,14 +38,14 @@ _BLOBREQ = _descriptor.Descriptor(
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -69,14 +69,14 @@ _CHUNK = _descriptor.Descriptor(
       has_default_value=False, default_value=_b(""),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
@@ -84,68 +84,6 @@ _CHUNK = _descriptor.Descriptor(
   ],
   serialized_start=53,
   serialized_end=75,
-)
-
-
-_CONFIGINTREQ = _descriptor.Descriptor(
-  name='ConfigIntReq',
-  full_name='DataAgent.ConfigIntReq',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='cfgType', full_name='DataAgent.ConfigIntReq.cfgType', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=77,
-  serialized_end=108,
-)
-
-
-_CONFIGINTRESP = _descriptor.Descriptor(
-  name='ConfigIntResp',
-  full_name='DataAgent.ConfigIntResp',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='jsonMsg', full_name='DataAgent.ConfigIntResp.jsonMsg', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=110,
-  serialized_end=142,
 )
 
 
@@ -162,14 +100,14 @@ _QUERYREQ = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=144,
-  serialized_end=154,
+  serialized_start=77,
+  serialized_end=87,
 )
 
 
@@ -186,14 +124,14 @@ _QUERYRESP = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=156,
-  serialized_end=167,
+  serialized_start=89,
+  serialized_end=100,
 )
 
 
@@ -210,14 +148,14 @@ _CONFIGREQ = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=169,
-  serialized_end=180,
+  serialized_start=102,
+  serialized_end=113,
 )
 
 
@@ -234,20 +172,18 @@ _CONFIGRESP = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  options=None,
+  serialized_options=None,
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=182,
-  serialized_end=194,
+  serialized_start=115,
+  serialized_end=127,
 )
 
 DESCRIPTOR.message_types_by_name['BlobReq'] = _BLOBREQ
 DESCRIPTOR.message_types_by_name['Chunk'] = _CHUNK
-DESCRIPTOR.message_types_by_name['ConfigIntReq'] = _CONFIGINTREQ
-DESCRIPTOR.message_types_by_name['ConfigIntResp'] = _CONFIGINTRESP
 DESCRIPTOR.message_types_by_name['QueryReq'] = _QUERYREQ
 DESCRIPTOR.message_types_by_name['QueryResp'] = _QUERYRESP
 DESCRIPTOR.message_types_by_name['ConfigReq'] = _CONFIGREQ
@@ -267,20 +203,6 @@ Chunk = _reflection.GeneratedProtocolMessageType('Chunk', (_message.Message,), d
   # @@protoc_insertion_point(class_scope:DataAgent.Chunk)
   ))
 _sym_db.RegisterMessage(Chunk)
-
-ConfigIntReq = _reflection.GeneratedProtocolMessageType('ConfigIntReq', (_message.Message,), dict(
-  DESCRIPTOR = _CONFIGINTREQ,
-  __module__ = 'da_pb2'
-  # @@protoc_insertion_point(class_scope:DataAgent.ConfigIntReq)
-  ))
-_sym_db.RegisterMessage(ConfigIntReq)
-
-ConfigIntResp = _reflection.GeneratedProtocolMessageType('ConfigIntResp', (_message.Message,), dict(
-  DESCRIPTOR = _CONFIGINTRESP,
-  __module__ = 'da_pb2'
-  # @@protoc_insertion_point(class_scope:DataAgent.ConfigIntResp)
-  ))
-_sym_db.RegisterMessage(ConfigIntResp)
 
 QueryReq = _reflection.GeneratedProtocolMessageType('QueryReq', (_message.Message,), dict(
   DESCRIPTOR = _QUERYREQ,
@@ -317,45 +239,36 @@ _DA = _descriptor.ServiceDescriptor(
   full_name='DataAgent.da',
   file=DESCRIPTOR,
   index=0,
-  options=None,
-  serialized_start=197,
-  serialized_end=434,
+  serialized_options=None,
+  serialized_start=130,
+  serialized_end=298,
   methods=[
-  _descriptor.MethodDescriptor(
-    name='GetConfigInt',
-    full_name='DataAgent.da.GetConfigInt',
-    index=0,
-    containing_service=None,
-    input_type=_CONFIGINTREQ,
-    output_type=_CONFIGINTRESP,
-    options=None,
-  ),
   _descriptor.MethodDescriptor(
     name='Config',
     full_name='DataAgent.da.Config',
-    index=1,
+    index=0,
     containing_service=None,
     input_type=_CONFIGREQ,
     output_type=_CONFIGRESP,
-    options=None,
+    serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
     name='Query',
     full_name='DataAgent.da.Query',
-    index=2,
+    index=1,
     containing_service=None,
     input_type=_QUERYREQ,
     output_type=_QUERYRESP,
-    options=None,
+    serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
     name='GetBlob',
     full_name='DataAgent.da.GetBlob',
-    index=3,
+    index=2,
     containing_service=None,
     input_type=_BLOBREQ,
     output_type=_CHUNK,
-    options=None,
+    serialized_options=None,
   ),
 ])
 _sym_db.RegisterServiceDescriptor(_DA)

@@ -119,7 +119,8 @@ services:
     volumes:
       - "${ETA_INSTALL_PATH}/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf"
     ports:
-      - "${GRPC_PORT}:${GRPC_PORT}"
+      - "${GRPC_EXTERNAL_PORT}:${GRPC_EXTERNAL_PORT}"
+      - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
     logging:
       driver: ${LOGGING_DRIVER}

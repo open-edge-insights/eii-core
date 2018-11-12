@@ -35,7 +35,7 @@ func (m *BlobReq) Reset()         { *m = BlobReq{} }
 func (m *BlobReq) String() string { return proto.CompactTextString(m) }
 func (*BlobReq) ProtoMessage()    {}
 func (*BlobReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{0}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{0}
 }
 func (m *BlobReq) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_BlobReq.Unmarshal(m, b)
@@ -74,7 +74,7 @@ func (m *Chunk) Reset()         { *m = Chunk{} }
 func (m *Chunk) String() string { return proto.CompactTextString(m) }
 func (*Chunk) ProtoMessage()    {}
 func (*Chunk) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{1}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{1}
 }
 func (m *Chunk) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Chunk.Unmarshal(m, b)
@@ -101,84 +101,6 @@ func (m *Chunk) GetChunk() []byte {
 	return nil
 }
 
-// The request message for GetConfigInt
-type ConfigIntReq struct {
-	CfgType              string   `protobuf:"bytes,1,opt,name=cfgType" json:"cfgType,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ConfigIntReq) Reset()         { *m = ConfigIntReq{} }
-func (m *ConfigIntReq) String() string { return proto.CompactTextString(m) }
-func (*ConfigIntReq) ProtoMessage()    {}
-func (*ConfigIntReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{2}
-}
-func (m *ConfigIntReq) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ConfigIntReq.Unmarshal(m, b)
-}
-func (m *ConfigIntReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ConfigIntReq.Marshal(b, m, deterministic)
-}
-func (dst *ConfigIntReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConfigIntReq.Merge(dst, src)
-}
-func (m *ConfigIntReq) XXX_Size() int {
-	return xxx_messageInfo_ConfigIntReq.Size(m)
-}
-func (m *ConfigIntReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConfigIntReq.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConfigIntReq proto.InternalMessageInfo
-
-func (m *ConfigIntReq) GetCfgType() string {
-	if m != nil {
-		return m.CfgType
-	}
-	return ""
-}
-
-// The response message for GetConfigInt
-type ConfigIntResp struct {
-	JsonMsg              string   `protobuf:"bytes,1,opt,name=jsonMsg" json:"jsonMsg,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ConfigIntResp) Reset()         { *m = ConfigIntResp{} }
-func (m *ConfigIntResp) String() string { return proto.CompactTextString(m) }
-func (*ConfigIntResp) ProtoMessage()    {}
-func (*ConfigIntResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{3}
-}
-func (m *ConfigIntResp) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ConfigIntResp.Unmarshal(m, b)
-}
-func (m *ConfigIntResp) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ConfigIntResp.Marshal(b, m, deterministic)
-}
-func (dst *ConfigIntResp) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ConfigIntResp.Merge(dst, src)
-}
-func (m *ConfigIntResp) XXX_Size() int {
-	return xxx_messageInfo_ConfigIntResp.Size(m)
-}
-func (m *ConfigIntResp) XXX_DiscardUnknown() {
-	xxx_messageInfo_ConfigIntResp.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ConfigIntResp proto.InternalMessageInfo
-
-func (m *ConfigIntResp) GetJsonMsg() string {
-	if m != nil {
-		return m.JsonMsg
-	}
-	return ""
-}
-
 // The request message for GetQuery
 type QueryReq struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -190,7 +112,7 @@ func (m *QueryReq) Reset()         { *m = QueryReq{} }
 func (m *QueryReq) String() string { return proto.CompactTextString(m) }
 func (*QueryReq) ProtoMessage()    {}
 func (*QueryReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{4}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{2}
 }
 func (m *QueryReq) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryReq.Unmarshal(m, b)
@@ -221,7 +143,7 @@ func (m *QueryResp) Reset()         { *m = QueryResp{} }
 func (m *QueryResp) String() string { return proto.CompactTextString(m) }
 func (*QueryResp) ProtoMessage()    {}
 func (*QueryResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{5}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{3}
 }
 func (m *QueryResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_QueryResp.Unmarshal(m, b)
@@ -252,7 +174,7 @@ func (m *ConfigReq) Reset()         { *m = ConfigReq{} }
 func (m *ConfigReq) String() string { return proto.CompactTextString(m) }
 func (*ConfigReq) ProtoMessage()    {}
 func (*ConfigReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{6}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{4}
 }
 func (m *ConfigReq) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ConfigReq.Unmarshal(m, b)
@@ -283,7 +205,7 @@ func (m *ConfigResp) Reset()         { *m = ConfigResp{} }
 func (m *ConfigResp) String() string { return proto.CompactTextString(m) }
 func (*ConfigResp) ProtoMessage()    {}
 func (*ConfigResp) Descriptor() ([]byte, []int) {
-	return fileDescriptor_da_fdd711972475cca1, []int{7}
+	return fileDescriptor_da_a24fab982f9e18e5, []int{5}
 }
 func (m *ConfigResp) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ConfigResp.Unmarshal(m, b)
@@ -306,8 +228,6 @@ var xxx_messageInfo_ConfigResp proto.InternalMessageInfo
 func init() {
 	proto.RegisterType((*BlobReq)(nil), "DataAgent.BlobReq")
 	proto.RegisterType((*Chunk)(nil), "DataAgent.Chunk")
-	proto.RegisterType((*ConfigIntReq)(nil), "DataAgent.ConfigIntReq")
-	proto.RegisterType((*ConfigIntResp)(nil), "DataAgent.ConfigIntResp")
 	proto.RegisterType((*QueryReq)(nil), "DataAgent.QueryReq")
 	proto.RegisterType((*QueryResp)(nil), "DataAgent.QueryResp")
 	proto.RegisterType((*ConfigReq)(nil), "DataAgent.ConfigReq")
@@ -326,9 +246,6 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DaClient interface {
-	// **********Internal Interfaces***************
-	// GetConfigInt internal interface
-	GetConfigInt(ctx context.Context, in *ConfigIntReq, opts ...grpc.CallOption) (*ConfigIntResp, error)
 	// **********External Interfaces***************
 	// GetConfig external interface
 	Config(ctx context.Context, in *ConfigReq, opts ...grpc.CallOption) (*ConfigResp, error)
@@ -344,15 +261,6 @@ type daClient struct {
 
 func NewDaClient(cc *grpc.ClientConn) DaClient {
 	return &daClient{cc}
-}
-
-func (c *daClient) GetConfigInt(ctx context.Context, in *ConfigIntReq, opts ...grpc.CallOption) (*ConfigIntResp, error) {
-	out := new(ConfigIntResp)
-	err := c.cc.Invoke(ctx, "/DataAgent.da/GetConfigInt", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *daClient) Config(ctx context.Context, in *ConfigReq, opts ...grpc.CallOption) (*ConfigResp, error) {
@@ -407,9 +315,6 @@ func (x *daGetBlobClient) Recv() (*Chunk, error) {
 
 // DaServer is the server API for Da service.
 type DaServer interface {
-	// **********Internal Interfaces***************
-	// GetConfigInt internal interface
-	GetConfigInt(context.Context, *ConfigIntReq) (*ConfigIntResp, error)
 	// **********External Interfaces***************
 	// GetConfig external interface
 	Config(context.Context, *ConfigReq) (*ConfigResp, error)
@@ -421,24 +326,6 @@ type DaServer interface {
 
 func RegisterDaServer(s *grpc.Server, srv DaServer) {
 	s.RegisterService(&_Da_serviceDesc, srv)
-}
-
-func _Da_GetConfigInt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ConfigIntReq)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DaServer).GetConfigInt(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/DataAgent.da/GetConfigInt",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DaServer).GetConfigInt(ctx, req.(*ConfigIntReq))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Da_Config_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -503,10 +390,6 @@ var _Da_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*DaServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetConfigInt",
-			Handler:    _Da_GetConfigInt_Handler,
-		},
-		{
 			MethodName: "Config",
 			Handler:    _Da_Config_Handler,
 		},
@@ -525,26 +408,22 @@ var _Da_serviceDesc = grpc.ServiceDesc{
 	Metadata: "da.proto",
 }
 
-func init() { proto.RegisterFile("da.proto", fileDescriptor_da_fdd711972475cca1) }
+func init() { proto.RegisterFile("da.proto", fileDescriptor_da_a24fab982f9e18e5) }
 
-var fileDescriptor_da_fdd711972475cca1 = []byte{
-	// 274 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x91, 0xdf, 0x4a, 0xc3, 0x30,
-	0x14, 0xc6, 0x57, 0xa1, 0xeb, 0x7a, 0xac, 0x20, 0xc7, 0x8a, 0xa5, 0x28, 0x48, 0x6e, 0x9c, 0x37,
-	0x45, 0x9c, 0xe0, 0xb5, 0x56, 0x98, 0x5e, 0x78, 0x61, 0xf1, 0x05, 0xba, 0x35, 0x8b, 0xd3, 0x99,
-	0x64, 0x4b, 0x76, 0xb1, 0x87, 0xf6, 0x1d, 0x24, 0x69, 0xb3, 0x05, 0xb6, 0xbb, 0x7c, 0xdf, 0xf9,
-	0x9d, 0x7f, 0x39, 0x30, 0x68, 0xea, 0x42, 0xae, 0x84, 0x16, 0x18, 0xbf, 0xd4, 0xba, 0x7e, 0x62,
-	0x94, 0x6b, 0x72, 0x03, 0xd1, 0xf3, 0x42, 0x4c, 0x2a, 0xba, 0xc4, 0x4b, 0x88, 0xe7, 0xbf, 0xec,
-	0xb5, 0xe6, 0xcd, 0x82, 0x66, 0xc1, 0x75, 0x30, 0x8c, 0xab, 0x9d, 0x41, 0xae, 0x20, 0x2c, 0xbf,
-	0xd6, 0xfc, 0x07, 0x53, 0x08, 0xa7, 0xe6, 0x61, 0x91, 0xa4, 0x6a, 0x05, 0x19, 0x42, 0x52, 0x0a,
-	0x3e, 0x9b, 0xb3, 0x37, 0xae, 0x4d, 0xb1, 0x0c, 0xa2, 0xe9, 0x8c, 0x7d, 0x6e, 0xa4, 0x2b, 0xe5,
-	0x24, 0xb9, 0x85, 0x13, 0x8f, 0x54, 0xd2, 0xa0, 0xdf, 0x4a, 0xf0, 0x77, 0xc5, 0x1c, 0xda, 0x49,
-	0x02, 0x30, 0xf8, 0x58, 0xd3, 0xd5, 0xa6, 0xa2, 0x4b, 0x72, 0x0c, 0x71, 0xf7, 0x56, 0xd2, 0x88,
-	0xb6, 0x86, 0x89, 0x24, 0x00, 0x4e, 0x28, 0x79, 0xff, 0x17, 0xc0, 0x51, 0x53, 0x63, 0x09, 0xc9,
-	0x98, 0xea, 0x6d, 0x23, 0xbc, 0x28, 0xb6, 0x3b, 0x17, 0xfe, 0xa0, 0x79, 0x76, 0x38, 0xa0, 0x24,
-	0xe9, 0xe1, 0x23, 0xf4, 0x5b, 0x0b, 0xd3, 0x3d, 0xca, 0xe4, 0x9e, 0x1f, 0x70, 0x6d, 0xe2, 0x03,
-	0x84, 0x76, 0x58, 0x3c, 0xf3, 0x08, 0xb7, 0x4a, 0x9e, 0xee, 0x9b, 0x36, 0x6b, 0x04, 0xd1, 0x98,
-	0x6a, 0x73, 0x0e, 0x44, 0x0f, 0xe9, 0xee, 0x93, 0x9f, 0xfa, 0xdd, 0xec, 0xa7, 0xf7, 0xee, 0x82,
-	0x49, 0xdf, 0x9e, 0x74, 0xf4, 0x1f, 0x00, 0x00, 0xff, 0xff, 0xff, 0x8a, 0xcf, 0xa6, 0xde, 0x01,
-	0x00, 0x00,
+var fileDescriptor_da_a24fab982f9e18e5 = []byte{
+	// 213 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x48, 0x49, 0xd4, 0x2b,
+	0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x74, 0x49, 0x2c, 0x49, 0x74, 0x4c, 0x4f, 0xcd, 0x2b, 0x51,
+	0x52, 0xe7, 0x62, 0x77, 0xca, 0xc9, 0x4f, 0x0a, 0x4a, 0x2d, 0x14, 0x92, 0xe1, 0xe2, 0xcc, 0xcc,
+	0x4d, 0xf7, 0x48, 0xcc, 0x4b, 0xc9, 0x49, 0x95, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x0c, 0x42, 0x08,
+	0x28, 0xc9, 0x72, 0xb1, 0x3a, 0x67, 0x94, 0xe6, 0x65, 0x0b, 0x89, 0x70, 0xb1, 0x26, 0x83, 0x18,
+	0x60, 0x25, 0x3c, 0x41, 0x10, 0x8e, 0x12, 0x17, 0x17, 0x47, 0x60, 0x69, 0x6a, 0x51, 0x65, 0x50,
+	0x6a, 0xa1, 0x12, 0x37, 0x17, 0x27, 0x94, 0x5d, 0x5c, 0x00, 0xe2, 0x38, 0xe7, 0xe7, 0xa5, 0x65,
+	0xa6, 0x83, 0x64, 0x78, 0xb8, 0xb8, 0x60, 0x9c, 0xe2, 0x02, 0xa3, 0x15, 0x8c, 0x5c, 0x4c, 0x29,
+	0x89, 0x42, 0xe6, 0x5c, 0x6c, 0x10, 0x41, 0x21, 0x11, 0x3d, 0xb8, 0xc3, 0xf4, 0xe0, 0x9a, 0xa4,
+	0x44, 0xb1, 0x88, 0x16, 0x17, 0x28, 0x31, 0x08, 0x99, 0x70, 0xb1, 0x82, 0xed, 0x11, 0x12, 0x46,
+	0x52, 0x01, 0x73, 0x85, 0x94, 0x08, 0xa6, 0x20, 0x58, 0x97, 0x31, 0x17, 0xbb, 0x7b, 0x6a, 0x09,
+	0xc8, 0xd3, 0x42, 0x42, 0x48, 0x4a, 0xa0, 0xa1, 0x20, 0x25, 0x80, 0x6c, 0x1b, 0xd8, 0x6b, 0x0c,
+	0x06, 0x8c, 0x49, 0x6c, 0xe0, 0x80, 0x33, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff, 0x13, 0x50, 0x32,
+	0xe7, 0x44, 0x01, 0x00, 0x00,
 }

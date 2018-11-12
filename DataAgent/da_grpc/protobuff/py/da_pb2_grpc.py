@@ -14,11 +14,6 @@ class daStub(object):
     Args:
       channel: A grpc.Channel.
     """
-    self.GetConfigInt = channel.unary_unary(
-        '/DataAgent.da/GetConfigInt',
-        request_serializer=da__pb2.ConfigIntReq.SerializeToString,
-        response_deserializer=da__pb2.ConfigIntResp.FromString,
-        )
     self.Config = channel.unary_unary(
         '/DataAgent.da/Config',
         request_serializer=da__pb2.ConfigReq.SerializeToString,
@@ -39,14 +34,6 @@ class daStub(object):
 class daServicer(object):
   """The Data Agent service definition.
   """
-
-  def GetConfigInt(self, request, context):
-    """**********Internal Interfaces***************
-    GetConfigInt internal interface
-    """
-    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-    context.set_details('Method not implemented!')
-    raise NotImplementedError('Method not implemented!')
 
   def Config(self, request, context):
     """**********External Interfaces***************
@@ -73,11 +60,6 @@ class daServicer(object):
 
 def add_daServicer_to_server(servicer, server):
   rpc_method_handlers = {
-      'GetConfigInt': grpc.unary_unary_rpc_method_handler(
-          servicer.GetConfigInt,
-          request_deserializer=da__pb2.ConfigIntReq.FromString,
-          response_serializer=da__pb2.ConfigIntResp.SerializeToString,
-      ),
       'Config': grpc.unary_unary_rpc_method_handler(
           servicer.Config,
           request_deserializer=da__pb2.ConfigReq.FromString,

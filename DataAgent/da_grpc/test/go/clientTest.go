@@ -1,10 +1,7 @@
 /*
 Copyright (c) 2018 Intel Corporation.
-
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
@@ -15,7 +12,6 @@ import (
 	imagestore "ElephantTrunkArch/ImageStore/go/ImageStore"
 	"crypto/md5"
 	"encoding/hex"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -27,7 +23,6 @@ import (
 )
 
 const (
-	iter  = 50
 	iter1 = 20
 )
 
@@ -65,25 +60,6 @@ func readFile(filename string) []byte {
 	return buffer
 }
 
-func getAverageTime(grpcClient *client.GrpcClient, iter int, config string) (float64, error) {
-
-	timeTaken = 0.0
-	totalTime = 0.0
-	if config != "InfluxDBCfg" && config != "RedisCfg" {
-		return 0, errors.New("Not a valid config")
-	}
-
-	for i := 0; i < iter; i++ {
-		start = time.Now()
-		respMap, err := grpcClient.GetConfigInt(config)
-		timeTaken = time.Since(start).Seconds()
-		chkErr(respMap, err)
-		glog.Infof("index: %v, time: %v secs, resp: %v", i, timeTaken, respMap)
-		totalTime += timeTaken
-	}
-	return totalTime / float64(iter), nil
-}
-
 func main() {
 
 	var inputFile string
@@ -110,13 +86,6 @@ func main() {
 	}
 
 	glog.Infof("******Go client gRPC testing******")
-
-	glog.Infof("Testing GetConfigInt(\"InfluxDB\") gRPC interface...")
-
-	averageTime1, _ := getAverageTime(grpcClient, iter, "InfluxDBCfg")
-
-	glog.Infof("Testing GetConfigInt(\"RedisCfg\") gRPC interface...")
-	averageTime2, _ := getAverageTime(grpcClient, iter, "RedisCfg")
 
 	imagestore, err := imagestore.NewImageStore()
 	if err != nil {
@@ -155,8 +124,6 @@ func main() {
 			glog.Infof("md5sum for both the files does not match")
 		}
 	}
-	glog.Infof("Average time taken for GetConfigInt(\"InfluxDBCfg\") %v calls: %v", iter, averageTime1)
-	glog.Infof("Average time taken for GetConfigInt(\"RedisCfg\") %v calls: %v", iter, averageTime2)
 	glog.Infof("Average time taken for GetBlob() %v calls: %v", iter1, totalTime/iter1)
 }
 

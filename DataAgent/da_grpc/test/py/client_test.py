@@ -1,16 +1,13 @@
 """
 Copyright (c) 2018 Intel Corporation.
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,128 +19,51 @@ SOFTWARE.
 
 # Python grpc client implementation
 
-import logging
-import argparse
-from ImageStore.py.imagestore import ImageStore
-import hashlib
-import time
+import grpc
+import json
+import logging as log
 import sys
 import os
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../client/py/"))
-from client import GrpcClient
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : \
-                    %(name)s : [%(filename)s] :' +
-                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
-log = logging.getLogger("GRPC_TEST")
+sys.path.append(os.path.join(os.path.dirname(path), "../../protobuff/py/"))
+import da_pb2 as da_pb2
+import da_pb2_grpc as da_pb2_grpc
 
 
-def parse_args():
-    """Parse command line arguments
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input_file', help='input image file')
-    parser.add_argument('--output_file', help='output image file')
+class GrpcClient(object):
 
-    return parser.parse_args()
+    def __init__(self, hostname="localhost", port="50051"):
+        """
+            GrpcClient constructor.
+            Keyword Arguments:
+            hostname - refers to hostname/ip address of the m/c
+                       where DataAgent module of ETA is running
+                       (default: localhost)
+            port     - refers to gRPC port (default: 50051)
+        """
+        self.hostname = hostname
+        self.port = port
+        if 'GRPC_SERVER' in os.environ:
+            self.hostname = os.environ['GRPC_SERVER']
+        addr = "{0}:{1}".format(self.hostname, self.port)
+        log.debug("Establishing grpc channel to %s", addr)
+        channel = grpc.insecure_channel(addr)
+        self.stub = da_pb2_grpc.daStub(channel)
 
-if __name__ == '__main__':
-
-    args = parse_args()
-
-    # If executing this script from other m/c, provide
-    # the right hostname/ip addr of the system running
-    # DataAgent module of ETA
-    client = GrpcClient(hostname="localhost")
-
-    # Testing GetConfigInt("InfluxDBCfg") gRPC call
-    log.info("Getting InfluxDB config:")
-    totalTime1 = 0.0
-    iter = 50
-    for index in range(iter):
-        start = time.time()
-        config = client.GetConfigInt("InfluxDBCfg")
-        end = time.time()
-        timeTaken = end - start
-        totalTime1 += timeTaken
-        log.info("index: %d, time: %f secs, config: %s",
-                 index, timeTaken, config)
-
-    # Testing GetConfigInt("RedisCfg") gRPC call
-    log.info("Getting Redis config:")
-    totalTime2 = 0.0
-    for index in range(iter):
-        start = time.time()
-        config = client.GetConfigInt("RedisCfg")
-        end = time.time()
-        timeTaken = end - start
-        totalTime2 += timeTaken
-        log.info("index: %d, time: %f secs, config: %s",
-                 index, timeTaken, config)
-
-    # Testing GetBlob(imgHandle) gRPC call
-    inputFile = args.input_file
-    outputFile = args.output_file
-
-    imgStore = ImageStore()
-    imgStore.setStorageType("inmemory")
-
-    totalTime3 = 0.0
-    iter1 = 20
-    for index in range(iter1):
-        log.info("Binary reading of file: %s", inputFile)
-        inputBytes = None
-        with open(inputFile, "rb") as f:
-            inputBytes = f.read()
-
-        log.info("len(inputBytes): %s", len(inputBytes))
-        log.info("Storing the binary data read in ImageStore...")
-        try:
-            key = imgStore.store(inputBytes)
-        except Exception as ex:
-            log.error("Error while doing imgStore.store operation...")
-            log.error(ex)
-            continue
-
-        log.info("Image Handle obtainer after imgStore.store() operation: %s",
-                 key)
-
-        log.info("Calling GetBlob(%s) gRPC interface...", key)
-        start = time.time()
-        outputBytes = client.GetBlob(key)
-        end = time.time()
-        timeTaken = end - start
-        totalTime3 += timeTaken
-
-        log.info("len(outputBytes): %s", len(outputBytes))
-
-        log.info("Writing the binary data received into a file: %s",
-                 outputFile)
-        with open(outputFile, "wb") as outfile:
-            outfile.write(outputBytes)
-
-        digests = []
-        for filename in [inputFile, outputFile]:
-            hasher = hashlib.md5()
-            with open(filename, 'rb') as f:
-                buf = f.read()
-                hasher.update(buf)
-                a = hasher.hexdigest()
-                digests.append(a)
-                log.info("Hash for filename: %s is %s", filename, a)
-
-        if digests[0] == digests[1]:
-            log.info("md5sum for the files match")
-        else:
-            log.info("md5sum for the files doesn't match")
-
-        log.info("GetBlob call...index: %d, time: %f secs", index, timeTaken)
-
-    log.info("Average time taken for GetConfigInt(\"InfluxDBCfg\") %d calls: \
-             %f secs", iter, totalTime1 / iter)
-    log.info("Average time taken for GetConfigInt(\"RedisCfg\") %d calls: \
-             %f secs", iter, totalTime2 / iter)
-    log.info("Average time taken for GetBlob() %d calls: %f secs",
-             iter1, totalTime3 / iter1)
+    def GetBlob(self, imgHandle):
+        """
+            GetBlob is a wrapper around gRPC python client implementation
+            for GetBlob gRPC interface.
+            Arguments:
+            imgHandle(string): key for ImageStore
+            Returns:
+            The consolidated byte array(value from ImageStore) associated with
+            that imgHandle
+        """
+        log.debug("Inside GetBlob() client wrapper...")
+        response = self.stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
+        outputBytes = b''
+        for resp in response:
+            outputBytes += resp.chunk
+        log.debug("Sending the response to the caller...")
+        return outputBytes

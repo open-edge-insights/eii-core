@@ -28,21 +28,21 @@ import logging as log
 import sys
 import os
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../protobuff/py/"))
-import da_pb2 as da_pb2
-import da_pb2_grpc as da_pb2_grpc
+sys.path.append(os.path.join(os.path.dirname(path), "../../../protobuff/py/pb_internal/"))
+import dainternal_pb2 as da_pb2
+import dainternal_pb2_grpc as da_pb2_grpc
 
 
-class GrpcClient(object):
+class GrpcInternalClient(object):
 
-    def __init__(self, hostname="localhost", port="50051"):
+    def __init__(self, hostname="localhost", port="50052"):
         """
-            GrpcClient constructor.
+            GrpcInternalClient constructor.
             Keyword Arguments:
             hostname - refers to hostname/ip address of the m/c
                        where DataAgent module of ETA is running
                        (default: localhost)
-            port     - refers to gRPC port (default: 50051)
+            port     - refers to gRPC port (default: 50052)
         """
         self.hostname = hostname
         self.port = port
@@ -51,22 +51,19 @@ class GrpcClient(object):
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing grpc channel to %s", addr)
         channel = grpc.insecure_channel(addr)
-        self.stub = da_pb2_grpc.daStub(channel)
+        self.stub = da_pb2_grpc.dainternalStub(channel)
 
-    def GetBlob(self, imgHandle):
+    def GetConfigInt(self, config):
         """
-            GetBlob is a wrapper around gRPC python client implementation
-            for GetBlob gRPC interface.
+            GetConfigInt is a wrapper around gRPC python client implementation
+            for GetConfigInt gRPC interface.
             Arguments:
-            imgHandle(string): key for ImageStore
+            config(string): InfluxDBCfg or RedisCfg
             Returns:
-            The consolidated byte array(value from ImageStore) associated with
-            that imgHandle
+            The dictionary object corresponding to the config value
         """
-        log.debug("Inside GetBlob() client wrapper...")
-        response = self.stub.GetBlob(da_pb2.BlobReq(imgHandle=imgHandle))
-        outputBytes = b''
-        for resp in response:
-            outputBytes += resp.chunk
+        log.debug("Inside GetConfigInt() client wrapper...")
+        response = self.stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
+                                     timeout=1000)
         log.debug("Sending the response to the caller...")
-        return outputBytes
+        return json.loads(response.jsonMsg)

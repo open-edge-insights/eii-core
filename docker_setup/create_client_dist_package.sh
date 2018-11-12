@@ -34,7 +34,7 @@ mkdir -p $dist_libs/DataAgentClient/test/py
 mkdir -p $dist_libs/DataAgentClient/test/py/examples
 cp -rf $rootDir/DataAgent/da_grpc/test/py/examples/grpc_example.py $dist_libs/DataAgentClient/test/py/examples/
 cp -rf $rootDir/DataAgent/da_grpc/test/py/examples/README.md $dist_libs/DataAgentClient/test/py/examples/
-cp -rf $rootDir/DataAgent/da_grpc/test/py/client_test.py $dist_libs/DataAgentClient/test/py/client_test.py
+cp -rf $rootDir/DataAgent/da_grpc/test/py/client_test.py $dist_libs/DataAgentClient/test/py/
 
 mkdir -p $dist_libs/DataAgentClient/test/cpp
 mkdir -p $dist_libs/DataAgentClient/test/cpp/examples

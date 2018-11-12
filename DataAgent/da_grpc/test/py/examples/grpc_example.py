@@ -7,7 +7,7 @@ import time
 import sys
 import os
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../../client/py/"))
+sys.path.append(os.path.join(os.path.dirname(path), "../../../client/py/client_external/"))
 from client import GrpcClient
 
 logging.basicConfig(level=logging.DEBUG,

@@ -24,7 +24,7 @@ SOFTWARE.
 
 import logging
 from influxdb import InfluxDBClient
-from DataAgent.da_grpc.client.py.client import GrpcClient
+from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
 from ImageStore.py.imagestore import ImageStore
 from Util.exception import DAException
 
@@ -39,7 +39,7 @@ class DataIngestionLib:
         self.log = logging.getLogger('data_ingestion')
         self.data_point = {'tags': {}, 'fields': {}}
         try:
-            client = GrpcClient()
+            client = GrpcInternalClient()
             self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with gRPC server." +

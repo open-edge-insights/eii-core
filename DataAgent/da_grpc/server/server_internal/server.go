@@ -14,8 +14,7 @@ package server
 
 import (
 	config "ElephantTrunkArch/DataAgent/config"
-	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go"
-	imagestore "ElephantTrunkArch/ImageStore/go/ImageStore"
+	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go/pb_internal"
 	"encoding/json"
 	"errors"
 	"net"
@@ -29,65 +28,22 @@ import (
 var gRPCHost = "localhost"
 
 const (
-	gRPCPort  = "50051"
+	gRPCPort  = "50052"
 	chunkSize = 64 * 1024 // 64 KB
 )
 
-// ExtDaCfg - stores parsed DataAgent config
-var ExtDaCfg config.DAConfig
+// IntDaCfg - stores parsed DataAgent config
+var IntDaCfg config.DAConfig
 
-// DaServer is used to implement DataAgent.DaServer
-type DaServer struct{}
+// DainternalServer is used to implement DataAgent.DaServer
+type DainternalServer struct{}
 
-// GetBlob implementation
-func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
-	jsonStr, err := getConfig("RedisCfg")
-	if err != nil {
-		glog.Errorf("getConfig(\"RedisCfg\") method failed. Error: %v", err)
-		return nil
-	}
-
-	var configMap map[string]string
-	configBytes := []byte(jsonStr)
-	json.Unmarshal(configBytes, &configMap)
-
-	imgStore, err := imagestore.GetImageStoreInstance(configMap)
-	if err != nil {
-		glog.Errorf("Failed to instantiate NewImageStore(). Error: %v", err)
-		return err
-	}
-	data, err := imgStore.Read(in.ImgHandle)
-	if err != nil {
-		glog.Errorf("Unable to read image frame or key not found")
-		return err
-	}
-	byteMessage := []byte(data)
-
-	chnk := &pb.Chunk{}
-	//Iterating through the ByteArray for every 64 KB of chunks
-	for currentByte := 0; currentByte < len(byteMessage); currentByte += chunkSize {
-		if currentByte+chunkSize > len(byteMessage) {
-			chnk.Chunk = byteMessage[currentByte:len(byteMessage)]
-		} else {
-			chnk.Chunk = byteMessage[currentByte : currentByte+chunkSize]
-		}
-		if err := srv.Send(chnk); err != nil {
-			byteMessage = nil
-			return err
-		}
-	}
-	byteMessage = nil
-	return nil
-}
-
-// Query implementation
-func (s *DaServer) Query(ctx context.Context, in *pb.QueryReq) (*pb.QueryResp, error) {
-	return &pb.QueryResp{}, nil
-}
-
-// Config implementation
-func (s *DaServer) Config(ctx context.Context, in *pb.ConfigReq) (*pb.ConfigResp, error) {
-	return &pb.ConfigResp{}, nil
+// GetConfigInt implementation
+func (s *DainternalServer) GetConfigInt(ctx context.Context, in *pb.ConfigIntReq) (*pb.ConfigIntResp, error) {
+	glog.Infoln("Request received:", in)
+	jsonStr, err := getConfig(in.CfgType)
+	glog.Infof("Response being sent...")
+	return &pb.ConfigIntResp{JsonMsg: jsonStr}, err
 }
 
 func getConfig(cfgType string) (string, error) {
@@ -98,9 +54,9 @@ func getConfig(cfgType string) (string, error) {
 
 	switch cfgType {
 	case "InfluxDBCfg":
-		buf, err = json.Marshal(ExtDaCfg.InfluxDB)
+		buf, err = json.Marshal(IntDaCfg.InfluxDB)
 	case "RedisCfg":
-		buf, err = json.Marshal(ExtDaCfg.Redis)
+		buf, err = json.Marshal(IntDaCfg.Redis)
 	default:
 		return "", errors.New("Not a valid config type")
 	}
@@ -111,7 +67,7 @@ func getConfig(cfgType string) (string, error) {
 // StartGrpcServer starts gRPC server
 func StartGrpcServer(DaCfg config.DAConfig) {
 
-	ExtDaCfg = DaCfg
+	IntDaCfg = DaCfg
 	ipAddr, err := net.LookupIP("ia_data_agent")
 	if err != nil {
 		glog.Errorf("Failed to fetch the IP address for host: %v, error:%v", ipAddr, err)
@@ -131,7 +87,7 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 	s := grpc.NewServer()
 
 	//Register the handle object
-	pb.RegisterDaServer(s, &DaServer{})
+	pb.RegisterDainternalServer(s, &DainternalServer{})
 
 	glog.Infof("gRPC server is listening at: %s", addr)
 

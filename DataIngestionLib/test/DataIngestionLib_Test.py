@@ -27,7 +27,7 @@ import cv2
 import logging
 import numpy as np
 from influxdb import InfluxDBClient
-from DataAgent.da_grpc.client.py.client import GrpcClient
+from DataAgent.da_grpc.client.py.internal_client.client import GrpcInternalClient
 from DataIngestionLib.DataIngestionLib import DataIngestionLib as datain
 from ImageStore.py.imagestore import ImageStore
 
@@ -128,7 +128,7 @@ def send_point_data():
 
 
 def retrieve_data_from_influx(measurement, tag):
-    client = GrpcClient()
+    client = GrpcInternalClient()
     config = client.GetConfigInt("InfluxDBCfg")
     influx_c = InfluxDBClient(config["Host"],
                               config["Port"],

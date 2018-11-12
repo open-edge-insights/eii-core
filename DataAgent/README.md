@@ -19,16 +19,27 @@ the grpc clients so that the communication doesn't go via the proxy server.
 Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
 If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`      
 
-* Start go gRPC client: `go run DataAgent/da_grpc/test/go/clientTest.go --input_file=[input_image_file_path] --output_file=[output_image_file_path]`. 
+* Start go gRPC external client: `go run DataAgent/da_grpc/test/go/clientTest.go --input_file=[input_image_file_path] --output_file=[output_image_file_path]`. 
 
     **Note**: 
     * To use this client file outside the project workspace, just make sure to copy the `DataAgent/da_grpc/client/go/client.go` file along with `DataAgent/da_grpc/protobuff/go/da.pb.go` and take care of imports accordingly
-    
-* Start python gRPC client: `python3.6 DataAgent/da_grpc/test/py/client_test.py --input_file [input_image_file_path] --output_file [output_image_file_path]`
+
+* Start go gRPC internal client: `go run DataAgent/da_grpc/test/go/test_internal/clientTest.go`. 
+
+    **Note**: 
+    * To use this client file outside the project workspace, just make sure to copy the `DataAgent/da_grpc/client/go/client_internal/client.go` file along with `DataAgent/da_grpc/protobuff/go/pb_internal/dainternal.pb.go` and take care of imports accordingly
+
+
+* Start python gRPC external client: `python3.6 DataAgent/da_grpc/test/py/client_test.py --input_file [input_image_file_path] --output_file [output_image_file_path]`
 
     **Note**: To use this client file outside the project workspace, just make sure one copy the `DataAgent/da_grpc/client/py/client.py` file along with `DataAgent/da_grpc/protobuff/py/da_pb2.py` and `DataAgent/da_grpc/protobuff/py/da_pb2_grpc.py` and take care of imports accordingly
 
 Here, `--input_file` argument value would be read and it's data gets stored in ImageStore (Store API) which returns the `imgHandle`. Using `GetBlob(imgHandle)` gRPC interface, the byte array corresponding to that `imgHandle` is received and `--output_file` is created and both files `md5sum` value is compared to verify if they are the same or not.
+
+* Start python gRPC internal client: `python3.6 DataAgent/da_grpc/test/py/test_internal/client_test.py`
+
+    **Note**: To use this client file outside the project workspace, just make sure one copy the `DataAgent/da_grpc/client/py/client_internal/client.py` file along with `DataAgent/da_grpc/protobuff/py/pb_internal/dainternal_pb2.py` and `DataAgent/da_grpc/protobuff/py/pb_internal/dainternal_pb2_grpc.py` and take care of imports accordingly
+
 
 * Start C++ gRPC client: `./clientTest [imgHandle] [output_image_file_path]`
   Since you need to compile the test files before running them, follow the below given steps:

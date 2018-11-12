@@ -35,15 +35,6 @@ class da final {
   class StubInterface {
    public:
     virtual ~StubInterface() {}
-    // **********Internal Interfaces***************
-    // GetConfigInt internal interface
-    virtual ::grpc::Status GetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::DataAgent::ConfigIntResp* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>> AsyncGetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>>(AsyncGetConfigIntRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>> PrepareAsyncGetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>>(PrepareAsyncGetConfigIntRaw(context, request, cq));
-    }
     // **********External Interfaces***************
     // GetConfig external interface
     virtual ::grpc::Status Config(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::DataAgent::ConfigResp* response) = 0;
@@ -72,8 +63,6 @@ class da final {
       return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::DataAgent::Chunk>>(PrepareAsyncGetBlobRaw(context, request, cq));
     }
   private:
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>* AsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigIntResp>* PrepareAsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigResp>* AsyncConfigRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::ConfigResp>* PrepareAsyncConfigRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::DataAgent::QueryResp>* AsyncQueryRaw(::grpc::ClientContext* context, const ::DataAgent::QueryReq& request, ::grpc::CompletionQueue* cq) = 0;
@@ -85,13 +74,6 @@ class da final {
   class Stub final : public StubInterface {
    public:
     Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel);
-    ::grpc::Status GetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::DataAgent::ConfigIntResp* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>> AsyncGetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>>(AsyncGetConfigIntRaw(context, request, cq));
-    }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>> PrepareAsyncGetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>>(PrepareAsyncGetConfigIntRaw(context, request, cq));
-    }
     ::grpc::Status Config(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::DataAgent::ConfigResp* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigResp>> AsyncConfig(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigResp>>(AsyncConfigRaw(context, request, cq));
@@ -118,8 +100,6 @@ class da final {
 
    private:
     std::shared_ptr< ::grpc::ChannelInterface> channel_;
-    ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>* AsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>* PrepareAsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigResp>* AsyncConfigRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigResp>* PrepareAsyncConfigRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::DataAgent::QueryResp>* AsyncQueryRaw(::grpc::ClientContext* context, const ::DataAgent::QueryReq& request, ::grpc::CompletionQueue* cq) override;
@@ -127,7 +107,6 @@ class da final {
     ::grpc::ClientReader< ::DataAgent::Chunk>* GetBlobRaw(::grpc::ClientContext* context, const ::DataAgent::BlobReq& request) override;
     ::grpc::ClientAsyncReader< ::DataAgent::Chunk>* AsyncGetBlobRaw(::grpc::ClientContext* context, const ::DataAgent::BlobReq& request, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncReader< ::DataAgent::Chunk>* PrepareAsyncGetBlobRaw(::grpc::ClientContext* context, const ::DataAgent::BlobReq& request, ::grpc::CompletionQueue* cq) override;
-    const ::grpc::internal::RpcMethod rpcmethod_GetConfigInt_;
     const ::grpc::internal::RpcMethod rpcmethod_Config_;
     const ::grpc::internal::RpcMethod rpcmethod_Query_;
     const ::grpc::internal::RpcMethod rpcmethod_GetBlob_;
@@ -138,9 +117,6 @@ class da final {
    public:
     Service();
     virtual ~Service();
-    // **********Internal Interfaces***************
-    // GetConfigInt internal interface
-    virtual ::grpc::Status GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response);
     // **********External Interfaces***************
     // GetConfig external interface
     virtual ::grpc::Status Config(::grpc::ServerContext* context, const ::DataAgent::ConfigReq* request, ::DataAgent::ConfigResp* response);
@@ -150,32 +126,12 @@ class da final {
     virtual ::grpc::Status GetBlob(::grpc::ServerContext* context, const ::DataAgent::BlobReq* request, ::grpc::ServerWriter< ::DataAgent::Chunk>* writer);
   };
   template <class BaseClass>
-  class WithAsyncMethod_GetConfigInt : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
-   public:
-    WithAsyncMethod_GetConfigInt() {
-      ::grpc::Service::MarkMethodAsync(0);
-    }
-    ~WithAsyncMethod_GetConfigInt() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetConfigInt(::grpc::ServerContext* context, ::DataAgent::ConfigIntReq* request, ::grpc::ServerAsyncResponseWriter< ::DataAgent::ConfigIntResp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
   class WithAsyncMethod_Config : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithAsyncMethod_Config() {
-      ::grpc::Service::MarkMethodAsync(1);
+      ::grpc::Service::MarkMethodAsync(0);
     }
     ~WithAsyncMethod_Config() override {
       BaseClassMustBeDerivedFromService(this);
@@ -186,7 +142,7 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfig(::grpc::ServerContext* context, ::DataAgent::ConfigReq* request, ::grpc::ServerAsyncResponseWriter< ::DataAgent::ConfigResp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -195,7 +151,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithAsyncMethod_Query() {
-      ::grpc::Service::MarkMethodAsync(2);
+      ::grpc::Service::MarkMethodAsync(1);
     }
     ~WithAsyncMethod_Query() override {
       BaseClassMustBeDerivedFromService(this);
@@ -206,7 +162,7 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestQuery(::grpc::ServerContext* context, ::DataAgent::QueryReq* request, ::grpc::ServerAsyncResponseWriter< ::DataAgent::QueryResp>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -215,7 +171,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithAsyncMethod_GetBlob() {
-      ::grpc::Service::MarkMethodAsync(3);
+      ::grpc::Service::MarkMethodAsync(2);
     }
     ~WithAsyncMethod_GetBlob() override {
       BaseClassMustBeDerivedFromService(this);
@@ -226,34 +182,17 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetBlob(::grpc::ServerContext* context, ::DataAgent::BlobReq* request, ::grpc::ServerAsyncWriter< ::DataAgent::Chunk>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(2, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_GetConfigInt<WithAsyncMethod_Config<WithAsyncMethod_Query<WithAsyncMethod_GetBlob<Service > > > > AsyncService;
-  template <class BaseClass>
-  class WithGenericMethod_GetConfigInt : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
-   public:
-    WithGenericMethod_GetConfigInt() {
-      ::grpc::Service::MarkMethodGeneric(0);
-    }
-    ~WithGenericMethod_GetConfigInt() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-  };
+  typedef WithAsyncMethod_Config<WithAsyncMethod_Query<WithAsyncMethod_GetBlob<Service > > > AsyncService;
   template <class BaseClass>
   class WithGenericMethod_Config : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithGenericMethod_Config() {
-      ::grpc::Service::MarkMethodGeneric(1);
+      ::grpc::Service::MarkMethodGeneric(0);
     }
     ~WithGenericMethod_Config() override {
       BaseClassMustBeDerivedFromService(this);
@@ -270,7 +209,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithGenericMethod_Query() {
-      ::grpc::Service::MarkMethodGeneric(2);
+      ::grpc::Service::MarkMethodGeneric(1);
     }
     ~WithGenericMethod_Query() override {
       BaseClassMustBeDerivedFromService(this);
@@ -287,7 +226,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithGenericMethod_GetBlob() {
-      ::grpc::Service::MarkMethodGeneric(3);
+      ::grpc::Service::MarkMethodGeneric(2);
     }
     ~WithGenericMethod_GetBlob() override {
       BaseClassMustBeDerivedFromService(this);
@@ -299,32 +238,12 @@ class da final {
     }
   };
   template <class BaseClass>
-  class WithRawMethod_GetConfigInt : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
-   public:
-    WithRawMethod_GetConfigInt() {
-      ::grpc::Service::MarkMethodRaw(0);
-    }
-    ~WithRawMethod_GetConfigInt() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestGetConfigInt(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
   class WithRawMethod_Config : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithRawMethod_Config() {
-      ::grpc::Service::MarkMethodRaw(1);
+      ::grpc::Service::MarkMethodRaw(0);
     }
     ~WithRawMethod_Config() override {
       BaseClassMustBeDerivedFromService(this);
@@ -335,7 +254,7 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestConfig(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(0, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -344,7 +263,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithRawMethod_Query() {
-      ::grpc::Service::MarkMethodRaw(2);
+      ::grpc::Service::MarkMethodRaw(1);
     }
     ~WithRawMethod_Query() override {
       BaseClassMustBeDerivedFromService(this);
@@ -355,7 +274,7 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestQuery(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(2, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(1, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -364,7 +283,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithRawMethod_GetBlob() {
-      ::grpc::Service::MarkMethodRaw(3);
+      ::grpc::Service::MarkMethodRaw(2);
     }
     ~WithRawMethod_GetBlob() override {
       BaseClassMustBeDerivedFromService(this);
@@ -375,28 +294,8 @@ class da final {
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestGetBlob(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncServerStreaming(3, context, request, writer, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncServerStreaming(2, context, request, writer, new_call_cq, notification_cq, tag);
     }
-  };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_GetConfigInt : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service *service) {}
-   public:
-    WithStreamedUnaryMethod_GetConfigInt() {
-      ::grpc::Service::MarkMethodStreamed(0,
-        new ::grpc::internal::StreamedUnaryHandler< ::DataAgent::ConfigIntReq, ::DataAgent::ConfigIntResp>(std::bind(&WithStreamedUnaryMethod_GetConfigInt<BaseClass>::StreamedGetConfigInt, this, std::placeholders::_1, std::placeholders::_2)));
-    }
-    ~WithStreamedUnaryMethod_GetConfigInt() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedGetConfigInt(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::DataAgent::ConfigIntReq,::DataAgent::ConfigIntResp>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_Config : public BaseClass {
@@ -404,7 +303,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithStreamedUnaryMethod_Config() {
-      ::grpc::Service::MarkMethodStreamed(1,
+      ::grpc::Service::MarkMethodStreamed(0,
         new ::grpc::internal::StreamedUnaryHandler< ::DataAgent::ConfigReq, ::DataAgent::ConfigResp>(std::bind(&WithStreamedUnaryMethod_Config<BaseClass>::StreamedConfig, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_Config() override {
@@ -424,7 +323,7 @@ class da final {
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithStreamedUnaryMethod_Query() {
-      ::grpc::Service::MarkMethodStreamed(2,
+      ::grpc::Service::MarkMethodStreamed(1,
         new ::grpc::internal::StreamedUnaryHandler< ::DataAgent::QueryReq, ::DataAgent::QueryResp>(std::bind(&WithStreamedUnaryMethod_Query<BaseClass>::StreamedQuery, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithStreamedUnaryMethod_Query() override {
@@ -438,14 +337,14 @@ class da final {
     // replace default version of method with streamed unary
     virtual ::grpc::Status StreamedQuery(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::DataAgent::QueryReq,::DataAgent::QueryResp>* server_unary_streamer) = 0;
   };
-  typedef WithStreamedUnaryMethod_GetConfigInt<WithStreamedUnaryMethod_Config<WithStreamedUnaryMethod_Query<Service > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_Config<WithStreamedUnaryMethod_Query<Service > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_GetBlob : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service *service) {}
    public:
     WithSplitStreamingMethod_GetBlob() {
-      ::grpc::Service::MarkMethodStreamed(3,
+      ::grpc::Service::MarkMethodStreamed(2,
         new ::grpc::internal::SplitServerStreamingHandler< ::DataAgent::BlobReq, ::DataAgent::Chunk>(std::bind(&WithSplitStreamingMethod_GetBlob<BaseClass>::StreamedGetBlob, this, std::placeholders::_1, std::placeholders::_2)));
     }
     ~WithSplitStreamingMethod_GetBlob() override {
@@ -460,7 +359,7 @@ class da final {
     virtual ::grpc::Status StreamedGetBlob(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::DataAgent::BlobReq,::DataAgent::Chunk>* server_split_streamer) = 0;
   };
   typedef WithSplitStreamingMethod_GetBlob<Service > SplitStreamedService;
-  typedef WithStreamedUnaryMethod_GetConfigInt<WithStreamedUnaryMethod_Config<WithStreamedUnaryMethod_Query<WithSplitStreamingMethod_GetBlob<Service > > > > StreamedService;
+  typedef WithStreamedUnaryMethod_Config<WithStreamedUnaryMethod_Query<WithSplitStreamingMethod_GetBlob<Service > > > StreamedService;
 };
 
 }  // namespace DataAgent

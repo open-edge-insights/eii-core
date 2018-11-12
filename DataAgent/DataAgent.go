@@ -16,7 +16,9 @@ import (
 	"flag"
 	"os"
 
+	config "ElephantTrunkArch/DataAgent/config"
 	server "ElephantTrunkArch/DataAgent/da_grpc/server"
+	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
 	stm "ElephantTrunkArch/StreamManager"
 	util "ElephantTrunkArch/Util"
 
@@ -28,6 +30,9 @@ var strmMgrUDPServHost = "ia_data_agent"
 const (
 	strmMgrUDPServPort = "61971"
 )
+
+// DaCfg - stores parsed DataAgent config
+var DaCfg config.DAConfig
 
 func main() {
 
@@ -50,14 +55,14 @@ func main() {
 	glog.Infof("Parsing the config file: %s", cfgPath)
 
 	// Parse the DA config file
-	err := server.DaCfg.ParseConfig(cfgPath)
+	err := DaCfg.ParseConfig(cfgPath)
 
 	if err != nil {
 		glog.Errorf("Error: %s while parsing config file: %s", err, cfgPath)
 		os.Exit(-1)
 	}
 
-	influxCfg := server.DaCfg.InfluxDB
+	influxCfg := DaCfg.InfluxDB
 
 	// Create InfluxDB database
 	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
@@ -102,12 +107,12 @@ func main() {
 
 	pStreamManager.ServerHost = strmMgrUDPServHost
 	pStreamManager.ServerPort = strmMgrUDPServPort
-	pStreamManager.InfluxDBHost = server.DaCfg.InfluxDB.Host
-	pStreamManager.InfluxDBPort = server.DaCfg.InfluxDB.Port
-	pStreamManager.InfluxDBName = server.DaCfg.InfluxDB.DBName
+	pStreamManager.InfluxDBHost = DaCfg.InfluxDB.Host
+	pStreamManager.InfluxDBPort = DaCfg.InfluxDB.Port
+	pStreamManager.InfluxDBName = DaCfg.InfluxDB.DBName
 	pStreamManager.MsrmtTopicMap = make(map[string]stm.OutStreamConfig)
 	pStreamManager.MeasurementPolicy = make(map[string]bool)
-	pStreamManager.OpcuaPort = server.DaCfg.Opcua.Port
+	pStreamManager.OpcuaPort = DaCfg.Opcua.Port
 
 	glog.Infof("Going to start UDP server for influx subscription")
 	err = pStreamManager.Init()
@@ -119,7 +124,7 @@ func main() {
 	var config = new(stm.OutStreamConfig)
 
 	// Fetch the streams from the DA config file
-	for key, val := range server.DaCfg.OutStreams {
+	for key, val := range DaCfg.OutStreams {
 		// TODO: Just using the 'key' as both measurement and topic for now.
 		// This will change later
 		config.Measurement = key
@@ -135,16 +140,15 @@ func main() {
 	glog.Infof("**************STARTING GRPC SERVER**************")
 	// Start GRPC server for GetConfig (Internal), GetConfig and GetQuery
 	// external interfaces
-	server.StartGrpcServer()
+	done := make(chan bool)
+	glog.Infof("**************STARTING GRPC External SERVER**************")
+	go internalserver.StartGrpcServer(DaCfg)
+	glog.Infof("**************STARTING GRPC Internal SERVER**************")
+	go server.StartGrpcServer(DaCfg)
+	glog.Infof("**************Started GRPC servers**************")
 
-	// TODO: For a gracefull shutdown we need a trigger from DA to tear down
-	// That will make the ever listening UDP server to stop and return control
-	// to main program. A channel need to listen to a exit cmd in UDP server
-	// code.
-
-	// Currently running this infinite loop to keep the goroutine running
+	// Currently running this channel to keep the goroutine running
 	// for StreamManager
-	for {
-	}
-
+	<-done
+	glog.Infof("**************Exiting**************")
 }

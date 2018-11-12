@@ -11,8 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package client
 
 import (
-	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go"
-	"io"
+	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go/pb_internal"
+	"encoding/json"
+	"time"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -31,7 +32,7 @@ func NewGrpcClient(hostname, port string) (*GrpcClient, error) {
 }
 
 // getDaClient: It is a private method called to get the DaClient object
-func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
+func (pClient *GrpcClient) getDaClient() (pb.DainternalClient, error) {
 	addr := pClient.hostname + ":" + pClient.port
 
 	glog.Infof("Addr: %s", addr)
@@ -41,38 +42,36 @@ func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
 		return nil, err
 	}
 
-	daClient := pb.NewDaClient(conn)
+	daClient := pb.NewDainternalClient(conn)
 	return daClient, nil
 }
 
-// GetBlob is a wrapper around gRPC go client implementation for GetBlob interface.
-// It takes the imgHandle string(key from ImageStore) of the image frame ingested in the ImageStore
-// and returns the consolidated byte array(value from ImageStore) from ImageStore associated with
-// that imgHandle
-func (pClient *GrpcClient) GetBlob(imgHandle string) ([]byte, error) {
+// GetConfigInt is a wrapper around gRPC go client implementation for
+// GetConfigInt interface. It takes the config as the parameter
+// (InfluxDBCfg, RedisCfg etc.,) returning the json as map for that
+// particular config
+func (pClient *GrpcClient) GetConfigInt(config string) (map[string]string, error) {
 
 	daClient, err := pClient.getDaClient()
 	if err != nil {
-		glog.Errorf("Error1: %v", err)
+		glog.Errorf("Error: %v", err)
 		return nil, err
 	}
-	client, err := daClient.GetBlob(context.Background(), &pb.BlobReq{ImgHandle: imgHandle})
+	// Set the gRPC timeout
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	var configMap map[string]string
+	// gRPC call
+	resp, err := daClient.GetConfigInt(ctx, &pb.ConfigIntReq{CfgType: config})
 	if err != nil {
-		glog.Errorf("Error2: %v", err)
-		return nil, err
+		glog.Errorf("Error3: %v", err)
+		return configMap, err
 	}
-	var blob []byte
-	for {
-		c, err := client.Recv()
-		if err != nil {
-			if err == io.EOF {
-				glog.Infof("Transfer of %d bytes successful", len(blob))
-				break
-			}
-			glog.Errorf("Error while receiving: %v", err)
-			return nil, err
-		}
-		blob = append(blob, c.Chunk...)
-	}
-	return blob, err
+
+	configBytes := []byte(resp.JsonMsg)
+
+	json.Unmarshal(configBytes, &configMap)
+
+	return configMap, err
 }

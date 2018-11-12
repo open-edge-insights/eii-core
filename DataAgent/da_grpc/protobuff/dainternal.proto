@@ -1,0 +1,21 @@
+syntax="proto3";
+
+package DataAgentInternal;
+
+// The Data Agent service definition.
+service dainternal {
+
+    //**********Internal Interfaces***************
+    // GetConfigInt internal interface
+    rpc GetConfigInt (ConfigIntReq) returns (ConfigIntResp) {}
+}
+
+// The request message for GetConfigInt
+message ConfigIntReq {
+    string cfgType = 1;
+}
+
+// The response message for GetConfigInt
+message ConfigIntResp {
+    string jsonMsg = 1; //response will come in json format, grpc client needs to parse it
+}

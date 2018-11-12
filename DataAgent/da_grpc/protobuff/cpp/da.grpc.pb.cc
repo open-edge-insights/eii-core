@@ -16,7 +16,6 @@
 namespace DataAgent {
 
 static const char* da_method_names[] = {
-  "/DataAgent.da/GetConfigInt",
   "/DataAgent.da/Config",
   "/DataAgent.da/Query",
   "/DataAgent.da/GetBlob",
@@ -29,23 +28,10 @@ std::unique_ptr< da::Stub> da::NewStub(const std::shared_ptr< ::grpc::ChannelInt
 }
 
 da::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& channel)
-  : channel_(channel), rpcmethod_GetConfigInt_(da_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Config_(da_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_Query_(da_method_names[2], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
-  , rpcmethod_GetBlob_(da_method_names[3], ::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
+  : channel_(channel), rpcmethod_Config_(da_method_names[0], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_Query_(da_method_names[1], ::grpc::internal::RpcMethod::NORMAL_RPC, channel)
+  , rpcmethod_GetBlob_(da_method_names[2], ::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   {}
-
-::grpc::Status da::Stub::GetConfigInt(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::DataAgent::ConfigIntResp* response) {
-  return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_GetConfigInt_, context, request, response);
-}
-
-::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>* da::Stub::AsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::DataAgent::ConfigIntResp>::Create(channel_.get(), cq, rpcmethod_GetConfigInt_, context, request, true);
-}
-
-::grpc::ClientAsyncResponseReader< ::DataAgent::ConfigIntResp>* da::Stub::PrepareAsyncGetConfigIntRaw(::grpc::ClientContext* context, const ::DataAgent::ConfigIntReq& request, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncResponseReaderFactory< ::DataAgent::ConfigIntResp>::Create(channel_.get(), cq, rpcmethod_GetConfigInt_, context, request, false);
-}
 
 ::grpc::Status da::Stub::Config(::grpc::ClientContext* context, const ::DataAgent::ConfigReq& request, ::DataAgent::ConfigResp* response) {
   return ::grpc::internal::BlockingUnaryCall(channel_.get(), rpcmethod_Config_, context, request, response);
@@ -87,33 +73,21 @@ da::Service::Service() {
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       da_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
-      new ::grpc::internal::RpcMethodHandler< da::Service, ::DataAgent::ConfigIntReq, ::DataAgent::ConfigIntResp>(
-          std::mem_fn(&da::Service::GetConfigInt), this)));
-  AddMethod(new ::grpc::internal::RpcServiceMethod(
-      da_method_names[1],
-      ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< da::Service, ::DataAgent::ConfigReq, ::DataAgent::ConfigResp>(
           std::mem_fn(&da::Service::Config), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      da_method_names[2],
+      da_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< da::Service, ::DataAgent::QueryReq, ::DataAgent::QueryResp>(
           std::mem_fn(&da::Service::Query), this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
-      da_method_names[3],
+      da_method_names[2],
       ::grpc::internal::RpcMethod::SERVER_STREAMING,
       new ::grpc::internal::ServerStreamingHandler< da::Service, ::DataAgent::BlobReq, ::DataAgent::Chunk>(
           std::mem_fn(&da::Service::GetBlob), this)));
 }
 
 da::Service::~Service() {
-}
-
-::grpc::Status da::Service::GetConfigInt(::grpc::ServerContext* context, const ::DataAgent::ConfigIntReq* request, ::DataAgent::ConfigIntResp* response) {
-  (void) context;
-  (void) request;
-  (void) response;
-  return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
 ::grpc::Status da::Service::Config(::grpc::ServerContext* context, const ::DataAgent::ConfigReq* request, ::DataAgent::ConfigResp* response) {
