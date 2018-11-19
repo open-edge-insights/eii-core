@@ -1,6 +1,6 @@
 # dockerfile for OPCUA client
-FROM ia/pybase:1.0
-LABEL version="1.0"
+ARG ETA_VERSION
+FROM ia/pybase:$ETA_VERSION
 LABEL description="OPCUA python client image"
 
 ADD databus_requirements.txt ./

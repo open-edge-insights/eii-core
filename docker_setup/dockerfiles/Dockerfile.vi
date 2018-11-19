@@ -1,6 +1,6 @@
 # Dockerfile for VideoIngestion
-FROM ia/pybase:1.0
-LABEL version="1.0"
+ARG ETA_VERSION
+FROM ia/pybase:$ETA_VERSION
 LABEL description="VideoIngestion image"
 
 ADD VideoIngestion/basler-video-capture ./basler-video-capture

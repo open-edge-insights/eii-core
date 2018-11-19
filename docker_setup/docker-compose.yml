@@ -4,9 +4,14 @@ services:
   
   # Define a log_rotate service
   ia_log_rotate:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.logrotate
+      args:
+        LOG_ROTATE_VERSION: ${LOG_ROTATE_VERSION}
     container_name: ia_log_rotate
     hostname: ia_log_rotate
-    image: blacklabelops/logrotate:1.2
+    image: ia/logrotate:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       LOGS_DIRECTORIES: ${ETA_INSTALL_PATH}/logs
@@ -31,9 +36,11 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
+      args:
+        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
     container_name: ia_influxdb
     hostname: ia_influxdb
-    image: ia/influxdb:${INFLUXDB_VERSION}
+    image: ia/influxdb:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
@@ -53,9 +60,11 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
+      args:
+        REDIS_VERSION: ${REDIS_VERSION}
     container_name: ia_redis
     hostname: ia_redis
-    image: ia/redis:${REDIS_VERSION}
+    image: ia/redis:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
@@ -76,7 +85,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
-    image: ia/gobase:${ETA_CONT_VERSION}
+      args:
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+    image: ia/gobase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
     
@@ -85,7 +96,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
-    image: ia/pybase:${ETA_CONT_VERSION}
+      args:
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+    image: ia/pybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
   
@@ -94,7 +107,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
-    image: ia/gopybase:${ETA_CONT_VERSION}
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/gopybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
 
@@ -109,7 +124,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.da
-    image: ia/data_agent:${ETA_CONT_VERSION}
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/data_agent:${ETA_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -137,7 +154,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
-    image: ia/data_analytics:${ETA_CONT_VERSION}
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/data_analytics:${ETA_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -173,7 +192,9 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.vi
-    image: ia/video_ingestion:${ETA_CONT_VERSION}
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/video_ingestion:${ETA_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host

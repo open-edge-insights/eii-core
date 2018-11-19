@@ -1,6 +1,6 @@
 # ETA Base Dockerfile for Go/Py modules
-FROM ia/pybase:1.0
-LABEL version="1.0"
+ARG ETA_VERSION
+FROM ia/pybase:$ETA_VERSION
 LABEL description="ETA Go/Py Base Image"
 
 # Python envs

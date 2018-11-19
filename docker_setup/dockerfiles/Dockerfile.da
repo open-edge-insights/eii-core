@@ -1,6 +1,6 @@
 # Dockerfile for DataAgent
-FROM ia/gopybase:1.0
-LABEL version="1.0"
+ARG ETA_VERSION
+FROM ia/gopybase:${ETA_VERSION}
 LABEL description="DataAgent image"
 
 ENV GOPATH /root/go

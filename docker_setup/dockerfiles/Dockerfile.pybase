@@ -1,6 +1,6 @@
 # ETA Base Dockerfile for Py modules
-FROM ubuntu:16.04
-LABEL version="1.0"
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
 LABEL description="ETA Py Base Image"
 
 ARG HOST_TIME_ZONE=""

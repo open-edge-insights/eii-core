@@ -1,5 +1,6 @@
 # InfluxDB dockerfile
-FROM influxdb:1.5.3
+ARG INFLUXDB_VERSION
+FROM influxdb:$INFLUXDB_VERSION
 
 ARG HOST_TIME_ZONE=""
 

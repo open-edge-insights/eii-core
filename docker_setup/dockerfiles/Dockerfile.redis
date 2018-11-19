@@ -1,5 +1,6 @@
 # InfluxDB dockerfile
-FROM redis:4.0.10
+ARG REDIS_VERSION
+FROM redis:$REDIS_VERSION
 
 ARG HOST_TIME_ZONE=""
 
