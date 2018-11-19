@@ -19,14 +19,14 @@ the grpc clients so that the communication doesn't go via the proxy server.
 Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
 If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`      
 
-* Start go gRPC external client: `go run DataAgent/da_grpc/test/go/clientTest.go --input_file=[input_image_file_path] --output_file=[output_image_file_path]`. 
+* Start go gRPC external client: `go run DataAgent/da_grpc/test/go/clientTest.go --input_file=[input_image_file_path] --output_file=[output_image_file_path]`.
 
-    **Note**: 
+    **Note**:
     * To use this client file outside the project workspace, just make sure to copy the `DataAgent/da_grpc/client/go/client.go` file along with `DataAgent/da_grpc/protobuff/go/da.pb.go` and take care of imports accordingly
 
-* Start go gRPC internal client: `go run DataAgent/da_grpc/test/go/test_internal/clientTest.go`. 
+* Start go gRPC internal client: `go run DataAgent/da_grpc/test/go/test_internal/clientTest.go`.
 
-    **Note**: 
+    **Note**:
     * To use this client file outside the project workspace, just make sure to copy the `DataAgent/da_grpc/client/go/client_internal/client.go` file along with `DataAgent/da_grpc/protobuff/go/pb_internal/dainternal.pb.go` and take care of imports accordingly
 
 
@@ -54,3 +54,33 @@ Here, `--input_file` argument value would be read and it's data gets stored in I
       file are the same.
 
       **Note**: To use this client file outside the project workspace, just make sure you copy the `DataAgent/da_grpc/client/cpp/client.cc` file along with all the files present in `DataAgent/da_grpc/protobuff/cpp/` folder and take care of imports accordingly.
+
+
+
+## Secure GRPC
+
+Secure GRPC is the secure channel enabled GRPC Server. Where it works on top of
+MTLS Authenticaion method.
+
+Under Certificates folder.
+
+For Server it Requires,
+
+  1. Certificates/ca/ca_certificate.pem
+  2. Certificates/server/server_certificate.pem
+  3. Certificates/server/server_key.pem
+
+For Any Client it Requires,
+  1. Certificates/ca/ca_certificate.pem
+  2. Certificates/client/client_certificate.pem
+  3. Certificates/client/client_key.pem
+
+
+## Generating Certificates
+
+**Note** Following steps are followed by us for Development & Validation
+Any OpenSSL Standard Certificate Generation Will work. Please follow the certificate
+names & extension as per Certificates directory / as above
+
+To Generate the Certificate please follow the wiki.
+  https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/wiki/Generating-TLS-certificates-and-keys

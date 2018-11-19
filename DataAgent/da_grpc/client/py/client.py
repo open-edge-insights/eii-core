@@ -33,6 +33,11 @@ import da_pb2 as da_pb2
 import da_pb2_grpc as da_pb2_grpc
 
 
+ROOTCA_CERT = 'Certificates/ca/ca_certificate.pem'
+CLIENT_CERT = 'Certificates/client/client_certificate.pem'
+CLIENT_KEY = 'Certificates/client/client_key.pem'
+
+
 class GrpcClient(object):
 
     def __init__(self, hostname="localhost", port="50051"):
@@ -49,8 +54,27 @@ class GrpcClient(object):
         if 'GRPC_SERVER' in os.environ:
             self.hostname = os.environ['GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
-        log.debug("Establishing grpc channel to %s", addr)
-        channel = grpc.insecure_channel(addr)
+        log.debug("Establishing Secure GRPC channel to %s", addr)
+
+        with open(ROOTCA_CERT, 'rb') as f:
+            ca_certs = f.read()
+
+        with open(CLIENT_KEY, 'rb') as f:
+            client_key = f.read()
+
+        with open(CLIENT_CERT, 'rb') as f:
+            client_certs = f.read()
+
+        try:
+            credentials = grpc.ssl_channel_credentials(\
+                root_certificates=ca_certs, private_key=client_key,\
+                certificate_chain=client_certs)
+
+        except Exception as e:
+            log.error("Exception Occured : ", e.msg)
+            raise Exception
+
+        channel = grpc.secure_channel(addr, credentials)
         self.stub = da_pb2_grpc.daStub(channel)
 
     def GetBlob(self, imgHandle):

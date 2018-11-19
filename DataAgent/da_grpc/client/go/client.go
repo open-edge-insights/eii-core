@@ -12,11 +12,22 @@ package client
 
 import (
 	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go"
+	"crypto/tls"
+	"crypto/x509"
 	"io"
+	"io/ioutil"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+)
+
+// Client Certificates
+const (
+	RootCA     = "Certificates/ca/ca_certificate.pem"
+	ClientCert = "Certificates/client/client_certificate.pem"
+	ClientKey  = "Certificates/client/client_key.pem"
 )
 
 // GrpcClient structure
@@ -33,11 +44,50 @@ func NewGrpcClient(hostname, port string) (*GrpcClient, error) {
 // getDaClient: It is a private method called to get the DaClient object
 func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
 	addr := pClient.hostname + ":" + pClient.port
-
 	glog.Infof("Addr: %s", addr)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	// Read certificate binary
+	certPEMBlock, err := ioutil.ReadFile(ClientCert)
 	if err != nil {
-		glog.Errorf("Did not connect: %v", err)
+		glog.Errorf("Failed to Read Client Certificate : %s", err)
+		return nil, err
+	}
+
+	keyPEMBlock, err := ioutil.ReadFile(ClientKey)
+	if err != nil {
+		glog.Errorf("Failed to Read Client Key : %s", err)
+		return nil, err
+	}
+
+	// Load the certificates from binary
+	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+	if err != nil {
+		glog.Errorf("Failed to Load ClientKey Pair : %s", err)
+		return nil, err
+	}
+
+	// Create a certificate pool from the certificate authority
+	certPool := x509.NewCertPool()
+	ca, err := ioutil.ReadFile(RootCA)
+	if err != nil {
+		glog.Errorf("Failed to Read CA Certificate : %s", err)
+		return nil, err
+	}
+
+	// Append the Certificates from the CA
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		glog.Errorf("Failed to Append Certificate")
+		return nil, nil
+	}
+
+	// Create the TLS credentials for transport
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{certificate},
+		RootCAs:      certPool,
+	})
+
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(creds))
+	if err != nil {
+		glog.Errorf("Grpc Dial Error, Not able to Connect %s: %s", addr, err)
 		return nil, err
 	}
 

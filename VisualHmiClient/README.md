@@ -59,9 +59,10 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
         ```
     * Running VisualHmiEtaDataSync App as Container
         ```sh
-          docker run -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
+          docker run -v /root/ElephantTrunkArch/Certificates:/eta/VisualHmiClient/Certificates -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
         ```
         > **Note**:
+        Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart always for running Behind Proxy Env
         > Please make sure you have given required information in config.json
         > Don't change mounted volumes directory. If you want to change make sure config.json also updated
         > Docker run will consider the local config.json as in VisualHmiClient/config.json

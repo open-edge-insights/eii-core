@@ -9,6 +9,7 @@ ADD Gopkg.toml ./
 ADD Gopkg.lock ./
 ADD go-python ./go-python
 ADD DataBusAbstraction/py/databus_requirements.txt ./
+ADD Certificates Certificates/
 
 RUN pip2 install -r databus_requirements.txt
 

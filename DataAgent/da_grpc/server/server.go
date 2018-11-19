@@ -24,6 +24,12 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	"crypto/tls"
+	"crypto/x509"
+	"io/ioutil"
+
+	"google.golang.org/grpc/credentials"
 )
 
 var gRPCHost = "localhost"
@@ -31,6 +37,13 @@ var gRPCHost = "localhost"
 const (
 	gRPCPort  = "50051"
 	chunkSize = 64 * 1024 // 64 KB
+)
+
+// Server Certificates
+const (
+	RootCA     = "Certificates/ca/ca_certificate.pem"
+	ServerCert = "Certificates/server/server_certificate.pem"
+	ServerKey  = "Certificates/server/server_key.pem"
 )
 
 // ExtDaCfg - stores parsed DataAgent config
@@ -115,25 +128,70 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 	ipAddr, err := net.LookupIP("ia_data_agent")
 	if err != nil {
 		glog.Errorf("Failed to fetch the IP address for host: %v, error:%v", ipAddr, err)
+		os.Exit(-1)
 	} else {
 		gRPCHost = ipAddr[0].String()
 	}
 
 	addr := gRPCHost + ":" + gRPCPort
 
-	lis, err := net.Listen("tcp", addr)
+	// Read certificate binary
+	certPEMBlock, err := ioutil.ReadFile(ServerCert)
+
 	if err != nil {
-		glog.Errorf("failed to listen: %v", err)
+		glog.Errorf("Failed to Read Server Certificate : %s", err)
 		os.Exit(-1)
 	}
 
+	keyPEMBlock, err := ioutil.ReadFile(ServerKey)
+
+	if err != nil {
+		glog.Errorf("Failed to Read Server Key : %s", err)
+		os.Exit(-1)
+	}
+
+	// Load the certificates from binary
+	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+
+	if err != nil {
+		glog.Errorf("Failed to Load ServerKey Pair : %s", err)
+		os.Exit(-1)
+	}
+
+	// Create a certificate pool from the certificate authority
+	certPool := x509.NewCertPool()
+	ca, err := ioutil.ReadFile(RootCA)
+	if err != nil {
+		glog.Errorf("Failed to Read CA Certificate : %s", err)
+		os.Exit(-1)
+	}
+
+	// Append the certificates from the CA
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		glog.Errorf("Failed to Append CA Certificate")
+		os.Exit(-1)
+	}
+
+	lis, err := net.Listen("tcp", addr)
+	if err != nil {
+		glog.Errorf("Failed to Listen: %v", err)
+		os.Exit(-1)
+	}
+
+	// Create the TLS configuration to pass to the GRPC server
+	creds := credentials.NewTLS(&tls.Config{
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		Certificates: []tls.Certificate{certificate},
+		ClientCAs:    certPool,
+	})
+
 	//Create the gRPC server
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.Creds(creds))
 
 	//Register the handle object
 	pb.RegisterDaServer(s, &DaServer{})
 
-	glog.Infof("gRPC server is listening at: %s", addr)
+	glog.Infof("Secure gRPC server Started & Listening at: %s", addr)
 
 	//Serve and listen
 	if err := s.Serve(lis); err != nil {
