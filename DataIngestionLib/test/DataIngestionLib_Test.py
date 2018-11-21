@@ -27,7 +27,7 @@ import cv2
 import logging
 import numpy as np
 from influxdb import InfluxDBClient
-from DataAgent.da_grpc.client.py.internal_client.client import GrpcInternalClient
+from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
 from DataIngestionLib.DataIngestionLib import DataIngestionLib as datain
 from ImageStore.py.imagestore import ImageStore
 

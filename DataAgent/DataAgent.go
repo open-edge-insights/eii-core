@@ -141,9 +141,9 @@ func main() {
 	// Start GRPC server for GetConfig (Internal), GetConfig and GetQuery
 	// external interfaces
 	done := make(chan bool)
-	glog.Infof("**************STARTING GRPC External SERVER**************")
-	go internalserver.StartGrpcServer(DaCfg)
 	glog.Infof("**************STARTING GRPC Internal SERVER**************")
+	go internalserver.StartGrpcServer(DaCfg)
+	glog.Infof("**************STARTING GRPC External SERVER**************")
 	go server.StartGrpcServer(DaCfg)
 	glog.Infof("**************Started GRPC servers**************")
 
