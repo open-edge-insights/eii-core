@@ -63,6 +63,27 @@ func main() {
 	}
 
 	influxCfg := DaCfg.InfluxDB
+	clientadmin, err := util.CreateHTTPClient(influxCfg.Host,
+		influxCfg.Port, "", "")
+
+	if err != nil {
+		glog.Errorf("Error creating InfluxDB client: %v", err)
+		os.Exit(-1)
+	}
+	createadmin, err := util.CreateAdminUser(clientadmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
+
+	if err == nil && createadmin.Error() == nil {
+		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
+	} else {
+		if createadmin.Error() != nil {
+			glog.Errorf("Error code: %v, Error Response: %s while creating "+
+				"admin user: %s", err, createadmin.Error(), influxCfg.UserName)
+		} else {
+			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
+		}
+		os.Exit(-1)
+	}
+	clientadmin.Close()
 
 	// Create InfluxDB database
 	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
@@ -74,9 +95,10 @@ func main() {
 		os.Exit(-1)
 	}
 
-	defer client.Close()
-
 	response, err := util.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
+	if err != nil {
+		glog.Infof("Cannot create database: %s", response.Error())
+	}
 
 	if err == nil && response.Error() == nil {
 		glog.Infof("Successfully created database: %s", influxCfg.DBName)
@@ -87,9 +109,9 @@ func main() {
 		} else {
 			glog.Errorf("Error code: %v while creating "+"database: %s", err, influxCfg.DBName)
 		}
-
 		os.Exit(-1)
 	}
+	defer client.Close()
 
 	// Init StreamManager
 	glog.Infof("**************STARTING STREAM MANAGER**************")
@@ -110,6 +132,8 @@ func main() {
 	pStreamManager.InfluxDBHost = DaCfg.InfluxDB.Host
 	pStreamManager.InfluxDBPort = DaCfg.InfluxDB.Port
 	pStreamManager.InfluxDBName = DaCfg.InfluxDB.DBName
+	pStreamManager.InfluxDBUserName = DaCfg.InfluxDB.UserName
+	pStreamManager.InfluxDBPassword = DaCfg.InfluxDB.Password
 	pStreamManager.MsrmtTopicMap = make(map[string]stm.OutStreamConfig)
 	pStreamManager.MeasurementPolicy = make(map[string]bool)
 	pStreamManager.OpcuaPort = DaCfg.Opcua.Port

@@ -42,13 +42,40 @@ func CreateSubscription(cli client.Client, subName string, dbName string, udpHos
 	return response, err
 }
 
+// CreateUser creates a new user in InfluxDB
+func CreateUser(cli client.Client, UserName string, Password string) (*client.Response, error) {
+	var buff bytes.Buffer
+	fmt.Fprintf(&buff, "CREATE USER %s WITH PASSWORD '%s'", UserName, Password)
+	q := client.NewQuery(buff.String(), "", "")
+	response, err := cli.Query(q)
+	return response, err
+}
+
+// CreateAdminUser creates a new user in InfluxDB
+func CreateAdminUser(cli client.Client, UserName string, Password string, dbName string) (*client.Response, error) {
+	var buff bytes.Buffer
+	fmt.Fprintf(&buff, "CREATE USER %s WITH PASSWORD '%s' WITH ALL PRIVILEGES", UserName, Password)
+	q := client.NewQuery(buff.String(), "", "")
+	response, err := cli.Query(q)
+	return response, err
+}
+
+// GrantAllPermissions grants all permissions on a to a user in InfluxDB
+func GrantAllPermissions(cli client.Client, dbName string, UserName string) (*client.Response, error) {
+	var buff bytes.Buffer
+	fmt.Fprintf(&buff, "GRANT ALL ON %s TO %s", dbName, UserName)
+	q := client.NewQuery(buff.String(), "", "")
+	response, err := cli.Query(q)
+	return response, err
+}
+
 // CreateDatabase creates the InfluxDB database
 func CreateDatabase(cli client.Client, dbName string, retentionPolicy string) (*client.Response, error) {
 	var buff bytes.Buffer
 
-	if(retentionPolicy != "" ){
+	if retentionPolicy != "" {
 		fmt.Fprintf(&buff, "create database %s with duration %s", dbName, retentionPolicy)
-	}else{
+	} else {
 		fmt.Fprintf(&buff, "create database %s", dbName)
 	}
 

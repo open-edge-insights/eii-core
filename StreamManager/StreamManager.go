@@ -7,7 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 Explicit permissions are required to publish, distribute, sublicense, and/or sell copies of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
 package streammanger
@@ -16,8 +16,8 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
 	"regexp"
+	"strings"
 
 	influxDBHelper "ElephantTrunkArch/Util"
 
@@ -42,7 +42,9 @@ type StrmMgr struct {
 	ServerPort        string //Server Port
 	InfluxDBHost      string
 	InfluxDBPort      string
-	InfluxDBName      string                     // Database Name
+	InfluxDBName      string // Database Name
+	InfluxDBUserName  string
+	InfluxDBPassword  string
 	MeasurementPolicy map[string]bool            //This DS to map policy name with action
 	MsrmtTopicMap     map[string]OutStreamConfig //A map of mesurement to topic
 	OpcuaPort         string
@@ -81,38 +83,38 @@ func databPublish(dbus databus.DataBus, topic map[string]string, data string) er
 //This JsonConverter handels only the current line protocol which is specific.
 //ToDo: Generic JsonConverter. To Handle all type of stream coming to StreamManager (Example: To handle Tags).
 
-func JsonConverter(data string) string{
+func JsonConverter(data string) string {
 	var final_jbuf string
-	final_jbuf="{\"Measurement\":" //Json string should start from { and 
-				       //starting with a key "Measurement" for the value "classifier_results"
+	final_jbuf = "{\"Measurement\":" //Json string should start from { and
+	//starting with a key "Measurement" for the value "classifier_results"
 
-	jbuf := strings.Split(data," ") //Split the data based on single white-space
+	jbuf := strings.Split(data, " ") //Split the data based on single white-space
 
-	final_jbuf+="\""+jbuf[0]+"\""+"," //Concatenating Measurement and classifier_results
-					  // and comma seperated for the next key-value pair.
+	final_jbuf += "\"" + jbuf[0] + "\"" + "," //Concatenating Measurement and classifier_results
+	// and comma seperated for the next key-value pair.
 
-	for i:=2;i<=len(jbuf)-1;i++ {	// since number of white-spaces are there within the values 
-		jbuf[1]+=" "+jbuf[i]    // of key-value pair, concatenating all the split string 
-	}				//to one string to handle the further steps.
+	for i := 2; i <= len(jbuf)-1; i++ { // since number of white-spaces are there within the values
+		jbuf[1] += " " + jbuf[i] // of key-value pair, concatenating all the split string
+	} //to one string to handle the further steps.
 
-	influxTS:=",influx_ts="+jbuf[len(jbuf)-1]
-	jbuf[1]=strings.Replace(jbuf[1],jbuf[len(jbuf)-1],influxTS,-1) //adding a key called influx_ts
-								       //for the value of influx timestamp
-	final_jbuf=final_jbuf+" "+jbuf[1]+"}"
-	key_value_buf:=strings.Split(jbuf[1],"=")
+	influxTS := ",influx_ts=" + jbuf[len(jbuf)-1]
+	jbuf[1] = strings.Replace(jbuf[1], jbuf[len(jbuf)-1], influxTS, -1) //adding a key called influx_ts
+	//for the value of influx timestamp
+	final_jbuf = final_jbuf + " " + jbuf[1] + "}"
+	key_value_buf := strings.Split(jbuf[1], "=")
 
-	quoted_key:="\""+key_value_buf[0]+"\""
-	final_jbuf=strings.Replace(final_jbuf,key_value_buf[0],quoted_key,-1) //wrapping "ImgHandle" key within quotes
+	quoted_key := "\"" + key_value_buf[0] + "\""
+	final_jbuf = strings.Replace(final_jbuf, key_value_buf[0], quoted_key, -1) //wrapping "ImgHandle" key within quotes
 
-	for j:=1;j<len(key_value_buf)-1;j++ {			//wrapping other keys with in the quotes
-		key_buf:=strings.Split(key_value_buf[j],",")
-		quoted_key2:="\""+key_buf[len(key_buf)-1]+"\""
-		final_jbuf=strings.Replace(final_jbuf,key_buf[len(key_buf)-1],quoted_key2,-1)
+	for j := 1; j < len(key_value_buf)-1; j++ { //wrapping other keys with in the quotes
+		key_buf := strings.Split(key_value_buf[j], ",")
+		quoted_key2 := "\"" + key_buf[len(key_buf)-1] + "\""
+		final_jbuf = strings.Replace(final_jbuf, key_buf[len(key_buf)-1], quoted_key2, -1)
 	}
 
-	final_jbuf=strings.Replace(final_jbuf,"=",":",-1)    //As the value of idx is in not in the Json
-	regex:=regexp.MustCompile(`([0-9]+i)`)		     // acceptable format, hence making it string type
-	final_jbuf=regex.ReplaceAllString(final_jbuf,`"$1"`) // by adding double quotes around it. 
+	final_jbuf = strings.Replace(final_jbuf, "=", ":", -1)  //As the value of idx is in not in the Json
+	regex := regexp.MustCompile(`([0-9]+i)`)                // acceptable format, hence making it string type
+	final_jbuf = regex.ReplaceAllString(final_jbuf, `"$1"`) // by adding double quotes around it.
 	glog.Infof("Final Json String is = %s\n", final_jbuf)
 	return final_jbuf
 }
@@ -138,7 +140,7 @@ func (pStrmMgr *StrmMgr) handlePointData(dbus databus.DataBus, addr *net.UDPAddr
 					"type": "string",
 				}
 
-				Json_buf=JsonConverter(buf)
+				Json_buf = JsonConverter(buf)
 
 				databPublish(dbus, topic, Json_buf)
 			}
@@ -155,7 +157,7 @@ func (pStrmMgr *StrmMgr) Init() error {
 	// only during inititialization.
 
 	client, err := influxDBHelper.CreateHTTPClient(pStrmMgr.InfluxDBHost,
-		pStrmMgr.InfluxDBPort, "", "")
+		pStrmMgr.InfluxDBPort, pStrmMgr.InfluxDBUserName, pStrmMgr.InfluxDBPassword)
 
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)

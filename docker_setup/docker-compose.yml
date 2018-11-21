@@ -45,6 +45,7 @@ services:
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
+      INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
     ports:
@@ -66,6 +67,7 @@ services:
     hostname: ia_redis
     image: ia/redis:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
+    entrypoint: redis-server --requirepass ${REDIS_PASSWORD}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
