@@ -56,6 +56,29 @@ services:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
       
+
+ # Define telegraf service
+  ia_telegraf:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
+    container_name: ia_telegraf
+    hostname: ia_telegraf
+    image: ia/telegraf:${ETA_VERSION}
+    network_mode: host
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+    volumes:
+      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/etc/telegraf/telegraf.conf"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+     
+      
   # Define an Redis service
   ia_redis:
     build:
