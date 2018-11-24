@@ -36,6 +36,23 @@ RUN pip3.6 install -r vi_requirements.txt && \
     rm -rf vi_requirements.txt
 
 ENV PYLON_CAMEMU 1
+# Adding gstreamer capabilities
+RUN apt-get -y install curl unzip vim wget cmake gcc
+RUN apt-get -y install libjpeg8-dev libtiff5-dev libjasper-dev libpng12-dev
+RUN apt-get -y install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+RUN apt-get -y install libxvidcore-dev libx264-dev
+RUN apt-get -y install libsm6 libxext6 libxrender-dev
+RUN apt-get -y install libgstreamer1.0-0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly \
+	gstreamer1.0-libav gstreamer1.0-doc gstreamer1.0-tools ffmpeg x264 gir1.2-gstreamer-1.0 gir1.2-gst-plugins-base-1.0
+RUN apt-get -y install python-gi python3-gi libgstrtspserver-1.0-dev
+
+# Installing opencv
+RUN wget -O opencv.zip https://github.com/Itseez/opencv/archive/3.4.1.zip
+RUN unzip opencv.zip
+RUN mkdir opencv-3.4.1/build && cd opencv-3.4.1/build && cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON3_EXECUTABLE=`which python3.6` \
+	-DPYTHON_DEFAULT_EXECUTABLE=`which python3.6` -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_CXX_FLAGS=-std=c++11 -D WITH_GSTREAMER=ON ..
+RUN cd opencv-3.4.1/build && make -j6
+RUN cd opencv-3.4.1/build && make install
 
 # Adding project depedency modules
 ADD agent ./agent
@@ -44,10 +61,8 @@ ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD DataIngestionLib ./DataIngestionLib
 ADD ImageStore/py ./ImageStore/py
 ADD Util ./Util
-
 # Adding VideoIngestion & test program 
 ADD VideoIngestion/VideoIngestion.py .
 ADD VideoIngestion/test .
-
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]

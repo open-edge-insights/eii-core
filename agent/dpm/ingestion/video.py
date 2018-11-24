@@ -166,8 +166,11 @@ class Ingestor:
         if 'opencv' in streams:
             self.log.info('Loading OpenCV streams')
             cap_streams = streams['opencv']['capture_streams']
-            for stream in cap_streams:
-                self.cameras.append(self._connect('opencv', stream, None))
+            if( 'appsink' in cap_streams):
+                self.cameras.append(self._connect('opencv', cap_streams, None))
+            else:
+                for stream in cap_streams:
+                    self.cameras.append(self._connect('opencv', stream, None))
 
         if 'dahua' in streams:
             if not dahua_supported:

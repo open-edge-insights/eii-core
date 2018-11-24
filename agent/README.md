@@ -165,6 +165,23 @@ configuration file must have the following entries:
     }
 }
 ```
+If you are working with a RTSP camera, you will need to use opencv as your stream, then put the stream in 'capture_streams' using gstreamer commands.
+```
+    "machine_id": <STRING: Unique string identifying the machine>,
+    "trigger_threads": <INT: (OPTIONAL) Number of threads to use for classification>,
+    "log_file_size": <INT: (OPTIONAL) Maximum size for rotating log files>,
+    "data_ingestion_manager": {
+        "ingestors": {
+            "video":{
+                "poll_interval":0.01,
+                "streams":{
+                    "opencv":{
+                        "capture_streams":"rtspsrc location=rtsp://192.168.1.67:554/cam/realmonitor?channel=1&subtype=1 user-id=admin user-pw=intel123 latency=100 ! rtph265depay ! decodebin name=avdec_h265dec ! videoconvert ! appsink"
+                    }
+                }
+            }
+        }
+    }
 
 Once you have your configuration file setup, the last step in configuring the
 factory agent is to add your camera's to the database. This can be done through
