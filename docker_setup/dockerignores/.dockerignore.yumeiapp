@@ -1,0 +1,22 @@
+agent
+DataAnalytics
+DataBusAbstraction
+DataIngestionLib
+go-python
+ImageStore
+kapacitor
+StreamManager
+vendor
+docker_setup
+docker_setup/deploy/*.tar.gz
+test_videos/
+.git
+
+# Recursively remove all unwanted files
+**/*.md
+**/*.mp4
+**/*.avi
+**/*.pyc
+**/*.tar
+**/*.log
+**/*.log.*

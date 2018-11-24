@@ -1,0 +1,8 @@
+{
+  "io_module_ip"    : "10.223.109.200",
+  "io_module_port"  : "502",
+  "panel_light_out" : "do2",
+  "robotic_arm_in"  : "di1",
+  "reset_button_in" : "di6",
+  "bit_register"    :  20
+}

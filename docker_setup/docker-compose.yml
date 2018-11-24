@@ -207,6 +207,32 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+
+  # Define YumeiApp service      
+  ia_yumei_app:
+    depends_on:
+      - ia_data_analytics
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.yumeiapp
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/yumei_app:${ETA_VERSION}
+    container_name: ia_yumei_app
+    hostname: ia_yumei_app
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
+      NO_PROXY: ${NO_PROXY},${HOST_IP}
+      no_proxy: ${NO_PROXY},${HOST_IP}
+    volumes:
+      - "${ETA_INSTALL_PATH}/logs/yumei_app_logs:/ETA/yumei_app_logs"
+    command: ["--log", "${LOG_LEVEL}"]
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
        
   # Define VideoIngestion service
   ia_video_ingestion:

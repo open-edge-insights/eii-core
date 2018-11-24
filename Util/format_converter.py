@@ -25,53 +25,62 @@ import re
 
 
 def lf_to_json_converter(data):
+    '''Converts line protocol data to json format
+    Argument:
+        data: line protocol data.
+    '''
 
-        '''Converts line protocol data to json format
-        Argument:
-            data: line protocol data.
-        '''
+    final_data = "Measurement="
+    jbuf = data.split(" ")
+    tagsValue = jbuf[0].split(",")
+    # To handle json if tags are given in the line protocol
+    tagsValue[0] = "\"" + tagsValue[0] + "\""
+    tags_value_list = [tagsValue[0]]
 
-        final_data = "Measurement="
-        jbuf = data.split(" ")
-        # To handle json if tags are given in the line protocol
-        matchString = re.match(r'([a-zA-Z0-9_]+)([,])([a-zA-Z0-9_]*)', jbuf[0])
-        if matchString:
-            firstGroup = matchString.group().split(",")
-            quotedFirstGroup = "\"" + firstGroup[0] + "\""
-            jbuf[0] = jbuf[0].replace(firstGroup[0], quotedFirstGroup)
-            tag_value = jbuf[0].split("=")
-            quotedt_tag_value = "\"" + tag_value[1] + "\""
+    # To identify the datapoints with the TAGS.
+    matchString = re.match(r'([a-zA-Z0-9_]+)([,])([a-zA-Z0-9_]*)', jbuf[0])
 
-            tag_value[1] = tag_value[1].replace(
-                tag_value[1], quotedt_tag_value)
+    # To Replace the values with the quoted values.
+    if matchString:
+        for i in range(1, len(tagsValue)):
+            tag_key_value = tagsValue[i].split("=")
+            tag_value = "\"" + tag_key_value[1] + "\""
+            quoted_key_value_tag = tag_key_value[0] + "=" + tag_value
+            tags_value_list.append(quoted_key_value_tag)
+        jbuf[0] = ",".join(tags_value_list)
+        final_data += jbuf[0] + ","
+    else:
+        final_data += "\"" + jbuf[0] + "\"" + ","
 
-            jbuf[0] = tag_value[0] + "=" + tag_value[1]
-            final_data += jbuf[0] + ","
-        else:
-            final_data += "\"" + jbuf[0] + "\"" + ","
+    for i in range(2, len(jbuf)):
+        jbuf[1] += " " + jbuf[i]
 
-        for i in range(2, len(jbuf)):
-            jbuf[1] += " " + jbuf[i]
+    influxTS = ",influx_ts=" + jbuf[len(jbuf)-1]
+    jbuf[1] = jbuf[1].replace(jbuf[len(jbuf)-1], influxTS)
+    final_data = final_data + jbuf[1]
 
-        influxTS = ",influx_ts=" + jbuf[len(jbuf)-1]
-        jbuf[1] = jbuf[1].replace(jbuf[len(jbuf)-1], influxTS)
-        final_data = final_data + jbuf[1]
+    key_value_buf = final_data.split("=")
+    quoted_key = "\"" + key_value_buf[0] + "\""
+    final_data = final_data.replace(key_value_buf[0], quoted_key)
 
-        key_value_buf = final_data.split("=")
-        quoted_key = "\"" + key_value_buf[0] + "\""
-        final_data = final_data.replace(key_value_buf[0], quoted_key)
+    # Replacing the Keys field with the quoted Keys.
+    for j in range(1, len(key_value_buf)-1):
+        key_buf = key_value_buf[j].split(",")
+        quoted_key2 = "\"" + key_buf[len(key_buf)-1] + "\""
+        keys = re.search(r'([^A-Za-z0-9_])({0})([^A-Za-z0-9_]|$)'.format(
+            key_buf[len(key_buf)-1]), final_data)
 
-        for j in range(1, len(key_value_buf)-1):
-            key_buf = key_value_buf[j].split(",")
-            quoted_key2 = "\"" + key_buf[len(key_buf)-1] + "\""
-            final_data = final_data.replace(key_buf[
-                len(key_buf)-1], quoted_key2)
+        quoted_key_group = keys.group()
+        group_keys = quoted_key_group.replace(
+            key_buf[len(key_buf)-1], quoted_key2)
+        final_data = final_data.replace(quoted_key_group, group_keys)
 
-        final_data = final_data.replace("=", ":")
-        variable = re.findall(r'[0-9]+i', final_data)
-        for i in variable:
-                stripped_i = i.strip("i")
-                final_data = final_data.replace(i, stripped_i)
-        final_data = "{" + final_data + "}"
+    final_data = final_data.replace("=", ":")
 
-        return final_data
+    # Removal of "i" added by influx,from the integer value
+    variable = re.findall(r'[0-9]+i', final_data)
+    for intValue in variable:
+            stripped_i = i.strip("i")
+            final_data = final_data.replace(intValue, stripped_i)
+    final_data = "{" + final_data + "}"
+    return final_data
