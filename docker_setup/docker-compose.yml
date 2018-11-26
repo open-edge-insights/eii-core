@@ -59,19 +59,25 @@ services:
 
  # Define telegraf service
   ia_telegraf:
+    depends_on:
+       - ia-gopybase
+       - ia_data_agent      
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
+      args: 
+        ETA_VERSION: ${ETA_VERSION}
     container_name: ia_telegraf
     hostname: ia_telegraf
     image: ia/telegraf:${ETA_VERSION}
-    network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
+      HOST_IP: ${HOST_IP}
     volumes:
-      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/etc/telegraf/telegraf.conf"
+      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/root/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

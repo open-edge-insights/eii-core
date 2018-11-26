@@ -1,10 +1,22 @@
-# telegraf dockerfile
-FROM telegraf:1.6.4
+# Dockerfile for Telegraf
 
-ARG HOST_TIME_ZONE=""
+ARG ETA_VERSION
+FROM ia/gopybase:$ETA_VERSION
+LABEL description="Telegraf image"
+RUN mkdir -p ${GO_WORK_DIR}/log
+RUN pip install grpcio
+RUN pip install grpcio-tools
 
-# Setting timezone inside the container
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
-RUN dpkg-reconfigure -f noninteractive tzdata
+# Building Telegraf from source
+RUN go get -v github.com/influxdata/telegraf && \
+    cd /root/go/src/github.com/influxdata/telegraf && \
+    git checkout -b 1.9.0 tags/1.9.0
+RUN cd /root/go/src/github.com/influxdata/telegraf && \
+     make
+ENV PATH="/root/go/src/github.com/influxdata/telegraf:${PATH}"
+
+# Add custom python entrypoint script to get cofig and set envirnoment variable
+ADD Telegraf ./Telegraf
+ADD DataAgent/da_grpc/ ./DataAgent/da_grpc
+ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py"]
+

@@ -38,7 +38,7 @@ echo "2. Buidling the dependency/eta containers..."
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
 services=(ia_log_rotate ia_influxdb ia_telegraf ia-gobase ia-pybase ia-gopybase ia_data_agent ia_redis ia_data_analytics ia_yumei_app ia_video_ingestion)
-servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.redis .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi)
+servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.telegraf .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.redis .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi)
 
 count=0
 echo "services: ${services[@]}"
