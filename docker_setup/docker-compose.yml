@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  
+
   # Define a log_rotate service
   ia_log_rotate:
     build:
@@ -27,7 +27,7 @@ services:
       LOGROTATE_COPIES: ${LOGROTATE_COPIES}
       LOGROTATE_DATEFORMAT: "%Y%m%d_%H:%M:%S"
       TZ: ${HOST_TIME_ZONE}
-    volumes:  
+    volumes:
       - "${ETA_INSTALL_PATH}/logs:${ETA_INSTALL_PATH}/logs"
 
   #---- Start: ETA Dependency Services----
@@ -55,7 +55,7 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-      
+
 
  # Define telegraf service
   ia_telegraf:
@@ -77,10 +77,12 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-     
-      
+
+
   # Define an Redis service
   ia_redis:
+    depends_on:
+      - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
@@ -90,10 +92,10 @@ services:
     hostname: ia_redis
     image: ia/redis:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
-    entrypoint: redis-server --requirepass ${REDIS_PASSWORD}
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     logging:
@@ -101,9 +103,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-    
+
   #---- End: ETA Dependency Services----
-  
+
   #----Start: ETA Base Images----
   # Define ia-gobase service
   ia-gobase:
@@ -115,7 +117,7 @@ services:
     image: ia/gobase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
-    
+
   # Define ia-pybase service
   ia-pybase:
     build:
@@ -126,7 +128,7 @@ services:
     image: ia/pybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
-  
+
   # Define ia-gopybase service
   ia-gopybase:
     build:
@@ -139,7 +141,7 @@ services:
       - ia_log_rotate
 
   #----End: ETA Base Images----
-  
+
   #----Start: ETA Containers ----
   # Define DataAgent service
   ia_data_agent:
@@ -169,7 +171,7 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-        
+
   # Define DataAnalytics service
   ia_data_analytics:
     depends_on:
@@ -233,7 +235,7 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-       
+
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
@@ -266,5 +268,5 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-    
+
   #----End: ETA Containers ----

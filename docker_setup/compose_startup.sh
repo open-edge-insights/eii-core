@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This scripts brings down the previous containers, builds the
-# images and runs them in the dependency order using 
+# images and runs them in the dependency order using
 # docker-compose.yml
 
 source .env
@@ -30,15 +30,15 @@ echo "0.6 Checking if mosquitto is up..."
 ./start_mosquitto.sh
 
 echo "1. Removing previous dependency/eta containers if existed..."
-docker-compose down 
+docker-compose down
 
 echo "2. Buidling the dependency/eta containers..."
 
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia_log_rotate ia_influxdb ia_telegraf ia_redis ia-gobase ia-pybase ia-gopybase ia_data_agent ia_data_analytics ia_yumei_app ia_video_ingestion)
-servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi)
+services=(ia_log_rotate ia_influxdb ia_telegraf ia-gobase ia-pybase ia-gopybase ia_data_agent ia_redis ia_data_analytics ia_yumei_app ia_video_ingestion)
+servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.redis .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi)
 
 count=0
 echo "services: ${services[@]}"
