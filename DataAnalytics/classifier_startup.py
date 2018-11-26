@@ -7,6 +7,8 @@ import logging
 import socket
 import datetime
 from Util.log import configure_logging, LOG_LEVELS
+import os
+from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
 
 SUCCESS = 0
 FAILURE = -1
@@ -48,7 +50,6 @@ def start_classifier(logFileName):
     """Starts the classifier module
     """
     try:
-
         subprocess.call("python3.6 classifier.py --config " + args.config +
             " --log-dir " + args.log_dir + " --log-name " + logFileName +
             " --log " + args.log.upper() + "&", shell=True)
@@ -74,6 +75,10 @@ def start_kapacitor(host_name):
     """Starts the kapacitor Daemon in the background
     """
     try:
+        client = GrpcInternalClient()
+        config = client.GetConfigInt("InfluxDBCfg")
+        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["UserName"]
+        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["Password"]
         subprocess.call("kapacitord -hostname "+host_name+" &", shell=True)
         logger.info("Started kapacitor Successfully...")
         return True
@@ -91,7 +96,7 @@ def process_zombie(process_name):
         return True if (out == b'1') else False
     except Exception as e:
         logger.info("Exception Occured in Starting Kapacitor "+str(e))
-    
+
 
 def kapacitor_port_open(host_name):
     """Verify Kapacitor's port is ready for accepting connection
@@ -147,7 +152,7 @@ if __name__ == '__main__':
     currentDateTime = "_".join(listDateTime)
     logFileName = 'dataAnalytics_' + currentDateTime + '.log'
 
-    logger = configure_logging(args.log.upper(), logFileName, 
+    logger = configure_logging(args.log.upper(), logFileName,
                     args.log_dir, __name__)
     host_name = read_kapacitor_hostname()
     if not host_name:
