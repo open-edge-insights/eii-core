@@ -25,7 +25,10 @@ RUN apt-get install -y libmbedtls-dev
 ADD DataBusAbstraction/ DataBusAbstraction/
 
 # Build the opent62541W.so file
-RUN cd /eta/DataBusAbstraction/py/test && make build
+RUN cd /eta/DataBusAbstraction/py && \
+    pip3.6 install -r databus_requirements.txt && \
+    cd test && \
+    make build
 ADD agent/__init__.py agent/__init__.py
 ADD Certificates/ Certificates/
 ADD agent/etr_utils agent/etr_utils
