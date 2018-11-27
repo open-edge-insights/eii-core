@@ -26,9 +26,9 @@ from pymodbus.client.sync import ModbusTcpClient as ModbusClient
 from StreamSubLib.StreamSubLib import StreamSubLib
 from Util.log import configure_logging, LOG_LEVELS
 import logging
-import json
-import ast
 import argparse
+import ast
+import json
 import os
 
 
@@ -57,18 +57,25 @@ class YumeiApp:
         Output: Turns on the Alarm Light
         '''
 
-        self.log.info("data received is : " + classified_result_data)
-        classified_result_data = ast.literal_eval(classified_result_data)
-        json_data = json.dumps(classified_result_data)
-        classified_result_data = json.loads(json_data)
-
+        classified_result_data = json.loads(classified_result_data)
+        # self.log.info("data received is : " + classified_result_data)
+        defect_types = []
         if 'defects' in classified_result_data:
-            if ast.literal_eval(classified_result_data['defects']):
-                # write_coil(regester address, bit value)
-                # bit value will be stored in the register address
-                # bit value is either 1 or 0
-                # 1 is on and 0 is off
-                self.modbus_client.write_coil(self.config["bit_register"], 1)
+            if classified_result_data['defects']:
+                classified_result_data['defects'] = ast.literal_eval(
+                    classified_result_data['defects'])
+
+                for i in classified_result_data['defects']:
+                    defect_types.append(i['type'])
+
+                if (1 in defect_types) or (2 in defect_types) or \
+                   (3 in defect_types) or (0 in defect_types):
+                    # write_coil(regester address, bit value)
+                    # bit value will be stored in the register address
+                    # bit value is either 1 or 0
+                    # 1 is on and 0 is off
+                    self.modbus_client.write_coil(
+                        self.config["bit_register"], 1)
 
     def reset_ctrl_cb(self, io_module_data):
         ''' Controls the Reset Button, i.e., once the reset
@@ -76,10 +83,8 @@ class YumeiApp:
         Argement: Data of io_module from influxdb
         Output: Turns off the Alarm Light
         '''
+        io_module_data = json.loads(io_module_data)
 
-        io_module_data = ast.literal_eval(io_module_data)
-        json_data = json.dumps(io_module_data)
-        io_module_data = json.loads(json_data)
         if (io_module_data[self.config["reset_button_in"]] == "false"):
             self.log.info("Reset Clicked")
             self.modbus_client.write_coil(self.config["bit_register"], 0)

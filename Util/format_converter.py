@@ -80,7 +80,7 @@ def lf_to_json_converter(data):
     # Removal of "i" added by influx,from the integer value
     variable = re.findall(r'[0-9]+i', final_data)
     for intValue in variable:
-            stripped_i = i.strip("i")
+            stripped_i = intValue.strip("i")
             final_data = final_data.replace(intValue, stripped_i)
     final_data = "{" + final_data + "}"
     return final_data
