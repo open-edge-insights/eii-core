@@ -1,8 +1,14 @@
 {
   "io_module_ip"    : "localhost",
   "io_module_port"  : "502",
-  "panel_light_out" : "do2",
   "robotic_arm_in"  : "di1",
   "reset_button_in" : "di6",
-  "bit_register"    :  20
+  "bit_register"    :  20,
+  "mqtt_broker"     : "localhost",
+  "cam_on_topic"    : "proj_1/gw_1/camera0",
+  "panel_light_1_port" : "ser:/dev/ttyS2",
+  "panel_light_1_bright" : "200",
+  "panel_light_2_port" : "ser:/dev/ttyS1",
+  "panel_light_2_bright" : "200"
+
 }

@@ -31,6 +31,10 @@ import ast
 import json
 import os
 
+import paho.mqtt.client as paho
+import SerialLightController
+from ret_codes import ReturnCodes
+
 
 class YumeiApp:
     '''This Class controls the robotic_arm, PanelLight,
@@ -42,6 +46,10 @@ class YumeiApp:
         self.args = args
         self.log = log
 
+        self.robotic_arm = False
+        # This is for lightController
+        self.lightcontroller = SerialLightController.SerialLightController()
+
         with open(args.config, 'r') as f:
             self.config = json.load(f)
 
@@ -49,6 +57,19 @@ class YumeiApp:
         self.port = self.config["io_module_port"]
         self.modbus_client = ModbusClient(
             self.ip, self.port, timeout=1, retry_on_empty=True)
+
+    def panel_light_ctrl(self, port, op, brightlevel):
+        self.log.info("light controllers: " + str(self.lightcontroller.controllers))
+        errorcode = self.lightcontroller.lightctrl(port, op, brightlevel)
+        self.log.info("LIGHT OPERATION COMPLETE WITH CODE: " + str(errorcode))
+        if errorcode == ReturnCodes.Good:
+            result = "Light control operation done!"
+            self.log.info(result)
+        else:
+            result = "Light control operation fails!"
+            self.log.info(result)
+        json_out = {"code": str(errorcode), "data": result}
+        return json_out
 
     def light_ctrl_cb(self, classified_result_data):
         ''' Controls the Alarm Light, i.e., alarm light turns on
@@ -77,7 +98,29 @@ class YumeiApp:
                     self.modbus_client.write_coil(
                         self.config["bit_register"], 1)
 
-    def reset_ctrl_cb(self, io_module_data):
+    def sendCamOnTrigger(self):
+        """
+            This will send Cam On Trigger Data to Mqtt
+        """
+        data = {"camera_on": 1}
+        json_data = json.dumps(data)
+        try:
+            self.client.publish(self.config["cam_on_topic"], payload=json_data, qos=1)
+        except Exception as e:
+            self.log.info("Exception Occured " + str(e))
+
+    def sendCamOffTrigger(self):
+        """
+            This will send Cam Off Trigger Data to Mqtt
+        """
+        data = {"camera_on": 0}
+        json_data = json.dumps(data)
+        try:
+            self.client.publish(self.config["cam_on_topic"], payload=json_data, qos=1)
+        except Exception as e:
+            self.log.info("Exception Occured " + str(e))
+
+    def onsubScribeIoModuleData(self, io_module_data):
         ''' Controls the Reset Button, i.e., once the reset
         button is clicked, alarm light turns off
         Argement: Data of io_module from influxdb
@@ -89,6 +132,36 @@ class YumeiApp:
             self.log.info("Reset Clicked")
             self.modbus_client.write_coil(self.config["bit_register"], 0)
 
+        if (io_module_data[self.config["robotic_arm_in"]] == "false" and not self.robotic_arm):
+            self.robotic_arm = True
+            self.log.info("Robotic Arm is On")
+            try:
+                panelLight = self.panel_light_ctrl([self.config["panel_light_1_port"],\
+                                                   self.config["panel_light_2_port"]],\
+                                                   "on", [self.config["panel_light_1_bright"],\
+                                                    self.config["panel_light_2_bright"]])
+                self.log.info(str(panelLight))
+            except Exception as e:
+                self.log.info("Exception Occured " + str(e))
+
+            self.sendCamOnTrigger()
+
+        if (io_module_data[self.config["robotic_arm_in"]] == "true" and self.robotic_arm):
+            self.robotic_arm = False
+            self.log.info("Robotic Arm is Off")
+
+            self.sendCamOffTrigger()
+
+            try:
+                panelLight = self.panel_light_ctrl([self.config["panel_light_1_port"],\
+                                                   self.config["panel_light_2_port"]],\
+                                                   "off",\
+                                                   [self.config["panel_light_1_bright"],\
+                                                   self.config["panel_light_2_bright"]])
+                self.log.info(str(panelLight))
+            except Exception as e:
+                self.log.info("Exception Occured " + str(e))
+
     def main(self):
         ''' Subscription to the required Streams
         in influxdb'''
@@ -98,10 +171,13 @@ class YumeiApp:
             self.log.info("Modbus connect on %s:%s returned %s" % (
                 self.ip, self.port, ret))
 
+            self.client = paho.Client("client-001")
+            self.client.connect(self.config["mqtt_broker"])
+
             streamSubLib = StreamSubLib()
             streamSubLib.init()
 
-            streamSubLib.Subscribe('module_io', self.reset_ctrl_cb)
+            streamSubLib.Subscribe('module_io', self.onsubScribeIoModuleData)
             streamSubLib.Subscribe('classifier_results', self.light_ctrl_cb)
         except Exception as e:
             self.log.info("Exception Occured" + str(e))
