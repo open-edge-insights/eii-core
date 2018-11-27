@@ -28,11 +28,13 @@ import os
 import requests
 import argparse
 import logging
+from threading import Condition, Thread
 from agent.etr_utils.log import configure_logging, LOG_LEVELS
 
 from DataAgent.da_grpc.client.py.client import GrpcClient
 path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../DataBusAbstraction/py"))
+dataBusPath = "../DataBusAbstraction/py"
+sys.path.append(os.path.join(os.path.dirname(path), dataBusPath))
 from DataBus import databus
 
 logging.basicConfig(level=logging.DEBUG,
@@ -42,6 +44,12 @@ logging.basicConfig(level=logging.DEBUG,
 
 logging.getLogger("opcua").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+filePath = os.path.abspath(os.path.dirname(__file__))
+ROOTCA_CERT = filePath + '/../Certificates/ca/ca_certificate.pem'
+CLIENT_CERT = filePath + '/../Certificates/client/' + \
+              'client_certificate.pem'
+CLIENT_KEY = filePath + '/../Certificates/client/client_key.pem'
 
 
 class EtaDataSync:
@@ -106,7 +114,8 @@ class EtaDataSync:
             # provide the hostname/ip addr of the m/c
             # where DataAgent module of ETA solution is running
             grpc_host = self.config['databus_host']
-            client = GrpcClient(hostname=grpc_host)
+            client = GrpcClient(CLIENT_CERT, CLIENT_KEY, ROOTCA_CERT,
+                                hostname=grpc_host)
             outputBytes = client.GetBlob(key)
             return outputBytes
         except Exception as e:
@@ -152,7 +161,8 @@ class EtaDataSync:
                 logger.info("Message: %s", msg)
                 classifier_results = json.loads(msg)
                 classifier_visualhmi_dict =\
-                    self.ConvertClassfierDatatoVisualHmiData(classifier_results)
+                    self.ConvertClassfierDatatoVisualHmiData(
+                        classifier_results)
                 self.writeImageToDisk(classifier_results["ImgHandle"],
                                       classifier_results["image_id"])
                 self.databus_data['part_id'] =\
@@ -176,11 +186,20 @@ class EtaDataSync:
             self.config["hmi_image_folder"] =\
                 self.config["hmi_image_folder"] + "/"
 
+        filePath = os.path.abspath(os.path.dirname(__file__))
+        certFile = filePath + "/../Certificates/client/client0_cert.der"
+        privateFile = filePath + "/../Certificates/client/client0_key.der"
+        trustFile = filePath + "/../Certificates/ca/ca_cert.der"
+
+        print("Filepath: {}".format(filePath))
         contextConfig = {"endpoint": "opcua://" +
                          self.config['databus_host'] + ":" +
                          self.config['databus_port'],
                          "direction": "SUB",
-                         "name": "streammanager"}
+                         "name": "streammanager",
+                         "certFile": certFile,
+                         "privateFile": privateFile,
+                         "trustFile": trustFile}
         try:
             etadbus = databus()
             etadbus.ContextCreate(contextConfig)
@@ -225,21 +244,24 @@ if __name__ == "__main__":
 
     configure_logging(args.log.upper(), logFileName, args.log_dir)
 
-    while True:
+    condition = Condition()
+    try:
+        etaDataSync = EtaDataSync().main(args)
+    except Exception as e:
+        logger.error("Exception: %s", str(e))
+        if "refused" in e.message:
+            logger.error("Retrying to establish connection with opcua \
+                            server...")
+            time.sleep(10)
+    except KeyboardInterrupt:
+        logger.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
+                        down now !!!")
         try:
-            etaDataSync = EtaDataSync().main(args)
+            etaDataSync.ContextDestroy()
         except Exception as e:
-            logger.error("Exception: %s", str(e))
-            if "refused" in e.message:
-                logger.error("Retrying to establish connection with opcua \
-                             server...")
-                time.sleep(10)
-        except KeyboardInterrupt:
-            logger.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
-                         down now !!!")
-            try:
-                etaDataSync.ContextDestroy()
-            except Exception as e:
-                logger.error("Exiting..")
+            logger.error("Exiting..")
+        condition.notifyAll()
 
-            os._exit(1)
+    with condition:
+        condition.wait()
+        os._exit(1)

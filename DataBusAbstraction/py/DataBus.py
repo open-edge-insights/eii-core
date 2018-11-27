@@ -23,7 +23,7 @@ SOFTWARE.
 from DataBusMqtt import databMqtt
 from DataBusOpcua import databOpcua
 from DataBusNats import databNats
-from Queue import Queue
+from queue import Queue
 from threading import Thread, Lock
 from threading import Event
 import logging
@@ -54,9 +54,20 @@ def worker(topic, qu, ev, fn):
             pass
     return
 
+# TODO: This library needs to be architected well to have an
+# interface which needs to be implemented by it's sub-classes
+
 
 class databus:
     '''Creates an instance of databus'''
+
+    def __init__(self):
+        self.busType = None
+        self.direction = "NONE"
+        self.pubTopics = {}
+        self.subTopics = {}
+        self.bus = None
+        self.mutex = Lock()
 
     def ContextCreate(self, contextConfig):
         '''Create an underlying messagebus context for the databus
@@ -69,9 +80,12 @@ class databus:
                 "endpoint": messagebus endpoint address
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
-                    OPCUA -> opcua://0.0.0.0:65003/elephanttrunk/
+                    OPCUA -> opcua://0.0.0.0:4840/
                     MQTT -> mqtt://localhost:1883/
                     NATS -> nats://127.0.0.1:4222/
+                "certFile"   : server/client certificate file
+                "privateFile": server/client private key file
+                "trustFile"  : ca cert used to sign server/client cert
         Return/Exception: Will raise Exception in case of errors'''
 
         try:
@@ -178,8 +192,9 @@ class databus:
                         qu = Queue()
                         ev = Event()
                         ev.clear()
-                        th = Thread(target=worker, args=(topicConfig["name"],
-                                                         qu, ev, cb))
+                        th = Thread(target=worker,
+                                    args=(topicConfig["name"],
+                                          qu, ev, cb))
                         th.deamon = True
                         th.start()
                         self.subTopics[topicConfig["name"]]["queue"] = qu
@@ -213,7 +228,7 @@ class databus:
         try:
             self.mutex.acquire()
             try:
-                # self.bus.stopTopic()
+                self.bus.stopTopic()
                 for key, item in self.subTopics.items():
                     self.bus.receive(key, "STOP")
                     self.subTopics[key]["queue"].join()
@@ -236,11 +251,3 @@ class databus:
                 return True
             else:
                 return False
-
-    def __init__(self):
-        self.busType = None
-        self.direction = "NONE"
-        self.pubTopics = {}
-        self.subTopics = {}
-        self.bus = None
-        self.mutex = Lock()

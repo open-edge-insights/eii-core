@@ -20,9 +20,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from opcua import ua, Server, Client
-import time
 import logging
+import open62541W
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \
@@ -32,26 +31,25 @@ logging.getLogger("opcua").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 
-class subHandler(object):
-    '''cb object on message arrival'''
+# TODO: This brings in a limitation of multiple different contexts
+# if one wants to receive the callbacks registered for different
+# streams from a single process. Need to implement this similar to
+# StreamSubLib
+func = None
+gQueue = None
 
-    def datachange_notification(self, node, val, data):
-        if not self.ignore_notification:
-            self.queue.put(val)
-        else:
-            # Only ignore first notification
-            self.ignore_notification = False
 
-    def event_notification(self, event):
-        logger.info("Event: {}".format(event))
-
-    def __init__(self, queue):
-        self.queue = queue
-        self.ignore_notification = True
+def cbFunc(topic, msg):
+    gQueue.put(msg)
 
 
 class databOpcua:
     '''Creates and manages a databus OPCUA context'''
+
+    def __init__(self):
+        self.nsIndex = None
+        self.direction = None
+        self.namespace = None
 
     def createContext(self, contextConfig):
         '''Creates a new messagebus context
@@ -64,48 +62,66 @@ class databOpcua:
                 "endpoint": messagebus endpoint address
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
-                    OPCUA -> opcua://0.0.0.0:65003/elephanttrunk/
-                    MQTT -> mqtt://localhost:1883/
-                    NATS -> nats://127.0.0.1:4222/
+                    OPCUA -> opcua://0.0.0.0:65003
+                    MQTT -> mqtt://localhost:1883
+                    NATS -> nats://127.0.0.1:4222
+                "certFile"   : server/client certificate file
+                "privateFile": server/client private key file
+                "trustFile"  : ca cert used to sign server/client cert
         Return/Exception: Will raise Exception in case of errors'''
 
         self.direction = contextConfig["direction"]
         if self.direction == "PUB":
             # Create default endpoint protocol for opcua from given endpoint
             endpoint = contextConfig["endpoint"]
-            endpoint = "opc.tcp://" + endpoint.split('//')[1]
+            self.namespace = contextConfig["name"]
+
+            hostPortPath = endpoint.split('//')[1]
+            endpoint = "opc.tcp://" + hostPortPath
             logger.info("PUB:: {}".format(endpoint))
-            try:
-                # TODO: For now no checking for existing server;
-                # Always assumes new server for new context
-                self.server = Server()
-                self.server.set_endpoint(endpoint)
-                # TODO: Check for existing namespace in same name
-                self.ns = self.server.register_namespace(contextConfig["name"])
-                self.server.start()
-                self.objNode = self.server.get_objects_node()
-            except Exception as e:
-                logger.error("{} Failure!!!".format(
-                    self.createContext.__name__))
-                raise
+
+            hostPort = hostPortPath.split('/')[0]
+            host = hostPort.split(':')[0]
+            port = int(hostPort.split(':')[1])
+
+            certFile = contextConfig["certFile"]
+            privateFile = contextConfig["privateFile"]
+            trustFiles = [contextConfig["trustFile"]]
+            errMsg = open62541W.py_serverContextCreate(host,
+                                                       port,
+                                                       certFile,
+                                                       privateFile,
+                                                       trustFiles)
+            pyErrorMsg = errMsg.decode()
+            if pyErrorMsg != "0":
+                logger.error("py_serverContextCreate() API failed!")
+                raise Exception(pyErrorMsg)
         elif self.direction == "SUB":
             # Create default endpoint protocol for opcua from given endpoint
             endpoint = contextConfig["endpoint"]
-            endpoint = "opc.tcp://" + endpoint.split('//')[1]
-            self.endpoint = endpoint
+            self.namespace = contextConfig["name"]
+
+            hostPortPath = endpoint.split('//')[1]
+            endpoint = "opc.tcp://" + hostPortPath
             logger.info("SUB:: {}".format(endpoint))
-            try:
-                # Connect to server
-                self.client = Client(endpoint)
-                self.client.connect()
-                # TODO: Can we avoid/delay the exception if no such namespace?
-                self.ns = self.client.get_namespace_index(
-                    contextConfig["name"])
-                self.objNode = self.client.get_objects_node()
-            except Exception as e:
-                logger.error("{} Failure!!!".format(
-                    self.createContext.__name__))
-                raise
+
+            hostPort = hostPortPath.split('/')[0]
+            host = hostPort.split(':')[0]
+            port = int(hostPort.split(':')[1])
+
+            certFile = contextConfig["certFile"]
+            privateFile = contextConfig["privateFile"]
+            trustFiles = [contextConfig["trustFile"]]
+            trustFiles = [contextConfig["trustFile"]]
+            errMsg = open62541W.py_clientContextCreate(host,
+                                                       port,
+                                                       certFile,
+                                                       privateFile,
+                                                       trustFiles)
+            pyErrorMsg = errMsg.decode()
+            if pyErrorMsg != "0":
+                logger.error("py_clientContextCreate() API failed!")
+                raise Exception(pyErrorMsg)
         else:
             raise Exception("Wrong Bus Direction!!!")
 
@@ -120,56 +136,17 @@ class databOpcua:
         Return/Exception: Will raise Exception in case of errors'''
 
         if self.direction == "PUB":
-            # objs = self.server.get_objects_node()
-            # Search and create the topic as object
-            obj_itr = self.objNode
-            topic_ls = topicConfig["name"].split("/")
-            for topic in topic_ls[0:]:
-                try:
-                    child = obj_itr.get_child("{}:{}".format(self.ns, topic))
-                except Exception as e:
-                    if type(e).__name__ == "BadNoMatch":
-                        child = obj_itr.add_object(self.ns, topic)
-                    else:
-                        logger.error("{} Failure!!!".format(
-                            self.startTopic.__name__))
-                        raise
-                obj_itr = child
-            try:
-                # TODO: For now only String type
-                var = obj_itr.add_variable(self.ns, "{}_var".format(
-                    topic_ls[-1]), "NONE", ua.VariantType.String)
-                var.set_writable()
-            except Exception as e:
-                logger.error("{} Failure!!!".format(self.startTopic.__name__))
-                raise
-            # TODO: Convert into opcua type
-            self.pubElements[topicConfig["name"]] = {
-                                                "node": var,
-                                                "type": topicConfig["type"]
-                                                }
+            self.nsIndex = open62541W.py_serverStartTopic(self.namespace,
+                                                          topicConfig["name"])
+            if self.nsIndex == 100:
+                logger.error("py_serverStartTopic() API failed!")
+                raise Exception("Topic creation failed!")
         elif self.direction == "SUB":
-            # TODO: For now raise exception for non-existing server vars
-            # We could avoid this exception by a polling mechanism till such
-            # vars appear in server. But thats for later, may be
-            topic_ls = topicConfig["name"].split("/")
-            for idx, item in enumerate(topic_ls):
-                topic_ls[idx] = "{}:{}".format(self.ns, item)
-            topic_ls.append("{}_var".format(topic_ls[-1]))
-            logger.info("Topic list: {}".format(topic_ls))
-            self.subElements[topicConfig["name"]] = {
-                                                "node": None,
-                                                "type": None
-                                                }
-            # TODO: Convert into opcua type
-            self.subElements[topicConfig["name"]]["type"] = topicConfig["type"]
-            try:
-                self.subElements[topicConfig["name"]]["node"] = \
-                    self.objNode.get_child(topic_ls)
-                # TODO: Compare data type
-            except Exception as e:
-                logger.error("{} Failure!!!".format(self.startTopic.__name__))
-                raise
+            self.nsIndex = open62541W.py_clientStartTopic(self.namespace,
+                                                          topicConfig["name"])
+            if self.nsIndex == 100:
+                logger.error("py_clientStartTopic() API failed!")
+                raise Exception("Topic creation failed!")
         else:
             raise Exception("Wrong Bus Direction!!!")
 
@@ -184,7 +161,12 @@ class databOpcua:
             # TODO: Support for different data types
             if type(data) == str:
                 try:
-                    self.pubElements[topic]["node"].set_value(data)
+                    errMsg = open62541W.py_serverPublish(self.nsIndex, topic,
+                                                         data)
+                    pyErrorMsg = errMsg.decode()
+                    if pyErrorMsg != "0":
+                        logger.error("py_serverPublish() API failed!")
+                        raise Exception(pyErrorMsg)
                 except Exception as e:
                     logger.error("{} Failure!!!".format(self.send.__name__))
                     raise
@@ -193,7 +175,7 @@ class databOpcua:
         else:
             raise Exception("Wrong Bus Direction!!!")
 
-    def receive(self, topic, trig, queue=None):
+    def receive(self, topic, trig, queue):
         '''Subscribe data from the topic
         Arguments:
             topic: topic name as in the topicConfig
@@ -201,33 +183,18 @@ class databOpcua:
             queue: A queue to which the message should be pushed on arrival
         Return/Exception: Will raise Exception in case of errors'''
 
-        if (self.direction == "SUB") and (trig == "START") and (queue is not
-                                                                None):
-            # TODO: pass the queue
-            handler = subHandler(queue)
-            try:
-                # TODO: Handle multiple subscription to same topic
-                self.subElements[topic]["sub"] = \
-                    self.client.create_subscription(250, handler)
-                self.subElements[topic]["handle"] = \
-                    self.subElements[topic]["sub"].subscribe_data_change(
-                                    self.subElements[topic]["node"])
-                while True:
-                    self._check_opcua_server_health()
-                    time.sleep(2)
-            except Exception as e:
-                logger.error("{} Failure!!!".format(self.receive.__name__))
-                raise
+        if (self.direction == "SUB") and (trig == "START"):
+            global gQueue
+            gQueue = queue
+            nsIndex = self.nsIndex
+            errMsg = open62541W.py_clientSubscribe(nsIndex, topic, cbFunc)
+            pyErrorMsg = errMsg.decode()
+            if pyErrorMsg != "0":
+                logger.error("py_clientSubscribe() API failed!")
+                raise Exception(pyErrorMsg)
         elif (self.direction == "SUB") and (trig == "STOP"):
-            try:
-                self.subElements[topic]["sub"].unsubscribe(
-                                self.subElements[topic]["handle"])
-                self.subElements[topic]["sub"].delete()
-                self.subElements[topic]["handle"] = None
-                self.subElements[topic]["sub"] = None
-            except Exception as e:
-                logger.error("{} Failure!!!".format(self.receive.__name__))
-                raise
+            # TODO: To be implemented - stop subscription
+            pass
         else:
             raise Exception("Wrong Bus Direction or Trigger!!!")
 
@@ -236,8 +203,7 @@ class databOpcua:
         Arguments:
             topicConfig<dict>: Topic parameters
                 <fields>
-                "name": Topic name (in hierarchical form with '/' as delimiter)
-                    <example> "root/level1/level2/level3"
+                "name": Topic name
                 "type": Data type associated with the topic
         Return/Exception: Will raise Exception in case of errors'''
 
@@ -248,14 +214,15 @@ class databOpcua:
         #    topic_ls = topic.split("/")
         #    for topic in topic_ls[0:]:
         #        try:
-        #            child = obj_itr.get_child("{}:{}".format(self.ns, topic))
+        #            child = obj_itr.get_child("{}:{}".format(self.nsIndex,
+        #                                                      topic))
         #        except Exception as e:
         #            print(type(e).__name__)
         #            return
         #        obj_itr = child
         #    # Now get & delete the variable object
-        #    var = obj_itr.get_child("{}:{}".format(self.ns,
-        #                                               "{}_var".format(topic_ls[-1])))
+        #    var = obj_itr.get_child("{}:{}".format(self.nsIndex,
+        #                                       "{}_var".format(topic_ls[-1])))
         #    # delete the var & object
         #    var.delete()
 
@@ -267,17 +234,12 @@ class databOpcua:
 
         if self.direction == "PUB":
             logger.info("OPCUA Server Stopping...")
-            try:
-                self.server.stop()
-            except Exception as e:
-                logger.error("{} Failure!!!".format(
-                    self.destroyContext.__name__))
-                raise
+            open62541W.py_serverContextDestroy()
             logger.error("OPCUA Server Stopped")
         elif self.direction == "SUB":
             try:
                 logger.info("OPCUA Client Disconnecting...")
-                self.client.disconnect()
+                open62541W.py_clientContextDestroy()
                 logger.info("OPCUA Client Disconnected")
             except Exception as e:
                 logger.error("{} Failure!!!".format(
@@ -285,22 +247,3 @@ class databOpcua:
                 raise
         else:
             raise Exception("Wrong Bus Direction!!!")
-
-    def _check_opcua_server_health(self):
-        try:
-            client = Client(self.endpoint)
-            client.connect()
-        except Exception as ex:
-            logger.error("Not able to connect to opcua server. \
-                         Exception: {}".format(ex))
-            client.disconnect()
-            raise ex
-        finally:
-            client.disconnect()
-
-    def __init__(self):
-        self.server = None
-        self.objNode = None
-        self.ns = None
-        self.subElements = {}
-        self.pubElements = {}

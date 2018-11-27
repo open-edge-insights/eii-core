@@ -33,21 +33,20 @@ import da_pb2 as da_pb2
 import da_pb2_grpc as da_pb2_grpc
 
 
-ROOTCA_CERT = 'Certificates/ca/ca_certificate.pem'
-CLIENT_CERT = 'Certificates/client/client_certificate.pem'
-CLIENT_KEY = 'Certificates/client/client_key.pem'
-
-
 class GrpcClient(object):
 
-    def __init__(self, hostname="localhost", port="50051"):
+    def __init__(self, clientCert, clientKey,
+                 caCert, hostname="localhost", port="50051", ):
         """
             GrpcClient constructor.
             Keyword Arguments:
-            hostname - refers to hostname/ip address of the m/c
-                       where DataAgent module of ETA is running
-                       (default: localhost)
-            port     - refers to gRPC port (default: 50051)
+            hostname   - refers to hostname/ip address of the m/c
+                         where DataAgent module of ETA is running
+                         (default: localhost)
+            port       - refers to gRPC port (default: 50051)
+            clientCert - client certificate
+            clientKey  - client key
+            caCert     - ca certificate used for signing client cert
         """
         self.hostname = hostname
         self.port = port
@@ -56,18 +55,18 @@ class GrpcClient(object):
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing Secure GRPC channel to %s", addr)
 
-        with open(ROOTCA_CERT, 'rb') as f:
+        with open(caCert, 'rb') as f:
             ca_certs = f.read()
 
-        with open(CLIENT_KEY, 'rb') as f:
+        with open(clientKey, 'rb') as f:
             client_key = f.read()
 
-        with open(CLIENT_CERT, 'rb') as f:
+        with open(clientCert, 'rb') as f:
             client_certs = f.read()
 
         try:
-            credentials = grpc.ssl_channel_credentials(\
-                root_certificates=ca_certs, private_key=client_key,\
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=ca_certs, private_key=client_key,
                 certificate_chain=client_certs)
 
         except Exception as e:

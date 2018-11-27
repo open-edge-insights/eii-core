@@ -11,37 +11,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
-	"bufio"
+	databus "ElephantTrunkArch/DataBusAbstraction/go"
 	"flag"
 	"fmt"
-	databus "ElephantTrunkArch/DataBusAbstraction/go"
 	"os"
+	"time"
 )
 
 /*
 endpoint:
 <examples>
-	OPCUA -> opcua://0.0.0.0:65003/elephanttrunk/
-	MQTT -> mqtt://localhost:1883/
-	NATS -> nats://127.0.0.1:4222/
+	OPCUA -> opcua://localhost:4840
+	MQTT -> mqtt://localhost:1883
+	NATS -> nats://127.0.0.1:4222
 */
-
-func cbFunc(topic string, msg interface{}) {
-	fmt.Println("Received msg: " + msg.(string) + " on topic: " + topic)
-}
-
-//Custom flag var
-type topicType []string
-
-func (t *topicType) String() string {
-	return fmt.Sprintf("%s", *t)
-}
-
-func (t *topicType) Set(value string) error {
-	fmt.Printf("%s\n", value)
-	*t = append(*t, value)
-	return nil
-}
 
 func errHandler() {
 	if r := recover(); r != nil {
@@ -51,23 +34,35 @@ func errHandler() {
 	}
 }
 
+func cbFunc(topic string, msg interface{}) {
+	fmt.Println("Received msg: " + msg.(string) + " on topic: " + topic)
+}
+
 func main() {
+
 	endPoint := flag.String("endpoint", "", "Provide the message bus details")
 	direction := flag.String("direction", "", "One of PUB/SUB")
+	certFile := flag.String("certFile", "", "provide server or client certificate file path as value")
+	privateFile := flag.String("privateFile", "", "provide server or client private key file pathas value")
+	trustFile := flag.String("trustFile", "", "provide ca cert file path as value")
+
 	ns := flag.String("ns", "", "namespace")
-	var topics topicType
-	flag.Var(&topics, "topic", "List of topics")
-	msg := flag.String("msg", "", "Message to send")
+	topic := flag.String("topic", "", "topic name")
 
 	flag.Parse()
-	//for glog
+
 	flag.Lookup("logtostderr").Value.Set("true")
 	flag.Lookup("log_dir").Value.Set("/var/log")
+
 	//now start the tests
 	contextConfig := map[string]string{
-		"endpoint":  *endPoint,
-		"direction": *direction,
-		"name":      *ns,
+		"endpoint":    *endPoint,
+		"direction":   *direction,
+		"name": 		*ns,
+		"certFile":    *certFile,
+		"privateFile": *privateFile,
+		"trustFile":   *trustFile,
+		
 	}
 
 	defer errHandler()
@@ -75,74 +70,33 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	err = etaDatab.ContextCreate(contextConfig)
 	if err != nil {
 		panic(err)
 	}
-	flag := "NONE"
+
+	fmt.Println("Direction..", *direction)
 	if *direction == "PUB" {
-		for _, t := range topics {
-			topicConfig := map[string]string{
-				"name": t,
-				"type": "string",
-			}
-			etaDatab.Publish(topicConfig, *msg)
+		topicConfig := map[string]string{
+			"name": *topic,
+			"type": "string",
+		}
+		for i := 0; i < 20; i++ {
+			time.Sleep(5 * time.Second)
+			result := fmt.Sprintf("%s %d", "Hello ", i)
+			etaDatab.Publish(topicConfig, result)
 		}
 	} else if *direction == "SUB" {
-		for _, t := range topics {
-			topicConfig := map[string]string{
-				"name": t,
-				"type": "string",
-			}
-			etaDatab.Subscribe(topicConfig, "START", cbFunc)
-		}
-		flag = "START"
-	} else {
-		panic("Wrong direction argument")
+		panic("SUB APIs not integrated")
+		// topicConfig := map[string]string{
+		// 	"name": *topic,
+		// 	"type": "string",
+		// }
+		// etaDatab.Subscribe(topicConfig, "START", cbFunc)
+		// for true {
+		// 	time.Sleep(10 * time.Second)
+		// }
 	}
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
-	for scanner.Scan() {
-		text := scanner.Text()
-		if *direction == "PUB" {
-			if text == "TERM" {
-				etaDatab.ContextDestroy()
-				break
-			} else if text == "START" || text == "STOP" {
-				fmt.Println("Not a valid CMD in PUB context!")
-			} else {
-				for _, t := range topics {
-					topicConfig := map[string]string{
-						"name": t,
-						"type": "string",
-					}
-					etaDatab.Publish(topicConfig, text)
-				}
-			}
-		} else if *direction == "SUB" {
-			if text == "TERM" {
-				etaDatab.ContextDestroy()
-				break
-			} else if text == "STOP" && flag == "START" {
-				for _, t := range topics {
-					topicConfig := map[string]string{
-						"name": t,
-						"type": "string",
-					}
-					etaDatab.Subscribe(topicConfig, "STOP", nil)
-				}
-				flag = "STOP"
-			} else if text == "START" && flag == "STOP" {
-				for _, t := range topics {
-					topicConfig := map[string]string{
-						"name": t,
-						"type": "string",
-					}
-					etaDatab.Subscribe(topicConfig, "START", cbFunc)
-				}
-				flag = "START"
-			}
-		}
-		fmt.Print("Enter CMDs['START', 'STOP', 'TERM']/MSG: ")
-	}
+	etaDatab.ContextDestroy()
 }

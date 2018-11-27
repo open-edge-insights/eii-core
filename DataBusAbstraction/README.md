@@ -5,44 +5,90 @@ Currently supported messagebus:
 1. OPCUA
 2. MQTT
 
-## Dependencies:
-1. OPCUA
-   * python2.7 (for python + golang)
-   * Install databus_requirements.txt (for python + golang) by running cmd: `sudo -H pip2.7 install -r databus_requirements.txt`
-   * go-python (golang) - Clone the a locally maintained [go-python repository](https://github.intel.com/ElephantTrunkArch/go-python) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
-2. MQTT
+## Dependencies:   
+1. MQTT
    * paho-mqtt (python)
    * eclipse/paho.mqtt.golang (golang)
 
 ## How to Test from $GOPATH/src/ElephantTrunkArch - present working directory:
-A test program is available under ./go/test/ and ./py/test/
-1. ./py/test/
-   * Template for publish:
-     * To start the publication test
-     ```sh
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint <address> --direction PUB --ns <a name> --topic <list of topics> --msg <Message to send>
+A test program is available under ./go/test/ and ./py/test/ and only works for `OPCUA` now, `MQTT` channel needs to be tested and a generic test program would be provided soon.
 
-     examples:
+1. **`./py/test/`**
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/ --direction PUB --ns streammanager --topic classifier_results --msg TESTMESSAGE
+### Compilation steps (current directory: <repo>/DataBusAbstraction/go/test):
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint mqtt://localhost:1883/ --direction PUB --ns streammanager --topic classifier_results --msg TESTMESSAGE
-     ```
-     * Anything typed after the above step is considered as a message to transfer, except string 'TERM'
-     * To end testing type 'TERM'
+#### For building the `open62541W.so` and `open62541W.c` files:
 
-   * Template for subscribe:
-     * To start the subscription test
-     ```sh
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint <address> --direction SUB --ns <a name> --topic <list of topics>
+  ```sh
+  make build
+  ```
 
-     examples:
+#### Start server, publish and destroy 
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://localhost:65003/ --direction SUB --ns streammanager --topic classifier_results
+  ```sh
+  make pub
+  ```
 
-     python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint mqtt://localhost:1883/ --direction SUB --ns streammanager --topic classifier_results
-     ```
-     * Type "STOP" to stop all subscriptions
-     * Type "START" to start all subscriptions again
-     * Type "TERM" to end testing
-2. ./go/test (TODO)
+#### Start client, subscribe and destroy
+
+1. Passing the same ca_cert.der that was used to sign the server certificate used for
+   started the server above
+
+  ```sh
+  make sub
+  ```
+
+2. Passing the different ca_cert.der that was `not` used to sign the server certificate used for
+   started the server above
+
+  ```sh
+  make invalid_sub
+  ```
+
+#### Remove all binaries/object files
+
+  ```sh
+  make clean
+  ```
+
+2. ./go/test/
+### Compilation steps (current directory: <repo>/DataBusAbstraction/go/test):
+
+#### For building the `libopen62541W.a` and `test/DataBusTest.go` files:
+
+  ```sh
+  make build
+  ```
+
+#### Start server, publish and destroy 
+
+  ```sh
+  make pub
+  ```
+
+#### Start client, subscribe and destroy
+
+> **Note**: This subscription part is not integrated with DataBusAbstraction
+
+1. Passing the same ca_cert.der that was used to sign the server certificate used for
+   started the server above
+
+  ```sh
+  make sub
+  ```
+
+2. Passing the different ca_cert.der that was `not` used to sign the server certificate used for
+   started the server above
+
+  ```sh
+  make invalid_sub
+  ```
+
+#### Remove all binaries/object files
+
+  ```sh
+  make clean
+  ```
+
+
+   

@@ -17,7 +17,7 @@ Currently supported messagebus:
 A test program is available under ./py/test/examples/
   * Start OPCUA message bus client to listen on topic `classifier_results` by running below cmd in another terminal
   ```
-  python2.7 databus_client.py --endpoint opcua://localhost:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results
+  python2.7 databus_client.py --endpoint opcua://localhost:4840/elephanttrunk --direction SUB --ns streammanager --topic classifier_results
   ```
   * Type "STOP" to stop all subscriptions
   * Type "START" to start all subscriptions again

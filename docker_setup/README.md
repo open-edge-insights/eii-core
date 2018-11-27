@@ -72,8 +72,6 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-6. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [go-python repository](https://github.intel.com/ElephantTrunkArch/go-python) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
-
 7. [**`Ubuntu and ClearLinux`**] Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
 8. [**`Ubuntu and ClearLinux`**] It is good to stop and remove all previous containers started via docker script way by running below commands:
@@ -112,14 +110,14 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
           ENV https_proxy http://proxy.iind.intel.com:911
         ```
 
-2. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
+2. Run VisualHmi client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
-   ```sh
-   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. 
-   ```
-   
+    ```sh
+    python3.6 VisualHmiClient/VisualHmiEtaDataSync.py -local <path_where_images> -c VisualHmiClient/config.json
+    ```
+    
    **Note**:
-   * Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
+   * Run cmd: `sudo -H pip3.6 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
    * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before starting `compose_startup.sh` script:
      * [config/DataAgent.conf](config/DataAgent.conf)
      * [.env](.env)
@@ -211,12 +209,12 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
 4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
-   ```sh
-   python2.7 DataBusAbstraction/py/test/DataBusTest.py --endpoint opcua://0.0.0.0:65003/elephanttrunk --direction SUB --ns streammanager --topic classifier_results`. **Note**: The databus_requirements.txt and DataBusTest.py exist in the ElephantTrunkArch-elephanttrunkarch repo
-   ```
+    ```sh
+    python3.6 VisualHmiClient/VisualHmiEtaDataSync.py -local <path_where_images> -c VisualHmiClient/config.json
+    ```
    
   **Note**:
-   * Run cmd: `sudo -H pip2.7 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
+   * Run cmd: `sudo -H pip3.6 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
    * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before install `eta.service`:
      * [config/DataAgent.conf](config/DataAgent.conf)
      * [.env](.env)

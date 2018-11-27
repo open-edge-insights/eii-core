@@ -5,22 +5,36 @@ WORKDIR /eta
 
 ENV no_proxy localhost
 
-RUN apt-get update -qq
-RUN apt-get install -y --no-install-recommends --fix-missing python python-pip libgtk2.0-dev && \
-    pip install --upgrade pip setuptools
+RUN apt-get update
+RUN apt-get install -y software-properties-common
+RUN apt-get install -y pkg-config python python-pip
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install -y python3.6 python3.6-dev wget
+
+ENV TERM xterm
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3.6 get-pip.py
 
 ADD VisualHmiClient/requirements.txt ./VisualHmiClient/requirements.txt
 RUN pip install -r VisualHmiClient/requirements.txt
 
+# tls, crypto library needs to open62541
+RUN apt-get install -y libmbedtls-dev
+
+ADD DataBusAbstraction/ DataBusAbstraction/
+
+# Build the opent62541W.so file
+RUN cd /eta/DataBusAbstraction/py/test && make build
 ADD agent/__init__.py agent/__init__.py
+ADD Certificates/ Certificates/
 ADD agent/etr_utils agent/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
-ADD DataBusAbstraction/ DataBusAbstraction/
 ADD DataAgent/ DataAgent/
 ADD Util/ Util/
 
 ENV PYTHONPATH $PYTHONPATH:/eta/DataBusAbstraction/py:/eta
 ENV PYTHONIOENCODING UTF-8
 
-ENTRYPOINT [ "python2.7", "VisualHmiClient/VisualHmiEtaDataSync.py"]
+ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiEtaDataSync.py"]
 CMD ["-c", "VisualHmiClient/config.json"]

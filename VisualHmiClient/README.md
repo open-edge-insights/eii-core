@@ -7,13 +7,20 @@ VisualHMI starts subscribing on databus topic (`classifier_results`) to get the 
 Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHandle)` from DataAgent module and persist the image in VisualHMI local filesystem.
 
 > **Note**:
-> * VisualHMI runs only on Python2.7 as our OPCUA Databus Client have support for python2.7 only at present.
+> * VisualHMI runs only on python3.6 as our OPCUA Databus Client have support for python3.6 only at present.
 
 ## Pre-requisites:
 
 * Please make sure that the below libraries availability. (either in `ElephantTrunkArch` or yourfolder)
   * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `ElephantTrunkArch` repo)
   * GRPC Client wrapper (`client.py` and protobuff files:
+  * For using python DatabusAbstraction py library, run the below steps:
+    ```sh
+    cd <repo>/DataBusAbstraction/py/test
+    make build
+    ```
+    This generates `open62541W.so` in `<repo>/DataBusAbstraction/py/test` folder and also copies the same to `<repo>/DataBusAbstraction/py`.
+    This is very much needed for all opcua clients who use python DataBusAbstraction APIs
 
 **VisualHMIClient Can be run two Modes**
     * 1. Production Mode - Docker Based Containers
@@ -100,18 +107,18 @@ Also, VisualHMIClient gets the image blob from the gRPC interface `GetBlob(imgHa
 * Install VisualHmiClient dependencies:
 
   ```sh
-    pip2.7 install -r requirements.txt
+    pip3.6 install -r requirements.txt
   ```
 
 * Running VisualHMI on Host (BareMetal - Not Recommnedded for Factory):
   ```sh
-    python2.7 VisualHmiEtaDataSync.py -local <path to store image locally>
+    python3.6 VisualHmiEtaDataSync.py -local <path to store image locally>
   ```
 
 * Running VisualHMI without HMI Backend (For Testing)
 
   ```sh
-    python2.7 VisualHmiEtaDataSync.py -local <path to store image locally>
+    python3.6 VisualHmiEtaDataSync.py -local <path to store image locally>
   ```
 
 > **Note**:

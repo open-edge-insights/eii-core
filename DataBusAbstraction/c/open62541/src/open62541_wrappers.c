@@ -1,3 +1,13 @@
+/*
+Copyright (c) 2018 Intel Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include "open62541_wrappers.h"
 
 #define FAILURE 100
@@ -5,27 +15,30 @@
 #define ENDPOINT_SIZE 100
 #define NAMESPACE_SIZE 100
 #define TOPIC_SIZE 100
-#define PUBLISH_DATA_SIZE 200
-#define ERROR_MSG_SIZE 50
+#define PUBLISH_DATA_SIZE 1024*1024
+#define ERROR_MSG_SIZE 100
+
 
 // logger global varaibles
-UA_Logger logger = UA_Log_Stdout;
-char errorMsg[ERROR_MSG_SIZE];
+static UA_Logger logger = UA_Log_Stdout;
+static char errorMsg[ERROR_MSG_SIZE];
 
 // opcua server global variables
-UA_Server *server = NULL;
-UA_ServerConfig *serverConfig;
-UA_ByteString* remoteCertificate = NULL;
-UA_Boolean serverRunning = true;
+static UA_Server *server = NULL;
+static UA_ServerConfig *serverConfig;
+static UA_ByteString* remoteCertificate = NULL;
+static UA_Boolean serverRunning = true;
 
 // opcua client global variables 
-UA_Client *client = NULL;
-UA_ClientConfig clientConfig;
-char lastSubscribedTopic[TOPIC_SIZE] = "";
-char lastNamespace[NAMESPACE_SIZE] = "";
-char endpoint[ENDPOINT_SIZE];
-callback userCallback;
-char dataToPublish[PUBLISH_DATA_SIZE];
+static UA_Client *client = NULL;
+static UA_ClientConfig clientConfig;
+static char lastSubscribedTopic[TOPIC_SIZE] = "";
+static char lastNamespace[NAMESPACE_SIZE] = "";
+static int lastNamespaceIndex = FAILURE;
+static char endpoint[ENDPOINT_SIZE];
+static c_callback userCallback;
+static char dataToPublish[PUBLISH_DATA_SIZE];
+static void *userFunc = NULL;
 
 //*************open62541 common wrappers**********************
 
@@ -74,6 +87,7 @@ getNamespaceIndex(char *ns, char *topic) {
     }
     UA_BrowseRequest_deleteMembers(&bReq);
     UA_BrowseResponse_deleteMembers(&bResp);
+    return FAILURE;
 }
 
 //*************open62541 server wrappers**********************
@@ -108,7 +122,7 @@ addTopicDataSourceVariable(UA_Server *server, char *namespace, char *topic) {
     UA_UInt16 namespaceIndex = UA_Server_addNamespace(server, namespace);
     if (namespaceIndex == 0) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "UA_Server_addNamespace has failed");
-        return 100;
+        return FAILURE;
     }
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "%u:namespaceIndex created for namespace: %s\n", namespaceIndex, namespace);
 
@@ -154,8 +168,6 @@ startServer(void *ptr) {
  *
  * @param  hostname(string)           hostname of the system where opcua server should run
  * @param  port(uint)                 opcua port
- * @param  namespace(string)          opcua namespace name
- * @param  topic(string)              name of the opcua variable (aka topic name)
  * @param  certificateFile(string)    server certificate file in .der format
  * @param  privateKeyFile(string)     server private key file in .der format
  * @param  trustedCerts(string array) list of trusted certs
@@ -163,7 +175,7 @@ startServer(void *ptr) {
  * 
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-serverContextCreate(char *hostname, UA_Int16 port, char *namespace, char *topic, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
+serverContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
     
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
@@ -210,36 +222,17 @@ serverContextCreate(char *hostname, UA_Int16 port, char *namespace, char *topic,
         return errorMsg;
     }
     UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
-    
+
+    UA_DurationRange range = {5.0, 10.0};
+    serverConfig->publishingIntervalLimits = range;
+    serverConfig->samplingIntervalLimits = range;
+
     /* Initiate server instance */
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
         strcpy(errorMsg, "UA_Server_new() API failed");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
-        return errorMsg;
-    }
-
-    /* add datasource variable */
-    UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
-    if (nsIndex == 100) {
-        strcpy(errorMsg,"Failed to add topic data source variable node");
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
-    }
-    
-    /* writing first dummy data, this is needed */
-    UA_Variant *val = UA_Variant_new();
-    strcpy(dataToPublish, "dummy");
-    UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "writing value %s\n", dataToPublish);
-    UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
-    if (retval == UA_STATUSCODE_GOOD)
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "UA_Client_writeValueAttribute func executed successfully...\n");
-    else {
-        sprintf(errorMsg, "UA_Client_writeValueAttribute func failed while writing dummy data, retval: %u\n", retval);
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
         return errorMsg;
     }
 
@@ -253,15 +246,45 @@ serverContextCreate(char *hostname, UA_Int16 port, char *namespace, char *topic,
     return "0";
 }
 
-/* serverPublish function for publishing the data by opcua server process
+/* serverStartTopic function creates the opcua variable for the topic
  *
  * @param  namespace(string)         opcua namespace name
+ * @param  topic(string)             name of the opcua variable (aka topic name)
+ * 
+ * @return Return namespace index for success and 100 for failure */
+int
+serverStartTopic(char *namespace, char *topic) {
+        
+    /* check if server is started or not */
+    if (server == NULL) {
+        strcpy(errorMsg, "UA_Server instance is not instantiated");
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            errorMsg);
+        return FAILURE;
+    }
+
+    //TODO: check if node already exists or not before trying to add
+
+    /* add datasource variable */
+    UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
+    if (nsIndex == FAILURE) {
+        strcpy(errorMsg,"Failed to add topic data source variable node");
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            errorMsg);
+        return FAILURE;
+    }
+    return nsIndex;
+}
+
+/* serverPublish function for publishing the data by opcua server process
+ *
+ * @param  nsIndex(int)              opcua namespace index of the variable node
  * @param  topic(string)             name of the opcua variable (aka topic name)
  * @param  data(string)              data to be written to opcua variable
  * 
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-serverPublish(char *namespace, char *topic, char *data) {
+serverPublish(int nsIndex, char *topic, char *data) {
     
     /* check if server is started or not */
     if (server == NULL) {
@@ -270,23 +293,14 @@ serverPublish(char *namespace, char *topic, char *data) {
             errorMsg);
         return errorMsg;
     }
-
-    size_t nsIndex;
-    /* get the namespace index */
-    UA_StatusCode retval = UA_Server_getNamespaceByName(server, UA_STRING(namespace), &nsIndex);
-    if (retval != UA_STATUSCODE_GOOD) {
-        sprintf(errorMsg, "Namespace: %s doesn't exist", namespace);
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
-        return errorMsg;
-    }
-
+    
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
     strcpy(dataToPublish, data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "index: %ld, writing value %s, topic:%s\n", nsIndex, data, topic);
+    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
     
-    retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
+    UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
     if (retval == UA_STATUSCODE_GOOD) {
         UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "UA_Client_writeValueAttribute func executed successfully");
         return "0";
@@ -325,20 +339,29 @@ static void
 subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                         UA_UInt32 monId, void *monContext, UA_DataValue *data) {
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "subcriptionCallback() called!\n");
+    
     UA_Variant *value = &data->value;
     if(UA_Variant_isScalar(value)) {
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Data: %.*s", (int) str.length,
-                        str.data);
-            userCallback(str.data);
+            
+            if (userCallback) {
+                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is not NULL");
+                char subscribedData[PUBLISH_DATA_SIZE];
+                sprintf(subscribedData, "%.*s", (int) str.length, str.data);
+                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Topic: %s, data: %s",
+                    lastSubscribedTopic, subscribedData);
+                userCallback(lastSubscribedTopic, subscribedData, userFunc);
+            } else {
+                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
+            }
         }   
     }
 }
 
 /* creates the subscription for the opcua variable with topic name */
 static UA_Int16
-createSubscription(callback cb, char *namespace, char *topic) {
+createSubscription(int nsIndex, char *topic, c_callback cb) {
     
     UA_CreateSubscriptionRequest request = UA_CreateSubscriptionRequest_default();
     request.requestedPublishingInterval = 0;
@@ -353,15 +376,7 @@ createSubscription(callback cb, char *namespace, char *topic) {
         return 1;
     }
 
-    UA_Int16 nsIndex;
-    UA_NodeId nodeId;
-    if (namespace != NULL && topic != NULL) {
-        nsIndex = getNamespaceIndex(namespace, topic);
-        nodeId = UA_NODEID_STRING(nsIndex, topic);   
-    } else {
-        nsIndex = getNamespaceIndex(lastNamespace, lastSubscribedTopic);
-        nodeId = UA_NODEID_STRING(nsIndex, lastSubscribedTopic);
-    }
+    UA_NodeId nodeId = UA_NODEID_STRING(nsIndex, topic);
 
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "ns: %d, identifier: %.*s\n", nodeId.namespaceIndex,
         (int)nodeId.identifier.string.length, 
@@ -378,6 +393,7 @@ createSubscription(callback cb, char *namespace, char *topic) {
     if(monResponse.statusCode == UA_STATUSCODE_GOOD) {
         /* house keeping of last subscribed topic */
         if (cb != NULL) {
+            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "callback(cb) is not NULL\n");
             userCallback = cb;
         }
         UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, 
@@ -385,10 +401,10 @@ createSubscription(callback cb, char *namespace, char *topic) {
             nodeId.namespaceIndex, 
             (int)nodeId.identifier.string.length, 
             nodeId.identifier.string.data, monResponse.monitoredItemId);
-        if (namespace != NULL)
-            strcpy(lastSubscribedTopic, topic);
         if (topic != NULL)
-            strcpy(lastNamespace, namespace);
+            strcpy(lastSubscribedTopic, topic);
+        if (nsIndex != FAILURE)
+            lastNamespaceIndex = nsIndex;
         return 0;
     }
     return 1;
@@ -408,8 +424,8 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
         case UA_CLIENTSTATE_SESSION:
             UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A session with the server is open");
             /* recreating the subscription upon opcua server connect */
-            if (strcmp(lastNamespace, "")) {
-                if (createSubscription(NULL, NULL, NULL) == 1) 
+            if (lastNamespaceIndex != FAILURE) {
+                if (createSubscription(lastNamespaceIndex, lastSubscribedTopic, NULL) == 1) 
                     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
             }
             break;
@@ -437,7 +453,7 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
  * 
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-clientContextCreate(char *hostname, UA_Int16 port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize, char *username, char *password) {
+clientContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
     
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
     UA_ByteString *revocationList = NULL;
@@ -468,6 +484,8 @@ clientContextCreate(char *hostname, UA_Int16 port, char *certificateFile, char *
     remoteCertificate = UA_ByteString_new();
 
     sprintf(endpoint, "opc.tcp://%s:%d", hostname, port);
+    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "\nendpoint:%s\n", endpoint);
+
     /* The getEndpoints API (discovery service) is done with security mode as none to 
        see the server's capability and certificate */
     retval = UA_Client_getEndpoints(client, endpoint,
@@ -603,18 +621,38 @@ runClient(void *ptr) {
     
 }
 
+/* clientStartTopic function checks for the existence of the opcua variable(topic) 
+ *
+ * @param  namespace(string)         opcua namespace name
+ * @param  topic(string)             name of the opcua variable (aka topic name)
+ * 
+ * @return Return namespace index for success and 100 for failure */
+int
+clientStartTopic(char *namespace, char *topic) {
+    if (client == NULL) {
+        strcpy(errorMsg, "UA_Client instance is not created");
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            errorMsg);
+        return FAILURE;
+    }
+    return getNamespaceIndex(namespace, topic);    
+}
+
+
 /* clientSubscribe function makes the subscription to the opcua varaible named topic for a given namespace
  *
  * @param  namespace(string)         opcua namespace
  * @param  topic(string)             opcua variable name
- * @param  cb(callback)              callback that sends out the subscribed data back to the caller
+ * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
+ * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback.
+ *                                   For c and go callbacks, just puss NULL and nil respectively.
  * 
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-clientSubscribe(char* namespace, char* topic, callback cb) {
-    
+clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
+    userFunc = pyxFunc;
     if (client == NULL) {
-        strcpy(errorMsg, "client instance is not created");
+        strcpy(errorMsg, "UA_Client instance is not created");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -627,7 +665,7 @@ clientSubscribe(char* namespace, char* topic, callback cb) {
         return errorMsg;
     }
 
-    if (createSubscription(cb, namespace, topic) == 1) {
+    if (createSubscription(nsIndex, topic, cb) == 1) {
         strcpy(errorMsg, "Subscription failed!");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);

@@ -10,111 +10,121 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 package databus
 
+/*
+#cgo CFLAGS: -I ../c/open62541/include
+#cgo LDFLAGS: -L ../c/open62541/src -lopen62541W -lmbedtls -lmbedx509 -lmbedcrypto -pthread
+void cgoFunc(char *topic, char *data);
+#include <stdlib.h>
+#include "open62541_wrappers.h"
+#include <stdio.h>
+*/
+import "C"
+
 import (
 	"github.com/golang/glog"
-	"ElephantTrunkArch/go-python"
 	"strconv"
 	"strings"
+	"unsafe"
 )
 
 type dataBusOpcua struct {
-	pyThread  *python.PyThreadState
-	pyServer  *python.PyObject
-	pyNs      *python.PyObject
+	namespace string
 	direction string
+	nsIndex   int
 }
 
 func newOpcuaInstance() (db *dataBusOpcua, err error) {
 	defer errHandler("OPCUA New Instance Creation Failed!!!", &err)
 	db = &dataBusOpcua{}
-	err = python.Initialize()
-	if err != nil {
-		panic(err.Error())
-	}
-	db.pyThread = python.PyEval_SaveThread()
 	return
+}
+
+var cbType CbType
+
+//export goCallback
+func goCallback(topic *C.char, data *C.char) {
+	glog.Infoln("In goCallback() fucntion...")
+	topicGoStr := C.GoString(topic)
+	dataGoStr := C.GoString(data)
+	cbType(topicGoStr, dataGoStr)
+}
+
+//TODO: Debug the crash seen when this is called
+//frees up all CString() allocated memory
+func free(cStrs []*C.char) {
+	for _, str := range cStrs {
+		C.free(unsafe.Pointer(str))
+	}
 }
 
 func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err error) {
 	defer errHandler("OPCUA Context Creation Failed!!!", &err)
 	dbOpcua.direction = contextConfig["direction"]
-	if dbOpcua.direction == "PUB" {
-		serverUrl := "opc.tcp://" + strings.Split(contextConfig["endpoint"], "//")[1]
-		glog.Infoln("serverURL: ", serverUrl)
-		//TODO: set keepalive too?
-		python.PyEval_RestoreThread(dbOpcua.pyThread)
-		defer func() {
-			dbOpcua.pyThread = python.PyEval_SaveThread()
-		}()
-		glog.Infoln("Python Thread Restored")
-		pyModule := python.PyImport_ImportModule("opcua.server.server")
-		if pyModule == nil {
-			panic("Module load Failed")
-		}
-		pyClass := pyModule.GetAttrString("Server")
-		if pyClass == nil {
-			panic("No such class!!!")
-		}
-		pyModule.Clear()
-		pyArgs := python.PyTuple_New(0)
-		if pyArgs == nil {
-			panic("Can't build argument list")
-		}
-		dbOpcua.pyServer = pyClass.CallObject(pyArgs)
-		if dbOpcua.pyServer == nil {
-			panic("Object creation failed!!!")
-		}
-		pyArgs.Clear()
-		pyRet := dbOpcua.pyServer.CallMethodObjArgs("set_endpoint", python.PyString_FromString(serverUrl))
-		if pyRet == nil {
-			panic("Endpoint setting failed!!!!")
-		}
-		dbOpcua.pyNs = dbOpcua.pyServer.CallMethodObjArgs("register_namespace", python.PyString_FromString(contextConfig["name"]))
-		if dbOpcua.pyNs == nil {
-			panic("Namespace registration failed!!!!")
-		} else {
-			glog.Infoln(strconv.Itoa(python.PyInt_AsLong(dbOpcua.pyNs)))
-		}
-		dbOpcua.pyServer.CallMethodObjArgs("start")
+	dbOpcua.namespace = contextConfig["name"]
+	endpoint := contextConfig["endpoint"]
+
+	hostPort := strings.Split(endpoint, "://")[1]
+	host := strings.Split(hostPort, ":")[0]
+	port, err := strconv.Atoi(strings.Split(hostPort, ":")[1])
+	if err != nil {
+		glog.Errorf("port int conversion failed, error: %v", err)
+		panic(err)
 	}
+
+	cHostname := C.CString(host)
+	cCertFile := C.CString(contextConfig["certFile"])
+	cPrivateFile := C.CString(contextConfig["privateFile"])
+	
+	//TODO - Make contextConfig["trustFile"] an array
+	trustFiles := [1]string{contextConfig["trustFile"]}
+	cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
+	a := (*[1<<30 - 1]*C.char)(cArray)
+	for idx, substring := range trustFiles {
+		a[idx] = C.CString(substring)
+	}
+
+	if dbOpcua.direction == "PUB" {
+		cResp := C.serverContextCreate(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		
+		goResp := C.GoString(cResp)
+		if goResp != "0" {
+			glog.Errorln("Response: ", goResp)
+			panic(goResp)
+		}
+	}
+	if dbOpcua.direction == "SUB" {
+		cResp := C.clientContextCreate(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		goResp := C.GoString(cResp)
+		if goResp != "0" {
+			glog.Errorln("Response: ", goResp)
+			panic(goResp)
+		}
+	}
+
 	return
 }
 
 func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err error) {
 	defer errHandler("OPCUA Topic Start Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
-		topicSlice := strings.Split(topicConfig["name"], "/")
-		// Restore the python thread state
-		python.PyEval_RestoreThread(dbOpcua.pyThread)
-		defer func() {
-			dbOpcua.pyThread = python.PyEval_SaveThread()
-		}()
-		pyObjsRoot := dbOpcua.pyServer.CallMethodObjArgs("get_objects_node")
-		if pyObjsRoot == nil {
-			panic("No Object root node found")
+		cNamespace := C.CString(dbOpcua.namespace)
+		cTopic := C.CString(topicConfig["name"])
+
+		nsIndex := C.serverStartTopic(cNamespace, cTopic)
+		dbOpcua.nsIndex = int(nsIndex)
+		if dbOpcua.nsIndex == 100 {
+			panic("Failed to add opcua variable for the topic!!")
 		}
-		pyObj := pyObjsRoot
-		for idx := range topicSlice {
-			pyChild := pyObj.CallMethodObjArgs("get_child", python.PyString_FromString(strconv.Itoa(python.PyInt_AsLong(dbOpcua.pyNs))+":"+topicSlice[idx]))
-			if pyChild == nil {
-				//This is twisted; but for now it has to do...
-				pyTypeO, pyValO, pyTraceO := python.PyErr_Fetch()
-				_, pyVal, _ := python.PyErr_NormalizeException(pyTypeO, pyValO, pyTraceO)
-				glog.Infoln(pyVal)
-				excString := python.PyString_AsString(pyVal.Str())
-				if strings.Contains(excString, "(BadNoMatch)") {
-					pyChild = pyObj.CallMethodObjArgs("add_object", dbOpcua.pyNs, python.PyString_FromString(topicSlice[idx]))
-				} else {
-					panic("Unknown Python Exception")
-				}
-			} else {
-				glog.Infoln(pyChild)
-			}
-			pyObj = pyChild
+	} else if dbOpcua.direction == "SUB" {
+		//TODO: opcua integration needs to be done
+		cNamespace := C.CString(dbOpcua.namespace)
+		cTopic := C.CString(topicConfig["name"])
+
+		nsIndex := C.clientStartTopic(cNamespace, cTopic)
+		dbOpcua.nsIndex = int(nsIndex)
+		if dbOpcua.nsIndex == 100 {
+			panic("opcua variable for the topic doesn't exist!!")
 		}
-		//TODO: Support other types too
-		pyVar := pyObj.CallMethodObjArgs("add_variable", dbOpcua.pyNs, python.PyString_FromString(topicSlice[len(topicSlice)-1]+"_var"), python.PyString_FromString("NONE"))
-		pyVar.CallMethodObjArgs("set_writable")
 	}
 	return
 }
@@ -122,28 +132,13 @@ func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err erro
 func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) (err error) {
 	defer errHandler("OPCUA Send Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
-		topicSlice := strings.Split(topic["name"], "/")
-		// Restore the python thread state
-		python.PyEval_RestoreThread(dbOpcua.pyThread)
-		defer func() {
-			dbOpcua.pyThread = python.PyEval_SaveThread()
-		}()
-		pyObjsRoot := dbOpcua.pyServer.CallMethodObjArgs("get_objects_node")
-		if pyObjsRoot == nil {
-			panic("No Object root node found")
-		}
-		pyObj := pyObjsRoot
-		for idx := range topicSlice {
-			pyChild := pyObj.CallMethodObjArgs("get_child", python.PyString_FromString(strconv.Itoa(python.PyInt_AsLong(dbOpcua.pyNs))+":"+topicSlice[idx]))
-			if pyChild == nil {
-				//python.PyErr_Print()
-				panic("No child object found!!!")
-			}
-			pyObj = pyChild
-		}
-		pyVar := pyObj.CallMethodObjArgs("get_child", python.PyString_FromString(strconv.Itoa(python.PyInt_AsLong(dbOpcua.pyNs))+":"+topicSlice[len(topicSlice)-1]+"_var"))
-		if topic["type"] == "string" {
-			pyVar.CallMethodObjArgs("set_value", python.PyString_FromString(msgData.(string)))
+		cTopic := C.CString(topic["name"])
+		cMsgData := C.CString(msgData.(string))
+		cResp := C.serverPublish(C.int(dbOpcua.nsIndex), cTopic, cMsgData)
+		goResp := C.GoString(cResp)
+		if goResp != "0" {
+			glog.Errorln("Response: ", goResp)
+			panic(goResp)
 		}
 	}
 	return
@@ -151,6 +146,16 @@ func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) 
 
 func (dbOpcua *dataBusOpcua) receive(topic map[string]string, trig string, ch chan interface{}) (err error) {
 	defer errHandler("OPCUA Receive Failed!!!", &err)
+	//TODO: opcua integration needs to be done
+	if dbOpcua.direction == "SUB" {
+		cTopic := C.CString(topic["name"])
+		cResp := C.clientSubscribe(C.int(dbOpcua.nsIndex), cTopic, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
+		goResp := C.GoString(cResp)
+		if goResp != "0" {
+			glog.Errorln("Response: ", goResp)
+			panic(goResp)
+		}
+	}
 	return
 }
 
@@ -162,13 +167,9 @@ func (dbOpcua *dataBusOpcua) stopTopic(topic string) (err error) {
 func (dbOpcua *dataBusOpcua) destroyContext() (err error) {
 	defer errHandler("OPCUA Context Termination Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
-		glog.Infoln("OPCUA Server Stopping....")
-		python.PyEval_RestoreThread(dbOpcua.pyThread)
-		defer func() {
-			dbOpcua.pyThread = python.PyEval_SaveThread()
-		}()
-		dbOpcua.pyServer.CallMethodObjArgs("stop")
-		glog.Infoln("OPCUA Server Stopped")
+		C.serverContextDestroy();
+	} else if dbOpcua.direction == "SUB" {
+		C.clientContextDestroy();
 	}
 	return
 }

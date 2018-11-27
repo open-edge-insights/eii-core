@@ -1,7 +1,17 @@
+/*
+Copyright (c) 2018 Intel Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 #include "open62541_wrappers.h"
 
-void cb(char *data) {
-    printf("Data received: %s\n", data);
+void cb(char *topic, char *data, void *pyFunc) {
+    printf("Data received: topic=%s and data=%s\n", topic, data);
 }
 
 int main(int argc, char **argv) {
@@ -18,7 +28,7 @@ int main(int argc, char **argv) {
     char *ns = "streammanager";
     char *hostname = "localhost";
     char *topic = "classifier_results";
-    UA_Int16 port = 4840;
+    int port = 65003;
     char *errorMsg;
     char *certificatePath = argv[2];
     char *privateKey = argv[3];
@@ -38,17 +48,26 @@ int main(int argc, char **argv) {
     if (!strcmp(argv[1], "server")) {
      
         
-        errorMsg = serverContextCreate(hostname, port, ns, topic, certificatePath, privateKey, trustList, trustListSize);
+        errorMsg = serverContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
             printf("serverContextCreate() API failed, error: %s", errorMsg);
             return -1;
         }
         printf("serverContextCreate() API successfully executed!");
+
+        int nsIndex = serverStartTopic(ns, topic);
+        if(nsIndex == 100) {
+            printf("serverStartTopic() API failed");
+            return -1;
+        }
+        printf("serverStartTopic() API successfully executed!, nsIndex: %d", nsIndex);
+
         char result[100];
+
         for (int i = 0; i < 100; i++) {
             sleep(5);
             sprintf(result, "Hello %d", i);
-            errorMsg = serverPublish(ns, topic, result);
+            errorMsg = serverPublish(nsIndex, topic, result);
             if(strcmp(errorMsg, "0")) {
                 printf("serverPublish() API failed, error: %s", errorMsg);
                 return -1;
@@ -57,13 +76,19 @@ int main(int argc, char **argv) {
         } 
         serverContextDestroy();
     } else if (!strcmp(argv[1], "client")) {
-        errorMsg = clientContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize, NULL, NULL);
+        errorMsg = clientContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
             printf("clientContextCreate() API failed, error: %s", errorMsg);
             return -1;
         }
         printf("clientContextCreate() API successfully executed!");
-        errorMsg = clientSubscribe(ns, topic, cb);
+        int nsIndex = clientStartTopic(ns, topic);
+        if (nsIndex == 100) {
+            printf("clienStartTopic() API failed!");
+            return -1;
+        }
+        printf("clienStartTopic() API successfully executed!");
+        errorMsg = clientSubscribe(nsIndex, topic, cb, NULL);
         if(strcmp(errorMsg, "0")) {
             printf("clientSubscribe() API failed, error: %s", errorMsg);
             return -1;

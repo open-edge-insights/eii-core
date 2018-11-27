@@ -30,7 +30,7 @@ type dataBusContext interface {
 type DataBus interface {
 	ContextCreate(map[string]string) error
 	Publish(map[string]string, interface{}) error
-	Subscribe(map[string]string, string, cbType) error
+	Subscribe(map[string]string, string, CbType) error
 	ContextDestroy() error
 }
 
@@ -134,9 +134,9 @@ func (dbus *dataBus) Publish(topicConfig map[string]string, msgData interface{})
 }
 
 //TODO
-type cbType func(topic string, msg interface{})
+type CbType func(topic string, msg interface{})
 
-func worker(topic string, dch chan interface{}, ech chan string, cb cbType) {
+func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
 	for {
 		select {
 		case data := <-dch:
@@ -149,13 +149,16 @@ func worker(topic string, dch chan interface{}, ech chan string, cb cbType) {
 	}
 }
 
-func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb cbType) (err error) {
+func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb CbType) (err error) {
 	defer errHandler("DataBus Subscription Failed!!!", &err)
 	dbus.mutex.Lock()
 	defer dbus.mutex.Unlock()
 	if dbus.direction == "SUB" && trig == "START" && cb != nil {
 		if _, ok := dbus.subTopics[topicConfig["name"]]; !ok {
-			dbus.bus.startTopic(topicConfig)
+			//TODO: opcua integration needs to be done
+			if strings.Contains(dbus.busType, "mqtt") {
+				dbus.bus.startTopic(topicConfig)		
+			}
 			dch := make(chan interface{})
 			ech := make(chan string)
 			go worker(topicConfig["name"], dch, ech, cb)
@@ -166,6 +169,7 @@ func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb cb
 			}
 		}
 	} else if dbus.direction == "SUB" && trig == "STOP" {
+		//TODO: opcua integration needs to be done
 		err = dbus.bus.receive(topicConfig, "STOP", nil)
 		if err != nil {
 			panic("receive() Failed!!!")
@@ -183,6 +187,7 @@ func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb cb
 }
 
 func (dbus *dataBus) ContextDestroy() (err error) {
+	//TODO: opcua integration needs to be done
 	defer errHandler("DataBus Context Termination Failed!!!", &err)
 	dbus.mutex.Lock()
 	defer dbus.mutex.Unlock()

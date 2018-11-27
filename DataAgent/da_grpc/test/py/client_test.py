@@ -37,6 +37,13 @@ logging.basicConfig(level=logging.DEBUG,
 log = logging.getLogger("GRPC_TEST")
 
 
+filepath = os.path.abspath(__file__)
+CLIENT_CERT = filepath + \
+    "/../Certificates/client/client_certificate.pem"
+CLIENT_KEY = filepath + "/../Certificates/client/client_key.pem"
+CA_CERT = filePath + "/../Certificates/ca/ca_certificate.pem"
+
+
 def parse_args():
     """Parse command line arguments
     """
@@ -53,7 +60,7 @@ if __name__ == '__main__':
     # If executing this script from other m/c, provide
     # the right hostname/ip addr of the system running
     # DataAgent module of ETA
-    client = GrpcClient(hostname="localhost")
+    client = GrpcClient(CLIENT_CERT, CLIENT_KEY, CA_CERT, hostname="localhost")
 
     # Testing GetBlob(imgHandle) gRPC call
     inputFile = args.input_file

@@ -11,8 +11,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package databus
 
 import (
-	"github.com/golang/glog"
 	"strings"
+
+	"github.com/golang/glog"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )

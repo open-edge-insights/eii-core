@@ -2,4 +2,4 @@ requests==2.6.0
 grpcio==1.14.0
 protobuf==3.6.0
 paho-mqtt==1.3.1
-opcua==0.98.3
+Cython==0.29

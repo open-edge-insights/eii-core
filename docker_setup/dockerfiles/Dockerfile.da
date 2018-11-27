@@ -1,19 +1,14 @@
 # Dockerfile for DataAgent
 ARG ETA_VERSION
-FROM ia/gopybase:${ETA_VERSION}
+FROM ia/gobase:${ETA_VERSION}
 LABEL description="DataAgent image"
 
 ENV GOPATH /root/go
 
-ADD Gopkg.toml ./
-ADD Gopkg.lock ./
-ADD go-python ./go-python
-ADD DataBusAbstraction/py/databus_requirements.txt ./
-ADD Certificates Certificates/
-
-RUN pip2 install -r databus_requirements.txt
-
 RUN mkdir -p ${GO_WORK_DIR}/log
+
+# Installing build tools
+RUN apt-get install -y cmake g++ build-essential
 
 # Installing all golang dependencies
 # TODO: Use dep tool itself in future once the "source" value
@@ -79,10 +74,22 @@ RUN go get -v github.com/influxdata/influxdb && \
     cd ${GOPATH}/src/github.com/influxdata/influxdb && \
     git checkout -b v1.6.0 tags/v1.6.0
 
+# tls, crypto library needs to open62541
+RUN apt-get update && \
+    apt-get install -y libmbedtls-dev
+
 ADD DataAgent ./DataAgent
 ADD ImageStore/go ./ImageStore/go
 ADD StreamManager ./StreamManager
+ADD Gopkg.toml ./
+ADD Gopkg.lock ./
+ADD Certificates Certificates/
+
 ADD DataBusAbstraction ./DataBusAbstraction
+# building libopen62541W.a for cgo
+RUN cd DataBusAbstraction/go/test && \
+    make build_lib
+
 ADD Util ./Util
 
 RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
