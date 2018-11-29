@@ -607,13 +607,16 @@ runClient(void *ptr) {
         /* if already connected, this will return GOOD and do nothing */
         /* if the connection is closed/errored, the connection will be reset and then reconnected */
         /* Alternatively you can also use UA_Client_getState to get the current state */
-        UA_StatusCode retval = UA_Client_connect(client, endpoint);
-        if(retval != UA_STATUSCODE_GOOD) {
-            UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
-            /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
-            /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
-            sleep(1);
-            continue;
+        UA_ClientState clientState = UA_Client_getState(client);
+        if (clientState == UA_CLIENTSTATE_DISCONNECTED) {
+            UA_StatusCode retval = UA_Client_connect(client, endpoint);
+            if(retval != UA_STATUSCODE_GOOD) {
+                UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
+                /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
+                /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
+                sleep(1);
+                continue;
+            }
         }
         
         UA_Client_run_iterate(client, 1000);
