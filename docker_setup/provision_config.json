@@ -16,7 +16,7 @@
 	},
 
 	"opcua": {
-		"port": "65003"
+		"port": "4840"
 	},
 
 	"OutStreams": {
