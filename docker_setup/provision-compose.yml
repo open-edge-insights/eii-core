@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+
+  #----Start: ETA Base Images----
+  # Define ia-gobase service
+  ia-gobase:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.gobase
+      args:
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+    image: ia/gobase:${ETA_VERSION}
+
+  #----End: ETA Base Images----
+
+  ia_vault:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.vault
+      args:
+        VAULT_VERSION: ${VAULT_VERSION}
+    container_name: ia_vault
+    hostname: ia_vault
+    image: ia/vault:${ETA_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+    volumes:
+      - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+
+
+  ia_provision:
+    depends_on:
+      - ia-gobase
+      - ia_vault
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.provision
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/provision:${ETA_VERSION}
+    container_name: ia_provision
+    hostname: ia_provision
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+    volumes:
+      - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/vault_secret_file"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+
+
+  #----End: ETA Containers ----

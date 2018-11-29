@@ -22,7 +22,7 @@ fi
 
 set -e
 # Replacing 'localhost or host ip address' in docker_setup/config/DataAgent.conf with host IP
-sed -i 's/Host = .*/Host = "'"$hostIP"'"/g' config/DataAgent.conf
+sed -i 's/\"host\": .*/\"host\": "'"$hostIP"'",/g' ./provision_config.json
 
 # Replacing 'localhost or any other hostname' in docker_setup/config/factory.json & factory_prod.json
 # for mosquitto and postgres with host IP

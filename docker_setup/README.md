@@ -88,7 +88,22 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
 ## <u>Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup` directory)</u>
 
-1. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
+1. Provision the secrets to Vault:
+   Run the script:
+    ```sh
+    sudo ./provision_startup.sh | tee provision_startup.txt
+    ```
+    Note (Known Issue): The provision_startup.sh does not exit gracefully now. Please press CTRL+C once the provisioning is done.
+    This will take the inputs from provision_config.json and seal the secrets into the Vault.
+
+    Note: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
+    ```sh
+    sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
+    <Update the new values into provision_config.json>
+    sudo ./provision_startup.sh | tee provision_startup.txt
+    ```
+
+2. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
 
     > **Pre-requisite**:
     > * Provide the right value for "CONFIG_FILE" in `./.env` file. 
@@ -110,7 +125,7 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
           ENV https_proxy http://proxy.iind.intel.com:911
         ```
 
-2. Run VisualHmi client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
+3. Run VisualHmi client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
    
     ```sh
     python3.6 VisualHmiClient/VisualHmiEtaDataSync.py -local <path_where_images> -c VisualHmiClient/config.json
@@ -122,10 +137,10 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
      * [config/DataAgent.conf](config/DataAgent.conf)
      * [.env](.env)
 
-3. If working with video file, please follow below steps:
+4. If working with video file, please follow below steps:
     * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
 
-4. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
+5. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
 
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
@@ -148,12 +163,12 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
         <br/>
 	Check `VideoIngestion/test/config.py` for configuration.
 
-5. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
+6. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
 
     ```sh
     sudo ./setup_eta.py -a | tee deploy_eta_dvlpmnt_envrnmnt
     ```
-6. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory
+7. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory
 
     ```sh
     sudo ./setup_eta.py -c | tee create_eta_targz.txt

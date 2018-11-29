@@ -36,29 +36,22 @@ var DaCfg config.DAConfig
 
 func main() {
 
-	var cfgPath string
-	flag.StringVar(&cfgPath, "config", "", "config file path")
-
 	flag.Parse()
 
 	flag.Lookup("alsologtostderr").Value.Set("true")
 
 	defer glog.Flush()
-	if len(os.Args) < 2 {
+	if len(os.Args) < 1 {
 		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
-			"-config=<config_file_path> [-log_dir=<glog_dir_path>]")
+			"[-log_dir=<glog_dir_path>]")
 		os.Exit(-1)
 	}
 
 	glog.Infof("**************STARTING DA**************")
 
-	glog.Infof("Parsing the config file: %s", cfgPath)
-
-	// Parse the DA config file
-	err := DaCfg.ParseConfig(cfgPath)
-
+	err := DaCfg.InitVault()
 	if err != nil {
-		glog.Errorf("Error: %s while parsing config file: %s", err, cfgPath)
+		glog.Errorf("Error: %s", err)
 		os.Exit(-1)
 	}
 

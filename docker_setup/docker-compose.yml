@@ -31,6 +31,28 @@ services:
       - "${ETA_INSTALL_PATH}/logs:${ETA_INSTALL_PATH}/logs"
 
   #---- Start: ETA Dependency Services----
+  # Define an vault service\
+  ia_vault:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.vault
+      args:
+        VAULT_VERSION: ${VAULT_VERSION}
+    container_name: ia_vault
+    hostname: ia_vault
+    image: ia/vault:${ETA_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+    volumes:
+      - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+
   # Define an InfluxDB service
   ia_influxdb:
     build:
@@ -167,7 +189,7 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
-      - "${ETA_INSTALL_PATH}/config/DataAgent.conf:/root/go/src/ElephantTrunkArch/DataAgent/DataAgent.conf"
+      - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/DataAgent/vault_secret_file"
     ports:
       - "${GRPC_EXTERNAL_PORT}:${GRPC_EXTERNAL_PORT}"
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"

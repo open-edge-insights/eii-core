@@ -19,8 +19,13 @@ echo "0.3 Updating .env for container timezone..."
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
 
+#
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
+
+# this two changes will go away once we merge DA and vault container, temporary change. 
+touch /opt/intel/eta/vault_secret_file
+chmod 700 /opt/intel/eta/vault_secret_file
 
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down

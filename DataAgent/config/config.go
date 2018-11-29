@@ -13,14 +13,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package config
 
 import (
-	"bytes"
-	"io/ioutil"
-	"os"
-	"regexp"
-	"strings"
-
-	"github.com/BurntSushi/toml"
 	"github.com/golang/glog"
+	"github.com/hashicorp/vault/api"
+	"io/ioutil"
+	"encoding/json"
+	"errors"
 )
 
 // DAConfig type exports the config data
@@ -55,39 +52,115 @@ type opcuaCfg struct {
 	Port string
 }
 
-// ParseConfig parses the DA config file and fills up the config structure.
-// Also, takes care of parsing the env variables prefixed with $ and
-// replacing them with the actual values.
-func (cfg *DAConfig) ParseConfig(filepath string) error {
+// InitVault initializes and read secrets from vault.
+func (cfg *DAConfig) InitVault() error {
 
-	envVarRe := regexp.MustCompile(`\$\w+`)
-	envVarEscaper := strings.NewReplacer(
-		`"`, `\"`,
-		`\`, `\\`,
-	)
+	VAULT_SECRET_FILE_PATH := "DataAgent/vault_secret_file"
+	CERT_FILE_PATH := "Certificates/vault_certs/"
 
-	// Read contents of the file
-	contents, err := ioutil.ReadFile(filepath)
+	// Enable the TLS config.
+	vlt_config := api.DefaultConfig()
+	//TODO: Read it from TPM
+	ca_cert_file_path := CERT_FILE_PATH + "ca_certificate.pem"
+
+	vlt_config.ConfigureTLS(&api.TLSConfig{
+		CACert: ca_cert_file_path,
+	})
+
+	// Read the secrets and populate the internal data structure.PANI
+	vlt_client, err := api.NewClient(vlt_config)
+
 	if err != nil {
-		glog.Errorf("File not found: %s", filepath)
+		glog.Errorf("DataAgent: failed to create vault client: %s", err)
 		return err
 	}
 
-	// Replace env varialbes with right values
-	envVars := envVarRe.FindAll(contents, -1)
-	for _, envVar := range envVars {
-		envVal, ok := os.LookupEnv(strings.TrimPrefix(string(envVar), "$"))
-		if ok {
-			envVal = envVarEscaper.Replace(envVal)
-			contents = bytes.Replace(contents, envVar, []byte(envVal), 1)
+	vlt_client.SetAddress("https://ia_vault:8200")
+
+	//Check for vault is initialized or not.
+	sys_obj := vlt_client.Sys()
+	vault_initialized, err := sys_obj.InitStatus()
+	if (!vault_initialized) || err != nil {
+		glog.Errorf("DataAgent: Vault is not initialized yet, please provision it: %s", err)
+		return errors.New("Vault Not Initialized")
+	} else {
+
+		//Unseal the vault & access using the root token
+		//TODO READ FROM tpm HARDWARE.
+
+		var data map[string]interface{}
+
+		byteVal, err := ioutil.ReadFile(VAULT_SECRET_FILE_PATH)
+		if err != nil {
+			glog.Errorf("dataAgent: failed to open secret file")
+			return err
 		}
-	}
 
-	// Decode the toml formatted config file
-	_, err = toml.Decode(string(contents), &cfg)
-	if err != nil {
-		glog.Errorf("Config file: %s parse failed", filepath)
-		return err
+		json.Unmarshal([]byte(byteVal), &data)
+		inter := data["keys"].([]interface{})
+		unseal_keys := make([]string, len(inter))
+
+		for i, v := range inter {
+			unseal_keys[i] = v.(string)
+		}
+
+		sys_obj.Unseal(unseal_keys[0])
+		vlt_client.SetToken(data["root_token"].(string))
+
+		logical_clnt := vlt_client.Logical()
+
+		//Read the secrets and populate DA-DS :-)
+		inflx_secret, err := logical_clnt.Read("secret/influxdb")
+		if err != nil || inflx_secret == nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for influxDB: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+
+		cfg.InfluxDB.Host = inflx_secret.Data["host"].(string)
+		cfg.InfluxDB.Port = inflx_secret.Data["port"].(string)
+		cfg.InfluxDB.Retention = inflx_secret.Data["retention"].(string)
+		cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
+		cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
+		cfg.InfluxDB.DBName = inflx_secret.Data["dbname"].(string)
+
+		//Read Redis secret
+		redis_secret, err := logical_clnt.Read("secret/redis")
+		if err != nil || redis_secret == nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for Redis: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+		cfg.Redis.Host = redis_secret.Data["host"].(string)
+		cfg.Redis.Port = redis_secret.Data["port"].(string)
+		cfg.Redis.Retention = redis_secret.Data["retention"].(string)
+		cfg.Redis.Password = redis_secret.Data["password"].(string)
+
+		opcua_secret, err := logical_clnt.Read("secret/opcua")
+		if err != nil || opcua_secret == nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for OPCUA: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+		cfg.Opcua.Port = opcua_secret.Data["port"].(string)
+
+		stream_secret, err := logical_clnt.Read("secret/OutStreams")
+		if err != nil || stream_secret == nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for Out-stream's detail: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+
+		if stream_secret.Data != nil {
+			cfg.OutStreams = make(map[string]outStreamCfg)
+			for k, v := range stream_secret.Data {
+				a := outStreamCfg{DatabusFormat: v.(string)}
+				cfg.OutStreams[k] = a
+			}
+		}
+
+		//Read all data, Seal the vault.
+		err = sys_obj.Seal()
+		if err != nil {
+			glog.Errorf("Failed to Seal after reading secret, Error: %s", err)
+			return errors.New("Failed to Seal")
+		}
 	}
 
 	return err
