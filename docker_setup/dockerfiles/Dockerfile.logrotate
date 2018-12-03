@@ -1,3 +1,4 @@
 # Logrotate Dockerfile
 ARG LOG_ROTATE_VERSION
 FROM blacklabelops/logrotate:${LOG_ROTATE_VERSION}
+HEALTHCHECK NONE

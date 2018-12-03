@@ -35,6 +35,6 @@ ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD ImageStore/py ./ImageStore/py
 ADD Util ./Util
-
 ENTRYPOINT ["python3.6", "classifier_startup.py", "--log-dir", "/ETA/classifier_logs"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
+HEALTHCHECK NONE

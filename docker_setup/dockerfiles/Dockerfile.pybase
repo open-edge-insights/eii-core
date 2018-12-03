@@ -28,5 +28,5 @@ RUN cat /etc/timezone
 RUN apt-get install -y tzdata
 RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
 RUN dpkg-reconfigure -f noninteractive tzdata
-
 ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin
+HEALTHCHECK NONE

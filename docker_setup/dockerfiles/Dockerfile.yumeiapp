@@ -13,6 +13,6 @@ ADD YumeiApp/ .
 ADD StreamSubLib/StreamSubLib.py StreamSubLib/StreamSubLib.py
 ADD Util/ Util/
 ADD DataAgent/da_grpc ./DataAgent/da_grpc 
-
 ENTRYPOINT [ "python3.6", "YumeiApp.py", "--config", "yumeiapp_config.json", "--log-dir", "/ETA/yumei_app_logs"]
 CMD ["--log", "DEBUG"]
+HEALTHCHECK NONE

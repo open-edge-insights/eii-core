@@ -25,5 +25,5 @@ ADD Certificates/vault_certs/ ./vault_certs
 ADD docker_setup/provision_config.json ./config_file.json
 
 RUN go build -o /root/go/bin/provision_eta ./provision_eta.go
-
 ENTRYPOINT ["provision_eta", "-config=./config_file.json", "-log_dir=${GO_WORK_DIR}/log/provision"]
+HEALTHCHECK NONE

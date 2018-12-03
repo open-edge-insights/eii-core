@@ -29,5 +29,6 @@ WORKDIR /ETA
 ADD ImageStore/redis_entrypoint.py ./
 ADD DataAgent/da_grpc ./da_grpc
 ENTRYPOINT ["python3.6", "/ETA/redis_entrypoint.py"]
+HEALTHCHECK NONE
 
 

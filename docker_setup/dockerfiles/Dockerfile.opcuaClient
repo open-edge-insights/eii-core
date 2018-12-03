@@ -9,6 +9,6 @@ RUN pip2 install -r databus_requirements.txt
 
 # Adding OPCUA python script
 ADD DataBusAbstraction/py ./DataBusAbstraction
-
 ENTRYPOINT ["python2", "DataBusAbstraction/test/DataBusTest.py", "--endpoint", "opcua://ia_data_agent:4840/elephanttrunk", "--direction", "SUB", "--ns", "streammanager", "--topic"]
 CMD ["classifier_results"]
+HEALTHCHECK NONE

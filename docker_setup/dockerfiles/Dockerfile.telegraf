@@ -19,4 +19,4 @@ ENV PATH="/root/go/src/github.com/influxdata/telegraf:${PATH}"
 ADD Telegraf ./Telegraf
 ADD DataAgent/da_grpc/ ./DataAgent/da_grpc
 ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py"]
-
+HEALTHCHECK NONE

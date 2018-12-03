@@ -29,6 +29,10 @@ services:
       TZ: ${HOST_TIME_ZONE}
     volumes:
       - "${ETA_INSTALL_PATH}/logs:${ETA_INSTALL_PATH}/logs"
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
+    
 
   #---- Start: ETA Dependency Services----
   # Define an vault service\
@@ -52,6 +56,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
 
   # Define an InfluxDB service
   ia_influxdb:
@@ -77,7 +84,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
 
  # Define telegraf service
   ia_telegraf:
@@ -105,7 +114,10 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
+      
 
   # Define an Redis service
   ia_redis:
@@ -131,6 +143,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
 
   #---- End: ETA Dependency Services----
 
@@ -199,7 +214,10 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+      
   # Define DataAnalytics service
   ia_data_analytics:
     depends_on:
@@ -237,6 +255,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
 
   # Define YumeiApp service      
   ia_yumei_app:
@@ -263,6 +284,9 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
 
   # Define VideoIngestion service
   ia_video_ingestion:
@@ -296,5 +320,8 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
 
   #----End: ETA Containers ----

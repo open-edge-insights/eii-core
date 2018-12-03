@@ -97,5 +97,5 @@ RUN cd DataBusAbstraction/go/test && \
 ADD Util ./Util
 
 RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
-
 ENTRYPOINT ["DataAgent", "-log_dir=${GO_WORK_DIR}/log/DataAgent"]
+HEALTHCHECK NONE
