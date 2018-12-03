@@ -27,6 +27,8 @@ Changes needs to be done in few files. They are as follows:
     * "io_module_ip" : `"ip_address"` given in the pre-requisite step 2.b
     * "mqtt_broker"  : `"ip_address"` given in the pre-requisite step 2.c
 2. docker_setup/config/telegraf.conf
-    * Under "inputs.mqtt", servers = ["tcp://`ip_address given in the pre-requisite step 2.c`:1883"]
+    * Under "inputs.mqtt", <br>
+        i.  servers = ["tcp://`ip_address given in the pre-requisite step 2.c`:1883"]<br>
+        ii. topics = ["**Advantech/<ADAM_MODULE_ID>/data**",] <br>
 
 **NOTE**: For the circuit connections of the lab setup, refer 4.5 (4.5.2 IO module) in the document **YumeiApp/HW_Configuration.pdf**
