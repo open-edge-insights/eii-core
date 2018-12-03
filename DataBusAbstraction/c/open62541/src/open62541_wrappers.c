@@ -160,7 +160,7 @@ startServer(void *ptr) {
     /* run server */
     UA_StatusCode retval = UA_Server_run(server, &serverRunning);
     if (retval != UA_STATUSCODE_GOOD) {
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, retval: %u", retval);
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
     }
 }
 
@@ -216,7 +216,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
                                           trustList, trustedListSize,
                                           revocationList, revocationListSize);    
     if(!serverConfig) {
-        strcpy(errorMsg, "Could not create the server config");
+        sprintf(errorMsg, "Could not create the server config");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -230,7 +230,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Initiate server instance */
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
-        strcpy(errorMsg, "UA_Server_new() API failed");
+        sprintf(errorMsg, "UA_Server_new() API failed");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -238,7 +238,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
-        strcpy(errorMsg, "server pthread creation to start server failed");
+        sprintf(errorMsg, "server pthread creation to start server failed");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -257,7 +257,7 @@ serverStartTopic(char *namespace, char *topic) {
         
     /* check if server is started or not */
     if (server == NULL) {
-        strcpy(errorMsg, "UA_Server instance is not instantiated");
+        sprintf(errorMsg, "UA_Server instance is not instantiated");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -268,7 +268,7 @@ serverStartTopic(char *namespace, char *topic) {
     /* add datasource variable */
     UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
     if (nsIndex == FAILURE) {
-        strcpy(errorMsg,"Failed to add topic data source variable node");
+        sprintf(errorMsg,"Failed to add topic data source variable node");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -288,7 +288,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
     
     /* check if server is started or not */
     if (server == NULL) {
-        strcpy(errorMsg, "UA_Server instance is not instantiated");
+        sprintf(errorMsg, "UA_Server instance is not instantiated");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -306,7 +306,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
         return "0";
     } 
 
-    sprintf(errorMsg, "UA_Client_writeValueAttribute func executed failed, retval: %u\n", retval);
+    sprintf(errorMsg, "UA_Client_writeValueAttribute func executed failed, error: %s\n", UA_StatusCode_name(retval));
     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
     return errorMsg;
 }
@@ -494,7 +494,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
         UA_Array_delete(endpointArray, endpointArraySize,
                         &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
         cleanupClient();
-        strcpy(errorMsg, "UA_Client_getEndpoints() API failed!");
+        sprintf(errorMsg, "UA_Client_getEndpoints() API failed!, error: %s", UA_StatusCode_name(retval));
         return errorMsg;
     }
 
@@ -523,7 +523,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     if(UA_ByteString_equal(remoteCertificate, &UA_BYTESTRING_NULL)) {
-        strcpy(errorMsg, "Server does not support Security Basic256Sha256 Mode of \
+        sprintf(errorMsg, "Server does not support Security Basic256Sha256 Mode of \
             UA_MESSAGESECURITYMODE_SIGNANDENCRYPT");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
@@ -582,7 +582,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     retval = UA_Client_connect_username(client, endpoint, username, password);
     if(retval != UA_STATUSCODE_GOOD) {
         cleanupClient(client, remoteCertificate);
-        strcpy(errorMsg, "UA_Client_Connect() API failed!");
+        sprintf(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
         return errorMsg;
     }
     #endif
@@ -591,7 +591,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
         cleanupClient(client, remoteCertificate);
-        strcpy(errorMsg, "UA_Client_Connect() API failed!");
+        sprintf(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
         return errorMsg;
     }
     return "0";
@@ -611,6 +611,7 @@ runClient(void *ptr) {
         if (clientState == UA_CLIENTSTATE_DISCONNECTED) {
             UA_StatusCode retval = UA_Client_connect(client, endpoint);
             if(retval != UA_STATUSCODE_GOOD) {
+                UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
                 UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
                 /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
                 /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
@@ -633,7 +634,7 @@ runClient(void *ptr) {
 int
 clientStartTopic(char *namespace, char *topic) {
     if (client == NULL) {
-        strcpy(errorMsg, "UA_Client instance is not created");
+        sprintf(errorMsg, "UA_Client instance is not created");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -655,7 +656,7 @@ char*
 clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     userFunc = pyxFunc;
     if (client == NULL) {
-        strcpy(errorMsg, "UA_Client instance is not created");
+        sprintf(errorMsg, "UA_Client instance is not created");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -669,7 +670,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     }
 
     if (createSubscription(nsIndex, topic, cb) == 1) {
-        strcpy(errorMsg, "Subscription failed!");
+        sprintf(errorMsg, "Subscription failed!");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -677,7 +678,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
         
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
-        strcpy(errorMsg, "pthread creation to run the client thread iteratively failed");
+        sprintf(errorMsg, "pthread creation to run the client thread iteratively failed");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;

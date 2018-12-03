@@ -26,8 +26,8 @@ client: build
 
 invalid_client: build
 	@echo "Establish connection to opcua server and start subscribing the data with invalid client certs.."
-	./open62541_test client $(CLIENT_CERTS)/client0_cert.der \
-	                        $(CLIENT_CERTS)/client0_key.der \
+	./open62541_test client $(INVALID_CERTS)/client/client2_cert.der \
+	                        $(INVALID_CERTS)/client/client2_key.der \
 							$(INVALID_CERTS)/ca/ca_cert.der
 
 clean:
