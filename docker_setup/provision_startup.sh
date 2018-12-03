@@ -35,8 +35,8 @@ echo "2. Buidling the provisioning containers..."
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia_vault ia_provision)
-servDockerIgnore=(.dockerignore.vault .dockerignore.provision)
+services=(ia-gobase ia_vault ia_provision)
+servDockerIgnore=(.dockerignore.common .dockerignore.vault .dockerignore.provision)
 
 count=0
 echo "services: ${services[@]}"
