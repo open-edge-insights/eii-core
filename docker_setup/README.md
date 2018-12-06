@@ -8,10 +8,11 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
 ## <u>Pre-requisities</u>:
 
+### **`Ubuntu Only`** 
 
-1. [**`Ubuntu Only`**] Install latest docker cli/docker daemon by following [https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [https://docs.docker.com/install/linux/linux-postinstall/](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
+1. Install latest docker cli/docker daemon by following [https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [https://docs.docker.com/install/linux/linux-postinstall/](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
 
-2. [**`Ubuntu Only`**] Please follow the below steps only if the node/system on which the docker setup is tried out is running behind a HTTP proxy server. If that's not the case, this step can be skipped.
+2. Please follow the below steps only if the node/system on which the docker setup is tried out is running behind a HTTP proxy server. If that's not the case, this step can be skipped.
     
     * Configure proxy settings for docker client to connect to internet and for containers to access internet by following [https://docs.docker.com/network/proxy/](https://docs.docker.com/network/proxy/). One can copy the below json object to ~/.docker/config.json (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`):
 
@@ -57,9 +58,12 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
             Verify on the host: cat /etc/resolv.conf
         ```
 
-3. [**`Ubuntu Only`**] Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
+3. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
-4. [**`Ubuntu and ClearLinux`**] Copy the Yumei acceptance test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
+
+### **`Ubuntu and ClearLinux`**
+
+1. Copy the Yumei acceptance test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
 
     ```
 	cd ElephantTrunkArch/test_videos
@@ -68,183 +72,119 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 	wget -q http://wheeljack.ch.intel.com/test_videos/defect-vid3.avi
     ```
 
-5. [**`Ubuntu and ClearLinux`**] Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
+2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-7. [**`Ubuntu and ClearLinux`**] Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
+3. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
-8. [**`Ubuntu and ClearLinux`**] It is good to stop and remove all previous containers started via docker script way by running below commands:
+4. **Known Issues**:
+    * If one sees `C++ exception` thrown while starting the `ia_video_ingestion` with basler camera, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by running cmd `docker restart ia_video_ingestion`
 
-    ```
-        docker stop $(docker ps -a -q)
-        docker rm $(docker ps -a -q)
-    ```
-    **Note**: If one is facing issue while building the images using `compose_startup.sh` script even after doing resolv.conf and docker proxy settings, please remove all docker images if you don't require the old ones by running cmd `docker rmi $(docker images -q)`. Please beware since the images are deleted, the `compose_startup.sh` script may take longer time as it needs to build all the images from beginning.
+## Steps to setup ETA solution on test/factory system
 
-9. [**`Ubuntu and ClearLinux`**] **Known Issues**:
-    * If one sees `C++ exception` thrown while starting the `ia_video_ingestion`, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by running cmd `docker restart ia_video_ingestion`
-    * We are intermittently seeing the `ia_data_analytics` hanging at `MQTT Client Connected`. This issue is been actively looked into. We have found restarting the containers via `compose_startup.sh` or `deploy_compose_startup.sh` script found to fix the problem
+### <u>Configuration</u>
+1. All configurable options for ETA goes into [.env](.env) file.
+2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and ETA containers goes into [docker-compose.yml](docker-compose.yml) 
+3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source. 
+   1. `factory.json` - value to be used if working with defect video files
+   2. `factory_prod.json` (default) - value to be used if working with the camera setup
 
-## <u>Steps to setup ETA solution on dev system (scripts hould be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup` directory)</u>
+    > **Note**: 
+    > For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
+4. The current trigger for video frame ingestion in ETA stack is happening over MQTT, so mosquitto 
+   container can be run on the ECN or a separate node which is configurable.
+5. `<Yumei App only>`Follow [YumeiApp/README.md](../YumeiApp/README.md) for ingestion configuration 
+   over MQTT, robotic arm, alarm light and reset button control
 
-1. Provision the secrets to Vault:
-   Run the script:
-    ```sh
-    sudo ./provision_startup.sh | tee provision_startup.txt
-    ```
-    Note (Known Issue): The provision_startup.sh does not exit gracefully now. Please press CTRL+C once the provisioning is done.
-    This will take the inputs from provision_config.json and seal the secrets into the Vault.
+### <u>Installation</u>
+1. Directly building the eta containers from source and starting them using   
+   `eta.service` without creating tar balls on the ECN (Edge Compute Node) device 
 
-    Note: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
-    ```sh
-    sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
-    <Update the new values into provision_config.json>
-    sudo ./provision_startup.sh | tee provision_startup.txt
-    ```
-
-2. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
-
-    > **Pre-requisite**:
-    > * Provide the right value for "CONFIG_FILE" in `./.env` file. 
-    >   1. `factory.json` - value to be used if working with defect video files
-    >   2. `factory_prod.json` (default) - value to be used if working with the camera setup
-   
-    ```sh
-    sudo ./compose_startup.sh | tee compose_startup.txt
-    ```
-
-    > **Note**:
-    > 1. `compose_startup.sh` script will start the mosquitto container outside of the docker-compose.yml file if there is no local mosquitto service OR CFSDK container is running.
-    > 2. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
-    starting it off.
-    > 3. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
-    	
-    >    ```sh
-          ENV http_proxy http://proxy.iind.intel.com:911
-          ENV https_proxy http://proxy.iind.intel.com:911
+    - Copy docker_setup files to /opt/intel/eta path and start `eta.service`
+        (**scripts   should be executed from `<ElephantTrunkArch>/docker_setup/deploy` directory**)
+        
+        ```sh
+        sudo ./setup_eta -a | tee setup_eta_install_from_source.txt
         ```
+        > **Note**: The `eta.service` here will fail to bring up the `ia_data_agent` container as the provisioning is not done
 
-3. Run VisualHmi client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
-   
-    ```sh
-    python3.6 VisualHmiClient/VisualHmiEtaDataSync.py -local <path_where_images> -c VisualHmiClient/config.json
-    ```
-    
-   **Note**:
-   * Run cmd: `sudo -H pip3.6 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
-   * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before starting `compose_startup.sh` script:
-     * [config/DataAgent.conf](config/DataAgent.conf)
-     * [.env](.env)
+    - Follow below provisioning steps
 
-4. If working with video file, please follow below steps:
-    * Restart the ia_video_ingestion container: `docker restart ia_video_ingestion`
+        1. Certificates generation:
 
-5. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
+            For gRPC and OPCUA, we need certificates in `.pem` and `.der` formats respectively. Refer [wiki page](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/wiki/Generating-TLS-certificates-and-keys) for generating certs/keys. 
 
-    ```sh
-    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
-    ```
+            **Server certs/keys used by DataAgent:**
 
-    **Note**:
-    * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_prod.json` under `basler` json field
-    * Below scripts provide more control on passing CAM ON and CAM OFF message:
-    
-    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `$GOPATH/src/<ElephantTrunkArch>`:
-        
-          ```sh
-          python3.6 VideoIngestion/test/RoboArm_manual.py --camera_state 1
-          ```
-        - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
-        
-          ```sh
-          python3.6 VideoIngestion/test/RoboArm_auto.py
-          ```
-        <br/>
-	Check `VideoIngestion/test/config.py` for configuration.
+            gRPC certs:
+            * [ca_certificate.pem](../Certificates/ca/ca_certificate.pem)
+            * [server_certificate.pem](../Certificates/server/server_certificate.pem)
+            * [server_key.pem](../Certificates/server/server_key.pem)
+                
+            OPCUA certs:
+            * [ca_cert.der](../Certificates/ca/ca_cert.der)
+            * [server_cert.der](../Certificates/server/server_cert.der)
+            * [server_key.der](../Certificates/server/server_key.der)
 
-6. This step is required to make ETA to start automatically on system boot. Please make sure the present working directory is set to  **docker_setup/deploy** directory. 
+            **Client certs/keys used by VisualHmiClient(GetBlob grpc and opcua client):**
+            
+            gRPC certs:
+            * [ca_certificate.pem](../Certificates/ca/ca_certificate.pem)
+            * [client_certificate.pem](../Certificates/client/client_certificate.pem)
+            * [client_key.pem](../Certificates/client/client_key.pem)
+                
+            OPCUA certs:
+            * [ca_cert.der](../Certificates/ca/ca_cert.der)
+            * [client0_cert.der](../Certificates/client/client_cert.der)
+            * [client0_key.der](../Certificates/client/client_key.der)
 
-    ```sh
-    sudo ./setup_eta.py -a | tee deploy_eta_dvlpmnt_envrnmnt
-    ```
-7. <Optional> This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in **docker_setup/deploy** directory
+            > **Note**: 
+            > 1. We are using different pair of gRPC/opcua certs/keys for ca, server and client right now.
+            > 2. As we are using mutual TLS, make sure that the `ca_cert.der` and `ca_certificate.pem`
+            >    are used to generate the corresponding opcua and grpc server and clients certs/keys.
+            > 3. If certificates are re-generated, just make sure that they are named as above to have
+                them picked up by ETA and gRPC/opcua clients like VisualHmiClient app.
 
-    ```sh
-    sudo ./setup_eta.py -c | tee create_eta_targz.txt
-    ```
-   **Note**:
-   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
-   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
+        2. Provision the secrets to Vault (**scripts should be executed from                             `<ElephantTrunkArch>/docker_setup/` directory**)
+            
+            Run the script:
+            ```sh
+            sudo ./provision_startup.sh | tee provision_startup.txt
+            ```
+            **Known Issue**: The `provision_startup.sh` does not exit gracefully now. Please press `CTRL+C` once the provisioning is done.
+            This will take the inputs from `provision_config.json` and seal the secrets into the Vault.
 
-## <u>Steps to setup ETA solution on factory system  (scripts should be executed from `$GOPATH/src/<ElephantTrunkArch>/docker_setup/deploy` directory) 
+            **Note**: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
+                ```sh
+                sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
+                <Update the new values into provision_config.json>
+                sudo ./provision_startup.sh | tee provision_startup.txt
+                ```
 
-> **Note**: For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
-
-<u>**Pre-requisite:**</u>
-   * Follow [clear_linux_setup_guide.md](clear_linux_setup_guide.md) guide to install clear linux on JWIPC gateway aka Edge Compute Node (ECN)
-   * Follow the ClearLinux specific ones in `Pre-requisites` mentioned before setting up ETA in developement system. In other words, follow the previously mentioned pre-requisites.
-   * Follow [edge_server_setup_guide.md](edge_server_setup_guide.md) guide to install the needed stuff on Edge Server Node
-   * Follow [VisualHmiClient/README.md](VisualHmiClient/README.md) to setup Visual HMI client
-   * Provide the right value for "CONFIG_FILE" in `./.env` file. 
-     1. `factory.json` - value to be used if working with defect video files
-     2. `factory_prod.json` (default) - value to be used if working with the camera setup
-   * `The ETA service daemon (eta.service) would wait till the mosquitto port (1883) is been bounded by CFSDK container`. If there is no CFSDK container running, please start the mosquitto container by running cmd: `docker run -d -p 1883:1883 --restart always eclipse-mosuqitto:1.4.12` before running the eta service. Ideally, we would recommend to have CFSDK container running on the factory setup instead of mosquitto container.
-   * Deployment of ETA in target machine is two phase operation.
-       * Create the tarball package using `setup_eta.py` file on the build machine as indicated above in `Steps to setup ETA solution on dev system` section
-	   * If the tarball(eta.tar.gz) exist already or prepared in step 1 above, then use `setup_eta.py` to install it.
-
-<u>**2 ways to deploy**</u>
-   * Directly building the eta containers from source and starting them using eta.service without creating tar balls
-     
-     ```sh
-     sudo ./setup_eta -a | tee setup_eta_install_from_source.txt
-     ```
-   * Using the `eta.tar.gz` created on the build m/c where eta images are tar balled and deploying the same on the ECN device
-     
-     <u>**Steps:**</u>
-     1. Using `scp` command or some other mechanism, copy the `eta.tar.gz` created from the build m/c to the ECN device
-     2. Untar & Uncompress the archive in your preferred location. e.g. one can execute the below command to extract the tarball:
+    - Restart `eta.service` to bring the ETA stack after provisioning
 
         ```sh
-        tar -xvof eta.tar.gz
+        sudo systemctl restart eta
         ```
 
-     3. Execute the following command to install ETA in the target machine and create systemd service of the same.
+2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either     natively (due to dependencies, this works only on Ubuntu) or dockerized version.
 
-        ```sh
-        sudo ./setup_eta.py -i | tee setup_eta_install.txt
-        ```
-        **Note**:
-        * This step will start the ETA service daemon and all the necessary containers for kick starting the ETA infrastructure. Additionally    it copies all installation files in "/opt/intel/eta/" path.
-        * One can check the status of all ETA and dependency containers before experimenting. Additionally one can execute the following to      check the eta service status. It should be in running state.
-          ```
-         > **Note**: 
-         > * Use command: `journalctl -u eta.service` to check the logs of eta.service. For more details, check [https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs](https://www.digitalocean.com/community/tutorials/how-to-use-journalctl-to-view-and-manipulate-systemd-logs)
+3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by          default the video frames are ingested in loop by `ia_video_ingestion` container. One can            also restart ia_video_ingestion container manually by running: 
+   `docker restart ia_video_ingestion`
 
-4. Run OPCUA client locally(localhost) or from different host(provide ip address of the host m/c where `ia_data_agent` container is running): 
-   
-    ```sh
-    python3.6 VisualHmiClient/VisualHmiEtaDataSync.py -local <path_where_images> -c VisualHmiClient/config.json
-    ```
-   
-  **Note**:
-   * Run cmd: `sudo -H pip3.6 install -r databus_requirements.txt` to install opcua python client dependencies   (For more details, refer [DataBusAbstraction/README.md](DataBusAbstraction/README.md). The databus_requirements.txt and DataBusTest.py   exist in the ElephantTrunkArch repo.
-   * If one wants to change the OPCUA/InfluxDB/Redis port, please do so in 2 places in `docker_setup` folder before install `eta.service`:
-     * [config/DataAgent.conf](config/DataAgent.conf)
-     * [.env](.env)
-
-5. If working with basler's camera, need to publish CAM ON message over mqtt to ia_video_ingestion container by running below command:
+4. If working with basler's camera, need to publish `CAM ON` message over mqtt to  
+   `ia_video_ingestion` container by running below command:
 
     ```sh
     docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
     ```
 
     **Note**: 
-    * While testing with Basler's camera, just provide the right serial number for the camera in `config/factory_prod.json` under `basler` json field
+    * While testing with Basler's camera, just provide the right serial number for the camera in [config/factory_prod.json](config/factory_prod.json) under `basler` json field
     * Below scripts provide more control on passing CAM ON and CAM OFF message:
     
-    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `$GOPATH/src/<ElephantTrunkArch>`:
+    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `<ElephantTrunkArch>`:
         
           ```sh
           python3.6 VideoIngestion/test/RoboArm_manual.py --camera_state 1
@@ -257,19 +197,62 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
         <br/>
  	Check `VideoIngestion/test/config.py` for configuration.
 
-> Note:
-1. ETA containers are: DataAgent(ia_data_agent), Video Ingestion(ia_video_ingestion) and Classifier(ia_data_analytics)
-2. Dependency containers are: Influxdb(influxdb), Redis(redis)
-3. '/opt/intel/eta' root directory details:
-     * config/ - all the ETA configs reside here.
-     * logs/ - all the ETA logs reside here. 
-     * dist_libs/ - is the client external libs distribution package
-        * DataAgentClient -
+### Post Installation Verification
+
+1. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and   
+all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+    	
+    ```sh
+    ENV http_proxy http://proxy.iind.intel.com:911
+    ENV https_proxy http://proxy.iind.intel.com:911
+    ```
+
+2. All containers in ETA stack:
+    * Provisioning containers: vault (`ia_vault`) and provision (`ia_provision`)
+    * Dependency containers: log rotate (`ia_log_rotate`), influxdb (`ia_influxdb`), redis  
+      (`ia_redis`) and mosquitto container started separately
+    * ETA core containers:  DataAgent (`ia_data_agent`), Video Ingestion (`ia_video_ingestion`),
+      Data Analytics (`ia_data_analytics`) and Yumei App (`ia_yumei_app`)
+
+3. Installation directory - `/opt/intel/eta` root directory details:
+     * `config/` - all the ETA configs reside here.
+     * `logs/` - all the ETA logs reside here. 
+     * `dist_libs/` - is the client external libs distribution package
+        * `DataAgentClient` -
             * cpp - consists of gRPC cpp client wrappers, protobuff files and example programs
             * py - consists of gRPC py client wrappers, protobuff files and example programs
-        * DataBusAbstraction - 
+        * `DataBusAbstraction` - 
             * py - consists of opcua py client wrappers and example programs
-4. Few useful docker-compose and docker commands:
+
+### Steps to setup ETA solution on dev system (scripts should be executed from `<ElephantTrunkArch>/docker_setup` directory)</u>
+
+1. Follow provisioning steps in `Steps to setup ETA solution on test/factory system` section 
+2. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
+    ```sh
+    sudo ./compose_startup.sh | tee compose_startup.txt
+    ```
+
+    > **Note**:
+    > 1. `compose_startup.sh` script will start the mosquitto container outside of the docker-compose.yml file if there is no local mosquitto service.
+    > 2. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
+    starting it off.
+    
+3. Follow steps# 2, 3 and 4 under `Installation` section of `Steps to setup ETA solution on test/factory system` section
+
+4. Verify `Post Installation Verification` section of `Steps to setup ETA solution on test/factory system` section
+
+5. `<Optional>` This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory     machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in        
+   **docker_setup/deploy** directory
+
+    ```sh
+    sudo ./setup_eta.py -c | tee create_eta_targz.txt
+    ```
+   **Note**:
+   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
+   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
+
+> Note:
+1. Few useful docker-compose and docker commands:
      * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
      * `docker-compose down` - stops and removes the service containers
      * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
@@ -280,7 +263,8 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
      * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
      * [docker compose reference](https://docs.docker.com/compose/compose-file/)
      * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
-5. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --    name ia_video_ingestion --no-deps ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
-6. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is where the `tee` command comes to rescue.
-7. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service
-   container logs at once, then just run `docker-compose logs -f`
+2. If you want to run the docker images separately i.e, one by one, run the command `docker-compose    run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps      ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's        
+   dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
+3. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to       rootcause the issue effectively. This is where the `tee` command comes to rescue.
+4. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one        wants to see all the docker-compose service container logs at once, then just run        
+   `docker-compose logs -f`

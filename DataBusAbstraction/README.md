@@ -1,5 +1,5 @@
 # DataBusAbstraction
-DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs
+DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs.
 Available in python & golang
 
 Currently supported messagebus (Only OPCUA is been tested so far):
@@ -13,6 +13,11 @@ Currently supported messagebus (Only OPCUA is been tested so far):
   sudo -H pip3.6 install -r databus_requirements.txt
   ```
 2. Install open62541 library dependencies (mbedTLS, python dev):
+
+  > **Note**: This works only on Ubuntu OS. On ClearLinux or any other OS, please  
+  >           run the dockerized version of the DataBusAbstraction client like 
+  >           `VisualHmiClient` app
+
   ```sh
   sudo apt-get install -y libmbedtls-dev python3.6-dev
   ```
@@ -96,6 +101,4 @@ A test program is available under ./go/test/ and ./py/test/ and only works for `
   ```sh
   make clean
   ```
-
-
-   
+  

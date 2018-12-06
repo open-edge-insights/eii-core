@@ -1,6 +1,6 @@
 ElephantTrunkArch (ETA) project
 
-ETA project is a TICK (Telegraph, Influxdb, Chronograph, Kapacitor) stack based architecture aimed at providing the scable infrastructure capability for the factory automation.
+Elephant Trunk Arch (ETA) is the framework for enabling smart manufacturing with visual defect inspections.
 
 
 2 ways to Install ETA:
