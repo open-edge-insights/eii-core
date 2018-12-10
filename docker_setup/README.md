@@ -4,7 +4,7 @@ Docker compose setup of ETA solution:
 --------------------------------------
 
 The setup instructions below assume the OS is installed and ready.
-If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.md](docker_setup/clear_linux_setup_guide.md) for installing the Clearlinux OS.
+If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.md](clear_linux_setup_guide.md) for installing the Clearlinux OS.
 
 ## <u>Pre-requisities</u>:
 

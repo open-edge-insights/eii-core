@@ -1,57 +1,58 @@
 # VisualHmiCleaner Utility:
 
-VisualHmiCleaner is a utiliy to clear the VisualHmi Images & Postgre Entries
+VisualHmiCleaner is a utiliy to clear the VisualHmi images on the disk & postgresql entries
 
 > **Note**:
-> * VisualHmiCleaner runs on Python2.7
+> * VisualHmiCleaner runs on python3.6
 
-## Pre-requisites:
+## Setting up VisualHmiCleaner
 
-**VisualHmiCleaner Can be run two Modes**
-    * 1. CronJob - For Background run as a Job Using Docker
-    * 2. Simple Run - For Immediate run.
+### Configuration
 
-## Steps
+  * Login as root User `sudo su`  **Mandatory**
 
-    * Login as root User `sudo su`  **Mandatory**
+  * Clone or Copy `ElephantTrunkArch` Src under `/root/`    
+    Directory
 
-    * Clone or Copy `ElephantTrunkArch` Src under `/root/` Directory
-
-    * Configure ViusalHmiCleaner
-
-      ```sh
-        vi /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json
-      ```
-
-
-## Setting Up VisualHMICleaner in CronJob Mode Using Container
-
+  * Configure ViusalHmiCleaner
     ```sh
-      cd /root/ElephantTrunkArch/
+    $vi /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json
     ```
 
+    >**Note**:
+    >1. `retentiondays` is a numeric value based on which Images & Entries will be cleared from 
+    >    VisualHmi.
+    >    for Eg.
+    >    If retentiondays = 15 . Then Daily it will clean the before 15 Days Images & Entries.
+    >    If retentiondays = 0 . Then Daily it will clean All the Entries.
+    >
+    >2. `dailyjobscedulehrs` and `dailyjobscedulemins` indicates the specific hour & min on which 
+    >    VisualHmiCleaner will be Executed based on retentiondays value.
+
+  * Install dependencies:
     ```sh
-      docker build -f VisualHmiClient/VisualHmiCleaner/Dockerfile -t visualhmicleaner .
+    $cd /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner
+    $sudo -H pip3.6 install -r requirements.txt
     ```
-## Update settings in config.json
 
-  "retentiondays" is a numeric value based on this Images & Entries will be cleared from VisualHmi.
-    for Eg.
-        If retentiondays = 15 . Then Daily it will clean the before 15 Days Images & Entries.
+### Running VisualHmiCleaner 
 
-        If retentiondays = 0 . Then Daily it will clean All the Entries.
+**VisualHmiCleaner can be run in two Modes**:
+  * CronJob - For Background run as a Job Using Docker
 
-
-  "dailyjobscedulehrs" , "dailyjobscedulehrs" is the specific hour & min on which VisualHmiCleaner will be Executed based on retentiondays value.
-
-
-## RUnning VisualHmiCleaner with CronJob
+    **Building VisualHmiCleaner docker image**:
     ```sh
-      docker run -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json:/eta/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/logs:/eta/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
+      $cd /root/ElephantTrunkArch/
+      $cp docker_set
+      $docker build -f VisualHmiClient/VisualHmiCleaner/Dockerfile -t visualhmicleaner .
     ```
-## Steps to run VisualHmiCleaner in Normal
 
+    **Running VisualHmiCleaner container**:
+    ```sh
+      $docker run -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json:/eta/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/logs:/eta/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
+    ```
+  * Simple Run - For Immediate run.
     ```sh
       cd /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner
-      python2.7 VisualHmiCleaner.py
+      python3.6 VisualHmiCleaner.py
     ```

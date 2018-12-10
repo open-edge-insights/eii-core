@@ -62,9 +62,9 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
     
     * Installing & Starting Docker Daemon Service in CentOS
       ```sh
-        sudo yum install docker-ce
-        sudo systemctl enable docker
-        sudo systemctl start docker
+        $sudo yum install docker-ce
+        $sudo systemctl enable docker
+        $sudo systemctl start docker
       ```
       
     > **Note**:
@@ -76,11 +76,12 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
         * Go to `/root/ElephantTrunkArch`  Directory. **From ElephantTrunkArch dir follow below Steps**
 
         ```sh
-          docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
+        $cp docker_setup/dockerignores/.dockerignore .
+        $docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
         ```
     * Running VisualHmiClient App as Container
         ```sh
-          docker run -v /root/ElephantTrunkArch/Certificates:/eta/VisualHmiClient/Certificates -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
+        $docker run -v /root/ElephantTrunkArch/Certificates:/eta/VisualHmiClient/Certificates -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
         ```
       > **Note**:
       > * Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart 
@@ -98,17 +99,17 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
 
     * Stopping VisualHmi Container
     ```sh
-      docker stop visualhmi
+      $docker stop visualhmi
     ```
 
     * Restarting VisualHmi Container
     ```sh
-      docker restart visualhmi
+      $docker restart visualhmi
     ```
 
     * For VisualHmiContainer Logs
     ```sh
-      docker logs -f visualhmi
+      $docker logs -f visualhmi
     ```
 
 
