@@ -21,14 +21,12 @@ import (
 func CreateHTTPClient(host string, port string, userName string, passwd string) (client.Client, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "https://%s:%s", host, port)
+	fmt.Fprintf(&buff, "http://%s:%s", host, port)
 
 	client, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     buff.String(),
 		Username: userName,
 		Password: passwd,
-		//TODO
-		InsecureSkipVerify: true,
 	})
 	return client, err
 }

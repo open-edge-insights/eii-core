@@ -1,17 +1,15 @@
 {
 	"influxdb": {
-		"host": "localhost",
+		"host": "10.223.109.171",
 		"port": "8086",
 		"retention": "1h30m5s",
 		"username": "admin",
 		"password": "admin123",
-		"dbname": "datain",
-		"ssl": "True", 
-		"verify_ssl": "False"
+		"dbname": "datain"
 	},
 
 	"redis": {
-		"host": "localhost",
+		"host": "10.223.109.171",
 		"port": "6379",
 		"password": "redis123",
 		"retention": "400s"

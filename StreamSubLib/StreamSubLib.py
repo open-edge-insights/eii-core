@@ -64,14 +64,8 @@ class StreamSubLib:
                                            self.config["Port"],
                                            self.config["UserName"],
                                            self.config["Password"],
-                                           self.config["DBName"],
-                                           True
-                                           if self.config["Ssl"] == "True"
-                                           else False,
-                                           True
-                                           if self.config["VerifySsl"] ==
-                                           "True"
-                                           else False)
+                                           self.config["DBName"])
+
         # listenport=0 will take a random available ephemeral port
             self.listenerport = 0
         except Exception as e:
