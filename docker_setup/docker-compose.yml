@@ -218,8 +218,8 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       KAPACITOR_HOSTNAME: ia_data_analytics
-      KAPACITOR_URL: http://ia_data_analytics:9092/
-      KAPACITOR_INFLUXDB_0_URLS_0: http://ia_influxdb:8086/
+      KAPACITOR_URL: https://ia_data_analytics:9092/
+      KAPACITOR_INFLUXDB_0_URLS_0: https://ia_influxdb:8086/
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}

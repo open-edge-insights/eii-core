@@ -28,7 +28,11 @@ RUN cd ${KAPACITOR_REPO} && \
 
 # Adding classifier program
 ADD DataAnalytics/ .
-
+# Adding certificates
+ADD Certificates/influxdb/influxdb-selfsigned.crt /etc/ssl/influxdb-selfsigned.crt
+ADD Certificates/influxdb/influxdb-selfsigned.key /etc/ssl/influxdb-selfsigned.key
+ADD Certificates/kapacitor/kapacitor-selfsigned.crt /etc/ssl/kapacitor-selfsigned.crt
+ADD Certificates/kapacitor/kapacitor-selfsigned.key /etc/ssl/kapacitor-selfsigned.key
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py

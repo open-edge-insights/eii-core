@@ -51,7 +51,9 @@ class DataIngestionLib:
                                            self.config["Port"],
                                            self.config["UserName"],
                                            self.config["Password"],
-                                           self.config["DBName"])
+                                           self.config["DBName"],
+                                           True if self.config["Ssl"] == "True" else False,
+                                           True if self.config["VerifySsl"] == "True" else False)
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
