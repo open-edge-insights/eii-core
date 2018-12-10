@@ -23,7 +23,7 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-# this two changes will go away once we merge DA and vault container, temporary change. 
+# Below two lines will go away once TPM comes in action.
 touch /opt/intel/eta/vault_secret_file
 chmod 700 /opt/intel/eta/vault_secret_file
 

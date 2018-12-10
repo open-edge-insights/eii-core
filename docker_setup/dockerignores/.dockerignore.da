@@ -5,7 +5,6 @@ ImageStore/py
 kapacitor
 VideoIngestion
 VisualHmiClient
-docker_setup
 docker_setup/deploy/*.tar.gz
 test_videos/
 vendor

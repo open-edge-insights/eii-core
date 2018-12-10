@@ -26,7 +26,7 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-# this two changes will go away once we merge DA and vault container, temporary change. 
+# Below two line will go away once TPM is in action.
 touch /opt/intel/eta/vault_secret_file
 chmod 700 /opt/intel/eta/vault_secret_file
 
@@ -47,8 +47,8 @@ echo "2. Buidling the dependency/eta containers..."
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia_log_rotate ia_influxdb ia-gobase ia-pybase ia-gopybase ia_data_agent ia_redis ia_data_analytics ia_yumei_app ia_video_ingestion ia_telegraf ia_vault)
-servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.redis .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi .dockerignore.telegraf .dockerignore.vault)
+services=(ia_log_rotate ia_influxdb ia-gobase ia-pybase ia-gopybase ia_data_agent ia_redis ia_data_analytics ia_yumei_app ia_video_ingestion ia_telegraf)
+servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.redis .dockerignore.classifier .dockerignore.yumeiapp .dockerignore.vi .dockerignore.telegraf)
 
 count=0
 echo "services: ${services[@]}"

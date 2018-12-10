@@ -43,18 +43,10 @@ func write_secret(config_file_path string, vlt_client *api.Client) error {
 
 func init_vault_eta() (*api.Client, error) {
 
-	CERT_FILE_PATH := "./vault_certs/"
-
 	VAULT_SECRET_FILE := "./vault_secret_file"
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
-	//TODO: Read it from TPM
-	ca_cert_file_path := CERT_FILE_PATH + "ca_certificate.pem"
-
-	vlt_config.ConfigureTLS(&api.TLSConfig{
-		CACert: ca_cert_file_path,
-	})
 
 	// Read the secrets and populate the internal data structure.PANI
 	vlt_client, err := api.NewClient(vlt_config)
@@ -64,7 +56,7 @@ func init_vault_eta() (*api.Client, error) {
 		return nil, err
 	}
 
-	vlt_client.SetAddress("https://ia_vault:8200")
+	vlt_client.SetAddress("http://localhost:8200")
 
 	//Check for vault is initialized or not.
 	sys_obj := vlt_client.Sys()

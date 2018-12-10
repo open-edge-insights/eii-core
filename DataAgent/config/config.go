@@ -56,16 +56,9 @@ type opcuaCfg struct {
 func (cfg *DAConfig) InitVault() error {
 
 	VAULT_SECRET_FILE_PATH := "DataAgent/vault_secret_file"
-	CERT_FILE_PATH := "Certificates/vault_certs/"
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
-	//TODO: Read it from TPM
-	ca_cert_file_path := CERT_FILE_PATH + "ca_certificate.pem"
-
-	vlt_config.ConfigureTLS(&api.TLSConfig{
-		CACert: ca_cert_file_path,
-	})
 
 	// Read the secrets and populate the internal data structure.PANI
 	vlt_client, err := api.NewClient(vlt_config)
@@ -75,7 +68,7 @@ func (cfg *DAConfig) InitVault() error {
 		return err
 	}
 
-	vlt_client.SetAddress("https://ia_vault:8200")
+	vlt_client.SetAddress("http://localhost:8200")
 
 	//Check for vault is initialized or not.
 	sys_obj := vlt_client.Sys()

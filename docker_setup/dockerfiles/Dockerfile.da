@@ -88,6 +88,8 @@ ADD StreamManager ./StreamManager
 ADD Gopkg.toml ./
 ADD Gopkg.lock ./
 ADD Certificates Certificates/
+ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
+RUN mkdir -p ./vault/file
 
 ADD DataBusAbstraction ./DataBusAbstraction
 # building libopen62541W.a for cgo
@@ -97,5 +99,5 @@ RUN cd DataBusAbstraction/go/test && \
 ADD Util ./Util
 
 RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
-ENTRYPOINT ["DataAgent", "-log_dir=${GO_WORK_DIR}/log/DataAgent"]
+ENTRYPOINT ["./DataAgent/da_startup.sh"]
 HEALTHCHECK NONE
