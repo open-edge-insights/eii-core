@@ -14,7 +14,7 @@ set -e
 if [ $exit_code -eq "1" ]
 then
     echo "Starting mosquitto container..."
-    docker run -d -p 1883:1883 eclipse-mosquitto:1.4.12
+    docker run -d -p 1883:1883 --name ia_mqtt --network eta_docker_network eclipse-mosquitto:1.4.12
 else
     echo "mosquitto is already up and running, so not starting mosquitto container..."
 fi

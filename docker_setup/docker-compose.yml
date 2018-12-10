@@ -91,8 +91,12 @@ services:
  # Define telegraf service
   ia_telegraf:
     depends_on:
-       - ia-gopybase
-       - ia_data_agent      
+      - ia-gopybase
+    links:
+      - ia_data_agent
+      - ia_influxdb
+    external_links:
+      - ia_mqtt
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
@@ -121,8 +125,8 @@ services:
 
   # Define an Redis service
   ia_redis:
-    depends_on:
-      - ia_data_agent
+    links:
+       - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.redis
@@ -190,6 +194,7 @@ services:
   ia_data_agent:
     depends_on:
       - ia-gobase
+    links:
       - ia_influxdb
     build:
       context: ../
@@ -220,10 +225,13 @@ services:
       
   # Define DataAnalytics service
   ia_data_analytics:
-    depends_on:
+    links:
+      - ia_data_agent
       - ia_influxdb
       - ia_redis
-      - ia_data_agent
+    external_links:
+       -  ia_mqtt
+    
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
@@ -258,11 +266,14 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+    
 
   # Define YumeiApp service      
   ia_yumei_app:
-    depends_on:
-      - ia_data_analytics
+    links:
+       - ia_data_analytics
+    external_links:
+       - ia_mqtt
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.yumeiapp
@@ -323,5 +334,11 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+
+
+networks:
+  default:
+    external:
+      name: eta_docker_network
 
   #----End: ETA Containers ----

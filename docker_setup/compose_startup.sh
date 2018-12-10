@@ -30,8 +30,14 @@ sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 touch /opt/intel/eta/vault_secret_file
 chmod 700 /opt/intel/eta/vault_secret_file
 
-echo "0.6 Checking if mosquitto is up..."
+echo "0.6 create eta_docker_network if it doesn't exists"
+if [ ! "$(docker network ls | grep -w  eta_docker_network)" ]; then
+        docker network create eta_docker_network
+fi
+
+echo "0.7 Checking if mosquitto is up..."
 ./start_mosquitto.sh
+
 
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down
