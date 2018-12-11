@@ -35,6 +35,8 @@ type influxDBCfg struct {
 	Retention string //use time.ParseDuration to convert this to Duration in golang
 	UserName  string
 	Password  string
+	Ssl       string
+	VerifySsl string
 }
 
 type redisCfg struct {
@@ -115,6 +117,8 @@ func (cfg *DAConfig) InitVault() error {
 		cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
 		cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
 		cfg.InfluxDB.DBName = inflx_secret.Data["dbname"].(string)
+		cfg.InfluxDB.Ssl = inflx_secret.Data["ssl"].(string)
+		cfg.InfluxDB.VerifySsl = inflx_secret.Data["verify_ssl"].(string)
 
 		//Read Redis secret
 		redis_secret, err := logical_clnt.Read("secret/redis")
