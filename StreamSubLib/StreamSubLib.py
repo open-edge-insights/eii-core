@@ -24,6 +24,9 @@ SOFTWARE.
 import logging
 from influxdb import InfluxDBClient
 import socket
+from random import randint
+import http.server
+import socketserver
 from DataAgent.da_grpc.client.py.\
     client_internal.client import GrpcInternalClient
 from concurrent.futures import ThreadPoolExecutor
@@ -33,8 +36,13 @@ from collections import defaultdict
 from Util.format_converter import lf_to_json_converter
 from Util.exception import DAException
 
+callback_executor = ThreadPoolExecutor()
+stream_map = defaultdict(list)
+hostname = socket.gethostname()
+port = (randint(49153, 65500))
 
-class StreamSubLib:
+
+class StreamSubLib():
     '''This Class creates a subscription to influx db and provides
     the streams as callbacks like a pub-sub message bus'''
 
@@ -49,9 +57,6 @@ class StreamSubLib:
         self.log = logging.getLogger(__name__)
         try:
             self.maxbytes = 1024
-            self.hostname = socket.gethostname()
-            self.stream_map = defaultdict(list)
-            self.callback_executor = ThreadPoolExecutor()
             client = GrpcInternalClient()
             self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
@@ -86,13 +91,9 @@ class StreamSubLib:
 
             self.subscriptionName = (self.database + "_" + str(
                 uuid4())).replace("-", "_")
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-            self.sock.bind((
-                socket.gethostbyname(self.hostname), self.listenerport))
-
-            subscriptionLink = 'udp://' + socket.gethostbyname(
-                self.hostname) + ':'+str(self.sock.getsockname()[1])
+            subscriptionLink = 'http://' + socket.gethostbyname(
+                hostname) + ':' + str(port)
 
             query_in = "create subscription " + self.subscriptionName + \
                 " ON " + self.database + ".autogen DESTINATIONS ANY \'" + \
@@ -102,10 +103,8 @@ class StreamSubLib:
             self.log.info(
                 "Subscription successfull on database: " + self.database)
 
-            self.initialized = True
-
             self.listening_thread = threading.Thread(
-                target=self.listen_on_udp_server)
+                target=self.listen_on_server)
             self.listening_thread.start()
         except Exception as e:
             self.log.error("Subscription failed due to : " + str(e))
@@ -118,27 +117,15 @@ class StreamSubLib:
             " ON " + self.database + ".autogen"
 
         self.influx_c.query(remove_subscription)
-        self.initialized = False
 
-    def send_to_callback(self, data, data_stream):
-        cbs = self.stream_map[data_stream]
-        for cb in cbs:
-            cb(data)
-
-    def listen_on_udp_server(self):
+    def listen_on_server(self):
         ''' Receives data from the socket and converts it to json format
         and sends the formated data to callback'''
+        handler = HttpHandlerFunc
+        httpd = socketserver.TCPServer((socket.gethostbyname(
+                hostname), port), handler)
 
-        while(self.initialized):
-            data, res_addr = self.sock.recvfrom(self.maxbytes)
-            data = data.decode()
-            data_stream = data.split(" ")
-            measurement = data_stream[0].split(",")
-            if measurement[0] in self.stream_map:
-                data = lf_to_json_converter(data)
-                self.callback_executor.submit(
-                    self.send_to_callback, data, measurement[
-                        0])
+        httpd.serve_forever()
 
     def Subscribe(self, streamName, cb):
         ''' Mapping of stream name with the associated callbacks.
@@ -147,4 +134,23 @@ class StreamSubLib:
             cb(function): Callback function to which data (from influxdb) will
             be sent back to.
         '''
-        self.stream_map[streamName].append(cb)
+        stream_map[streamName].append(cb)
+
+
+class HttpHandlerFunc(http.server.SimpleHTTPRequestHandler):
+
+    def send_to_callback(self, data, data_stream):
+        cbs = stream_map[data_stream]
+        print(cbs)
+        for cb in cbs:
+            cb(data)
+
+    def do_POST(self):
+        postdata = (self.rfile.read(int(
+            self.headers['Content-Length'])).decode("UTF-8"))
+
+        data_stream = postdata.split(" ")
+        measurement = data_stream[0].split(",")
+        if measurement[0] in stream_map:
+            data = lf_to_json_converter(postdata)
+            self.send_to_callback(data, measurement[0])

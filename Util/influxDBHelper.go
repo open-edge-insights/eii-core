@@ -34,10 +34,10 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 }
 
 // CreateSubscription creates the subscription in InfluxDB
-func CreateSubscription(cli client.Client, subName string, dbName string, udpHost string, udpPort string) (*client.Response, error) {
+func CreateSubscription(cli client.Client, subName string, dbName string, httpHost string, httpPort string) (*client.Response, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'udp://%s:%s'", subName, dbName, udpHost, udpPort)
+	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'http://%s:%s'", subName, dbName, httpHost, httpPort)
 
 	q := client.NewQuery(buff.String(), "", "")
 	response, err := cli.Query(q)

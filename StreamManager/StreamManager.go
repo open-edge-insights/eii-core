@@ -14,7 +14,8 @@ package streammanger
 
 import (
 	"fmt"
-	"net"
+	"net/http"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -25,6 +26,8 @@ import (
 
 	"github.com/golang/glog"
 )
+
+var opcuaDatab databus.DataBus
 
 const (
 	subscriptionName = "StreamManagerSubscription"
@@ -71,9 +74,8 @@ func chkErr(err error) {
 	}
 }
 
-func databPublish(dbus databus.DataBus, topicConfig map[string]string, data string) error {
-
-	err := dbus.Publish(topicConfig, data)
+func databPublish(topicConfig map[string]string, data string) error {
+	err := opcuaDatab.Publish(topicConfig, data)
 	if err != nil {
 		glog.Errorf("Publish Error: %v", err)
 		return err
@@ -120,29 +122,28 @@ func convertToJSON(data string) string {
 	return jsonStr
 }
 
-func (pStrmMgr *StrmMgr) handlePointData(dbus databus.DataBus, addr *net.UDPAddr, buf string, n int) error {
+func (pStrmMgr *StrmMgr) handlePointData(buf string) error {
 	var err error
 	var jsonBuf string
 	err = nil
-	glog.Infof("Received Data from address %s", addr)
+
 	point := strings.Split(buf, " ")
 	// It can have tag attached to it, let's split them too.
 	msrTagsLst := strings.Split(point[0], ",")
 
-	glog.Infof("msrTagsLst: %v", msrTagsLst)
 	// Only allowing the measurements that are known to StreamManager
 	for key, val := range pStrmMgr.MsrmtTopicMap {
 		if key == msrTagsLst[0] {
 			glog.Infof("measurement and tag list: %s\n", msrTagsLst)
 			// Publish only if a proper databus context available
-			if dbus != nil {
+			if opcuaDatab != nil {
 				topicConfig := map[string]string{
 					"name": val.Topic,
 					"type": "string",
 				}
 
 				jsonBuf = convertToJSON(buf)
-				databPublish(dbus, topicConfig, jsonBuf)
+				databPublish(topicConfig, jsonBuf)
 			}
 		}
 	}
@@ -187,29 +188,29 @@ func (pStrmMgr *StrmMgr) Init() error {
 	return err
 }
 
+func (pStrmMgr *StrmMgr) httpHandlerFunc(w http.ResponseWriter, req *http.Request) {
+
+	reqBody, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		glog.Errorf("Error in reading the data: %v", err)
+	}
+
+	w.Write([]byte("Received a POST request\n"))
+	pStrmMgr.handlePointData(string(reqBody))
+
+}
+
 func startServer(pStrmMgr *StrmMgr) {
-
 	var dstAddr string
-
+	var err error
 	if pStrmMgr.ServerHost != "" {
 		dstAddr = pStrmMgr.ServerHost + ":" + pStrmMgr.ServerPort
 	} else {
 		dstAddr = ":" + pStrmMgr.ServerPort
 	}
 
-	// Initialize the UDP server which listen on a predefined port
-	servAddr, err := net.ResolveUDPAddr("udp", dstAddr)
-	chkErr(err)
-
-	servConnFd, err := net.ListenUDP("udp", servAddr)
-	chkErr(err)
-	glog.Infof("UDP server started gracefully at addr %s", dstAddr)
-	defer servConnFd.Close()
-
-	buf := make([]byte, 1024*1024)
-
 	// TODO: check if this is the right place to put this
-	opcuaDatab, err := databus.NewDataBus()
+	opcuaDatab, err = databus.NewDataBus()
 	if err != nil {
 		glog.Errorf("New DataBus Instance creation Error: %v", err)
 		os.Exit(1)
@@ -248,17 +249,8 @@ func startServer(pStrmMgr *StrmMgr) {
 		}
 	}
 
-	for {
-		//TODO: Should we break. Need channels here
-		n, addr, err := servConnFd.ReadFromUDP(buf)
-		if err != nil {
-			glog.Errorln("ErrorSocketRecv: ", err)
-			glog.Errorln("Stream manager: error in reading from socket")
-		}
-
-		// TODO: Need to use channels here for preventing the overflow of socket buffer
-		pStrmMgr.handlePointData(opcuaDatab, addr, string(buf[:n]), n)
-	}
+	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
+	http.ListenAndServe(dstAddr, nil)
 }
 
 // SetupOutStream func setups up out stream
