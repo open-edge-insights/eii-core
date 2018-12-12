@@ -64,7 +64,20 @@ func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
 	configBytes := []byte(jsonStr)
 	json.Unmarshal(configBytes, &configMap)
 
-	imgStore, err := imagestore.GetImageStoreInstance(configMap)
+	minioJsonStr, err := getConfig("MinioCfg")
+	if err != nil {
+		glog.Errorf("Failed to retrieve minio config: %v", err)
+		return err
+	}
+
+	var minioConfigMap map[string]string
+	minioConfigBytes := []byte(minioJsonStr)
+	json.Unmarshal(minioConfigBytes, &minioConfigMap)
+
+	// Manually set the host to ia_minio since we are inside the docker network
+	minioConfigMap["Host"] = "ia_minio"
+
+	imgStore, err := imagestore.GetImageStoreInstance(configMap, minioConfigMap)
 	if err != nil {
 		glog.Errorf("Failed to instantiate NewImageStore(). Error: %v", err)
 		return err
@@ -114,6 +127,8 @@ func getConfig(cfgType string) (string, error) {
 		buf, err = json.Marshal(ExtDaCfg.InfluxDB)
 	case "RedisCfg":
 		buf, err = json.Marshal(ExtDaCfg.Redis)
+	case "MinioCfg":
+		buf, err = json.Marshal(ExtDaCfg.Minio)
 	default:
 		return "", errors.New("Not a valid config type")
 	}

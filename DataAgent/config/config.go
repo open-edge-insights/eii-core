@@ -13,19 +13,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package config
 
 import (
+	"encoding/json"
+	"errors"
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
 	"io/ioutil"
-	"encoding/json"
-	"errors"
 )
 
 // DAConfig type exports the config data
 type DAConfig struct {
-	InfluxDB   influxDBCfg
-	Redis      redisCfg
-	OutStreams map[string]outStreamCfg
-	Opcua      opcuaCfg
+	InfluxDB             influxDBCfg
+	Redis                redisCfg
+	OutStreams           map[string]outStreamCfg
+	Opcua                opcuaCfg
+	PersistentImageStore persistentImageStore
+	Minio                minioCfg
 }
 
 type influxDBCfg struct {
@@ -46,6 +48,19 @@ type redisCfg struct {
 	Retention string //use time.ParseDuration to convert this to Duration in golang
 }
 
+type minioCfg struct {
+	Host          string
+	Port          string
+	AccessKey     string
+	SecretKey     string
+	RetentionTime string
+	Ssl           string
+}
+
+type persistentImageStore struct {
+	Type string
+}
+
 type outStreamCfg struct {
 	DatabusFormat string
 }
@@ -56,7 +71,6 @@ type opcuaCfg struct {
 
 // InitVault initializes and read secrets from vault.
 func (cfg *DAConfig) InitVault() error {
-
 	VAULT_SECRET_FILE_PATH := "DataAgent/vault_secret_file"
 
 	// Enable the TLS config.
@@ -130,6 +144,28 @@ func (cfg *DAConfig) InitVault() error {
 		cfg.Redis.Port = redis_secret.Data["port"].(string)
 		cfg.Redis.Retention = redis_secret.Data["retention"].(string)
 		cfg.Redis.Password = redis_secret.Data["password"].(string)
+
+		// Read persistent storage secret
+		pim_secret, err := logical_clnt.Read("secret/persistent_image_store")
+		if err != nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for PersistentImageStore: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+		cfg.PersistentImageStore.Type = pim_secret.Data["type"].(string)
+
+		// Read Minio secret
+		minio_secret, err := logical_clnt.Read("secret/minio")
+		if err != nil {
+			glog.Errorf("DataAgent: Failed to read vault secrets for Minio: %s", err)
+			return errors.New("Failed to read secrets")
+		}
+
+		cfg.Minio.Host = minio_secret.Data["host"].(string)
+		cfg.Minio.Port = minio_secret.Data["port"].(string)
+		cfg.Minio.AccessKey = minio_secret.Data["access_key"].(string)
+		cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
+		cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
+		cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
 
 		opcua_secret, err := logical_clnt.Read("secret/opcua")
 		if err != nil || opcua_secret == nil {

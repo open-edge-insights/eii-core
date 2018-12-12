@@ -32,7 +32,7 @@ services:
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
-    
+
   #---- Start: ETA Dependency Services----
   # Define an InfluxDB service
   ia_influxdb:
@@ -74,7 +74,7 @@ services:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
-      args: 
+      args:
         ETA_VERSION: ${ETA_VERSION}
     container_name: ia_telegraf
     hostname: ia_telegraf
@@ -95,7 +95,6 @@ services:
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
-      
 
   # Define an Redis service
   ia_redis:
@@ -124,6 +123,31 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+
+  # Define Minio service
+  ia_minio:
+    depends_on:
+      - ia_data_agent
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.minio
+    container_name: ia_minio
+    hostname: ia_minio
+    image: ia/minio:${ETA_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
+    volumes:
+      - "${ETA_INSTALL_PATH}/data:/data"
+    ports:
+      - "9000:9000"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
 
   #---- End: ETA Dependency Services----
 
@@ -197,7 +221,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-      
+
   # Define DataAnalytics service
   ia_data_analytics:
     links:
@@ -244,7 +268,8 @@ services:
       interval: ${HEALTHCHECK_DURATION}
     
 
-  # Define YumeiApp service      
+
+  # Define YumeiApp service
   ia_yumei_app:
     links:
        - ia_data_analytics

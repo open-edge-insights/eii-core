@@ -17,6 +17,19 @@
 		"retention": "400s"
 	},
 
+    "persistent_image_store": {
+        "type": "minio"
+    },
+
+    "minio": {
+        "host": "localhost",
+        "port": "9000",
+        "access_key": "admin",
+        "secret_key": "password",
+        "retention_time": "86400",
+        "ssl": "false"
+    },
+
 	"opcua": {
 		"port": "4840"
 	},

@@ -57,6 +57,10 @@ func getConfig(cfgType string) (string, error) {
 		buf, err = json.Marshal(IntDaCfg.InfluxDB)
 	case "RedisCfg":
 		buf, err = json.Marshal(IntDaCfg.Redis)
+	case "PersistentImageStore":
+		buf, err = json.Marshal(IntDaCfg.PersistentImageStore)
+	case "MinioCfg":
+		buf, err = json.Marshal(IntDaCfg.Minio)
 	default:
 		return "", errors.New("Not a valid config type")
 	}

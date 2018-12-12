@@ -67,7 +67,7 @@ class ConnHandler(Handler):
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
         self.img_store = ImageStore()
-        self.img_store.setStorageType('inmemory')
+        self.img_store.setStorageType('persistent')
         # self.storage.start()
 
     def init(self, init_req):
