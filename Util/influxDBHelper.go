@@ -37,7 +37,7 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 func CreateSubscription(cli client.Client, subName string, dbName string, httpHost string, httpPort string) (*client.Response, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'http://%s:%s'", subName, dbName, httpHost, httpPort)
+	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'https://%s:%s'", subName, dbName, httpHost, httpPort)
 
 	q := client.NewQuery(buff.String(), "", "")
 	response, err := cli.Query(q)

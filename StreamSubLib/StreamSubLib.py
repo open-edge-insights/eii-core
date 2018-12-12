@@ -22,6 +22,7 @@ SOFTWARE.
 """
 
 import logging
+import ssl
 from influxdb import InfluxDBClient
 import socket
 from random import randint
@@ -92,7 +93,7 @@ class StreamSubLib():
             self.subscriptionName = (self.database + "_" + str(
                 uuid4())).replace("-", "_")
 
-            subscriptionLink = 'http://' + socket.gethostbyname(
+            subscriptionLink = 'https://' + socket.gethostbyname(
                 hostname) + ':' + str(port)
 
             query_in = "create subscription " + self.subscriptionName + \
@@ -121,11 +122,21 @@ class StreamSubLib():
     def listen_on_server(self):
         ''' Receives data from the socket and converts it to json format
         and sends the formated data to callback'''
-        handler = HttpHandlerFunc
-        httpd = socketserver.TCPServer((socket.gethostbyname(
-                hostname), port), handler)
+        try:
+            key = "Certificates/influxdb_subscribers/influxdb_subscriber.key"
+            crt = "Certificates/influxdb_subscribers/influxdb_subscriber.crt"
 
-        httpd.serve_forever()
+            handler = HttpHandlerFunc
+            httpd = socketserver.TCPServer((socket.gethostbyname(
+                    hostname), port), handler)
+
+            httpd.socket = ssl.wrap_socket(
+                httpd.socket, server_side=True, keyfile=key, certfile=crt)
+
+            httpd.serve_forever()
+        except Exception as e:
+            self.log.error("Error in connection due to : " + str(e))
+            raise e
 
     def Subscribe(self, streamName, cb):
         ''' Mapping of stream name with the associated callbacks.

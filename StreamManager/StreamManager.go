@@ -250,7 +250,14 @@ func startServer(pStrmMgr *StrmMgr) {
 	}
 
 	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
-	http.ListenAndServe(dstAddr, nil)
+	err = http.ListenAndServeTLS(dstAddr,
+				    "Certificates/influxdb_subscribers/influxdb_subscriber.crt", 
+				    "Certificates/influxdb_subscribers/influxdb_subscriber.key", 
+				    nil)
+	if err != nil{
+		glog.Errorf("Error in connection to client due to: %v\n", err )
+		os.Exit(-1)
+	}
 }
 
 // SetupOutStream func setups up out stream
