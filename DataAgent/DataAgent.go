@@ -15,7 +15,11 @@ package main
 import (
 	"flag"
 	"io/ioutil"
+	"net"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
 
 	config "ElephantTrunkArch/DataAgent/config"
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
@@ -28,7 +32,9 @@ import (
 var strmMgrUDPServHost = "ia_data_agent"
 
 const (
-	strmMgrUDPServPort = "61971"
+	strmMgrUDPServPort             = "61971"
+	INFLUX_SERVER_CERTIFICATE_PATH = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
+	INFLUX_SERVER_KEY_PATH         = "/etc/ssl/influxdb/influxdb_server_key.pem"
 )
 
 // DaCfg - stores parsed DataAgent config
@@ -49,19 +55,65 @@ func main() {
 
 	glog.Infof("**************STARTING DA**************")
 
-	err := DaCfg.InitVault()
+	err := DaCfg.ReadFromVault()
 	if err != nil {
 		glog.Errorf("Error: %s", err)
 		os.Exit(-1)
 	}
 
+	//Create the cert and key file for influx server
+	fileName := filepath.Base(INFLUX_SERVER_CERTIFICATE_PATH)
+	to_write := DaCfg.Certs[fileName].([]byte)
+	err = ioutil.WriteFile(INFLUX_SERVER_CERTIFICATE_PATH, to_write, 0700)
+	if err != nil {
+		glog.Errorf("Failed to write file %s, error: %s", INFLUX_SERVER_CERTIFICATE_PATH, err)
+		os.Exit(-1)
+	}
+
+	fileName = filepath.Base(INFLUX_SERVER_KEY_PATH)
+	to_write = DaCfg.Certs[fileName].([]byte)
+	err = ioutil.WriteFile(INFLUX_SERVER_KEY_PATH, to_write, 0700)
+	if err != nil {
+		glog.Errorf("Failed to write file %s, error: %s", INFLUX_SERVER_KEY_PATH, err)
+		os.Exit(-1)
+	}
+
+	glog.Infof("**************Share grpc internal certs/keys to other dependency ETA modules")
+	secretsDir := "/etc/ssl/grpc_int_ssl_secrets"
+	keyArr := []string{"grpc_internal_client_certificate.pem", "grpc_internal_client_key.pem", "ca_certificate.pem"}
+	for _, fileName := range keyArr {
+		if data, ok := DaCfg.Certs[fileName].([]byte); ok {
+			outputFile := secretsDir + "/" + fileName
+			err := ioutil.WriteFile(outputFile, data, 0700)
+			if err != nil {
+				glog.Errorf("Not able to write to secret file: %v, error: %v", outputFile, err)
+				os.Exit(-1)
+			}
+		}
+	}
+
+	glog.Infof("*************STARTING INFLUX DB***********")
+	influx_server := exec.Command("/root/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
+	err = influx_server.Run()
+	if err != nil {
+		glog.Errorf("Failed to start influxdb Server, Error: %s", err)
+		os.Exit(-1)
+	}
+
+	for {
+		InfluxConn, err := net.DialTimeout("tcp", net.JoinHostPort("", "8086"), (5 * time.Second))
+		if err != nil {
+		}
+		if InfluxConn != nil {
+			InfluxConn.Close()
+			break
+		}
+	}
+
+	glog.Infof("*************INFLUX DB STARTED*********")
 	influxCfg := DaCfg.InfluxDB
-
-	glog.Infof("InfluxCfg: %v", influxCfg)
-
 	influxServer := "localhost"
 	clientAdmin, err := util.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
-
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
 		os.Exit(-1)
@@ -77,6 +129,7 @@ func main() {
 		} else {
 			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
 		}
+		//os.Exit(-1)
 	}
 	clientAdmin.Close()
 
@@ -134,7 +187,7 @@ func main() {
 	pStreamManager.OpcuaPort = DaCfg.Opcua.Port
 
 	glog.Infof("Going to start UDP server for influx subscription")
-	err = pStreamManager.Init()
+	err = pStreamManager.Init(DaCfg)
 	if err != nil {
 		glog.Errorf("Failed to initialize StreamManager : %v", err)
 		os.Exit(-1)
@@ -156,42 +209,11 @@ func main() {
 		}
 	}
 
-	glog.Infof("**************Share grpc internal certs/keys to other dependency ETA modules")
-
-	secretsDir := "/etc/ssl/grpc_int_ssl_secrets"
-
-	// TODO: This would be ideally read from the vault
-	grpcIntSslSecretsMap := make(map[string][]byte)
-	grpcIntSslSecretsMap["grpc_internal_client_certificate"], err = ioutil.ReadFile("/etc/ssl/grpc_internal/grpc_internal_client_certificate.pem")
-	if err != nil {
-		glog.Errorf("Error while reading certificate file, error: %v", err)
-	}
-	grpcIntSslSecretsMap["grpc_internal_client_key"], err = ioutil.ReadFile("/etc/ssl/grpc_internal/grpc_internal_client_key.pem")
-	if err != nil {
-		glog.Errorf("Error while reading key file, error: %v", err)
-	}
-	grpcIntSslSecretsMap["ca_certificate"], err = ioutil.ReadFile("/etc/ssl/ca/ca_certificate.pem")
-	if err != nil {
-		glog.Errorf("Error while reading ca certificate file, error: %v", err)
-	}
-
-	keyArr := []string{"grpc_internal_client_certificate", "grpc_internal_client_key", "ca_certificate"}
-	for _, val := range keyArr {
-		if data, ok := grpcIntSslSecretsMap[val]; ok {
-			outputFile := secretsDir + "/" + val + ".pem"
-			err := ioutil.WriteFile(outputFile, []byte(data), 0700)
-			if err != nil {
-				glog.Errorf("Not able to write to secret file: %v, error: %v", outputFile, err)
-				os.Exit(-1)
-			}
-		}
-	}
-
 	// glog.Infof("**************STARTING GRPC SERVER**************")
 	done := make(chan bool)
 	glog.Infof("**************STARTING GRPC Internal SERVER**************")
 	go internalserver.StartGrpcServer(DaCfg)
-	// TODO: The external gRPC server will be enabled when we expose Config and 
+	// TODO: The external gRPC server will be enabled when we expose Config and
 	// Query interfaces from DataAgent in future
 	// glog.Infof("**************STARTING GRPC External SERVER**************")
 	// go server.StartGrpcServer(DaCfg)

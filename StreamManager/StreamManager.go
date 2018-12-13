@@ -17,30 +17,39 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	influxDBHelper "ElephantTrunkArch/Util/influxdb"
 
+	config "ElephantTrunkArch/DataAgent/config"
 	databus "ElephantTrunkArch/DataBusAbstraction/go"
 
 	"github.com/golang/glog"
 )
 
 var opcuaDatab databus.DataBus
+var StrmDaCfg config.DAConfig
 
 const (
 	subscriptionName = "StreamManagerSubscription"
 )
 
 var opcuaContext = map[string]string{
-	"direction":   "PUB",
-	"name":        "streammanager",
-	"endpoint":    "opcua://%s:%s",
-	"certFile":    "/etc/ssl/opcua/opcua_server_certificate.der",
-	"privateFile": "/etc/ssl/opcua/opcua_server_key.der",
-	"trustFile":   "/etc/ssl/ca/ca_certificate.der",
+	"direction":	"PUB",
+	"name":		"streammanager",
+	"endpoint":	"opcua://%s:%s",
+	"certFile":	"/etc/ssl/opcua/opcua_server_certificate.der",
+	"privateFile":	"/etc/ssl/opcua/opcua_server_key.der",
+	"trustFile":	"/etc/ssl/ca/ca_certificate.der",
 }
+
+var strmCertificatesPath = map[string]string {
+	"strmMngrCertFile":	"/etc/ssl/streammanager/streammanager_server_certificate.pem",
+	"strmMngrKeyFile":	"/etc/ssl/streammanager/streammanager_server_key.pem",
+}
+
 
 // StrmMgr type
 type StrmMgr struct {
@@ -151,11 +160,13 @@ func (pStrmMgr *StrmMgr) handlePointData(buf string) error {
 }
 
 // Init func subscribes to InfluxDB and starts up the udp server
-func (pStrmMgr *StrmMgr) Init() error {
+func (pStrmMgr *StrmMgr) Init(DaCfg config.DAConfig) error {
 
 	//Setup the subscription for the DB
 	// We have one DB only to be used by DA. Hence adding subscription
 	// only during inititialization.
+
+	StrmDaCfg = DaCfg
 
 	client, err := influxDBHelper.CreateHTTPClient(pStrmMgr.InfluxDBHost,
 		pStrmMgr.InfluxDBPort, pStrmMgr.InfluxDBUserName, pStrmMgr.InfluxDBPassword)
@@ -226,6 +237,45 @@ func startServer(pStrmMgr *StrmMgr) {
 	}
 
 	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname, pStrmMgr.OpcuaPort)
+	//TODO : Make below logic an inline function to make code more modular.
+	fileName := filepath.Base(opcuaContext["certFile"])
+	servCert, valid := StrmDaCfg.Certs[fileName].([]byte)
+	if !valid {
+		glog.Errorf("A malformed OPC-UA Server certificate obtained")
+		os.Exit(-1)
+	} else {
+		err = ioutil.WriteFile(opcuaContext["certFile"], servCert, 0700)
+		if err != nil {
+			glog.Errorf("Failed to write OPC-UA Server cerficate file Error : %v", err)
+			os.Exit(-1)
+		}
+	}
+
+	fileName = filepath.Base(opcuaContext["privateFile"])
+	servKey, valid := StrmDaCfg.Certs[fileName].([]byte)
+	if !valid {
+		glog.Errorf("A malformed OPC-UA server key obtained")
+		os.Exit(-1)
+	} else {
+		err = ioutil.WriteFile(opcuaContext["privateFile"], servKey, 0700)
+		if err != nil {
+			glog.Errorf("Failed to write OPC-UA server key, Error: %v", err)
+			os.Exit(-1)
+		}
+	}
+
+	fileName = filepath.Base(opcuaContext["trustFile"])
+	caCert, valid := StrmDaCfg.Certs[fileName].([]byte)
+	if !valid {
+		glog.Errorf("A malformed OPC-UA Server certificate obtained")
+		os.Exit(-1)
+	} else {
+		err = ioutil.WriteFile(opcuaContext["trustFile"], caCert, 0700)
+		if err != nil {
+			glog.Errorf("Failed to write OPC-UA server CA cert, Error: %v", err)
+			os.Exit(-1)
+		}
+	}
 
 	err = opcuaDatab.ContextCreate(opcuaContext)
 	if err != nil {
@@ -250,9 +300,37 @@ func startServer(pStrmMgr *StrmMgr) {
 	}
 
 	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
+
+	// Populate the certificates from vault. TODO: make a util function to fill the same.
+	fileName = filepath.Base(strmCertificatesPath["strmMngrCertFile"])
+	strmServCert, valid := StrmDaCfg.Certs[fileName].([]byte)
+	if !valid {
+		glog.Errorf("A malformed stream manager server certificate obtained")
+		os.Exit(-1)
+	} else {
+		err = ioutil.WriteFile(strmCertificatesPath["strmMngrCertFile"], strmServCert, 0700)
+		if err != nil {
+			glog.Errorf("Failed to write Stream manager server cert, Error: %v", err)
+			os.Exit(-1)
+		}
+	}
+
+	fileName = filepath.Base(strmCertificatesPath["strmMngrKeyFile"])
+	strmKeyCert, valid := StrmDaCfg.Certs[fileName].([]byte)
+	if !valid {
+		glog.Errorf("A malformed stream manager server certificate obtained")
+		os.Exit(-1)
+	} else {
+		err = ioutil.WriteFile(strmCertificatesPath["strmMngrKeyFile"], strmKeyCert, 0700)
+		if err != nil {
+			glog.Errorf("Failed to write Stream manager server cert, Error: %v", err)
+			os.Exit(-1)
+		}
+	}
+
 	err = http.ListenAndServeTLS(dstAddr,
-		"/etc/ssl/streammanager/streammanager_server_certificate.pem",
-		"/etc/ssl/streammanager/streammanager_server_key.pem",
+		strmCertificatesPath["strmMngrCertFile"],
+		strmCertificatesPath["strmMngrKeyFile"],
 		nil)
 	if err != nil {
 		glog.Errorf("Error in connection to client due to: %v\n", err)

@@ -26,11 +26,11 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-vaultFile=$ETA_INSTALL_PATH/vault_secret_file
-echo "0.6 Creating empty $vaultFile..."
+#vaultFile=$ETA_INSTALL_PATH/vault_secret_file
+#echo "0.6 Creating empty $vaultFile..."
 # Below two line will go away once TPM is in action.
-touch $vaultFile
-chmod 700 $vaultFile
+#touch $vaultFile
+#chmod 700 $vaultFile
 
 echo "0.7 create $COMPOSE_PROJECT_NAME if it doesn't exists"
 if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then

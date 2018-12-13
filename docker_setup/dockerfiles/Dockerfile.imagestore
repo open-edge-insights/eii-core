@@ -96,6 +96,9 @@ RUN cat /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
 RUN dpkg-reconfigure -f noninteractive tzdata
 
+# Adding cert dirs
+RUN mkdir -p /etc/ssl/imagestore
+
 WORKDIR /root/go/src/ElephantTrunkArch
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent

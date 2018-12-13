@@ -26,6 +26,10 @@ RUN cd ${KAPACITOR_REPO} && \
     mkdir -p ${DIR}/kapacitor && \
     cp -r udf ${DIR}/kapacitor
 
+#Creating dir for kapacitor certs file
+RUN mkdir -p /etc/ssl/kapacitor
+RUN mkdir -p /etc/ssl/imagestore
+
 # Adding classifier program
 ADD DataAnalytics/ .
 

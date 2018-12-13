@@ -44,7 +44,7 @@ func write_secret(config_file_path string, vlt_client *api.Client) error {
 
 func init_vault_eta() (*api.Client, error) {
 
-	VAULT_SECRET_FILE := "./vault_secret_file"
+	VAULT_SECRET_FILE := "/vault/file/vault_secret_file"
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
@@ -90,9 +90,9 @@ func init_vault_eta() (*api.Client, error) {
 
 		err = ioutil.WriteFile(VAULT_SECRET_FILE, secret_blob, 0700)
 		if err != nil {
-			glog.Errorf("Failed to write secreet to file %s, err: %s", VAULT_SECRET_FILE, err)
+			glog.Errorf("Failed to write unseal-key to file %s, err: %s", VAULT_SECRET_FILE, err)
 		}
-		glog.Infof("The secret struct is %+v, %s", resp, secret_blob)
+		//glog.Infof("The secret struct is %+v, %s", resp, secret_blob)
 
 		sys_obj.Unseal(resp.Keys[0])
 		vlt_client.SetToken(resp.RootToken)
@@ -113,13 +113,51 @@ func main() {
 		os.Exit(-1)
 	}
 	glog.Infof("Initialized Vault successfully")
+
+	// Read the certificate files and populate the vault
+	cert_root_dir := "/etc/ssl/"
+
+	cert_dirs, err := ioutil.ReadDir(cert_root_dir)
+	if err != nil {
+		glog.Errorf("Unable to read certificate dir: %s", cert_root_dir)
+		os.Exit(-1)
+	}
+	//Read the certificates folder and update the vault
+	logical_clnt := vlt_client.Logical()
+	secret_to_write := make(map[string]interface{})
+	for _, dir := range cert_dirs {
+		glog.Infof("Reading %s directory", dir.Name())
+		// make map to write
+		dir_path := cert_root_dir + "/" + dir.Name()
+		files, err := ioutil.ReadDir(dir_path)
+		if err != nil {
+			glog.Errorf("Unable to read certificate dir: %s", cert_root_dir)
+			os.Exit(-1)
+		}
+		for _, file := range files {
+			file_path := dir_path + "/" + file.Name()
+			if file.Name() != "ca_key" {
+				byteValue, err := ioutil.ReadFile(file_path)
+				if err != nil {
+					glog.Errorf("Provision: Error Reading file %s, error: %s", file, err)
+					os.Exit(-1)
+				}
+				secret_to_write[file.Name()] = byteValue
+			}
+		}
+	}
+
+	_, err = logical_clnt.Write("secret/Certificates", secret_to_write)
+	if err != nil {
+		glog.Errorf("Failed to write secret to vault err:%s", err)
+		os.Exit(-1)
+	}
+	glog.Infof("Written certificate to Vault successfully")
+	// Write
 	err = write_secret(config_file_path, vlt_client)
 	if err != nil {
 		glog.Errorf("Failed to write successfully to vault, error: %s", err)
 		os.Exit(-1)
 	}
-	glog.Infof("Write secret to Vault successfully")
-
-	//TODO: Write Certificate files/keys to vault
-
+	glog.Infof("Written credential secret to Vault succefully")
 }

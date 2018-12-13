@@ -30,9 +30,8 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
-      # - "${CERTIFICATES_PATH}:/root/go/src/ElephantTrunkArch/vault/certificates"
+      - "${CERTIFICATES_PATH}:/etc/ssl"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
-      - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/vault_secret_file"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

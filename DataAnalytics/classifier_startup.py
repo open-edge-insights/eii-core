@@ -9,6 +9,7 @@ from Util.log import configure_logging, LOG_LEVELS
 import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
+from Util.util import write_certs
 
 SUCCESS = 0
 FAILURE = -1
@@ -76,6 +77,12 @@ def start_kapacitor(host_name):
         config = client.GetConfigInt("InfluxDBCfg")
         os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["UserName"]
         os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["Password"]
+        # Populate the certificates for kapacitor server
+        cert_data = client.GetConfigInt("KapacitorServerCert")
+        file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
+                     "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
+        write_certs(file_list, cert_data)
+
         subprocess.call("kapacitord -hostname "+host_name+" &", shell=True)
         logger.info("Started kapacitor Successfully...")
         return True
@@ -100,7 +107,7 @@ def kapacitor_port_open(host_name):
     """Verify Kapacitor's port is ready for accepting connection
     """
     if process_zombie(KAPACITOR_NAME):
-        exit_with_failure_message("Kapacitor failed to start.Please verify the \
+        exit_with_failure_message("Kapacitor fail to start.Please verify the \
             ia_data_analytics logs for UDF/kapacitor Errors.")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     logger.info("Attempting to connect to Kapacitor on port 9092")

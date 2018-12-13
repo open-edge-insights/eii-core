@@ -27,7 +27,7 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 
 	fmt.Fprintf(&buff, "https://%s:%s", host, port)
 	const (
-		RootCA     = "/etc/ssl/ca/ca_certificate.pem"
+		RootCA     = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
 	)
 	certPool := x509.NewCertPool()
 	ca, err := ioutil.ReadFile(RootCA)

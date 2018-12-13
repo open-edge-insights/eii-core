@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package config
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -22,6 +23,7 @@ import (
 )
 
 // DAConfig type exports the config data
+
 type DAConfig struct {
 	InfluxDB             influxDBCfg
 	Redis                redisCfg
@@ -29,6 +31,7 @@ type DAConfig struct {
 	Opcua                opcuaCfg
 	PersistentImageStore persistentImageStore
 	Minio                minioCfg
+	Certs                map[string]interface{}
 }
 
 type influxDBCfg struct {
@@ -67,9 +70,9 @@ type opcuaCfg struct {
 	Port string
 }
 
-// InitVault initializes and read secrets from vault.
-func (cfg *DAConfig) InitVault() error {
-	VAULT_SECRET_FILE_PATH := "DataAgent/vault_secret_file"
+// ReadFromVault initializes and read secrets from vault.
+func (cfg *DAConfig) ReadFromVault() error {
+	VAULT_SECRET_FILE_PATH := "/vault/file/vault_secret_file"
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
@@ -182,6 +185,19 @@ func (cfg *DAConfig) InitVault() error {
 				a := outStreamCfg{DatabusFormat: v.(string)}
 				cfg.OutStreams[k] = a
 			}
+		}
+
+		//Populate the certificate and keys from vault
+		vault_secret, err := logical_clnt.Read("secret/Certificates")
+		cfg.Certs = vault_secret.Data
+		if cfg.Certs != nil {
+			for k, v := range cfg.Certs {
+				byte_value, _ := b64.StdEncoding.DecodeString(v.(string))
+				cfg.Certs[k] = byte_value
+			}
+		} else {
+			glog.Errorf("Failed to Read CERTS from vault, Error:%s", err)
+			return errors.New("CERT READ failed")
 		}
 
 		//Read all data, Seal the vault.

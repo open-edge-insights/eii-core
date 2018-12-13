@@ -41,9 +41,9 @@ const (
 
 // Server Certificates
 const (
-	RootCA     = "/etc/ssl/ca/ca_certificate.pem"
-	ServerCert = "/etc/ssl/grpc_external/grpc_external_server_certificate.pem"
-	ServerKey  = "/etc/ssl/grpc_external/grpc_external_server_key.pem"
+	RootCA     = "ca_certificate.pem"
+	ServerCert = "grpc_external_server_certificate.pem"
+	ServerKey  = "grpc_external_server_key.pem"
 )
 
 // ExtDaCfg - stores parsed DataAgent config
@@ -115,7 +115,7 @@ func (s *DaServer) Query(ctx context.Context, in *pb.QueryReq) (*pb.QueryResp, e
 func (s *DaServer) Config(ctx context.Context, in *pb.ConfigReq) (*pb.ConfigResp, error) {
 	return &pb.ConfigResp{}, nil
 }
-
+/*
 func getConfig(cfgType string) (string, error) {
 
 	var buf []byte
@@ -135,7 +135,7 @@ func getConfig(cfgType string) (string, error) {
 
 	return string(buf), err
 }
-
+*/
 // StartGrpcServer starts gRPC server
 func StartGrpcServer(DaCfg config.DAConfig) {
 
@@ -150,41 +150,28 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 
 	addr := gRPCHost + ":" + gRPCPort
 
-	// Read certificate binary
-	certPEMBlock, err := ioutil.ReadFile(ServerCert)
-
-	if err != nil {
-		glog.Errorf("Failed to Read Server Certificate : %s", err)
-		os.Exit(-1)
-	}
-
-	keyPEMBlock, err := ioutil.ReadFile(ServerKey)
-
-	if err != nil {
-		glog.Errorf("Failed to Read Server Key : %s", err)
-		os.Exit(-1)
-	}
+	certPEMBlock, valid_cert := DaCfg.Certs[ServerCert].([]byte)
+	keyPEMBlock, valid_key := DaCfg.Certs[ServerKey].([]byte)
 
 	// Load the certificates from binary
-	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
-
-	if err != nil {
-		glog.Errorf("Failed to Load ServerKey Pair : %s", err)
-		os.Exit(-1)
+	if valid_cert && valid_key {
+		certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+		if err != nil {
+			glog.Errorf("Failed to Load ServerKey Pair : %s", err)
+			os.Exit(-1)
+		}
 	}
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile(RootCA)
-	if err != nil {
-		glog.Errorf("Failed to Read CA Certificate : %s", err)
-		os.Exit(-1)
-	}
+	ca, valid_cert := DaCfg.Certs[RootCA].([]byte)
 
 	// Append the certificates from the CA
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		glog.Errorf("Failed to Append CA Certificate")
-		os.Exit(-1)
+	if valid_cert {
+		if ok := certPool.AppendCertsFromPEM(ca); !ok {
+			glog.Errorf("Failed to Append CA Certificate")
+			os.Exit(-1)
+		}
 	}
 
 	lis, err := net.Listen("tcp", addr)

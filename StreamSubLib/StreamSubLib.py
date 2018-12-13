@@ -36,6 +36,7 @@ import threading
 from collections import defaultdict
 from Util.format_converter import lf_to_json_converter
 from Util.exception import DAException
+from Util.util import write_certs
 
 
 callback_executor = ThreadPoolExecutor()
@@ -68,8 +69,10 @@ class StreamSubLib:
             self.maxbytes = 1024
             client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
             self.config = client.GetConfigInt("InfluxDBCfg")
+
+            self.certBlobMap = client.GetConfigInt("StrmLibServerCert")
         except Exception as e:
-            raise DAException("Seems to be some issue with gRPC server." +
+            raise DAException("Failed to execute GetConfigInt" +
                               "Exception: {0}".format(e))
 
         # Creates the influxDB client handle.
@@ -130,6 +133,8 @@ class StreamSubLib:
             path = "/etc/ssl/streamsublib"
             crt = path + "/streamsublib_server_certificate.pem"
             key = path + "/streamsublib_server_key.pem"
+            file_list = [crt, key]
+            write_certs(file_list, self.certBlobMap)
 
             handler = HttpHandlerFunc
             httpd = socketserver.TCPServer((socket.gethostbyname(

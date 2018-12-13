@@ -124,11 +124,21 @@ def uninstall_eta():
     if output.returncode != 0:
         print("Unable to stop ETA systemd service file")
 
+    cwd = os.getcwd()
+    os.chdir("/opt/intel/eta/")
     for i in uninstall_list:
         print("Removing "+i+" ...")
-        output = subprocess.run(["rm", "-rf", i])
-        if output.returncode != 0:
-            print("Unable to remove" + i)
+        if i == "/opt/intel/eta/":
+            output = subprocess.run(["shopt", "-s", "extglob"])
+            output = subprocess.run(["rm", "-rf",
+                                     "!(secret_store)"])
+            if output.returncode != 0:
+                print("Unable to remove" + i)
+        else:
+            output = subprocess.run(["rm", "-rf", i])
+            if output.returncode != 0:
+                print("Unable to remove" + i)
+    os.chdir(cwd)
 
     # This is to keep systemctl DB sane after deleting ETA service.
     print("systemctl daemon reload in progress...")

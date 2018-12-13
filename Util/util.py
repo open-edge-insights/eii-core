@@ -22,6 +22,8 @@ SOFTWARE.
 
 import socket
 import logging as log
+import os
+import base64
 
 
 def check_port_availability(hostname, port):
@@ -43,3 +45,13 @@ def check_port_availability(hostname, port):
         retryCount += 1
         log.debug("{} port is not up on {}".format(port, hostname))
     return portUp
+
+def write_certs(file_list, file_data):
+    file_name = ""
+    for file_path in file_list:
+        try:
+            with open(file_path, 'wb+') as fd:
+                file_name = os.path.basename(file_path)
+                fd.write(base64.b64decode(file_data[file_name]))
+        except Exception as e:
+                log.debug("Failed creating file {}, {} ".format(file_name, e))

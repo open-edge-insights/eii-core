@@ -19,7 +19,6 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"net"
 	"os"
 
@@ -38,9 +37,9 @@ const (
 
 // Server Certificates
 const (
-	RootCA     = "/etc/ssl/ca/ca_certificate.pem"
-	ServerCert = "/etc/ssl/grpc_internal/grpc_internal_server_certificate.pem"
-	ServerKey  = "/etc/ssl/grpc_internal/grpc_internal_server_key.pem"
+	RootCA     = "ca_certificate.pem"
+	ServerCert = "grpc_internal_server_certificate.pem"
+	ServerKey  = "grpc_internal_server_key.pem"
 )
 
 // IntDaCfg - stores parsed DataAgent config
@@ -58,10 +57,11 @@ func (s *DainternalServer) GetConfigInt(ctx context.Context, in *pb.ConfigIntReq
 }
 
 func getConfig(cfgType string) (string, error) {
-
 	var buf []byte
 	var err error
 	err = nil
+
+	sub_map := make(map[string][]byte, 3)
 
 	switch cfgType {
 	case "InfluxDBCfg":
@@ -72,10 +72,27 @@ func getConfig(cfgType string) (string, error) {
 		buf, err = json.Marshal(IntDaCfg.PersistentImageStore)
 	case "MinioCfg":
 		buf, err = json.Marshal(IntDaCfg.Minio)
+	case "KapacitorServerCert":
+		sub_map["kapacitor_server_certificate.pem"] = IntDaCfg.Certs["kapacitor_server_certificate.pem"].([]byte)
+		sub_map["kapacitor_server_key.pem"] = IntDaCfg.Certs["kapacitor_server_key.pem"].([]byte)
+		buf, err = json.Marshal(sub_map)
+	case "StrmLibServerCert":
+		sub_map["streamsublib_server_certificate.pem"] = IntDaCfg.Certs["streamsublib_server_certificate.pem"].([]byte)
+		sub_map["streamsublib_server_key.pem"] = IntDaCfg.Certs["streamsublib_server_key.pem"].([]byte)
+		buf, err = json.Marshal(sub_map)
+	case "ImgStoreServerCert":
+		sub_map["imagestore_server_certificate.pem"] = IntDaCfg.Certs["imagestore_server_certificate.pem"].([]byte)
+		sub_map["imagestore_server_key.pem"] = IntDaCfg.Certs["imagestore_server_key.pem"].([]byte)
+		sub_map["ca_certificate.pem"] = IntDaCfg.Certs["ca_certificate.pem"].([]byte)
+		buf, err = json.Marshal(sub_map)
+	case "ImgStoreClientCert":
+		sub_map["imagestore_client_certificate.pem"] = IntDaCfg.Certs["imagestore_client_certificate.pem"].([]byte)
+		sub_map["imagestore_client_key.pem"] = IntDaCfg.Certs["imagestore_client_key.pem"].([]byte)
+		sub_map["ca_certificate.pem"] = IntDaCfg.Certs["ca_certificate.pem"].([]byte)
+		buf, err = json.Marshal(sub_map)
 	default:
 		return "", errors.New("Not a valid config type")
 	}
-
 	return string(buf), err
 }
 
@@ -92,24 +109,15 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 
 	addr := gRPCHost + ":" + gRPCPort
 
-	// Read certificate binary
-	certPEMBlock, err := ioutil.ReadFile(ServerCert)
-
-	if err != nil {
-		glog.Errorf("Failed to Read Server Certificate : %s", err)
-		os.Exit(-1)
-	}
-
-	keyPEMBlock, err := ioutil.ReadFile(ServerKey)
-
-	if err != nil {
-		glog.Errorf("Failed to Read Server Key : %s", err)
-		os.Exit(-1)
-	}
+	certPEMBlock, valid_cert := DaCfg.Certs[ServerCert].([]byte)
+	keyPEMBlock, valid_key := DaCfg.Certs[ServerKey].([]byte)
 
 	// Load the certificates from binary
+	if !valid_cert || !valid_key {
+		glog.Errorf("Malformed certificate obtained")
+		os.Exit(-1)
+	}
 	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
-
 	if err != nil {
 		glog.Errorf("Failed to Load ServerKey Pair : %s", err)
 		os.Exit(-1)
@@ -117,16 +125,14 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile(RootCA)
-	if err != nil {
-		glog.Errorf("Failed to Read CA Certificate : %s", err)
-		os.Exit(-1)
-	}
+	ca, valid_cert := DaCfg.Certs[RootCA].([]byte)
 
 	// Append the certificates from the CA
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		glog.Errorf("Failed to Append CA Certificate")
-		os.Exit(-1)
+	if valid_cert {
+		if ok := certPool.AppendCertsFromPEM(ca); !ok {
+			glog.Errorf("Failed to Append CA Certificate")
+			os.Exit(-1)
+		}
 	}
 
 	lis, err := net.Listen("tcp", addr)

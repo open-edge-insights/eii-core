@@ -12,11 +12,11 @@ cp -f resolv.conf /etc/resolv.conf
 echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
 source ./init.sh
 
-vaultFile=$ETA_INSTALL_PATH/vault_secret_file
-echo "0.3 Creating empty $vaultFile..."
+#vaultFile=$ETA_INSTALL_PATH/vault_secret_file
+#echo "0.3 Creating empty $vaultFile..."
 # Below two line will go away once TPM is in action.
-touch $vaultFile
-chmod 700 $vaultFile
+#touch $vaultFile
+#chmod 700 $vaultFile
 
 echo "0.4 Updating .env for container timezone..."
 # Get Docker Host timezone

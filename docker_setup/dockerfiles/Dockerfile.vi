@@ -106,6 +106,10 @@ RUN sed -i "/^[ ]*parsers/i    /opt/intel/mediasdk/include/mfx" gstreamer-media-
 RUN sed -i "s/libmfx.a/libmfx.so/" gstreamer-media-SDK/cmake/FindMediaSDK.cmake
 RUN cd /opt/intel/mediasdk/lib/ && mkdir lin_x64 && cd lin_x64 && ln -s ../* .
 RUN cd gstreamer-media-SDK && mkdir build && cd build && cmake .. && make -j8 && make install
+
+# Adding cert dirs
+RUN mkdir -p /etc/ssl/imagestore
+
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py

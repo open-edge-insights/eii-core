@@ -29,7 +29,8 @@ from DataAgent.da_grpc.client.py.client_internal.client \
 from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
 import os
-
+import json
+from Util.util import write_certs
 
 IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
 IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
@@ -76,6 +77,11 @@ class DataIngestionLib:
 
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
+        self.resp = client.GetConfigInt("ImgStoreClientCert")
+        
+        # Write File
+        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
+        write_certs(file_list, self.resp)
         try:
             self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
                                                   IM_CLIENT_KEY, CA_CERT)

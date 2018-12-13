@@ -94,13 +94,12 @@ services:
       INFLUX_SERVER: ${INFLUX_SERVER_HOST}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
       GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
+      INFLUXDB_PORT: ${INFLUXDB_PORT}
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
-      - "${CERTIFICATES_PATH}:/etc/ssl"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
-      - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/DataAgent/vault_secret_file"
     ports:
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
@@ -174,7 +173,6 @@ services:
     volumes:
       - "${ETA_INSTALL_PATH}/data:/data"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -212,9 +210,6 @@ services:
       KAPACITOR_PORT: ${KAPACITOR_PORT}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
     volumes:
-      - "${CERTIFICATES_PATH}/influxdb:/etc/ssl/influxdb"
-      - "${CERTIFICATES_PATH}/kapacitor:/etc/ssl/kapacitor"
-      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
@@ -299,7 +294,6 @@ services:
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
     volumes:
-      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"

@@ -189,8 +189,7 @@ def generate_client_certificate_and_key_pair(key, opts):
 def generate_certificate_and_key_pair(key, peer, opts,
                                       pa_cert_path=paths.root_ca_cert_path(),
                                       pa_key_path=paths.root_ca_key_path(),
-                                      pa_certs_path=paths.root_ca_certs_path()
-                                      ):
+                                      pa_certs_path=paths.root_ca_certs_path()):
 
     os.makedirs(paths.relative_path(peer), exist_ok=True)
     if 'output_format' in opts:

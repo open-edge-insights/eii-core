@@ -96,6 +96,12 @@ RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
+# Adding the CERTS dir
+RUN mkdir /etc/ssl/influxdb/
+RUN mkdir /etc/ssl/opcua/
+RUN mkdir /etc/ssl/streammanager/
+RUN mkdir /etc/ssl/ca/
+
 ADD DataAgent ./DataAgent
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager

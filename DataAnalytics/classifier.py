@@ -26,7 +26,10 @@ import time
 import json
 import os
 from ImageStore.client.py.client import GrpcImageStoreClient
+from DataAgent.da_grpc.client.py.client_internal.client \
+    import GrpcInternalClient
 import cv2
+from Util.util import write_certs
 
 from Util.log import configure_logging, LOG_LEVELS
 
@@ -35,13 +38,20 @@ from kapacitor.udf.agent import Agent, Handler, Server
 from kapacitor.udf import udf_pb2
 from agent.dpm.classification.classifier_manager import ClassifierManager
 from agent.dpm.config import Configuration
+
+
 server_addr = "/tmp/classifier"
 
 TIME_MULTIPLIER_NANO = 1000000000
 
 ROOTCA_CERT = '/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem'
-CLIENT_CERT = '/etc/ssl/imagestore/imagestore_client_certificate.pem'
-CLIENT_KEY = '/etc/ssl/imagestore/imagestore_client_key.pem'
+IM_CLIENT_CERT = '/etc/ssl/imagestore/imagestore_client_certificate.pem'
+IM_CLIENT_KEY = '/etc/ssl/imagestore/imagestore_client_key.pem'
+
+GRPC_CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
+CLIENT_CERT = GRPC_CERTS_PATH + "/grpc_internal_client_certificate.pem"
+CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
+CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
 
 
 # Runs ML algo on stream of points and return result back to kapacitor.
@@ -70,7 +80,15 @@ class ConnHandler(Handler):
                 None, None)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
-        self.img_store = GrpcImageStoreClient(CLIENT_CERT, CLIENT_KEY,
+
+        # Use getConfigInt to read cert and create file
+        client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+        self.resp = client.GetConfigInt("ImgStoreClientCert")
+                
+        # Write File
+        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
+        write_certs(file_list, self.resp)
+        self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
                                               ROOTCA_CERT)
         # self.storage.start()
 
