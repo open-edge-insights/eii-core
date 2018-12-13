@@ -1,0 +1,56 @@
+{
+  "certificates": [
+    {"influxdb":{
+	 "server_alt_name":"influxdb",
+         "client_alt_name":"influxdb"	 
+    }
+    },
+    {
+      "imagestore" :{
+      
+	 "server_alt_name":"imagestore",
+         "client_alt_name":"imagestore"	 
+      }
+    },
+    {
+      "grpc_external" :{
+      
+	 "server_alt_name":"grpc_external",
+         "client_alt_name":"grpc_external"	 
+      }
+    },
+    {
+      "grpc_internal" : {
+      
+	 "server_alt_name":"grpc_internal",
+         "client_alt_name":"grpc_internal"	 
+      }
+    },
+    {
+      "kapacitor" : {
+      
+	 "server_alt_name":"kapacitor",
+         "client_alt_name":"kapacitor"	 
+      }
+    },
+    {
+      "influx_subscriber" :{
+      
+	 "server_alt_name":"influx_subscriber",
+         "client_alt_name":"influx_subscriber"	 
+      }
+    },
+    {
+      "opcua":{
+	 "server_alt_name":"opcua",
+         "client_alt_name":"opcua",	 
+         "output_format": "DER"
+      }
+    }
+    
+  ]
+}
+
+
+
+
