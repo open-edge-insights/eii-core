@@ -17,7 +17,6 @@ import (
 	"os"
 
 	config "ElephantTrunkArch/DataAgent/config"
-	server "ElephantTrunkArch/DataAgent/da_grpc/server"
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
 	stm "ElephantTrunkArch/StreamManager"
 	util "ElephantTrunkArch/Util"
@@ -160,8 +159,8 @@ func main() {
 	done := make(chan bool)
 	glog.Infof("**************STARTING GRPC Internal SERVER**************")
 	go internalserver.StartGrpcServer(DaCfg)
-	glog.Infof("**************STARTING GRPC External SERVER**************")
-	go server.StartGrpcServer(DaCfg)
+	// glog.Infof("**************STARTING GRPC External SERVER**************")
+	// go server.StartGrpcServer(DaCfg)
 	glog.Infof("**************Started GRPC servers**************")
 
 	// Currently running this channel to keep the goroutine running

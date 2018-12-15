@@ -1,7 +1,13 @@
-# Dockerfile for DataAgent
+# ImageStore dockerfile
 ARG ETA_VERSION
-FROM ia/gobase:${ETA_VERSION}
-LABEL description="DataAgent image"
+FROM ia/gopybase:$ETA_VERSION
+
+ARG HOST_TIME_ZONE=""
+
+ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
+ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin
+WORKDIR ${GO_WORK_DIR}
+ENV PYTHONPATH .:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff
 
 ENV GOPATH /root/go
 
@@ -66,42 +72,42 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-RUN go get -v github.com/eclipse/paho.mqtt.golang && \
-    cd ${GOPATH}/src/github.com/eclipse/paho.mqtt.golang && \
-    git checkout -b v1.1.1 tags/v1.1.1
-
-RUN go get -v github.com/influxdata/influxdb && \
-    cd ${GOPATH}/src/github.com/influxdata/influxdb && \
-    git checkout -b v1.6.0 tags/v1.6.0
+RUN go get -v github.com/hashicorp/vault && \
+    cd  ${GOPATH}/src/github.com/hashicorp/vault && \
+    git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2
 
 RUN go get -v github.com/minio/minio-go && \
     cd ${GOPATH}/src/github.com/minio/minio-go && \
     git checkout -b  v6.0.10 tags/v6.0.10
 
-RUN go get -v github.com/hashicorp/vault && \
-    cd  ${GOPATH}/src/github.com/hashicorp/vault && \
-    git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2
+# Setting timezone inside the container
+RUN apt-get update
+RUN apt-get -y install build-essential
+RUN apt-get -y install tcl
+RUN wget http://download.redis.io/releases/redis-5.0.2.tar.gz
+RUN tar xzf redis-5.0.2.tar.gz
+RUN cd /root/go/src/ElephantTrunkArch/redis-5.0.2 && \
+    make && \
+    cp /root/go/src/ElephantTrunkArch/redis-5.0.2/src/redis-server /usr/local/bin && \
+    cp /root/go/src/ElephantTrunkArch/redis-5.0.2/src/redis-cli /usr/local/bin
 
-# tls, crypto library needs to open62541
-RUN apt-get update && \
-    apt-get install -y libmbedtls-dev
+RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2018-11-30T03-56-59Z
+RUN mv minio.RELEASE.2018-11-30T03-56-59Z minio
+RUN chmod +x minio
 
-ADD DataAgent ./DataAgent
-ADD ImageStore/ ./ImageStore/
-ADD StreamManager ./StreamManager
-ADD Gopkg.toml ./
-ADD Gopkg.lock ./
+RUN pip3.6 install grpcio==1.12.1
+RUN pip3.6 install grpcio-tools
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
+
+WORKDIR /root/go/src/ElephantTrunkArch
+ADD ImageStore/ ./ImageStore
+ADD DataAgent/ ./DataAgent
 ADD Certificates Certificates/
-ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
-RUN mkdir -p ./vault/file
 
-ADD DataBusAbstraction ./DataBusAbstraction
-# building libopen62541W.a for cgo
-RUN cd DataBusAbstraction/go/test && \
-    make build_lib
-
-ADD Util ./Util
-
-RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
-ENTRYPOINT ["./DataAgent/da_startup.sh"]
+ENTRYPOINT ["go", "run", "ImageStore/main.go"]
 HEALTHCHECK NONE
+
+

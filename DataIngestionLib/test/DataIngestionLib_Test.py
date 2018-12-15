@@ -29,7 +29,13 @@ import numpy as np
 from influxdb import InfluxDBClient
 from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
 from DataIngestionLib.DataIngestionLib import DataIngestionLib as datain
-from ImageStore.py.imagestore import ImageStore
+from ImageStore.client.py.client import GrpcImageStoreClient
+import os
+filepath = os.path.abspath(os.path.dirname(__file__))
+CA_CERT = filepath + "/../Certificates/ca/ca_certificate.pem"
+IM_CLIENT_KEY = filepath + "/../Certificates/imagestore/imagestore_client_key.pem"
+IM_CLIENT_CERT = filepath + \
+    "/../Certificates/imagestore/imagestore_client_certificate.pem"
 
 measurement_name = 'stream1'
 
@@ -142,7 +148,7 @@ def retrieve_data_from_influx(measurement, tag):
 
 def retrieve_and_write_frames(data_points):
     # Initialize Image Store.
-    img_store = ImageStore()
+    img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, CA_CERT)
     # Loop over the data points to retrive the frames using frame handles and
     # write the frames.
     for elem in data_points:
@@ -151,7 +157,7 @@ def retrieve_and_write_frames(data_points):
             img_names = elem['ImgName'].split(',')
             for idx in range(len(img_handles)):
                 try:
-                    frame = img_store.read(img_handles[idx])
+                    frame = img_store.Read(img_handles[idx])
                 except Exception:
                     log.error('Frame read failed')
                 if frame is not None:

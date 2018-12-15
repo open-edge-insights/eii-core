@@ -21,7 +21,7 @@ SOFTWARE.
 
 import logging
 import argparse
-from ImageStore.py.imagestore import ImageStore
+from ImageStore.client.py.client import GrpcImageStoreClient
 import hashlib
 import time
 import sys
@@ -37,11 +37,14 @@ logging.basicConfig(level=logging.DEBUG,
 log = logging.getLogger("GRPC_TEST")
 
 
-filepath = os.path.abspath(__file__)
+filepath = os.path.abspath(os.path.dirname(__file__))
 CLIENT_CERT = filepath + \
     "/../Certificates/client/client_certificate.pem"
 CLIENT_KEY = filepath + "/../Certificates/client/client_key.pem"
-CA_CERT = filePath + "/../Certificates/ca/ca_certificate.pem"
+CA_CERT = filepath + "/../Certificates/ca/ca_certificate.pem"
+IM_CLIENT_KEY = filepath + "/../Certificates/imagestore/imagestore_client_certificate.pem"
+IM_CLIENT_CERT = filepath + \
+    "/../Certificates/imagestore/imagestore_client_key.pem"
 
 
 def parse_args():
@@ -66,8 +69,7 @@ if __name__ == '__main__':
     inputFile = args.input_file
     outputFile = args.output_file
 
-    imgStore = ImageStore()
-    imgStore.setStorageType("inmemory")
+    imgStore = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, CA_CERT)
 
     totalTime3 = 0.0
     iter1 = 20
@@ -80,7 +82,7 @@ if __name__ == '__main__':
         log.info("len(inputBytes): %s", len(inputBytes))
         log.info("Storing the binary data read in ImageStore...")
         try:
-            key = imgStore.store(inputBytes)
+            key = imgStore.Store(inputBytes,"inmemory")
         except Exception as ex:
             log.error("Error while doing imgStore.store operation...")
             log.error(ex)

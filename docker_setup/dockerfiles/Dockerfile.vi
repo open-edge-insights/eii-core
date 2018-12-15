@@ -57,9 +57,10 @@ RUN cd opencv-3.4.1/build && make install
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
-ADD DataAgent/da_grpc ./DataAgent/da_grpc 
+ADD DataAgent ./DataAgent
 ADD DataIngestionLib ./DataIngestionLib
-ADD ImageStore/py ./ImageStore/py
+ADD ImageStore ./ImageStore
+ADD Certificates Certificates/
 ADD Util ./Util
 # Adding VideoIngestion & test program 
 ADD VideoIngestion/VideoIngestion.py .

@@ -25,8 +25,14 @@ SOFTWARE.
 import logging
 from influxdb import InfluxDBClient
 from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
-from ImageStore.py.imagestore import ImageStore
+from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
+import os
+filepath = os.path.abspath(os.path.dirname(__file__))
+CA_CERT = filepath + "/../Certificates/ca/ca_certificate.pem"
+IM_CLIENT_KEY = filepath + "/../Certificates/imagestore/imagestore_client_key.pem"
+IM_CLIENT_CERT = filepath + \
+    "/../Certificates/imagestore/imagestore_client_certificate.pem"
 
 
 class DataIngestionLib:
@@ -61,8 +67,7 @@ class DataIngestionLib:
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
         try:
-            self.img_store = ImageStore()
-            self.img_store.setStorageType(storage_type)
+            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, CA_CERT)
         except Exception as e:
             raise e
         self.log.debug("Instance created successfully.")
@@ -103,7 +108,7 @@ class DataIngestionLib:
         stored in comma separated way in the field.'''
         # ToDo: Send the buffer to Image Store.
         try:
-            handle = self.img_store.store(value)
+            handle = self.img_store.Store(value,'inmemory')
         except Exception as e:
             raise(e)
         if handle is None:

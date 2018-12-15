@@ -34,6 +34,7 @@ ADD Certificates/ Certificates/
 ADD agent/etr_utils agent/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
 ADD DataAgent/ DataAgent/
+ADD ImageStore/ ImageStore/
 ADD Util/ Util/
 
 ENV PYTHONPATH $PYTHONPATH:/eta/DataBusAbstraction/py:/eta

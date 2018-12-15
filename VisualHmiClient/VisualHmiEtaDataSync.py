@@ -36,6 +36,7 @@ path = os.path.abspath(__file__)
 dataBusPath = "../DataBusAbstraction/py"
 sys.path.append(os.path.join(os.path.dirname(path), dataBusPath))
 from DataBus import databus
+from ImageStore.client.py.client import GrpcImageStoreClient
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \
@@ -50,6 +51,9 @@ ROOTCA_CERT = filePath + '/../Certificates/ca/ca_certificate.pem'
 CLIENT_CERT = filePath + '/../Certificates/client/' + \
               'client_certificate.pem'
 CLIENT_KEY = filePath + '/../Certificates/client/client_key.pem'
+
+IM_CLIENT_CERT = filePath + '/../Certificates/imagestore/imagestore_client_certificate.pem'
+IM_CLIENT_KEY = filePath + '/../Certificates/imagestore/imagestore_client_key.pem'
 
 
 class EtaDataSync:
@@ -114,9 +118,8 @@ class EtaDataSync:
             # provide the hostname/ip addr of the m/c
             # where DataAgent module of ETA solution is running
             grpc_host = self.config['databus_host']
-            client = GrpcClient(CLIENT_CERT, CLIENT_KEY, ROOTCA_CERT,
-                                hostname=grpc_host)
-            outputBytes = client.GetBlob(key)
+            client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, ROOTCA_CERT, hostname='localhost')
+            outputBytes = client.Read(key)
             return outputBytes
         except Exception as e:
             logger.error("Exception: %s", str(e))

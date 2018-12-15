@@ -24,7 +24,6 @@ SOFTWARE.
 
 import logging
 import argparse
-from ImageStore.py.imagestore import ImageStore
 import hashlib
 import time
 import sys

@@ -25,7 +25,7 @@ import numpy as np
 import time
 import json
 import os
-from ImageStore.py.imagestore import ImageStore
+from ImageStore.client.py.client import GrpcImageStoreClient
 import cv2
 
 from Util.log import configure_logging, LOG_LEVELS
@@ -38,6 +38,11 @@ from agent.dpm.config import Configuration
 server_addr = "/tmp/classifier"
 
 TIME_MULTIPLIER_NANO = 1000000000
+
+filePath = os.path.abspath(os.path.dirname(__file__))
+ROOTCA_CERT = filePath + '/Certificates/ca/ca_certificate.pem'
+CLIENT_CERT = filePath + '/Certificates/imagestore/imagestore_client_certificate.pem'
+CLIENT_KEY = filePath + '/Certificates/imagestore/imagestore_client_key.pem'
 
 
 # Runs ML algo on stream of points and return result back to kapacitor.
@@ -66,8 +71,7 @@ class ConnHandler(Handler):
                 None, None)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
-        self.img_store = ImageStore()
-        self.img_store.setStorageType('persistent')
+        self.img_store = GrpcImageStoreClient(CLIENT_CERT, CLIENT_KEY, ROOTCA_CERT)
         # self.storage.start()
 
     def init(self, init_req):
@@ -106,7 +110,7 @@ class ConnHandler(Handler):
                 return
 
             try:
-                frame = self.img_store.read(img_handle)
+                frame = self.img_store.Read(img_handle)
             except Exception:
                 self.logger.error('Frame read failed')
             if frame is not None:
@@ -118,7 +122,7 @@ class ConnHandler(Handler):
                             reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
                 with open("image.png", "rb") as file:
                     data = file.read()
-                    png_handle = self.img_store.store(data)
+                    png_handle = self.img_store.Store(data,'persistent')
                 # Call classification manager API with the tuple data
                 val = (1, user_data, png_handle,
                        ('camera-serial-number', reshape_frame))

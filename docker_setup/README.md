@@ -209,8 +209,8 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
 
 2. All containers in ETA stack:
     * Provisioning containers: vault (`ia_vault`) and provision (`ia_provision`)
-    * Dependency containers: log rotate (`ia_log_rotate`), influxdb (`ia_influxdb`), redis  
-      (`ia_redis`) and mosquitto container started separately
+    * Dependency containers: log rotate (`ia_log_rotate`), influxdb (`ia_influxdb`), imagestore 
+      (`ia_imagestore`) and mosquitto container started separately
     * ETA core containers:  DataAgent (`ia_data_agent`), Video Ingestion (`ia_video_ingestion`),
       Data Analytics (`ia_data_analytics`) and Yumei App (`ia_yumei_app`)
 
