@@ -72,10 +72,6 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-RUN go get -v github.com/hashicorp/vault && \
-    cd  ${GOPATH}/src/github.com/hashicorp/vault && \
-    git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2
-
 RUN go get -v github.com/minio/minio-go && \
     cd ${GOPATH}/src/github.com/minio/minio-go && \
     git checkout -b  v6.0.10 tags/v6.0.10
