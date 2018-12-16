@@ -25,33 +25,38 @@ import os
 import stat
 import tempfile
 
-#from os import path
 from subprocess import run
 import paths
 
-generated_cnf_file = None
-
 
 def get_openssl_cnf_path(opts):
-    global generated_cnf_file
+    cli_alt_name = ''
+    if isinstance(opts["common_name"], list):
+        cn = opts["common_name"][0]
+    else:
+        cn = opts["common_name"]
+    if isinstance(opts["client_alt_name"], list):
+        for index, name in enumerate(opts["client_alt_name"], start=1):
+            cli_alt_name += "DNS." + str(index+1) + "=" + name
+            cli_alt_name += "\n"
+    else:
+        cli_alt_name = "DNS.2=" + opts["client_alt_name"]
+        cli_alt_name += "\n"
+    if isinstance(opts["server_alt_name"], list):
+        server_alt_name = ",".join(opts["server_alt_name"])
+    else:
+        server_alt_name = opts["server_alt_name"]
 
-    cn = opts["common_name"]
-    client_alt_name = opts["client_alt_name"] or opts["common_name"]
-    server_alt_name = opts["server_alt_name"] or opts["common_name"]
     cnf_path = paths.openssl_cnf_path()
     tmp_cnf_path = None
-
     with tempfile.NamedTemporaryFile(mode='w', delete=False) as outfile:
         with open(cnf_path, 'r') as infile:
             in_cnf = infile.read()
             out_cnf0 = in_cnf.replace('@COMMON_NAME@', cn)
-            out_cnf1 = out_cnf0.replace('@CLIENT_ALT_NAME@', client_alt_name)
+            out_cnf1 = out_cnf0.replace('@MULTIPLE_CLI_DOMAINS@', cli_alt_name)
             out_cnf2 = out_cnf1.replace('@SERVER_ALT_NAME@', server_alt_name)
             outfile.write(out_cnf2)
             tmp_cnf_path = outfile.name
-
-    generated_cnf_file = tmp_cnf_path
-
     return tmp_cnf_path
 
 
@@ -68,16 +73,20 @@ def copy_root_ca_certificate_and_key_pair(target="ca"):
 
 
 def copy_leaf_certificate_and_key_pair(source, target, outform=None):
-    paths.copy_tuple_path((source, "cert.pem"),
-                          (paths.result_dir_name+"/"+target,
-                           "{}_certificate.pem".format(target+"_"+source)))
     if outform:
         paths.copy_tuple_path((source, "cert.der"),
                               (paths.result_dir_name+"/"+target,
                                "{}_certificate.der".format(target+"_"+source)))
-    paths.copy_tuple_path((source, "key.pem"),
-                          (paths.result_dir_name+"/"+target,
-                           "{}_key.pem".format(target+"_"+source)))
+        paths.copy_tuple_path((source, "key.der"),
+                              (paths.result_dir_name+"/"+target,
+                               "{}_key.der".format(target+"_"+source)))
+    else:
+        paths.copy_tuple_path((source, "cert.pem"),
+                              (paths.result_dir_name+"/"+target,
+                               "{}_certificate.pem".format(target+"_"+source)))
+        paths.copy_tuple_path((source, "key.pem"),
+                              (paths.result_dir_name+"/"+target,
+                               "{}_key.pem".format(target+"_"+source)))
 
 
 def openssl_req(opts, *args, **kwargs):
@@ -102,6 +111,12 @@ def openssl_genrsa(*args, **kwargs):
 def openssl_ecparam(*args, **kwargs):
     print("=>\t[openssl_ecparam]")
     xs = ["openssl", "ecparam"] + list(args)
+    run(xs, **kwargs)
+
+
+def openssl_rsa(*args, **kwargs):
+    print("=>\t[openssl_rsa]")
+    xs = ["openssl", "rsa"] + list(args)
     run(xs, **kwargs)
 
 
@@ -161,17 +176,19 @@ def generate_certificate_and_key_pair(peer, opts,
                                       pa_certs_path=paths.root_ca_certs_path()):
 
     os.makedirs(paths.relative_path(peer), exist_ok=True)
-    privkey_path = paths.leaf_key_path(peer)
+    if 'output_format' in opts:
+        privkey_path = paths.leaf_key_path_der(peer)
+    else:
+        privkey_path = paths.leaf_key_path(peer)
+
     cert_path = paths.leaf_certificate_path(peer)
-#    output_format = opts["output_format"] if 'output_format' in opts else "PEM"
     req_pem_path = paths.relative_path(peer, "req.pem")
     CN = opts[peer+"_alt_name"]
     opts["common_name"] = CN
-    openssl_genrsa("-out", privkey_path, str(4096))
     openssl_req(opts,
                 "-new",
-                "-key",     privkey_path,
-                "-keyout",  cert_path,
+                "-newkey", "rsa:{}".format(4096),
+                "-keyout",  privkey_path,
                 "-out",     req_pem_path,
                 "-days",    str(3650),
                 "-outform", "PEM",
@@ -188,6 +205,11 @@ def generate_certificate_and_key_pair(peer, opts,
                "-batch",
                "-extensions", "{}_extensions".format(peer))
     if 'output_format' in opts:
+        print("Generating the DER file......")
         openssl_x509("-in",      cert_path,
                      "-out",     paths.leaf_certificate_der_path(peer),
                      "-outform", "DER")
+        openssl_rsa("-in",  privkey_path,
+                    "-out", paths.leaf_key_der_path(peer),
+                    "-inform", "PEM",
+                    "-outform", "DER")

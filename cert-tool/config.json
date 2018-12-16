@@ -2,7 +2,7 @@
   "certificates": [
     {"influxdb":{
 	 "server_alt_name":"influxdb",
-         "client_alt_name":"influxdb"
+         "client_alt_name":["influxdb"] 
     }
     },
     {
@@ -16,14 +16,14 @@
       "grpc_external" :{
 
 	 "server_alt_name":"grpc_external",
-         "client_alt_name":"grpc_external"
+         "client_alt_name":["grpc_external","visualhmi"]	 
       }
     },
     {
       "grpc_internal" : {
 
 	 "server_alt_name":"grpc_internal",
-         "client_alt_name":"grpc_internal"
+         "client_alt_name":["grpc_internal"]	 
       }
     },
     {

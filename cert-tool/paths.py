@@ -24,6 +24,8 @@ SOFTWARE.
 import os
 from os import path
 import shutil
+import socket
+
 
 root = os.getcwd()
 root_ca_dir_name = "rootca"
@@ -44,6 +46,11 @@ def copy_tuple_path(from_tuple, to_tuple):
 
 def openssl_cnf_path():
     return relative_path("openssl.cnf")
+
+
+def container_name():
+    return socket.gethostname()
+
 
 #
 # Root CA
@@ -86,8 +93,16 @@ def leaf_certificate_der_path(peer):
     return relative_path(peer, "cert.der")
 
 
+def leaf_key_der_path(peer):
+    return relative_path(peer, "key.der")
+
+
 def leaf_key_path(peer):
     return relative_path(peer, "key.pem")
+
+
+def leaf_key_path_der(peer):
+    return relative_path(peer, "key.key")
 
 
 #
