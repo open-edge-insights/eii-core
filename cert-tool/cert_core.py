@@ -184,7 +184,8 @@ def generate_certificate_and_key_pair(peer, opts,
     cert_path = paths.leaf_certificate_path(peer)
     req_pem_path = paths.relative_path(peer, "req.pem")
     CN = opts[peer+"_alt_name"]
-    opts["common_name"] = CN
+    opts["common_name"] = (CN[0] if isinstance(CN, list) else CN)
+
     openssl_req(opts,
                 "-new",
                 "-newkey", "rsa:{}".format(4096),
@@ -192,7 +193,7 @@ def generate_certificate_and_key_pair(peer, opts,
                 "-out",     req_pem_path,
                 "-days",    str(3650),
                 "-outform", "PEM",
-                "-subj", "/CN={}/O={}/L=$$$$/".format(CN, peer),
+                "-subj", "/CN={}/O={}/L=$$$/".format(opts["common_name"], peer),
                 "-nodes")
     openssl_ca(opts,
                "-days",    str(3650),
