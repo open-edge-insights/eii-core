@@ -12,8 +12,12 @@ package util
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 
+	"github.com/golang/glog"
 	"github.com/influxdata/influxdb/client/v2"
 )
 
@@ -22,14 +26,27 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 	var buff bytes.Buffer
 
 	fmt.Fprintf(&buff, "https://%s:%s", host, port)
-
+	const (
+		RootCA     = "/etc/ssl/ca/ca_certificate.pem"
+	)
+	certPool := x509.NewCertPool()
+	ca, err := ioutil.ReadFile(RootCA)
+	if err != nil {
+		glog.Errorf("Failed to Read CA Certificate : %s", err)
+		return nil, err
+	}
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		glog.Errorf("Failed to Append Certificate")
+		return nil, nil
+	}
 	client, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr:     buff.String(),
-		Username: userName,
-		Password: passwd,
-		//TODO
-		InsecureSkipVerify: true,
-	})
+		Addr:               buff.String(),
+		Username:           userName,
+		Password:           passwd,
+		InsecureSkipVerify: false,
+		TLSConfig: &tls.Config{
+			  RootCAs: certPool}})
+
 	return client, err
 }
 

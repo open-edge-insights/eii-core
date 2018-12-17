@@ -28,18 +28,16 @@ RUN cd ${KAPACITOR_REPO} && \
 
 # Adding classifier program
 ADD DataAnalytics/ .
-# Adding certificates
-ADD Certificates/influxdb/influxdb-selfsigned.crt /etc/ssl/influxdb-selfsigned.crt
-ADD Certificates/influxdb/influxdb-selfsigned.key /etc/ssl/influxdb-selfsigned.key
-ADD Certificates/kapacitor/kapacitor-selfsigned.crt /etc/ssl/kapacitor-selfsigned.crt
-ADD Certificates/kapacitor/kapacitor-selfsigned.key /etc/ssl/kapacitor-selfsigned.key
-ADD Certificates Certificates/
+
 # Adding project depedency modules
 ADD agent ./agent
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD ImageStore ./ImageStore
 ADD Util ./Util
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
+
 ENTRYPOINT ["python3.6", "classifier_startup.py", "--log-dir", "/ETA/classifier_logs"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
 HEALTHCHECK NONE

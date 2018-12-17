@@ -9,7 +9,7 @@ source .env
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
 cp -f resolv.conf /etc/resolv.conf
 
-echo "0.2 Adding Docker Host IP Address to config/DataAgent.conf, config/factory.json and config/factory_prod.json files..."
+echo "0.2 Adding Docker Host IP Address to config/factory.json and config/factory_prod.json files..."
 source ./update_config.sh
 
 echo "0.3 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
@@ -26,24 +26,24 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-
+vaultFile=$ETA_INSTALL_PATH/vault_secret_file
+echo "0.6 Creating empty $vaultFile..."
 # Below two line will go away once TPM is in action.
-touch /opt/intel/eta/vault_secret_file
-chmod 700 /opt/intel/eta/vault_secret_file
+touch $vaultFile
+chmod 700 $vaultFile
 
-echo "0.6 create eta_docker_network if it doesn't exists"
-if [ ! "$(docker network ls | grep -w  eta_docker_network)" ]; then
-        docker network create eta_docker_network
+echo "0.7 create $COMPOSE_PROJECT_NAME if it doesn't exists"
+if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
+        docker network create $COMPOSE_PROJECT_NAME
 fi
 
-echo "0.7 Checking if mosquitto is up..."
+echo "0.8 Checking if mosquitto is up..."
 ./start_mosquitto.sh
 
-
 echo "1. Removing previous dependency/eta containers if existed..."
-docker-compose down
+docker-compose down --remove-orphans
 
-echo "2. Buidling the dependency/eta containers..."
+echo "2. Building the dependency/eta containers..."
 
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore

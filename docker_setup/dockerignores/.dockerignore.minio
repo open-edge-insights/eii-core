@@ -5,7 +5,6 @@ DataIngestionLib
 go-python
 kapacitor
 StreamManager
-Util
 vendor
 docker_setup
 docker_setup/deploy/*.tar.gz

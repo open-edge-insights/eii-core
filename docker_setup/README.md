@@ -91,11 +91,11 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
       1. update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/blob/master/agent/README.md)
     > **Note**: 
-    > For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
+    > For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
 4. The current trigger for video frame ingestion in ETA stack is happening over MQTT, so mosquitto 
    container can be run on the ECN or a separate node which is configurable.
 5. `<Yumei App only>`Follow [YumeiApp/README.md](../YumeiApp/README.md) for ingestion configuration 
-   over MQTT, robotic arm, alarm light and reset button control
+   over MQTT, controlling of robotic arm, alarm light and reset button
 
 ### <u>Installation</u>
 1. Directly building the eta containers from source and starting them using   
@@ -113,38 +113,7 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
         1. Certificates generation:
 
-            For gRPC and OPCUA, we need certificates in `.pem` and `.der` formats respectively. Refer [wiki page](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/wiki/Generating-TLS-certificates-and-keys) for generating certs/keys. 
-
-            **Server certs/keys used by DataAgent:**
-
-            gRPC certs:
-            * [ca_certificate.pem](../Certificates/ca/ca_certificate.pem)
-            * [server_certificate.pem](../Certificates/server/server_certificate.pem)
-            * [server_key.pem](../Certificates/server/server_key.pem)
-                
-            OPCUA certs:
-            * [ca_cert.der](../Certificates/ca/ca_cert.der)
-            * [server_cert.der](../Certificates/server/server_cert.der)
-            * [server_key.der](../Certificates/server/server_key.der)
-
-            **Client certs/keys used by VisualHmiClient(GetBlob grpc and opcua client):**
-            
-            gRPC certs:
-            * [ca_certificate.pem](../Certificates/ca/ca_certificate.pem)
-            * [client_certificate.pem](../Certificates/client/client_certificate.pem)
-            * [client_key.pem](../Certificates/client/client_key.pem)
-                
-            OPCUA certs:
-            * [ca_cert.der](../Certificates/ca/ca_cert.der)
-            * [client0_cert.der](../Certificates/client/client_cert.der)
-            * [client0_key.der](../Certificates/client/client_key.der)
-
-            > **Note**: 
-            > 1. We are using different pair of gRPC/opcua certs/keys for ca, server and client right now.
-            > 2. As we are using mutual TLS, make sure that the `ca_cert.der` and `ca_certificate.pem`
-            >    are used to generate the corresponding opcua and grpc server and clients certs/keys.
-            > 3. If certificates are re-generated, just make sure that they are named as above to have
-                them picked up by ETA and gRPC/opcua clients like VisualHmiClient app.
+            Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys.
 
         2. Provision the secrets to Vault (**scripts should be executed from                             `<ElephantTrunkArch>/docker_setup/` directory**)
             
@@ -156,11 +125,11 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
             This will take the inputs from `provision_config.json` and seal the secrets into the Vault.
 
             **Note**: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
-                ```sh
-                sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
-                <Update the new values into provision_config.json>
-                sudo ./provision_startup.sh | tee provision_startup.txt
-                ```
+            ```sh
+            sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
+            <Update the new values into provision_config.json>
+            sudo ./provision_startup.sh | tee provision_startup.txt
+            ```
 
     - Restart `eta.service` to bring the ETA stack after provisioning
 

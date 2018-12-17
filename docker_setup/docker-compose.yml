@@ -50,6 +50,8 @@ services:
       no_proxy: ${NO_PROXY}
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
+      - "${CERTIFICATES_PATH}/influxdb:/etc/ssl/influxdb"
+      - "${CERTIFICATES_PATH}/ca/ca_certificate.pem:/etc/ssl/ca/ca_certificate.pem"
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
     ports:
       - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
@@ -81,11 +83,13 @@ services:
     image: ia/telegraf:${ETA_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       HOST_IP: ${HOST_IP}
     volumes:
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/telegraf.conf:/root/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
     logging:
       driver: ${LOGGING_DRIVER}
@@ -96,36 +100,7 @@ services:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
 
-  # Define an Redis service
-  ia_imagestore:
-    links:
-       - ia_data_agent
-    build:
-      context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.imagestore
-      args:
-        ETA_VERSION: ${ETA_VERSION}
-    container_name: ia_imagestore
-    hostname: ia_imagestore
-    image: ia/imagestore:${ETA_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      NO_PROXY: ${NO_PROXY}
-      no_proxy: ${NO_PROXY}
-      GRPC_SERVER: ${GRPC_SERVER_HOST}
-    volumes:
-      - "${ETA_INSTALL_PATH}/data:/data"
-    ports:
-      - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-      test: ["CMD-SHELL", "exit", "0"]
-      interval: ${HEALTHCHECK_DURATION}
-
+  
   #---- End: ETA Dependency Services----
 
   #----Start: ETA Base Images----
@@ -184,13 +159,51 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       IMAGESTORE_SERVER: ${IMAGESTORE_SERVER_HOST}
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
+      GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
+      GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
     volumes:
+      - "${CERTIFICATES_PATH}:/etc/ssl"
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/DataAgent/vault_secret_file"
     ports:
-      - "${GRPC_EXTERNAL_PORT}:${GRPC_EXTERNAL_PORT}"
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+
+  # Define Imagestore service which hosts redis and minio dbs
+  ia_imagestore:
+    links:
+       - ia_data_agent
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.imagestore
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    container_name: ia_imagestore
+    hostname: ia_imagestore
+    image: ia/imagestore:${ETA_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+      REDIS_PORT: ${REDIS_PORT}
+      MINIO_PORT: ${MINIO_PORT}
+      GRPC_SERVER: ${GRPC_SERVER_HOST}  
+    ports:
+      - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
+    volumes:
+      - "${ETA_INSTALL_PATH}/data:/data"
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -208,7 +221,6 @@ services:
       - ia_imagestore
     external_links:
        -  ia_mqtt
-    
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
@@ -220,14 +232,21 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       KAPACITOR_HOSTNAME: ia_data_analytics
-      KAPACITOR_URL: https://ia_data_analytics:9092/
-      KAPACITOR_UNSAFE_SSL: "true"
-      KAPACITOR_INFLUXDB_0_URLS_0: https://ia_influxdb:8086/
+      KAPACITOR_URL: https://ia_data_analytics:${KAPACITOR_PORT}/
+      KAPACITOR_UNSAFE_SSL: "false"
+      KAPACITOR_INFLUXDB_0_URLS_0: https://ia_influxdb:${INFLUXDB_PORT}/
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
+      IMAGESTORE_SERVER: ${IMAGESTORE_SERVER_HOST}
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
-      IMAGESTORE_SERVER: ${IMAGESTORE_SERVER_HOST}
+      KAPACITOR_PORT: ${KAPACITOR_PORT}
+      INFLUXDB_PORT: ${INFLUXDB_PORT}
     volumes:
+      - "${CERTIFICATES_PATH}/influxdb:/etc/ssl/influxdb"
+      - "${CERTIFICATES_PATH}/kapacitor:/etc/ssl/kapacitor"
+      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
       - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
@@ -235,7 +254,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
       - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
-      - "9092"
+      - ${KAPACITOR_PORT}
     command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
@@ -245,8 +264,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    
-
 
   # Define YumeiApp service
   ia_yumei_app:
@@ -264,10 +281,13 @@ services:
     hostname: ia_yumei_app
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       NO_PROXY: ${NO_PROXY},${HOST_IP}
       no_proxy: ${NO_PROXY},${HOST_IP}
     volumes:
+      - "${CERTIFICATES_PATH}/influxdb_subscriber:/etc/ssl/influxdb_subscriber"
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/logs/yumei_app_logs:/ETA/yumei_app_logs"
     command: ["--log", "${LOG_LEVEL}"]
     logging:
@@ -296,6 +316,9 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
+      INFLUX_SERVER: "localhost"
+      IMAGESTORE_SERVER: "localhost"
+      GRPC_SERVER: "localhost"
       NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
       no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
       DEBIAN_FRONTEND: noninteractive
@@ -307,6 +330,8 @@ services:
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
     volumes:
+      - "${CERTIFICATES_PATH}/imagestore:/etc/ssl/imagestore"
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
       - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"

@@ -101,7 +101,6 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 WORKDIR /root/go/src/ElephantTrunkArch
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
-ADD Certificates Certificates/
 
 ENTRYPOINT ["go", "run", "ImageStore/main.go"]
 HEALTHCHECK NONE

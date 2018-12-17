@@ -37,13 +37,21 @@ from collections import defaultdict
 from Util.format_converter import lf_to_json_converter
 from Util.exception import DAException
 
+
 callback_executor = ThreadPoolExecutor()
 stream_map = defaultdict(list)
 hostname = socket.gethostname()
 port = (randint(49153, 65500))
 
+CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/" + \
+    "grpc_internal_client_certificate.pem"
+CLIENT_KEY = "/etc/ssl/grpc_int_ssl_secrets/" + \
+    "grpc_internal_client_key.pem"
+CA_CERT = "/etc/ssl/grpc_int_ssl_secrets/" + \
+    "ca_certificate.pem"
 
-class StreamSubLib():
+
+class StreamSubLib:
     '''This Class creates a subscription to influx db and provides
     the streams as callbacks like a pub-sub message bus'''
 
@@ -58,7 +66,7 @@ class StreamSubLib():
         self.log = logging.getLogger(__name__)
         try:
             self.maxbytes = 1024
-            client = GrpcInternalClient()
+            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
             self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with gRPC server." +
@@ -72,12 +80,10 @@ class StreamSubLib():
                                            self.config["Password"],
                                            self.config["DBName"],
                                            True
-                                           if self.config["Ssl"] == "True"
-                                           else False,
-                                           True
-                                           if self.config["VerifySsl"] ==
+                                           if self.config["Ssl"] ==
                                            "True"
-                                           else False)
+                                           else False,
+                                           CA_CERT)
         # listenport=0 will take a random available ephemeral port
             self.listenerport = 0
         except Exception as e:
@@ -123,8 +129,9 @@ class StreamSubLib():
         ''' Receives data from the socket and converts it to json format
         and sends the formated data to callback'''
         try:
-            key = "Certificates/influxdb_subscribers/influxdb_subscriber.key"
-            crt = "Certificates/influxdb_subscribers/influxdb_subscriber.crt"
+            path = "/etc/ssl/streamsublib"
+            crt = path + "/streamsublib_server_certificate.pem"
+            key = path + "/streamsublib_server_key.pem"
 
             handler = HttpHandlerFunc
             httpd = socketserver.TCPServer((socket.gethostbyname(

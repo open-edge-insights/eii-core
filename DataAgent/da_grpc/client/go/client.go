@@ -23,36 +23,34 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-// Client Certificates
-const (
-	RootCA     = "Certificates/ca/ca_certificate.pem"
-	ClientCert = "Certificates/client/client_certificate.pem"
-	ClientKey  = "Certificates/client/client_key.pem"
-)
-
 // GrpcClient structure
 type GrpcClient struct {
-	hostname string //hostname of the gRPC server
-	port     string //gRPC port
+	hostname   string //hostname of the gRPC server
+	port       string //gRPC port
+	caCert     string //CA cert path
+	clientCert string //client cert path
+	clientKey  string //client key path
 }
 
 // NewGrpcClient : This is the constructor to initialize the GrpcClient
-func NewGrpcClient(hostname, port string) (*GrpcClient, error) {
-	return &GrpcClient{hostname: hostname, port: port}, nil
+func NewGrpcClient(clientCert, clientKey, caCert, hostname, port string) (*GrpcClient, error) {
+	return &GrpcClient{hostname: hostname, port: port, clientCert: clientCert, clientKey: clientKey, caCert: caCert}, nil
 }
 
 // getDaClient: It is a private method called to get the DaClient object
 func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
 	addr := pClient.hostname + ":" + pClient.port
+
 	glog.Infof("Addr: %s", addr)
+
 	// Read certificate binary
-	certPEMBlock, err := ioutil.ReadFile(ClientCert)
+	certPEMBlock, err := ioutil.ReadFile(pClient.clientCert)
 	if err != nil {
 		glog.Errorf("Failed to Read Client Certificate : %s", err)
 		return nil, err
 	}
 
-	keyPEMBlock, err := ioutil.ReadFile(ClientKey)
+	keyPEMBlock, err := ioutil.ReadFile(pClient.clientKey)
 	if err != nil {
 		glog.Errorf("Failed to Read Client Key : %s", err)
 		return nil, err
@@ -67,7 +65,7 @@ func (pClient *GrpcClient) getDaClient() (pb.DaClient, error) {
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile(RootCA)
+	ca, err := ioutil.ReadFile(pClient.caCert)
 	if err != nil {
 		glog.Errorf("Failed to Read CA Certificate : %s", err)
 		return nil, err

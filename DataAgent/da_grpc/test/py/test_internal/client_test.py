@@ -28,9 +28,8 @@ import hashlib
 import time
 import sys
 import os
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../../client/py/client_internal/"))
-from client import GrpcInternalClient
+from DataAgent.da_grpc.client.py.client_internal.client \
+    import GrpcInternalClient
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \
@@ -38,12 +37,16 @@ logging.basicConfig(level=logging.DEBUG,
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 log = logging.getLogger("GRPC_TEST")
 
+CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
+CLIENT_KEY = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
+CA_CERT = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+
 if __name__ == '__main__':
 
     # If executing this script from other m/c, provide
     # the right hostname/ip addr of the system running
     # DataAgent module of ETA
-    client = GrpcInternalClient(hostname="localhost")
+    client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
 
     # Testing GetConfigInt("InfluxDBCfg") gRPC call
     log.info("Getting InfluxDB config:")

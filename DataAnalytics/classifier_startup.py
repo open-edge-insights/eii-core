@@ -8,7 +8,8 @@ import socket
 import datetime
 from Util.log import configure_logging, LOG_LEVELS
 import os
-from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
+from DataAgent.da_grpc.client.py.client_internal.client \
+    import GrpcInternalClient
 
 SUCCESS = 0
 FAILURE = -1
@@ -19,6 +20,11 @@ args = None
 SOCKET_FILE = "/tmp/classifier"
 
 logger = None
+
+CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
+CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
+CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
+CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
 
 def read_kapacitor_hostname():
@@ -51,8 +57,9 @@ def start_classifier(logFileName):
     """
     try:
         subprocess.call("python3.6 classifier.py --config " + args.config +
-            " --log-dir " + args.log_dir + " --log-name " + logFileName +
-            " --log " + args.log.upper() + "&", shell=True)
+                        " --log-dir " + args.log_dir + " --log-name " +
+                        logFileName + " --log " + args.log.upper() + "&",
+                        shell=True)
         logger.info("classifier started successfully")
         return True
     except Exception as e:
@@ -75,7 +82,7 @@ def start_kapacitor(host_name):
     """Starts the kapacitor Daemon in the background
     """
     try:
-        client = GrpcInternalClient()
+        client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
         config = client.GetConfigInt("InfluxDBCfg")
         os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["UserName"]
         os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["Password"]
@@ -83,7 +90,7 @@ def start_kapacitor(host_name):
         logger.info("Started kapacitor Successfully...")
         return True
     except Exception as e:
-        logger.info("Exception Occured in Starting the Kapacitor "+str(e))
+        logger.info("Exception Occured in Starting the Kapacitor " + str(e))
         return False
 
 
@@ -92,10 +99,11 @@ def process_zombie(process_name):
     """
     try:
         out = subprocess.check_output('ps -eaf | grep ' + process_name +
-         '| grep -v grep | grep defunct | wc -l', shell=True).strip()
+                                      '| grep -v grep | grep defunct | wc -l',
+                                      shell=True).strip()
         return True if (out == b'1') else False
     except Exception as e:
-        logger.info("Exception Occured in Starting Kapacitor "+str(e))
+        logger.info("Exception Occured in Starting Kapacitor " + str(e))
 
 
 def kapacitor_port_open(host_name):
@@ -129,11 +137,11 @@ def enable_classifier_task(host_name):
         time.sleep(1)
     logger.info("Kapacitor Port is Open for Communication....")
     while(retry < retry_count):
-        if (subprocess.check_call(
-            ["kapacitor", "define", "classifier_task", "-tick",
-             "classifier.tick"]) == SUCCESS):
-            if(subprocess.check_call(
-                ["kapacitor", "enable", "classifier_task"]) == SUCCESS):
+        cmd = ["kapacitor", "-skipVerify", "define", "classifier_task",
+               "-tick", "classifier.tick"]
+        if (subprocess.check_call(cmd) == SUCCESS):
+            cmd = ["kapacitor", "-skipVerify", "enable", "classifier_task"]
+            if(subprocess.check_call(cmd) == SUCCESS):
                 logger.info("Kapacitor Tasks Enabled Successfully")
                 break
             else:
@@ -145,6 +153,7 @@ def enable_classifier_task(host_name):
         retry = retry + 1
 
 if __name__ == '__main__':
+
     args = parse_args()
 
     currentDateTime = str(datetime.datetime.now())
@@ -153,14 +162,14 @@ if __name__ == '__main__':
     logFileName = 'dataAnalytics_' + currentDateTime + '.log'
 
     logger = configure_logging(args.log.upper(), logFileName,
-                    args.log_dir, __name__)
+                               args.log_dir, __name__)
     host_name = read_kapacitor_hostname()
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
-    if (start_classifier(logFileName) == True):
+    if (start_classifier(logFileName) is True):
         grant_permission_socket()
-        if(start_kapacitor(host_name) == True):
+        if(start_kapacitor(host_name) is True):
             enable_classifier_task(host_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")

@@ -1,0 +1,38 @@
+# Redis dockerfile
+ARG REDIS_VERSION
+FROM ia/pybase:1.0
+
+ARG HOST_TIME_ZONE=""
+
+ENV PY_WORK_DIR /ETA
+WORKDIR ${PY_WORK_DIR}
+ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
+
+# Setting timezone inside the container
+RUN apt-get update
+RUN apt-get -y install build-essential
+RUN apt-get -y install tcl
+RUN wget http://download.redis.io/releases/redis-5.0.2.tar.gz
+RUN tar xzf redis-5.0.2.tar.gz
+RUN cd /ETA/redis-5.0.2 && \
+    make && \
+    cp /ETA/redis-5.0.2/src/redis-server /usr/local/bin && \
+    cp /ETA/redis-5.0.2/src/redis-cli /usr/local/bin
+
+RUN pip3.6 install grpcio
+RUN pip3.6 install grpcio-tools
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
+WORKDIR /ETA
+ADD ImageStore/redis_entrypoint.py ./
+ADD DataAgent/da_grpc ./DataAgent/da_grpc
+ADD Util/ ./Util
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+
+ENTRYPOINT ["python3.6", "/ETA/redis_entrypoint.py"]
+HEALTHCHECK NONE
+
+

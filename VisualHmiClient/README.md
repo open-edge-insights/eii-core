@@ -11,25 +11,6 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
 > * VisualHmiClint app runs only on python3.6 as our OPCUA Databus Client have support for 
 >   python3.6 only at present.
 
-## Pre-requisites:
-
-* Please make sure that the below libraries availability. (either in `ElephantTrunkArch` or yourfolder)
-  * DataBusAbstraction Library  (files under `DataBusAbstraction/py` in our `ElephantTrunkArch` repo)
-  * GRPC Client wrapper `client.py` and protobuff files:
-  * Install dependencies mentioned in the section `Dependencies` at [DataBusAbstraction/README.md](../DataBusAbstraction/README.md)
-  * For using python DatabusAbstraction py library, run the below steps:
-    ```sh
-    cd <repo>/DataBusAbstraction/py/test
-    make build
-    ```
-    This generates `open62541W.so` in `<repo>/DataBusAbstraction/py/test` folder and also copies the same to `<repo>/DataBusAbstraction/py`.
-    This is very much needed for all opcua clients for using python DataBusAbstraction APIs
-  * Install VisualHmiClient dependencies:
-    ```sh
-    cd <repo>
-    sudo -H pip3.6 install -r VisualHmiClient/requirements.txt
-    ```
-
 ## Setting up VisualHmi
 
 ### Configuration
@@ -54,111 +35,62 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
 
 #### Installing VisualHmiClient app
 
-* 2 modes of installation
-  - **Production Mode - Docker Based Containers (`Preferred` for test/factory system)**
+- **Production Mode - Docker Based Containers (`Preferred` for test/factory system)**
 
-    > **Note**: No need to follow **Pre-requisites** section as the VisualHmiClient docker
-    >           image will have all the pre-requisites installed
+  > **Note**: No need to follow **Pre-requisites** section as the VisualHmiClient docker
+  >           image will have all the pre-requisites installed
+  
+  * Installing & Starting Docker Daemon Service in CentOS
+    ```sh
+      sudo yum install docker-ce
+      sudo systemctl enable docker
+      sudo systemctl start docker
+    ```
     
-    * Installing & Starting Docker Daemon Service in CentOS
+  > **Note**:
+  > Refer [docker_setup/README.md](../docker_setup/README.md) for docker daemon and container proxy 
+  > configuration
+
+  * Building Docker Container
+
+      * Go to `/root/ElephantTrunkArch`  Directory. **From ElephantTrunkArch dir follow below Steps**
+
       ```sh
-        $sudo yum install docker-ce
-        $sudo systemctl enable docker
-        $sudo systemctl start docker
+      cp docker_setup/dockerignores/.dockerignore .
+      docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
       ```
-      
+  * Running VisualHmiClient App as Container (**current working dir should be the repo path**)
+      ```sh
+      docker run -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
+      ```
     > **Note**:
-    > Refer ElephantTrunkArch/docker_setup/README.md for docker daemon and container proxy 
-    > configuration
+    > * Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart 
+    >   always for running Behind Proxy Env
+    > * Please make sure you have given required information in [config.json](config.json)
+    > * Don't change mounted volumes directory. If you want to change make sure config.json also 
+    >   updated
+    > * Docker run will consider the local `config.json` as in `VisualHmiClient/config.json`
+    >   Please make sure your config.json is updated
+    > * If you want to change the config.json again No need to build again. As the host 
+    >   /root/ElephantTrunkArch/VisualHMIClient/config.json is mounted to docker container.
 
-    * Building Docker Container
+  * Follow [VisualHmiCleaner/README.md](VisualHmiCleaner/README.md) to start VisualHmiCleaner    
+    docker container utility to clear the classified images stored on the disk & postgresql entries where the classified results metadata is stored.
 
-        * Go to `/root/ElephantTrunkArch`  Directory. **From ElephantTrunkArch dir follow below Steps**
+  * Stopping VisualHmi Container
+  ```sh
+    docker stop visualhmi
+  ```
 
-        ```sh
-        $cp docker_setup/dockerignores/.dockerignore .
-        $docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
-        ```
-    * Running VisualHmiClient App as Container
-        ```sh
-        $docker run -v /root/ElephantTrunkArch/Certificates:/eta/VisualHmiClient/Certificates -v /root/ElephantTrunkArch/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
-        ```
-      > **Note**:
-      > * Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart 
-      >   always for running Behind Proxy Env
-      > * Please make sure you have given required information in [config.json](config.json)
-      > * Don't change mounted volumes directory. If you want to change make sure config.json also 
-      >   updated
-      > * Docker run will consider the local `config.json` as in `VisualHmiClient/config.json`
-      >   Please make sure your config.json is updated
-      > * If you want to change the config.json again No need to build again. As the host 
-      >   /root/ElephantTrunkArch/VisualHMIClient/config.json is mounted to docker container.
+  * Restarting VisualHmi Container
+  ```sh
+    docker restart visualhmi
+  ```
 
-    * Follow [VisualHmiCleaner/README.md](VisualHmiCleaner/README.md) to start VisualHmiCleaner    
-      docker container utility to clear the classified images stored on the disk & postgresql entries where the classified results metadata is stored.
-
-    * Stopping VisualHmi Container
-    ```sh
-      $docker stop visualhmi
-    ```
-
-    * Restarting VisualHmi Container
-    ```sh
-      $docker restart visualhmi
-    ```
-
-    * For VisualHmiContainer Logs
-    ```sh
-      $docker logs -f visualhmi
-    ```
-
-
-  - **BareMetal Setup - For Development Machines**
-    * Set your `PYTHONPATH` based on where libraries are placed
-        For Eg:
-        If the pwd is `ElephantTrunkArch` and it is under home which /root/:
-          ```sh
-          export PYTHONPATH=$PYTHONPATH:~/ElephantTrunkArch:ElephantTrunkArch/DataBusAbstraction/py/:ElephantTrunkArch/DataAgent/da_grpc/protobuff
-          ```
-        else:
-          set your `PYTHONPATH` appropriately
-    * Follow `Pre-requisites` section to install all the dependencies
-    * Running VisualHmiClient app without VisualHmi backend and frontend apps
-
-      ```sh
-        cd <repo>/VisualHmiClient
-        python3.6 VisualHmiEtaDataSync.py -local <path to store image locally>
-      ```
-    
-    > **Note**:
-    > Currently VisualHmiClient app cannot be exited directly. Please use following command to 
-    > terminate it
-
-      ```sh
-        ps -ef | grep VisualHmiEtaDataSync.py | grep -v grep | awk {'print$2'} | xargs kill
-      ```
-
-    * Removing All Images Data from EdgeServer
-      - Remove All Stored Images
-
-        ```sh
-          rm -r ~/saved_images/*
-        ```
-      - Get into Postgre Db Console
-
-        ```sh
-          psql ali ali
-        ```
-      - Execute Below Commands Inside Postgre Console
-
-        ```sh
-          DELETE FROM defect *;
-          DELETE FROM image *;
-          DELETE FROM part *;
-        ```
-        > **Note**:
-        > The Removing Images Part is advised if you are doing pre-production Mode Validation.
-        > Typically the above Scenario should not be handled. As it deletes all the Images.
+  * For VisualHmiContainer Logs
+  ```sh
+    docker logs -f visualhmi
+  ```
 
 #### Installing VisualHmi refinement backend and frontend apps
 

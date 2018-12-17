@@ -1,18 +1,16 @@
 {
 	"influxdb": {
-		"host": "localhost",
-		"port": "8086",
+		"influxdb_port": "8086",
 		"retention": "1h30m5s",
 		"username": "admin",
 		"password": "admin123",
 		"dbname": "datain",
-		"ssl": "True", 
+		"ssl": "True",
 		"verify_ssl": "False"
 	},
 
 	"redis": {
-		"host": "localhost",
-		"port": "6379",
+		"redis_port": "6379",
 		"password": "redis123",
 		"retention": "400s"
 	},
@@ -22,8 +20,7 @@
     },
 
     "minio": {
-        "host": "localhost",
-        "port": "9000",
+        "minio_port": "9000",
         "access_key": "admin",
         "secret_key": "password",
         "retention_time": "86400",
@@ -31,7 +28,7 @@
     },
 
 	"opcua": {
-		"port": "4840"
+		"opcua_port": "4840"
 	},
 
 	"OutStreams": {

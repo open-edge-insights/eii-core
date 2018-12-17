@@ -112,11 +112,13 @@ ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent ./DataAgent
 ADD DataIngestionLib ./DataIngestionLib
 ADD ImageStore ./ImageStore
-ADD Certificates Certificates/
 ADD Util ./Util
 # Adding VideoIngestion & test program 
 ADD VideoIngestion/VideoIngestion.py .
 ADD VideoIngestion/test .
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
+
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
 HEALTHCHECK NONE

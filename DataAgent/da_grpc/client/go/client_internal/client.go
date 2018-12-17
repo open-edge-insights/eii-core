@@ -12,33 +12,81 @@ package client
 
 import (
 	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go/pb_internal"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"io/ioutil"
 	"time"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
-// GrpcClient structure
-type GrpcClient struct {
-	hostname string //hostname of the gRPC server
-	port     string //gRPC port
+// GrpcInternalClient structure
+type GrpcInternalClient struct {
+	hostname   string //hostname of the gRPC server
+	port       string //gRPC port
+	caCert     string //CA cert path
+	clientCert string //client cert path
+	clientKey  string //client key path
 }
 
-// NewGrpcClient : This is the constructor to initialize the GrpcClient
-func NewGrpcClient(hostname, port string) (*GrpcClient, error) {
-	return &GrpcClient{hostname: hostname, port: port}, nil
+// NewGrpcInternalClient : This is the constructor to initialize the GrpcClient
+func NewGrpcInternalClient(clientCert, clientKey, caCert, hostname, port string) (*GrpcInternalClient, error) {
+	return &GrpcInternalClient{hostname: hostname, port: port, clientCert: clientCert, clientKey: clientKey, caCert: caCert}, nil
 }
 
 // getDaClient: It is a private method called to get the DaClient object
-func (pClient *GrpcClient) getDaClient() (pb.DainternalClient, error) {
+func (pClient *GrpcInternalClient) getDaClient() (pb.DainternalClient, error) {
 	addr := pClient.hostname + ":" + pClient.port
 
 	glog.Infof("Addr: %s", addr)
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+
+	// Read certificate binary
+	certPEMBlock, err := ioutil.ReadFile(pClient.clientCert)
 	if err != nil {
-		glog.Errorf("Did not connect: %v", err)
+		glog.Errorf("Failed to Read Client Certificate : %s", err)
+		return nil, err
+	}
+
+	keyPEMBlock, err := ioutil.ReadFile(pClient.clientKey)
+	if err != nil {
+		glog.Errorf("Failed to Read Client Key : %s", err)
+		return nil, err
+	}
+
+	// Load the certificates from binary
+	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+	if err != nil {
+		glog.Errorf("Failed to Load ClientKey Pair : %s", err)
+		return nil, err
+	}
+
+	// Create a certificate pool from the certificate authority
+	certPool := x509.NewCertPool()
+	ca, err := ioutil.ReadFile(pClient.caCert)
+	if err != nil {
+		glog.Errorf("Failed to Read CA Certificate : %s", err)
+		return nil, err
+	}
+
+	// Append the Certificates from the CA
+	if ok := certPool.AppendCertsFromPEM(ca); !ok {
+		glog.Errorf("Failed to Append Certificate")
+		return nil, nil
+	}
+
+	// Create the TLS credentials for transport
+	creds := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{certificate},
+		RootCAs:      certPool,
+	})
+
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(creds))
+	if err != nil {
+		glog.Errorf("Grpc Dial Error, Not able to Connect %s: %s", addr, err)
 		return nil, err
 	}
 
@@ -50,7 +98,7 @@ func (pClient *GrpcClient) getDaClient() (pb.DainternalClient, error) {
 // GetConfigInt interface. It takes the config as the parameter
 // (InfluxDBCfg, RedisCfg etc.,) returning the json as map for that
 // particular config
-func (pClient *GrpcClient) GetConfigInt(config string) (map[string]string, error) {
+func (pClient *GrpcInternalClient) GetConfigInt(config string) (map[string]string, error) {
 
 	daClient, err := pClient.getDaClient()
 	if err != nil {

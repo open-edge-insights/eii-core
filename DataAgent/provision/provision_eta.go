@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"github.com/golang/glog"
-	"github.com/hashicorp/vault/api"
 	"io/ioutil"
 	"os"
+
+	"github.com/golang/glog"
+	"github.com/hashicorp/vault/api"
 )
 
 func write_secret(config_file_path string, vlt_client *api.Client) error {
@@ -91,8 +92,7 @@ func init_vault_eta() (*api.Client, error) {
 		if err != nil {
 			glog.Errorf("Failed to write secreet to file %s, err: %s", VAULT_SECRET_FILE, err)
 		}
-		glog.Infof("The secret struct is %+v, %s",resp, secret_blob)
-
+		glog.Infof("The secret struct is %+v, %s", resp, secret_blob)
 
 		sys_obj.Unseal(resp.Keys[0])
 		vlt_client.SetToken(resp.RootToken)
@@ -112,13 +112,14 @@ func main() {
 		glog.Errorf("Failed to initialize vault, error: %s", err)
 		os.Exit(-1)
 	}
-	glog.Infof("Initialized Vault succefully")
+	glog.Infof("Initialized Vault successfully")
 	err = write_secret(config_file_path, vlt_client)
 	if err != nil {
 		glog.Errorf("Failed to write successfully to vault, error: %s", err)
 		os.Exit(-1)
 	}
-	glog.Infof("Write secret to Vault succefully")
+	glog.Infof("Write secret to Vault successfully")
 
+	//TODO: Write Certificate files/keys to vault
 
 }

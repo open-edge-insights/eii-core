@@ -162,18 +162,19 @@ def generate_root_ca(opts):
                  "-outform", "DER")
 
 
-def generate_server_certificate_and_key_pair(opts, **kwargs):
-    generate_certificate_and_key_pair("server", opts, **kwargs)
+def generate_server_certificate_and_key_pair(key, opts, **kwargs):
+    generate_certificate_and_key_pair(key, "server", opts, **kwargs)
 
 
-def generate_client_certificate_and_key_pair(opts, **kwargs):
-    generate_certificate_and_key_pair("client", opts, **kwargs)
+def generate_client_certificate_and_key_pair(key, opts, **kwargs):
+    generate_certificate_and_key_pair(key, "client", opts, **kwargs)
 
 
-def generate_certificate_and_key_pair(peer, opts,
+def generate_certificate_and_key_pair(key, peer, opts,
                                       pa_cert_path=paths.root_ca_cert_path(),
                                       pa_key_path=paths.root_ca_key_path(),
-                                      pa_certs_path=paths.root_ca_certs_path()):
+                                      pa_certs_path=paths.root_ca_certs_path()
+                                      ):
 
     os.makedirs(paths.relative_path(peer), exist_ok=True)
     if 'output_format' in opts:
@@ -184,7 +185,8 @@ def generate_certificate_and_key_pair(peer, opts,
     cert_path = paths.leaf_certificate_path(peer)
     req_pem_path = paths.relative_path(peer, "req.pem")
     CN = opts[peer+"_alt_name"]
-    opts["common_name"] = (CN[0] if isinstance(CN, list) else CN)
+    opts["common_name"] = (key + "_" + CN[0] if isinstance(CN, list) else
+                           key + "_" + CN)
 
     openssl_req(opts,
                 "-new",
@@ -193,7 +195,8 @@ def generate_certificate_and_key_pair(peer, opts,
                 "-out",     req_pem_path,
                 "-days",    str(3650),
                 "-outform", "PEM",
-                "-subj", "/CN={}/O={}/L=$$$/".format(opts["common_name"], peer),
+                "-subj", "/CN={}/O={}/L=$$$/".format(opts["common_name"],
+                                                     peer),
                 "-nodes")
     openssl_ca(opts,
                "-days",    str(3650),

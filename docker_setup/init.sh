@@ -21,3 +21,9 @@ if [ -d "$rootDir/test_videos" ]; then
     echo "test_videos exist..."
     cp -rf $rootDir/test_videos $etaRootDir/
 fi
+
+# Copy ETA Certificates folder
+if [ -d "$rootDir/cert-tool/Certificates" ]; then
+    echo "Certificates folder exist..."
+    cp -rf $rootDir/cert-tool/Certificates $etaRootDir/
+fi

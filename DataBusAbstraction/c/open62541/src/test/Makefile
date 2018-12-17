@@ -1,9 +1,9 @@
 CPATH = ..
 CFLAGS = -std=c99
 INCLUDE = -I../../include 
-SERVER_CERTS = ../../../../../Certificates/server
-CLIENT_CERTS = ../../../../../Certificates/client
-CA_CERTS = ../../../../../Certificates/ca
+SERVER_CERTS = /etc/ssl/opcua
+CLIENT_CERTS = /etc/ssl/opcua
+CA_CERTS = /etc/ssl/grpc_internal
 INVALID_CERTS = invalid_certs
 
 build: clean
@@ -15,13 +15,13 @@ build: clean
 
 server: build
 	@echo "Start server, publish and destroy..."
-	./open62541_test server $(SERVER_CERTS)/server_cert.der \
-	                        $(SERVER_CERTS)/server_key.der \
+	./open62541_test server $(SERVER_CERTS)/opcua_server_certificate.der \
+	                        $(SERVER_CERTS)/opcua_server_key.der \
 							$(CA_CERTS)/ca_cert.der
 client: build
 	@echo "Start client, subscribe and destroy..."
-	./open62541_test client $(CLIENT_CERTS)/client0_cert.der \
-	                        $(CLIENT_CERTS)/client0_key.der \
+	./open62541_test client $(CLIENT_CERTS)/opcua_client_certificate.der \
+	                        $(CLIENT_CERTS)/opcua_client_key.der \
 							$(CA_CERTS)/ca_cert.der
 
 invalid_client: build

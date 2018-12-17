@@ -27,10 +27,11 @@ import json
 import logging as log
 import sys
 import os
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../protobuff/py/"))
-import da_pb2 as da_pb2
-import da_pb2_grpc as da_pb2_grpc
+from Util.util import check_port_availability
+from DataAgent.da_grpc.protobuff.py \
+    import da_pb2 as da_pb2
+from DataAgent.da_grpc.protobuff.py \
+    import da_pb2_grpc as da_pb2_grpc
 
 
 class GrpcClient(object):
@@ -72,6 +73,11 @@ class GrpcClient(object):
         except Exception as e:
             log.error("Exception Occured : ", e.msg)
             raise Exception
+
+        # check for grpc internal port availability
+        if not check_port_availability(self.hostname, self.port):
+            raise Exception("{}:{} port is not up!".format(self.hostname,
+                            self.port))
 
         channel = grpc.secure_channel(addr, credentials)
         self.stub = da_pb2_grpc.daStub(channel)

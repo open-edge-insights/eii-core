@@ -14,6 +14,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 
 	config "ElephantTrunkArch/DataAgent/config"
@@ -55,31 +56,34 @@ func main() {
 	}
 
 	influxCfg := DaCfg.InfluxDB
-	clientadmin, err := util.CreateHTTPClient(influxCfg.Host,
-		influxCfg.Port, "", "")
+
+	glog.Infof("InfluxCfg: %v", influxCfg)
+
+	// Set ia_influxdb as the host
+	influxServer := "ia_influxdb"
+	clientAdmin, err := util.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
 
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
 		os.Exit(-1)
 	}
-	createadmin, err := util.CreateAdminUser(clientadmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
+	resp, err := util.CreateAdminUser(clientAdmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
 
-	if err == nil && createadmin.Error() == nil {
+	if err == nil && resp.Error() == nil {
 		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
 	} else {
-		if createadmin.Error() != nil {
+		if resp != nil && resp.Error() != nil {
 			glog.Errorf("Error code: %v, Error Response: %s while creating "+
-				"admin user: %s", err, createadmin.Error(), influxCfg.UserName)
+				"admin user: %s", err, resp.Error(), influxCfg.UserName)
 		} else {
 			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
 		}
-		os.Exit(-1)
 	}
-	clientadmin.Close()
+	clientAdmin.Close()
 
 	// Create InfluxDB database
 	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
-	client, err := util.CreateHTTPClient(influxCfg.Host,
+	client, err := util.CreateHTTPClient(influxServer,
 		influxCfg.Port, influxCfg.UserName, influxCfg.Password)
 
 	if err != nil {
@@ -89,7 +93,7 @@ func main() {
 
 	response, err := util.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
 	if err != nil {
-		glog.Infof("Cannot create database: %s", response.Error())
+		glog.Errorf("Cannot create database: %s", response.Error())
 	}
 
 	if err == nil && response.Error() == nil {
@@ -121,7 +125,7 @@ func main() {
 
 	pStreamManager.ServerHost = strmMgrUDPServHost
 	pStreamManager.ServerPort = strmMgrUDPServPort
-	pStreamManager.InfluxDBHost = DaCfg.InfluxDB.Host
+	pStreamManager.InfluxDBHost = influxServer
 	pStreamManager.InfluxDBPort = DaCfg.InfluxDB.Port
 	pStreamManager.InfluxDBName = DaCfg.InfluxDB.DBName
 	pStreamManager.InfluxDBUserName = DaCfg.InfluxDB.UserName
@@ -153,15 +157,46 @@ func main() {
 		}
 	}
 
-	glog.Infof("**************STARTING GRPC SERVER**************")
-	// Start GRPC server for GetConfig (Internal), GetConfig and GetQuery
-	// external interfaces
+	glog.Infof("**************Share grpc internal certs/keys to other dependency ETA modules")
+
+	secretsDir := "/etc/ssl/grpc_int_ssl_secrets"
+
+	// TODO: This would be ideally read from the vault
+	grpcIntSslSecretsMap := make(map[string][]byte)
+	grpcIntSslSecretsMap["grpc_internal_client_certificate"], err = ioutil.ReadFile("/etc/ssl/grpc_internal/grpc_internal_client_certificate.pem")
+	if err != nil {
+		glog.Errorf("Error while reading certificate file, error: %v", err)
+	}
+	grpcIntSslSecretsMap["grpc_internal_client_key"], err = ioutil.ReadFile("/etc/ssl/grpc_internal/grpc_internal_client_key.pem")
+	if err != nil {
+		glog.Errorf("Error while reading key file, error: %v", err)
+	}
+	grpcIntSslSecretsMap["ca_certificate"], err = ioutil.ReadFile("/etc/ssl/ca/ca_certificate.pem")
+	if err != nil {
+		glog.Errorf("Error while reading ca certificate file, error: %v", err)
+	}
+
+	keyArr := []string{"grpc_internal_client_certificate", "grpc_internal_client_key", "ca_certificate"}
+	for _, val := range keyArr {
+		if data, ok := grpcIntSslSecretsMap[val]; ok {
+			outputFile := secretsDir + "/" + val + ".pem"
+			err := ioutil.WriteFile(outputFile, []byte(data), 0700)
+			if err != nil {
+				glog.Errorf("Not able to write to secret file: %v, error: %v", outputFile, err)
+				os.Exit(-1)
+			}
+		}
+	}
+
+	// glog.Infof("**************STARTING GRPC SERVER**************")
 	done := make(chan bool)
 	glog.Infof("**************STARTING GRPC Internal SERVER**************")
 	go internalserver.StartGrpcServer(DaCfg)
+	// TODO: The external gRPC server will be enabled when we expose Config and 
+	// Query interfaces from DataAgent in future
 	// glog.Infof("**************STARTING GRPC External SERVER**************")
 	// go server.StartGrpcServer(DaCfg)
-	glog.Infof("**************Started GRPC servers**************")
+	// glog.Infof("**************Started GRPC servers**************")
 
 	// Currently running this channel to keep the goroutine running
 	// for StreamManager

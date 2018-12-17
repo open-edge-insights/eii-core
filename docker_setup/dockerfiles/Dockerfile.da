@@ -91,7 +91,6 @@ ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
 ADD Gopkg.toml ./
 ADD Gopkg.lock ./
-ADD Certificates Certificates/
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 RUN mkdir -p ./vault/file
 
@@ -101,6 +100,8 @@ RUN cd DataBusAbstraction/go/test && \
     make build_lib
 
 ADD Util ./Util
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
 RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
 ENTRYPOINT ["./DataAgent/da_startup.sh"]

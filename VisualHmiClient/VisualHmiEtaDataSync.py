@@ -30,13 +30,8 @@ import argparse
 import logging
 from threading import Condition, Thread
 from agent.etr_utils.log import configure_logging, LOG_LEVELS
-
-from DataAgent.da_grpc.client.py.client import GrpcClient
-path = os.path.abspath(__file__)
-dataBusPath = "../DataBusAbstraction/py"
-sys.path.append(os.path.join(os.path.dirname(path), dataBusPath))
-from DataBus import databus
 from ImageStore.client.py.client import GrpcImageStoreClient
+from DataBusAbstraction.py.DataBus import databus
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \
@@ -47,13 +42,11 @@ logging.getLogger("opcua").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 filePath = os.path.abspath(os.path.dirname(__file__))
-ROOTCA_CERT = filePath + '/../Certificates/ca/ca_certificate.pem'
-CLIENT_CERT = filePath + '/../Certificates/client/' + \
-              'client_certificate.pem'
-CLIENT_KEY = filePath + '/../Certificates/client/client_key.pem'
-
-IM_CLIENT_CERT = filePath + '/../Certificates/imagestore/imagestore_client_certificate.pem'
-IM_CLIENT_KEY = filePath + '/../Certificates/imagestore/imagestore_client_key.pem'
+ROOTCA_CERT = filePath + '/../cert-tool/Certificates/ca/ca_certificate.pem'
+IM_CLIENT_CERT = filePath + '/../cert-tool/Certificates/imagestore/' + \
+    'imagestore_client_certificate.pem'
+IM_CLIENT_KEY = filePath + '/../cert-tool/Certificates/imagestore/' + \
+    'imagestore_client_key.pem'
 
 
 class EtaDataSync:
@@ -118,10 +111,12 @@ class EtaDataSync:
             # provide the hostname/ip addr of the m/c
             # where DataAgent module of ETA solution is running
             grpc_host = self.config['databus_host']
-            client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, ROOTCA_CERT, hostname='localhost')
+            client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
+                                          ROOTCA_CERT, hostname='localhost')
             outputBytes = client.Read(key)
             return outputBytes
         except Exception as e:
+            print("Exception: ", e)
             logger.error("Exception: %s", str(e))
             raise
 
@@ -190,9 +185,12 @@ class EtaDataSync:
                 self.config["hmi_image_folder"] + "/"
 
         filePath = os.path.abspath(os.path.dirname(__file__))
-        certFile = filePath + "/../Certificates/client/client0_cert.der"
-        privateFile = filePath + "/../Certificates/client/client0_key.der"
-        trustFile = filePath + "/../Certificates/ca/ca_cert.der"
+        certFile = filePath + "/../cert-tool/Certificates/opcua/" + \
+            "opcua_client_certificate.der"
+        privateFile = filePath + "/../cert-tool/Certificates/opcua/" + \
+            "opcua_client_key.der"
+        trustFile = filePath + "/../cert-tool/Certificates/ca/" + \
+            "ca_certificate.der"
 
         print("Filepath: {}".format(filePath))
         contextConfig = {"endpoint": "opcua://" +

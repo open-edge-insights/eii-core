@@ -24,15 +24,20 @@ SOFTWARE.
 
 import logging
 from influxdb import InfluxDBClient
-from DataAgent.da_grpc.client.py.client_internal.client import GrpcInternalClient
+from DataAgent.da_grpc.client.py.client_internal.client \
+    import GrpcInternalClient
 from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
 import os
-filepath = os.path.abspath(os.path.dirname(__file__))
-CA_CERT = filepath + "/../Certificates/ca/ca_certificate.pem"
-IM_CLIENT_KEY = filepath + "/../Certificates/imagestore/imagestore_client_key.pem"
-IM_CLIENT_CERT = filepath + \
-    "/../Certificates/imagestore/imagestore_client_certificate.pem"
+
+
+IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
+IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
+
+GRPC_CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
+CLIENT_CERT = GRPC_CERTS_PATH + "/grpc_internal_client_certificate.pem"
+CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
+CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
 
 
 class DataIngestionLib:
@@ -45,7 +50,7 @@ class DataIngestionLib:
         self.log = logging.getLogger('data_ingestion')
         self.data_point = {'tags': {}, 'fields': {}}
         try:
-            client = GrpcInternalClient()
+            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
             self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with gRPC server." +
@@ -53,13 +58,18 @@ class DataIngestionLib:
 
         # Creates the influxDB client handle.
         try:
+            sslBool = True if self.config["Ssl"] == "True" else False
+            verifySslBool = False
+            if self.config["VerifySsl"] == "True":
+                verifySslBool = True
             self.influx_c = InfluxDBClient(self.config["Host"],
                                            self.config["Port"],
                                            self.config["UserName"],
                                            self.config["Password"],
                                            self.config["DBName"],
-                                           True if self.config["Ssl"] == "True" else False,
-                                           True if self.config["VerifySsl"] == "True" else False)
+                                           True if self.config["Ssl"] == "True"
+                                           else False,
+                                           CA_CERT)
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
@@ -67,7 +77,8 @@ class DataIngestionLib:
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
         try:
-            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY, CA_CERT)
+            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
+                                                  IM_CLIENT_KEY, CA_CERT)
         except Exception as e:
             raise e
         self.log.debug("Instance created successfully.")
@@ -87,8 +98,8 @@ class DataIngestionLib:
                 return self._add_fields_buffer(name, value, time)
             except Exception as e:
                 raise(e)
-        elif (isinstance(value, int) or isinstance(value, float)
-                or isinstance(value, str)):
+        elif (isinstance(value, int) or isinstance(value, float) or
+              isinstance(value, str)):
             if name == 'ImgHandle' or name == 'ImgName':
                 self.log.error("Name not supported.")
                 return False
@@ -108,7 +119,7 @@ class DataIngestionLib:
         stored in comma separated way in the field.'''
         # ToDo: Send the buffer to Image Store.
         try:
-            handle = self.img_store.Store(value,'inmemory')
+            handle = self.img_store.Store(value, 'inmemory')
         except Exception as e:
             raise(e)
         if handle is None:

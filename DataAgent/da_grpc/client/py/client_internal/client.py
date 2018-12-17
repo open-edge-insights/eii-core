@@ -27,30 +27,59 @@ import json
 import logging as log
 import sys
 import os
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../../protobuff/py/pb_internal/"))
-import dainternal_pb2 as da_pb2
-import dainternal_pb2_grpc as da_pb2_grpc
+import time
+from Util.util import check_port_availability
+from DataAgent.da_grpc.protobuff.py.pb_internal \
+    import dainternal_pb2 as da_pb2
+from DataAgent.da_grpc.protobuff.py.pb_internal \
+    import dainternal_pb2_grpc as da_pb2_grpc
 
 
 class GrpcInternalClient(object):
 
-    def __init__(self, hostname="localhost", port="50052"):
+    def __init__(self, clientCert, clientKey,
+                 caCert, hostname="localhost", port="50052"):
         """
             GrpcInternalClient constructor.
             Keyword Arguments:
-            hostname - refers to hostname/ip address of the m/c
-                       where DataAgent module of ETA is running
-                       (default: localhost)
-            port     - refers to gRPC port (default: 50052)
+            hostname   - refers to hostname/ip address of the m/c
+                         where DataAgent module of ETA is running
+                         (default: localhost)
+            port       - refers to gRPC port (default: 50052)
+            clientCert - client certificate
+            clientKey  - client key
+            caCert     - ca certificate used for signing client cert
         """
         self.hostname = hostname
         self.port = port
         if 'GRPC_SERVER' in os.environ:
             self.hostname = os.environ['GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
-        log.debug("Establishing grpc channel to %s", addr)
-        channel = grpc.insecure_channel(addr)
+        log.debug("Establishing GRPC channel to %s", addr)
+
+        with open(caCert, 'rb') as f:
+            ca_certs = f.read()
+
+        with open(clientKey, 'rb') as f:
+            client_key = f.read()
+
+        with open(clientCert, 'rb') as f:
+            client_certs = f.read()
+
+        try:
+            credentials = grpc.ssl_channel_credentials(
+                root_certificates=ca_certs, private_key=client_key,
+                certificate_chain=client_certs)
+
+        except Exception as e:
+            log.error("Exception Occured : ", e.msg)
+            raise Exception
+
+        # check for grpc internal port availability
+        if not check_port_availability(self.hostname, self.port):
+            raise Exception("{}:{} port is not up!".format(self.hostname,
+                            self.port))
+        channel = grpc.secure_channel(addr, credentials)
         self.stub = da_pb2_grpc.dainternalStub(channel)
 
     def GetConfigInt(self, config):
@@ -58,12 +87,23 @@ class GrpcInternalClient(object):
             GetConfigInt is a wrapper around gRPC python client implementation
             for GetConfigInt gRPC interface.
             Arguments:
-            config(string): InfluxDBCfg or RedisCfg
+            config(string): InfluxDBCfg or RedisCfg or PersistenceImageStore
+                            or MinioCfg
             Returns:
             The dictionary object corresponding to the config value
         """
         log.debug("Inside GetConfigInt() client wrapper...")
         response = self.stub.GetConfigInt(da_pb2.ConfigIntReq(cfgType=config),
-                                     timeout=1000)
+                                          timeout=1000)
         log.debug("Sending the response to the caller...")
-        return json.loads(response.jsonMsg)
+
+        respDict = json.loads(response.jsonMsg)
+        if config == "InfluxDBCfg" and 'INFLUX_SERVER' in os.environ:
+            respDict["Host"] = os.environ['INFLUX_SERVER']
+        elif ((config == "RedisCfg" or config == "MinioCfg") and
+              'IMAGESTORE_SERVER' in os.environ):
+            respDict["Host"] = os.environ['IMAGESTORE_SERVER']
+
+        log.debug(respDict)
+
+        return respDict

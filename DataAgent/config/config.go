@@ -15,9 +15,10 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
+
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
-	"io/ioutil"
 )
 
 // DAConfig type exports the config data
@@ -31,7 +32,6 @@ type DAConfig struct {
 }
 
 type influxDBCfg struct {
-	Host      string
 	Port      string
 	DBName    string
 	Retention string //use time.ParseDuration to convert this to Duration in golang
@@ -42,14 +42,12 @@ type influxDBCfg struct {
 }
 
 type redisCfg struct {
-	Host      string
 	Port      string
 	Password  string
 	Retention string //use time.ParseDuration to convert this to Duration in golang
 }
 
 type minioCfg struct {
-	Host          string
 	Port          string
 	AccessKey     string
 	SecretKey     string
@@ -125,8 +123,7 @@ func (cfg *DAConfig) InitVault() error {
 			return errors.New("Failed to read secrets")
 		}
 
-		cfg.InfluxDB.Host = inflx_secret.Data["host"].(string)
-		cfg.InfluxDB.Port = inflx_secret.Data["port"].(string)
+		cfg.InfluxDB.Port = inflx_secret.Data["influxdb_port"].(string)
 		cfg.InfluxDB.Retention = inflx_secret.Data["retention"].(string)
 		cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
 		cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
@@ -140,8 +137,8 @@ func (cfg *DAConfig) InitVault() error {
 			glog.Errorf("DataAgent: Failed to read vault secrets for Redis: %s", err)
 			return errors.New("Failed to read secrets")
 		}
-		cfg.Redis.Host = redis_secret.Data["host"].(string)
-		cfg.Redis.Port = redis_secret.Data["port"].(string)
+
+		cfg.Redis.Port = redis_secret.Data["redis_port"].(string)
 		cfg.Redis.Retention = redis_secret.Data["retention"].(string)
 		cfg.Redis.Password = redis_secret.Data["password"].(string)
 
@@ -160,8 +157,7 @@ func (cfg *DAConfig) InitVault() error {
 			return errors.New("Failed to read secrets")
 		}
 
-		cfg.Minio.Host = minio_secret.Data["host"].(string)
-		cfg.Minio.Port = minio_secret.Data["port"].(string)
+		cfg.Minio.Port = minio_secret.Data["minio_port"].(string)
 		cfg.Minio.AccessKey = minio_secret.Data["access_key"].(string)
 		cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
 		cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
@@ -172,7 +168,7 @@ func (cfg *DAConfig) InitVault() error {
 			glog.Errorf("DataAgent: Failed to read vault secrets for OPCUA: %s", err)
 			return errors.New("Failed to read secrets")
 		}
-		cfg.Opcua.Port = opcua_secret.Data["port"].(string)
+		cfg.Opcua.Port = opcua_secret.Data["opcua_port"].(string)
 
 		stream_secret, err := logical_clnt.Read("secret/OutStreams")
 		if err != nil || stream_secret == nil {

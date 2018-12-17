@@ -30,14 +30,12 @@ RUN cd /eta/DataBusAbstraction/py && \
     cd test && \
     make build
 ADD agent/__init__.py agent/__init__.py
-ADD Certificates/ Certificates/
 ADD agent/etr_utils agent/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
-ADD DataAgent/ DataAgent/
 ADD ImageStore/ ImageStore/
 ADD Util/ Util/
 
-ENV PYTHONPATH $PYTHONPATH:/eta/DataBusAbstraction/py:/eta
+ENV PYTHONPATH .:./ImageStore/protobuff/py/:./DataBusAbstraction/py
 ENV PYTHONIOENCODING UTF-8
 
 ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiEtaDataSync.py"]

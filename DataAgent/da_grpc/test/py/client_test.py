@@ -26,9 +26,8 @@ import hashlib
 import time
 import sys
 import os
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../../client/py/"))
-from client import GrpcClient
+from DataAgent.da_grpc.client.py.client \
+    import GrpcInternalClient
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \
@@ -37,14 +36,12 @@ logging.basicConfig(level=logging.DEBUG,
 log = logging.getLogger("GRPC_TEST")
 
 
-filepath = os.path.abspath(os.path.dirname(__file__))
-CLIENT_CERT = filepath + \
-    "/../Certificates/client/client_certificate.pem"
-CLIENT_KEY = filepath + "/../Certificates/client/client_key.pem"
-CA_CERT = filepath + "/../Certificates/ca/ca_certificate.pem"
-IM_CLIENT_KEY = filepath + "/../Certificates/imagestore/imagestore_client_certificate.pem"
-IM_CLIENT_CERT = filepath + \
-    "/../Certificates/imagestore/imagestore_client_key.pem"
+CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/client_certificate.pem"
+CLIENT_KEY = "/etc/ssl/grpc_int_ssl_secrets/client_key.pem"
+CA_CERT = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+
+IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
+IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_key.pem"
 
 
 def parse_args():
@@ -82,7 +79,7 @@ if __name__ == '__main__':
         log.info("len(inputBytes): %s", len(inputBytes))
         log.info("Storing the binary data read in ImageStore...")
         try:
-            key = imgStore.Store(inputBytes,"inmemory")
+            key = imgStore.Store(inputBytes, "inmemory")
         except Exception as ex:
             log.error("Error while doing imgStore.store operation...")
             log.error(ex)

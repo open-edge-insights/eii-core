@@ -58,7 +58,7 @@ func readFile(filename string) []byte {
 	return buffer
 }
 
-func getAverageTime(grpcClient *client.GrpcClient, iter int, config string) (float64, error) {
+func getAverageTime(grpcClient *client.GrpcInternalClient, iter int, config string) (float64, error) {
 
 	timeTaken = 0.0
 	totalTime = 0.0
@@ -77,8 +77,16 @@ func getAverageTime(grpcClient *client.GrpcClient, iter int, config string) (flo
 	return totalTime / float64(iter), nil
 }
 
+// grpc client certificates
+const (
+	RootCA     = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+	ClientCert = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
+	ClientKey  = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
+)
+
 func main() {
-	grpcClient, err := client.NewGrpcClient("localhost", "50052")
+
+	grpcClient, err := client.NewGrpcInternalClient(ClientCert, ClientKey, ClientKey, "localhost", "50052")
 	if err != nil {
 		glog.Errorf("Error while obtaining GrpcClient object...")
 		os.Exit(-1)

@@ -60,6 +60,13 @@ func readFile(filename string) []byte {
 	return buffer
 }
 
+// grpc client certificates
+const (
+	RootCA     = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+	ClientCert = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
+	ClientKey  = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
+)
+
 func main() {
 
 	var inputFile string
@@ -79,7 +86,7 @@ func main() {
 	flag.Lookup("alsologtostderr").Value.Set("true")
 	defer glog.Flush()
 
-	grpcClient, err := client.NewGrpcClient("localhost", "50051")
+	grpcClient, err := client.NewGrpcClient(ClientCert, ClientKey, RootCA, "localhost", "50051")
 	if err != nil {
 		glog.Errorf("Error while obtaining GrpcClient object...")
 		os.Exit(-1)

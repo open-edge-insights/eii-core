@@ -18,5 +18,9 @@ ENV PATH="/root/go/src/github.com/influxdata/telegraf:${PATH}"
 # Add custom python entrypoint script to get cofig and set envirnoment variable
 ADD Telegraf ./Telegraf
 ADD DataAgent/da_grpc/ ./DataAgent/da_grpc
+ADD Util/ ./Util
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+
 ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py"]
 HEALTHCHECK NONE

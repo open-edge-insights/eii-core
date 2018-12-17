@@ -1,56 +1,69 @@
 {
   "certificates": [
-    {"influxdb":{
-	 "server_alt_name":"influxdb",
-         "client_alt_name":["influxdb"] 
+    {
+      "influxdb": {
+        "server_alt_name": "ia_influxdb",
+        "client_alt_name": [
+          "ia_data_agent", "ia_video_ingestion", "ia_data_analytics", "ia_yumei_app", "ia_telegraf"
+        ]
+      }
+    },
+    {
+      "imagestore": {
+        "server_alt_name": "ia_imagestore",
+        "client_alt_name": [
+          "ia_data_analytics", "ia_video_ingestion"
+        ]
+      }
+    },
+    {
+      "grpc_external": {
+        "server_alt_name": "grpc_external",
+        "client_alt_name": [
+          "grpc_external"
+        ]
+      }
+    },
+    {
+      "grpc_internal": {
+        "server_alt_name": "ia_data_agent",
+        "client_alt_name": [
+          "ia_imagestore", "ia_telegraf", "ia_yumei_app", "ia_data_analytics", "ia_video_ingestion"
+        ]
+      }
+    },
+    {
+      "kapacitor": {
+        "server_alt_name": "ia_data_analytics",
+        "client_alt_name": [
+          "kapacitor"
+        ]
+      }
+    },
+    {
+      "streammanager": {
+        "server_alt_name": "ia_data_agent",
+        "client_alt_name": [
+          "influxdb_subscriber"
+        ]
+      }
+    },
+    {
+      "streamsublib": {
+        "server_alt_name": "ia_yumei_app",
+        "client_alt_name": [
+          "influxdb_subscriber"
+        ]
+      }
+    },
+    {
+      "opcua": {
+        "server_alt_name": "opcua",
+        "client_alt_name": [
+          "opcua"
+        ],
+        "output_format": "DER"
+      }
     }
-    },
-    {
-      "imagestore" :{
-
-	 "server_alt_name":"ia_imagestore",
-         "client_alt_name":"ia_data_analytics"
-      }
-    },
-    {
-      "grpc_external" :{
-
-	 "server_alt_name":"grpc_external",
-         "client_alt_name":["grpc_external","visualhmi"]	 
-      }
-    },
-    {
-      "grpc_internal" : {
-
-	 "server_alt_name":"grpc_internal",
-         "client_alt_name":["grpc_internal"]	 
-      }
-    },
-    {
-      "kapacitor" : {
-
-	 "server_alt_name":"kapacitor",
-         "client_alt_name":"kapacitor"
-      }
-    },
-    {
-      "influx_subscriber" :{
-
-	 "server_alt_name":"influx_subscriber",
-         "client_alt_name":"influx_subscriber"
-      }
-    },
-    {
-      "opcua":{
-	 "server_alt_name":"opcua",
-         "client_alt_name":"opcua",
-         "output_format": "DER"
-      }
-    }
-
   ]
 }
-
-
-
-

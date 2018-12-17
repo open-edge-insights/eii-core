@@ -1,4 +1,3 @@
-ElephantTrunkArch (ETA) project
 
 Elephant Trunk Arch (ETA) is the framework for enabling smart manufacturing with visual defect inspections.
 

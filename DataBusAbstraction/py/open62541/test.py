@@ -27,11 +27,11 @@ class A:
         ns = "StreamManager"
         hostname = "localhost"
         topic = "classifier_results"
-        caCert = ["../../../Certificates/ca/ca_cert.der"]
-        serverCert = "../../../Certificates/server/server_cert.der"
-        serverKey = "../../../Certificates/server/server_key.der"
-        clientCert = "../../../Certificates/client/client0_cert.der"
-        clientKey = "../../../Certificates/client/client0_key.der"
+        caCert = ["/etc/ssl/grpc_internal/ca_cert.der"]
+        serverCert = "/etc/ssl/opcua/opcua_server_certificate.der"
+        serverKey = "/etc/ssl/opcua/opcua_server_key.der"
+        clientCert = "/etc/ssl/opcua/opcua_client_certificate.der"
+        clientKey = "/etc/ssl/opcua/opcua_client_key.der"
         port = 65003
 
         if args.server:
@@ -81,11 +81,3 @@ class A:
 if __name__ == "__main__":
     a = A()
     a.main()
-
-'''
-print("\n")
-open62541W.serverContextDestroy()
-print("\n")
-open62541W.clientContextDestroy()
-print("\n")
-'''

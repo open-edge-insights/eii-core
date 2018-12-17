@@ -14,8 +14,8 @@ package streammanger
 
 import (
 	"fmt"
-	"net/http"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
@@ -37,9 +37,9 @@ var opcuaContext = map[string]string{
 	"direction":   "PUB",
 	"name":        "streammanager",
 	"endpoint":    "opcua://%s:%s",
-	"certFile":    "Certificates/server/server_cert.der",
-	"privateFile": "Certificates/server/server_key.der",
-	"trustFile":   "Certificates/ca/ca_cert.der",
+	"certFile":    "/etc/ssl/opcua/opcua_server_certificate.der",
+	"privateFile": "/etc/ssl/opcua/opcua_server_key.der",
+	"trustFile":   "/etc/ssl/ca/ca_certificate.der",
 }
 
 // StrmMgr type
@@ -251,11 +251,11 @@ func startServer(pStrmMgr *StrmMgr) {
 
 	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
 	err = http.ListenAndServeTLS(dstAddr,
-				    "Certificates/influxdb_subscribers/influxdb_subscriber.crt", 
-				    "Certificates/influxdb_subscribers/influxdb_subscriber.key", 
-				    nil)
-	if err != nil{
-		glog.Errorf("Error in connection to client due to: %v\n", err )
+		"/etc/ssl/streammanager/streammanager_server_certificate.pem",
+		"/etc/ssl/streammanager/streammanager_server_key.pem",
+		nil)
+	if err != nil {
+		glog.Errorf("Error in connection to client due to: %v\n", err)
 		os.Exit(-1)
 	}
 }

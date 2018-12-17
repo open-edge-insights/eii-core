@@ -12,8 +12,9 @@ RUN pip3.6 install -r yumeiapp_requirements.txt && \
 ADD YumeiApp/ .
 ADD StreamSubLib/StreamSubLib.py StreamSubLib/StreamSubLib.py
 ADD Util/ Util/
-ADD DataAgent/da_grpc ./DataAgent/da_grpc 
-ADD Certificates Certificates/
+ADD DataAgent/da_grpc ./DataAgent/da_grpc
+
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
 ENTRYPOINT [ "python3.6", "YumeiApp.py", "--config", "yumeiapp_config.json", "--log-dir", "/ETA/yumei_app_logs"]
 CMD ["--log", "DEBUG"]

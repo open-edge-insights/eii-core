@@ -58,8 +58,10 @@ def generate(opts):
                 outform = cert_opts['output_format']
             else:
                 outform = None
-            cert_core.generate_server_certificate_and_key_pair(cert_opts)
-            cert_core.generate_client_certificate_and_key_pair(cert_opts)
+            cert_core.generate_server_certificate_and_key_pair(component,
+                                                               cert_opts)
+            cert_core.generate_client_certificate_and_key_pair(component,
+                                                               cert_opts)
             copy_certificates_to_results_folder(component, outform)
 
 

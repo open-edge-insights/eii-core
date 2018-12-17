@@ -33,17 +33,17 @@ import (
 )
 
 var gRPCHost = "localhost"
+var gRPCPort = os.Getenv("GRPC_EXTERNAL_PORT")
 
 const (
-	gRPCPort  = "50051"
 	chunkSize = 64 * 1024 // 64 KB
 )
 
 // Server Certificates
 const (
-	RootCA     = "Certificates/ca/ca_certificate.pem"
-	ServerCert = "Certificates/server/server_certificate.pem"
-	ServerKey  = "Certificates/server/server_key.pem"
+	RootCA     = "/etc/ssl/ca/ca_certificate.pem"
+	ServerCert = "/etc/ssl/grpc_external/grpc_external_server_certificate.pem"
+	ServerKey  = "/etc/ssl/grpc_external/grpc_external_server_key.pem"
 )
 
 // ExtDaCfg - stores parsed DataAgent config
