@@ -296,8 +296,16 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      NO_PROXY: ${NO_PROXY},${HOST_IP}
-      no_proxy: ${NO_PROXY},${HOST_IP}
+      NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
+      no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
+      DEBIAN_FRONTEND: noninteractive
+      MFX_HOME: "/opt/intel/mediasdk/"
+      PKG_CONFIG_PATH: "/opt/intel/mediasdk"
+      LIBVA_DRIVERS_PATH: "/usr/lib/x86_64-linux-gnu/dri/"
+      LIBVA_DRIVER_NAME: "iHD"
+      LD_RUN_PATH: "/usr/lib"
+      LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
+      TERM: "xterm"
     volumes:
       - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
@@ -306,6 +314,8 @@ services:
       - "${ETA_INSTALL_PATH}/config/ref_prod:/ETA/agent/ref_prod"
       - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
     command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
+    devices:
+      - "/dev/dri"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

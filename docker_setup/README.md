@@ -89,7 +89,7 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source. 
    1. `factory.json` - value to be used if working with defect video files
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
-
+      1. update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/blob/master/agent/README.md)
     > **Note**: 
     > For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
 4. The current trigger for video frame ingestion in ETA stack is happening over MQTT, so mosquitto 

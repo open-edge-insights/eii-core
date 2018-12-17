@@ -176,12 +176,18 @@ If you are working with a RTSP camera, you will need to use opencv as your strea
                 "poll_interval":0.01,
                 "streams":{
                     "opencv":{
-                        "capture_streams":"rtspsrc location=rtsp://192.168.1.67:554/cam/realmonitor?channel=1&subtype=1 user-id=admin user-pw=intel123 latency=100 ! rtph265depay ! decodebin name=avdec_h265dec ! videoconvert ! appsink"
+                        "capture_streams":"rtspsrc location=rtsp://4d065bbpag88364.ch.intel.com:554/cam/realmonitor?channel=1&subtype=1 user-id=admin user-pw=intel123 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink"
                     }
                 }
             }
         }
     }
+```
+Gstreamer mediaSDK decoding commands requires there to be a parser and then the the decoder "h265parse ! mhevcdec". 
+parsers and decoders:
+h264parse !  mfx264dec
+h265parse ! mfxhevcdec
+mfxmpegvideoparse ! mfxmpeg2dec
 
 Once you have your configuration file setup, the last step in configuring the
 factory agent is to add your camera's to the database. This can be done through
