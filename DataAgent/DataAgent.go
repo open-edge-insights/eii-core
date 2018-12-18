@@ -59,8 +59,7 @@ func main() {
 
 	glog.Infof("InfluxCfg: %v", influxCfg)
 
-	// Set ia_influxdb as the host
-	influxServer := "ia_influxdb"
+	influxServer := "localhost"
 	clientAdmin, err := util.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
 
 	if err != nil {

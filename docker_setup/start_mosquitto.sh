@@ -2,7 +2,7 @@
 
 # Undo the set -e because we need to capture the negative returns
 set +e
-
+source .env
 # At times mosquitto opens on IPv6 address only.
 # May be fuser version issue. To be in safe end
 # scan all protocol version.
@@ -14,7 +14,7 @@ set -e
 if [ $exit_code -eq "1" ]
 then
     echo "Starting mosquitto container..."
-    docker run -d -p 1883:1883 --name ia_mqtt --rm --network eta_docker_network eclipse-mosquitto:1.4.12
+    docker run -d -p 1883:1883 --name ia_mqtt --rm --network $COMPOSE_PROJECT_NAME eclipse-mosquitto:1.4.12
 else
     echo "mosquitto is already up and running, so not starting mosquitto container..."
 fi

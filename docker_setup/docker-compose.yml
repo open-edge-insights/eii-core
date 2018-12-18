@@ -2,6 +2,7 @@ version: '3'
 
 services:
 
+  #---- Start: ETA Dependency Services----
   # Define a log_rotate service
   ia_log_rotate:
     build:
@@ -33,74 +34,6 @@ services:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
 
-  #---- Start: ETA Dependency Services----
-  # Define an InfluxDB service
-  ia_influxdb:
-    build:
-      context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.influxdb
-      args:
-        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
-    container_name: ia_influxdb
-    hostname: ia_influxdb
-    image: ia/influxdb:${ETA_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      NO_PROXY: ${NO_PROXY}
-      no_proxy: ${NO_PROXY}
-      INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
-    volumes:
-      - "${CERTIFICATES_PATH}/influxdb:/etc/ssl/influxdb"
-      - "${CERTIFICATES_PATH}/ca/ca_certificate.pem:/etc/ssl/ca/ca_certificate.pem"
-      - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
-    ports:
-      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-       test: ["CMD-SHELL", "exit", "0"]
-       interval: ${HEALTHCHECK_DURATION}
-
- # Define telegraf service
-  ia_telegraf:
-    depends_on:
-      - ia-gopybase
-    links:
-      - ia_data_agent
-      - ia_influxdb
-    external_links:
-      - ia_mqtt
-    build:
-      context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
-      args:
-        ETA_VERSION: ${ETA_VERSION}
-    container_name: ia_telegraf
-    hostname: ia_telegraf
-    image: ia/telegraf:${ETA_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
-      NO_PROXY: ${NO_PROXY}
-      no_proxy: ${NO_PROXY}
-      GRPC_SERVER: ${GRPC_SERVER_HOST}
-      HOST_IP: ${HOST_IP}
-    volumes:
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/root/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-       test: ["CMD-SHELL", "exit", "0"]
-       interval: ${HEALTHCHECK_DURATION}
-
-  
   #---- End: ETA Dependency Services----
 
   #----Start: ETA Base Images----
@@ -140,17 +73,16 @@ services:
   #----End: ETA Base Images----
 
   #----Start: ETA Containers ----
-  # Define DataAgent service
+  # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
   ia_data_agent:
-    depends_on:
-      - ia-gobase
     links:
-      - ia_influxdb
+      - ia_log_rotate
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.da
       args:
         ETA_VERSION: ${ETA_VERSION}
+        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
     image: ia/data_agent:${ETA_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
@@ -162,14 +94,17 @@ services:
       INFLUX_SERVER: ${INFLUX_SERVER_HOST}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
       GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
+      INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
       - "${CERTIFICATES_PATH}:/etc/ssl"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/vault_secret_file:/root/go/src/ElephantTrunkArch/DataAgent/vault_secret_file"
     ports:
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"
+      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -178,6 +113,40 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+
+  # Define telegraf service
+  ia_telegraf:
+    links:
+      - ia_data_agent
+    external_links:
+      - ia_mqtt
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    container_name: ia_telegraf
+    hostname: ia_telegraf
+    image: ia/telegraf:${ETA_VERSION}
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
+      NO_PROXY: ${NO_PROXY}
+      no_proxy: ${NO_PROXY}
+      GRPC_SERVER: ${GRPC_SERVER_HOST}
+      HOST_IP: ${HOST_IP}
+    volumes:
+      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/root/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
+
 
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
@@ -216,8 +185,7 @@ services:
   # Define DataAnalytics service
   ia_data_analytics:
     links:
-      - ia_data_agent
-      - ia_influxdb
+      - ia_data_agent:ia_influxdb
       - ia_imagestore
     external_links:
        -  ia_mqtt
@@ -302,7 +270,6 @@ services:
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
-      - ia_influxdb
       - ia_imagestore
       - ia_data_analytics
     build:
@@ -354,6 +321,6 @@ services:
 networks:
   default:
     external:
-      name: eta_docker_network
+      name: ${COMPOSE_PROJECT_NAME}
 
   #----End: ETA Containers ----

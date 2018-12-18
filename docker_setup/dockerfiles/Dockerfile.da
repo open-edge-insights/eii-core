@@ -86,6 +86,12 @@ RUN go get -v github.com/hashicorp/vault && \
 RUN apt-get update && \
     apt-get install -y libmbedtls-dev
 
+# Installing influxdb
+ARG INFLUXDB_VERSION
+RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
+    dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
+    rm -rf influxdb_${INFLUXDB_VERSION}_amd64.deb
+
 ADD DataAgent ./DataAgent
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
