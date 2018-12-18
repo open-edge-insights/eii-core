@@ -112,7 +112,8 @@ class EtaDataSync:
             # where DataAgent module of ETA solution is running
             grpc_host = self.config['databus_host']
             client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
-                                          ROOTCA_CERT, hostname='localhost')
+                                          ROOTCA_CERT,
+                                          hostname=self.config['databus_host'])
             outputBytes = client.Read(key)
             return outputBytes
         except Exception as e:

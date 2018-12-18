@@ -20,7 +20,7 @@ standard certificates for the server and client. Root Certificate Authority cert
    added in the config.json. 
        
 4. The format of the `config.json` is as follows :
-            
+    ```sh        
     {
         "certificates": [
             {
@@ -46,6 +46,7 @@ standard certificates for the server and client. Root Certificate Authority cert
             }
         ]
     }
+    ```
 
     The current [config.json](config.json) file generates the below certificates under `cert-tool/Certificates` folder:
     - ca/             --> consists of the ca certs/keys in .pem and .der format. 
