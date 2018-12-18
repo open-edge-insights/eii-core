@@ -117,7 +117,7 @@ services:
   # Define telegraf service
   ia_telegraf:
     links:
-      - ia_data_agent
+      - ia_data_agent:ia_influxdb
     external_links:
       - ia_mqtt
     build:
@@ -237,6 +237,7 @@ services:
   ia_yumei_app:
     links:
        - ia_data_analytics
+       - ia_data_agent:ia_influxdb
     external_links:
        - ia_mqtt
     build:
