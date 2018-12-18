@@ -286,7 +286,7 @@ services:
       NO_PROXY: ${NO_PROXY},${HOST_IP}
       no_proxy: ${NO_PROXY},${HOST_IP}
     volumes:
-      - "${CERTIFICATES_PATH}/influxdb_subscriber:/etc/ssl/influxdb_subscriber"
+      - "${CERTIFICATES_PATH}/streamsublib:/etc/ssl/streamsublib"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/logs/yumei_app_logs:/ETA/yumei_app_logs"
     command: ["--log", "${LOG_LEVEL}"]

@@ -99,9 +99,7 @@ class StreamSubLib:
             self.subscriptionName = (self.database + "_" + str(
                 uuid4())).replace("-", "_")
 
-            subscriptionLink = 'https://' + socket.gethostbyname(
-                hostname) + ':' + str(port)
-
+            subscriptionLink = 'https://' + hostname + ':' + str(port)
             query_in = "create subscription " + self.subscriptionName + \
                 " ON " + self.database + ".autogen DESTINATIONS ANY \'" + \
                 subscriptionLink + "\'"
