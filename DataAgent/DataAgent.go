@@ -20,7 +20,7 @@ import (
 	config "ElephantTrunkArch/DataAgent/config"
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
 	stm "ElephantTrunkArch/StreamManager"
-	util "ElephantTrunkArch/Util"
+	util "ElephantTrunkArch/Util/influxdb"
 
 	"github.com/golang/glog"
 )

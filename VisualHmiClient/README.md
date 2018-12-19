@@ -61,7 +61,11 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
       ```
   * Running VisualHmiClient App as Container (**current working dir should be the repo path**)
       ```sh
-      docker run -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json -v /root/saved_images:/root/saved_images --privileged=true --network host --name visualhmi -itd --restart always visual_hmi
+      docker run -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates \
+                 -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json \ 
+                 -v /root/saved_images:/root/saved_images --privileged=true \
+                 --network host --name visualhmi \
+                 -itd --restart always visual_hmi
       ```
     > **Note**:
     > * Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart 

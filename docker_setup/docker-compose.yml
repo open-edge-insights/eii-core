@@ -157,6 +157,8 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.imagestore
       args:
         ETA_VERSION: ${ETA_VERSION}
+        REDIS_VERSION: ${REDIS_VERSION}
+        MINIO_VERSION: ${MINIO_VERSION}
     container_name: ia_imagestore
     hostname: ia_imagestore
     image: ia/imagestore:${ETA_VERSION}

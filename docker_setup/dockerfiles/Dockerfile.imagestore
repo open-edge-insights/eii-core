@@ -1,6 +1,6 @@
 # ImageStore dockerfile
 ARG ETA_VERSION
-FROM ia/gopybase:$ETA_VERSION
+FROM ia/gobase:$ETA_VERSION
 
 ARG HOST_TIME_ZONE=""
 
@@ -20,9 +20,6 @@ RUN apt-get install -y cmake g++ build-essential
 # TODO: Use dep tool itself in future once the "source" value
 # is obeyed and just "name" value is not used for deducing the
 # repo (https://github.com/golang/dep/pull/1857/commits)
-RUN go get -v github.com/BurntSushi/toml && \
-    cd ${GOPATH}/src/github.com/BurntSushi/toml && \
-    git checkout -b v0.3.0 tags/v0.3.0
 
 RUN go get -v github.com/golang/glog && \
     cd ${GOPATH}/src/github.com/golang/glog && \
@@ -80,19 +77,20 @@ RUN go get -v github.com/minio/minio-go && \
 RUN apt-get update
 RUN apt-get -y install build-essential
 RUN apt-get -y install tcl
-RUN wget http://download.redis.io/releases/redis-5.0.2.tar.gz
-RUN tar xzf redis-5.0.2.tar.gz
-RUN cd /root/go/src/ElephantTrunkArch/redis-5.0.2 && \
-    make && \
-    cp /root/go/src/ElephantTrunkArch/redis-5.0.2/src/redis-server /usr/local/bin && \
-    cp /root/go/src/ElephantTrunkArch/redis-5.0.2/src/redis-cli /usr/local/bin
 
-RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.RELEASE.2018-11-30T03-56-59Z
-RUN mv minio.RELEASE.2018-11-30T03-56-59Z minio
+ARG REDIS_VERSION
+RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
+RUN tar xzf redis-${REDIS_VERSION}.tar.gz
+RUN cd /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
+    make && \
+    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+
+ARG MINIO_VERSION
+RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
+RUN mv minio.${MINIO_VERSION} minio
 RUN chmod +x minio
 
-RUN pip3.6 install grpcio==1.12.1
-RUN pip3.6 install grpcio-tools
 RUN echo "$HOST_TIME_ZONE" >/etc/timezone
 RUN cat /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
@@ -101,8 +99,7 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 WORKDIR /root/go/src/ElephantTrunkArch
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
+ADD Util/ ./Util
 
 ENTRYPOINT ["go", "run", "ImageStore/main.go"]
 HEALTHCHECK NONE
-
-

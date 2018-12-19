@@ -104,6 +104,4 @@ class GrpcInternalClient(object):
               'IMAGESTORE_SERVER' in os.environ):
             respDict["Host"] = os.environ['IMAGESTORE_SERVER']
 
-        log.debug(respDict)
-
         return respDict

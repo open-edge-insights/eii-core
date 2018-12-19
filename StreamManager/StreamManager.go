@@ -20,7 +20,7 @@ import (
 	"regexp"
 	"strings"
 
-	influxDBHelper "ElephantTrunkArch/Util"
+	influxDBHelper "ElephantTrunkArch/Util/influxdb"
 
 	databus "ElephantTrunkArch/DataBusAbstraction/go"
 

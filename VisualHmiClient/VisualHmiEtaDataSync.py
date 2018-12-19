@@ -113,7 +113,7 @@ class EtaDataSync:
             grpc_host = self.config['databus_host']
             client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
                                           ROOTCA_CERT,
-                                          hostname=self.config['databus_host'])
+                                          hostname=grpc_host)
             outputBytes = client.Read(key)
             return outputBytes
         except Exception as e:
