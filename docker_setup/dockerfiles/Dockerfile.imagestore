@@ -101,5 +101,6 @@ ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
 
-ENTRYPOINT ["go", "run", "ImageStore/main.go"]
+RUN go build -o /root/go/src/ElephantTrunkArch/ImageStore/main ImageStore/main.go
+ENTRYPOINT ["./ImageStore/main"]
 HEALTHCHECK NONE
