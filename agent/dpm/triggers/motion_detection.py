@@ -146,6 +146,10 @@ class Trigger(BaseTrigger):
                     if current_frame_time - self.lock_start_time > 30:
                             self.first_frame = False
                             self.trigger_lock = False
+                            # Re-initialize the MOG2 background subtractor
+                            # with the first frame from new part
+                            self.fgbg = cv2.createBackgroundSubtractorMOG2()
+                            self.fgbg.apply(data[1])
 
             else:
                 # If is_triggered() is True
