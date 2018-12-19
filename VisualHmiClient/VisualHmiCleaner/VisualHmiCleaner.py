@@ -88,7 +88,6 @@ class RemoveVisualHmiEntries:
                     config['username'], config['password'],\
                     config['host'], config['port'],
                     config['database_name'])
-            self.logger.info('postgresql Connection String : {}'.format(db_url))
         except KeyError as e:
             self.logger.info('Database configuration missing key: {}'.format(e))
 

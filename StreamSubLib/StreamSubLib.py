@@ -106,7 +106,7 @@ class StreamSubLib:
 
             self.influx_c.query(query_in)
             self.log.info(
-                "Subscription successfull on database: " + self.database)
+                "Subscription successfull on database")
 
             self.listening_thread = threading.Thread(
                 target=self.listen_on_server)

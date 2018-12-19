@@ -201,7 +201,6 @@ services:
     hostname: ia_data_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      KAPACITOR_HOSTNAME: ia_data_analytics
       KAPACITOR_URL: https://ia_data_analytics:${KAPACITOR_PORT}/
       KAPACITOR_UNSAFE_SSL: "false"
       KAPACITOR_INFLUXDB_0_URLS_0: https://ia_influxdb:${INFLUXDB_PORT}/

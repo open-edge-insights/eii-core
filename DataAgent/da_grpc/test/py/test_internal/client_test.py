@@ -58,8 +58,8 @@ if __name__ == '__main__':
         end = time.time()
         timeTaken = end - start
         totalTime1 += timeTaken
-        log.info("index: %d, time: %f secs, config: %s",
-                 index, timeTaken, config)
+        log.info("index: %d, time: %f secs",
+                 index, timeTaken)
 
     # Testing GetConfigInt("RedisCfg") gRPC call
     log.info("Getting Redis config:")

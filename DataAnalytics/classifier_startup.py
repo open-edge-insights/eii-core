@@ -3,7 +3,6 @@ import os.path
 import argparse
 import time
 import stat
-import logging
 import socket
 import datetime
 from Util.log import configure_logging, LOG_LEVELS
@@ -25,15 +24,6 @@ CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
-
-
-def read_kapacitor_hostname():
-    """Get the Kapacitor Hostname from ENV
-    """
-    if 'KAPACITOR_HOSTNAME' in os.environ:
-        return os.environ['KAPACITOR_HOSTNAME']
-    else:
-        return None
 
 
 def parse_args():
@@ -152,6 +142,7 @@ def enable_classifier_task(host_name):
         time.sleep(0.0001)
         retry = retry + 1
 
+
 if __name__ == '__main__':
 
     args = parse_args()
@@ -163,7 +154,7 @@ if __name__ == '__main__':
 
     logger = configure_logging(args.log.upper(), logFileName,
                                args.log_dir, __name__)
-    host_name = read_kapacitor_hostname()
+    host_name = 'ia_data_analytics'
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
