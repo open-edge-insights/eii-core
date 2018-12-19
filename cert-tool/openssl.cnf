@@ -1,9 +1,5 @@
-# Note: LibreSSL 2.2.7 does not correctly support environment variables
-# here and that is the version that ships with OS X High Sierra. So, we
-# replace text using Python and generate a temporary cnf file
 
 common_name = @COMMON_NAME@
-server_alt_name = @SERVER_ALT_NAME@
 
 [ ca ]
 default_ca = root_ca
@@ -73,5 +69,5 @@ DNS.1 = localhost
 @MULTIPLE_CLI_DOMAINS@
 
 [ server_alt_names ]
-DNS.1 = $server_alt_name
-DNS.2 = localhost
+DNS.1 = localhost
+@MULTIPLE_SERVER_DOMAINS@

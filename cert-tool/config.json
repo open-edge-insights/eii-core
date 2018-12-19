@@ -1,11 +1,9 @@
 {
+  "server_list_candidates":["imagestore","opcua"],
   "certificates": [
     {
       "influxdb": {
-        "server_alt_name": "ia_influxdb",
-        "client_alt_name": [
-          "ia_data_agent", "ia_video_ingestion", "ia_data_analytics", "ia_yumei_app", "ia_telegraf"
-        ]
+        "server_alt_name": "ia_influxdb"
       }
     },
     {
@@ -34,26 +32,17 @@
     },
     {
       "kapacitor": {
-        "server_alt_name": "ia_data_analytics",
-        "client_alt_name": [
-          "kapacitor"
-        ]
+        "server_alt_name": "ia_data_analytics"
       }
     },
     {
       "streammanager": {
-        "server_alt_name": "ia_data_agent",
-        "client_alt_name": [
-          "influxdb_subscriber"
-        ]
+        "server_alt_name": "ia_data_agent"
       }
     },
     {
       "streamsublib": {
-        "server_alt_name": "ia_yumei_app",
-        "client_alt_name": [
-          "influxdb_subscriber"
-        ]
+        "server_alt_name": "ia_yumei_app"
       }
     },
     {

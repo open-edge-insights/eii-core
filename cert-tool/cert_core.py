@@ -29,23 +29,32 @@ from subprocess import run
 import paths
 
 
+def add_multiple_dns_entries(peer):
+    multiple_domain = ''
+    if isinstance(peer, list):
+        for index, name in enumerate(peer, start=1):
+            multiple_domain += "DNS." + str(index+1) + "=" + name
+            multiple_domain += "\n"
+    else:
+        multiple_domain = "DNS.2=" + peer
+        multiple_domain += "\n"
+    return multiple_domain
+
+
 def get_openssl_cnf_path(opts):
-    cli_alt_name = ''
     if isinstance(opts["common_name"], list):
         cn = opts["common_name"][0]
     else:
         cn = opts["common_name"]
-    if isinstance(opts["client_alt_name"], list):
-        for index, name in enumerate(opts["client_alt_name"], start=1):
-            cli_alt_name += "DNS." + str(index+1) + "=" + name
-            cli_alt_name += "\n"
+
+    if "client_alt_name" in opts:
+        cli_domains = add_multiple_dns_entries(opts["client_alt_name"])
     else:
-        cli_alt_name = "DNS.2=" + opts["client_alt_name"]
-        cli_alt_name += "\n"
-    if isinstance(opts["server_alt_name"], list):
-        server_alt_name = ",".join(opts["server_alt_name"])
+        cli_domains = ""
+    if "server_alt_name" in opts:
+        server_domains = add_multiple_dns_entries(opts["server_alt_name"])
     else:
-        server_alt_name = opts["server_alt_name"]
+        server_domains = ""
 
     cnf_path = paths.openssl_cnf_path()
     tmp_cnf_path = None
@@ -53,26 +62,33 @@ def get_openssl_cnf_path(opts):
         with open(cnf_path, 'r') as infile:
             in_cnf = infile.read()
             out_cnf0 = in_cnf.replace('@COMMON_NAME@', cn)
-            out_cnf1 = out_cnf0.replace('@MULTIPLE_CLI_DOMAINS@', cli_alt_name)
-            out_cnf2 = out_cnf1.replace('@SERVER_ALT_NAME@', server_alt_name)
+            out_cnf1 = out_cnf0.replace('@MULTIPLE_CLI_DOMAINS@', cli_domains)
+            out_cnf2 = out_cnf1.replace('@MULTIPLE_SERVER_DOMAINS@',
+                                        server_domains)
             outfile.write(out_cnf2)
             tmp_cnf_path = outfile.name
     return tmp_cnf_path
 
 
+def create_target_folder(target):
+    os.makedirs(paths.relative_path("Certificates", target), exist_ok=True)
+
+
 def copy_root_ca_certificate_and_key_pair(target="ca"):
+    create_target_folder(target)
     paths.copy_tuple_path(
         (paths.root_ca_dir_name, "cacert.pem"),
         (paths.result_dir_name+"/ca", "ca_certificate.pem"))
     paths.copy_tuple_path(
-        (paths.root_ca_dir_name, "cacert.cer"),
+        (paths.root_ca_dir_name, "cacert.der"),
         (paths.result_dir_name+"/ca", "ca_certificate.der"))
     paths.copy_tuple_path(
-        (paths.root_ca_dir_name, "private", "cakey.pem"),
+        (paths.root_ca_dir_name, "cakey.pem"),
         (paths.result_dir_name+"/ca", "ca_key.pem"))
 
 
 def copy_leaf_certificate_and_key_pair(source, target, outform=None):
+    create_target_folder(target)
     if outform:
         paths.copy_tuple_path((source, "cert.der"),
                               (paths.result_dir_name+"/"+target,
@@ -162,12 +178,12 @@ def generate_root_ca(opts):
                  "-outform", "DER")
 
 
-def generate_server_certificate_and_key_pair(key, opts, **kwargs):
-    generate_certificate_and_key_pair(key, "server", opts, **kwargs)
+def generate_server_certificate_and_key_pair(key, opts):
+    generate_certificate_and_key_pair(key, "server", opts)
 
 
-def generate_client_certificate_and_key_pair(key, opts, **kwargs):
-    generate_certificate_and_key_pair(key, "client", opts, **kwargs)
+def generate_client_certificate_and_key_pair(key, opts):
+    generate_certificate_and_key_pair(key, "client", opts)
 
 
 def generate_certificate_and_key_pair(key, peer, opts,
@@ -185,8 +201,7 @@ def generate_certificate_and_key_pair(key, peer, opts,
     cert_path = paths.leaf_certificate_path(peer)
     req_pem_path = paths.relative_path(peer, "req.pem")
     CN = opts[peer+"_alt_name"]
-    opts["common_name"] = (key + "_" + CN[0] if isinstance(CN, list) else
-                           key + "_" + CN)
+    opts["common_name"] = key + "_" + (CN[0] if isinstance(CN, list) else CN)
 
     openssl_req(opts,
                 "-new",

@@ -13,15 +13,15 @@ standard certificates for the server and client. Root Certificate Authority cert
 
 ###  Generation of the certs:
 
-1. Use **python3 main.py** command to generate certificates
+1. Use **python3 main.py** command to generate all the certificates
 
 2. Certificates will be generated in the "Certificates" Folder inside the cert-tool directory.
 3. All the certificates will be generated based on the config.json details provided by the user.If new certificates are needed, new entry can be   
    added in the config.json. 
        
 4. The format of the `config.json` is as follows :
-    ```sh        
-    {
+    ```sh
+     {
         "certificates": [
             {
                 "influxdb":
@@ -47,7 +47,6 @@ standard certificates for the server and client. Root Certificate Authority cert
         ]
     }
     ```
-
     The current [config.json](config.json) file generates the below certificates under `cert-tool/Certificates` folder:
     - ca/             --> consists of the ca certs/keys in .pem and .der format. 
     - influxdb/       --> consists of the influxdb server cert/key consumed by `ia_influxdb` container
@@ -62,16 +61,30 @@ standard certificates for the server and client. Root Certificate Authority cert
     - streamsublib/   --> consists of the server certificate/key consumed by `ia_yumei_app` stream subscriber module which is one of the influxdb 
                           subscribers
     - opcua/          --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module to bring up the opcua server                          and the client certificate is consumed by opcua clients like visual hmi
- 
-**Below Some of the limitations of the tool as of now (will be addressed in the upcoming releases):**
-* cert-tool on every run would re-generate all certs freshly (ca, server and client certificates/keys) as per config.json. Currently, 
-  there is no provision to re-use the ca cert/key and generate the server and client certificates/keys separately
-* We would like to have `server_alt_name` also to take in the array for the alternate domain names
-* Keep the `client_alt_name` in the config.json optional, so that we can not generate client certs/keys when not needed.
 
-###  Removing the certificates:
-           
-Use `python3 main.py clean` to clear all the generated certificates.
+### CommandLine Options for Cert-Tool    
+
+    -   Usage: python3 main.py [-h] [--dns DNS] [--clean] [--capath ROOTCA_PATH]
+
+    -  Tool Used for Generating SSL Certificates
+
+    -  optional arguments:
+    -     -h, --help            show this help message and exit
+    -     --dns DNS             Domain Names for the Server Certificates
+    -     --clean               Clear All the Generated Certificates
+    -     --capath ROOTCA_PATH  RootCA certificate Path, if given,cert-tool will re-use the existing certs.
+
+   - (--dns DNS ) option is given, then server certificate will be generated with given DNS name along with the server_alt_name
+   - (capath ROOTCA) option is given, then **cert-tool will not generate CA certificates** and  re-use the ROOTCA_PATH root-ca certificates.
+
+  **Important Note:** 
+
+   - cert-tool generates the RootCA certificates in the __rootca__ folder. If you would like to reuse the same rootCA certificates, then __rootca__ folder and all the generated rootca certificates and private keys must be present in the same directory.
+
+   - If --clean option is used, then all the certificates, including __rootca__ also removed, hence we cannot re-use the rootCA certificates.So preserve a copy of __rootca__ if the rootca certificates are needed in future.
+
+   - When the rootCA certificate is re-used, then the newly generated client & server certificate should be             having the new CN and server/client alter names.Otherwise, certificate cannot be signed by root-ca.**
+ 
 
 ###  Decoding the certificates generated into text format:
 
@@ -79,3 +92,7 @@ Use `python3 main.py clean` to clear all the generated certificates.
 *  Use **openssl x509 -in <certificate.pem> -inform der -text** for der certificates
    
        
+###  Verifying the certificates generated with rootCA:
+
+*  Use **openssl verify  -verbose -CAfile <rootcafilepath> <generated_certificate_path>.
+

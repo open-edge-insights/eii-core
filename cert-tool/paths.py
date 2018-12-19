@@ -70,11 +70,11 @@ def root_ca_cert_path():
 
 
 def root_ca_key_path():
-    return path.join(root, root_ca_dir_name, "private", "cakey.pem")
+    return path.join(root, root_ca_dir_name,  "cakey.pem")
 
 
 def root_ca_certificate_cer_path():
-    return path.join(root, root_ca_dir_name, "cacert.cer")
+    return path.join(root, root_ca_dir_name, "cacert.der")
 
 #
 # Leaf (peer) certificates and keys
@@ -124,7 +124,3 @@ def result_leaf_certificate_path(peer):
 
 def result_leaf_key_path(peer):
     return path.join(result_path(), "{}_key.pem".format(peer))
-
-
-def result_leaf_pkcs12_key_store_path(peer):
-    return path.join(result_path(), "{}_key.p12".format(peer))
