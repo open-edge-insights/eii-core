@@ -28,8 +28,8 @@ const (
 	subName  = "testSubName"
 
 	//UDP server config
-	strmMgrUDPServHost = "localhost"
-	strmMgrUDPServPort = "61971"
+	strmMgrTCPServHost = "localhost"
+	strmMgrTCPServPort = "61971"
 )
 
 func main() {
@@ -57,7 +57,7 @@ func main() {
 
 	glog.Infof("Creating subscription: %s on db: %s", subName, dbName)
 	response, err = util.CreateSubscription(client, subName, dbName,
-		strmMgrUDPServHost, strmMgrUDPServPort)
+		strmMgrTCPServHost, strmMgrTCPServPort)
 
 	if err == nil && response.Error() == nil {
 		glog.Infof("Response: %v", response.Results)

@@ -14,27 +14,27 @@ package main
 
 import (
 	"flag"
-	"io/ioutil"
-	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
-	"time"
 
 	config "ElephantTrunkArch/DataAgent/config"
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
 	stm "ElephantTrunkArch/StreamManager"
-	util "ElephantTrunkArch/Util/influxdb"
+	util "ElephantTrunkArch/Util"
+	inflxUtil "ElephantTrunkArch/Util/influxdb"
 
 	"github.com/golang/glog"
 )
 
-var strmMgrUDPServHost = "ia_data_agent"
+var strmMgrTCPServHost = "ia_data_agent"
 
 const (
-	strmMgrUDPServPort             = "61971"
+	strmMgrTCPServPort             = "61971"
 	INFLUX_SERVER_CERTIFICATE_PATH = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
 	INFLUX_SERVER_KEY_PATH         = "/etc/ssl/influxdb/influxdb_server_key.pem"
+	GRPC_INT_CLIENT_CERT           = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
+	GRPC_INT_CLIENT_KEY            = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
+	GRPC_CA_CERT                   = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
 )
 
 // DaCfg - stores parsed DataAgent config
@@ -61,36 +61,10 @@ func main() {
 		os.Exit(-1)
 	}
 
-	//Create the cert and key file for influx server
-	fileName := filepath.Base(INFLUX_SERVER_CERTIFICATE_PATH)
-	to_write := DaCfg.Certs[fileName].([]byte)
-	err = ioutil.WriteFile(INFLUX_SERVER_CERTIFICATE_PATH, to_write, 0700)
-	if err != nil {
-		glog.Errorf("Failed to write file %s, error: %s", INFLUX_SERVER_CERTIFICATE_PATH, err)
-		os.Exit(-1)
-	}
+	fileList := []string{INFLUX_SERVER_CERTIFICATE_PATH, INFLUX_SERVER_KEY_PATH, GRPC_INT_CLIENT_CERT,
+		GRPC_INT_CLIENT_KEY, GRPC_CA_CERT}
 
-	fileName = filepath.Base(INFLUX_SERVER_KEY_PATH)
-	to_write = DaCfg.Certs[fileName].([]byte)
-	err = ioutil.WriteFile(INFLUX_SERVER_KEY_PATH, to_write, 0700)
-	if err != nil {
-		glog.Errorf("Failed to write file %s, error: %s", INFLUX_SERVER_KEY_PATH, err)
-		os.Exit(-1)
-	}
-
-	glog.Infof("**************Share grpc internal certs/keys to other dependency ETA modules")
-	secretsDir := "/etc/ssl/grpc_int_ssl_secrets"
-	keyArr := []string{"grpc_internal_client_certificate.pem", "grpc_internal_client_key.pem", "ca_certificate.pem"}
-	for _, fileName := range keyArr {
-		if data, ok := DaCfg.Certs[fileName].([]byte); ok {
-			outputFile := secretsDir + "/" + fileName
-			err := ioutil.WriteFile(outputFile, data, 0700)
-			if err != nil {
-				glog.Errorf("Not able to write to secret file: %v, error: %v", outputFile, err)
-				os.Exit(-1)
-			}
-		}
-	}
+	util.WriteCertFile(fileList, DaCfg.Certs)
 
 	glog.Infof("*************STARTING INFLUX DB***********")
 	influx_server := exec.Command("/root/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
@@ -100,25 +74,22 @@ func main() {
 		os.Exit(-1)
 	}
 
-	for {
-		InfluxConn, err := net.DialTimeout("tcp", net.JoinHostPort("", "8086"), (5 * time.Second))
-		if err != nil {
-		}
-		if InfluxConn != nil {
-			InfluxConn.Close()
-			break
-		}
+	// TODO : Will convert to a INFLUXDB_PORT after beta
+	portUp := util.CheckPortAvailability("", "8086")
+	if !portUp {
+		glog.Error("Influx DB port not up, so exiting...")
+		os.Exit(-1)
 	}
 
 	glog.Infof("*************INFLUX DB STARTED*********")
 	influxCfg := DaCfg.InfluxDB
 	influxServer := "localhost"
-	clientAdmin, err := util.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
+	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
 		os.Exit(-1)
 	}
-	resp, err := util.CreateAdminUser(clientAdmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
+	resp, err := inflxUtil.CreateAdminUser(clientAdmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
 
 	if err == nil && resp.Error() == nil {
 		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
@@ -129,13 +100,14 @@ func main() {
 		} else {
 			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
 		}
+		// TODO: FIX: at times os.exit called for a valid used case
 		//os.Exit(-1)
 	}
 	clientAdmin.Close()
 
 	// Create InfluxDB database
 	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
-	client, err := util.CreateHTTPClient(influxServer,
+	client, err := inflxUtil.CreateHTTPClient(influxServer,
 		influxCfg.Port, influxCfg.UserName, influxCfg.Password)
 
 	if err != nil {
@@ -143,7 +115,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	response, err := util.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
+	response, err := inflxUtil.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
 	if err != nil {
 		glog.Errorf("Cannot create database: %s", response.Error())
 	}
@@ -171,12 +143,12 @@ func main() {
 	if err != nil {
 		glog.Errorf("Failed to fetch the hostname of the node: %v", err)
 	}
-	if strmMgrUDPServHost != hostname {
-		strmMgrUDPServHost = "localhost"
+	if strmMgrTCPServHost != hostname {
+		strmMgrTCPServHost = "localhost"
 	}
 
-	pStreamManager.ServerHost = strmMgrUDPServHost
-	pStreamManager.ServerPort = strmMgrUDPServPort
+	pStreamManager.ServerHost = strmMgrTCPServHost
+	pStreamManager.ServerPort = strmMgrTCPServPort
 	pStreamManager.InfluxDBHost = influxServer
 	pStreamManager.InfluxDBPort = DaCfg.InfluxDB.Port
 	pStreamManager.InfluxDBName = DaCfg.InfluxDB.DBName

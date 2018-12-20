@@ -70,9 +70,12 @@ type opcuaCfg struct {
 	Port string
 }
 
+const (
+	VAULT_SECRET_FILE_PATH = "/vault/file/vault_secret_file"
+)
+
 // ReadFromVault initializes and read secrets from vault.
 func (cfg *DAConfig) ReadFromVault() error {
-	VAULT_SECRET_FILE_PATH := "/vault/file/vault_secret_file"
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
@@ -192,7 +195,10 @@ func (cfg *DAConfig) ReadFromVault() error {
 		cfg.Certs = vault_secret.Data
 		if cfg.Certs != nil {
 			for k, v := range cfg.Certs {
-				byte_value, _ := b64.StdEncoding.DecodeString(v.(string))
+				byte_value, err := b64.StdEncoding.DecodeString(v.(string))
+				if err != nil {
+					glog.Errorf("cert decode failed %s", k)
+				}
 				cfg.Certs[k] = byte_value
 			}
 		} else {

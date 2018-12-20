@@ -72,7 +72,7 @@ class StreamSubLib:
 
             self.certBlobMap = client.GetConfigInt("StrmLibServerCert")
         except Exception as e:
-            raise DAException("Failed to execute GetConfigInt" +
+            raise DAException("Seems to be some issue with GRPC Server." +
                               "Exception: {0}".format(e))
 
         # Creates the influxDB client handle.

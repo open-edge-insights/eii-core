@@ -11,17 +11,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package util
 
 import (
+	"io/ioutil"
 	"net"
+	"path/filepath"
 	"time"
 
 	"github.com/golang/glog"
 )
 
 // CheckPortAvailability - checks for port availability on hostname
-func CheckPortAvailability(hostname, port string) (bool) {
+func CheckPortAvailability(hostname, port string) bool {
 	maxRetries := 100
 	retryCount := 0
-	
+
 	portUp := false
 	for retryCount < maxRetries {
 		conn, err := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
@@ -37,4 +39,19 @@ func CheckPortAvailability(hostname, port string) (bool) {
 		retryCount++
 	}
 	return portUp
+}
+
+// WriteCertFile - A wrapper to write certifiates for different module
+func WriteCertFile(fileList []string, Certs map[string]interface{}) error {
+	for _, filePath := range fileList {
+		fileName := filepath.Base(filePath)
+		if data, ok := Certs[fileName].([]byte); ok {
+			err := ioutil.WriteFile(filePath, data, 0700)
+			if err != nil {
+				glog.Errorf("Not able to write to secret file: %v, error: %v", filePath, err)
+				return err
+			}
+		}
+	}
+	return nil
 }

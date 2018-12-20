@@ -23,12 +23,6 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-#vaultFile=$ETA_INSTALL_PATH/vault_secret_file
-#echo "0.4 Creating empty $vaultFile..."
-# Below two line will go away once TPM is in action.
-#touch $vaultFile
-#chmod 700 $vaultFile
-
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down
 

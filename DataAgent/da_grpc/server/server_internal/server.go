@@ -114,7 +114,7 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 
 	// Load the certificates from binary
 	if !valid_cert || !valid_key {
-		glog.Errorf("Malformed certificate obtained")
+		glog.Error("Malformed certificate obtained")
 		os.Exit(-1)
 	}
 	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)

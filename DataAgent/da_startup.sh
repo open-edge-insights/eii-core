@@ -3,9 +3,6 @@
 # to debug uncomment below line
 #set -x
 
-# Starting influxdb service
-#influxd -config /etc/influxdb/influxdb.conf &> influxd.log &
-
 # Setting the VAULT_ADDR to override the config provided API_ADDR
 VAULT_ADDR=http://localhost
 
