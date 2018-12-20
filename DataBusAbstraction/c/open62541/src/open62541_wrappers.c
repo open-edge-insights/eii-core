@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define NAMESPACE_SIZE 100
 #define TOPIC_SIZE 100
 #define PUBLISH_DATA_SIZE 1024*1024
-#define ERROR_MSG_SIZE 100
+#define ERROR_MSG_SIZE 150
 
 
 // logger global varaibles
@@ -33,7 +33,6 @@ static UA_Boolean serverRunning = true;
 static UA_Client *client = NULL;
 static UA_ClientConfig clientConfig;
 static char lastSubscribedTopic[TOPIC_SIZE] = "";
-static char lastNamespace[NAMESPACE_SIZE] = "";
 static int lastNamespaceIndex = FAILURE;
 static char endpoint[ENDPOINT_SIZE];
 static c_callback userCallback;
@@ -44,12 +43,14 @@ static void *userFunc = NULL;
 
 // TODO: this seems to not work especially when there are 
 // format specifiers, needs to be debugged
+/*
 static void
 logMsg(const char *msg, ...) {
     va_list args; va_start(args, msg);
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, msg, args);
     va_end(args);
 }
+*/
 
 static UA_Int16
 getNamespaceIndex(char *ns, char *topic) {
@@ -162,6 +163,7 @@ startServer(void *ptr) {
     if (retval != UA_STATUSCODE_GOOD) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
     }
+    return NULL;
 }
 
 /* serverContextCreate function creates the opcua namespace, opcua variable and starts the server
@@ -412,6 +414,9 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
 
 static void stateCallback(UA_Client *client, UA_ClientState clientState) {
     switch(clientState) {
+        case UA_CLIENTSTATE_WAITING_FOR_ACK:
+            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "The client is waiting for ACK");
+            break;
         case UA_CLIENTSTATE_DISCONNECTED:
             UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "The client is disconnected");
             break;
@@ -622,6 +627,7 @@ runClient(void *ptr) {
         
         UA_Client_run_iterate(client, 1000);
     }
+    return NULL;
     
 }
 

@@ -92,6 +92,10 @@ RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION
     dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
     rm -rf influxdb_${INFLUXDB_VERSION}_amd64.deb
 
+# These flags are needed for security for compiling and linking with open62541
+ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
+ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
+
 ADD DataAgent ./DataAgent
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager

@@ -21,10 +21,11 @@ void cgoFunc(char *topic, char *data);
 import "C"
 
 import (
-	"github.com/golang/glog"
 	"strconv"
 	"strings"
 	"unsafe"
+
+	"github.com/golang/glog"
 )
 
 type dataBusOpcua struct {
@@ -74,7 +75,7 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 	cHostname := C.CString(host)
 	cCertFile := C.CString(contextConfig["certFile"])
 	cPrivateFile := C.CString(contextConfig["privateFile"])
-	
+
 	//TODO - Make contextConfig["trustFile"] an array
 	trustFiles := [1]string{contextConfig["trustFile"]}
 	cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
@@ -85,7 +86,7 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 
 	if dbOpcua.direction == "PUB" {
 		cResp := C.serverContextCreate(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
-		
+
 		goResp := C.GoString(cResp)
 		if goResp != "0" {
 			glog.Errorln("Response: ", goResp)
@@ -167,9 +168,9 @@ func (dbOpcua *dataBusOpcua) stopTopic(topic string) (err error) {
 func (dbOpcua *dataBusOpcua) destroyContext() (err error) {
 	defer errHandler("OPCUA Context Termination Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
-		C.serverContextDestroy();
+		C.serverContextDestroy()
 	} else if dbOpcua.direction == "SUB" {
-		C.clientContextDestroy();
+		C.clientContextDestroy()
 	}
 	return
 }
