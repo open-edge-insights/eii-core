@@ -27,7 +27,7 @@ import argparse
 import subprocess
 import os
 import tarfile
-import shutil
+from distutils.dir_util import copy_tree
 
 SYSTEMD_PATH = "/etc/systemd/system"
 INSTALL_PATH = "/opt/intel/eta/"
@@ -95,8 +95,7 @@ def create_install_dir():
 def copy_docker_setup_files():
     # Copy docker setup files to install path
     try:
-        shutil.copytree(os.getcwd(), INSTALL_PATH,
-                        ignore=shutil.ignore_patterns('*.tar.gz', '*.tar'))
+        copy_tree(os.getcwd(), INSTALL_PATH)
         print("docker setup files copied to %s path" % INSTALL_PATH)
     except OSError as e:
         print('Directory docker_setup failed to be copied. Error: %s' % e)
@@ -129,9 +128,11 @@ def uninstall_eta():
     for i in uninstall_list:
         print("Removing "+i+" ...")
         if i == "/opt/intel/eta/":
-            output = subprocess.run(["shopt", "-s", "extglob"])
-            output = subprocess.run(["rm", "-rf",
-                                     "!(secret_store)"])
+            keepers = ['secret_store']
+            for filename in os.listdir('.'):
+                if filename not in keepers:
+                    print('Removing %s' % (filename,))
+                    output = subprocess.run(["rm", "-rf", filename])
             if output.returncode != 0:
                 print("Unable to remove" + i)
         else:
@@ -157,7 +158,8 @@ if __name__ == '__main__':
 
     if args.add_eta_without_tar:
         # uninstall previous eta instance and files
-        uninstall_eta()
+        if os.path.exists(INSTALL_PATH):
+            uninstall_eta()
         print("*****Installing ETA without any pre-created container*******")
         execute_compose_startup()
         enable_systemd_service()
