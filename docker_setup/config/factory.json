@@ -28,7 +28,7 @@
         }
     },
     "classification": {
-        "mqtt_broker_host": "10.223.109.136",
+        "mqtt_broker_host": "localhost",
         "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {
