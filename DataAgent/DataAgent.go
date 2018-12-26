@@ -64,7 +64,11 @@ func main() {
 	fileList := []string{INFLUX_SERVER_CERTIFICATE_PATH, INFLUX_SERVER_KEY_PATH, GRPC_INT_CLIENT_CERT,
 		GRPC_INT_CLIENT_KEY, GRPC_CA_CERT}
 
-	util.WriteCertFile(fileList, DaCfg.Certs)
+	err = util.WriteCertFile(fileList, DaCfg.Certs)
+	if err != nil {
+		glog.Error("Error while starting Certificate in container")
+		os.Exit(-1)
+	}
 
 	glog.Infof("*************STARTING INFLUX DB***********")
 	influx_server := exec.Command("/root/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
@@ -75,7 +79,8 @@ func main() {
 	}
 
 	// TODO : Will convert to a INFLUXDB_PORT after beta
-	portUp := util.CheckPortAvailability("", "8086")
+	influxPort := os.Getenv("INFLUXDB_PORT")
+	portUp := util.CheckPortAvailability("", influxPort)
 	if !portUp {
 		glog.Error("Influx DB port not up, so exiting...")
 		os.Exit(-1)

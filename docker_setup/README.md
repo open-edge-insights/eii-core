@@ -119,16 +119,17 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
             
             Run the script:
             ```sh
-            sudo ./provision_startup.sh | tee provision_startup.txt
+            provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
+                E.g. provision_startup.sh ../cert-tool/Certificates/
             ```
-            **Known Issue**: The `provision_startup.sh` does not exit gracefully now. Please press `CTRL+C` once the provisioning is done.
-            This will take the inputs from `provision_config.json` and seal the secrets into the Vault.
+            This will take the inputs from `provision_config.json` & certificates, following which it seal the secrets into the Vault.
+            It is responsibility of the Admin to remove the source directory wherein certificates exist.
 
             **Note**: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
             ```sh
-            sudo rm -rf /opt/intel/eta/secret_store /opt/intel/eta/vault_secret_file
-            <Update the new values into provision_config.json>
-            sudo ./provision_startup.sh | tee provision_startup.txt
+            sudo rm -rf /opt/intel/eta/secret_store
+            <Update the new values into provision_config.json & custom certificates directory if necessary>
+            sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
     - Restart `eta.service` to bring the ETA stack after provisioning

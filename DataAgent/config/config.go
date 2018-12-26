@@ -198,6 +198,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 				byte_value, err := b64.StdEncoding.DecodeString(v.(string))
 				if err != nil {
 					glog.Errorf("cert decode failed %s", k)
+					return err
 				}
 				cfg.Certs[k] = byte_value
 			}
