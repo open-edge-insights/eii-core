@@ -16,16 +16,11 @@
         }
     },
     "triggers": {
-        "robotic_arm":{ 
-            "mqtt_broker_host": "localhost",
-            "mqtt_broker_port":1883
-        },
-        "motion_detection": {
-            "angle_sequence": [47, 175, 223, 271],
-            "white_threshold": 10000,
-            "light_threshold": 1000,
-            "roi_y1": 0,
-            "roi_y2": 750
+        "pcb_trigger": {
+            "training_mode": false,
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
         }
     },
     "classification": {
@@ -33,16 +28,15 @@
         "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {
-            "yumei": {
-                "trigger": ["robotic_arm","motion_detection"],
-                 "config": {
-                    "ref_imgdir": "./agent/ref_prod/",
-                    "ref_imgcount": 4,
-                    "ref_config_roi": "./agent/ref_prod/ym_roi.json"
+            "pcbdemo": {
+                "trigger": ["pcb_trigger"],
+                "config": {
+                    "ref_img": "./agent/algo_config/ref_pcbdemo/ref.png",
+                    "ref_config_roi": "./agent/algo_config/ref_pcbdemo/roi_2.json",
+                    "model_xml": "./agent/algo_config/ref_pcbdemo/model_2.xml",
+                    "model_bin": "./agent/algo_config/ref_pcbdemo/model_2.bin"
                 }
-
             }
         }
     }
-    
 }

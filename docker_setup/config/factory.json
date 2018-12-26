@@ -4,7 +4,7 @@
     "data_ingestion_manager": {
         "ingestors": {
             "video_file": {
-                "video_file": "./test_videos/defect-vid3.avi",
+                "video_file": "./test_videos/pcb_d2000.avi",
                 "loop_video": true
             }
         }
@@ -19,12 +19,11 @@
         }
     },
     "triggers": {
-        "motion_detection": {
-            "angle_sequence": [231, 629, 793, 1076],
-            "white_threshold": 2000,
-            "light_threshold": 1000,
-            "roi_y1": 0,
-            "roi_y2": 750
+        "pcb_trigger": {
+            "training_mode": false,
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
         }
     },
     "classification": {
@@ -32,12 +31,13 @@
         "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {
-            "yumei": {
-                "trigger": ["motion_detection"],
+            "pcbdemo": {
+                "trigger": ["pcb_trigger"],
                 "config": {
-                    "ref_imgdir": "./agent/ref/",
-                    "ref_imgcount": 4,
-                    "ref_config_roi": "./agent/ref/ym_roi.json"
+                    "ref_img": "./agent/algo_config/ref_pcbdemo/ref.png",
+                    "ref_config_roi": "./agent/algo_config/ref_pcbdemo/roi_2.json",
+                    "model_xml": "./agent/algo_config/ref_pcbdemo/model_2.xml",
+                    "model_bin": "./agent/algo_config/ref_pcbdemo/model_2.bin"
                 }
             }
         }
