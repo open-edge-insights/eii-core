@@ -31,14 +31,8 @@ import logging
 import traceback as tb
 import threading as th
 from concurrent.futures import ThreadPoolExecutor
-import paho.mqtt.client as mqtt
 
 from . import ClassifierConfigError, load_classifier
-
-
-# Globals for MQTT topic strings
-MQTT_META_DATA_TOPIC = 'proj_1/gw_1/raw0'
-MQTT_RESULTS_TOPIC = 'proj_1/gw_1/etr0'
 
 
 class ClassifierManager:
@@ -101,27 +95,11 @@ class ClassifierManager:
         self.classifiers = {}
 
         try:
-            if 'mqtt_broker_host' in config or 'mqtt_broker_port' in config:
-                self.log.info('Initializing MQTT client')
-                self.mqtt_client = mqtt.Client()
-                self.mqtt_client.on_connect = self._on_connect
-                self.mqtt_client.on_disconnect = self._on_disconnect
-                self.mqtt_client.connect(
-                        config['mqtt_broker_host'],
-                        config['mqtt_broker_port'],
-                        10)
-                self.mqtt_client.loop_start()
-            else:
-                self.log.info('MQTT disabled')
-                self.mqtt_client = None
-
             for (n, c) in config['classifiers'].items():
                 self.log.debug('Loading classifier %s', n)
                 self.classifiers[n] = load_classifier(n, c['config'])
         except KeyError as e:
             raise ClassifierConfigError('Config missing key {}'.format(e))
-        except ConnectionRefusedError as e:
-            raise ClassifierConfigError('Failed to connect to MQTT broker')
 
     def get_classifier(self, classifier_name):
         if classifier_name not in self.classifiers:
@@ -154,9 +132,6 @@ class ClassifierManager:
         self.log.info('Stopping classification')
         self.stopped.set()
         self.pool.shutdown()
-        if self.mqtt_client is not None:
-            self.mqtt_client.disconnect()
-            self.mqtt_client.loop_stop()
         # self.db.close()
         self.log.info('Classification stopped')
 
@@ -238,9 +213,7 @@ class ClassifierManager:
                         'br': d.br
                     })
 
-                if self.mqtt_client is not None:
-                    # Publishing meta-data over MQTT
-                    msg = {
+                msg = {
                         'idx': self.meta_idx,
                         'timestamp': ts,
                         'machine_id': self.machine_id,
@@ -248,19 +221,14 @@ class ClassifierManager:
                         'image_id': image_id,
                         'cam_sn': cam_sn,
                         'defects': defect_res
-                    }
-                    self.log.debug(
-                            'Publishing classification meta-data on MQTT:\n%s',
-                            json.dumps(msg, indent=4))
-                    self._publish(MQTT_META_DATA_TOPIC, msg)
+                }
+                # Roll over the msg_idx value if we have reached the maximum
+                # value that an int can store in Python
+                self.meta_idx = self._incr_int(self.meta_idx, 1)
 
-                    # Roll over the msg_idx value if we have reached the maximum
-                    # value that an int can store in Python
-                    self.meta_idx = self._incr_int(self.meta_idx, 1)
-
-                    msg['ImgHandle'] = img_handle
-                    ret_point.append(msg)
-
+                msg['ImgHandle'] = img_handle
+                ret_point.append(msg)
+                
                 frame_count += 1
 
             delta = time.time() - start
@@ -275,22 +243,6 @@ class ClassifierManager:
             # unconsumed data
             data.set_error()
         finally:
-            # Always send summary publication if MQTT is connected
-            if self.mqtt_client is not None:
-                # Publishing summary results to MQTT
-                data = {
-                    'idx': self.summary_idx,
-                    'timestamp': ts,
-                    'machine_id': self.machine_id,
-                    'part_id': part_id,
-                    'samples': self.samples,
-                    'defects': [
-                        {'type': k, 'count': v} for (k, v) in defects.items() ]
-                }
-                self.log.debug('Publishing classification summary to MQTT:\n%s',
-                        json.dumps(data, indent=4))
-                self._publish(MQTT_RESULTS_TOPIC, data)
-                self.summary_idx = self._incr_int(self.summary_idx, 1)
             return ret_point
 
     def _incr_int(self, val, rollover=0):
@@ -301,33 +253,3 @@ class ClassifierManager:
             return rollover
         else:
             return val + 1
-
-    def _publish(self, topic, data):
-        """Helper method for publishing data and checking the return value to
-        issue reconnects if needed.
-        """
-        ret = self.mqtt_client.publish(topic, json.dumps(data), qos=1)
-        if ret.rc == mqtt.MQTT_ERR_NO_CONN:
-            self.log.error(
-                    '[%d] Publication failed, MQTT disconnected, reconnecting',
-                    ret.rc)
-
-    def _on_connect(self, client, userdata, flags, rc):
-        """MQTT client on_connect() callback
-        """
-        if rc == 0:
-            self.log.info('MQTT client connected')
-        else:
-            self.log.error('[%d] MQTT client failed to connect, reconnecting', rc)
-            self.mqtt_client.reconnect()
-
-    def _on_disconnect(self, client, userdata, rc):
-        """MQTT client on_disconnect() callback
-        """
-        if rc == 0:
-            # Expected disconnect
-            self.log.warn('MQTT client disconnected')
-        else:
-            self.log.error('[%d] Unexpected MQTT disconnect, reconnecting', rc)
-            self.mqtt_client.reconnect()
-
