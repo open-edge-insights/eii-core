@@ -50,6 +50,7 @@ IM_CLIENT_KEY = filePath + '/../cert-tool/Certificates/imagestore/' + \
 
 
 class EtaDataSync:
+
     def ConvertClassfierDatatoVisualHmiData(self, classifier_results):
         """
             This Method Converts classifier results into
@@ -59,8 +60,6 @@ class EtaDataSync:
         meta_data_hmi = {}
         meta_data_list = []
         try:
-            logger.info("Classifier Results to VisualHMI \
-            Json Structure Conversion Started")
             meta_data_dict["defects"] =\
                 json.loads(classifier_results["defects"])
             meta_data_dict["idx"] = classifier_results["idx"]
@@ -74,8 +73,6 @@ class EtaDataSync:
             meta_data_hmi["part_id"] = classifier_results['part_id']
             meta_data_hmi["meta-data"] = meta_data_list
 
-            logger.info("Classifier Results \
-            to VisualHMI Json Structure Conversion Finished")
         except Exception as e:
             print("Exception Occured in Text Conversion Module : " + str(e))
             raise Exception
@@ -93,7 +90,6 @@ class EtaDataSync:
             if response.status_code != 200:
                 logger.error("HMI Failure Response Code : %s",
                              response.status_code)
-                raise
             else:
                 logger.info("HMI Success Response Code : %s",
                             response.status_code)
@@ -108,13 +104,7 @@ class EtaDataSync:
             based on imagehandle returns the blob
         """
         try:
-            # provide the hostname/ip addr of the m/c
-            # where DataAgent module of ETA solution is running
-            grpc_host = self.config['databus_host']
-            client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
-                                          ROOTCA_CERT,
-                                          hostname=grpc_host)
-            outputBytes = client.Read(key)
+            outputBytes = self.client.Read(key)
             return outputBytes
         except Exception as e:
             print("Exception: ", e)
@@ -153,8 +143,8 @@ class EtaDataSync:
                                        self.config["hmi_port"],
                                        self.databus_data)
 
-                    self.databus_data = {}
-                    self.metalist = []
+                self.databus_data = {}
+                self.metalist = []
 
             else:
                 logger.info("Message: %s", msg)
@@ -185,6 +175,12 @@ class EtaDataSync:
             self.config["hmi_image_folder"] =\
                 self.config["hmi_image_folder"] + "/"
 
+        # Client handle for image store
+        self.client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
+                                        ROOTCA_CERT,
+                                        hostname=self.config['databus_host'])
+
+        # Client handle for data bus abstraction
         filePath = os.path.abspath(os.path.dirname(__file__))
         certFile = filePath + "/../cert-tool/Certificates/opcua/" + \
             "opcua_client_certificate.der"
