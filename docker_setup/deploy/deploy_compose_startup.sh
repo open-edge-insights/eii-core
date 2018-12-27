@@ -11,10 +11,7 @@ source ./setenv.sh
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
 cp -f resolv.conf /etc/resolv.conf
 
-echo "0.2 Adding Docker Host IP Address to config/DataAgent.conf, config/factory.json and config/factory_prod.json files..."
-source ./update_config.sh
-
-echo "0.3 Updating .env for container timezone..."
+echo "0.2 Updating .env for container timezone..."
 # Get Docker Host timezone
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`

@@ -4,7 +4,6 @@
 echo "Killing all dependency processes..."
 sudo service influxd stop
 sudo service redis stop
-sudo service mosquitto stop
 sudo service postgresql stop
 sudo service kapacitor stop
 pkill -9 -f kapacitord

@@ -27,8 +27,6 @@
         }
     },
     "classification": {
-        "mqtt_broker_host": "localhost",
-        "mqtt_broker_port": 1883,
         "max_workers": 1,
         "classifiers": {
             "pcbdemo": {

@@ -11,7 +11,6 @@ echo "Loading all the docker images from $curDir folder..."
 docker load -i log_rotate-$LOG_ROTATE_VERSION.tar && echo "Saved log_rotate docker image.."
 docker load -i influxdb-$INFLUXDB_VERSION.tar && echo "Loaded influxdb docker image.."
 docker load -i redis-$REDIS_VERSION.tar && echo "Loaded redis docker image.."
-docker load -i mosquitto-$MOSQUITTO_VERSION.tar && echo "Loaded mosquitto docker image.."
 
 docker load -i gobase-$ETA_VERSION.tar && echo "Loaded gobase docker image.."
 docker load -i pybase-$ETA_VERSION.tar && echo "Loaded pybase docker image.."

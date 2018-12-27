@@ -11,7 +11,6 @@ analysis. These results are streamed to DataAgent via StreamManager's subscripti
 2. Install below DataAnalytics dependencies:
     * python3.6 package by following [this](http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/)
     * **sudo -H pip3.6 install -r classifier_requirements.txt** - installs all dependencies for classifer program
-    * **sudo apt-get install mosquitto** - MQTT implementation
 
 **Note**: For more details on the pre-requisites on ETR, please refer: `agent/README.md`
 

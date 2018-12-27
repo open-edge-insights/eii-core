@@ -5,10 +5,9 @@ Docker compose setup of ETA solution:
 
 The setup instructions below assume the OS is installed and ready.
 If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.md](clear_linux_setup_guide.md) for installing the Clearlinux OS.
+Rest of the README will mention steps to be followed in Ubuntu for setting up the Edge insights platform.
 
 ## <u>Pre-requisities</u>:
-
-### **`Ubuntu Only`**
 
 1. Install latest docker cli/docker daemon by following [https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [https://docs.docker.com/install/linux/linux-postinstall/](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
 
@@ -60,17 +59,9 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
 3. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
-### **`Ubuntu and ClearLinux`**
+### ** ETA pre-requisites **
 
-1. Copy the Yumei acceptance test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
-
-    ```
-	cd ElephantTrunkArch/test_videos
-	wget -q http://wheeljack.ch.intel.com/test_videos/defect-video1.avi
-	wget -q http://wheeljack.ch.intel.com/test_videos/defect-vid2.avi
-	wget -q http://wheeljack.ch.intel.com/test_videos/defect-vid3.avi
-    ```
-    **NOTE**: Please copy PCB demo videos to `test_videos` folder if using the pcbdemo sample algorithm by using following commands:
+1. Copy the PCB demo test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
 
     ```
 	cd ElephantTrunkArch/test_videos
@@ -81,12 +72,9 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-3. Download the full package for OpenVINO toolkit for Linux version 2018 R4 from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside ElephantTrunkArch/DataAnalytics folder
+3. Download the full package for OpenVINO toolkit for Linux version 2018 R4 from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside ElephantTrunkArch/DataAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside DataAnalytics directory.
 
 4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
-
-5. **Known Issues**:
-    * If one sees `C++ exception` thrown while starting the `ia_video_ingestion` with basler camera, please disconnect the power/lan cable connected to the basler camera and restart ia_video_ingestion by running cmd `docker restart ia_video_ingestion`
 
 ## Steps to setup ETA solution on test/factory system
 
@@ -98,32 +86,19 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
       1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/blob/master/agent/README.md)
 
-    > **Note**:
-    > For AliOS Things OS, we have found that in some of the OS images shared with us, we see the `moby.service` presence and not the `docker.service`. When this is the case, the `eta.service` installation would fail when running `sudo ./setup_eta -a`. Whenever this happens, please change `docker.service` to `moby.service` in `ElephantTrunkArch/docker_setup/deploy/eta.service` and re-run `sudo ./setup_eta -a` script to install`eta.service` with the changes required.
-4. The current trigger for video frame ingestion in ETA stack is happening over MQTT, so mosquitto
-   container can be run on the ECN or a separate node which is configurable.
-5. `<Yumei App only>`Follow [YumeiApp/README.md](../YumeiApp/README.md) for ingestion configuration
-  over MQTT, controlling of robotic arm, alarm light and reset button
+5. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
+  over MQTT, alarm light and reset button
 
-### <u>Installation</u>
-1. Directly building the eta containers from source and starting them using   
-   `eta.service` without creating tar balls on the ECN (Edge Compute Node) device
+### <u>Build & Installation</u>
+1. Building the eta containers from source
 
-    - Copy docker_setup files to /opt/intel/eta path and start `eta.service`
-        (**scripts   should be executed from `<ElephantTrunkArch>/docker_setup/deploy` directory**)
-
-        ```sh
-        sudo ./setup_eta -a | tee setup_eta_install_from_source.txt
-        ```
-        > **Note**: The `eta.service` here will fail to bring up the `ia_data_agent` container as the provisioning is not done
-
-    - Follow below provisioning steps
+    - Follow below steps to generate certificates, provision and start ETA.
 
         1. Certificates generation:
 
             Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys.
 
-        2. Provision the secrets to Vault (**scripts should be executed from                             `<ElephantTrunkArch>/docker_setup/` directory**)
+        2. Provision the secrets to Vault (**scripts should be executed from `<ElephantTrunkArch>/docker_setup/` directory**)
 
             Run the script:
             ```sh
@@ -139,40 +114,33 @@ If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.m
             <Update the new values into provision_config.json & custom certificates directory if necessary>
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
-    - Restart `eta.service` to bring the ETA stack after provisioning
 
-        ```sh
-        sudo systemctl restart eta
-        ```
+        3. Build and run ETA images as per the dependency order 
+            ```sh
+            sudo ./compose_startup.sh | tee compose_startup.txt
+            ```
+            This script will build all the ETA containers and run them using the docker-compose.
+            Verify all ETA containers coming up and working by following the Post Installation Verification steps.
+
+            <Optional>
+            For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
+            ```sh
+            sudo ./setup_eta.py -a | tee setup_eta_logs.txt
+            ```
+            This will install ETA as a systemd service in Ubuntu. Post installation, ETA can be started / stopped using commands:
+            ```sh
+            sudo systemctl stop eta
+            sudo systemctl start eta
+            ```
+
+    > **Note**:
+    > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
+    starting it off.
 
 2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either     natively (due to dependencies, this works only on Ubuntu) or dockerized version.
 
-3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by          default the video frames are ingested in loop by `ia_video_ingestion` container. One can            also restart ia_video_ingestion container manually by running:
+3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
    `docker restart ia_video_ingestion`
-
-4. If working with basler's camera, need to publish `CAM ON` message over mqtt to  
-   `ia_video_ingestion` container by running below command:
-
-    ```sh
-    docker exec -it ia_video_ingestion python3.6 mqtt_publish.py
-    ```
-
-    **Note**:
-    * While testing with Basler's camera, just provide the right serial number for the camera in [config/factory_prod.json](config/factory_prod.json) under `basler` json field
-    * Below scripts provide more control on passing CAM ON and CAM OFF message:
-
-    	- Manual way to control Robotic Arm (`camera_state`: 0 for CAM OFF and 1 for CAM ON) - present working dir: `<ElephantTrunkArch>`:
-
-          ```sh
-          python3.6 VideoIngestion/test/RoboArm_manual.py --camera_state 1
-          ```
-        - Automatic way to control Robotic Arm by periodically sending CAM ON and CAM OFF message:
-
-          ```sh
-          python3.6 VideoIngestion/test/RoboArm_auto.py
-          ```
-        <br/>
- 	Check `VideoIngestion/test/config.py` for configuration.
 
 ### Post Installation Verification
 
@@ -186,9 +154,9 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
 
 2. All containers in ETA stack:
     * Provisioning containers: vault (`ia_vault`) and provision (`ia_provision`)
-    * Dependency containers: log rotate (`ia_log_rotate`) and mosquitto container started separately
+    * Dependency containers: log rotate (`ia_log_rotate`)
     * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
-      Data Analytics (`ia_data_analytics`) and Yumei App (`ia_yumei_app`)
+      Data Analytics (`ia_data_analytics`) and Factory Control App (`ia_factoryctrl_app`)
 
 3. Installation directory - `/opt/intel/eta` root directory details:
      * `config/` - all the ETA configs reside here.
@@ -199,33 +167,6 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
             * py - consists of gRPC py client wrappers, protobuff files and example programs
         * `DataBusAbstraction` -
             * py - consists of opcua py client wrappers and example programs
-
-### Steps to setup ETA solution on dev system (scripts should be executed from `<ElephantTrunkArch>/docker_setup` directory)</u>
-
-1. Follow provisioning steps in `Steps to setup ETA solution on test/factory system` section
-2. Build and run dependency and ETA images as per the dependency order (one time task unless you change something in Dockerfile of ETA images)
-    ```sh
-    sudo ./compose_startup.sh | tee compose_startup.txt
-    ```
-
-    > **Note**:
-    > 1. `compose_startup.sh` script will start the mosquitto container outside of the docker-compose.yml file if there is no local mosquitto service.
-    > 2. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
-    starting it off.
-
-3. Follow steps# 2, 3 and 4 under `Installation` section of `Steps to setup ETA solution on test/factory system` section
-
-4. Verify `Post Installation Verification` section of `Steps to setup ETA solution on test/factory system` section
-
-5. `<Optional>` This step is an optional step to prepare the ETA as a redistributable .tar image which can be deployed into multiple factory     machines. This will come in handy if the same code need to be deployed in multiple machines. Make sure that you are in
-   **docker_setup/deploy** directory
-
-    ```sh
-    sudo ./setup_eta.py -c | tee create_eta_targz.txt
-    ```
-   **Note**:
-   * This step will create an file named `eta.tar.gz` in the "deploy" directory. Copy this tarball to the destination node's preferred directory.
-   * Please note `cp -f resolv.conf /etc/resolv.conf` line in `./deploy/deploy_compose_startup.sh` needs to be commented in non-proxy environment before starting it off.
 
 > Note:
 1. Few useful docker-compose and docker commands:
