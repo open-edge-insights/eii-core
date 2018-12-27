@@ -1,15 +1,15 @@
-# Dockerfile for YumeiApp
+# Dockerfile for FactoryControlApp
 ARG ETA_VERSION
 FROM ia/pybase:$ETA_VERSION
-LABEL description="YumeiApp image"
+LABEL description="FactoryControlApp image"
 
 # Installing dependent python modules
-ADD YumeiApp/yumeiapp_requirements.txt .
-RUN pip3.6 install -r yumeiapp_requirements.txt && \
-    rm -rf yumeiapp_requirements.txt
+ADD FactoryControlApp/requirements.txt .
+RUN pip3.6 install -r requirements.txt && \
+    rm -rf requirements.txt
 
 # Adding project depedency modules
-ADD YumeiApp/ .
+ADD FactoryControlApp/ .
 ADD StreamSubLib/StreamSubLib.py StreamSubLib/StreamSubLib.py
 ADD Util/ Util/
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
@@ -19,6 +19,6 @@ RUN mkdir -p /etc/ssl/streamsublib
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
-ENTRYPOINT [ "python3.6", "YumeiApp.py", "--config", "yumeiapp_config.json", "--log-dir", "/ETA/yumei_app_logs"]
+ENTRYPOINT [ "python3.6", "FactoryControlApp.py", "--config", "config.json", "--log-dir", "/ETA/factoryctrl_app_logs"]
 CMD ["--log", "DEBUG"]
 HEALTHCHECK NONE

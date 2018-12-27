@@ -26,7 +26,7 @@
       "grpc_internal": {
         "server_alt_name": "ia_data_agent",
         "client_alt_name": [
-          "ia_imagestore", "ia_telegraf", "ia_yumei_app", "ia_data_analytics", "ia_video_ingestion"
+          "ia_imagestore", "ia_telegraf", "ia_factoryctrl_app", "ia_data_analytics", "ia_video_ingestion"
         ]
       }
     },
@@ -42,7 +42,7 @@
     },
     {
       "streamsublib": {
-        "server_alt_name": "ia_yumei_app"
+        "server_alt_name": "ia_factoryctrl_app"
       }
     },
     {
