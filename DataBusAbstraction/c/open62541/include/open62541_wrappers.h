@@ -17,17 +17,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 char*
 serverContextCreate(char *hostname,
                     int port,
-                    char *certificateFile, 
+                    char *certificateFile,
                     char *privateKeyFile,
                     char **trustList,
                     size_t trustListSize);
 
 int
-serverStartTopic(char *nsName, 
+serverStartTopic(char *nsName,
                  char *topic);
 
 char*
-serverPublish(int nsIndex, 
+serverPublish(int nsIndex,
               char *topic,
               char *data);
 
@@ -46,13 +46,13 @@ clientContextCreate(char *hostname,
                     size_t trustListSize);
 
 int
-clientStartTopic(char *nsName, 
+clientStartTopic(char *nsName,
                  char *topic);
 
 char*
-clientSubscribe(int nsIndex, 
+clientSubscribe(int nsIndex,
                 char* topic,
                 c_callback cb,
                 void* pyFunc);
-                            
+
 void clientContextDestroy();

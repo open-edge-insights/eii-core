@@ -29,7 +29,7 @@ static UA_ServerConfig *serverConfig;
 static UA_ByteString* remoteCertificate = NULL;
 static UA_Boolean serverRunning = true;
 
-// opcua client global variables 
+// opcua client global variables
 static UA_Client *client = NULL;
 static UA_ClientConfig clientConfig;
 static char lastSubscribedTopic[TOPIC_SIZE] = "";
@@ -41,7 +41,7 @@ static void *userFunc = NULL;
 
 //*************open62541 common wrappers**********************
 
-// TODO: this seems to not work especially when there are 
+// TODO: this seems to not work especially when there are
 // format specifiers, needs to be debugged
 /*
 static void
@@ -82,7 +82,7 @@ getNamespaceIndex(char *ns, char *topic) {
                     UA_BrowseRequest_deleteMembers(&bReq);
                     UA_BrowseResponse_deleteMembers(&bResp);
                     return nodeNs;
-                }   
+                }
             }
         }
     }
@@ -93,9 +93,9 @@ getNamespaceIndex(char *ns, char *topic) {
 
 //*************open62541 server wrappers**********************
 /* This function provides data to the subscriber */
-static UA_StatusCode 
+static UA_StatusCode
 readPublishedData(UA_Server *server,
-                const UA_NodeId *sessionId, 
+                const UA_NodeId *sessionId,
                 void *sessionContext,
                 const UA_NodeId *nodeId, void *nodeContext,
                 UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
@@ -113,7 +113,7 @@ writePublishedData(UA_Server *server,
                  const UA_NodeId *sessionId, void *sessionContext,
                  const UA_NodeId *nodeId, void *nodeContext,
                  const UA_NumericRange *range, const UA_DataValue *data) {
-    
+
     return UA_STATUSCODE_GOOD;
 }
 
@@ -174,17 +174,17 @@ startServer(void *ptr) {
  * @param  privateKeyFile(string)     server private key file in .der format
  * @param  trustedCerts(string array) list of trusted certs
  * @param  trustedListSize(int)       count of trusted certs
- * 
+ *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 serverContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
-    
+
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
         sprintf(errorMsg, "Unable to load certificate file %s.", certificateFile);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg); 
+            "%s", errorMsg);
         return errorMsg;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
@@ -197,7 +197,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     /* Load the trustlist */
     UA_STACKARRAY(UA_ByteString, trustList, trustedListSize);
-    
+
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
@@ -216,7 +216,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     serverConfig =
         UA_ServerConfig_new_basic256sha256(port, &certificate, &privateKey,
                                           trustList, trustedListSize,
-                                          revocationList, revocationListSize);    
+                                          revocationList, revocationListSize);
     if(!serverConfig) {
         sprintf(errorMsg, "Could not create the server config");
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
@@ -252,11 +252,11 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
  *
  * @param  namespace(string)         opcua namespace name
  * @param  topic(string)             name of the opcua variable (aka topic name)
- * 
+ *
  * @return Return namespace index for success and 100 for failure */
 int
 serverStartTopic(char *namespace, char *topic) {
-        
+
     /* check if server is started or not */
     if (server == NULL) {
         sprintf(errorMsg, "UA_Server instance is not instantiated");
@@ -283,11 +283,11 @@ serverStartTopic(char *namespace, char *topic) {
  * @param  nsIndex(int)              opcua namespace index of the variable node
  * @param  topic(string)             name of the opcua variable (aka topic name)
  * @param  data(string)              data to be written to opcua variable
- * 
+ *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 serverPublish(int nsIndex, char *topic, char *data) {
-    
+
     /* check if server is started or not */
     if (server == NULL) {
         sprintf(errorMsg, "UA_Server instance is not instantiated");
@@ -295,21 +295,23 @@ serverPublish(int nsIndex, char *topic, char *data) {
             errorMsg);
         return errorMsg;
     }
-    
+
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
-    strcpy(dataToPublish, data);
+    sprintf(dataToPublish, "%s", data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
-    
+
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
     if (retval == UA_STATUSCODE_GOOD) {
         UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "UA_Client_writeValueAttribute func executed successfully");
+        UA_Variant_delete(val);
         return "0";
-    } 
+    }
 
     sprintf(errorMsg, "UA_Client_writeValueAttribute func executed failed, error: %s\n", UA_StatusCode_name(retval));
     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
+    UA_Variant_delete(val);
     return errorMsg;
 }
 
@@ -321,18 +323,18 @@ void serverContextDestroy() {
 //*************open62541 client wrappers**********************
 
 /* cleanupClient deletes the memory allocated for client configuration */
-static void 
+static void
 cleanupClient() {
     UA_ByteString_delete(remoteCertificate);
     UA_Client_delete(client);
 }
 
-static void 
+static void
 deleteSubscriptionCallback(UA_Client *client, UA_UInt32 subscriptionId, void *subscriptionContext) {
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Subscription Id %u was deleted", subscriptionId);
 }
 
-static void 
+static void
 subscriptionInactivityCallback (UA_Client *client, UA_UInt32 subId, void *subContext) {
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Inactivity for subscription %u", subId);
 }
@@ -341,12 +343,12 @@ static void
 subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                         UA_UInt32 monId, void *monContext, UA_DataValue *data) {
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "subcriptionCallback() called!\n");
-    
+
     UA_Variant *value = &data->value;
     if(UA_Variant_isScalar(value)) {
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
-            
+
             if (userCallback) {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is not NULL");
                 char subscribedData[PUBLISH_DATA_SIZE];
@@ -357,14 +359,14 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
             }
-        }   
+        }
     }
 }
 
 /* creates the subscription for the opcua variable with topic name */
 static UA_Int16
 createSubscription(int nsIndex, char *topic, c_callback cb) {
-    
+
     UA_CreateSubscriptionRequest request = UA_CreateSubscriptionRequest_default();
     request.requestedPublishingInterval = 0;
 
@@ -378,12 +380,17 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
         return 1;
     }
 
+    if (topic == NULL) {
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "topic is NULL!");
+        return 1;
+    }
+
     UA_NodeId nodeId = UA_NODEID_STRING(nsIndex, topic);
 
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "ns: %d, identifier: %.*s\n", nodeId.namespaceIndex,
-        (int)nodeId.identifier.string.length, 
+        (int)nodeId.identifier.string.length,
         nodeId.identifier.string.data);
-    
+
     /* Add a MonitoredItem */
     UA_MonitoredItemCreateRequest monRequest =
         UA_MonitoredItemCreateRequest_default(nodeId);
@@ -398,13 +405,13 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
             UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "callback(cb) is not NULL\n");
             userCallback = cb;
         }
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, 
-            "Monitoring NODEID(%d, %.*s),id %u\n", 
-            nodeId.namespaceIndex, 
-            (int)nodeId.identifier.string.length, 
+        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND,
+            "Monitoring NODEID(%d, %.*s),id %u\n",
+            nodeId.namespaceIndex,
+            (int)nodeId.identifier.string.length,
             nodeId.identifier.string.data, monResponse.monitoredItemId);
         if (topic != NULL)
-            strcpy(lastSubscribedTopic, topic);
+            sprintf(lastSubscribedTopic, "%s", topic);
         if (nsIndex != FAILURE)
             lastNamespaceIndex = nsIndex;
         return 0;
@@ -430,7 +437,7 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
             UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A session with the server is open");
             /* recreating the subscription upon opcua server connect */
             if (lastNamespaceIndex != FAILURE) {
-                if (createSubscription(lastNamespaceIndex, lastSubscribedTopic, NULL) == 1) 
+                if (createSubscription(lastNamespaceIndex, lastSubscribedTopic, NULL) == 1)
                     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
             }
             break;
@@ -455,11 +462,11 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
  * @param  username(string)           username to connect to opcua server
  * @param  password(string)           password to connect to opcua server
  * @param  trustedListSize(int)       count of trusted certs
- * 
+ *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
-    
+
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
     UA_ByteString *revocationList = NULL;
     size_t revocationListSize = 0;
@@ -474,7 +481,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     if(certificate.length == 0) {
         sprintf(errorMsg, "Unable to load certificate file %s.", certificateFile);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg); 
+            "%s", errorMsg);
         return errorMsg;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
@@ -486,12 +493,19 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     client = UA_Client_new(UA_ClientConfig_default);
+    if(client == NULL) {
+        sprintf(errorMsg, "UA_Client_new() API returned NULL");
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+            "%s", errorMsg);
+        return errorMsg;
+    }
+
     remoteCertificate = UA_ByteString_new();
 
     sprintf(endpoint, "opc.tcp://%s:%d", hostname, port);
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "\nendpoint:%s\n", endpoint);
 
-    /* The getEndpoints API (discovery service) is done with security mode as none to 
+    /* The getEndpoints API (discovery service) is done with security mode as none to
        see the server's capability and certificate */
     retval = UA_Client_getEndpoints(client, endpoint,
                                     &endpointArraySize, &endpointArray);
@@ -514,7 +528,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
         UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d\n", endpointArray[endPointCount].securityMode);
         if(endpointArray[endPointCount].securityMode != UA_MESSAGESECURITYMODE_SIGNANDENCRYPT) {
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d is not equal to UA_MESSAGESECUREITYMODE_SIGNANDENCRYPT\n", 
+            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d is not equal to UA_MESSAGESECUREITYMODE_SIGNANDENCRYPT\n",
             endpointArray[endPointCount].securityMode);
             continue;
         }
@@ -543,7 +557,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     /* Load the trustList. Load revocationList is not supported now */
     UA_STACKARRAY(UA_ByteString, trustList, trustedListSize);
-    
+
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
@@ -555,7 +569,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     clientConfig = UA_ClientConfig_default;
-    
+
     /* Set stateCallback */
     clientConfig.timeout = 1000;
     clientConfig.stateCallback = stateCallback;
@@ -568,7 +582,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
                                   trustList, trustedListSize,
                                   revocationList, revocationListSize,
                                   UA_SecurityPolicy_Basic256Sha256);
-    
+
     if(client == NULL) {
         UA_ByteString_delete(remoteCertificate); /* Dereference the memory */
         sprintf(errorMsg, "UA_Client_secure_new() API failed!");
@@ -605,9 +619,9 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 /* Runs iteratively the client to auto-reconnect and re-subscribe to the last subscribed topic of the client */
 static void*
 runClient(void *ptr) {
-    
+
     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
-    
+
     while(1) {
         /* if already connected, this will return GOOD and do nothing */
         /* if the connection is closed/errored, the connection will be reset and then reconnected */
@@ -624,18 +638,18 @@ runClient(void *ptr) {
                 continue;
             }
         }
-        
+
         UA_Client_run_iterate(client, 1000);
     }
     return NULL;
-    
+
 }
 
-/* clientStartTopic function checks for the existence of the opcua variable(topic) 
+/* clientStartTopic function checks for the existence of the opcua variable(topic)
  *
  * @param  namespace(string)         opcua namespace name
  * @param  topic(string)             name of the opcua variable (aka topic name)
- * 
+ *
  * @return Return namespace index for success and 100 for failure */
 int
 clientStartTopic(char *namespace, char *topic) {
@@ -645,7 +659,7 @@ clientStartTopic(char *namespace, char *topic) {
             errorMsg);
         return FAILURE;
     }
-    return getNamespaceIndex(namespace, topic);    
+    return getNamespaceIndex(namespace, topic);
 }
 
 
@@ -656,7 +670,7 @@ clientStartTopic(char *namespace, char *topic) {
  * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
  * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback.
  *                                   For c and go callbacks, just puss NULL and nil respectively.
- * 
+ *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
@@ -681,7 +695,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
             errorMsg);
         return errorMsg;
     }
-        
+
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
         sprintf(errorMsg, "pthread creation to run the client thread iteratively failed");
@@ -689,7 +703,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
             errorMsg);
         return errorMsg;
     }
-    
+
     return "0";
 }
 
