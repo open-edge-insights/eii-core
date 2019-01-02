@@ -30,7 +30,6 @@ from agent.db import DatabaseAdapter
 from agent.etr_utils import format_exc
 from .ingestion.data_ingestion_manager import DataIngestionManager
 from .triggers import load_trigger
-from .storage import LocalStorage
 from .classification.classifier_manager import ClassifierManager
 
 
@@ -66,12 +65,9 @@ class DataPipelineManager:
 
         self.config = config
 
-        self.log.info('Initializing local storage')
-        # self.storage = LocalStorage(config.storage)
-        
         self.log.info('Initializing Classifier Manager')
         self.cm = ClassifierManager(
-                config.machine_id, config.classification, None, None)
+                config.machine_id, config.classification, None)
 
         # Load classifiers and connect data pipeline
         for (n, c) in config.classification['classifiers'].items():
@@ -109,7 +105,6 @@ class DataPipelineManager:
         """Run the data pipeline manager.
         """
         self.log.info('Starting the data ingestion')
-        # self.storage.start()
         self.dim.start()
         self.dim.join()
 
@@ -121,7 +116,6 @@ class DataPipelineManager:
         for t in self.triggers:
             t.stop()
         self.cm.stop()
-        # self.storage.stop()
         self.trigger_ex.shutdown()
         self.log.info('Data pipeline manager stopped')
 

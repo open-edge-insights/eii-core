@@ -62,7 +62,6 @@ class Configuration:
         # Reading classifier configuration
         self.classification = config['classification']
         self.data_ingestion_manager = config['data_ingestion_manager']
-        # self.storage = config['storage']
         self.triggers = config['triggers']
         # self.database = config['database']
         self.rsync_service = config.get('rsync_service', None)

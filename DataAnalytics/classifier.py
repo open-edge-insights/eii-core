@@ -74,10 +74,8 @@ class ConnHandler(Handler):
         # commenting this out as we won't be needing postgres
         # self.db = DatabaseAdapter(self.config.machine_id,
         # self.config.database)
-        # self.storage = LocalStorage(self.config.storage)
         self._cm = ClassifierManager(
-                self.config.machine_id, self.config.classification,
-                None, None)
+                self.config.machine_id, self.config.classification, None)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
 
@@ -90,7 +88,6 @@ class ConnHandler(Handler):
         write_certs(file_list, self.resp)
         self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
                                               ROOTCA_CERT)
-        # self.storage.start()
 
     def init(self, init_req):
         self.classifier_init()

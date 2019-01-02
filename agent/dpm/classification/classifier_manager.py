@@ -57,7 +57,7 @@ class ClassifierManager:
             }
         }
     """
-    def __init__(self, machine_id, config, storage, db):
+    def __init__(self, machine_id, config, db):
         """Constructor
 
         Parameters
@@ -66,8 +66,6 @@ class ClassifierManager:
             ID of the machine the classification is running on
         config : dict
             Dictionary object with the configuration for the ClassifierManager
-        storage : dpm.storage.LocalStorage
-            LocalStorage object for saving images
         db : agent.db.DatabaseAdapter
             DatabaseAdapter object for inserting classification meta-data
         triggers : dict
@@ -82,7 +80,6 @@ class ClassifierManager:
             into the system.
         """
         self.log = logging.getLogger(__name__)
-        # self.storage = storage
         # self.db = db
         self.machine_id = machine_id
         self.stopped = th.Event()
@@ -177,8 +174,7 @@ class ClassifierManager:
                 ts = time.time()
 
                 try:
-                    self.log.debug('Classifying frame %d',
-                            frame_count)
+                    self.log.debug('Classifying frame %d', frame_count)
                     results = classifier.classify(sample_num, frame, user_data)
                 except:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
@@ -195,11 +191,6 @@ class ClassifierManager:
                 """
 
                 image_id = str(uuid.uuid4())
-
-                # Saving image to the local storage
-                # Not saving the image locally now. It should be viewed only
-                # from the HMI
-                # self.storage.write(image_id + '.png', frame)
 
                 defect_res = []
                 for d in results:
