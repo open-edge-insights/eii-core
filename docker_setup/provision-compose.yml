@@ -29,6 +29,7 @@ services:
     environment:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
+      VAULT_PORT: ${VAULT_PORT}
     volumes:
       - "${CERTIFICATES_PATH}:/etc/ssl"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"

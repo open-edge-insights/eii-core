@@ -24,6 +24,7 @@ ADD DataAgent/provision/provision_eta.go ./
 ADD DataAgent/provision/provision_eta.sh ./
 ADD docker_setup/provision_config.json ./config_file.json
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
+ADD Util ./Util
 RUN mkdir -p ./vault/file
 
 RUN go build -o /root/go/bin/provision_eta ./provision_eta.go

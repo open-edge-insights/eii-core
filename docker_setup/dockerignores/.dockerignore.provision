@@ -6,7 +6,6 @@ go-python
 ImageStore
 kapacitor
 StreamManager
-Util
 vendor
 docker_setup/deploy/*.tar.gz
 test_videos/

@@ -27,7 +27,8 @@ cp -f resolv.conf /etc/resolv.conf
 echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
 source ./init.sh
 
-
+echo "0.3 Deleting any pre-provisioned or tampered vault server before proceeding..."
+rm -rf $ETA_INSTALL_PATH/secret_store
 
 echo "0.4 Updating .env for container timezone..."
 # Get Docker Host timezone

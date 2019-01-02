@@ -1,6 +1,7 @@
 package main
 
 import (
+	util "ElephantTrunkArch/Util"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -107,6 +108,13 @@ func main() {
 	flag.StringVar(&config_file_path, "config", "", "config file path")
 	flag.Parse()
 
+	vaultPort := os.Getenv("VAULT_PORT")
+	portUp := util.CheckPortAvailability("localhost", vaultPort)
+	if !portUp {
+		glog.Error("VAULT server is not up, so exiting...")
+		os.Exit(-1)
+	}
+
 	vlt_client, err := init_vault_eta()
 	if err != nil {
 		glog.Errorf("Failed to initialize vault, error: %s", err)
@@ -126,8 +134,6 @@ func main() {
 	logical_clnt := vlt_client.Logical()
 	secret_to_write := make(map[string]interface{})
 	for _, dir := range cert_dirs {
-		glog.Infof("Reading %s directory", dir.Name())
-		// make map to write
 		dir_path := cert_root_dir + "/" + dir.Name()
 		files, err := ioutil.ReadDir(dir_path)
 		if err != nil {
