@@ -9,7 +9,8 @@ from Util.log import configure_logging, LOG_LEVELS
 import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
-from Util.util import write_certs
+from Util.util import (write_certs, create_decrypted_pem_files)
+
 
 SUCCESS = 0
 FAILURE = -1
@@ -82,6 +83,10 @@ def start_kapacitor(host_name):
         file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
                      "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
         write_certs(file_list, cert_data)
+
+        srcFiles = [CA_CERT]
+        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+        create_decrypted_pem_files(srcFiles, filesToDecrypt)
 
         subprocess.call("kapacitord -hostname "+host_name+" &", shell=True)
         logger.info("Started kapacitor Successfully...")

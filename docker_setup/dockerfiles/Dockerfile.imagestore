@@ -104,6 +104,8 @@ ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
 
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py
+
 RUN go build -o /root/go/src/ElephantTrunkArch/ImageStore/main ImageStore/main.go
 ENTRYPOINT ["./ImageStore/main"]
 HEALTHCHECK NONE

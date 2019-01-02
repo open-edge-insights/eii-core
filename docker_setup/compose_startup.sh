@@ -28,6 +28,9 @@ if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
         docker network create $COMPOSE_PROJECT_NAME
 fi
 
+echo "0.6 Generating shared key and nonce for grpc internal secrets..."
+source ./set_shared_key_nonce_env_vars.sh
+
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down --remove-orphans
 

@@ -30,7 +30,7 @@ from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
 import os
 import json
-from Util.util import write_certs
+from Util.util import (write_certs, create_decrypted_pem_files)
 
 IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
 IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
@@ -63,6 +63,11 @@ class DataIngestionLib:
             verifySslBool = False
             if self.config["VerifySsl"] == "True":
                 verifySslBool = True
+
+            srcFiles = [CA_CERT]
+            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(srcFiles, filesToDecrypt)
+
             self.influx_c = InfluxDBClient(self.config["Host"],
                                            self.config["Port"],
                                            self.config["UserName"],
@@ -70,7 +75,7 @@ class DataIngestionLib:
                                            self.config["DBName"],
                                            True if self.config["Ssl"] == "True"
                                            else False,
-                                           CA_CERT)
+                                           filesToDecrypt[0])
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
@@ -78,7 +83,7 @@ class DataIngestionLib:
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
         self.resp = client.GetConfigInt("ImgStoreClientCert")
-        
+
         # Write File
         file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
         write_certs(file_list, self.resp)

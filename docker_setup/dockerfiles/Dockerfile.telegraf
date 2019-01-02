@@ -15,12 +15,17 @@ RUN cd /root/go/src/github.com/influxdata/telegraf && \
      make
 ENV PATH="/root/go/src/github.com/influxdata/telegraf:${PATH}"
 
+# Installing cryptography module
+RUN pip3.6 install cryptography==2.4.2
+
 # Add custom python entrypoint script to get cofig and set envirnoment variable
 ADD Telegraf ./Telegraf
 ADD DataAgent/da_grpc/ ./DataAgent/da_grpc
 ADD Util/ ./Util
 
+RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
-ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py"]
+ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py", "--log-dir", "/ETA/telegraf_logs"]
+CMD ["--log", "DEBUG"]
 HEALTHCHECK NONE

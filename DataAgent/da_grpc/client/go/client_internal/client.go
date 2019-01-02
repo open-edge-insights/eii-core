@@ -12,10 +12,11 @@ package client
 
 import (
 	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go/pb_internal"
+	util "ElephantTrunkArch/Util"
+
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"io/ioutil"
 	"time"
 
 	"github.com/golang/glog"
@@ -45,13 +46,13 @@ func (pClient *GrpcInternalClient) getDaClient() (pb.DainternalClient, error) {
 	glog.Infof("Addr: %s", addr)
 
 	// Read certificate binary
-	certPEMBlock, err := ioutil.ReadFile(pClient.clientCert)
+	certPEMBlock, err := util.GetDecryptedBlob(pClient.clientCert)
 	if err != nil {
 		glog.Errorf("Failed to Read Client Certificate : %s", err)
 		return nil, err
 	}
 
-	keyPEMBlock, err := ioutil.ReadFile(pClient.clientKey)
+	keyPEMBlock, err := util.GetDecryptedBlob(pClient.clientKey)
 	if err != nil {
 		glog.Errorf("Failed to Read Client Key : %s", err)
 		return nil, err
@@ -66,7 +67,7 @@ func (pClient *GrpcInternalClient) getDaClient() (pb.DainternalClient, error) {
 
 	// Create a certificate pool from the certificate authority
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile(pClient.caCert)
+	ca, err := util.GetDecryptedBlob(pClient.caCert)
 	if err != nil {
 		glog.Errorf("Failed to Read CA Certificate : %s", err)
 		return nil, err

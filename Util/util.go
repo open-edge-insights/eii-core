@@ -11,8 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package util
 
 import (
+	cryptoUtil "ElephantTrunkArch/Util/crypto"
 	"io/ioutil"
 	"net"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -46,7 +48,7 @@ func WriteCertFile(fileList []string, Certs map[string]interface{}) error {
 	for _, filePath := range fileList {
 		fileName := filepath.Base(filePath)
 		if data, ok := Certs[fileName].([]byte); ok {
-			err := ioutil.WriteFile(filePath, data, 0700)
+			err := ioutil.WriteFile(filePath, data, 0777)
 			if err != nil {
 				glog.Errorf("Not able to write to secret file: %v, error: %v", filePath, err)
 				return err
@@ -54,4 +56,41 @@ func WriteCertFile(fileList []string, Certs map[string]interface{}) error {
 		}
 	}
 	return nil
+}
+
+// WriteEncryptedPEMFiles - wrapper to write encrypted PEM files
+func WriteEncryptedPEMFiles(fileList []string, Certs map[string]interface{}) error {
+	key := os.Getenv("SHARED_KEY")
+	nonce := os.Getenv("SHARED_NONCE")
+	// glog.Infof("Key: %s, nonce: %s", key, nonce)
+	symEncrypt, err := cryptoUtil.NewSymmetricEncryption(key)
+	if err != nil {
+		glog.Error("Failed to instantiate SymmetricEncryption object")
+		return err
+	}
+
+	for _, filePath := range fileList {
+		fileName := filepath.Base(filePath)
+		if data, ok := Certs[fileName].([]byte); ok {
+			cipherText, err := symEncrypt.Encrypt(data, nonce)
+			err = ioutil.WriteFile(filePath, cipherText, 0777)
+			if err != nil {
+				glog.Errorf("Failed to encrypt file: %v, error: %v", filePath, err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// GetDecryptedBlob - wrapper to get the decrypted blob
+func GetDecryptedBlob(file string) ([]byte, error) {
+	key := os.Getenv("SHARED_KEY")
+	nonce := os.Getenv("SHARED_NONCE")
+	symEncrypt, err := cryptoUtil.NewSymmetricEncryption(key)
+	if err != nil {
+		glog.Error("Failed to instantiate SymmetricEncryption object")
+		return nil, err
+	}
+	return symEncrypt.DecryptFile(file, nonce, false)
 }

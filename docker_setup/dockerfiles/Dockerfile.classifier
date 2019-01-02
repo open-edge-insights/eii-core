@@ -56,7 +56,10 @@ ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD ImageStore ./ImageStore
 ADD Util ./Util
+
+RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
+
 ENTRYPOINT ["./classifier_start.sh"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
 HEALTHCHECK NONE

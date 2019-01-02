@@ -11,11 +11,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package influxdbutil
 
 import (
+	util "ElephantTrunkArch/Util"
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/golang/glog"
 	"github.com/influxdata/influxdb/client/v2"
@@ -27,10 +27,11 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 
 	fmt.Fprintf(&buff, "https://%s:%s", host, port)
 	const (
-		RootCA     = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+		RootCA = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
 	)
 	certPool := x509.NewCertPool()
-	ca, err := ioutil.ReadFile(RootCA)
+	ca, err := util.GetDecryptedBlob(RootCA)
+
 	if err != nil {
 		glog.Errorf("Failed to Read CA Certificate : %s", err)
 		return nil, err
@@ -45,7 +46,7 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 		Password:           passwd,
 		InsecureSkipVerify: false,
 		TLSConfig: &tls.Config{
-			  RootCAs: certPool}})
+			RootCAs: certPool}})
 
 	return client, err
 }

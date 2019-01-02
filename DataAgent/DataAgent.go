@@ -14,6 +14,7 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -61,12 +62,33 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fileList := []string{INFLUX_SERVER_CERTIFICATE_PATH, INFLUX_SERVER_KEY_PATH, GRPC_INT_CLIENT_CERT,
-		GRPC_INT_CLIENT_KEY, GRPC_CA_CERT}
+	fileList := []string{INFLUX_SERVER_CERTIFICATE_PATH, INFLUX_SERVER_KEY_PATH}
 
 	err = util.WriteCertFile(fileList, DaCfg.Certs)
 	if err != nil {
 		glog.Error("Error while starting Certificate in container")
+		os.Exit(-1)
+	}
+
+	// Encrypting the grpc internal ssl secrets - grpc internal client key/cert and ca cert
+	fileList = []string{GRPC_INT_CLIENT_CERT, GRPC_INT_CLIENT_KEY, GRPC_CA_CERT}
+	err = util.WriteEncryptedPEMFiles(fileList, DaCfg.Certs)
+	if err != nil {
+		glog.Error("Error while writing encrypted PEM files")
+		os.Exit(-1)
+	}
+
+	// Decrypting the encrypted ca cert for use by influxdb
+	fileContents, err := util.GetDecryptedBlob(GRPC_CA_CERT)
+	if err != nil {
+		glog.Errorf("Failed to decrypt file: %s, Error: %v", GRPC_CA_CERT, err)
+		os.Exit(-1)
+	}
+
+	newCaCertPath := "/etc/ssl/ca/ca_certificate.pem"
+	err = ioutil.WriteFile(newCaCertPath, fileContents, 0755)
+	if err != nil {
+		glog.Errorf("Failed to write file: %s, Error: %v", newCaCertPath, err)
 		os.Exit(-1)
 	}
 

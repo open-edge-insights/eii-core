@@ -121,6 +121,8 @@ ADD Util ./Util
 ADD VideoIngestion/VideoIngestion.py .
 ADD VideoIngestion/test .
 
+RUN mkdir -p /etc/ssl/ca
+
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
 
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs"]

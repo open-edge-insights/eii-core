@@ -28,6 +28,7 @@ import logging as log
 import sys
 import os
 import time
+from Util.crypto.encrypt_decrypt import SymmetricEncryption
 from Util.util import check_port_availability
 from DataAgent.da_grpc.protobuff.py.pb_internal \
     import dainternal_pb2 as da_pb2
@@ -57,23 +58,22 @@ class GrpcInternalClient(object):
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing GRPC channel to %s", addr)
 
-        with open(caCert, 'rb') as f:
-            ca_certs = f.read()
-
-        with open(clientKey, 'rb') as f:
-            client_key = f.read()
-
-        with open(clientCert, 'rb') as f:
-            client_certs = f.read()
-
         try:
+            key = os.environ["SHARED_KEY"]
+            nonce = os.environ["SHARED_NONCE"]
+
+            symEncrypt = SymmetricEncryption(key)
+            ca_certs = symEncrypt.DecryptFile(caCert, nonce)
+            client_key = symEncrypt.DecryptFile(clientKey, nonce)
+            client_certs = symEncrypt.DecryptFile(clientCert, nonce)
             credentials = grpc.ssl_channel_credentials(
                 root_certificates=ca_certs, private_key=client_key,
                 certificate_chain=client_certs)
 
         except Exception as e:
-            log.error("Exception Occured : ", e.msg)
-            raise Exception
+            errMsg = "Exception Occured : {}".format(e)
+            log.error(errMsg)
+            raise Exception(errMsg)
 
         # check for grpc internal port availability
         if not check_port_availability(self.hostname, self.port):

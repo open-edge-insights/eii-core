@@ -20,13 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Logging configuration module. Provides setup for the default Python
-logging library.
-"""
 import os
 import logging
 import logging.handlers
-
 
 LOG_LEVELS = {
     'DEBUG': logging.DEBUG,
@@ -34,6 +30,7 @@ LOG_LEVELS = {
     'ERROR': logging.ERROR,
     'WARN': logging.WARN
 }
+
 
 def configure_logging(log_level, base_log_file, log_dir, module_name):
     """Configure logging to log to both stdout and to a rotating file. The
@@ -46,7 +43,7 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
             '%(funcName)s : in line : [%(lineno)d] : %(message)s'
 
     This function should only ever be called once in a the Python runtime.
-    
+
     Paramters
     ---------
     log_level : str
@@ -56,7 +53,7 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
         Directory to save rotating log files
     base_log_file : str
         Base log file name to use for the rotating log files
-    
+
     Exceptions
     ----------
     ConfigError
@@ -64,12 +61,12 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
         both 0, or if the log file directory does not exist.
     """
     if log_level not in LOG_LEVELS:
-        raise DAException('Unknown log level: {}'.format(log_level))
+        raise Exception('Unknown log level: {}'.format(log_level))
     elif not os.path.exists(log_dir):
-        raise DAException('Logging directory {} does not exist'.format(log_dir))
+        raise Exception('Logging directory {} does not exist'.format(log_dir))
 
     fmt_str = ('%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
-            '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+               '%(funcName)s : in line : [%(lineno)d] : %(message)s')
     log_lvl = LOG_LEVELS[log_level]
     base_log = os.path.join(log_dir, base_log_file)
 

@@ -24,6 +24,7 @@ import socket
 import logging as log
 import os
 import base64
+from Util.crypto.encrypt_decrypt import SymmetricEncryption
 
 
 def check_port_availability(hostname, port):
@@ -46,6 +47,7 @@ def check_port_availability(hostname, port):
         log.debug("{} port is not up on {}".format(port, hostname))
     return portUp
 
+
 def write_certs(file_list, file_data):
     file_name = ""
     for file_path in file_list:
@@ -54,4 +56,27 @@ def write_certs(file_list, file_data):
                 file_name = os.path.basename(file_path)
                 fd.write(base64.b64decode(file_data[file_name]))
         except Exception as e:
-                log.debug("Failed creating file {}, {} ".format(file_name, e))
+            log.debug("Failed creating file: {}, Error: {} ".format(file_name,
+                                                                    e))
+
+
+def create_decrypted_pem_files(srcFiles, decryptFiles):
+    key = os.environ["SHARED_KEY"]
+    nonce = os.environ["SHARED_NONCE"]
+    symEncrypt = SymmetricEncryption(key)
+
+    for index, file in enumerate(srcFiles):
+        try:
+            certBlob = symEncrypt.DecryptFile(file, nonce)
+            # This logic is needed to remove extra hex chars in
+            # the cert blob appearing after last \n after END CERTIFICATE
+            # TODO: see if there is a better way to fix this
+            certText = certBlob.decode('utf-8', errors="ignore")
+            certText = '\n'.join(certText.split('\n')[:-1]) + '\n'
+
+            with open(decryptFiles[index], "w") as f:
+                f.write(certText)
+                log.debug('File created: {}'.format(decryptFiles[index]))
+        except Exception as e:
+            log.debug("Failed creating file: {}, Error: {} ".format(
+                decryptFiles[index], e))

@@ -84,7 +84,7 @@ class ConnHandler(Handler):
         # Use getConfigInt to read cert and create file
         client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
         self.resp = client.GetConfigInt("ImgStoreClientCert")
-                
+
         # Write File
         file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
         write_certs(file_list, self.resp)

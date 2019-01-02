@@ -16,9 +16,11 @@ echo "0.2 Updating .env for container timezone..."
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
 
-#
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
+
+echo "0.3 Generating shared key and nonce for grpc internal secrets..."
+source ./set_shared_key_nonce_env_vars.sh
 
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down
