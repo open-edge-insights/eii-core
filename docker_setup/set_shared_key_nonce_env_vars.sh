@@ -1,6 +1,6 @@
 #!/bin/bash
 
-key_nonce=$(python3.6 generate_key_nonce.py)
+key_nonce=$(python3 generate_key_nonce.py)
 key=`echo $key_nonce | awk -F, '{print $1}'`
 nonce=`echo $key_nonce | awk -F, '{print $2}'`
 

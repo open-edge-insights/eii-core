@@ -20,15 +20,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import random
+import uuid
 import string
 import os
 
 
 def generate_uuid(length):
-    uuid = ''.join(random.choices(string.ascii_letters + string.digits,
-                                  k=length))
-    return uuid
+    val = str(uuid.uuid1())[:length]
+    return val
 
 
 def generate_key():
