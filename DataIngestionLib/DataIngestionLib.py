@@ -28,8 +28,6 @@ from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
 from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
-import os
-import json
 from Util.util import (write_certs, create_decrypted_pem_files)
 
 IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
@@ -41,58 +39,12 @@ CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
 
 
-class DataIngestionLib:
-    ''' This class helps in ingesting the data to the imagestore and influx.
-    If the data contains buffer, it stores the buffer into the image store
-    and saves the handle in database.'''
+class DataPoint:
 
-    def __init__(self, storage_type='inmemory', log_level=logging.INFO):
-        logging.basicConfig(level=log_level)
-        self.log = logging.getLogger('data_ingestion')
+    def __init__(self, img_store, log):
         self.data_point = {'tags': {}, 'fields': {}}
-        try:
-            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
-            self.config = client.GetConfigInt("InfluxDBCfg")
-        except Exception as e:
-            raise DAException("Seems to be some issue with gRPC server." +
-                              "Exception: {0}".format(e))
-
-        # Creates the influxDB client handle.
-        try:
-            sslBool = True if self.config["Ssl"] == "True" else False
-            verifySslBool = False
-            if self.config["VerifySsl"] == "True":
-                verifySslBool = True
-
-            srcFiles = [CA_CERT]
-            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-            create_decrypted_pem_files(srcFiles, filesToDecrypt)
-
-            self.influx_c = InfluxDBClient(self.config["Host"],
-                                           self.config["Port"],
-                                           self.config["UserName"],
-                                           self.config["Password"],
-                                           self.config["DBName"],
-                                           True if self.config["Ssl"] == "True"
-                                           else False,
-                                           filesToDecrypt[0])
-        except Exception as e:
-            raise DAException("Failed creating the InfluxDB client " +
-                              "Exception: {0}".format(e))
-
-        # TODO: plan a better approach to set this config later, not to be in
-        # DataAgent.conf file as it's not intended to be known to user
-        self.resp = client.GetConfigInt("ImgStoreClientCert")
-
-        # Write File
-        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
-        write_certs(file_list, self.resp)
-        try:
-            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
-                                                  IM_CLIENT_KEY, CA_CERT)
-        except Exception as e:
-            raise e
-        self.log.debug("Instance created successfully.")
+        self.img_store = img_store
+        self.log = log
 
     def add_fields(self, name, value, time=None):
         ''' This method adds fields to the data point which will be
@@ -188,27 +140,72 @@ class DataIngestionLib:
             else:
                 self.log.info("%s Tag not present" % tag_name)
 
-    def save_data_point(self):
+
+class DataIngestionLib:
+    ''' This class helps in ingesting the data to the imagestore and influx.
+    If the data contains buffer, it stores the buffer into the image store
+    and saves the handle in database.'''
+
+    def __init__(self, storage_type='inmemory', log_level=logging.INFO):
+        logging.basicConfig(level=log_level)
+        self.log = logging.getLogger('data_ingestion')
+        try:
+            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+            self.config = client.GetConfigInt("InfluxDBCfg")
+        except Exception as e:
+            raise DAException("Seems to be some issue with gRPC server." +
+                              "Exception: {0}".format(e))
+
+        # Creates the influxDB client handle.
+        try:
+            srcFiles = [CA_CERT]
+            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(srcFiles, filesToDecrypt)
+
+            self.influx_c = InfluxDBClient(self.config["Host"],
+                                           self.config["Port"],
+                                           self.config["UserName"],
+                                           self.config["Password"],
+                                           self.config["DBName"],
+                                           True if self.config["Ssl"] == "True"
+                                           else False,
+                                           filesToDecrypt[0])
+        except Exception as e:
+            raise DAException("Failed creating the InfluxDB client " +
+                              "Exception: {0}".format(e))
+
+        # TODO: plan a better approach to set this config later, not to be in
+        # DataAgent.conf file as it's not intended to be known to user
+        self.resp = client.GetConfigInt("ImgStoreClientCert")
+
+        # Write File
+        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
+        write_certs(file_list, self.resp)
+        try:
+            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
+                                                  IM_CLIENT_KEY, CA_CERT)
+        except Exception as e:
+            raise e
+        self.log.debug("Instance created successfully.")
+
+    def init_data_point(self):
+        return DataPoint(self.img_store, self.log)
+
+    def save_data_point(self, dp):
         '''Saves the Data Point. Internally sends the data point to InfluxDB'''
         try:
-            return self._send_data_to_influx()
+            return self._send_data_to_influx(dp.data_point)
         except Exception as e:
             raise DAException("Seems to be some issue with InfluxDB." +
                               "Exception: {0}".format(e))
 
-    def _send_data_to_influx(self):
+    def _send_data_to_influx(self, data_point):
         '''Sends the data point to Influx.'''
-        json_body = [self.data_point]
+        json_body = [data_point]
         ret = self.influx_c.write_points(json_body)
         if ret is True:
             self.log.info("Data Point sent successfully to influx.")
         else:
             self.log.error("Data Point sending to influx failed.")
-
-        # Removes the fields sections after sending successfully.
-        self.data_point['fields'] = {}
-        self.data_point['tags'] = {}
-        if 'time' in self.data_point:
-            del self.data_point['time']
 
         return ret
