@@ -1,0 +1,129 @@
+# Client tests dockerfile
+ARG ETA_VERSION
+FROM ia/gopybase:$ETA_VERSION
+
+ARG HOST_TIME_ZONE=""
+
+ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
+ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin
+WORKDIR ${GO_WORK_DIR}
+ENV PYTHONPATH .:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/pb_internal/:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff:/root/go/src/ElephantTrunkArch/DataBusAbstraction/py/:/root/go/src/ElephantTrunkArch/:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/
+
+ENV GOPATH /root/go
+
+RUN mkdir -p ${GO_WORK_DIR}/log
+
+# Installing build tools
+RUN apt-get install -y cmake g++ build-essential
+
+# Installing all golang dependencies
+# TODO: Use dep tool itself in future once the "source" value
+# is obeyed and just "name" value is not used for deducing the
+# repo (https://github.com/golang/dep/pull/1857/commits)
+RUN go get -v github.com/BurntSushi/toml && \
+    cd ${GOPATH}/src/github.com/BurntSushi/toml && \
+    git checkout -b v0.3.0 tags/v0.3.0
+
+RUN go get -v github.com/golang/glog && \
+    cd ${GOPATH}/src/github.com/golang/glog && \
+    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+
+RUN go get -v github.com/google/uuid && \
+    cd ${GOPATH}/src/github.com/google/uuid && \
+    git checkout -b known_version 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
+
+ENV PROTOBUF_GO_PATH ${GOPATH}/src/github.com/golang/protobuf
+RUN mkdir -p ${PROTOBUF_GO_PATH} && \
+    git clone https://github.com/golang/protobuf ${PROTOBUF_GO_PATH} && \
+    cd ${PROTOBUF_GO_PATH} && \
+    git checkout -b v1.1.0 tags/v1.1.0
+
+ENV GO_X_NET ${GOPATH}/src/golang.org/x/net
+RUN mkdir -p ${GO_X_NET} && \
+    git clone https://github.com/golang/net ${GO_X_NET} && \
+    cd ${GO_X_NET} && \
+    git checkout -b known_version 26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2
+
+ENV GO_X_TEXT ${GOPATH}/src/golang.org/x/text
+RUN mkdir -p ${GO_X_TEXT} && \
+    git clone https://github.com/golang/text ${GO_X_TEXT} && \
+    cd ${GO_X_TEXT} && \
+    git checkout -b v0.3.0 tags/v0.3.0
+
+ENV GO_X_SYS ${GOPATH}/src/golang.org/x/sys
+RUN mkdir -p ${GO_X_SYS} && \
+    git clone https://github.com/golang/sys ${GO_X_SYS} && \
+    cd ${GO_X_SYS} && \
+    git checkout -b known_version d0be0721c37eeb5299f245a996a483160fc36940
+
+ENV GO_GRPC ${GOPATH}/src/google.golang.org/grpc
+RUN mkdir -p ${GO_GRPC} && \
+    git clone https://github.com/grpc/grpc-go ${GO_GRPC} && \
+    cd ${GO_GRPC} && \
+    git checkout -b v1.13.0 tags/v1.13.0
+
+ENV GO_PROTOGEN ${GOPATH}/src/google.golang.org/genproto
+RUN mkdir -p ${GO_PROTOGEN} && \
+    git clone https://github.com/google/go-genproto ${GO_PROTOGEN} && \
+    cd ${GO_PROTOGEN} && \
+    git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
+
+RUN apt-get update
+RUN apt-get -y install build-essential
+RUN apt-get -y install tcl
+
+ARG REDIS_VERSION
+RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
+RUN tar xzf redis-${REDIS_VERSION}.tar.gz
+RUN cd /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
+    make && \
+    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+
+ARG MINIO_VERSION
+RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
+RUN mv minio.${MINIO_VERSION} minio
+RUN chmod +x minio
+
+RUN pip3.6 install grpcio==1.12.1
+RUN pip3.6 install grpcio-tools
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
+
+# Installing grpc for cpp
+RUN echo "Installing required packages..." && \
+    apt-get -y install build-essential autoconf libtool pkg-config && \
+    apt-get -y install libgflags-dev libgtest-dev && \
+    apt-get -y install clang libc++-dev && \
+    apt-get -y install curl && \
+    echo "Building grpc from source..." && \
+    git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
+    cd grpc && \
+    git submodule update --init && \
+    make install && \
+    echo "Installing protoc..." && \
+    cd ../grpc/third_party/protobuf && \
+    make install && \
+    echo "***Installation complete***"
+
+WORKDIR /root/go/src/ElephantTrunkArch
+ADD DataAgent/da_grpc/client ./DataAgent/da_grpc/client
+ADD DataAgent/da_grpc/protobuff ./DataAgent/da_grpc/protobuff
+ADD DataAgent/da_grpc/test ./DataAgent/da_grpc/test
+ADD DataAgent/__init__.py ./DataAgent/__init__.py
+ADD DataAgent/da_grpc/__init__.py ./DataAgent/da_grpc/__init__.py
+ADD DataBusAbstraction ./DataBusAbstraction
+ADD ImageStore/client ./ImageStore/client
+ADD ImageStore/protobuff ./ImageStore/protobuff
+ADD ImageStore/test ./ImageStore/test
+ADD Util ./Util
+ADD ImageStore/go/test/test.jpg ./test.jpg
+
+ENTRYPOINT ["/bin/bash"]
+HEALTHCHECK NONE
+
+

@@ -187,3 +187,7 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
 3. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is     where the `tee` command comes to rescue.
 4. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
    `docker-compose logs -f`
+5. Run these commands to build & start the client tests container:
+   `sudo ./client_tests_startup.sh`
+   `docker-compose -f client-tests-compose.yml run --entrypoint /bin/bash ia_client_tests`
+

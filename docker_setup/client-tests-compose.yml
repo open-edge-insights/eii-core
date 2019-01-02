@@ -1,0 +1,47 @@
+version: '3'
+
+services:
+
+  # Define ia-gopybase service
+  ia-gopybase:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+    image: ia/gopybase:${ETA_VERSION}
+
+  # Define Test Container service
+  ia_client_tests:
+    depends_on:
+      - ia-gopybase
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.ct
+      args:
+        ETA_VERSION: ${ETA_VERSION}
+        REDIS_VERSION: ${REDIS_VERSION}
+        MINIO_VERSION: ${MINIO_VERSION}
+    image: ia/client_tests:${ETA_VERSION}
+    container_name: ia_client_tests
+    hostname: ia_client_tests
+    network_mode: host
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
+      NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
+      no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
+    volumes:
+      - "$PWD/../cert-tool/Certificates/imagestore:/etc/ssl/imagestore"
+      - "$PWD/../cert-tool/Certificates/grpc_internal:/etc/ssl/grpc_internal"
+      - "$PWD/../cert-tool/Certificates/grpc_external:/etc/ssl/grpc_external"
+      - "$PWD/../cert-tool/Certificates/ca:/etc/ssl/ca"
+    command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}

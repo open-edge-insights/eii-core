@@ -1,0 +1,20 @@
+agent
+DataAnalytics
+DataIngestionLib
+kapacitor
+VideoIngestion
+VisualHmiClient
+docker_setup/deploy/*.tar.gz
+test_videos/
+vendor
+.git
+
+# Recursively remove all unwanted files
+**/*.md
+**/*.mp4
+**/*.avi
+**/*.json
+**/*.pyc
+**/*.tar
+**/*.log
+**/*.log.*

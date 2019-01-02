@@ -27,7 +27,7 @@ import time
 import sys
 import os
 from DataAgent.da_grpc.client.py.client \
-    import GrpcInternalClient
+    import GrpcClient
 
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s : %(levelname)s : \

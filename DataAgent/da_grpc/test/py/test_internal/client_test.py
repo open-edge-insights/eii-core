@@ -37,9 +37,9 @@ logging.basicConfig(level=logging.DEBUG,
                     '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 log = logging.getLogger("GRPC_TEST")
 
-CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
-CLIENT_KEY = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
-CA_CERT = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+CLIENT_CERT = "/etc/ssl/grpc_internal/grpc_internal_client_certificate.pem"
+CLIENT_KEY = "/etc/ssl/grpc_internal/grpc_internal_client_key.pem"
+CA_CERT = "/etc/ssl/ca/ca_certificate.pem"
 
 if __name__ == '__main__':
 
