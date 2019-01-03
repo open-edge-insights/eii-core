@@ -113,6 +113,12 @@ def execute_compose_startup():
         print("Failed to run compose_startup.sh successfully")
         exit(-1)
 
+    try:
+        subprocess.run(["sudo", "./create_client_dist_package.sh"])
+    except Exception as e:
+        print("Failed to copy dist_files. Error: %s" % e)
+        exit(-1)
+
 
 def uninstall_eta():
     print("***********Un-installing ETA***********")

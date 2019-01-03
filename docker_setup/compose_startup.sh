@@ -12,10 +12,7 @@ cp -f resolv.conf /etc/resolv.conf
 echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
 source ./init.sh
 
-echo "0.3 Creating the external dist_libs client package..."
-./create_client_dist_package.sh
-
-echo "0.4 Updating .env for container timezone..."
+echo "0.3 Updating .env for container timezone..."
 # Get Docker Host timezone
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
@@ -23,12 +20,12 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-echo "0.5 create $COMPOSE_PROJECT_NAME if it doesn't exists"
+echo "0.4 create $COMPOSE_PROJECT_NAME if it doesn't exists"
 if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
         docker network create $COMPOSE_PROJECT_NAME
 fi
 
-echo "0.6 Generating shared key and nonce for grpc internal secrets..."
+echo "0.5 Generating shared key and nonce for grpc internal secrets..."
 source ./set_shared_key_nonce_env_vars.sh
 
 echo "1. Removing previous dependency/eta containers if existed..."
