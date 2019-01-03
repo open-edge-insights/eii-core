@@ -51,7 +51,7 @@ ADD DataAnalytics/ .
 RUN chmod +x ./classifier_start.sh
 
 # Adding project depedency modules
-ADD agent ./agent
+ADD algos ./algos
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
 ADD ImageStore ./ImageStore

@@ -7,7 +7,7 @@ import datetime
 import json
 from crontab import CronTab
 from sqlalchemy import create_engine, update, or_
-from agent.etr_utils.log import configure_logging, LOG_LEVELS
+from algos.etr_utils.log import configure_logging, LOG_LEVELS
 
 
 class RemoveVisualHmiEntries:

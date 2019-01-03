@@ -25,8 +25,8 @@ SOFTWARE.
 import os
 import logging
 import cv2
-from agent.db.defect import Defect
 
+from algos.dpm.defect import Defect
 
 class Classifier:
     """Test classifier

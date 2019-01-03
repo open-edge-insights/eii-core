@@ -27,7 +27,8 @@ import logging
 import cv2
 import numpy as np
 import json
-from agent.db.defect import Defect
+
+from algos.dpm.defect import Defect
 from openvino.inference_engine import IENetwork, IEPlugin
 
 minMatches = 10

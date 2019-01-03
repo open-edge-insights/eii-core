@@ -111,7 +111,7 @@ RUN cd gstreamer-media-SDK && mkdir build && cd build && cmake .. && make -j8 &&
 RUN mkdir -p /etc/ssl/imagestore
 
 # Adding project depedency modules
-ADD agent ./agent
+ADD algos ./algos
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent ./DataAgent
 ADD DataIngestionLib ./DataIngestionLib

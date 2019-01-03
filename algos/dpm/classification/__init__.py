@@ -64,7 +64,7 @@ def load_classifier(classifier, classifier_config):
     try:
         lib = importlib.import_module(
                 '.{}'.format(classifier), 
-                package='agent.dpm.classification.classifiers')
+                package='algos.dpm.classification.classifiers')
 
         arg_names = inspect.getargspec(lib.Classifier.__init__).args
         if len(arg_names) > 0:

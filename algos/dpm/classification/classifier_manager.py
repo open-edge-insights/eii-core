@@ -57,7 +57,7 @@ class ClassifierManager:
             }
         }
     """
-    def __init__(self, machine_id, config, db):
+    def __init__(self, machine_id, config):
         """Constructor
 
         Parameters
@@ -66,8 +66,6 @@ class ClassifierManager:
             ID of the machine the classification is running on
         config : dict
             Dictionary object with the configuration for the ClassifierManager
-        db : agent.db.DatabaseAdapter
-            DatabaseAdapter object for inserting classification meta-data
         triggers : dict
             Dictionary of loaded triggers, where the key is the name of the
             trigger, and the value is the Trigger object
@@ -80,7 +78,6 @@ class ClassifierManager:
             into the system.
         """
         self.log = logging.getLogger(__name__)
-        # self.db = db
         self.machine_id = machine_id
         self.stopped = th.Event()
         self.meta_idx = 1
@@ -129,7 +126,6 @@ class ClassifierManager:
         self.log.info('Stopping classification')
         self.stopped.set()
         self.pool.shutdown()
-        # self.db.close()
         self.log.info('Classification stopped')
 
     def _on_trigger(self, trigger, classifier, data):
@@ -159,7 +155,6 @@ class ClassifierManager:
             self.log.info('Classification started')
             frame_count = 0
             start = time.time()
-            # part = self.db.add_part()
             defects = {}
             msg = {}
             ret_point = []
@@ -179,16 +174,6 @@ class ClassifierManager:
                 except:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
                     results = []  # Because of error, no results
-
-                """
-                # Find the camera in the database
-                cam = self.db.find_camera(cam_sn)
-                assert cam is not None, 'No camera for SN: {}'.format(cam_sn)
-
-                # Inserting the image into the database
-                image = self.db.add_image(part.id, cam_sn, frame.shape[0],
-                        frame.shape[1], self.storage.get_format(), results)
-                """
 
                 image_id = str(uuid.uuid4())
 

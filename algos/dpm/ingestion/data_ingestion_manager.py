@@ -26,7 +26,7 @@ import threading
 import logging
 import importlib
 
-from agent.dpm.config import ConfigError
+from algos.dpm.config import ConfigError
 from . import IngestorError
 
 
@@ -113,7 +113,7 @@ class DataIngestionManager:
 
             try:
                 lib = importlib.import_module(
-                        '.{}'.format(name), package='agent.dpm.ingestion')
+                        '.{}'.format(name), package='algos.dpm.ingestion')
                 ingestor = lib.Ingestor(config, self.stop_ev, self._on_data)
                 self.ingestors[name] = IngestorWrapper(name, ingestor)
             except ImportError:

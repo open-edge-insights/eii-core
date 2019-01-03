@@ -29,7 +29,7 @@ import requests
 import argparse
 import logging
 from threading import Condition, Thread
-from agent.etr_utils.log import configure_logging, LOG_LEVELS
+from algos.etr_utils.log import configure_logging, LOG_LEVELS
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataBusAbstraction.py.DataBus import databus
 

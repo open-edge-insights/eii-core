@@ -19,8 +19,8 @@ RUN apt-get install -y cron
 ADD VisualHmiClient/VisualHmiCleaner/requirements.txt ./VisualHmiClient/VisualHmiCleaner/requirements.txt
 RUN pip3.6 install -r VisualHmiClient/VisualHmiCleaner/requirements.txt
 
-ADD agent/__init__.py agent/__init__.py
-ADD agent/etr_utils agent/etr_utils
+ADD algos/__init__.py algos/__init__.py
+ADD algos/etr_utils algos/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
 
 ENV PYTHONPATH $PYTHONPATH:/eta/DataBusAbstraction/py:/eta

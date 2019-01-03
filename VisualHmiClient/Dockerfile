@@ -29,8 +29,8 @@ RUN cd /eta/DataBusAbstraction/py && \
     pip3.6 install -r databus_requirements.txt && \
     cd test && \
     make build
-ADD agent/__init__.py agent/__init__.py
-ADD agent/etr_utils agent/etr_utils
+ADD algos/__init__.py algos/__init__.py
+ADD algos/etr_utils algos/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
 ADD ImageStore/ ImageStore/
 ADD Util/ Util/

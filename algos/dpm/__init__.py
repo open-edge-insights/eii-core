@@ -26,12 +26,11 @@ import logging
 import traceback as tb
 from concurrent.futures import ThreadPoolExecutor
 
-from agent.db import DatabaseAdapter
-from agent.etr_utils import format_exc
+from algos.etr_utils import format_exc
 from .ingestion.data_ingestion_manager import DataIngestionManager
 from .triggers import load_trigger
 from .classification.classifier_manager import ClassifierManager
-
+from .defect import Defect
 
 class DataPipelineManagerError(Exception):
     """Exception raised by the DataPipelineManager.
@@ -51,9 +50,6 @@ class DataPipelineManager:
             DPM configuration object
         """
         self.log = logging.getLogger(__name__)
-
-        # self.log.info('Initializing the Database Adapter')
-        # self.db = DatabaseAdapter(config.machine_id, config.database)
 
         self.log.info('Initializing Data Ingestion Manager')
         self.dim = DataIngestionManager(config.data_ingestion_manager)

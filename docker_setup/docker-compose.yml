@@ -224,7 +224,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
       - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
-      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/agent/algo_config"
+      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/algos/algo_config"
       - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
       - ${KAPACITOR_PORT}
@@ -310,7 +310,7 @@ services:
       - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
       - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
       - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
-      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/agent/algo_config"
+      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/algos/algo_config"
       - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
     command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
     devices:

@@ -28,7 +28,7 @@ import inspect
 import queue
 import threading
 
-from agent.dpm.config import ConfigError
+from algos.dpm.config import ConfigError
 
 
 class TriggerLoadError(Exception):
@@ -277,7 +277,7 @@ def load_trigger(trigger, config):
     """
     try:
         lib = importlib.import_module(
-                '.{}'.format(trigger), package='agent.dpm.triggers')
+                '.{}'.format(trigger), package='algos.dpm.triggers')
 
         arg_names = inspect.getargspec(lib.Trigger.__init__).args
         if len(arg_names) > 0:

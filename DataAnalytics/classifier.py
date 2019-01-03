@@ -36,8 +36,8 @@ from Util.log import configure_logging, LOG_LEVELS
 # The kapacitor source code is needed for the below imports
 from kapacitor.udf.agent import Agent, Handler, Server
 from kapacitor.udf import udf_pb2
-from agent.dpm.classification.classifier_manager import ClassifierManager
-from agent.dpm.config import Configuration
+from algos.dpm.classification.classifier_manager import ClassifierManager
+from algos.dpm.config import Configuration
 
 
 server_addr = "/tmp/classifier"
@@ -71,11 +71,8 @@ class ConnHandler(Handler):
 
     def classifier_init(self):
         self.config = Configuration(self.config_file)
-        # commenting this out as we won't be needing postgres
-        # self.db = DatabaseAdapter(self.config.machine_id,
-        # self.config.database)
         self._cm = ClassifierManager(
-                self.config.machine_id, self.config.classification, None)
+                self.config.machine_id, self.config.classification)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
 
