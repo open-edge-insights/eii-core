@@ -1,6 +1,6 @@
 {
     "machine_id": "basler-capture-example",
-    "trigger_threads": 10,
+    "trigger_threads": 12,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {

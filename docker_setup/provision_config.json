@@ -12,7 +12,7 @@
 	"redis": {
 		"redis_port": "6379",
 		"password": "redis123",
-		"retention": "400s"
+		"retention": "20s"
 	},
 
     "persistent_image_store": {

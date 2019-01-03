@@ -125,6 +125,7 @@ class ConnHandler(Handler):
                 frame = self.img_store.Read(img_handle)
             except Exception:
                 self.logger.error('Frame read failed')
+                return
             if frame is not None:
                 # Convert the buffer into np array.
                 Frame = np.frombuffer(frame, dtype=np.uint8)
