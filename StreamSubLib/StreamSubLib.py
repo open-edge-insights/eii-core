@@ -36,7 +36,7 @@ import threading
 from collections import defaultdict
 from Util.format_converter import lf_to_json_converter
 from Util.exception import DAException
-from Util.util import write_certs
+from Util.util import (write_certs, create_decrypted_pem_files)
 
 
 callback_executor = ThreadPoolExecutor()
@@ -77,6 +77,10 @@ class StreamSubLib:
 
         # Creates the influxDB client handle.
         try:
+            srcFiles = [CA_CERT]
+            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(srcFiles, filesToDecrypt)
+
             self.influx_c = InfluxDBClient(self.config["Host"],
                                            self.config["Port"],
                                            self.config["UserName"],
@@ -86,9 +90,8 @@ class StreamSubLib:
                                            if self.config["Ssl"] ==
                                            "True"
                                            else False,
-                                           CA_CERT)
-        # listenport=0 will take a random available ephemeral port
-            self.listenerport = 0
+                                           filesToDecrypt[0])
+
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))

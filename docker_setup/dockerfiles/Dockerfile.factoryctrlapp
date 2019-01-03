@@ -8,6 +8,9 @@ ADD FactoryControlApp/requirements.txt .
 RUN pip3.6 install -r requirements.txt && \
     rm -rf requirements.txt
 
+# Creating dir for ca_certificate
+RUN mkdir -p /etc/ssl/ca
+
 # Adding project depedency modules
 ADD FactoryControlApp/ .
 ADD StreamSubLib/StreamSubLib.py StreamSubLib/StreamSubLib.py
