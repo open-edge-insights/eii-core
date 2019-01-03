@@ -8,6 +8,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include <unistd.h>
 #include "open62541_wrappers.h"
 
 #define FAILURE 100
@@ -17,7 +18,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define TOPIC_SIZE 100
 #define PUBLISH_DATA_SIZE 1024*1024
 #define ERROR_MSG_SIZE 150
-
 
 // logger global varaibles
 static UA_Logger logger = UA_Log_Stdout;
@@ -297,6 +297,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
     }
 
     /* writing the data to the opcua variable */
+    usleep(10000); // HACK: To be removed after root causing issue with open62541
     UA_Variant *val = UA_Variant_new();
     sprintf(dataToPublish, "%s", data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
@@ -304,7 +305,6 @@ serverPublish(int nsIndex, char *topic, char *data) {
 
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
     if (retval == UA_STATUSCODE_GOOD) {
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "UA_Client_writeValueAttribute func executed successfully");
         UA_Variant_delete(val);
         return "0";
     }
@@ -342,7 +342,6 @@ subscriptionInactivityCallback (UA_Client *client, UA_UInt32 subId, void *subCon
 static void
 subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                         UA_UInt32 monId, void *monContext, UA_DataValue *data) {
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "subcriptionCallback() called!\n");
 
     UA_Variant *value = &data->value;
     if(UA_Variant_isScalar(value)) {
@@ -350,11 +349,8 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
             UA_String str = *(UA_String*)value->data;
 
             if (userCallback) {
-                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is not NULL");
                 char subscribedData[PUBLISH_DATA_SIZE];
                 sprintf(subscribedData, "%.*s", (int) str.length, str.data);
-                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Topic: %s, data: %s",
-                    lastSubscribedTopic, subscribedData);
                 userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
