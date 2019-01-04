@@ -31,16 +31,16 @@ import (
 var strmMgrTCPServHost = "ia_data_agent"
 
 const (
-	strmMgrTCPServPort             = "61971"
-	INFLUX_SERVER_CERTIFICATE_PATH = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
-	INFLUX_SERVER_KEY_PATH         = "/etc/ssl/influxdb/influxdb_server_key.pem"
-	GRPC_INT_CLIENT_CERT           = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
-	GRPC_INT_CLIENT_KEY            = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
-	GRPC_CA_CERT                   = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+	strmMgrTCPServPort   = "61971"
+	influxServerCertPath = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
+	influxServerKeyPath  = "/etc/ssl/influxdb/influxdb_server_key.pem"
+	grpcIntClientCert    = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
+	grpcIntClientKey     = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
+	grpcCACert           = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
 )
 
-// DaCfg - stores parsed DataAgent config
-var DaCfg config.DAConfig
+// daCfg - stores parsed DataAgent config
+var daCfg config.DAConfig
 
 func main() {
 
@@ -59,37 +59,37 @@ func main() {
 
 	tString := os.Getenv("TPM_ENABLE")
 	ss, err := strconv.ParseBool(tString)
-	DaCfg.TpmEnabled = ss
+	daCfg.TpmEnabled = ss
 	if err != nil {
 		glog.Errorf("Fail to read TPM environment variable: %s", err)
 	}
 
-	err = DaCfg.ReadFromVault()
+	err = daCfg.ReadFromVault()
 	if err != nil {
 		glog.Errorf("Error: %s", err)
 		os.Exit(-1)
 	}
 
-	fileList := []string{INFLUX_SERVER_CERTIFICATE_PATH, INFLUX_SERVER_KEY_PATH}
+	fileList := []string{influxServerCertPath, influxServerKeyPath}
 
-	err = util.WriteCertFile(fileList, DaCfg.Certs)
+	err = util.WriteCertFile(fileList, daCfg.Certs)
 	if err != nil {
 		glog.Error("Error while starting Certificate in container")
 		os.Exit(-1)
 	}
 
 	// Encrypting the grpc internal ssl secrets - grpc internal client key/cert and ca cert
-	fileList = []string{GRPC_INT_CLIENT_CERT, GRPC_INT_CLIENT_KEY, GRPC_CA_CERT}
-	err = util.WriteEncryptedPEMFiles(fileList, DaCfg.Certs)
+	fileList = []string{grpcIntClientCert, grpcIntClientKey, grpcCACert}
+	err = util.WriteEncryptedPEMFiles(fileList, daCfg.Certs)
 	if err != nil {
 		glog.Error("Error while writing encrypted PEM files")
 		os.Exit(-1)
 	}
 
 	// Decrypting the encrypted ca cert for use by influxdb
-	fileContents, err := util.GetDecryptedBlob(GRPC_CA_CERT)
+	fileContents, err := util.GetDecryptedBlob(grpcCACert)
 	if err != nil {
-		glog.Errorf("Failed to decrypt file: %s, Error: %v", GRPC_CA_CERT, err)
+		glog.Errorf("Failed to decrypt file: %s, Error: %v", grpcCACert, err)
 		os.Exit(-1)
 	}
 
@@ -101,8 +101,8 @@ func main() {
 	}
 
 	glog.Infof("*************STARTING INFLUX DB***********")
-	influx_server := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
-	err = influx_server.Run()
+	cmd := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
+	err = cmd.Run()
 	if err != nil {
 		glog.Errorf("Failed to start influxdb Server, Error: %s", err)
 		os.Exit(-1)
@@ -117,7 +117,7 @@ func main() {
 	}
 
 	glog.Infof("*************INFLUX DB STARTED*********")
-	influxCfg := DaCfg.InfluxDB
+	influxCfg := daCfg.InfluxDB
 	influxServer := "localhost"
 	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
 	if err != nil {
@@ -185,16 +185,16 @@ func main() {
 	pStreamManager.ServerHost = strmMgrTCPServHost
 	pStreamManager.ServerPort = strmMgrTCPServPort
 	pStreamManager.InfluxDBHost = influxServer
-	pStreamManager.InfluxDBPort = DaCfg.InfluxDB.Port
-	pStreamManager.InfluxDBName = DaCfg.InfluxDB.DBName
-	pStreamManager.InfluxDBUserName = DaCfg.InfluxDB.UserName
-	pStreamManager.InfluxDBPassword = DaCfg.InfluxDB.Password
+	pStreamManager.InfluxDBPort = daCfg.InfluxDB.Port
+	pStreamManager.InfluxDBName = daCfg.InfluxDB.DBName
+	pStreamManager.InfluxDBUserName = daCfg.InfluxDB.UserName
+	pStreamManager.InfluxDBPassword = daCfg.InfluxDB.Password
 	pStreamManager.MsrmtTopicMap = make(map[string]stm.OutStreamConfig)
 	pStreamManager.MeasurementPolicy = make(map[string]bool)
-	pStreamManager.OpcuaPort = DaCfg.Opcua.Port
+	pStreamManager.OpcuaPort = daCfg.Opcua.Port
 
 	glog.Infof("Going to start UDP server for influx subscription")
-	err = pStreamManager.Init(DaCfg)
+	err = pStreamManager.Init(daCfg)
 	if err != nil {
 		glog.Errorf("Failed to initialize StreamManager : %v", err)
 		os.Exit(-1)
@@ -203,7 +203,7 @@ func main() {
 	var config = new(stm.OutStreamConfig)
 
 	// Fetch the streams from the DA config file
-	for key, val := range DaCfg.OutStreams {
+	for key, val := range daCfg.OutStreams {
 		// TODO: Just using the 'key' as both measurement and topic for now.
 		// This will change later
 		config.Measurement = key
@@ -219,11 +219,11 @@ func main() {
 	// glog.Infof("**************STARTING GRPC SERVER**************")
 	done := make(chan bool)
 	glog.Infof("**************STARTING GRPC Internal SERVER**************")
-	go internalserver.StartGrpcServer(DaCfg)
+	go internalserver.StartGrpcServer(daCfg)
 	// TODO: The external gRPC server will be enabled when we expose Config and
 	// Query interfaces from DataAgent in future
 	// glog.Infof("**************STARTING GRPC External SERVER**************")
-	// go server.StartGrpcServer(DaCfg)
+	// go server.StartGrpcServer(daCfg)
 	// glog.Infof("**************Started GRPC servers**************")
 
 	// Currently running this channel to keep the goroutine running
