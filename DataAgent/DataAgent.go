@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
+	"errors"
 	"flag"
 	"io/ioutil"
 	"os"
@@ -37,10 +38,77 @@ const (
 	grpcIntClientCert    = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
 	grpcIntClientKey     = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
 	grpcCACert           = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+	influxServer         = "localhost"
 )
 
 // daCfg - stores parsed DataAgent config
 var daCfg config.DAConfig
+
+func initializeInfluxDB() error {
+	cmd := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
+	err := cmd.Run()
+	if err != nil {
+		glog.Errorf("Failed to start influxdb Server, Error: %s", err)
+		return err
+	}
+
+	influxPort := os.Getenv("INFLUXDB_PORT")
+	portUp := util.CheckPortAvailability("", influxPort)
+	if !portUp {
+		glog.Error("Influx DB port not up")
+		return errors.New("Influx DB port not up")
+	}
+
+	glog.Infof("*************INFLUX DB STARTED*********")
+	influxCfg := daCfg.InfluxDB
+	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
+	if err != nil {
+		glog.Errorf("Error creating InfluxDB client: %v", err)
+		return err
+	}
+	resp, err := inflxUtil.CreateAdminUser(clientAdmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
+
+	if err == nil && resp.Error() == nil {
+		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
+	} else {
+		if resp != nil && resp.Error() != nil {
+			glog.Errorf("Error code: %v, Error Response: %s while creating "+
+				"admin user: %s", err, resp.Error(), influxCfg.UserName)
+		} else {
+			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
+		}
+	}
+	clientAdmin.Close()
+
+	// Create InfluxDB database
+	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
+	client, err := inflxUtil.CreateHTTPClient(influxServer,
+		influxCfg.Port, influxCfg.UserName, influxCfg.Password)
+
+	if err != nil {
+		glog.Errorf("Error creating InfluxDB client: %v", err)
+		return err
+	}
+
+	response, err := inflxUtil.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
+	if err != nil {
+		glog.Errorf("Cannot create database: %s", response.Error())
+	}
+
+	if err == nil && response.Error() == nil {
+		glog.Infof("Successfully created database: %s", influxCfg.DBName)
+	} else {
+		if response.Error() != nil {
+			glog.Errorf("Error code: %v, Error Response: %s while creating "+
+				"database: %s", err, response.Error(), influxCfg.DBName)
+		} else {
+			glog.Errorf("Error code: %v while creating "+"database: %s", err, influxCfg.DBName)
+		}
+		return err
+	}
+	defer client.Close()
+	return nil
+}
 
 func main() {
 
@@ -101,72 +169,11 @@ func main() {
 	}
 
 	glog.Infof("*************STARTING INFLUX DB***********")
-	cmd := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
-	err = cmd.Run()
+	err = initializeInfluxDB()
 	if err != nil {
-		glog.Errorf("Failed to start influxdb Server, Error: %s", err)
+		glog.Errorf("Failed to start and initialize Influx DB")
 		os.Exit(-1)
 	}
-
-	// TODO : Will convert to a INFLUXDB_PORT after beta
-	influxPort := os.Getenv("INFLUXDB_PORT")
-	portUp := util.CheckPortAvailability("", influxPort)
-	if !portUp {
-		glog.Error("Influx DB port not up, so exiting...")
-		os.Exit(-1)
-	}
-
-	glog.Infof("*************INFLUX DB STARTED*********")
-	influxCfg := daCfg.InfluxDB
-	influxServer := "localhost"
-	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
-	if err != nil {
-		glog.Errorf("Error creating InfluxDB client: %v", err)
-		os.Exit(-1)
-	}
-	resp, err := inflxUtil.CreateAdminUser(clientAdmin, influxCfg.UserName, influxCfg.Password, influxCfg.DBName)
-
-	if err == nil && resp.Error() == nil {
-		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
-	} else {
-		if resp != nil && resp.Error() != nil {
-			glog.Errorf("Error code: %v, Error Response: %s while creating "+
-				"admin user: %s", err, resp.Error(), influxCfg.UserName)
-		} else {
-			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
-		}
-		// TODO: FIX: at times os.exit called for a valid used case
-		//os.Exit(-1)
-	}
-	clientAdmin.Close()
-
-	// Create InfluxDB database
-	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
-	client, err := inflxUtil.CreateHTTPClient(influxServer,
-		influxCfg.Port, influxCfg.UserName, influxCfg.Password)
-
-	if err != nil {
-		glog.Errorf("Error creating InfluxDB client: %v", err)
-		os.Exit(-1)
-	}
-
-	response, err := inflxUtil.CreateDatabase(client, influxCfg.DBName, influxCfg.Retention)
-	if err != nil {
-		glog.Errorf("Cannot create database: %s", response.Error())
-	}
-
-	if err == nil && response.Error() == nil {
-		glog.Infof("Successfully created database: %s", influxCfg.DBName)
-	} else {
-		if response.Error() != nil {
-			glog.Errorf("Error code: %v, Error Response: %s while creating "+
-				"database: %s", err, response.Error(), influxCfg.DBName)
-		} else {
-			glog.Errorf("Error code: %v while creating "+"database: %s", err, influxCfg.DBName)
-		}
-		os.Exit(-1)
-	}
-	defer client.Close()
 
 	// Init StreamManager
 	glog.Infof("**************STARTING STREAM MANAGER**************")
