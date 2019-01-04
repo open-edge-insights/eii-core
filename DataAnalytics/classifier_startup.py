@@ -9,7 +9,8 @@ from Util.log import configure_logging, LOG_LEVELS
 import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
-from Util.util import (write_certs, create_decrypted_pem_files)
+from Util.util \
+    import (write_certs, create_decrypted_pem_files, check_port_availability)
 
 
 SUCCESS = 0
@@ -26,6 +27,9 @@ CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
+
+DAServiceName = "ia_data_agent"
+DAPort = "50052"
 
 
 def parse_args():
@@ -126,7 +130,7 @@ def kapacitor_port_open(host_name):
 
 
 def exit_with_failure_message(message):
-    logger.info(message)
+    logger.error(message)
     exit(FAILURE)
 
 
@@ -166,6 +170,12 @@ if __name__ == '__main__':
 
     logger = configure_logging(args.log.upper(), logFileName,
                                args.log_dir, __name__)
+
+    # Wait for DA to be ready
+    ret = check_port_availability(DAServiceName, DAPort)
+    if ret is False:
+        exit_with_failure_message("DataAgent is not up.So Exiting...")
+
     host_name = 'ia_data_analytics'
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
