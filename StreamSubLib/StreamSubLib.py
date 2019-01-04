@@ -26,8 +26,6 @@ import ssl
 from influxdb import InfluxDBClient
 import socket
 from random import randint
-import http.server
-import socketserver
 from DataAgent.da_grpc.client.py.\
     client_internal.client import GrpcInternalClient
 from concurrent.futures import ThreadPoolExecutor
@@ -37,12 +35,11 @@ from collections import defaultdict
 from Util.format_converter import lf_to_json_converter
 from Util.exception import DAException
 from Util.util import (write_certs, create_decrypted_pem_files)
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 callback_executor = ThreadPoolExecutor()
-stream_map = defaultdict(list)
 hostname = socket.gethostname()
-port = (randint(49153, 65500))
 
 CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/" + \
     "grpc_internal_client_certificate.pem"
@@ -63,6 +60,8 @@ class StreamSubLib:
                   events
         '''
 
+        self.stream_map = defaultdict(list)
+        self.port = (randint(49153, 65500))
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger(__name__)
         try:
@@ -105,7 +104,7 @@ class StreamSubLib:
             self.subscriptionName = (self.database + "_" + str(
                 uuid4())).replace("-", "_")
 
-            subscriptionLink = 'https://' + hostname + ':' + str(port)
+            subscriptionLink = 'https://' + hostname + ':' + str(self.port)
             query_in = "create subscription " + self.subscriptionName + \
                 " ON " + self.database + ".autogen DESTINATIONS ANY \'" + \
                 subscriptionLink + "\'"
@@ -114,6 +113,7 @@ class StreamSubLib:
             self.log.info(
                 "Subscription successfull on database")
 
+            self.initialized = True
             self.listening_thread = threading.Thread(
                 target=self.listen_on_server)
             self.listening_thread.start()
@@ -128,6 +128,7 @@ class StreamSubLib:
             " ON " + self.database + ".autogen"
 
         self.influx_c.query(remove_subscription)
+        self.initialized = False
 
     def listen_on_server(self):
         ''' Receives data from the socket and converts it to json format
@@ -139,14 +140,18 @@ class StreamSubLib:
             file_list = [crt, key]
             write_certs(file_list, self.certBlobMap)
 
-            handler = HttpHandlerFunc
-            httpd = socketserver.TCPServer((socket.gethostbyname(
-                    hostname), port), handler)
+            def handler(*args):
+                HttpHandlerFunc(self.stream_map, *args)
+
+            httpd = HTTPServer((socket.gethostbyname(
+                hostname), self.port), handler)
 
             httpd.socket = ssl.wrap_socket(
                 httpd.socket, server_side=True, keyfile=key, certfile=crt)
 
-            httpd.serve_forever()
+            while(self.initialized):
+                httpd.handle_request()
+
         except Exception as e:
             self.log.error("Error in connection due to : " + str(e))
             raise e
@@ -158,14 +163,17 @@ class StreamSubLib:
             cb(function): Callback function to which data (from influxdb) will
             be sent back to.
         '''
-        stream_map[streamName].append(cb)
+        self.stream_map[streamName].append(cb)
 
 
-class HttpHandlerFunc(http.server.SimpleHTTPRequestHandler):
+class HttpHandlerFunc(BaseHTTPRequestHandler):
+
+    def __init__(self, stream_map, *args):
+        self.stream_map = stream_map
+        BaseHTTPRequestHandler.__init__(self, *args)
 
     def send_to_callback(self, data, data_stream):
-        cbs = stream_map[data_stream]
-        print(cbs)
+        cbs = self.stream_map[data_stream]
         for cb in cbs:
             cb(data)
 
@@ -175,6 +183,6 @@ class HttpHandlerFunc(http.server.SimpleHTTPRequestHandler):
 
         data_stream = postdata.split(" ")
         measurement = data_stream[0].split(",")
-        if measurement[0] in stream_map:
+        if measurement[0] in self.stream_map:
             data = lf_to_json_converter(postdata)
             self.send_to_callback(data, measurement[0])
