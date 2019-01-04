@@ -267,12 +267,13 @@ class Ingestor:
             try:
                 cam = bvc.BaslerVideoCapture(cam_sn)
             except:
-                for i in range(5):
+                for i in range(25):
                     try:
                         cam = bvc.BaslerVideoCapture(cam_sn)
                         break
                     except:
                         self.log.error("Camera not responding, retrying %d", i+1)
+                        time.sleep(1)
                 if cam is None:
                     os._exit(1)
             if 'gain' in config:
