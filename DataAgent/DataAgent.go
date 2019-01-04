@@ -132,6 +132,13 @@ func main() {
 		glog.Errorf("Fail to read TPM environment variable: %s", err)
 	}
 
+	// Waiting for Vault to be up
+	vaultPort := os.Getenv("VAULT_PORT")
+	portUp := util.CheckPortAvailability("localhost", vaultPort)
+	if !portUp {
+		glog.Error("VAULT server is not up, so exiting...")
+		os.Exit(-1)
+	}
 	err = daCfg.ReadFromVault()
 	if err != nil {
 		glog.Errorf("Error: %s", err)
