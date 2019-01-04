@@ -27,12 +27,11 @@ func CheckPortAvailability(hostname, port string) bool {
 	retryCount := 0
 
 	portUp := false
+	glog.Infof("Waiting for Port: %s on hostname: %s ", port, hostname)
 	for retryCount < maxRetries {
-		conn, err := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
-		if err != nil {
-			glog.Errorf("Port: %s on hostname: %s is not up. Retrying...", port, hostname)
-		}
+		conn, _ := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
 		if conn != nil {
+			glog.Infof("Port: %s on hostname: %s is up.", port, hostname)
 			conn.Close()
 			portUp = true
 			break

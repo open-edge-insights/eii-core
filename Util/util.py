@@ -41,10 +41,10 @@ def check_port_availability(hostname, port):
     portUp = False
     while(retryCount < numRetries):
         if(sock.connect_ex((hostname, int(port)))):
+            log.debug("{} port is up on {}".format(port, hostname))
             portUp = True
             break
         retryCount += 1
-        log.debug("{} port is not up on {}".format(port, hostname))
     return portUp
 
 
