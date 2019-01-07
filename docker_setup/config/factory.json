@@ -5,6 +5,7 @@
         "ingestors": {
             "video_file": {
                 "video_file": "./test_videos/pcb_d2000.avi",
+                "poll_interval": 0.05,
                 "loop_video": true
             }
         }
