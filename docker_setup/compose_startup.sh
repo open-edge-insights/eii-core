@@ -4,6 +4,7 @@
 # images and runs them in the dependency order using
 # docker-compose.yml
 
+
 source .env
 
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
@@ -19,6 +20,10 @@ hostTimezone=`echo $hostTimezone`
 
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
+
+# This will remove the eta user id entry if it exists and adds a new one with the right eta user id
+sed -i '/ETA_UID/d' .env && echo "ETA_UID=$(id -u $ETA_USER_NAME)" >> .env
+
 
 echo "0.4 create $COMPOSE_PROJECT_NAME if it doesn't exists"
 if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
@@ -57,6 +62,12 @@ done
 # unlinking .dockerignore
 unlink ../.dockerignore
 
+mkdir -p $ETA_INSTALL_PATH/data
+mkdir -p $ETA_INSTALL_PATH/data/influxdata
+mkdir -p $ETA_INSTALL_PATH/grpc_int_ssl_secrets
+chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
+
+
 # don't start containers if $1 is set - needed when starting eta.service
 # to avoid unnecessary start of containers by compose_startup.sh script
 if [ -z "$1" ]; then
@@ -71,3 +82,4 @@ if [ -z "$1" ]; then
    docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta.log &
 
 fi
+chmod -R 760 $ETA_INSTALL_PATH/data

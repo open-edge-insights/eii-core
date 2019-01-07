@@ -3,8 +3,6 @@ ARG ETA_VERSION
 FROM ia/gobase:${ETA_VERSION}
 LABEL description="DataAgent image"
 
-ENV GOPATH /root/go
-
 RUN mkdir -p ${GO_WORK_DIR}/log
 
 # Installing build tools
@@ -97,10 +95,10 @@ ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fsta
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
 # Adding the CERTS dir
-RUN mkdir /etc/ssl/influxdb/
-RUN mkdir /etc/ssl/opcua/
-RUN mkdir /etc/ssl/streammanager/
-RUN mkdir /etc/ssl/ca/
+RUN mkdir -p /etc/ssl/influxdb/
+RUN mkdir -p /etc/ssl/opcua/
+RUN mkdir -p /etc/ssl/streammanager/
+RUN mkdir -p /etc/ssl/ca/
 
 ADD DataAgent ./DataAgent
 ADD ImageStore/ ./ImageStore/
@@ -116,9 +114,12 @@ RUN cd DataBusAbstraction/go/test && \
     make build_lib
 
 ADD Util ./Util
-
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+RUN go build -o /ETA/go/bin/DataAgent DataAgent/DataAgent.go
 
-RUN go build -o /root/go/bin/DataAgent DataAgent/DataAgent.go
+
+ARG ETA_UID
+RUN chown -R ${ETA_UID} /ETA/go/src/ElephantTrunkArch
+RUN chown -R ${ETA_UID} /etc/ssl/
 ENTRYPOINT ["./DataAgent/da_startup.sh"]
 HEALTHCHECK NONE

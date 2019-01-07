@@ -4,12 +4,12 @@ FROM ia/gopybase:$ETA_VERSION
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
-ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin
+ENV GO_WORK_DIR /ETA/go/src/ElephantTrunkArch
+ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
 WORKDIR ${GO_WORK_DIR}
-ENV PYTHONPATH .:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/pb_internal/:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff:/root/go/src/ElephantTrunkArch/DataBusAbstraction/py/:/root/go/src/ElephantTrunkArch/:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/
+ENV PYTHONPATH .:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/pb_internal/:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff:/ETA/go/src/ElephantTrunkArch/DataBusAbstraction/py/:/ETA/go/src/ElephantTrunkArch/:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/
 
-ENV GOPATH /root/go
+ENV GOPATH /ETA/go
 
 RUN mkdir -p ${GO_WORK_DIR}/log
 
@@ -75,10 +75,10 @@ RUN apt-get -y install tcl
 ARG REDIS_VERSION
 RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
 RUN tar xzf redis-${REDIS_VERSION}.tar.gz
-RUN cd /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
+RUN cd /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
     make && \
-    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
-    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
 
 ARG MINIO_VERSION
 RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
@@ -110,7 +110,7 @@ RUN echo "Installing required packages..." && \
     make install && \
     echo "***Installation complete***"
 
-WORKDIR /root/go/src/ElephantTrunkArch
+WORKDIR /ETA/go/src/ElephantTrunkArch
 ADD DataAgent/da_grpc/client ./DataAgent/da_grpc/client
 ADD DataAgent/da_grpc/protobuff ./DataAgent/da_grpc/protobuff
 ADD DataAgent/da_grpc/test ./DataAgent/da_grpc/test

@@ -3,8 +3,6 @@ ARG ETA_VERSION
 FROM ia/gobase:${ETA_VERSION}
 LABEL description="DataAgent image"
 
-ENV GOPATH /root/go
-
 RUN mkdir -p ${GO_WORK_DIR}/log
 
 # Installing all golang dependencies
@@ -27,6 +25,6 @@ ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 ADD Util ./Util
 RUN mkdir -p ./vault/file
 
-RUN go build -o /root/go/bin/provision_eta ./provision_eta.go
+RUN go build -o /ETA/go/bin/provision_eta ./provision_eta.go
 ENTRYPOINT ["./provision_eta.sh"]
 HEALTHCHECK NONE

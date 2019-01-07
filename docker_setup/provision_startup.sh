@@ -67,5 +67,13 @@ done
 
 echo "3. Creating and starting the provisioning containers..."
 docker-compose -f provision-compose.yml up
-
 docker-compose -f provision-compose.yml down
+
+echo "4. create $ETA_USER_NAME if it doesn't exists. Containers will execute as $ETA_USER_NAME"
+if ! id $ETA_USER_NAME >/dev/null 2>&1; then
+    groupadd $ETA_USER_NAME
+    useradd -r -g $ETA_USER_NAME $ETA_USER_NAME
+fi
+chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
+
+    

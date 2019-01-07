@@ -21,7 +21,8 @@ ADD DataAgent/da_grpc ./DataAgent/da_grpc
 RUN mkdir -p /etc/ssl/streamsublib
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
-
+ARG ETA_UID
+RUN chown -R ${ETA_UID} /etc/ssl/
 ENTRYPOINT [ "python3.6", "FactoryControlApp.py", "--config", "config.json", "--log-dir", "/ETA/factoryctrl_app_logs"]
 CMD ["--log", "DEBUG"]
 HEALTHCHECK NONE

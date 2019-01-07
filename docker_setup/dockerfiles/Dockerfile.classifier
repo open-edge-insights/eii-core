@@ -6,9 +6,9 @@ LABEL description="Classifier image"
 ENV DIR /ETA
 WORKDIR ${DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py
-ENV HOME /root
-ENV KAPACITOR_REPO /root/go/src/github.com/influxdata/kapacitor
-ENV GO_ROOT_BIN /root/go/bin
+ENV HOME /ETA
+ENV KAPACITOR_REPO /ETA/go/src/github.com/influxdata/kapacitor
+ENV GO_ROOT_BIN /ETA/go/bin
 
 # Installing protobuf module needed for UDF function
 RUN apt-get update && \
@@ -59,7 +59,11 @@ ADD Util ./Util
 
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
-
+ARG ETA_UID
+RUN chown -R ${ETA_UID} /ETA
+RUN chown -R ${ETA_UID} /etc/ssl
+RUN mkdir -p /etc/kapacitor
+RUN chown -R ${ETA_UID} /etc/kapacitor
 ENTRYPOINT ["./classifier_start.sh"]
 CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
 HEALTHCHECK NONE

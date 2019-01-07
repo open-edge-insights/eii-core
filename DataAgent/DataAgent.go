@@ -93,7 +93,7 @@ func main() {
 	}
 
 	glog.Infof("*************STARTING INFLUX DB***********")
-	influx_server := exec.Command("/root/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
+	influx_server := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
 	err = influx_server.Run()
 	if err != nil {
 		glog.Errorf("Failed to start influxdb Server, Error: %s", err)

@@ -4,12 +4,12 @@ FROM ia/gobase:$ETA_VERSION
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /root/go/src/ElephantTrunkArch
-ENV PATH ${PATH}:/usr/local/go/bin:/root/go/bin
+ENV GO_WORK_DIR /ETA/go/src/ElephantTrunkArch
+ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
 WORKDIR ${GO_WORK_DIR}
-ENV PYTHONPATH .:/root/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff
+ENV PYTHONPATH .:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff
 
-ENV GOPATH /root/go
+ENV GOPATH /ETA/go
 
 RUN mkdir -p ${GO_WORK_DIR}/log
 
@@ -81,10 +81,10 @@ RUN apt-get -y install tcl
 ARG REDIS_VERSION
 RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
 RUN tar xzf redis-${REDIS_VERSION}.tar.gz
-RUN cd /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
+RUN cd /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
     make && \
-    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
-    cp /root/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
 
 ARG MINIO_VERSION
 RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
@@ -99,13 +99,17 @@ RUN dpkg-reconfigure -f noninteractive tzdata
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore
 
-WORKDIR /root/go/src/ElephantTrunkArch
+WORKDIR /ETA/go/src/ElephantTrunkArch
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py
 
-RUN go build -o /root/go/src/ElephantTrunkArch/ImageStore/main ImageStore/main.go
+RUN go build -o /ETA/go/src/ElephantTrunkArch/ImageStore/main ImageStore/main.go
+
+RUN mkdir /.minio
+ARG ETA_UID
+RUN chown -R ${ETA_UID} /.minio
 ENTRYPOINT ["./ImageStore/main"]
 HEALTHCHECK NONE

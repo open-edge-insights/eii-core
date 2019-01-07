@@ -16,6 +16,7 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       LOGS_DIRECTORIES: ${ETA_INSTALL_PATH}/logs
+    
       # Logrotate can rotate logfile according to the following intervals:
       # hourly
       # daily
@@ -33,6 +34,7 @@ services:
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
+    user: ${ETA_UID}
 
   #---- End: ETA Dependency Services----
 
@@ -55,6 +57,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        ETA_UID: ${ETA_UID}
     image: ia/pybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
@@ -69,6 +72,7 @@ services:
     image: ia/gopybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate
+    
 
   #----End: ETA Base Images----
 
@@ -83,6 +87,7 @@ services:
       args:
         ETA_VERSION: ${ETA_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
+        ETA_UID: ${ETA_UID}
     image: ia/data_agent:${ETA_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
@@ -100,6 +105,7 @@ services:
       VAULT_PORT: ${VAULT_PORT}
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
+      - "${ETA_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
@@ -115,6 +121,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+    user: ${ETA_UID}
 
   # Define telegraf service
   ia_telegraf:
@@ -127,6 +134,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
       args:
         ETA_VERSION: ${ETA_VERSION}
+        ETA_UID: ${ETA_UID}
     container_name: ia_telegraf
     hostname: ia_telegraf
     image: ia/telegraf:${ETA_VERSION}
@@ -142,7 +150,7 @@ services:
     volumes:
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/logs/telegraf_logs:/ETA/telegraf_logs"
-      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/root/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
+      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/ETA/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -151,7 +159,8 @@ services:
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
-
+    user: ${ETA_UID}
+    
 
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
@@ -164,6 +173,7 @@ services:
         ETA_VERSION: ${ETA_VERSION}
         REDIS_VERSION: ${REDIS_VERSION}
         MINIO_VERSION: ${MINIO_VERSION}
+        ETA_UID: ${ETA_UID}
     container_name: ia_imagestore
     hostname: ia_imagestore
     image: ia/imagestore:${ETA_VERSION}
@@ -189,7 +199,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-
+    user: ${ETA_UID}
+    
   # Define DataAnalytics service
   ia_data_analytics:
     links:
@@ -202,6 +213,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
       args:
         ETA_VERSION: ${ETA_VERSION}
+        ETA_UID: ${ETA_UID}
     image: ia/data_analytics:${ETA_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
@@ -237,6 +249,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+    user: ${ETA_UID}
 
   # Define FactoryControlApp service
   ia_factoryctrl_app:
@@ -250,6 +263,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.factoryctrlapp
       args:
         ETA_VERSION: ${ETA_VERSION}
+        ETA_UID: ${ETA_UID}
     image: ia/factoryctrl_app:${ETA_VERSION}
     container_name: ia_factoryctrl_app
     hostname: ia_factoryctrl_app
@@ -273,7 +287,8 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-
+    user: ${ETA_UID}
+    
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
@@ -284,6 +299,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.vi
       args:
         ETA_VERSION: ${ETA_VERSION}
+        ETA_UID: ${ETA_UID}
     image: ia/video_ingestion:${ETA_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
@@ -323,6 +339,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
+    user: ${ETA_UID}
 
 
 networks:

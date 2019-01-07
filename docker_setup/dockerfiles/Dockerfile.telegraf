@@ -9,11 +9,11 @@ RUN pip install grpcio-tools
 
 # Building Telegraf from source
 RUN go get -v github.com/influxdata/telegraf && \
-    cd /root/go/src/github.com/influxdata/telegraf && \
+    cd /ETA/go/src/github.com/influxdata/telegraf && \
     git checkout -b 1.9.0 tags/1.9.0
-RUN cd /root/go/src/github.com/influxdata/telegraf && \
+RUN cd /ETA/go/src/github.com/influxdata/telegraf && \
      make
-ENV PATH="/root/go/src/github.com/influxdata/telegraf:${PATH}"
+ENV PATH="/ETA/go/src/github.com/influxdata/telegraf:${PATH}"
 
 # Installing cryptography module
 RUN pip3.6 install cryptography==2.4.2
@@ -26,6 +26,8 @@ ADD Util/ ./Util
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
+ARG ETA_UID
+RUN chown -R ${ETA_UID} /etc/ssl/ 
 ENTRYPOINT ["python3.6","Telegraf/telegraf_start.py", "--log-dir", "/ETA/telegraf_logs"]
 CMD ["--log", "DEBUG"]
 HEALTHCHECK NONE
