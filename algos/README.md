@@ -39,13 +39,16 @@ If you are working with a RTSP camera, you will need to use opencv as your strea
                 "poll_interval":0.01,
                 "streams":{
                     "opencv":{
-                        "capture_streams":"rtspsrc location=rtsp://4d065bbpag88364.ch.intel.com:554/cam/realmonitor?channel=1&subtype=1 user-id=admin user-pw=intel123 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink"
+                        "capture_streams":"rtsp://admin:intel123@192.168.0.14:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink"
                     }
                 }
             }
         }
-    }
+    },
 ```
+> **Note**:
+> The example above contains the hard coded string: 'admin:intel123@192.168.0.14:554/cam/realmonitor?channel=1&subtype=1'. This string may need to be altered to work with the specific camera that is in use. Also, this string has embedded within it a user name (admin) and password (intel123). Care must be taken to assure that these values are set correct for your specific camera.
+    
 Gstreamer mediaSDK decoding commands requires there to be a parser and then the the decoder "h265parse ! mhevcdec".
 parsers and decoders:
 h264parse !  mfx264dec
