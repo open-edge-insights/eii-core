@@ -284,6 +284,11 @@ class Ingestor:
                 self.log.info('Setting exposure to %d on camera %s', 
                         config['exposure'], cam_sn)
                 cam.set_exposure(config['exposure'])
+            if 'inter_packet_delay' in config:
+                self.log.info('Setting inter_packet_delay to %d on camera %s', 
+                        config['inter_packet_delay'], cam_sn)
+                cam.set_inter_packet_delay(config['inter_packet_delay'])
+
         elif cam_type == 'opencv':
             self.log.info('Initializing OpenCV camera: %s', str(cam_sn))
             cam = cv2.VideoCapture(cam_sn)
@@ -295,4 +300,3 @@ class Ingestor:
             raise IngestorError('Unknown camera type: {}'.format(cam_type))
 
         return VideoCapture(cam_type, cam_sn, config, cam)
-

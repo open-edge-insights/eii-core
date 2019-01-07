@@ -8,7 +8,8 @@
                 "streams": {
                     "basler": {
                         "0815-0000": {
-                            "exposure": 3250
+                            "exposure": 3250,
+                            "inter_packet_delay": 1500
                         }
                     }
                 }
