@@ -133,38 +133,33 @@ class EtaDataSync:
             subscribed topic comes via Databus
         """
         try:
-            if "END_OF_PART" in msg:
-                if self.args.savelocal is not False:
-                    logger.info("No Post Request Made to HMI as You are\
-                    Running on Local Mode")
-                else:
-                    logger.info("Started Sending Payload to HMI Server")
-                    self.post_metadata(self.config["hmi_host"],
-                                       self.config["hmi_port"],
-                                       self.databus_data)
+            logger.info("Message: %s", msg)
+            databus_data = {}
+            metalist = []
+            classifier_results = json.loads(msg)
+            classifier_visualhmi_dict =\
+                self.ConvertClassfierDatatoVisualHmiData(
+                    classifier_results)
+            self.writeImageToDisk(classifier_results["ImgHandle"],
+                                    classifier_results["image_id"])
+            databus_data['part_id'] = classifier_visualhmi_dict['part_id']
+            metalist.append(classifier_visualhmi_dict['meta-data'][0])
+            databus_data['meta-data'] = metalist
 
-                self.databus_data = {}
-                self.metalist = []
-
+            if self.args.savelocal is not False:
+                logger.info("No Post Request Made to HMI as You are\
+                Running on Local Mode")
             else:
-                logger.info("Message: %s", msg)
-                classifier_results = json.loads(msg)
-                classifier_visualhmi_dict =\
-                    self.ConvertClassfierDatatoVisualHmiData(
-                        classifier_results)
-                self.writeImageToDisk(classifier_results["ImgHandle"],
-                                      classifier_results["image_id"])
-                self.databus_data['part_id'] =\
-                    classifier_visualhmi_dict['part_id']
-                self.metalist.append(classifier_visualhmi_dict['meta-data'][0])
-                self.databus_data['meta-data'] = self.metalist
+                logger.info("Started Sending Payload to HMI Server")
+                self.post_metadata(self.config["hmi_host"],
+                                    self.config["hmi_port"],
+                                    databus_data)
+
         except Exception as e:
             logger.error("Exception: %s", str(e))
             raise
 
     def main(self, args):
-        self.databus_data = {}
-        self.metalist = []
         self.args = args
         with open(self.args.config, 'r') as f:
             self.config = json.load(f)

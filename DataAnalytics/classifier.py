@@ -60,7 +60,6 @@ class ConnHandler(Handler):
         self._agent = agent
         self.config_file = config_file
         self._cm = None
-        self.data = []
         self.logger = logger
 
     def info(self):
@@ -111,44 +110,43 @@ class ConnHandler(Handler):
         # self.logger.info("Recieved a point")
         response = udf_pb2.Response()
 
-        if(point.fieldsInt['Width'] != 0):
-            img_handle = point.fieldsString["ImgHandle"]
-            img_height = point.fieldsInt['Height']
-            img_width = point.fieldsInt['Width']
-            img_channels = point.fieldsInt['Channels']
-            user_data = point.fieldsInt['user_data']
-            # Reject the frame with user_data -1
-            if user_data == -1:
-                return
+        img_handle = point.fieldsString["ImgHandle"]
+        img_height = point.fieldsInt['Height']
+        img_width = point.fieldsInt['Width']
+        img_channels = point.fieldsInt['Channels']
+        user_data = point.fieldsInt['user_data']
+        data = []
+        # Reject the frame with user_data -1
+        if user_data == -1:
+            return
 
-            try:
-                frame = self.img_store.Read(img_handle)
-            except Exception:
-                self.logger.error('Frame read failed')
-                return
-            if frame is not None:
-                # Convert the buffer into np array.
-                Frame = np.frombuffer(frame, dtype=np.uint8)
-                reshape_frame = np.reshape(Frame, (img_height,
-                                                   img_width, img_channels))
-                cv2.imwrite("image.png",
-                            reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-                with open("image.png", "rb") as file:
-                    data = file.read()
-                    png_handle = self.img_store.Store(data, 'persistent')
-                # Call classification manager API with the tuple data
-                val = (1, user_data, png_handle,
-                       ('camera-serial-number', reshape_frame))
-                self.data.append(val)
-                return
-            else:
-                logger.info("Frame read unsuccessful.")
+        try:
+            frame = self.img_store.Read(img_handle)
+        except Exception:
+            self.logger.error('Frame read failed')
+            return
+        if frame is not None:
+            # Convert the buffer into np array.
+            Frame = np.frombuffer(frame, dtype=np.uint8)
+            reshape_frame = np.reshape(Frame, (img_height,
+                                                img_width, img_channels))
+            cv2.imwrite("image.png",
+                        reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
+            with open("image.png", "rb") as file:
+                fdata = file.read()
+                png_handle = self.img_store.Store(fdata, 'persistent')
+            # Call classification manager API with the tuple data
+            val = (1, user_data, png_handle,
+                    ('camera-serial-number', reshape_frame))
+            data.append(val)
+        else:
+            logger.info("Frame read unsuccessful.")
 
-        if len(self.data) == 0:
+        if len(data) == 0:
             return
 
         # Sending in the list data for one part
-        ret = self._cm._process_frames(self.classifier, self.data)
+        ret = self._cm._process_frames(self.classifier, data)
 
         for result in ret:
             # Process the Classifier Results into Response Structure
@@ -162,13 +160,6 @@ class ConnHandler(Handler):
 
             response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
             self._agent.write_response(response, True)
-
-        # Sending the end of part signal
-        self.data = []
-        response = udf_pb2.Response()
-        response.point.fieldsString["end-of-part"] = "END_OF_PART"
-        response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
-        self._agent.write_response(response, True)
 
     def end_batch(self, end_req):
         raise Exception("not supported")
