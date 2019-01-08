@@ -38,9 +38,16 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
+if [ "$TPM_ENABLE" = "true" ]
+then
+	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
+	chown $ETA_USER_NAME /dev/tpm0
+	chown $ETA_USER_NAME /dev/tpmrm0
+fi
+
 echo "1. Removing previous provisioning containers if existed..."
 docker-compose down --remove-orphans
-docker-compose -f provision-compose.yml down
+docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
 echo "2. Buidling the provisioning containers..."
 
@@ -56,7 +63,7 @@ for service in "${services[@]}"
 do
     echo "Building $service image..."
     ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-    docker-compose -f provision-compose.yml build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+    docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
     errorCode=`echo $?`
     if [ $errorCode != "0" ]; then
         echo "docker-compose build failed for $service..."
@@ -66,8 +73,8 @@ do
 done
 
 echo "3. Creating and starting the provisioning containers..."
-docker-compose -f provision-compose.yml up
-docker-compose -f provision-compose.yml down
+docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML up
+docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
 echo "4. create $ETA_USER_NAME if it doesn't exists. Containers will execute as $ETA_USER_NAME"
 if ! id $ETA_USER_NAME >/dev/null 2>&1; then

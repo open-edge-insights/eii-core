@@ -103,12 +103,15 @@ services:
       GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       VAULT_PORT: ${VAULT_PORT}
+      TPM_ENABLE: ${TPM_ENABLE}
+      LD_LIBRARY_PATH: /usr/local/lib
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
     volumes:
       - "${ETA_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
+      - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
     ports:
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${OPCUA_PORT}:${OPCUA_PORT}"

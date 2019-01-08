@@ -17,6 +17,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"strconv"
 
 	config "ElephantTrunkArch/DataAgent/config"
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
@@ -56,7 +57,14 @@ func main() {
 
 	glog.Infof("**************STARTING DA**************")
 
-	err := DaCfg.ReadFromVault()
+	tString := os.Getenv("TPM_ENABLE")
+	ss, err := strconv.ParseBool(tString)
+	DaCfg.TpmEnabled = ss
+	if err != nil {
+		glog.Errorf("Fail to read TPM environment variable: %s", err)
+	}
+
+	err = DaCfg.ReadFromVault()
 	if err != nil {
 		glog.Errorf("Error: %s", err)
 		os.Exit(-1)

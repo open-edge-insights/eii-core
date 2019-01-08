@@ -4,7 +4,6 @@
 # images and runs them in the dependency order using
 # docker-compose.yml
 
-
 source .env
 
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
@@ -33,6 +32,16 @@ fi
 echo "0.5 Generating shared key and nonce for grpc internal secrets..."
 source ./set_shared_key_nonce_env_vars.sh
 
+if [ "$TPM_ENABLE" = "true" ]
+then
+	OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.tpm.yml"
+	# Intentionally not chnaging the group of device file to keep the
+	# root group based users unaffected and keep the host machine setting change minimal.
+	# TODO: Revert the chnages the after the TPM read is over forever.
+	chown $ETA_USER_NAME /dev/tpm0
+	chown $ETA_USER_NAME /dev/tpmrm0
+fi
+
 echo "1. Removing previous dependency/eta containers if existed..."
 docker-compose down --remove-orphans
 
@@ -50,7 +59,7 @@ for service in "${services[@]}"
 do
     echo "Building $service image..."
     ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-    docker-compose build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+    docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
     errorCode=`echo $?`
     if [ $errorCode != "0" ]; then
         echo "docker-compose build failed for $service..."
@@ -72,7 +81,7 @@ chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
 # to avoid unnecessary start of containers by compose_startup.sh script
 if [ -z "$1" ]; then
    echo "3. Creating and starting the dependency/eta containers..."
-   docker-compose up -d
+   docker-compose $OVERRIDE_COMPOSE_YML up -d
 
    if [ -e $etaLogDir/consolidatedLogs/eta.log ]; then
        DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`

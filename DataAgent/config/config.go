@@ -13,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package config
 
 import (
+	tpmutil "ElephantTrunkArch/Util/Tpm"
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
@@ -32,6 +33,7 @@ type DAConfig struct {
 	PersistentImageStore persistentImageStore
 	Minio                minioCfg
 	Certs                map[string]interface{}
+	TpmEnabled           bool
 }
 
 type influxDBCfg struct {
@@ -96,123 +98,125 @@ func (cfg *DAConfig) ReadFromVault() error {
 	if (!vault_initialized) || err != nil {
 		glog.Errorf("DataAgent: Vault is not initialized yet, please provision it: %s", err)
 		return errors.New("Vault Not Initialized")
+	}
+
+	//Unseal the vault & access using the root token
+	var data map[string]interface{}
+	var byteVal []byte
+
+	if cfg.TpmEnabled {
+		//Read from TPM
+		byteVal, err = tpmutil.ReadFromTpm()
 	} else {
-
-		//Unseal the vault & access using the root token
-		//TODO READ FROM tpm HARDWARE.
-
-		var data map[string]interface{}
-
-		byteVal, err := ioutil.ReadFile(VAULT_SECRET_FILE_PATH)
+		byteVal, err = ioutil.ReadFile(VAULT_SECRET_FILE_PATH)
 		if err != nil {
 			glog.Errorf("dataAgent: failed to open secret file")
 			return err
 		}
+	}
 
-		json.Unmarshal([]byte(byteVal), &data)
-		inter := data["keys"].([]interface{})
-		unseal_keys := make([]string, len(inter))
+	json.Unmarshal([]byte(byteVal), &data)
+	inter := data["keys"].([]interface{})
+	unseal_keys := make([]string, len(inter))
 
-		for i, v := range inter {
-			unseal_keys[i] = v.(string)
+	for i, v := range inter {
+		unseal_keys[i] = v.(string)
+	}
+
+	sys_obj.Unseal(unseal_keys[0])
+	vlt_client.SetToken(data["root_token"].(string))
+
+	logical_clnt := vlt_client.Logical()
+
+	//Read the secrets and populate DA-DS :-)
+	inflx_secret, err := logical_clnt.Read("secret/influxdb")
+	if err != nil || inflx_secret == nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for influxDB: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+	cfg.InfluxDB.Port = inflx_secret.Data["influxdb_port"].(string)
+	cfg.InfluxDB.Retention = inflx_secret.Data["retention"].(string)
+	cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
+	cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
+	cfg.InfluxDB.DBName = inflx_secret.Data["dbname"].(string)
+	cfg.InfluxDB.Ssl = inflx_secret.Data["ssl"].(string)
+	cfg.InfluxDB.VerifySsl = inflx_secret.Data["verify_ssl"].(string)
+
+	//Read Redis secret
+	redis_secret, err := logical_clnt.Read("secret/redis")
+	if err != nil || redis_secret == nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for Redis: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+
+	cfg.Redis.Port = redis_secret.Data["redis_port"].(string)
+	cfg.Redis.Retention = redis_secret.Data["retention"].(string)
+	cfg.Redis.Password = redis_secret.Data["password"].(string)
+
+	// Read persistent storage secret
+	pim_secret, err := logical_clnt.Read("secret/persistent_image_store")
+	if err != nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for PersistentImageStore: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+	cfg.PersistentImageStore.Type = pim_secret.Data["type"].(string)
+
+	// Read Minio secret
+	minio_secret, err := logical_clnt.Read("secret/minio")
+	if err != nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for Minio: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+
+	cfg.Minio.Port = minio_secret.Data["minio_port"].(string)
+	cfg.Minio.AccessKey = minio_secret.Data["access_key"].(string)
+	cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
+	cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
+	cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
+
+	opcua_secret, err := logical_clnt.Read("secret/opcua")
+	if err != nil || opcua_secret == nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for OPCUA: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+	cfg.Opcua.Port = opcua_secret.Data["opcua_port"].(string)
+
+	stream_secret, err := logical_clnt.Read("secret/OutStreams")
+	if err != nil || stream_secret == nil {
+		glog.Errorf("DataAgent: Failed to read vault secrets for Out-stream's detail: %s", err)
+		return errors.New("Failed to read secrets")
+	}
+
+	if stream_secret.Data != nil {
+		cfg.OutStreams = make(map[string]outStreamCfg)
+		for k, v := range stream_secret.Data {
+			a := outStreamCfg{DatabusFormat: v.(string)}
+			cfg.OutStreams[k] = a
 		}
+	}
 
-		sys_obj.Unseal(unseal_keys[0])
-		vlt_client.SetToken(data["root_token"].(string))
-
-		logical_clnt := vlt_client.Logical()
-
-		//Read the secrets and populate DA-DS :-)
-		inflx_secret, err := logical_clnt.Read("secret/influxdb")
-		if err != nil || inflx_secret == nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for influxDB: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-
-		cfg.InfluxDB.Port = inflx_secret.Data["influxdb_port"].(string)
-		cfg.InfluxDB.Retention = inflx_secret.Data["retention"].(string)
-		cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
-		cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
-		cfg.InfluxDB.DBName = inflx_secret.Data["dbname"].(string)
-		cfg.InfluxDB.Ssl = inflx_secret.Data["ssl"].(string)
-		cfg.InfluxDB.VerifySsl = inflx_secret.Data["verify_ssl"].(string)
-
-		//Read Redis secret
-		redis_secret, err := logical_clnt.Read("secret/redis")
-		if err != nil || redis_secret == nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for Redis: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-
-		cfg.Redis.Port = redis_secret.Data["redis_port"].(string)
-		cfg.Redis.Retention = redis_secret.Data["retention"].(string)
-		cfg.Redis.Password = redis_secret.Data["password"].(string)
-
-		// Read persistent storage secret
-		pim_secret, err := logical_clnt.Read("secret/persistent_image_store")
-		if err != nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for PersistentImageStore: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-		cfg.PersistentImageStore.Type = pim_secret.Data["type"].(string)
-
-		// Read Minio secret
-		minio_secret, err := logical_clnt.Read("secret/minio")
-		if err != nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for Minio: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-
-		cfg.Minio.Port = minio_secret.Data["minio_port"].(string)
-		cfg.Minio.AccessKey = minio_secret.Data["access_key"].(string)
-		cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
-		cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
-		cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
-
-		opcua_secret, err := logical_clnt.Read("secret/opcua")
-		if err != nil || opcua_secret == nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for OPCUA: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-		cfg.Opcua.Port = opcua_secret.Data["opcua_port"].(string)
-
-		stream_secret, err := logical_clnt.Read("secret/OutStreams")
-		if err != nil || stream_secret == nil {
-			glog.Errorf("DataAgent: Failed to read vault secrets for Out-stream's detail: %s", err)
-			return errors.New("Failed to read secrets")
-		}
-
-		if stream_secret.Data != nil {
-			cfg.OutStreams = make(map[string]outStreamCfg)
-			for k, v := range stream_secret.Data {
-				a := outStreamCfg{DatabusFormat: v.(string)}
-				cfg.OutStreams[k] = a
+	//Populate the certificate and keys from vault
+	vault_secret, err := logical_clnt.Read("secret/Certificates")
+	cfg.Certs = vault_secret.Data
+	if cfg.Certs != nil {
+		for k, v := range cfg.Certs {
+			byte_value, err := b64.StdEncoding.DecodeString(v.(string))
+			if err != nil {
+				glog.Errorf("cert decode failed %s", k)
+				return err
 			}
+			cfg.Certs[k] = byte_value
 		}
+	} else {
+		glog.Errorf("Failed to Read CERTS from vault, Error:%s", err)
+		return errors.New("CERT READ failed")
+	}
 
-		//Populate the certificate and keys from vault
-		vault_secret, err := logical_clnt.Read("secret/Certificates")
-		cfg.Certs = vault_secret.Data
-		if cfg.Certs != nil {
-			for k, v := range cfg.Certs {
-				byte_value, err := b64.StdEncoding.DecodeString(v.(string))
-				if err != nil {
-					glog.Errorf("cert decode failed %s", k)
-					return err
-				}
-				cfg.Certs[k] = byte_value
-			}
-		} else {
-			glog.Errorf("Failed to Read CERTS from vault, Error:%s", err)
-			return errors.New("CERT READ failed")
-		}
-
-		//Read all data, Seal the vault.
-		err = sys_obj.Seal()
-		if err != nil {
-			glog.Errorf("Failed to Seal after reading secret, Error: %s", err)
-			return errors.New("Failed to Seal")
-		}
+	//Read all data, Seal the vault.
+	err = sys_obj.Seal()
+	if err != nil {
+		glog.Errorf("Failed to Seal after reading secret, Error: %s", err)
+		return errors.New("Failed to Seal")
 	}
 
 	return err

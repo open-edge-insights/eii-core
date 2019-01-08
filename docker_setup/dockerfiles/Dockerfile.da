@@ -94,6 +94,43 @@ RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
+# Installing TPM
+RUN apt-get update && apt -y install \
+  autoconf-archive \
+  libcmocka0 \
+  libcmocka-dev \
+  iproute2 \
+  build-essential \
+  git \
+  pkg-config \
+  gcc \
+  g++ \
+  m4 \
+  libtool \
+  automake \
+  libgcrypt20-dev \
+  libssl-dev \
+  uthash-dev \
+  autoconf \
+  gnulib
+
+ENV TPM_PATH ./TPM_SRC
+RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
+    git clone https://github.com/tpm2-software/tpm2-tss.git ${TPM_PATH}/tpm2_tss && \
+    cd ${TPM_PATH}/tpm2_tss && git checkout -b 2.1.0 tags/2.1.0
+
+RUN cd ${TPM_PATH}/tpm2_tss/ && ./bootstrap &&  ./configure && make -j8 && make install
+
+# build TPM-tool
+RUN apt-get -y install autoconf automake libtool pkg-config gcc libssl-dev \
+    libcurl4-gnutls-dev
+
+RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
+    git clone https://github.com/tpm2-software/tpm2-tools.git ${TPM_PATH}/tpm2_tools && \
+    cd ${TPM_PATH}/tpm2_tools && git checkout -b sma-pv 9f765f1959f2a4ee9683165071d05f9878d78443
+
+RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
+
 # Adding the CERTS dir
 RUN mkdir -p /etc/ssl/influxdb/
 RUN mkdir -p /etc/ssl/opcua/

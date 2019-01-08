@@ -30,9 +30,12 @@ services:
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       VAULT_PORT: ${VAULT_PORT}
+      TPM_ENABLE: ${TPM_ENABLE}
+      LD_LIBRARY_PATH: /usr/local/lib
     volumes:
       - "${CERTIFICATES_PATH}:/etc/ssl"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
+      - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

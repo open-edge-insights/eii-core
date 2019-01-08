@@ -86,8 +86,13 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
       1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/blob/master/agent/README.md)
 
-5. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
+4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
+5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature.
+    1. `true` -  for enabling the tpm
+    2. `false` - for disabling the tpm
+
+    **NOTE**: Please use TPM_ENABLE=true only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
 
 ### <u>Build & Installation</u>
 1. Building the eta containers from source

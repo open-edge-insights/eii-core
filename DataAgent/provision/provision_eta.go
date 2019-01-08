@@ -2,14 +2,20 @@ package main
 
 import (
 	util "ElephantTrunkArch/Util"
+	tpmutil "ElephantTrunkArch/Util/Tpm"
 	"encoding/json"
 	"errors"
 	"flag"
 	"io/ioutil"
 	"os"
+	"strconv"
 
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
+)
+
+const (
+	vaultFilePerm = 0660
 )
 
 func write_secret(config_file_path string, vlt_client *api.Client) error {
@@ -46,6 +52,20 @@ func write_secret(config_file_path string, vlt_client *api.Client) error {
 func init_vault_eta() (*api.Client, error) {
 
 	VAULT_SECRET_FILE := "/vault/file/vault_secret_file"
+	tpmVaultSecretPath := "/vault/vault_secret_file"
+
+	type vaultSecret struct {
+		Keys      []string `json:"keys"`
+		RootToken string   `json:"root_token"`
+	}
+
+	var vltSecrt vaultSecret
+
+	tString := os.Getenv("TPM_ENABLE")
+	TPM_ENABLED, err := strconv.ParseBool(tString)
+	if err != nil {
+		glog.Errorf("Fail to read TPM environment variable: %s", err)
+	}
 
 	// Enable the TLS config.
 	vlt_config := api.DefaultConfig()
@@ -69,35 +89,53 @@ func init_vault_eta() (*api.Client, error) {
 	}
 
 	if vault_initialized {
-		glog.Errorf("The vault container found to be tampered. Please do full reprovision.")
+		glog.Errorf("The vault container found to be tampered. Kindly reprovision the system.")
 		return nil, errors.New("Tampered Vault")
+	}
+
+	resp, err := sys_obj.Init(&api.InitRequest{
+		SecretShares:    1,
+		SecretThreshold: 1,
+	})
+
+	if err != nil {
+		glog.Errorf("Provision: Initialization of VAULT failed: %s", err)
+		return nil, err
+	}
+
+	vltSecrt.Keys = resp.Keys
+	vltSecrt.RootToken = resp.RootToken
+
+	secret_blob, err := json.Marshal(vltSecrt)
+	if err != nil {
+		glog.Errorf("json marshal of vault secret failed")
+		return nil, err
+	}
+
+	if TPM_ENABLED {
+		glog.Infof("*************SEALING VAULT CREDS TO TPM***********")
+		err = ioutil.WriteFile(tpmVaultSecretPath, secret_blob, vaultFilePerm)
+		if err != nil {
+			glog.Errorf("Failed to write unseal-key to file %s, err: %s", tpmVaultSecretPath, err)
+		}
+
+		err = tpmutil.WriteToTpm(tpmVaultSecretPath)
+		if err != nil {
+			glog.Errorf("Failed to store vault credentials to TPM, Error: %s", err)
+			os.Exit(-1)
+		}
+
 	} else {
-		resp, err := sys_obj.Init(&api.InitRequest{
-			SecretShares:    1,
-			SecretThreshold: 1,
-		})
-
-		if err != nil {
-			glog.Errorf("Provision: Initialization of VAULT failed: %s", err)
-			return nil, err
-		}
-
-		secret_blob, err := json.Marshal(resp)
-		if err != nil {
-			glog.Errorf("json marshal of vault secret failed")
-			return nil, err
-		}
-		//Write secrets to file for vault for unsealing during ETA life
-
-		err = ioutil.WriteFile(VAULT_SECRET_FILE, secret_blob, 0700)
+		//This path is executed when we run in developement mode or non-TPM capable machine
+		err = ioutil.WriteFile(VAULT_SECRET_FILE, secret_blob, vaultFilePerm)
 		if err != nil {
 			glog.Errorf("Failed to write unseal-key to file %s, err: %s", VAULT_SECRET_FILE, err)
+			os.Exit(-1)
 		}
-		//glog.Infof("The secret struct is %+v, %s", resp, secret_blob)
-
-		sys_obj.Unseal(resp.Keys[0])
-		vlt_client.SetToken(resp.RootToken)
 	}
+
+	sys_obj.Unseal(vltSecrt.Keys[0])
+	vlt_client.SetToken(vltSecrt.RootToken)
 
 	return vlt_client, err
 }
