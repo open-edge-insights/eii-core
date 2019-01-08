@@ -107,7 +107,7 @@ def execute_compose_startup():
     os.chdir("../")
     copy_docker_setup_files()
 
-    output = subprocess.run(["./compose_startup.sh", "0", "|", "tee",
+    output = subprocess.run(["./compose_startup.sh", "--build", "|", "tee",
                             "compose_startup.txt"])
     if output.returncode != 0:
         print("Failed to run compose_startup.sh successfully")

@@ -6,8 +6,8 @@ After=docker.service
 [Service]
 Restart=on-failure
 WorkingDirectory=/opt/intel/eta/
-ExecStart=/opt/intel/eta/deploy/deploy_compose_startup.sh
-ExecStop=/opt/intel/eta/deploy/deploy_compose_shutdown.sh
+ExecStart=/opt/intel/eta/compose_startup.sh --up
+ExecStop=/opt/intel/eta/compose_startup.sh --down
 TimeoutSec=301s
 
 [Install]
