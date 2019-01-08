@@ -75,7 +75,7 @@ func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
 	json.Unmarshal(minioConfigBytes, &minioConfigMap)
 
 	// Manually set the host to ia_minio since we are inside the docker network
-	minioConfigMap["Host"] = "ia_minio"
+	minioConfigMap["Host"] = "ia_imagestore"
 
 	imgStore, err := imagestore.GetImageStoreInstance(configMap, minioConfigMap)
 	if err != nil {
@@ -115,6 +115,7 @@ func (s *DaServer) Query(ctx context.Context, in *pb.QueryReq) (*pb.QueryResp, e
 func (s *DaServer) Config(ctx context.Context, in *pb.ConfigReq) (*pb.ConfigResp, error) {
 	return &pb.ConfigResp{}, nil
 }
+
 /*
 func getConfig(cfgType string) (string, error) {
 

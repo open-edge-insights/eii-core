@@ -53,11 +53,12 @@ type redisCfg struct {
 }
 
 type minioCfg struct {
-	Port          string
-	AccessKey     string
-	SecretKey     string
-	RetentionTime string
-	Ssl           string
+	Port                  string
+	AccessKey             string
+	SecretKey             string
+	RetentionTime         string
+	RetentionPollInterval string
+	Ssl                   string
 }
 
 type persistentImageStore struct {
@@ -173,6 +174,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 	cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
 	cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
 	cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
+  cfg.Minio.RetentionPollInterval = minio_secret.Data["retention_poll_interval"].(string)
 
 	opcua_secret, err := logical_clnt.Read("secret/opcua")
 	if err != nil || opcua_secret == nil {
