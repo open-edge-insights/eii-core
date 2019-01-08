@@ -38,6 +38,9 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
+echo "0.5 Get docker Host IP address and write it to .env"
+./update_host_ip.sh
+
 if [ "$TPM_ENABLE" = "true" ]
 then
 	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
@@ -45,7 +48,7 @@ then
 	chown $ETA_USER_NAME /dev/tpmrm0
 fi
 
-echo "1. Removing previous provisioning containers if existed..."
+echo "1. Removing previous eta/provisioning containers if existed..."
 docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 

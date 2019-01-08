@@ -32,6 +32,9 @@ fi
 echo "0.5 Generating shared key and nonce for grpc internal secrets..."
 source ./set_shared_key_nonce_env_vars.sh
 
+echo "0.6 Get docker Host IP address and write it to .env"
+./update_host_ip.sh
+
 if [ "$TPM_ENABLE" = "true" ]
 then
 	OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.tpm.yml"
