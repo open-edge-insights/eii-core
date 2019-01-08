@@ -1,0 +1,13 @@
+vendor
+docker_setup/deploy/*.tar.gz
+test_videos/
+.git
+
+# Recursively remove all unwanted files
+**/*.mp4
+**/*.avi
+**/*.json
+**/*.pyc
+**/*.tar
+**/*.log
+**/*.log.*

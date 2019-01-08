@@ -32,7 +32,7 @@ RUN mkdir -p /eta/dist_libs
 # Copying DataBusAbstraction library files.
 ADD DataBusAbstraction/py/databus_requirements.txt /dist_libs/DataBusAbstraction/py/
 ADD DataBusAbstraction/py/DataBus*.py /dist_libs/DataBusAbstraction/py/
-ADD DataBusAbstraction/py/open62541W.so /dist_libs/DataBusAbstraction/py/
+RUN cp DataBusAbstraction/py/open62541W.so /dist_libs/DataBusAbstraction/py/
 ADD DataBusAbstraction/py/test/DataBusTest.py /dist_libs/DataBusAbstraction/py/test/examples/
 ADD DataBusAbstraction/py/test/examples/README.md /dist_libs/DataBusAbstraction/py/test/examples
 

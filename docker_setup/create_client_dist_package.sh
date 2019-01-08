@@ -1,3 +1,6 @@
+echo "copying dockerignore file.."
+cp dockerignores/.dockerignore.dist_libs ../.dockerignore
+
 echo "Building dist_libs container..."
 docker build -f ../dist_libs/Dockerfile -t ia/ia_dist_libs ../
 
