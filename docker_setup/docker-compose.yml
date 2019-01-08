@@ -35,6 +35,10 @@ services:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+    
 
   #---- End: ETA Dependency Services----
 
@@ -73,7 +77,7 @@ services:
     depends_on:
       - ia_log_rotate
     
-
+    
   #----End: ETA Base Images----
 
   #----Start: ETA Containers ----
@@ -113,9 +117,9 @@ services:
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
     ports:
-      - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
-      - "${OPCUA_PORT}:${OPCUA_PORT}"
-      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
+      - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
+      - "${HOST_IP}:${OPCUA_PORT}:${OPCUA_PORT}"
+      - "127.0.0.1:${INFLUXDB_PORT}:${INFLUXDB_PORT}"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -125,6 +129,9 @@ services:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
 
   # Define telegraf service
   ia_telegraf:
@@ -163,6 +170,9 @@ services:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
     
 
   # Define Imagestore service which hosts redis and minio dbs
@@ -190,7 +200,7 @@ services:
       MINIO_PORT: ${MINIO_PORT}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
     ports:
-      - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
+      - "${HOST_IP}:${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
       - "${ETA_INSTALL_PATH}/data:/data"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -203,6 +213,9 @@ services:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
     
   # Define DataAnalytics service
   ia_data_analytics:
@@ -253,6 +266,9 @@ services:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
 
   # Define FactoryControlApp service
   ia_factoryctrl_app:
@@ -291,6 +307,9 @@ services:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
     
   # Define VideoIngestion service
   ia_video_ingestion:
@@ -312,7 +331,7 @@ services:
       SHARED_KEY: ${SHARED_KEY}
       SHARED_NONCE: ${SHARED_NONCE}
       INFLUX_SERVER: "localhost"
-      IMAGESTORE_SERVER: "localhost"
+      IMAGESTORE_SERVER: ${HOST_IP}
       GRPC_SERVER: "localhost"
       NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
       no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
@@ -343,6 +362,9 @@ services:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
     user: ${ETA_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
 
 
 networks:
