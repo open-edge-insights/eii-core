@@ -44,7 +44,12 @@ pre_build_steps() {
 
 	if [ "$TPM_ENABLE" = "true" ]
 	then
-		OVERRIDE_COMPOSE_YML="-f docker-compose.tpm.yml"
+		OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.tpm.yml"
+		# Intentionally not chnaging the group of device file to keep the
+		# root group based users unaffected and keep the host machine setting change minimal.
+		# TODO: Revert the changes the after the TPM read is over forever.
+		chown $ETA_USER_NAME /dev/tpm0
+		chown $ETA_USER_NAME /dev/tpmrm0
 	fi
 
 	echo "0.6 Get docker Host IP address and write it to .env"
