@@ -79,6 +79,8 @@ standard certificates for the server and client. Root Certificate Authority cert
 
   **Important Note:** 
 
+  - If `--dns` switch is not provided, cert-tool will auto-generate the `Host Ip` and add it to the respective certs much like `--dns` switch. If     `--dns` switch is provided, then this value would override the auto-generated host ip.
+
    - cert-tool generates the RootCA certificates in the __rootca__ folder. If you would like to reuse the same rootCA certificates, then __rootca__ folder and all the generated rootca certificates and private keys must be present in the same directory.
 
    - If --clean option is used, then all the certificates, including __rootca__ also removed, hence we cannot re-use the rootCA certificates.So preserve a copy of __rootca__ if the rootca certificates are needed in future.

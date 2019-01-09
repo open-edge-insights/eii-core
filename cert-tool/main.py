@@ -28,6 +28,7 @@ import json
 import cert_core
 import paths
 import argparse
+import subprocess
 
 
 def parse_args():
@@ -123,6 +124,17 @@ Hence Exiting. Please modify config.json and try again")
 
 if __name__ == '__main__':
     args = parse_args()
+
+    output = subprocess.check_output(["hostname", "-I"])
+    output = output.decode('utf-8')
+
+    hostIp = output.split(" ")[0]
+    print("**HostIp to be added to imagestore and opcua server certs**: ", 
+          hostIp)
+
+    if args.dns is None:
+        args.dns = hostIp
+
     if args.clean is True:
         clean()
         exit(1)

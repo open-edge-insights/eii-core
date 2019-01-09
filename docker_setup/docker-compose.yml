@@ -118,7 +118,7 @@ services:
       - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
     ports:
       - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
-      - "${OPCUA_PORT}:${OPCUA_PORT}"
+      - "${HOST_IP}:${OPCUA_PORT}:${OPCUA_PORT}"
       - "127.0.0.1:${INFLUXDB_PORT}:${INFLUXDB_PORT}"
     logging:
       driver: ${LOGGING_DRIVER}
@@ -200,7 +200,7 @@ services:
       MINIO_PORT: ${MINIO_PORT}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
     ports:
-      - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
+      - "${HOST_IP}:${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
       - "${ETA_INSTALL_PATH}/data:/data"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -331,7 +331,7 @@ services:
       SHARED_KEY: ${SHARED_KEY}
       SHARED_NONCE: ${SHARED_NONCE}
       INFLUX_SERVER: "localhost"
-      IMAGESTORE_SERVER: "localhost"
+      IMAGESTORE_SERVER: ${HOST_IP}
       GRPC_SERVER: "localhost"
       NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
       no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
