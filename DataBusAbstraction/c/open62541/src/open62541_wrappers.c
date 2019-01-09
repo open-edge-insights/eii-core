@@ -54,7 +54,7 @@ logMsg(const char *msg, ...) {
 
 static UA_Int16
 getNamespaceIndex(char *ns, char *topic) {
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
     UA_BrowseRequest bReq;
     UA_BrowseRequest_init(&bReq);
     bReq.requestedMaxReferencesPerNode = 0;
@@ -63,12 +63,12 @@ getNamespaceIndex(char *ns, char *topic) {
     bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER); /* browse objects folder */
     bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL; /* return everything */
     UA_BrowseResponse bResp = UA_Client_Service_browse(client, bReq);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "%-9s %-16s %-16s %-16s\n", "NAMESPACE", "NODEID", "BROWSE NAME", "DISPLAY NAME");
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%-9s %-16s %-16s %-16s\n", "NAMESPACE", "NODEID", "BROWSE NAME", "DISPLAY NAME");
     for(size_t i = 0; i < bResp.resultsSize; ++i) {
         for(size_t j = 0; j < bResp.results[i].referencesSize; ++j) {
             UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
             if(ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
-                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "%-9d %-16.*s %-16.*s %-16.*s\n", ref->nodeId.nodeId.namespaceIndex,
+                UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%-9d %-16.*s %-16.*s %-16.*s\n", ref->nodeId.nodeId.namespaceIndex,
                        (int)ref->nodeId.nodeId.identifier.string.length,
                        ref->nodeId.nodeId.identifier.string.data,
                        (int)ref->browseName.name.length, ref->browseName.name.data,
@@ -125,7 +125,7 @@ addTopicDataSourceVariable(UA_Server *server, char *namespace, char *topic) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "UA_Server_addNamespace has failed");
         return FAILURE;
     }
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "%u:namespaceIndex created for namespace: %s\n", namespaceIndex, namespace);
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%u:namespaceIndex created for namespace: %s\n", namespaceIndex, namespace);
 
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", topic);
@@ -301,7 +301,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
     UA_Variant *val = UA_Variant_new();
     sprintf(dataToPublish, "%s", data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
     if (retval == UA_STATUSCODE_GOOD) {
@@ -309,7 +309,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
         return "0";
     }
 
-    sprintf(errorMsg, "UA_Client_writeValueAttribute func executed failed, error: %s\n", UA_StatusCode_name(retval));
+    sprintf(errorMsg, "UA_Client_writeValue API failed, error: %s\n", UA_StatusCode_name(retval));
     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
     UA_Variant_delete(val);
     return errorMsg;
@@ -499,7 +499,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     remoteCertificate = UA_ByteString_new();
 
     sprintf(endpoint, "opc.tcp://%s:%d", hostname, port);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "\nendpoint:%s\n", endpoint);
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Getting endpoints of: %s\n", endpoint);
 
     /* The getEndpoints API (discovery service) is done with security mode as none to
        see the server's capability and certificate */
@@ -514,24 +514,24 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     UA_String securityPolicyUri = UA_STRING(SECURITY_POLICY_URI);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "%i endpoints found\n", (int)endpointArraySize);
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%i endpoints found\n", (int)endpointArraySize);
     for(size_t endPointCount = 0; endPointCount < endpointArraySize; endPointCount++) {
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "URL of endpoint %i is %.*s / %.*s\n", (int)endPointCount,
+        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "URL of endpoint %i is %.*s / %.*s\n", (int)endPointCount,
                (int)endpointArray[endPointCount].endpointUrl.length,
                endpointArray[endPointCount].endpointUrl.data,
                (int)endpointArray[endPointCount].securityPolicyUri.length,
                endpointArray[endPointCount].securityPolicyUri.data);
 
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d\n", endpointArray[endPointCount].securityMode);
+        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d\n", endpointArray[endPointCount].securityMode);
         if(endpointArray[endPointCount].securityMode != UA_MESSAGESECURITYMODE_SIGNANDENCRYPT) {
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d is not equal to UA_MESSAGESECUREITYMODE_SIGNANDENCRYPT\n",
+            UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d is not equal to UA_MESSAGESECUREITYMODE_SIGNANDENCRYPT\n",
             endpointArray[endPointCount].securityMode);
             continue;
         }
 
 
         if(UA_String_equal(&endpointArray[endPointCount].securityPolicyUri, &securityPolicyUri)) {
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Equal...endpointArray[endPointCount].securityPolicyUri and securityPolicyUri\n");
+            UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Equal...endpointArray[endPointCount].securityPolicyUri and securityPolicyUri\n");
             UA_ByteString_copy(&endpointArray[endPointCount].serverCertificate, remoteCertificate);
             break;
         }
@@ -616,7 +616,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 static void*
 runClient(void *ptr) {
 
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Executing the runClient pthread...\n");
 
     while(1) {
         /* if already connected, this will return GOOD and do nothing */
@@ -679,7 +679,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     }
     UA_ClientState clientState = UA_Client_getState(client);
     if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
-        sprintf(errorMsg, "Not a valid client state: %u for subscription to occurinstance is not created", clientState);
+        sprintf(errorMsg, "Not a valid client state: %u for doing subscription", clientState);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;

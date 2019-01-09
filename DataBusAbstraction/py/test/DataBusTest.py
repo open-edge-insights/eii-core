@@ -24,9 +24,17 @@ import time
 import argparse
 import sys
 import os
+import logging
 path = os.path.abspath(__file__)
 sys.path.append(os.path.join(os.path.dirname(path), "../"))
 from DataBus import databus
+
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s : %(levelname)s : \
+                    %(name)s : [%(filename)s] :' +
+                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+logger = logging.getLogger(__name__)
+
 
 # TODO: Need to come up with a generic test program that works with all
 # databuses abstracted, not just opcua
@@ -34,8 +42,7 @@ from DataBus import databus
 
 class A:
     def cbFunc(self, topic, msg):
-        print("In DataBusTest.py........")
-        print("Msg: {} received on topic: {}".format(msg, topic))
+        logger.info("Msg: {} received on topic: {}".format(msg, topic))
 
     def main(self):
         p = argparse.ArgumentParser()

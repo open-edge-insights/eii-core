@@ -16,6 +16,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 /*
@@ -28,14 +30,14 @@ endpoint:
 
 func errHandler() {
 	if r := recover(); r != nil {
-		fmt.Println(r)
-		fmt.Println("Exting Test program with ERROR!!!")
+		glog.Errorln(r)
+		glog.Errorln("Exting Test program with ERROR!!!")
 		os.Exit(1)
 	}
 }
 
 func cbFunc(topic string, msg interface{}) {
-	fmt.Println("Received msg: " + msg.(string) + " on topic: " + topic)
+	glog.Errorln("Received msg: " + msg.(string) + " on topic: " + topic)
 }
 
 func main() {
@@ -54,15 +56,15 @@ func main() {
 	flag.Lookup("logtostderr").Value.Set("true")
 	flag.Lookup("log_dir").Value.Set("/var/log")
 
+	defer glog.Flush()
 	//now start the tests
 	contextConfig := map[string]string{
 		"endpoint":    *endPoint,
 		"direction":   *direction,
-		"name": 		*ns,
+		"name":        *ns,
 		"certFile":    *certFile,
 		"privateFile": *privateFile,
 		"trustFile":   *trustFile,
-		
 	}
 
 	defer errHandler()
@@ -76,16 +78,18 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Direction..", *direction)
+	glog.Errorln("Direction..", *direction)
 	if *direction == "PUB" {
 		topicConfig := map[string]string{
 			"name": *topic,
 			"type": "string",
 		}
+
 		for i := 0; i < 20; i++ {
 			time.Sleep(5 * time.Second)
 			result := fmt.Sprintf("%s %d", "Hello ", i)
 			etaDatab.Publish(topicConfig, result)
+			glog.Errorf("Published result: %s\n", result)
 		}
 	} else if *direction == "SUB" {
 		panic("SUB APIs not integrated")

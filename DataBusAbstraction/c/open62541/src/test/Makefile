@@ -17,12 +17,12 @@ server: build
 	@echo "Start server, publish and destroy..."
 	./open62541_test server $(SERVER_CERTS)/opcua_server_certificate.der \
 	                        $(SERVER_CERTS)/opcua_server_key.der \
-							$(CA_CERTS)/ca_cert.der
+							$(CA_CERTS)/ca_certificate.der
 client: build
 	@echo "Start client, subscribe and destroy..."
 	./open62541_test client $(CLIENT_CERTS)/opcua_client_certificate.der \
 	                        $(CLIENT_CERTS)/opcua_client_key.der \
-							$(CA_CERTS)/ca_cert.der
+							$(CA_CERTS)/ca_certificate.der
 
 invalid_client: build
 	@echo "Establish connection to opcua server and start subscribing the data with invalid client certs.."
