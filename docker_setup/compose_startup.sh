@@ -57,10 +57,13 @@ pre_build_steps() {
 }
 
 post_build_steps() {
+
+	mkdir -p $ETA_INSTALL_PATH/grpc_int_ssl_secrets
+	chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/grpc_int_ssl_secrets
 	mkdir -p $ETA_INSTALL_PATH/data
 	mkdir -p $ETA_INSTALL_PATH/data/influxdata
-	mkdir -p $ETA_INSTALL_PATH/grpc_int_ssl_secrets
-	chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
+	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data
+	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data/influxdata
 	chmod -R 760 $ETA_INSTALL_PATH/data
 }
 
