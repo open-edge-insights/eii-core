@@ -29,6 +29,7 @@ from DataAgent.da_grpc.client.py.client_internal.client \
 from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
 from Util.util import (write_certs, create_decrypted_pem_files)
+import time as Time
 
 IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
 IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
@@ -37,6 +38,7 @@ GRPC_CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = GRPC_CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
+RETRY_COUNT_INFLUX_CLI = 25
 
 
 class DataPoint:
@@ -146,6 +148,19 @@ class DataIngestionLib:
     If the data contains buffer, it stores the buffer into the image store
     and saves the handle in database.'''
 
+    def create_influx_client(self):
+        srcFiles = [CA_CERT]
+        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+        create_decrypted_pem_files(srcFiles, filesToDecrypt)
+
+        self.influx_c = InfluxDBClient(self.config["Host"],
+                                       self.config["Port"],
+                                       self.config["UserName"],
+                                       self.config["Password"],
+                                       self.config["DBName"],
+                                       True if self.config["Ssl"] == "True"
+                                       else False, filesToDecrypt[0])
+
     def __init__(self, storage_type='inmemory', log_level=logging.INFO):
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger('data_ingestion')
@@ -158,18 +173,7 @@ class DataIngestionLib:
 
         # Creates the influxDB client handle.
         try:
-            srcFiles = [CA_CERT]
-            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-            create_decrypted_pem_files(srcFiles, filesToDecrypt)
-
-            self.influx_c = InfluxDBClient(self.config["Host"],
-                                           self.config["Port"],
-                                           self.config["UserName"],
-                                           self.config["Password"],
-                                           self.config["DBName"],
-                                           True if self.config["Ssl"] == "True"
-                                           else False,
-                                           filesToDecrypt[0])
+            self.create_influx_client()
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
@@ -196,16 +200,34 @@ class DataIngestionLib:
         try:
             return self._send_data_to_influx(dp.data_point)
         except Exception as e:
-            raise DAException("Seems to be some issue with InfluxDB." +
-                              "Exception: {0}".format(e))
+           # raise DAException("Seems to be some issue with InfluxDB." +
+           #                   "Exception: {0}".format(e))
+           self.reconnect_to_influx()
+
+    def reconnect_to_influx(self):
+        '''Reconnects to the influx server.Retry logic added '''
+        i = 0
+        while i in range(RETRY_COUNT_INFLUX_CLI):
+            try:
+                self.log.info("Attempting to reconnect to influx-server ")
+                self.create_influx_client()
+                if self.influx_c.ping():
+                    self.log.info("InfluxDB handle created successfully.")
+                    break
+                Time.sleep(1)
+                i = i + 1
+            except Exception as err:
+                pass
 
     def _send_data_to_influx(self, data_point):
         '''Sends the data point to Influx.'''
         json_body = [data_point]
-        ret = self.influx_c.write_points(json_body)
-        if ret is True:
-            self.log.info("Data Point sent successfully to influx.")
-        else:
-            self.log.error("Data Point sending to influx failed.")
-
+        try:
+            ret = self.influx_c.write_points(json_body)
+            if ret is True:
+                self.log.info("Data Point sent successfully to influx.")
+            else:
+                self.log.error("Data Point failed to sent...." + str(ret))
+        except Exception as err:
+            raise err
         return ret
