@@ -10,6 +10,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.logrotate
       args:
         LOG_ROTATE_VERSION: ${LOG_ROTATE_VERSION}
+        ETA_UID: ${ETA_UID}
     container_name: ia_log_rotate
     hostname: ia_log_rotate
     image: ia/logrotate:${ETA_VERSION}

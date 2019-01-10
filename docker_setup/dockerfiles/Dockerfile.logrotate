@@ -1,4 +1,6 @@
 # Logrotate Dockerfile
 ARG LOG_ROTATE_VERSION
 FROM blacklabelops/logrotate:${LOG_ROTATE_VERSION}
+ARG ETA_UID
+RUN chown ${ETA_UID} /usr/bin/logrotate.d
 HEALTHCHECK NONE
