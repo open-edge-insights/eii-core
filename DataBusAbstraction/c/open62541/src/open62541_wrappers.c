@@ -16,7 +16,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define ENDPOINT_SIZE 100
 #define NAMESPACE_SIZE 100
 #define TOPIC_SIZE 100
-#define PUBLISH_DATA_SIZE 1024*1024
+// TODO: we need to see what's the optimum size for this or have a better logic to handle this regardless of any size limits
+// imposed by safestringlib strcpy_s API
+#define PUBLISH_DATA_SIZE 4*1024
 #define ERROR_MSG_SIZE 150
 
 // logger global varaibles
@@ -38,6 +40,7 @@ static char endpoint[ENDPOINT_SIZE];
 static c_callback userCallback;
 static char dataToPublish[PUBLISH_DATA_SIZE];
 static void *userFunc = NULL;
+static bool clientExited = false;
 
 //*************open62541 common wrappers**********************
 
@@ -51,6 +54,24 @@ logMsg(const char *msg, ...) {
     va_end(args);
 }
 */
+
+// Converts the passed int to string
+static char* convertToString(char str[], int num) {
+    int i, rem, len = 0, n;
+
+    n = num;
+    while (n != 0) {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++) {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+    return str;
+}
 
 static UA_Int16
 getNamespaceIndex(char *ns, char *topic) {
@@ -74,7 +95,7 @@ getNamespaceIndex(char *ns, char *topic) {
                        (int)ref->browseName.name.length, ref->browseName.name.data,
                        (int)ref->displayName.text.length, ref->displayName.text.data);
                 char nodeIdentifier[NAMESPACE_SIZE];
-                sprintf(nodeIdentifier, "%.*s", (int) ref->nodeId.nodeId.identifier.string.length,
+                strcpy_s(nodeIdentifier, TOPIC_SIZE,
                        ref->nodeId.nodeId.identifier.string.data);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
@@ -182,14 +203,16 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
-        sprintf(errorMsg, "Unable to load certificate file %s.", certificateFile);
+        char str[] = "Unable to load certificate file";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", errorMsg);
         return errorMsg;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
-        sprintf(errorMsg, "Unable to load private key file %s.", privateKeyFile);
+        char str[] = "Unable to load private key file";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", errorMsg);
         return errorMsg;
@@ -201,7 +224,8 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
-            sprintf(errorMsg, "Unable to load trusted cert file %s.", trustedCerts[i]);
+            char str[] = "Unable to load trusted cert file";
+            strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
                 "%s", errorMsg);
             return errorMsg;
@@ -218,7 +242,8 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
                                           trustList, trustedListSize,
                                           revocationList, revocationListSize);
     if(!serverConfig) {
-        sprintf(errorMsg, "Could not create the server config");
+        char str[] = "Could not create the server config";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -232,7 +257,8 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Initiate server instance */
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
-        sprintf(errorMsg, "UA_Server_new() API failed");
+        char str[] = "UA_Server_new() API failed";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -240,7 +266,8 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
-        sprintf(errorMsg, "server pthread creation to start server failed");
+        char str[] = "server pthread creation to start server failed";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -259,7 +286,8 @@ serverStartTopic(char *namespace, char *topic) {
 
     /* check if server is started or not */
     if (server == NULL) {
-        sprintf(errorMsg, "UA_Server instance is not instantiated");
+        char str[] = "UA_Server instance is not instantiated";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -270,7 +298,8 @@ serverStartTopic(char *namespace, char *topic) {
     /* add datasource variable */
     UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
     if (nsIndex == FAILURE) {
-        sprintf(errorMsg,"Failed to add topic data source variable node");
+        char str[] = "Failed to add topic data source variable node";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -286,11 +315,12 @@ serverStartTopic(char *namespace, char *topic) {
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-serverPublish(int nsIndex, char *topic, char *data) {
+serverPublish(int nsIndex, char *topic, char* data) {
 
     /* check if server is started or not */
     if (server == NULL) {
-        sprintf(errorMsg, "UA_Server instance is not instantiated");
+        char str[] = "UA_Server instance is not instantiated";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -299,7 +329,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
     /* writing the data to the opcua variable */
     usleep(100000); // HACK: To be removed after root causing issue with open62541
     UA_Variant *val = UA_Variant_new();
-    sprintf(dataToPublish, "%s", data);
+    strcpy_s(dataToPublish, PUBLISH_DATA_SIZE, data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
@@ -308,8 +338,7 @@ serverPublish(int nsIndex, char *topic, char *data) {
         UA_Variant_delete(val);
         return "0";
     }
-
-    sprintf(errorMsg, "UA_Client_writeValue API failed, error: %s\n", UA_StatusCode_name(retval));
+    strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
     UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
     UA_Variant_delete(val);
     return errorMsg;
@@ -342,12 +371,10 @@ subscriptionInactivityCallback (UA_Client *client, UA_UInt32 subId, void *subCon
 static void
 subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                         UA_UInt32 monId, void *monContext, UA_DataValue *data) {
-
     UA_Variant *value = &data->value;
     if(UA_Variant_isScalar(value)) {
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
-
             if (userCallback) {
                 char subscribedData[PUBLISH_DATA_SIZE];
                 sprintf(subscribedData, "%.*s", (int) str.length, str.data);
@@ -407,7 +434,7 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
             (int)nodeId.identifier.string.length,
             nodeId.identifier.string.data, monResponse.monitoredItemId);
         if (topic != NULL)
-            sprintf(lastSubscribedTopic, "%s", topic);
+            strcpy_s(lastSubscribedTopic, TOPIC_SIZE, topic);
         if (nsIndex != FAILURE)
             lastNamespaceIndex = nsIndex;
         return 0;
@@ -475,14 +502,16 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
-        sprintf(errorMsg, "Unable to load certificate file %s.", certificateFile);
+        char str[] = "Unable to load certificate file";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE , str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", errorMsg);
         return errorMsg;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
-        sprintf(errorMsg, "Unable to load private key file %s.", privateKeyFile);
+        char str[] = "Unable to load private key file";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", errorMsg);
         return errorMsg;
@@ -490,7 +519,8 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     client = UA_Client_new(UA_ClientConfig_default);
     if(client == NULL) {
-        sprintf(errorMsg, "UA_Client_new() API returned NULL");
+        char str[] = "UA_Client_new() API returned NULL";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", errorMsg);
         return errorMsg;
@@ -498,9 +528,13 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     remoteCertificate = UA_ByteString_new();
 
-    sprintf(endpoint, "opc.tcp://%s:%d", hostname, port);
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Getting endpoints of: %s\n", endpoint);
+    char portStr[10];
+    strcpy_s(endpoint, ENDPOINT_SIZE, "opc.tcp://");
+    strcat_s(endpoint, ENDPOINT_SIZE, hostname);
+    strcat_s(endpoint, ENDPOINT_SIZE, ":");
+    strcat_s(endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
 
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Getting endpoints of: %s\n", endpoint);
     /* The getEndpoints API (discovery service) is done with security mode as none to
        see the server's capability and certificate */
     retval = UA_Client_getEndpoints(client, endpoint,
@@ -509,7 +543,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
         UA_Array_delete(endpointArray, endpointArraySize,
                         &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
         cleanupClient();
-        sprintf(errorMsg, "UA_Client_getEndpoints() API failed!, error: %s", UA_StatusCode_name(retval));
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
         return errorMsg;
     }
 
@@ -538,11 +572,12 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     if(UA_ByteString_equal(remoteCertificate, &UA_BYTESTRING_NULL)) {
-        sprintf(errorMsg, "Server does not support Security Basic256Sha256 Mode of \
-            UA_MESSAGESECURITYMODE_SIGNANDENCRYPT");
+        char str[] = "Server does not support Security Basic256Sha256 Mode of \
+            UA_MESSAGESECURITYMODE_SIGNANDENCRYPT";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
-        cleanupClient(client, remoteCertificate);
+        cleanupClient();
         return errorMsg;
     }
 
@@ -557,7 +592,8 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
-            sprintf(errorMsg, "Unable to load trusted cert file %s.", trustedCerts[i]);
+            char str[] = "Unable to load trusted cert file";
+            strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
                 "%s", errorMsg);
             return errorMsg;
@@ -581,7 +617,8 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     if(client == NULL) {
         UA_ByteString_delete(remoteCertificate); /* Dereference the memory */
-        sprintf(errorMsg, "UA_Client_secure_new() API failed!");
+        char str[] = "UA_Client_secure_new() API failed!";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         return errorMsg;
     }
 
@@ -596,17 +633,16 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Secure client connect */
     retval = UA_Client_connect_username(client, endpoint, username, password);
     if(retval != UA_STATUSCODE_GOOD) {
-        cleanupClient(client, remoteCertificate);
-        sprintf(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
+        cleanupClient();
+        strcpy_s(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
         return errorMsg;
     }
     #endif
 
-    sprintf(endpoint, "opc.tcp://%s:%d", hostname, port);
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
-        cleanupClient(client, remoteCertificate);
-        sprintf(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
+        cleanupClient();
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
         return errorMsg;
     }
     return "0";
@@ -616,9 +652,8 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 static void*
 runClient(void *ptr) {
 
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Executing the runClient pthread...\n");
-
-    while(1) {
+    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
+    while(!clientExited) {
         /* if already connected, this will return GOOD and do nothing */
         /* if the connection is closed/errored, the connection will be reset and then reconnected */
         /* Alternatively you can also use UA_Client_getState to get the current state */
@@ -650,7 +685,8 @@ runClient(void *ptr) {
 int
 clientStartTopic(char *namespace, char *topic) {
     if (client == NULL) {
-        sprintf(errorMsg, "UA_Client instance is not created");
+        char str[] = "UA_Client instance is not created";
+        strcpy_s(errorMsg ,ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return FAILURE;
@@ -672,21 +708,24 @@ char*
 clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     userFunc = pyxFunc;
     if (client == NULL) {
-        sprintf(errorMsg, "UA_Client instance is not created");
+        char str[] = "UA_Client instance is not created";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
     }
     UA_ClientState clientState = UA_Client_getState(client);
     if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
-        sprintf(errorMsg, "Not a valid client state: %u for doing subscription", clientState);
+        char str[] = "Not a valid client state: for subscription to occurinstance is not created";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
     }
 
     if (createSubscription(nsIndex, topic, cb) == 1) {
-        sprintf(errorMsg, "Subscription failed!");
+        char str[] = "Subscription failed!";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -694,7 +733,8 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
 
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
-        sprintf(errorMsg, "pthread creation to run the client thread iteratively failed");
+        char str[] = "pthread creation to run the client thread iteratively failed";
+        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             errorMsg);
         return errorMsg;
@@ -705,5 +745,6 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
 
 /* clientContextDestroy function destroys the opcua client context */
 void clientContextDestroy() {
+    clientExited = true;
     cleanupClient();
 }

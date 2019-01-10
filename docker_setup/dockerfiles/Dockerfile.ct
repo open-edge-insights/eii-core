@@ -110,13 +110,30 @@ RUN echo "Installing required packages..." && \
     make install && \
     echo "***Installation complete***"
 
+
 WORKDIR /ETA/go/src/ElephantTrunkArch
+
+# tls, crypto library needs to open62541
+RUN apt-get install -y libmbedtls-dev
+
+ADD DataBusAbstraction/ DataBusAbstraction/
+ENV TERM xterm
+
+# These flags are needed for security for compiling and linking with open62541
+ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
+ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
+
+# Build the opent62541W.so file
+RUN cd DataBusAbstraction/py && \
+    pip3.6 install -r databus_requirements.txt && \
+    cd test && \
+    make build
+
 ADD DataAgent/da_grpc/client ./DataAgent/da_grpc/client
 ADD DataAgent/da_grpc/protobuff ./DataAgent/da_grpc/protobuff
 ADD DataAgent/da_grpc/test ./DataAgent/da_grpc/test
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc/__init__.py ./DataAgent/da_grpc/__init__.py
-ADD DataBusAbstraction ./DataBusAbstraction
 ADD ImageStore/client ./ImageStore/client
 ADD ImageStore/protobuff ./ImageStore/protobuff
 ADD ImageStore/test ./ImageStore/test
@@ -125,5 +142,3 @@ ADD ImageStore/go/test/test.jpg ./test.jpg
 
 ENTRYPOINT ["/bin/bash"]
 HEALTHCHECK NONE
-
-

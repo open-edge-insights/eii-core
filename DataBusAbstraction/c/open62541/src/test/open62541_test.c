@@ -38,16 +38,16 @@ int main(int argc, char **argv) {
     if (argc > 4) {
         trustListSize = (size_t)argc-4;
     }
-    
+
     trustList = (char **) malloc(trustListSize * sizeof(char *));
     // UA_STACKARRAY(UA_ByteString, trustList, trustListSize);
-    
+
     for(size_t i = 0; i < trustListSize; i++)
         trustList[i] = (char*)argv[i+4];
 
     if (!strcmp(argv[1], "server")) {
-     
-        
+
+
         errorMsg = serverContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
             printf("serverContextCreate() API failed, error: %s", errorMsg);
@@ -72,8 +72,8 @@ int main(int argc, char **argv) {
                 printf("serverPublish() API failed, error: %s", errorMsg);
                 return -1;
             }
-            printf("serverPublish() API successfully executed!");
-        } 
+            printf("Publishing [%s]\n", result);
+        }
         serverContextDestroy();
     } else if (!strcmp(argv[1], "client")) {
         errorMsg = clientContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
@@ -81,13 +81,13 @@ int main(int argc, char **argv) {
             printf("clientContextCreate() API failed, error: %s", errorMsg);
             return -1;
         }
-        printf("clientContextCreate() API successfully executed!");
+        printf("clientContextCreate() API successfully executed!\n");
         int nsIndex = clientStartTopic(ns, topic);
         if (nsIndex == 100) {
             printf("clienStartTopic() API failed!");
             return -1;
         }
-        printf("clienStartTopic() API successfully executed!");
+        printf("clienStartTopic() API successfully executed!, nsIndex: %d\n", nsIndex);
         errorMsg = clientSubscribe(nsIndex, topic, cb, NULL);
         if(strcmp(errorMsg, "0")) {
             printf("clientSubscribe() API failed, error: %s", errorMsg);

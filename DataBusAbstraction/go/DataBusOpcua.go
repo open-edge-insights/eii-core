@@ -12,7 +12,7 @@ package databus
 
 /*
 #cgo CFLAGS: -I ../c/open62541/include
-#cgo LDFLAGS: -L ../c/open62541/src -lopen62541W -lmbedtls -lmbedx509 -lmbedcrypto -pthread
+#cgo LDFLAGS: -L ../c/open62541/src -lsafestring -lopen62541W -lmbedtls -lmbedx509 -lmbedcrypto -pthread
 void cgoFunc(char *topic, char *data);
 #include <stdlib.h>
 #include "open62541_wrappers.h"

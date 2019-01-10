@@ -10,7 +10,8 @@ sources = ["open62541W.pyx",
            "../../c/open62541/src/open62541_wrappers.c",
            "../../c/open62541/src/open62541.c"]
 includeDirs = ["../../c/open62541/include"]
-libraries = ["mbedtls", "mbedx509",
+libraryDirs = ["../../c/open62541/include"]
+libraries = ["mbedtls", "mbedx509","safestring",
              "mbedcrypto", "pthread"]
 
 setup(
@@ -18,6 +19,7 @@ setup(
     ext_modules=cythonize([Extension(extensionName,
                            sources,
                            include_dirs=includeDirs,
+                           library_dirs=libraryDirs,
                            libraries=libraries,
                            language="c",
                            extra_compile_args=compileArgs)]),

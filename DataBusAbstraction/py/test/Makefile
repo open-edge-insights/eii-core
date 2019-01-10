@@ -8,7 +8,6 @@ HOST = localhost
 PORT = 65003
 
 build: clean
-	
 	@echo "Building the open62541 wrapper library open62541W.so.."
 	cd $(PYXPATH) && make && cp open62541W.so .. && cd $(CURDIR)
 
@@ -34,7 +33,7 @@ invalid_sub: build
 				  -topic classifier_results \
 				  -certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
   	                          -privateFile $(CLIENT_CERTS)/opcua_client_key.der \
-        		          -trustFile $(INVALID_CERTS)/ca/ca_cert.der
+        		          -trustFile $(INVALID_CERTS)/ca/ca_certificate.der
 
 clean:
 	@echo "Removing all the binary files..."
