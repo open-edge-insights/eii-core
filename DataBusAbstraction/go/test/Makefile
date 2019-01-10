@@ -6,14 +6,6 @@ CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/grpc_internal
 INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
 
-build_lib: clean prebuild
-
-	@echo "Building the open62541 wrapper library libopen62541W.a.."
-	cd $(CPATH) && gcc $(CFLAGS) $(INCLUDE) -c open62541_wrappers.c && gcc $(CFLAGS) $(INCLUDE) -c open62541.c && \
-	ar crU libopen62541W.a open62541_wrappers.o open62541.o && ar crU libsafestring.a open62541_wrappers.o open62541.o && \
-	rm -rf open62541_wrappers.o open62541.o && \
-	pwd
-
 prebuild:
 	git clone https://github.com/intel/safestringlib.git && \
 	cd safestringlib/ && \
@@ -21,6 +13,13 @@ prebuild:
 	cp -rf libsafestring.a ../ && \
 	cp -rf libsafestring.a ../../ && \
 	cp -rf libsafestring.a ../../../c/open62541/src/
+
+build_lib: clean prebuild
+	@echo "Building the open62541 wrapper library libopen62541W.a.."
+	cd $(CPATH) && gcc $(CFLAGS) $(INCLUDE) -c open62541_wrappers.c && gcc $(CFLAGS) $(INCLUDE) -c open62541.c && \
+	ar crU libopen62541W.a open62541_wrappers.o open62541.o && ar crU libsafestring.a open62541_wrappers.o open62541.o && \
+	rm -rf open62541_wrappers.o open62541.o && \
+	pwd
 
 build: clean build_lib
 

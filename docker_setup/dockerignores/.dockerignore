@@ -1,5 +1,6 @@
 vendor
 docker_setup/deploy/*.tar.gz
+DataAnalytics
 test_videos/
 .git
 

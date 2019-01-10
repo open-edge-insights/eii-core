@@ -21,6 +21,9 @@ do
     esac
 done
 
+echo "0. Updating databus_host field in VisualHmiClient/config.json..."
+sed -i 's/"databus_host": .*/"databus_host": "'"$ETA_IP_ADDR"'",/g' VisualHmiClient/config.json
+
 echo "1. Building VisualHmiClient image..."
 cp docker_setup/dockerignores/.dockerignore .
 docker build -f VisualHmiClient/Dockerfile -t visual_hmi .

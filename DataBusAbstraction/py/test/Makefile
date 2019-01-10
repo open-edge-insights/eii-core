@@ -7,7 +7,15 @@ INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
 HOST = localhost
 PORT = 65003
 
-build: clean
+prebuild:
+	git clone https://github.com/intel/safestringlib.git && \
+	cd safestringlib/ && \
+	make && \
+	cp -rf libsafestring.a ../ && \
+	cp -rf libsafestring.a ../../ && \
+	cp -rf libsafestring.a ../../../c/open62541/src/
+
+build: clean prebuild
 	@echo "Building the open62541 wrapper library open62541W.so.."
 	cd $(PYXPATH) && make && cp open62541W.so .. && cd $(CURDIR)
 

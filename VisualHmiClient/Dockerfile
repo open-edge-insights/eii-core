@@ -12,7 +12,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
 RUN apt-get install -y python3.6 python3.6-dev wget
 RUN apt-get install -y libsm6 libxext6 libxrender-dev
-
+RUN apt-get install -y git
 ENV TERM xterm
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.6 get-pip.py

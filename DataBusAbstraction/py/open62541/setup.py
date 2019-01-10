@@ -10,7 +10,7 @@ sources = ["open62541W.pyx",
            "../../c/open62541/src/open62541_wrappers.c",
            "../../c/open62541/src/open62541.c"]
 includeDirs = ["../../c/open62541/include"]
-libraryDirs = ["../../c/open62541/include"]
+libraryDirs = ["../../c/open62541/src"]
 libraries = ["mbedtls", "mbedx509","safestring",
              "mbedcrypto", "pthread"]
 
