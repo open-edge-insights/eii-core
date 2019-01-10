@@ -61,6 +61,12 @@ def write_certs(file_list, file_data):
             log.debug("Failed creating file: {}, Error: {} ".format(file_name,
                                                                     e))
 
+def delete_certs(file_list):
+    for file in file_list:
+        if os.path.isfile(file):
+            os.remove(file)
+        else:
+            log.error("Failed to delete file kapacitor certs as files not found")
 
 def create_decrypted_pem_files(srcFiles, decryptFiles):
     key = os.environ["SHARED_KEY"]

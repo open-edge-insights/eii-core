@@ -10,7 +10,7 @@ import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
 from Util.util \
-    import (write_certs, create_decrypted_pem_files, check_port_availability)
+    import (write_certs, create_decrypted_pem_files, check_port_availability, delete_certs)
 
 
 SUCCESS = 0
@@ -157,6 +157,12 @@ def enable_classifier_task(host_name):
         logger.info("Retrying Kapacitor Connection")
         time.sleep(0.0001)
         retry = retry + 1
+    try:
+        file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
+                     "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
+        delete_certs(file_list)
+    except Exception as e:
+        logger.error("Exception Occured while removing kapacitor certs")
 
 
 if __name__ == '__main__':

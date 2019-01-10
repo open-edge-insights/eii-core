@@ -57,6 +57,18 @@ func WriteCertFile(fileList []string, Certs map[string]interface{}) error {
 	return nil
 }
 
+//DeleteCertFile - wrapper to remove certificates
+func DeleteCertFile(fileList []string) error {
+	for _, filePath := range fileList {
+		err := os.Remove(filePath)
+		if err != nil {
+			glog.Infof("Failed to revmove influxdb certs: %v", err.Error())
+			return err
+		}
+	}
+	return nil
+}
+
 // WriteEncryptedPEMFiles - wrapper to write encrypted PEM files
 func WriteEncryptedPEMFiles(fileList []string, Certs map[string]interface{}) error {
 	key := os.Getenv("SHARED_KEY")

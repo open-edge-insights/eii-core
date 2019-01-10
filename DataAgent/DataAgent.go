@@ -73,8 +73,7 @@ func initializeInfluxDB() error {
 		glog.Infof("Successfully created admin user: %s", influxCfg.UserName)
 	} else {
 		if resp != nil && resp.Error() != nil {
-			glog.Errorf("Error code: %v, Error Response: %s while creating "+
-				"admin user: %s", err, resp.Error(), influxCfg.UserName)
+			glog.Infof("admin user already exists")
 		} else {
 			glog.Errorf("Error code: %v while creating "+"admin user: %s", err, influxCfg.UserName)
 		}
@@ -185,6 +184,12 @@ func main() {
 	if err != nil {
 		glog.Errorf("Failed to start and initialize Influx DB")
 		os.Exit(-1)
+	} else {
+		fileList := []string{influxServerCertPath, influxServerKeyPath}
+		err = util.DeleteCertFile(fileList)
+		if err == nil {
+			glog.V(1).Infof("Removed InfluxDB certificates from /etc/ssl/influxdb/")
+		}
 	}
 
 	// Init StreamManager
