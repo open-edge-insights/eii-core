@@ -112,4 +112,5 @@ RUN mkdir /.minio
 ARG ETA_UID
 RUN chown -R ${ETA_UID} /.minio
 ENTRYPOINT ["./ImageStore/main"]
+CMD ["-stderrthreshold", ${GO_LOG_LEVEL}, "-v", ${GO_VERBOSE}]
 HEALTHCHECK NONE

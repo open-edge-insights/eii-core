@@ -110,12 +110,15 @@ services:
       TPM_ENABLE: ${TPM_ENABLE}
       LD_LIBRARY_PATH: /usr/local/lib
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
+      GO_LOG_LEVEL: ${GO_LOG_LEVEL}
+      GO_VERBOSE: ${GO_VERBOSE}
     volumes:
       - "${ETA_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
+    command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}"]
     ports:
       - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
       - "${HOST_IP}:${OPCUA_PORT}:${OPCUA_PORT}"
@@ -199,6 +202,9 @@ services:
       REDIS_PORT: ${REDIS_PORT}
       MINIO_PORT: ${MINIO_PORT}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
+      GO_LOG_LEVEL: ${GO_LOG_LEVEL}
+      GO_VERBOSE: ${GO_VERBOSE}
+    command: ["-stderrthreshold", "${GO_LOG_LEVEL}", "-v", "${GO_VERBOSE}"]
     ports:
       - "${HOST_IP}:${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
@@ -247,6 +253,7 @@ services:
       no_proxy: ${NO_PROXY}
       KAPACITOR_PORT: ${KAPACITOR_PORT}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
+      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
@@ -256,7 +263,7 @@ services:
       - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
       - ${KAPACITOR_PORT}
-    command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
+    command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -297,7 +304,7 @@ services:
     volumes:
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/logs/factoryctrl_app_logs:/ETA/factoryctrl_app_logs"
-    command: ["--log", "${LOG_LEVEL}"]
+    command: ["--log", "${PY_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -343,6 +350,7 @@ services:
       LD_RUN_PATH: "/usr/lib"
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
+      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
@@ -350,7 +358,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
       - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/algos/algo_config"
       - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
-    command: ["--config", "${CONFIG_FILE}", "--log", "${LOG_LEVEL}"]
+    command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
     devices:
       - "/dev/dri"
     logging:

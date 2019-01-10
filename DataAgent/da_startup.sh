@@ -10,4 +10,4 @@ VAULT_ADDR=http://localhost
 vault server -config ./vault/config/vault_config.hcl -tls-skip-verify & 2>&1
 
 # Start DataAgent
-DataAgent -log_dir=${GO_WORK_DIR}/log/DataAgent
+DataAgent -log_dir=${GO_WORK_DIR}/log/DataAgent -stderrthreshold=$1 -v=$2

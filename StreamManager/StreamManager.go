@@ -88,7 +88,7 @@ func databPublish(topicConfig map[string]string, data string) error {
 		glog.Errorf("Publish Error: %v", err)
 		return err
 	}
-	glog.Infof("Published [%s] : '%s'\n", topicConfig, data)
+	glog.V(1).Infof("Published [%s] : '%s'\n", topicConfig, data)
 	return nil
 
 }

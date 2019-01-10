@@ -114,8 +114,6 @@ func main() {
 
 	flag.Parse()
 
-	flag.Lookup("alsologtostderr").Value.Set("true")
-
 	defer glog.Flush()
 	if len(os.Args) < 1 {
 		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +

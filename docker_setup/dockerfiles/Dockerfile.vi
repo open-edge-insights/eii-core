@@ -127,5 +127,5 @@ ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grp
 ARG ETA_UID
 RUN chown -R ${ETA_UID} /etc/ssl/
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs"]
-CMD ["--config", "factory_prod.json", "--log", "DEBUG"]
+CMD ["--config", "factory_prod.json", "--log", ${PY_LOG_LEVEL}]
 HEALTHCHECK NONE
