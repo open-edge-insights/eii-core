@@ -51,6 +51,33 @@ func CreateHTTPClient(host string, port string, userName string, passwd string) 
 	return client, err
 }
 
+// DropAllSubscriptions drops all the subscriptions in InfluxDB
+func DropAllSubscriptions(cli client.Client, dbName string) (*client.Response, error) {
+	var buff bytes.Buffer
+
+	fmt.Fprintf(&buff, "show subscriptions")
+	q := client.NewQuery(buff.String(), "", "")
+	response, err := cli.Query(q)
+	if err != nil {
+		glog.Errorf("Failed to query subscriptions : %s", err)
+		return response, err
+	}
+
+	res := response.Results
+	for _, row := range res[0].Series[0].Values {
+		val := row[1].(string)
+		buff.Reset()
+		fmt.Fprintf(&buff, "drop subscription \"%s\" ON \"%s\".\"autogen\"", val, dbName)
+		q := client.NewQuery(buff.String(), "", "")
+		response, err := cli.Query(q)
+		if err != nil {
+			glog.Errorf("Failed to delete subscription : %s", val)
+			return response, err
+		}
+	}
+	return response, err
+}
+
 // CreateSubscription creates the subscription in InfluxDB
 func CreateSubscription(cli client.Client, subName string, dbName string, httpHost string, httpPort string) (*client.Response, error) {
 	var buff bytes.Buffer

@@ -176,7 +176,13 @@ func (pStrmMgr *StrmMgr) Init(DaCfg config.DAConfig) error {
 
 	defer client.Close()
 
-	response, err := influxDBHelper.CreateSubscription(client, subscriptionName,
+	response, err := influxDBHelper.DropAllSubscriptions(client, pStrmMgr.InfluxDBName)
+	if err != nil {
+		glog.Errorln("Error in dropping subscriptions")
+
+	}
+
+	response, err = influxDBHelper.CreateSubscription(client, subscriptionName,
 		pStrmMgr.InfluxDBName, pStrmMgr.ServerHost, pStrmMgr.ServerPort)
 
 	if err == nil && response.Error() == nil {
