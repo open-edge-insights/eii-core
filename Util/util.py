@@ -24,6 +24,7 @@ import socket
 import logging as log
 import os
 import base64
+import time
 from Util.crypto.encrypt_decrypt import SymmetricEncryption
 
 
@@ -36,7 +37,7 @@ def check_port_availability(hostname, port):
     """
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     log.debug("Attempting to connect to {}:{}".format(hostname, port))
-    numRetries = 5
+    numRetries = 1000
     retryCount = 0
     portUp = False
     while(retryCount < numRetries):
@@ -45,6 +46,7 @@ def check_port_availability(hostname, port):
             portUp = True
             break
         retryCount += 1
+        time.sleep(0.1)
     return portUp
 
 

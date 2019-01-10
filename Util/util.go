@@ -23,7 +23,7 @@ import (
 
 // CheckPortAvailability - checks for port availability on hostname
 func CheckPortAvailability(hostname, port string) bool {
-	maxRetries := 100
+	maxRetries := 1000
 	retryCount := 0
 
 	portUp := false
