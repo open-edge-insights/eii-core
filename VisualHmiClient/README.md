@@ -15,13 +15,11 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
 
 ### Configuration
 
-* Login as root User `sudo su`
-
-* Clone or Copy `ElephantTrunkArch` Src under `/root/` Directory
+* Clone `ElephantTrunkArch` repo dir.
 
 * Configure Databus & VisualHMI Server Details
   ```sh
-    vi /root/ElephantTrunkArch/VisualHMIClient/config.json
+    vi [repo_dir]/VisualHMIClient/config.json
   ```
   Change the Databus Host & Port Details.
   **(Your ETA running machine IP & Opcua Port)**
@@ -51,32 +49,19 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
   > Refer [docker_setup/README.md](../docker_setup/README.md) for docker daemon and container proxy 
   > configuration
 
-  * Building Docker Container
-
-      * Go to `/root/ElephantTrunkArch`  Directory. **From ElephantTrunkArch dir follow below Steps**
+  * Building and Running VisualHmiClient as a container (**present working dir - ElephantTrunckArch repo_dir**)
 
       ```sh
-      cp docker_setup/dockerignores/.dockerignore .
-      docker build -f VisualHmiClient/Dockerfile -t visual_hmi .
-      ```
-  * Running VisualHmiClient App as Container (**current working dir should be the repo path**)
-      ```sh
-      docker run -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates \
-                 -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json \ 
-                 -v /root/saved_images:/root/saved_images --privileged=true \
-                 --network host --name visualhmi \
-                 -itd --restart always visual_hmi
+      sudo ./build_and_run_visualhmiclient.sh ETA_IP_ADDR=[ETA_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]
+
+      where ETA_IP_ADDR refers to system's IP on which ETA is running on
+            IMG_DIR refers to the image dir where the images are stored on the host
+            LOCAL[yes|no] refers to if posting of metadata to VisualHmi backend
       ```
     > **Note**:
-    > * Please add --env no_proxy=localhost,<ETA_RUNNING_MACHINE_IP_ADDRESS> before --restart 
-    >   always for running Behind Proxy Env
     > * Please make sure you have given required information in [config.json](config.json)
-    > * Don't change mounted volumes directory. If you want to change make sure config.json also 
-    >   updated
-    > * Docker run will consider the local `config.json` as in `VisualHmiClient/config.json`
-    >   Please make sure your config.json is updated
-    > * If you want to change the config.json again No need to build again. As the host 
-    >   /root/ElephantTrunkArch/VisualHMIClient/config.json is mounted to docker container.
+    > * Please ensure that the Certificates folder exists in [../cert-tool/Certificates](../cert-tool/Certificates) path
+    >   as this is essential to provide the imagestore, opcua and ca certs to VisualHmiClient container via volume mount
 
   * Follow [VisualHmiCleaner/README.md](VisualHmiCleaner/README.md) to start VisualHmiCleaner    
     docker container utility to clear the classified images stored on the disk & postgresql entries where the classified results metadata is stored.

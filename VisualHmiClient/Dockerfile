@@ -38,5 +38,4 @@ ADD Util/ Util/
 ENV PYTHONPATH .:./ImageStore/protobuff/py/:./DataBusAbstraction/py
 ENV PYTHONIOENCODING UTF-8
 
-ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiEtaDataSync.py"]
-CMD ["-c", "VisualHmiClient/config.json"]
+ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiEtaDataSync.py", "-c", "VisualHmiClient/config.json"]

@@ -146,7 +146,7 @@ class EtaDataSync:
             metalist.append(classifier_visualhmi_dict['meta-data'][0])
             databus_data['meta-data'] = metalist
 
-            if self.args.savelocal is not False:
+            if self.args.savelocal == "yes":
                 logger.info("No Post Request Made to HMI as You are\
                 Running on Local Mode")
             else:
@@ -163,12 +163,6 @@ class EtaDataSync:
         self.args = args
         with open(self.args.config, 'r') as f:
             self.config = json.load(f)
-
-        if self.args.savelocal is not False:
-            self.config["hmi_image_folder"] = self.args.savelocal + "/"
-        else:
-            self.config["hmi_image_folder"] =\
-                self.config["hmi_image_folder"] + "/"
 
         # Client handle for image store
         self.client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
@@ -211,7 +205,7 @@ def parse_arg():
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--config", default="config.json",
                     help="Please give the config file localtion")
-    ap.add_argument("-local", "--savelocal", default=False,
+    ap.add_argument("-local", "--savelocal", default="no",
                     help="This is to skip posting metaData\
         to HMI Server & Writing Images Locally")
 
