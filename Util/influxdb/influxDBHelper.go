@@ -64,6 +64,10 @@ func DropAllSubscriptions(cli client.Client, dbName string) (*client.Response, e
 	}
 
 	res := response.Results
+	if res == nil || res[0].Series == nil {
+		return response, err
+	}
+
 	for _, row := range res[0].Series[0].Values {
 		val := row[1].(string)
 		buff.Reset()
