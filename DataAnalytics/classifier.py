@@ -28,7 +28,6 @@ import os
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
-import cv2
 from Util.util import write_certs
 
 from Util.log import configure_logging, LOG_LEVELS
@@ -110,7 +109,11 @@ class ConnHandler(Handler):
         # self.logger.info("Recieved a point")
         response = udf_pb2.Response()
 
-        img_handle = point.fieldsString["ImgHandle"]
+
+        img_handles = point.fieldsString["ImgHandle"]
+        img_handles = img_handles.split(",")
+        img_handle = img_handles[0] # First one is in-mem
+
         img_height = point.fieldsInt['Height']
         img_width = point.fieldsInt['Width']
         img_channels = point.fieldsInt['Channels']
@@ -123,21 +126,18 @@ class ConnHandler(Handler):
         try:
             frame = self.img_store.Read(img_handle)
         except Exception:
-            self.logger.error('Frame read failed')
+            self.logger.error('Frame read failed : %s', img_handle)
             return
+
         if frame is not None:
             # Convert the buffer into np array.
             Frame = np.frombuffer(frame, dtype=np.uint8)
             reshape_frame = np.reshape(Frame, (img_height,
-                                                img_width, img_channels))
-            cv2.imwrite("image.png",
-                        reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-            with open("image.png", "rb") as file:
-                fdata = file.read()
-                png_handle = self.img_store.Store(fdata, 'persistent')
+                                       img_width, img_channels))
+
             # Call classification manager API with the tuple data
-            val = (1, user_data, png_handle,
-                    ('camera-serial-number', reshape_frame))
+            val = (1, user_data, img_handle,
+                   ('camera-serial-number', reshape_frame))
             data.append(val)
         else:
             logger.info("Frame read unsuccessful.")
@@ -157,6 +157,12 @@ class ConnHandler(Handler):
                     response.point.fieldsDouble[k] = v
                 elif k == "defects":
                     response.point.fieldsString[k] = json.dumps(v)
+
+                response.point.fieldsDouble['Height'] = img_height
+                response.point.fieldsDouble['Width'] = img_width
+                response.point.fieldsDouble['Channels'] = img_channels
+                # Send only the persistent handle to export
+                response.point.fieldsString["ImgHandle"] = img_handles[1]
 
             response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
             self._agent.write_response(response, True)

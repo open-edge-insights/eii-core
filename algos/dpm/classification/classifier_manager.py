@@ -202,9 +202,8 @@ class ClassifierManager:
                 # value that an int can store in Python
                 self.meta_idx = self._incr_int(self.meta_idx, 1)
 
-                msg['ImgHandle'] = img_handle
                 ret_point.append(msg)
-                
+
                 frame_count += 1
 
             delta = time.time() - start

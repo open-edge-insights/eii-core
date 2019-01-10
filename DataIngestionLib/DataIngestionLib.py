@@ -48,7 +48,7 @@ class DataPoint:
         self.img_store = img_store
         self.log = log
 
-    def add_fields(self, name, value, time=None):
+    def add_fields(self, name, value, storage_type='inmemory', time=None):
         ''' This method adds fields to the data point which will be
         stored in the database.
         Arguments:
@@ -60,7 +60,7 @@ class DataPoint:
         Returns: True, if field added to Data Point successfully.'''
         if isinstance(value, bytes) is True:
             try:
-                return self._add_fields_buffer(name, value, time)
+                return self._add_fields_buffer(name, value, storage_type, time)
             except Exception as e:
                 raise(e)
         elif (isinstance(value, int) or isinstance(value, float) or
@@ -77,14 +77,14 @@ class DataPoint:
             return False
         return True
 
-    def _add_fields_buffer(self, name, value, time):
+    def _add_fields_buffer(self, name, value, storage_type, time):
         ''' This function sends the buffer to imagestore and saves the handle
         returned in the data point which is further send to database. If more
         than one buffer is present in a datapoint, the buffer and its name is
         stored in comma separated way in the field.'''
         # ToDo: Send the buffer to Image Store.
         try:
-            handle = self.img_store.Store(value, 'inmemory')
+            handle = self.img_store.Store(value, storage_type)
         except Exception as e:
             raise(e)
         if handle is None:
@@ -96,6 +96,7 @@ class DataPoint:
         self.data_point['tags']['ImageStore'] = 1
         ImgHandle = 'ImgHandle'
         ImgName = 'ImgName'
+
         if ImgHandle in self.data_point['fields']:
             self.data_point['fields'][ImgHandle] =\
                 self.data_point['fields'][ImgHandle] + ',' + str(handle)

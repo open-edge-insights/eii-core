@@ -23,12 +23,13 @@ OTHER DEALINGS IN THE SOFTWARE.
 import datetime
 import json
 import time
-import sys
 import os
 import requests
 import argparse
 import logging
-from threading import Condition, Thread
+import cv2
+import numpy as np
+from threading import Condition
 from algos.etr_utils.log import configure_logging, LOG_LEVELS
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataBusAbstraction.py.DataBus import databus
@@ -111,17 +112,18 @@ class EtaDataSync:
             logger.error("Exception: %s", str(e))
             raise
 
-    def writeImageToDisk(self, keyname, filename):
+    def writeImageToDisk(self, keyname, filename, width, height, channels):
         """
             This will write Retrieved Image from Geblob
             to Visual HMI File System
         """
         try:
             blob = self.getBlob(keyname)
+            Frame = np.frombuffer(blob, dtype=np.uint8)
             logger.info("Blob Successfully received for key: %s", keyname)
             imgName = self.config["hmi_image_folder"] + filename + ".png"
-            with open(imgName, "wb") as fp:
-                fp.write(blob)
+            reshape_frame = np.reshape(Frame, (height, width, channels))
+            cv2.imwrite(imgName, reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
             logger.info("Image Conversion & Written Success as : %s", imgName)
         except Exception as e:
             logger.error("Exception: %s", str(e))
@@ -141,7 +143,10 @@ class EtaDataSync:
                 self.ConvertClassfierDatatoVisualHmiData(
                     classifier_results)
             self.writeImageToDisk(classifier_results["ImgHandle"],
-                                    classifier_results["image_id"])
+                                  classifier_results["image_id"],
+                                  classifier_results["Width"],
+                                  classifier_results["Height"],
+                                  classifier_results["Channels"])
             databus_data['part_id'] = classifier_visualhmi_dict['part_id']
             metalist.append(classifier_visualhmi_dict['meta-data'][0])
             databus_data['meta-data'] = metalist
@@ -152,8 +157,8 @@ class EtaDataSync:
             else:
                 logger.info("Started Sending Payload to HMI Server")
                 self.post_metadata(self.config["hmi_host"],
-                                    self.config["hmi_port"],
-                                    databus_data)
+                                   self.config["hmi_port"],
+                                   databus_data)
 
         except Exception as e:
             logger.error("Exception: %s", str(e))
@@ -166,8 +171,8 @@ class EtaDataSync:
 
         # Client handle for image store
         self.client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
-                                        ROOTCA_CERT,
-                                        hostname=self.config['databus_host'])
+                                           ROOTCA_CERT,
+                                           hostname=self.config['databus_host'])
 
         # Client handle for data bus abstraction
         filePath = os.path.abspath(os.path.dirname(__file__))
