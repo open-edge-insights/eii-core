@@ -104,6 +104,9 @@ ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
 
+RUN cd Util/cpuid && \
+    make
+
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py
 
 RUN go build -o /ETA/go/src/ElephantTrunkArch/ImageStore/main ImageStore/main.go

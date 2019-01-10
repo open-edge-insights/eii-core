@@ -152,6 +152,10 @@ RUN cd DataBusAbstraction/go/test && \
 
 ADD Util ./Util
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+
+RUN cd Util/cpuid && \
+    make
+
 RUN go build -o /ETA/go/bin/DataAgent DataAgent/DataAgent.go
 
 
