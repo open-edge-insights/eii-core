@@ -15,7 +15,7 @@ pre_build_steps() {
 	cp -f resolv.conf /etc/resolv.conf
 
 	echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
-	if [ "$1" = "deploy_only" ]
+	if [ "$1" = "deploy_mode" ]
 	then
 		source ./setenv.sh
 	else
@@ -101,15 +101,22 @@ build_iei() {
 # don't start containers if $1 is set - needed when starting eta.service
 # to avoid unnecessary start of containers by compose_startup.sh script
 up_iei() {
-	echo "3. Creating and starting the dependency/eta containers..."
-	docker-compose $OVERRIDE_COMPOSE_YML up -d
 
 	if [ -e $etaLogDir/consolidatedLogs/eta.log ]; then
 	    DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
 	    mv $etaLogDir/consolidatedLogs/eta.log $etaLogDir/consolidatedLogs/eta_$DATE.log.bkp
 	fi
-	#Logging the docker compose logs to file.
-	docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta.log &
+
+	if [ "$1" = "deploy_mode" ]
+	then
+		#Logging the docker compose logs to file.
+		docker-compose up &> $etaLogDir/consolidatedLogs/eta.log
+	else
+		echo "3. Creating and starting the dependency/eta containers..."
+		docker-compose $OVERRIDE_COMPOSE_YML up -d
+		#Logging the docker compose logs to file.
+		docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta.log &
+	fi
 }
 
 down_iei() {
@@ -126,24 +133,29 @@ key="$1"
 case $key in
 	-d|--down)
 	down_iei
-	exit 0
 	shift # past argument
+	exit 0
 	;;
 	-u|--up)
-	pre_build_steps deploy_only
+	deploy_mode="$2"
+	pre_build_steps "$deploy_mode"
 	post_build_steps
 	down_iei
-	up_iei
-	exit 0
+	up_iei "$deploy_mode"
 	shift # past argument
+	if [ "$2" != "" ]
+	then
+		shift # past the value
+	fi
+	exit 0
 	;;
 	-b|--build)
 	pre_build_steps
 	build_iei
 	post_build_steps
+	shift # past argument
 	exit 0
 	# this is place holder for future implementations
-	shift # past argument
 	;;
 	--default)
 	DEFAULT=YES

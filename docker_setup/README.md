@@ -137,7 +137,21 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo systemctl stop eta
             sudo systemctl start eta
             ```
+        4. This is an optional step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful when one wants to deploy docker images directly instead of building in every system.
 
+            Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
+            ```sh
+            sudo ./setup_eta.py -c | tee create_eta_targz.txt
+            ```
+            > **Note**:
+            > 1. This step will create an file named eta.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying ETA in the target machine.
+
+            Installing the ETA tar Ball ( make sure an untampered eta.tar.gz file present in the current working directory)
+
+            ```sh
+            tar xzf eta.tar.gz
+            sudo ./setup_eta.py -i -p <PATH OF CERTIFICATES DIR>
+            ```
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     starting it off.

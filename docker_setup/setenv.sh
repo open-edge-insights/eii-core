@@ -12,5 +12,10 @@ etaLogDir=$etaRootDir/logs
 etaConfDir=$etaRootDir/config
 etaDataDir=$etaRootDir/data
 
+# We have to create here as this a deploy mode
+# required folder. And setenv.sh script is executed
+# during deploy mode instead of init.sh
+mkdir -p $etaLogDir/consolidatedLogs
+
 rootDir=".."
 configDir="config"

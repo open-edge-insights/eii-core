@@ -42,6 +42,9 @@ def parse_args():
     parser.add_argument('-i', '--install_eta', help='install eta pkg',
                         action="store_true")
 
+    parser.add_argument('-p', '--path_to_certs_dir',
+                        help='Directory path of certificates')
+
     parser.add_argument('-u', '--uninstall_eta', help='uninstall eta pkg',
                         action="store_true")
 
@@ -50,7 +53,11 @@ def parse_args():
                         container tar file',
                         action="store_true")
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.install_eta and not args.path_to_certs_dir:
+        parser.error("-i/--install_eta requires \"-p\" option")
+
+    return args
 
 
 def enable_systemd_service():
@@ -94,6 +101,8 @@ def create_install_dir():
 
 def copy_docker_setup_files():
     # Copy docker setup files to install path
+    # TODO: Check if this function is really needed or not.
+    #       Can we get rid of it.
     try:
         copy_tree(os.getcwd(), INSTALL_PATH)
         print("docker setup files copied to %s path" % INSTALL_PATH)
@@ -158,6 +167,7 @@ def uninstall_eta():
 
 if __name__ == '__main__':
     args = parse_args()
+
     docker_setup_tar_name = "docker_setup.tar.gz"
     test_videos_tar_name = "test_videos.tar.gz"
     dist_libs_tar_name = "dist_libs.tar.gz"
@@ -276,6 +286,15 @@ if __name__ == '__main__':
                                  "docker_compose_load_built_images_log.txt"])
         if output.returncode != 0:
             print("Failed to run load_built_images.sh successfully")
+            exit(-1)
+
+        print("Provisioning the system with certificates provided by user")
+        dir_path = os.path.abspath(args.path_to_certs_dir)
+        output = subprocess.run(["./provision_startup.sh", dir_path,
+                                 "deploy_mode",
+                                 "|", "tee", "provision_eta_log.txt"])
+        if output.returncode != 0:
+            print("Failed to run provision_startup.sh successfully")
             exit(-1)
 
         print("Creating systemd entry for eta and enabling it ...")

@@ -25,7 +25,12 @@ echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, ple
 cp -f resolv.conf /etc/resolv.conf
 
 echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
-source ./init.sh
+if [ "$2" = "deploy_mode" ]
+then
+	source ./setenv.sh
+else
+	source ./init.sh
+fi
 
 echo "0.3 Deleting any pre-provisioned or tampered vault server before proceeding..."
 rm -rf $ETA_INSTALL_PATH/secret_store
@@ -52,28 +57,31 @@ echo "1. Removing previous eta/provisioning containers if existed..."
 docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
-echo "2. Buidling the provisioning containers..."
+if [ "$2" != "deploy_mode" ]
+then
+	echo "2. Buidling the provisioning containers..."
 
-# set .dockerignore to the base one
-ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
+	# set .dockerignore to the base one
+	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia-gobase ia_provision)
-servDockerIgnore=(.dockerignore.common .dockerignore.provision)
+	services=(ia-gobase ia_provision)
+	servDockerIgnore=(.dockerignore.common .dockerignore.provision)
 
-count=0
-echo "services: ${services[@]}"
-for service in "${services[@]}"
-do
-    echo "Building $service image..."
-    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-    docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
-    errorCode=`echo $?`
-    if [ $errorCode != "0" ]; then
-        echo "docker-compose build failed for $service..."
-        exit -1
-    fi
-    count=$((count+1))
-done
+	count=0
+	echo "services: ${services[@]}"
+	for service in "${services[@]}"
+	do
+	    echo "Building $service image..."
+	    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
+	    docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+	    errorCode=`echo $?`
+	    if [ $errorCode != "0" ]; then
+		echo "docker-compose build failed for $service..."
+		exit -1
+	    fi
+	    count=$((count+1))
+	done
+fi
 
 echo "3. Creating and starting the provisioning containers..."
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML up
