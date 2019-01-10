@@ -123,28 +123,31 @@ Hence Exiting. Please modify config.json and try again")
 
 
 if __name__ == '__main__':
-    args = parse_args()
-
-    output = subprocess.check_output(["hostname", "-I"])
-    output = output.decode('utf-8')
-
-    hostIp = output.split(" ")[0]
-    print("**HostIp to be added to imagestore and opcua server certs**: ", 
+    try:
+        args = parse_args()
+        
+        output = subprocess.check_output(["hostname", "-I"])
+        output = output.decode('utf-8')
+        
+        hostIp = output.split(" ")[0]
+        print("**HostIp to be added to imagestore and opcua server certs**: ", 
           hostIp)
 
-    if args.dns is None:
-        args.dns = hostIp
+        if args.dns is None:
+            args.dns = hostIp
 
-    if args.clean is True:
-        clean()
-        exit(1)
-    elif args.dns and args.rootca_path:
-        root_ca_dir = args.rootca_path
-        paths.root_ca_dir_name = root_ca_dir
-        process_config(args.dns, False)   # root CA not needed
-    elif args.dns and not args.rootca_path:
-        process_config(args.dns)
-    elif not args.dns and args.rootca_path:
-        process_config(args.dns)
-    else:
-        process_config()
+        if args.clean is True:
+            clean()
+            exit(1)
+        elif args.dns and args.rootca_path:
+            root_ca_dir = args.rootca_path
+            paths.root_ca_dir_name = root_ca_dir
+            process_config(args.dns, False)   # root CA not needed
+        elif args.dns and not args.rootca_path:
+            process_config(args.dns)
+        elif not args.dns and args.rootca_path:
+            process_config(args.dns)
+        else:
+            process_config()
+    except Exception as err:
+        print("Exception Occured in certificates generation" + str(err))

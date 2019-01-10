@@ -179,11 +179,17 @@ def generate_root_ca(opts):
 
 
 def generate_server_certificate_and_key_pair(key, opts):
-    generate_certificate_and_key_pair(key, "server", opts)
+    try:
+        generate_certificate_and_key_pair(key, "server", opts)
+    except Exception as err:
+        raise err
 
 
 def generate_client_certificate_and_key_pair(key, opts):
-    generate_certificate_and_key_pair(key, "client", opts)
+    try:
+        generate_certificate_and_key_pair(key, "client", opts)
+    except Exception as err:
+        raise err
 
 
 def generate_certificate_and_key_pair(key, peer, opts,
