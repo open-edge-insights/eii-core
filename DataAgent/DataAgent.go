@@ -24,6 +24,7 @@ import (
 	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
 	stm "ElephantTrunkArch/StreamManager"
 	util "ElephantTrunkArch/Util"
+	cpuidutil "ElephantTrunkArch/Util/cpuid"
 	inflxUtil "ElephantTrunkArch/Util/influxdb"
 
 	"github.com/golang/glog"
@@ -113,6 +114,12 @@ func initializeInfluxDB() error {
 func main() {
 
 	flag.Parse()
+
+	vendor_name := cpuidutil.Cpuid()
+	if vendor_name != "GenuineIntel" {
+		glog.Infof("*****Software runs only on Intel's hardware*****")
+		os.Exit(-1)
+	}
 
 	defer glog.Flush()
 	if len(os.Args) < 1 {
