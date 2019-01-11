@@ -22,14 +22,15 @@ SOFTWARE.
 */
 
 #include "cpuid-check.h"
+#define DEST_SIZE 13
 
 char* get_vendor(){	
 	uint32_t regs[4];
 	static char vendor[13];
 	asm volatile ("cpuid":"=a" (regs[0]), "=b" (regs[1]), "=c" (regs[3]), "=d" (regs[2]) : "a" (0), "c" (2));
-	memcpy(vendor, &regs[1], 4);
-	memcpy(vendor+4, &regs[2], 4);
-	memcpy(vendor+8, &regs[3], 4);
+	memcpy_s(vendor, DEST_SIZE, &regs[1], 4);
+	memcpy_s(vendor+4, DEST_SIZE, &regs[2], 4);
+	memcpy_s(vendor+8, DEST_SIZE, &regs[3], 4);
 	vendor[12] = '\0';
 	return vendor;
 }

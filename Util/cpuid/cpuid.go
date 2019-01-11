@@ -12,7 +12,7 @@ package cpuid
 
 /*
 #cgo CFLAGS: -I .
-#cgo LDFLAGS: -L . -lCpuidCheck
+#cgo LDFLAGS: -L . -lCpuidCheck -lsafestring
 
 #include "cpuid-check.h"
 */
