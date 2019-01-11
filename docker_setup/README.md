@@ -59,6 +59,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 3. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
+4. Make sure host machine and docker daemon are configured with below security recommendations. [docker_security_recommendation.md](docker_security_recommendation.md)
+   Note: This step is required for the final production setup for full security.
+
 ### ** ETA pre-requisites **
 
 1. Copy the PCB demo test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
