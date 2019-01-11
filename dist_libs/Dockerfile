@@ -11,6 +11,7 @@ RUN apt-get install -y pkg-config python python-pip
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
 RUN apt-get install -y python3.6 python3.6-dev wget
+RUN apt-get install -y git
 
 ENV TERM xterm
 RUN wget https://bootstrap.pypa.io/get-pip.py
