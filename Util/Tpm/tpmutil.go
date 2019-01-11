@@ -21,7 +21,7 @@ const (
 	outDir   = "/ETA/tpm_secret/"
 	tpmAddr  = "0x81010001"
 	pcrBank  = "sha256:"
-	pcrIndex = "7,8"
+	pcrIndex = "7,8,9"
 )
 
 // execCmd - Executes command in the shell

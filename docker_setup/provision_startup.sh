@@ -50,7 +50,6 @@ if [ "$TPM_ENABLE" = "true" ]
 then
 	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
 	chown $ETA_USER_NAME /dev/tpm0
-	chown $ETA_USER_NAME /dev/tpmrm0
 fi
 
 echo "1. Removing previous eta/provisioning containers if existed..."

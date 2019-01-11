@@ -49,7 +49,6 @@ pre_build_steps() {
 		# root group based users unaffected and keep the host machine setting change minimal.
 		# TODO: Revert the changes the after the TPM read is over forever.
 		chown $ETA_USER_NAME /dev/tpm0
-		chown $ETA_USER_NAME /dev/tpmrm0
 	fi
 
 	echo "0.6 Get docker Host IP address and write it to .env"

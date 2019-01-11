@@ -4,4 +4,3 @@ services:
   ia_data_agent:
     devices:
       - "/dev/tpm0:/dev/tpm0"
-      - "/dev/tpmrm0:/dev/tpmrm0"
