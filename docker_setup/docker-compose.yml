@@ -62,7 +62,6 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-        ETA_UID: ${ETA_UID}
     image: ia/pybase:${ETA_VERSION}
     depends_on:
       - ia_log_rotate

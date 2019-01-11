@@ -85,11 +85,17 @@ build_iei() {
 	do
 	    echo "Building $service image..."
 	    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-	    docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
-	    errorCode=`echo $?`
+
+	    if [ "$service" == "ia-gobase" ] || [ "$service" == "ia-pybase" ]; then
+	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+	    else
+	        docker-compose $OVERRIDE_COMPOSE_YML build $service
+	    fi
+
+		errorCode=`echo $?`
 	    if [ $errorCode != "0" ]; then
-		echo "docker-compose build failed for $service..."
-		exit -1
+	        echo "docker-compose build failed for $service..."
+	        exit -1
 	    fi
 	    count=$((count+1))
 	done

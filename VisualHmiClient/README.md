@@ -52,7 +52,7 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
   * Building and Running VisualHmiClient as a container (**present working dir - ElephantTrunckArch repo_dir**)
 
       ```sh
-      sudo ./build_and_run_visualhmiclient.sh ETA_IP_ADDR=[ETA_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]
+      sudo VisualHmiClient/build_and_run_visualhmiclient.sh ETA_IP_ADDR=[ETA_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]
 
       where ETA_IP_ADDR refers to system's IP on which ETA is running on
             IMG_DIR refers to the image dir where the images are stored on the host

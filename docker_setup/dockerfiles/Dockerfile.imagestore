@@ -2,8 +2,6 @@
 ARG ETA_VERSION
 FROM ia/gobase:$ETA_VERSION
 
-ARG HOST_TIME_ZONE=""
-
 ENV GO_WORK_DIR /ETA/go/src/ElephantTrunkArch
 ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
 WORKDIR ${GO_WORK_DIR}
@@ -90,11 +88,6 @@ ARG MINIO_VERSION
 RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
 RUN mv minio.${MINIO_VERSION} minio
 RUN chmod +x minio
-
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
-RUN dpkg-reconfigure -f noninteractive tzdata
 
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore

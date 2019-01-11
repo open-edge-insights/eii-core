@@ -1,5 +1,7 @@
 FROM ubuntu:16.04
 
+ARG HOST_TIME_ZONE=""
+
 USER root
 WORKDIR /eta
 
@@ -16,6 +18,13 @@ RUN apt-get install -y git
 ENV TERM xterm
 RUN wget https://bootstrap.pypa.io/get-pip.py
 RUN python3.6 get-pip.py
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone
+RUN cat /etc/timezone
+RUN apt-get install -y tzdata
+RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
+RUN dpkg-reconfigure -f noninteractive tzdata
 
 ADD VisualHmiClient/requirements.txt ./VisualHmiClient/requirements.txt
 RUN pip install -r VisualHmiClient/requirements.txt
