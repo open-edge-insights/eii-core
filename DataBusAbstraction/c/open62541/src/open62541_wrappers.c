@@ -377,7 +377,7 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
             UA_String str = *(UA_String*)value->data;
             if (userCallback) {
                 char subscribedData[PUBLISH_DATA_SIZE];
-                sprintf(subscribedData, "%.*s", (int) str.length, str.data);
+                strcpy_s(subscribedData, PUBLISH_DATA_SIZE, str.data);
                 userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");

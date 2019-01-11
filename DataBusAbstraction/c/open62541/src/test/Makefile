@@ -15,7 +15,6 @@ prebuild:
 	cp -f libsafestring.a ../
 
 build: clean prebuild
-	@clear
 	@echo "Building the open62541 test file.."
 	gcc $(CFLAGS) $(INCLUDE) open62541_test.c \
 	$(CPATH)/open62541_wrappers.c $(CPATH)/open62541.c -L. -lsafestring -lmbedtls -lmbedx509 -lmbedcrypto -pthread \

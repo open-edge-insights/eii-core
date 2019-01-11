@@ -3,7 +3,6 @@ CPATH = ../../c/open62541/src
 default: build
 
 build: clean
-	@clear
 	@echo "Creating open62541W.so file..."
 	python3.6 setup.py build_ext -i
 
