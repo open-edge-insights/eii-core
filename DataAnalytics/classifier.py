@@ -114,6 +114,10 @@ class ConnHandler(Handler):
         img_handles = img_handles.split(",")
         img_handle = img_handles[0] # First one is in-mem
 
+        if img_handle is None:
+            self.logger.error('Input point doesnt have image')
+            return
+
         img_height = point.fieldsInt['Height']
         img_width = point.fieldsInt['Width']
         img_channels = point.fieldsInt['Channels']
@@ -162,7 +166,13 @@ class ConnHandler(Handler):
                 response.point.fieldsDouble['Width'] = img_width
                 response.point.fieldsDouble['Channels'] = img_channels
                 # Send only the persistent handle to export
-                response.point.fieldsString["ImgHandle"] = img_handles[1]
+                if len(img_handles) > 1:
+                    response.point.fieldsString["ImgHandle"] = img_handles[1]
+                else:
+                    # Persistent handle not available.
+                    self.logger.info('Persistent handle not found. Sending \
+                                     inmem handle to export')
+                    response.point.fieldsString["ImgHandle"] = img_handles[0]
 
             response.point.time = int(time.time()*TIME_MULTIPLIER_NANO)
             self._agent.write_response(response, True)
