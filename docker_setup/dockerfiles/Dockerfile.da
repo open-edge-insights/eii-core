@@ -137,23 +137,34 @@ RUN mkdir -p /etc/ssl/opcua/
 RUN mkdir -p /etc/ssl/streammanager/
 RUN mkdir -p /etc/ssl/ca/
 
+# Building safestringlib
+ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
+RUN	git clone https://github.com/intel/safestringlib.git && \
+	cd safestringlib && \
+	git checkout ${SAFESTRING_VER} && \
+    make
+
 ADD DataAgent ./DataAgent
+ADD Util ./Util
+ADD DataBusAbstraction/ ./DataBusAbstraction/
+
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
-ADD Gopkg.toml ./
-ADD Gopkg.lock ./
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 RUN mkdir -p ./vault/file
 
-ADD DataBusAbstraction ./DataBusAbstraction
-ADD Util ./Util
+# Copying safestringlib to DataBusAbstraction and Util
+RUN cd safestringlib && \
+    cp -rf libsafestring.a ${GO_WORK_DIR}/DataBusAbstraction/go && \
+    cp -rf libsafestring.a ${GO_WORK_DIR}/DataBusAbstraction/c/open62541/src && \
+    cp -rf libsafestring.a ${GO_WORK_DIR}/Util/cpuid
 
 # building libopen62541W.a for cgo
 RUN cd DataBusAbstraction/go/test && \
-    make build_lib
+    make build_lib_for_docker
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
-    
+
 RUN cd Util/cpuid && \
     make
 

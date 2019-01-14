@@ -4,23 +4,23 @@
 make build
 ```
 
-# Start server, publish and destroy
+# Start publisher, publish and destroy
 
 ```sh
-make server
+make pub
 ```
 
-# Start client, subscribe and destroy
+# Start subscriber, subscribe and destroy
 
 1. Passing the same ca_cert.der that was used to sign the server certificate used for
-   started the server above
+   started the publisher above
 
 ```sh
-make client
+make sub
 ```
 
 2. Passing the different ca_cert.der that was `not` used to sign the server certificate used for
-   started the server above
+   started the publisher above
 
 ```sh
 make invalid_client

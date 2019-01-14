@@ -1,31 +1,38 @@
+CURDIR = $(shell pwd)
+SAFESTRING_DIR = safestringlib
+SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
 CPATH = ..
 CFLAGS = -std=c99
 INCLUDE = -I../../include
 SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua
-CA_CERTS = /etc/ssl/grpc_internal
+CA_CERTS = /etc/ssl/ca
 INVALID_CERTS = invalid_certs
 
-prebuild:
+prebuild: clean
+	@echo "Clone the safestringlib if not cloned already..."
 	git clone https://github.com/intel/safestringlib.git && \
-	cd safestringlib/ && \
+	cd $(SAFESTRING_DIR) && \
+	git checkout $(SAFESTRING_VER) && \
 	make && \
 	cp -f libsafestring.a ../../ && \
 	cp -f libsafestring.a ../../../../../go/ && \
-	cp -f libsafestring.a ../
+	cp -f libsafestring.a ../ && \
+	cd $(CURDIR) && \
+	rm -rf $(SAFESTRING_DIR)
 
-build: clean prebuild
+build: prebuild
 	@echo "Building the open62541 test file.."
 	gcc $(CFLAGS) $(INCLUDE) open62541_test.c \
 	$(CPATH)/open62541_wrappers.c $(CPATH)/open62541.c -L. -lsafestring -lmbedtls -lmbedx509 -lmbedcrypto -pthread \
 	-o open62541_test && pwd
 
-server: build
+pub: build
 	@echo "Start server, publish and destroy..."
 	./open62541_test server $(SERVER_CERTS)/opcua_server_certificate.der \
 	                        $(SERVER_CERTS)/opcua_server_key.der \
 							$(CA_CERTS)/ca_certificate.der
-client: build
+sub: build
 	@echo "Start client, subscribe and destroy..."
 	./open62541_test client $(CLIENT_CERTS)/opcua_client_certificate.der \
 	                        $(CLIENT_CERTS)/opcua_client_key.der \
@@ -39,4 +46,4 @@ invalid_client: build
 
 clean:
 	@echo "Removing all the binary files..."
-	rm -rf open62541_test libsafestring.a $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o safestringlib
+	rm -rf open62541_test libsafestring.a $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CURDIR)/safestringlib

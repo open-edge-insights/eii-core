@@ -92,13 +92,21 @@ RUN chmod +x minio
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore
 
+# Building safestringlib
+ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
+RUN	git clone https://github.com/intel/safestringlib.git && \
+	cd safestringlib && \
+	git checkout ${SAFESTRING_VER} && \
+    make
+
 WORKDIR /ETA/go/src/ElephantTrunkArch
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
 
-RUN cd Util/cpuid/gen_safestring && \
-    make
+# Copying safestringlib to DataBusAbstraction and Util
+RUN cd safestringlib && \
+    cp -rf libsafestring.a ${GO_WORK_DIR}/Util/cpuid
 
 RUN cd Util/cpuid && \
     make

@@ -32,11 +32,13 @@ RUN pip install -r VisualHmiClient/requirements.txt
 # tls, crypto library needs to open62541
 RUN apt-get install -y libmbedtls-dev
 
+ADD DataBusAbstraction/py/databus_requirements.txt databus_requirements.txt
+RUN pip3.6 install -r databus_requirements.txt
+
 ADD DataBusAbstraction/ DataBusAbstraction/
 
 # Build the opent62541W.so file
-RUN cd /eta/DataBusAbstraction/py && \
-    pip3.6 install -r databus_requirements.txt && \
+RUN cd DataBusAbstraction/py && \
     cd test && \
     make build
 ADD algos/__init__.py algos/__init__.py

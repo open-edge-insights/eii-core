@@ -1,31 +1,47 @@
+CURDIR = $(shell pwd)
+SAFESTRING_DIR = safestringlib
+SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
+DBA_PATH = ../../../DataBusAbstraction
+CERT_DIR_PATH = $(DBA_PATH)/cert-tool/Certificates
 CPATH = ../../c/open62541/src
 CFLAGS = -std=c99
 INCLUDE = -I../include
 SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua
-CA_CERTS = /etc/ssl/grpc_internal
+CA_CERTS = /etc/ssl/ca
 INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
 
-prebuild:
-	git clone https://github.com/intel/safestringlib.git && \
-	cd safestringlib/ && \
-	make && \
-	cp -rf libsafestring.a ../ && \
-	cp -rf libsafestring.a ../../ && \
-	cp -rf libsafestring.a ../../../c/open62541/src/
-
-build_lib: clean prebuild
+define build_dependencies
 	@echo "Building the open62541 wrapper library libopen62541W.a.."
 	cd $(CPATH) && gcc $(CFLAGS) $(INCLUDE) -c open62541_wrappers.c && gcc $(CFLAGS) $(INCLUDE) -c open62541.c && \
 	ar crU libopen62541W.a open62541_wrappers.o open62541.o && ar crU libsafestring.a open62541_wrappers.o open62541.o && \
 	cp -rf libsafestring.a ../../../../Util/cpuid/ && \
 	rm -rf open62541_wrappers.o open62541.o && \
 	pwd
+endef
+
+prebuild: clean
+	@echo "Clone the safestringlib if not cloned already..."
+	git clone https://github.com/intel/safestringlib.git && \
+	cd $(SAFESTRING_DIR) && \
+	git checkout $(SAFESTRING_VER) && \
+	make && \
+	cp -rf libsafestring.a ../ && \
+	cp -rf libsafestring.a ../../ && \
+	cp -rf libsafestring.a ../../../c/open62541/src/ && \
+	cd $(CURDIR) && \
+	rm -rf $(SAFESTRING_DIR)
+
+build_lib: prebuild
+	$(call build_dependencies)
 
 build: clean build_lib
 
 	@echo "Building the DataBusTest.go file"
 	go build DataBusTest.go
+
+build_lib_for_docker:
+	$(call build_dependencies)
 
 pub: build
 	@echo "Starting the opcua server and start publishing the data.."
@@ -53,4 +69,5 @@ invalid_sub: build
 
 clean:
 	@echo "Removing all the binary files..."
-	rm -rf DataBusTest cgo $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CPATH)/libopen62541W.a safestringlib libsafestring.a
+	rm -rf DataBusTest cgo $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CPATH)/libopen62541W.a
+	rm -rf $(CURDIR)/safestringlib
