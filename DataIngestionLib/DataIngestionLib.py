@@ -149,19 +149,6 @@ class DataIngestionLib:
     If the data contains buffer, it stores the buffer into the image store
     and saves the handle in database.'''
 
-    def create_influx_client(self):
-        srcFiles = [CA_CERT]
-        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-        create_decrypted_pem_files(srcFiles, filesToDecrypt)
-
-        self.influx_c = InfluxDBClient(self.config["Host"],
-                                       self.config["Port"],
-                                       self.config["UserName"],
-                                       self.config["Password"],
-                                       self.config["DBName"],
-                                       True if self.config["Ssl"] == "True"
-                                       else False, filesToDecrypt[0])
-
     def __init__(self, storage_type='inmemory', log_level=logging.INFO):
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger('data_ingestion')
@@ -174,7 +161,7 @@ class DataIngestionLib:
 
         # Creates the influxDB client handle.
         try:
-            self.create_influx_client()
+            self._create_influx_client()
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
@@ -200,24 +187,35 @@ class DataIngestionLib:
         '''Saves the Data Point. Internally sends the data point to InfluxDB'''
         try:
             return self._send_data_to_influx(dp.data_point)
-        except Exception as e:
-           # raise DAException("Seems to be some issue with InfluxDB." +
-           #                   "Exception: {0}".format(e))
-           self.reconnect_to_influx()
+        except Exception:
+            self._reconnect_to_influx()
 
-    def reconnect_to_influx(self):
+    def _create_influx_client(self):
+        srcFiles = [CA_CERT]
+        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+        create_decrypted_pem_files(srcFiles, filesToDecrypt)
+
+        self.influx_c = InfluxDBClient(self.config["Host"],
+                                       self.config["Port"],
+                                       self.config["UserName"],
+                                       self.config["Password"],
+                                       self.config["DBName"],
+                                       True if self.config["Ssl"] == "True"
+                                       else False, filesToDecrypt[0])
+
+    def _reconnect_to_influx(self):
         '''Reconnects to the influx server.Retry logic added '''
         i = 0
         while i in range(RETRY_COUNT_INFLUX_CLI):
             try:
                 self.log.info("Attempting to reconnect to influx-server ")
-                self.create_influx_client()
+                self._create_influx_client()
                 if self.influx_c.ping():
                     self.log.info("InfluxDB handle created successfully.")
                     break
                 Time.sleep(1)
                 i = i + 1
-            except Exception as err:
+            except Exception:
                 pass
 
     def _send_data_to_influx(self, data_point):
