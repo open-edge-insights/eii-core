@@ -143,7 +143,7 @@ def uninstall_eta():
     for i in uninstall_list:
         print("Removing "+i+" ...")
         if i == "/opt/intel/eta/":
-            keepers = ['secret_store']
+            keepers = ['secret_store', 'tpm_secret']
             for filename in os.listdir('.'):
                 if filename not in keepers:
                     print('Removing %s' % (filename,))
