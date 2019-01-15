@@ -19,16 +19,22 @@ RUN apt-get install -y cmake g++ build-essential
 # is obeyed and just "name" value is not used for deducing the
 # repo (https://github.com/golang/dep/pull/1857/commits)
 
-RUN go get -v github.com/golang/glog && \
-    cd ${GOPATH}/src/github.com/golang/glog && \
+ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
+RUN mkdir -p ${GLOG_GO_PATH} && \
+    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
+    cd ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 
-RUN go get -v github.com/go-redis/redis && \
-    cd ${GOPATH}/src/github.com/go-redis/redis && \
+ENV REDIS_GO_PATH ${GOPATH}/src/github.com/go-redis/redis
+RUN mkdir -p ${REDIS_GO_PATH} && \
+    git clone https://github.com/go-redis/redis ${REDIS_GO_PATH} && \
+    cd ${REDIS_GO_PATH} && \
     git checkout -b v6.14.1 tags/v6.14.1
 
-RUN go get -v github.com/google/uuid && \
-    cd ${GOPATH}/src/github.com/google/uuid && \
+ENV UUID_GO_PATH ${GOPATH}/src/github.com/google/uuid
+RUN mkdir -p ${UUID_GO_PATH} && \
+    git clone https://github.com/google/uuid ${UUID_GO_PATH} && \
+    cd ${UUID_GO_PATH} && \
     git checkout -b known_version 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
 
 ENV PROTOBUF_GO_PATH ${GOPATH}/src/github.com/golang/protobuf
@@ -67,8 +73,28 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-RUN go get -v github.com/minio/minio-go && \
-    cd ${GOPATH}/src/github.com/minio/minio-go && \
+ENV GO_INI_PATH ${GOPATH}/src/github.com/go-ini/ini
+RUN mkdir -p ${GO_INI_PATH} && \
+    git clone https://github.com/go-ini/ini ${GO_INI_PATH} && \
+    cd ${GO_INI_PATH} && \
+    git checkout -b known_version 6ed8d5f64cd79a498d1f3fab5880cc376ce41bbe
+
+ENV GO_X_HOMEDIR ${GOPATH}/src/github.com/mitchellh/go-homedir
+RUN mkdir -p ${GO_X_HOMEDIR} && \
+    git clone https://github.com/mitchellh/go-homedir ${GO_X_HOMEDIR} && \
+    cd ${GO_X_HOMEDIR} && \
+    git checkout -b known_version ae18d6b8b3205b561c79e8e5f69bff09736185f4
+
+ENV GO_X_CRYPTO ${GOPATH}/src/golang.org/x/crypto
+RUN mkdir -p ${GO_X_CRYPTO} && \
+    git clone https://github.com/golang/crypto ${GO_X_CRYPTO} && \
+    cd ${GO_X_CRYPTO} && \
+    git checkout -b known_version ff983b9c42bc9fbf91556e191cc8efb585c16908
+
+ENV MINIO_GO_PATH ${GOPATH}/src/github.com/minio/minio-go
+RUN mkdir -p ${MINIO_GO_PATH} && \
+    git clone https://github.com/minio/minio-go ${MINIO_GO_PATH} && \
+    cd ${MINIO_GO_PATH} && \
     git checkout -b  v6.0.10 tags/v6.0.10
 
 # Setting timezone inside the container
@@ -91,6 +117,10 @@ RUN chmod +x minio
 
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore
+
+# These flags are needed for enabling security while compiling and linking with open62541, cpuidcheck in golang
+ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
+ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
 # Building safestringlib
 ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9

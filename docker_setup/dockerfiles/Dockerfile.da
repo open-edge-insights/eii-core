@@ -12,20 +12,23 @@ RUN apt-get install -y cmake g++ build-essential
 # TODO: Use dep tool itself in future once the "source" value
 # is obeyed and just "name" value is not used for deducing the
 # repo (https://github.com/golang/dep/pull/1857/commits)
-RUN go get -v github.com/BurntSushi/toml && \
-    cd ${GOPATH}/src/github.com/BurntSushi/toml && \
+
+ENV TOML_GO_PATH ${GOPATH}/src/github.com/BurntSushi/toml
+RUN mkdir -p ${TOML_GO_PATH} && \
+    git clone https://github.com/BurntSushi/toml ${TOML_GO_PATH} && \
+    cd ${TOML_GO_PATH} && \
     git checkout -b v0.3.0 tags/v0.3.0
 
-RUN go get -v github.com/golang/glog && \
-    cd ${GOPATH}/src/github.com/golang/glog && \
+ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
+RUN mkdir -p ${GLOG_GO_PATH} && \
+    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
+    cd ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 
-RUN go get -v github.com/go-redis/redis && \
-    cd ${GOPATH}/src/github.com/go-redis/redis && \
-    git checkout -b v6.14.1 tags/v6.14.1
-
-RUN go get -v github.com/google/uuid && \
-    cd ${GOPATH}/src/github.com/google/uuid && \
+ENV UUID_GO_PATH ${GOPATH}/src/github.com/google/uuid
+RUN mkdir -p ${UUID_GO_PATH} && \
+    git clone https://github.com/google/uuid ${UUID_GO_PATH} && \
+    cd ${UUID_GO_PATH} && \
     git checkout -b known_version 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
 
 ENV PROTOBUF_GO_PATH ${GOPATH}/src/github.com/golang/protobuf
@@ -64,21 +67,24 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-RUN go get -v github.com/eclipse/paho.mqtt.golang && \
-    cd ${GOPATH}/src/github.com/eclipse/paho.mqtt.golang && \
+ENV PAHO_MQTT_GO_PATH ${GOPATH}/src/github.com/eclipse/paho.mqtt.golang
+RUN mkdir -p ${PAHO_MQTT_GO_PATH} && \
+    git clone https://github.com/eclipse/paho.mqtt.golang ${PAHO_MQTT_GO_PATH} && \
+    cd ${PAHO_MQTT_GO_PATH} && \
     git checkout -b v1.1.1 tags/v1.1.1
 
-RUN go get -v github.com/influxdata/influxdb && \
-    cd ${GOPATH}/src/github.com/influxdata/influxdb && \
+ENV INFLUXDB_GO_PATH ${GOPATH}/src/github.com/influxdata/influxdb
+RUN mkdir -p ${INFLUXDB_GO_PATH} && \
+    git clone https://github.com/influxdata/influxdb ${INFLUXDB_GO_PATH} && \
+    cd ${INFLUXDB_GO_PATH} && \
     git checkout -b v1.6.0 tags/v1.6.0
 
-RUN go get -v github.com/minio/minio-go && \
-    cd ${GOPATH}/src/github.com/minio/minio-go && \
-    git checkout -b  v6.0.10 tags/v6.0.10
-
-RUN go get -v github.com/hashicorp/vault && \
-    cd  ${GOPATH}/src/github.com/hashicorp/vault && \
-    git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2
+ENV VAULT_GO_PATH ${GOPATH}/src/github.com/hashicorp/vault
+RUN mkdir -p ${VAULT_GO_PATH} && \
+    git clone https://github.com/hashicorp/vault ${VAULT_GO_PATH} && \
+    cd  ${VAULT_GO_PATH} && \
+    git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2 && \
+    go install
 
 # tls, crypto library needs to open62541
 RUN apt-get update && \
@@ -90,7 +96,7 @@ RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION
     dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
     rm -rf influxdb_${INFLUXDB_VERSION}_amd64.deb
 
-# These flags are needed for security for compiling and linking with open62541
+# These flags are needed for enabling security while compiling and linking with open62541, cpuidcheck in golang
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
