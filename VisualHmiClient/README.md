@@ -64,7 +64,9 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
     >   as this is essential to provide the imagestore, opcua and ca certs to VisualHmiClient container via volume mount
 
   * Follow [VisualHmiCleaner/README.md](VisualHmiCleaner/README.md) to start VisualHmiCleaner    
-    docker container utility to clear the classified images stored on the disk & postgresql entries where the classified results metadata is stored.
+    docker container utility to clear the classified images stored on the disk & postgresql entries where the classified results metadata is stored. If you just want to natively run some script to delete the classified images directory periodically, then you could use
+    `sudo ./cleanup_visualhmi_dir.sh [full_path_to_saved_images_dir]`. Ensure that the directory provided here is same as the one that is in the 
+    `config.json` as used by VisualHmiClient container.
 
   * Stopping VisualHmi Container
   ```sh
