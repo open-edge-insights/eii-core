@@ -83,9 +83,4 @@ VisualHmiClient is a datasync app (basically a gRPC/OPCUA client) which takes in
 
 #### Installing VisualHmi refinement backend and frontend apps
 
-Please follow the [VisualHMI EdgeServer Setup guide](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/wiki/VisualHmi-EdgeServer-Setup) to setup VisualHmi backend and frontend apps (Only needed if one wants to see the classified images in a Web UI with defective areas highlighted which cannot be seen on the images that are stored on disk in the EdgeServer at the location dumped by VisualHmiClient).
-
-> **Note**: There is a dockerized version of VisualHmi available for refinement backend/frontend   
->           apps. We should have a startup script to bring up the VisualHmi stack (VisualHmiClient
->           and VisualHmi refinement app backend/frontend apps) for easier
->           configuration/installation.
+Please follow the [VisualHMI Refinement App Setup](https://github.intel.com/ElephantTrunkArch/HMI-Docker/blob/master/README.md) to setup VisualHmi backend and frontend apps (Only needed if one wants to see the classified images in a Web UI with defective areas highlighted which cannot be seen on the images that are stored on disk in the EdgeServer at the location dumped by VisualHmiClient).
