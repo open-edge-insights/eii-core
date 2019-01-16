@@ -118,9 +118,7 @@ up_iei() {
 		docker-compose $OVERRIDE_COMPOSE_YML up &> $etaLogDir/consolidatedLogs/eta.log
 	else
 		echo "3. Creating and starting the dependency/eta containers..."
-		docker-compose $OVERRIDE_COMPOSE_YML up -d
-		#Logging the docker compose logs to file.
-		docker-compose logs -f &> $etaLogDir/consolidatedLogs/eta.log &
+		docker-compose $OVERRIDE_COMPOSE_YML up &> $etaLogDir/consolidatedLogs/eta.log &
 	fi
 }
 
