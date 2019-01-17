@@ -7,6 +7,7 @@ ADD VideoIngestion/basler-video-capture ./basler-video-capture
 
 # Adding basler camera's essentials by referring it's repo's README
 RUN cd basler-video-capture/libs && \
+    wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
     tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
     cd pylon-5.1.0.12682-x86_64 && \
     pip3.6 install numpy && \
