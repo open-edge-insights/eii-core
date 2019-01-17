@@ -91,8 +91,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
-5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature.
-    1. `true` -  for enabling the tpm
+5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the ETA is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
+    1. `true` -  for enabling the tpm to store credentials
     2. `false` - for disabling the tpm
 
     **NOTE**: Please use TPM_ENABLE=true only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
@@ -110,15 +110,15 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             Run the script:
             ```sh
-            provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-                E.g. provision_startup.sh ../cert-tool/Certificates/
+            sudo provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
+                E.g. sudo provision_startup.sh ../cert-tool/Certificates/
             ```
             This will take the inputs from `provision_config.json` & certificates, following which it seal the secrets into the Vault.
             It is responsibility of the Admin to remove the source directory wherein certificates exist.
 
             **Note**: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
             ```sh
-            sudo rm -rf /opt/intel/eta/secret_store
+            <Take back up of image store, influx or any other data if it is needed in future because provisioning steps deletes all of it>
             <Update the new values into provision_config.json & custom certificates directory if necessary>
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
@@ -127,7 +127,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```sh
             sudo ./compose_startup.sh | tee compose_startup.txt
             ```
-            This script will build all the ETA containers and run them using the docker-compose.
+            This script will build all the ETA containers and run them using the docker-compose.  A User executing, ***setup_eta.py*** script (explained in following paragraphs) for installing ETA, doesn't need to exeercise ***compose_startup.sh*** script. This is because stanalone execution of ***compose_startup.sh*** script  is purely for a developement machine based ETA set-up process.
+
             Verify all ETA containers coming up and working by following the Post Installation Verification steps.
 
             <Optional>
@@ -140,7 +141,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo systemctl stop eta
             sudo systemctl start eta
             ```
-        4. This is an optional step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful when one wants to deploy docker images directly instead of building in every system.
+        4. This is an optional step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the ETA.
 
             Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
             ```sh
@@ -178,7 +179,7 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
     * Provisioning containers: provision (`ia_provision`)
     * Dependency containers: log rotate (`ia_log_rotate`)
     * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
-      Data Analytics (`ia_data_analytics`) and Factory Control App (`ia_factoryctrl_app`)
+      Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
 
 3. Installation directory - `/opt/intel/eta` root directory details:
      * `config/` - all the ETA configs reside here.
@@ -189,6 +190,7 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
             * py - consists of gRPC py client wrappers, protobuff files and example programs
         * `DataBusAbstraction` -
             * py - consists of opcua py client wrappers and example programs
+     * `secret_store/` - This is the vault's persistent storage wherein ETA secrets are stored in encrypted fashion. This directory is recreated on every provision step.
 
 > Note:
 1. Few useful docker-compose and docker commands:

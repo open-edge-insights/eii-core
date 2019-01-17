@@ -32,7 +32,7 @@ else
 	source ./init.sh
 fi
 
-echo "0.3 Deleting any pre-provisioned or tampered vault server before proceeding..."
+echo "0.3 Deleting any pre-provisioned vault data before proceeding..."
 rm -rf $ETA_INSTALL_PATH/secret_store
 
 echo "0.4 Updating .env for container timezone..."
@@ -55,6 +55,9 @@ fi
 echo "1. Removing previous eta/provisioning containers if existed..."
 docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
+
+echo "Remove the influx/imagestore data..."
+rm -rf $ETA_INSTALL_PATH/data
 
 if [ "$2" != "deploy_mode" ]
 then
