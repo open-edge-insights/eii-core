@@ -11,6 +11,6 @@ freq=300
 while true
 do
     sleep $freq # sleep for 5 mins
-    echo "Deleting $folder every $freq secs....."
+    echo "Deleting $1 every $freq secs....."
     rm -rf $1/*
 done
