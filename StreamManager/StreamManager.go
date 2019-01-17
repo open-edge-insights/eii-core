@@ -19,6 +19,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	util "ElephantTrunkArch/Util"
 	influxDBHelper "ElephantTrunkArch/Util/influxdb"
@@ -33,7 +34,8 @@ var opcuaDatab databus.DataBus
 var StrmDaCfg config.DAConfig
 
 const (
-	subscriptionName = "StreamManagerSubscription"
+	subscriptionName  = "StreamManagerSubscription"
+	maxPointsBuffered = 10
 )
 
 var opcuaContext = map[string]string{
@@ -62,6 +64,7 @@ type StrmMgr struct {
 	MeasurementPolicy map[string]bool            //This DS to map policy name with action
 	MsrmtTopicMap     map[string]OutStreamConfig //A map of mesurement to topic
 	OpcuaPort         string
+	pData             chan string // The point data from Influx DB
 }
 
 // OutStreamConfig type
@@ -130,32 +133,38 @@ func convertToJSON(data string) string {
 	return jsonStr
 }
 
-func (pStrmMgr *StrmMgr) handlePointData(buf string) error {
-	var err error
+func (pStrmMgr *StrmMgr) handlePointData() {
 	var jsonBuf string
-	err = nil
 
-	point := strings.Split(buf, " ")
-	// It can have tag attached to it, let's split them too.
-	msrTagsLst := strings.Split(point[0], ",")
+	for {
+		// Wait for data in point data buffer
+		buf := <-pStrmMgr.pData
 
-	// Only allowing the measurements that are known to StreamManager
-	for key, val := range pStrmMgr.MsrmtTopicMap {
-		if key == msrTagsLst[0] {
-			glog.Infof("measurement and tag list: %s\n", msrTagsLst)
-			// Publish only if a proper databus context available
-			if opcuaDatab != nil {
-				topicConfig := map[string]string{
-					"name": val.Topic,
-					"type": "string",
+		point := strings.Split(buf, " ")
+		// It can have tag attached to it, let's split them too.
+		msrTagsLst := strings.Split(point[0], ",")
+
+		// Only allowing the measurements that are known to StreamManager
+		for key, val := range pStrmMgr.MsrmtTopicMap {
+			if key == msrTagsLst[0] {
+				glog.Infof("Publishing topic: %s\n", msrTagsLst)
+				// Publish only if a proper databus context available
+				if opcuaDatab != nil {
+					topicConfig := map[string]string{
+						"name": val.Topic,
+						"type": "string",
+					}
+
+					jsonBuf = convertToJSON(buf)
+					databPublish(topicConfig, jsonBuf)
 				}
-
-				jsonBuf = convertToJSON(buf)
-				databPublish(topicConfig, jsonBuf)
 			}
 		}
+
+		// HACK: Wait for 500ms before accepting next point.
+		// To be removed once open62541 refCount issue is resolved.
+		time.Sleep(500 * time.Millisecond)
 	}
-	return err
 }
 
 // Init func subscribes to InfluxDB and starts up the udp server
@@ -212,8 +221,12 @@ func (pStrmMgr *StrmMgr) httpHandlerFunc(w http.ResponseWriter, req *http.Reques
 	}
 
 	w.Write([]byte("Received a POST request\n"))
-	pStrmMgr.handlePointData(string(reqBody))
 
+	select {
+	case pStrmMgr.pData <- string(reqBody):
+	default:
+		glog.Infof("Discarding the point. Stream generation faster than Publish!")
+	}
 }
 
 func startServer(pStrmMgr *StrmMgr) {
@@ -267,6 +280,11 @@ func startServer(pStrmMgr *StrmMgr) {
 		}
 	}
 
+	// Make the channel for handling point data
+	pStrmMgr.pData = make(chan string, maxPointsBuffered)
+	go pStrmMgr.handlePointData()
+
+	// Start the HTTP server handler
 	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
 
 	// Populate the certificates from vault. TODO: make a util function to fill the same.

@@ -327,7 +327,6 @@ serverPublish(int nsIndex, char *topic, char* data) {
     }
 
     /* writing the data to the opcua variable */
-    usleep(100000); // HACK: To be removed after root causing issue with open62541
     UA_Variant *val = UA_Variant_new();
     strcpy_s(dataToPublish, PUBLISH_DATA_SIZE, data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
