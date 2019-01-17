@@ -328,7 +328,8 @@ serverPublish(int nsIndex, char *topic, char* data) {
 
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
-    strcpy_s(dataToPublish, PUBLISH_DATA_SIZE, data);
+    unsigned int strLength = (unsigned int)strlen(data) + 1;
+    strcpy_s(dataToPublish, strLength, data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
@@ -375,8 +376,9 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
             if (userCallback) {
-                char subscribedData[PUBLISH_DATA_SIZE];
-                strcpy_s(subscribedData, PUBLISH_DATA_SIZE, str.data);
+                unsigned int strLength = (unsigned int)str.length + 1;
+                char subscribedData[strLength];
+                strcpy_s(subscribedData, strLength, str.data);
                 userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
