@@ -6,7 +6,7 @@ LABEL description="VideoIngestion image"
 ADD VideoIngestion/basler-video-capture ./basler-video-capture
 
 # Adding basler camera's essentials by referring it's repo's README
-RUN cd basler-video-capture/libs && \
+RUN cd basler-video-capture && \
     wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
     tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
     cd pylon-5.1.0.12682-x86_64 && \
@@ -19,7 +19,7 @@ RUN cd basler-video-capture/libs && \
     ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
     ./b2 --with-python && \
     ./b2 install && \
-    cd ../../../ && \
+    cd ../../ && \
     python3.6 setup.py install
 
 # Removing unwanted files
