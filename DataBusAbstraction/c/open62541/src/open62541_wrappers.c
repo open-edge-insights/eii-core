@@ -206,14 +206,14 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
-        char str[] = "Unable to load certificate file";
+        static char str[] = "Unable to load certificate file";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
-        char str[] = "Unable to load private key file";
+        static char str[] = "Unable to load private key file";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
@@ -225,7 +225,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
-            char str[] = "Unable to load trusted cert file";
+            static char str[] = "Unable to load trusted cert file";
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
                 "%s", str);
             return str;
@@ -242,7 +242,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
                                           trustList, trustedListSize,
                                           revocationList, revocationListSize);
     if(!serverConfig) {
-        char str[] = "Could not create the server config";
+        static char str[] = "Could not create the server config";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
@@ -256,7 +256,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Initiate server instance */
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
-        char str[] = "UA_Server_new() API failed";
+        static char str[] = "UA_Server_new() API failed";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
@@ -264,7 +264,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
-        char str[] = "server pthread creation to start server failed";
+        static char str[] = "server pthread creation to start server failed";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
@@ -283,7 +283,7 @@ serverStartTopic(char *namespace, char *topic) {
 
     /* check if server is started or not */
     if (server == NULL) {
-        char str[] = "UA_Server instance is not instantiated";
+        static char str[] = "UA_Server instance is not instantiated";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
@@ -294,7 +294,7 @@ serverStartTopic(char *namespace, char *topic) {
     /* add datasource variable */
     UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
     if (nsIndex == FAILURE) {
-        char str[] = "Failed to add topic data source variable node";
+        static char str[] = "Failed to add topic data source variable node";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
@@ -314,7 +314,7 @@ serverPublish(int nsIndex, char *topic, char* data) {
 
     /* check if server is started or not */
     if (server == NULL) {
-        char str[] = "UA_Server instance is not instantiated";
+        static char str[] = "UA_Server instance is not instantiated";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
@@ -495,14 +495,14 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
-        char str[] = "Unable to load certificate file";
+        static char str[] = "Unable to load certificate file";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
-        char str[] = "Unable to load private key file";
+        static char str[] = "Unable to load private key file";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
@@ -510,7 +510,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     client = UA_Client_new(UA_ClientConfig_default);
     if(client == NULL) {
-        char str[] = "UA_Client_new() API returned NULL";
+        static char str[] = "UA_Client_new() API returned NULL";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
@@ -561,7 +561,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     if(UA_ByteString_equal(remoteCertificate, &UA_BYTESTRING_NULL)) {
-        char str[] = "Server does not support Security Basic256Sha256 Mode of \
+        static char str[] = "Server does not support Security Basic256Sha256 Mode of \
             UA_MESSAGESECURITYMODE_SIGNANDENCRYPT";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
@@ -580,7 +580,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     for(size_t i = 0; i < trustedListSize; i++) {
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
-            char str[] = "Unable to load trusted cert file";
+            static char str[] = "Unable to load trusted cert file";
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
                 "%s", str);
             return str;
@@ -604,7 +604,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
 
     if(client == NULL) {
         UA_ByteString_delete(remoteCertificate); /* Dereference the memory */
-        char str[] = "UA_Client_secure_new() API failed!";
+        static char str[] = "UA_Client_secure_new() API failed!";
         return str;
     }
 
@@ -670,7 +670,7 @@ runClient(void *ptr) {
 int
 clientStartTopic(char *namespace, char *topic) {
     if (client == NULL) {
-        char str[] = "UA_Client instance is not created";
+        static char str[] = "UA_Client instance is not created";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
@@ -692,21 +692,21 @@ char*
 clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     userFunc = pyxFunc;
     if (client == NULL) {
-        char str[] = "UA_Client instance is not created";
+        static char str[] = "UA_Client instance is not created";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
     UA_ClientState clientState = UA_Client_getState(client);
     if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
-        char str[] = "Not a valid client state: for subscription to occurinstance is not created";
+        static char str[] = "Not a valid client state: for subscription to occurinstance is not created";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
 
     if (createSubscription(nsIndex, topic, cb) == 1) {
-        char str[] = "Subscription failed!";
+        static char str[] = "Subscription failed!";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
@@ -714,7 +714,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
 
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
-        char str[] = "pthread creation to run the client thread iteratively failed";
+        static char str[] = "pthread creation to run the client thread iteratively failed";
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
