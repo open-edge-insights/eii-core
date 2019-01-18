@@ -19,11 +19,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // TODO: we need to see what's the optimum size for this or have a better logic to handle this regardless of any size limits
 // imposed by safestringlib strcpy_s API
 #define PUBLISH_DATA_SIZE 4*1024
-#define ERROR_MSG_SIZE 150
+#define DBA_STRCPY(dest, src) \
+    { \
+        unsigned int strLength = (unsigned int)strlen(src) + 1; \
+        strcpy_s(dest, strLength, src); \
+    }
 
 // logger global varaibles
 static UA_Logger logger = UA_Log_Stdout;
-static char errorMsg[ERROR_MSG_SIZE];
 
 // opcua server global variables
 static UA_Server *server = NULL;
@@ -204,18 +207,16 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
         char str[] = "Unable to load certificate file";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg);
-        return errorMsg;
+            "%s", str);
+        return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
         char str[] = "Unable to load private key file";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg);
-        return errorMsg;
+            "%s", str);
+        return str;
     }
 
     /* Load the trustlist */
@@ -225,10 +226,9 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
             char str[] = "Unable to load trusted cert file";
-            strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-                "%s", errorMsg);
-            return errorMsg;
+                "%s", str);
+            return str;
         }
     }
 
@@ -243,10 +243,9 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
                                           revocationList, revocationListSize);
     if(!serverConfig) {
         char str[] = "Could not create the server config";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
     UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
 
@@ -258,19 +257,17 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
         char str[] = "UA_Server_new() API failed";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
 
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
         char str[] = "server pthread creation to start server failed";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
     return "0";
 }
@@ -287,9 +284,8 @@ serverStartTopic(char *namespace, char *topic) {
     /* check if server is started or not */
     if (server == NULL) {
         char str[] = "UA_Server instance is not instantiated";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
+            str);
         return FAILURE;
     }
 
@@ -299,9 +295,8 @@ serverStartTopic(char *namespace, char *topic) {
     UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
     if (nsIndex == FAILURE) {
         char str[] = "Failed to add topic data source variable node";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
+            str);
         return FAILURE;
     }
     return nsIndex;
@@ -320,16 +315,14 @@ serverPublish(int nsIndex, char *topic, char* data) {
     /* check if server is started or not */
     if (server == NULL) {
         char str[] = "UA_Server instance is not instantiated";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
 
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
-    unsigned int strLength = (unsigned int)strlen(data) + 1;
-    strcpy_s(dataToPublish, strLength, data);
+    DBA_STRCPY(dataToPublish, data);
     UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
@@ -338,10 +331,9 @@ serverPublish(int nsIndex, char *topic, char* data) {
         UA_Variant_delete(val);
         return "0";
     }
-    strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
-    UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", errorMsg);
+    UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", UA_StatusCode_name(retval));
     UA_Variant_delete(val);
-    return errorMsg;
+    return UA_StatusCode_name(retval);
 }
 
 /* serverContextDestroy function destroys the opcua server context */
@@ -504,27 +496,24 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
         char str[] = "Unable to load certificate file";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE , str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg);
-        return errorMsg;
+            "%s", str);
+        return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
         char str[] = "Unable to load private key file";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg);
-        return errorMsg;
+            "%s", str);
+        return str;
     }
 
     client = UA_Client_new(UA_ClientConfig_default);
     if(client == NULL) {
         char str[] = "UA_Client_new() API returned NULL";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", errorMsg);
-        return errorMsg;
+            "%s", str);
+        return str;
     }
 
     remoteCertificate = UA_ByteString_new();
@@ -544,8 +533,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
         UA_Array_delete(endpointArray, endpointArraySize,
                         &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
         cleanupClient();
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
-        return errorMsg;
+        return UA_StatusCode_name(retval);
     }
 
     UA_String securityPolicyUri = UA_STRING(SECURITY_POLICY_URI);
@@ -575,11 +563,10 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     if(UA_ByteString_equal(remoteCertificate, &UA_BYTESTRING_NULL)) {
         char str[] = "Server does not support Security Basic256Sha256 Mode of \
             UA_MESSAGESECURITYMODE_SIGNANDENCRYPT";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
+            str);
         cleanupClient();
-        return errorMsg;
+        return str;
     }
 
     UA_Array_delete(endpointArray, endpointArraySize,
@@ -594,10 +581,9 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
             char str[] = "Unable to load trusted cert file";
-            strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
             UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-                "%s", errorMsg);
-            return errorMsg;
+                "%s", str);
+            return str;
         }
     }
 
@@ -619,8 +605,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     if(client == NULL) {
         UA_ByteString_delete(remoteCertificate); /* Dereference the memory */
         char str[] = "UA_Client_secure_new() API failed!";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
-        return errorMsg;
+        return str;
     }
 
     UA_ByteString_deleteMembers(&certificate);
@@ -643,8 +628,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
         cleanupClient();
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, UA_StatusCode_name(retval));
-        return errorMsg;
+        return UA_StatusCode_name(retval);
     }
     return "0";
 }
@@ -687,9 +671,8 @@ int
 clientStartTopic(char *namespace, char *topic) {
     if (client == NULL) {
         char str[] = "UA_Client instance is not created";
-        strcpy_s(errorMsg ,ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
+            str);
         return FAILURE;
     }
     return getNamespaceIndex(namespace, topic);
@@ -710,35 +693,31 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     userFunc = pyxFunc;
     if (client == NULL) {
         char str[] = "UA_Client instance is not created";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
     UA_ClientState clientState = UA_Client_getState(client);
     if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
         char str[] = "Not a valid client state: for subscription to occurinstance is not created";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
 
     if (createSubscription(nsIndex, topic, cb) == 1) {
         char str[] = "Subscription failed!";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
 
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
         char str[] = "pthread creation to run the client thread iteratively failed";
-        strcpy_s(errorMsg, ERROR_MSG_SIZE, str);
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            errorMsg);
-        return errorMsg;
+            str);
+        return str;
     }
 
     return "0";
