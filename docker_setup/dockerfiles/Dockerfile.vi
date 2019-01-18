@@ -27,9 +27,10 @@ RUN rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64.tar.gz && \
     rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz && \
     rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/boost_1_66_0.tar.gz
 
+RUN apt-get update
+
 # Installing python boost dependencies
-RUN apt-get update && \
-    apt-get install -y libboost-python-dev
+RUN apt-get install -y libboost-python-dev
 
 # Installing dependent python modules
 ADD VideoIngestion/vi_requirements.txt .

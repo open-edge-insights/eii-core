@@ -9,8 +9,9 @@ ENV PY_WORK_DIR /ETA
 WORKDIR ${PY_WORK_DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 
-# Installing python 2, pip2, python 3.6 and pip3.6
 RUN apt-get update
+
+# Installing python 2, pip2, python 3.6 and pip3.6
 RUN apt-get install -y software-properties-common
 RUN apt-get install -y pkg-config python python-pip
 RUN add-apt-repository ppa:deadsnakes/ppa

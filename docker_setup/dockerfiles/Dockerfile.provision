@@ -23,8 +23,10 @@ RUN mkdir -p ${VAULT_GO_PATH} && \
     git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2 && \
     go install
 
+RUN apt-get update
+
 # Installing TPM
-RUN apt-get update && apt -y install \
+RUN apt-get -y install \
   autoconf-archive \
   libcmocka0 \
   libcmocka-dev \

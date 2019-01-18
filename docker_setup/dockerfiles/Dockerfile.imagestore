@@ -11,6 +11,8 @@ ENV GOPATH /ETA/go
 
 RUN mkdir -p ${GO_WORK_DIR}/log
 
+RUN apt-get update
+
 # Installing build tools
 RUN apt-get install -y cmake g++ build-essential
 

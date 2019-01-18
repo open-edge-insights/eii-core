@@ -10,9 +10,10 @@ ENV HOME /ETA
 ENV KAPACITOR_REPO /ETA/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /ETA/go/bin
 
+RUN apt-get update
+
 # Installing protobuf module needed for UDF function
-RUN apt-get update && \
-    pip2 install protobuf
+RUN pip2 install protobuf
 
 # Installing dependent python modules
 ADD DataAnalytics/classifier_requirements.txt .
