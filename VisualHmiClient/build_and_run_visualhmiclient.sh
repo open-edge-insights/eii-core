@@ -51,6 +51,7 @@ docker run --env no_proxy="localhost,127.0.0.1,$ETA_IP_ADDR" \
            -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates \
            -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json \
            -v $IMG_DIR:/root/saved_images --privileged=true \
+           -v /tmp/logs:/eta/log \
            --network host --name visualhmi \
            --log-opt max-size=50m --log-opt max-file=5 \
-           -it --restart always visual_hmi -local $LOCAL
+           -it --restart always visual_hmi -local $LOCAL -log INFO -log-dir /eta/log

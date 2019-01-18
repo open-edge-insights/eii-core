@@ -21,15 +21,8 @@ SOFTWARE.
 """
 
 import logging
+from Util.log import configure_logging, LOG_LEVELS
 import open62541W
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : \
-                    %(name)s : [%(filename)s] :' +
-                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
-logging.getLogger("opcua").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
-
 
 # TODO: This brings in a limitation of multiple different contexts
 # if one wants to receive the callbacks registered for different
@@ -46,7 +39,8 @@ def cbFunc(topic, msg):
 class databOpcua:
     '''Creates and manages a databus OPCUA context'''
 
-    def __init__(self):
+    def __init__(self, log):
+        self.logger = log
         self.nsIndex = None
         self.direction = None
         self.namespace = None
@@ -78,7 +72,7 @@ class databOpcua:
 
             hostPortPath = endpoint.split('//')[1]
             endpoint = "opc.tcp://" + hostPortPath
-            logger.info("PUB:: {}".format(endpoint))
+            self.logger.info("PUB:: {}".format(endpoint))
 
             hostPort = hostPortPath.split('/')[0]
             host = hostPort.split(':')[0]
@@ -94,7 +88,7 @@ class databOpcua:
                                                        trustFiles)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
-                logger.error("py_serverContextCreate() API failed!")
+                self.logger.error("py_serverContextCreate() API failed!")
                 raise Exception(pyErrorMsg)
         elif self.direction == "SUB":
             # Create default endpoint protocol for opcua from given endpoint
@@ -103,7 +97,7 @@ class databOpcua:
 
             hostPortPath = endpoint.split('//')[1]
             endpoint = "opc.tcp://" + hostPortPath
-            logger.info("SUB:: {}".format(endpoint))
+            self.logger.info("SUB:: {}".format(endpoint))
 
             hostPort = hostPortPath.split('/')[0]
             host = hostPort.split(':')[0]
@@ -120,7 +114,7 @@ class databOpcua:
                                                        trustFiles)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
-                logger.error("py_clientContextCreate() API failed!")
+                self.logger.error("py_clientContextCreate() API failed!")
                 raise Exception(pyErrorMsg)
         else:
             raise Exception("Wrong Bus Direction!!!")
@@ -139,13 +133,13 @@ class databOpcua:
             self.nsIndex = open62541W.py_serverStartTopic(self.namespace,
                                                           topicConfig["name"])
             if self.nsIndex == 100:
-                logger.error("py_serverStartTopic() API failed!")
+                self.logger.error("py_serverStartTopic() API failed!")
                 raise Exception("Topic creation failed!")
         elif self.direction == "SUB":
             self.nsIndex = open62541W.py_clientStartTopic(self.namespace,
                                                           topicConfig["name"])
             if self.nsIndex == 100:
-                logger.error("py_clientStartTopic() API failed!")
+                self.logger.error("py_clientStartTopic() API failed!")
                 raise Exception("Topic creation failed!")
         else:
             raise Exception("Wrong Bus Direction!!!")
@@ -165,10 +159,10 @@ class databOpcua:
                                                          data)
                     pyErrorMsg = errMsg.decode()
                     if pyErrorMsg != "0":
-                        logger.error("py_serverPublish() API failed!")
+                        self.logger.error("py_serverPublish() API failed!")
                         raise Exception(pyErrorMsg)
                 except Exception as e:
-                    logger.error("{} Failure!!!".format(self.send.__name__))
+                    self.logger.error("{} Failure!!!".format(self.send.__name__))
                     raise
             else:
                 raise Exception("Wrong Data Type!!!")
@@ -190,7 +184,7 @@ class databOpcua:
             errMsg = open62541W.py_clientSubscribe(nsIndex, topic, cbFunc)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
-                logger.error("py_clientSubscribe() API failed!")
+                self.logger.error("py_clientSubscribe() API failed!")
                 raise Exception(pyErrorMsg)
         elif (self.direction == "SUB") and (trig == "STOP"):
             # TODO: To be implemented - stop subscription
@@ -233,16 +227,16 @@ class databOpcua:
         '''Destroy the messagebus context'''
 
         if self.direction == "PUB":
-            logger.info("OPCUA Server Stopping...")
+            self.logger.info("OPCUA Server Stopping...")
             open62541W.py_serverContextDestroy()
-            logger.error("OPCUA Server Stopped")
+            self.logger.error("OPCUA Server Stopped")
         elif self.direction == "SUB":
             try:
-                logger.info("OPCUA Client Disconnecting...")
+                self.logger.info("OPCUA Client Disconnecting...")
                 open62541W.py_clientContextDestroy()
-                logger.info("OPCUA Client Disconnected")
+                self.logger.info("OPCUA Client Disconnected")
             except Exception as e:
-                logger.error("{} Failure!!!".format(
+                self.logger.error("{} Failure!!!".format(
                     self.destroyContext.__name__))
                 raise
         else:

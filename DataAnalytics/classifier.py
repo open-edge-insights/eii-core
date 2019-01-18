@@ -70,7 +70,7 @@ class ConnHandler(Handler):
     def classifier_init(self):
         self.config = Configuration(self.config_file)
         self._cm = ClassifierManager(
-                self.config.machine_id, self.config.classification)
+                self.config.machine_id, self.config.classification, self.logger)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
 

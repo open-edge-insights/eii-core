@@ -30,17 +30,10 @@ import logging
 import cv2
 import numpy as np
 from threading import Condition
-from algos.etr_utils.log import configure_logging, LOG_LEVELS
+from Util.log import configure_logging, LOG_LEVELS
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataBusAbstraction.py.DataBus import databus
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : \
-                    %(name)s : [%(filename)s] :' +
-                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
-
-logging.getLogger("opcua").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
 
 filePath = os.path.abspath(os.path.dirname(__file__))
 ROOTCA_CERT = filePath + '/../cert-tool/Certificates/ca/ca_certificate.pem'
@@ -51,6 +44,9 @@ IM_CLIENT_KEY = filePath + '/../cert-tool/Certificates/imagestore/' + \
 
 
 class EtaDataSync:
+
+    def __init__(self, log):
+        self.logger = log
 
     def ConvertClassfierDatatoVisualHmiData(self, classifier_results):
         """
@@ -85,17 +81,17 @@ class EtaDataSync:
             This Method post data to Visual HMI server.
         """
         posturi = 'http://{0}:{1}/rest/v1/part'.format(host, port)
-        logger.info("HMI Server URI : %s", posturi)
+        self.logger.info("HMI Server URI : %s", posturi)
         try:
             response = requests.post(posturi, json=data)
             if response.status_code != 200:
-                logger.error("HMI Failure Response Code : %s",
+                self.logger.error("HMI Failure Response Code : %s",
                              response.status_code)
             else:
-                logger.info("HMI Success Response Code : %s",
+                self.logger.info("HMI Success Response Code : %s",
                             response.status_code)
         except Exception as e:
-            logger.error("Exception Occured: %s in Posting MetaData : %s",
+            self.logger.error("Exception Occured: %s in Posting MetaData : %s",
                          str(e), data)
             raise
 
@@ -109,7 +105,7 @@ class EtaDataSync:
             return outputBytes
         except Exception as e:
             print("Exception: ", e)
-            logger.error("Exception: %s", str(e))
+            self.logger.error("Exception: %s", str(e))
             raise
 
     def writeImageToDisk(self, keyname, filename, width, height, channels):
@@ -120,13 +116,13 @@ class EtaDataSync:
         try:
             blob = self.getBlob(keyname)
             Frame = np.frombuffer(blob, dtype=np.uint8)
-            logger.info("Blob Successfully received for key: %s", keyname)
+            self.logger.info("Blob Successfully received for key: %s", keyname)
             imgName = self.config["hmi_image_folder"] + filename + ".png"
             reshape_frame = np.reshape(Frame, (height, width, channels))
             cv2.imwrite(imgName, reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-            logger.info("Image Conversion & Written Success as : %s", imgName)
+            self.logger.info("Image Conversion & Written Success as : %s", imgName)
         except Exception as e:
-            logger.error("Exception: %s", str(e))
+            self.logger.error("Exception: %s", str(e))
             raise
 
     def databus_callback(self, topic, msg):
@@ -135,7 +131,7 @@ class EtaDataSync:
             subscribed topic comes via Databus
         """
         try:
-            logger.info("Message: %s", msg)
+            self.logger.info("Message: %s", msg)
             databus_data = {}
             metalist = []
             classifier_results = json.loads(msg)
@@ -152,16 +148,16 @@ class EtaDataSync:
             databus_data['meta-data'] = metalist
 
             if self.args.savelocal == "yes":
-                logger.info("No Post Request Made to HMI as You are\
+                self.logger.info("No Post Request Made to HMI as You are\
                 Running on Local Mode")
             else:
-                logger.info("Started Sending Payload to HMI Server")
+                self.logger.info("Started Sending Payload to HMI Server")
                 self.post_metadata(self.config["hmi_host"],
                                    self.config["hmi_port"],
                                    databus_data)
 
         except Exception as e:
-            logger.error("Exception: %s", str(e))
+            self.logger.error("Exception: %s", str(e))
             raise
 
     def main(self, args):
@@ -193,12 +189,12 @@ class EtaDataSync:
                          "privateFile": privateFile,
                          "trustFile": trustFile}
         try:
-            etadbus = databus()
+            etadbus = databus(self.logger)
             etadbus.ContextCreate(contextConfig)
             topicConfig = {"name": "classifier_results", "type": "string"}
             etadbus.Subscribe(topicConfig, "START", self.databus_callback)
         except Exception as e:
-            logger.error("Exception: %s", str(e))
+            self.logger.error("Exception: %s", str(e))
             raise
         return etadbus
 
@@ -230,28 +226,27 @@ if __name__ == "__main__":
     listDateTime = currentDateTime.split(" ")
     currentDateTime = "_".join(listDateTime)
     logFileName = 'visual_hmi_eta_data_sync_' + currentDateTime + '.log'
-
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
-    configure_logging(args.log.upper(), logFileName, args.log_dir)
+    log = configure_logging(args.log.upper(), logFileName, args.log_dir, __name__)
 
     condition = Condition()
     try:
-        etaDataSync = EtaDataSync().main(args)
+        etaDataSync = EtaDataSync(log).main(args)
     except Exception as e:
-        logger.error("Exception: %s", str(e))
+        log.error("Exception: %s", str(e))
         if "refused" in e.message:
-            logger.error("Retrying to establish connection with opcua \
+            log.error("Retrying to establish connection with opcua \
                             server...")
             time.sleep(10)
     except KeyboardInterrupt:
-        logger.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
+        log.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
                         down now !!!")
         try:
             etaDataSync.ContextDestroy()
         except Exception as e:
-            logger.error("Exiting..")
+            log.error("Exiting..")
         condition.notifyAll()
 
     with condition:

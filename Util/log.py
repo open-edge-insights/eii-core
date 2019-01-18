@@ -73,4 +73,10 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
     # Do basic configuration of logging (just for stdout config)
     logging.basicConfig(format=fmt_str, level=log_lvl)
 
-    return logging.getLogger(module_name)
+    root = logging.getLogger(module_name)
+    h = logging.FileHandler(base_log)
+    f = logging.Formatter(fmt_str)
+    h.setFormatter(f)
+    root.addHandler(h)
+
+    return root

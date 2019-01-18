@@ -22,13 +22,9 @@ SOFTWARE.
 
 import paho.mqtt.client as mqtt
 import logging
+from Util.log import configure_logging, LOG_LEVELS
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='%(asctime)s : %(levelname)s : \
-                    %(name)s : [%(filename)s] :' +
-                    '%(funcName)s : in line : [%(lineno)d] : %(message)s')
-logging.getLogger("opcua").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
+logger = None
 
 
 def onMsgCb(client, udata, msg):
@@ -186,7 +182,9 @@ class databMqtt:
             logger.error("{} Failure!!!".format(self.destroyContext.__name__))
             raise
 
-    def __init__(self):
+    def __init__(self, log):
+        global logger
+        logger = log
         self.client = None
         self.direction = None
         # self.ns = None

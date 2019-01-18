@@ -41,11 +41,13 @@ ADD DataBusAbstraction/ DataBusAbstraction/
 RUN cd DataBusAbstraction/py && \
     cd test && \
     make build
-ADD algos/__init__.py algos/__init__.py
-ADD algos/etr_utils algos/etr_utils
+
 ADD VisualHmiClient/ VisualHmiClient/
 ADD ImageStore/ ImageStore/
-ADD Util/ Util/
+
+ADD Util/__init__.py Util/__init__.py
+ADD Util/log.py Util/log.py
+ADD Util/crypto/encrypt_decrypt.py Util/crypto/encrypt_decrypt.py
 
 ENV PYTHONPATH .:./ImageStore/protobuff/py/:./DataBusAbstraction/py
 ENV PYTHONIOENCODING UTF-8

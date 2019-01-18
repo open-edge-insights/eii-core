@@ -118,6 +118,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
+      - "${ETA_INSTALL_PATH}/logs/DataAgent:/ETA/go/src/ElephantTrunkArch/log/DataAgent"
     command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}"]
     ports:
       - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"

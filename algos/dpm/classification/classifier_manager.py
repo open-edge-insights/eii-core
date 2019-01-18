@@ -33,6 +33,7 @@ import threading as th
 from concurrent.futures import ThreadPoolExecutor
 
 from . import ClassifierConfigError, load_classifier
+from Util.log import configure_logging, LOG_LEVELS
 
 
 class ClassifierManager:
@@ -57,7 +58,7 @@ class ClassifierManager:
             }
         }
     """
-    def __init__(self, machine_id, config):
+    def __init__(self, machine_id, config, log):
         """Constructor
 
         Parameters
@@ -77,7 +78,7 @@ class ClassifierManager:
             the configuration asks to use a trigger which has not been loaded
             into the system.
         """
-        self.log = logging.getLogger(__name__)
+        self.log = log
         self.machine_id = machine_id
         self.stopped = th.Event()
         self.meta_idx = 1

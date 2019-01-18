@@ -64,6 +64,13 @@ post_build_steps() {
 	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data
 	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data/influxdata
 	chmod -R 760 $ETA_INSTALL_PATH/data
+	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/logs
+	mkdir -p $ETA_INSTALL_PATH/logs/classifier_logs
+	mkdir -p $ETA_INSTALL_PATH/logs/DataAgent
+	mkdir -p $ETA_INSTALL_PATH/logs/factoryctrl_app_logs
+	mkdir -p $ETA_INSTALL_PATH/logs/telegraf_logs
+	mkdir -p $ETA_INSTALL_PATH/logs/video_ingestion_logs
+	chmod -R 777 $ETA_INSTALL_PATH/logs
 }
 
 build_iei() {

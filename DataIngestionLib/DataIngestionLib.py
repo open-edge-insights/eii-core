@@ -30,6 +30,7 @@ from ImageStore.client.py.client import GrpcImageStoreClient
 from Util.exception import DAException
 from Util.util import (write_certs, create_decrypted_pem_files)
 import time as Time
+from Util.log import configure_logging, LOG_LEVELS
 
 IM_CLIENT_KEY = "/etc/ssl/imagestore/imagestore_client_key.pem"
 IM_CLIENT_CERT = "/etc/ssl/imagestore/imagestore_client_certificate.pem"
@@ -149,9 +150,8 @@ class DataIngestionLib:
     If the data contains buffer, it stores the buffer into the image store
     and saves the handle in database.'''
 
-    def __init__(self, storage_type='inmemory', log_level=logging.INFO):
-        logging.basicConfig(level=log_level)
-        self.log = logging.getLogger('data_ingestion')
+    def __init__(self, log, storage_type='inmemory'):
+        self.log = log
         try:
             client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
             self.config = client.GetConfigInt("InfluxDBCfg")
