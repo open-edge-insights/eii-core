@@ -110,8 +110,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             Run the script:
             ```sh
-            sudo provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-                E.g. sudo provision_startup.sh ../cert-tool/Certificates/
+            sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
+                E.g. sudo ./provision_startup.sh ../cert-tool/Certificates/
             ```
             This will take the inputs from `provision_config.json` & certificates, following which it seal the secrets into the Vault.
             It is responsibility of the Admin to remove the source directory wherein certificates exist.
@@ -123,15 +123,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
-        3. Build and run ETA images as per the dependency order 
-            ```sh
-            sudo ./compose_startup.sh | tee compose_startup.txt
-            ```
-            This script will build all the ETA containers and run them using the docker-compose.  A User executing, ***setup_eta.py*** script (explained in following paragraphs) for installing ETA, doesn't need to exeercise ***compose_startup.sh*** script. This is because stanalone execution of ***compose_startup.sh*** script  is purely for a developement machine based ETA set-up process.
+        3. Build and run ETA images as per the dependency order
 
-            Verify all ETA containers coming up and working by following the Post Installation Verification steps.
-
-            <Optional>
             For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
             ```sh
             sudo ./setup_eta.py -a | tee setup_eta_logs.txt
@@ -141,7 +134,16 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo systemctl stop eta
             sudo systemctl start eta
             ```
-        4. This is an optional step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the ETA.
+
+            **Note**:
+            Developers can make use of the below script:
+            ```sh
+            sudo ./compose_startup.sh | tee compose_startup.txt
+            ```
+            Verify all ETA containers coming up and working by following the `Post Installation Verification` steps.
+
+        4. This is an `optional` step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful    
+           when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the ETA.
 
             Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
             ```sh
@@ -158,7 +160,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
-    starting it off.
+    > starting it off.
 
 2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either     natively (due to dependencies, this works only on Ubuntu) or dockerized version.
 
@@ -167,21 +169,23 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### Post Installation Verification
 
-1. To check if all the ETA images are built successfully, use cmd: **docker images|grep ia** and
-all containers are running, use cmd: **docker ps** (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+1. To check if all the ETA images are built successfully, use cmd: `docker images|grep ia` and
+all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911
     ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. All containers in ETA stack:
+2. `docker ps` should list the below containers in ETA stack:
     * Provisioning containers: provision (`ia_provision`)
     * Dependency containers: log rotate (`ia_log_rotate`)
     * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
       Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
 
-3. Installation directory - `/opt/intel/eta` root directory details:
+    **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/eta/logs/consolidatedLogs/eta.log` to find out the reason for container failure
+
+3. Installation directory - `/opt/intel/eta` root directory details gets created:
      * `config/` - all the ETA configs reside here.
      * `logs/` - all the ETA logs reside here.
      * `dist_libs/` - is the client external libs distribution package
@@ -190,7 +194,7 @@ all containers are running, use cmd: **docker ps** (`one should see all the depe
             * py - consists of gRPC py client wrappers, protobuff files and example programs
         * `DataBusAbstraction` -
             * py - consists of opcua py client wrappers and example programs
-     * `secret_store/` - This is the vault's persistent storage wherein ETA secrets are stored in encrypted fashion. This directory is recreated on every provision step.
+     * `secret_store/` - This is the vault's persistent storage wherein ETA secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
 
 > Note:
 1. Few useful docker-compose and docker commands:
