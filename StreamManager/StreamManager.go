@@ -19,7 +19,6 @@ import (
 	"os"
 	"regexp"
 	"strings"
-	"time"
 
 	util "ElephantTrunkArch/Util"
 	influxDBHelper "ElephantTrunkArch/Util/influxdb"
@@ -35,7 +34,7 @@ var StrmDaCfg config.DAConfig
 
 const (
 	subscriptionName  = "StreamManagerSubscription"
-	maxPointsBuffered = 10
+	maxPointsBuffered = 100
 )
 
 var opcuaContext = map[string]string{
@@ -160,10 +159,6 @@ func (pStrmMgr *StrmMgr) handlePointData() {
 				}
 			}
 		}
-
-		// HACK: Wait for 500ms before accepting next point.
-		// To be removed once open62541 refCount issue is resolved.
-		time.Sleep(500 * time.Millisecond)
 	}
 }
 
