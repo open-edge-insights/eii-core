@@ -46,13 +46,19 @@ sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 echo "0.5 Get docker Host IP address and write it to .env"
 ./update_host_ip.sh
 
+echo "1. create $ETA_USER_NAME if it doesn't exists."
+if ! id $ETA_USER_NAME >/dev/null 2>&1; then
+    groupadd $ETA_USER_NAME
+    useradd -r -g $ETA_USER_NAME $ETA_USER_NAME
+fi
+
 if [ "$TPM_ENABLE" = "true" ]
 then
 	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
 	chown $ETA_USER_NAME /dev/tpm0
 fi
 
-echo "1. Removing previous eta/provisioning containers if existed..."
+echo "2. Removing previous eta/provisioning containers if existed..."
 docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
@@ -61,7 +67,7 @@ rm -rf $ETA_INSTALL_PATH/data
 
 if [ "$2" != "deploy_mode" ]
 then
-	echo "2. Buidling the provisioning containers..."
+	echo "3. Buidling the provisioning containers..."
 
 	# set .dockerignore to the base one
 	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
@@ -85,15 +91,9 @@ then
 	done
 fi
 
-echo "3. Creating and starting the provisioning containers..."
+echo "4. Creating and starting the provisioning containers..."
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML up
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
-echo "4. create $ETA_USER_NAME if it doesn't exists. Containers will execute as $ETA_USER_NAME"
-if ! id $ETA_USER_NAME >/dev/null 2>&1; then
-    groupadd $ETA_USER_NAME
-    useradd -r -g $ETA_USER_NAME $ETA_USER_NAME
-fi
+# ETA containers will be executed as etauser
 chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
-
-    
