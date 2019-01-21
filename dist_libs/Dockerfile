@@ -30,22 +30,33 @@ RUN cd /eta/DataBusAbstraction/py && \
 
 RUN mkdir -p /eta/dist_libs
 
-# Copying DataBusAbstraction library files.
+# Copying DataBusAbstraction py library/test files.
 ADD DataBusAbstraction/py/databus_requirements.txt /dist_libs/DataBusAbstraction/py/
 ADD DataBusAbstraction/py/DataBus*.py /dist_libs/DataBusAbstraction/py/
+RUN mkdir -p /dist_libs/DataBusAbstraction/py/Util
+ADD Util/log.py /dist_libs/DataBusAbstraction/py/Util/
 RUN cp DataBusAbstraction/py/open62541W.so /dist_libs/DataBusAbstraction/py/
-ADD DataBusAbstraction/py/test/DataBusTest.py /dist_libs/DataBusAbstraction/py/test/examples/
-ADD DataBusAbstraction/py/test/examples/README.md /dist_libs/DataBusAbstraction/py/test/examples
+ADD DataBusAbstraction/py/test/DataBusTest.py /dist_libs/DataBusAbstraction/py/test/
+ADD DataBusAbstraction/py/test/README.md /dist_libs/DataBusAbstraction/py/test/
 
-# Copying ImageStore library files.
+# Copying ImageStore py library/test files.
+ADD ImageStore/__init__.py /dist_libs/ImageStore/
 ADD ImageStore/client/py/client.py /dist_libs/ImageStore/client/py/
 ADD ImageStore/client/py/__init__.py /dist_libs/ImageStore/client/py/
 ADD ImageStore/test/py/clientTest.py /dist_libs/ImageStore/test/py/
-ADD ImageStore/test/py/__init__.py /dist_libs/ImageStore/test/py/
 ADD ImageStore/protobuff/py/ImageStore_pb2_grpc.py /dist_libs/ImageStore/protobuff/py/
 ADD ImageStore/protobuff/py/ImageStore_pb2.py /dist_libs/ImageStore/protobuff/py/
 ADD ImageStore/protobuff/py/__init__.py /dist_libs/ImageStore/protobuff/py/
 ADD ImageStore/test/py/README.md /dist_libs/ImageStore/test/py/
 ADD Util/crypto/encrypt_decrypt.py /dist_libs/ImageStore/test/py/Util/crypto/encrypt_decrypt.py
+
+# Copying ImageStore py library/test files.
+ADD ImageStore/client/cpp/ImageStoreClient.cc /dist_libs/ImageStore/client/cpp/ImageStoreClient.cc
+ADD ImageStore/test/cpp/README.md /dist_libs/ImageStore/test/cpp/README.md
+ADD ImageStore/test/cpp/clientTest.cc /dist_libs/ImageStore/test/cpp/clientTest.cc
+ADD ImageStore/test/cpp/Makefile /dist_libs/ImageStore/test/cpp/Makefile
+ADD ImageStore/protobuff/cpp/*.cc /dist_libs/ImageStore/protobuff/cpp/
+ADD ImageStore/protobuff/cpp/*.h /dist_libs/ImageStore/protobuff/cpp/
+ADD ImageStore/protobuff/*.proto /dist_libs/ImageStore/protobuff/
 
 ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /eta/dist_libs/"]

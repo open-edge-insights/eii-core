@@ -25,8 +25,6 @@ import argparse
 import sys
 import os
 import logging
-path = os.path.abspath(__file__)
-sys.path.append(os.path.join(os.path.dirname(path), "../"))
 from DataBus import databus
 
 logging.basicConfig(level=logging.DEBUG,
@@ -65,7 +63,7 @@ class A:
                          "privateFile": args.privateFile,
                          "trustFile": args.trustFile}
         try:
-            etadbus = databus()
+            etadbus = databus(logger)
             etadbus.ContextCreate(contextConfig)
             if args.direction == "PUB":
                 topicConfig = {"name": args.topic, "type": "string"}
