@@ -67,5 +67,4 @@ RUN chown -R ${ETA_UID} /etc/ssl
 RUN mkdir -p /etc/kapacitor
 RUN chown ${ETA_UID} /etc/kapacitor
 ENTRYPOINT ["./classifier_start.sh"]
-CMD ["--config", "factory_prod.json", "--log", ${PY_LOG_LEVEL}]
 HEALTHCHECK NONE

@@ -264,7 +264,7 @@ services:
       - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
     expose:
       - ${KAPACITOR_PORT}
-    command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
+    command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:
