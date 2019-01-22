@@ -21,8 +21,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define PUBLISH_DATA_SIZE 4*1024
 #define DBA_STRCPY(dest, src) \
     { \
-        unsigned int strLength = (unsigned int)strlen(src) + 1; \
-        strcpy_s(dest, strLength, src); \
+        unsigned int srcLength = (unsigned int)strlen(src) + 1; \
+        unsigned int destSize = (unsigned int)sizeof(dest); \
+        if (srcLength >= destSize) { \
+	    strcpy_s(dest, destSize - 1, src); \
+	} else { \
+	    strcpy_s(dest, srcLength, src); \
+	} \
     }
 
 // logger global varaibles
@@ -182,11 +187,17 @@ cleanupServer() {
 
 static void*
 startServer(void *ptr) {
+
     /* run server */
-    UA_StatusCode retval = UA_Server_run(server, &serverRunning);
+    UA_StatusCode retval = UA_Server_run_startup(server);
     if (retval != UA_STATUSCODE_GOOD) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
+        return NULL;
     }
+    while (serverRunning) {
+        UA_Server_run_iterate(server, 100);
+    }
+    UA_Server_run_shutdown(server);
     return NULL;
 }
 
@@ -265,8 +276,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
         static char str[] = "server pthread creation to start server failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            str);
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", str);
         return str;
     }
     return "0";
@@ -323,7 +333,8 @@ serverPublish(int nsIndex, char *topic, char* data) {
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
     DBA_STRCPY(dataToPublish, data);
-    UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
+    UA_String dataStr = UA_STRING(dataToPublish);
+    UA_Variant_setScalarCopy(val, &dataStr, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);

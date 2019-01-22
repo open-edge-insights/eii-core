@@ -48829,15 +48829,9 @@ UA_NodeMap_releaseNode(void *context, const UA_Node *node) {
     BEGIN_CRITSECT(ns);
     UA_NodeMapEntry *entry = container_of(node, UA_NodeMapEntry, node);
     UA_assert(&entry->node == node);
-    // HACK: Instead of asserting on the condition which used to fail, using an if check and doing the cleanup
-    // Needs to put in a proper fix coming in form open62541 in future
-    if (entry->refCount > 0) {
-        --entry->refCount;
-        cleanupEntry(entry);
-    } else {
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_NETWORK,
-                "entry->refCount: 0");
-    }
+    UA_assert(entry->refCount > 0);
+    --entry->refCount;
+    cleanupEntry(entry);
     END_CRITSECT(ns);
 }
 
