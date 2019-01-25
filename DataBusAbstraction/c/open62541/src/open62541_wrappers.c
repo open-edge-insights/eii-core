@@ -352,9 +352,9 @@ serverPublish(int nsIndex, char *topic, char* data) {
 
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
+    DBA_STRCPY(dataToPublish, data);
     UA_String str = UA_STRING(data);
     UA_Variant_setScalarCopy(val, &str, &UA_TYPES[UA_TYPES_STRING]);
-
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
     pthread_mutex_lock(serverLock);
