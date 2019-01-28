@@ -4,7 +4,7 @@ Dist_Libs provides external client sdk for DataBusAbstraction and ImageStore alo
 
 # Build and Run the Docker and Create dist_libs.
 
-* Go to ElephantTrunkArch/docker_setup and run the below command.
+* Go to IEdgeInsights/docker_setup and run the below command.
 ```
 sudo ./create_client_dist_package.sh
 ```

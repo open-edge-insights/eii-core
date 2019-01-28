@@ -11,12 +11,12 @@ VisualHmiCleaner is a utiliy to clear the VisualHmi images on the disk & postgre
 
   * Login as root User `sudo su`  **Mandatory**
 
-  * Clone or Copy `ElephantTrunkArch` Src under `/root/`    
+  * Clone or Copy `IEdgeInsights` Src under `/root/`    
     Directory
 
   * Configure ViusalHmiCleaner
     ```sh
-    $vi /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json
+    $vi /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/config.json
     ```
 
     >**Note**:
@@ -31,7 +31,7 @@ VisualHmiCleaner is a utiliy to clear the VisualHmi images on the disk & postgre
 
   * Install dependencies:
     ```sh
-    $cd /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner
+    $cd /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner
     $sudo -H pip3.6 install -r requirements.txt
     ```
 
@@ -42,17 +42,17 @@ VisualHmiCleaner is a utiliy to clear the VisualHmi images on the disk & postgre
 
     **Building VisualHmiCleaner docker image**:
     ```sh
-      $cd /root/ElephantTrunkArch/
+      $cd /root/IEdgeInsights/
       $cp docker_set
       $docker build -f VisualHmiClient/VisualHmiCleaner/Dockerfile -t visualhmicleaner .
     ```
 
     **Running VisualHmiCleaner container**:
     ```sh
-      $docker run -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/config.json:/eta/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner/logs:/eta/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
+      $docker run -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/config.json:/eta/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/logs:/eta/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
     ```
   * Simple Run - For Immediate run.
     ```sh
-      cd /root/ElephantTrunkArch/VisualHmiClient/VisualHmiCleaner
+      cd /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner
       python3.6 VisualHmiCleaner.py
     ```

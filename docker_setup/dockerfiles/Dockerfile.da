@@ -179,7 +179,7 @@ RUN go build -o /ETA/go/bin/DataAgent DataAgent/DataAgent.go
 
 
 ARG ETA_UID
-RUN chown ${ETA_UID} /ETA/go/src/ElephantTrunkArch
+RUN chown ${ETA_UID} /ETA/go/src/IEdgeInsights
 RUN chown -R ${ETA_UID} /etc/ssl/
 ENTRYPOINT ["./DataAgent/da_startup.sh"]
 CMD ["-stderrthreshold", ${GO_LOG_LEVEL}, "-v", ${GO_VERBOSE}]

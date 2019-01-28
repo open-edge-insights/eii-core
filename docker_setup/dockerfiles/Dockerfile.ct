@@ -4,10 +4,10 @@ FROM ia/gopybase:$ETA_VERSION
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /ETA/go/src/ElephantTrunkArch
+ENV GO_WORK_DIR /ETA/go/src/IEdgeInsights
 ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
 WORKDIR ${GO_WORK_DIR}
-ENV PYTHONPATH .:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/pb_internal/:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff:/ETA/go/src/ElephantTrunkArch/DataBusAbstraction/py/:/ETA/go/src/ElephantTrunkArch/:/ETA/go/src/ElephantTrunkArch/DataAgent/da_grpc/protobuff/py/
+ENV PYTHONPATH .:/ETA/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/pb_internal/:/ETA/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff:/ETA/go/src/IEdgeInsights/DataBusAbstraction/py/:/ETA/go/src/IEdgeInsights/:/ETA/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/
 
 ENV GOPATH /ETA/go
 
@@ -76,10 +76,10 @@ RUN apt-get -y install tcl
 ARG REDIS_VERSION
 RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
 RUN tar xzf redis-${REDIS_VERSION}.tar.gz
-RUN cd /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION} && \
+RUN cd /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION} && \
     make && \
-    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
-    cp /ETA/go/src/ElephantTrunkArch/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+    cp /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
 
 ARG MINIO_VERSION
 RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
@@ -112,7 +112,7 @@ RUN echo "Installing required packages..." && \
     echo "***Installation complete***"
 
 
-WORKDIR /ETA/go/src/ElephantTrunkArch
+WORKDIR /ETA/go/src/IEdgeInsights
 
 # tls, crypto library needs to open62541
 RUN apt-get install -y libmbedtls-dev

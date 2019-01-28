@@ -20,12 +20,12 @@ import (
 	"os/exec"
 	"strconv"
 
-	config "ElephantTrunkArch/DataAgent/config"
-	internalserver "ElephantTrunkArch/DataAgent/da_grpc/server/server_internal"
-	stm "ElephantTrunkArch/StreamManager"
-	util "ElephantTrunkArch/Util"
-	cpuidutil "ElephantTrunkArch/Util/cpuid"
-	inflxUtil "ElephantTrunkArch/Util/influxdb"
+	config "IEdgeInsights/DataAgent/config"
+	internalserver "IEdgeInsights/DataAgent/da_grpc/server/server_internal"
+	stm "IEdgeInsights/StreamManager"
+	util "IEdgeInsights/Util"
+	cpuidutil "IEdgeInsights/Util/cpuid"
+	inflxUtil "IEdgeInsights/Util/influxdb"
 
 	"github.com/golang/glog"
 )
@@ -46,7 +46,7 @@ const (
 var daCfg config.DAConfig
 
 func initializeInfluxDB() error {
-	cmd := exec.Command("/ETA/go/src/ElephantTrunkArch/DataAgent/influx_start.sh")
+	cmd := exec.Command("/ETA/go/src/IEdgeInsights/DataAgent/influx_start.sh")
 	err := cmd.Run()
 	if err != nil {
 		glog.Errorf("Failed to start influxdb Server, Error: %s", err)

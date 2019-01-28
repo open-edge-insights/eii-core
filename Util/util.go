@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package util
 
 import (
-	cryptoUtil "ElephantTrunkArch/Util/crypto"
+	cryptoUtil "IEdgeInsights/Util/crypto"
 	"io/ioutil"
 	"net"
 	"os"

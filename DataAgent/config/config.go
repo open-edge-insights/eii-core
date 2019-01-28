@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package config
 
 import (
-	tpmutil "ElephantTrunkArch/Util/Tpm"
+	tpmutil "IEdgeInsights/Util/Tpm"
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"

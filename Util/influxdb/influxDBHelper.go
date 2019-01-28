@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package influxdbutil
 
 import (
-	util "ElephantTrunkArch/Util"
+	util "IEdgeInsights/Util"
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"

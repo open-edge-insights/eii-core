@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package client
 
 import (
-	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go"
+	pb "IEdgeInsights/DataAgent/da_grpc/protobuff/go"
 	"crypto/tls"
 	"crypto/x509"
 	"io"

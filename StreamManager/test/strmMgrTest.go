@@ -15,7 +15,7 @@ package main
 import (
 	"flag"
 
-	stm "ElephantTrunkArch/StreamManager"
+	stm "IEdgeInsights/StreamManager"
 
 	"github.com/golang/glog"
 )

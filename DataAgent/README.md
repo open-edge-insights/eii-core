@@ -3,7 +3,7 @@
 
 DataAgent module is responsible for initializing the stream manager to listen to the data going into InfluxDB and starting off the gRPC server for rpc calls to exposed interfaces (GetConfigInt - Internal, Config and Query - External)
 
-## 3 ways to run from $GOPATH/src/ElephantTrunkArch - present working directory
+## 3 ways to run from $GOPATH/src/IEdgeInsights - present working directory
 * go run DataAgent/DataAgent.go -config=[configfilepath] -log_dir=[glogdirpath]
 * cd Datagent && go build DataAgent/DataAgent.go && ./DataAgent -config=[configfilepath] -log_dir=[glogdirpath]
 * go install DataAgent/DataAgent.go && DataAgent -config=[configfilepath] -log_dir=[glogdirpath]
@@ -83,4 +83,4 @@ Any OpenSSL Standard Certificate Generation Will work. Please follow the certifi
 names & extension as per Certificates directory / as above
 
 To Generate the Certificate please follow the wiki.
-  https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/wiki/Generating-TLS-certificates-and-keys
+  https://github.intel.com/IEdgeInsights/IEdgeInsights/wiki/Generating-TLS-certificates-and-keys

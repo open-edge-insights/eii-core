@@ -13,7 +13,7 @@ VisualHmiClient is a datasync app which uses python binding of `ImageStore` gRPC
 
 ### Configuration
 
-* Clone `ElephantTrunkArch` repo dir.
+* Clone `IEdgeInsights` repo dir.
 
 * Configure Databus & VisualHMI Server Details
 
@@ -73,4 +73,4 @@ VisualHmiClient is a datasync app which uses python binding of `ImageStore` gRPC
 
 #### Installing VisualHmi refinement backend and frontend apps
 
-Please follow the [VisualHMI Refinement App Setup](https://github.intel.com/ElephantTrunkArch/HMI-Docker/blob/master/README.md) to setup VisualHmi backend and frontend apps (Only needed if one wants to see the classified images in a Web UI with defective areas highlighted which cannot be seen on the images that are stored on disk in the EdgeServer at the location dumped by VisualHmiClient).
+Please follow the [VisualHMI Refinement App Setup](https://github.intel.com/IEdgeInsights/HMI-Docker/blob/master/README.md) to setup VisualHmi backend and frontend apps (Only needed if one wants to see the classified images in a Web UI with defective areas highlighted which cannot be seen on the images that are stored on disk in the EdgeServer at the location dumped by VisualHmiClient).

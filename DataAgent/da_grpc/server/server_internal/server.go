@@ -13,8 +13,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package server
 
 import (
-	config "ElephantTrunkArch/DataAgent/config"
-	pb "ElephantTrunkArch/DataAgent/da_grpc/protobuff/go/pb_internal"
+	config "IEdgeInsights/DataAgent/config"
+	pb "IEdgeInsights/DataAgent/da_grpc/protobuff/go/pb_internal"
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"

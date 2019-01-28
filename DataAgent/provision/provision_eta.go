@@ -1,8 +1,8 @@
 package main
 
 import (
-	util "ElephantTrunkArch/Util"
-	tpmutil "ElephantTrunkArch/Util/Tpm"
+	util "IEdgeInsights/Util"
+	tpmutil "IEdgeInsights/Util/Tpm"
 	"encoding/json"
 	"errors"
 	"flag"

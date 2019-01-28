@@ -22,7 +22,7 @@ Currently supported messagebus (Only OPCUA is been tested so far):
   sudo apt-get install -y libmbedtls-dev python3.6-dev
   ```
 
-## How to Test from $GOPATH/src/ElephantTrunkArch - present working directory:
+## How to Test from $GOPATH/src/IEdgeInsights - present working directory:
 A test program is available under ./go/test/ and ./py/test/ and only works for `OPCUA` now, `MQTT` channel needs to be tested and a generic test program would be provided soon.
 
 1. **`./py/test/`**

@@ -20,11 +20,11 @@ import (
 	"regexp"
 	"strings"
 
-	util "ElephantTrunkArch/Util"
-	influxDBHelper "ElephantTrunkArch/Util/influxdb"
+	util "IEdgeInsights/Util"
+	influxDBHelper "IEdgeInsights/Util/influxdb"
 
-	config "ElephantTrunkArch/DataAgent/config"
-	databus "ElephantTrunkArch/DataBusAbstraction/go"
+	config "IEdgeInsights/DataAgent/config"
+	databus "IEdgeInsights/DataBusAbstraction/go"
 
 	"github.com/golang/glog"
 )

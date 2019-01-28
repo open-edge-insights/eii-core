@@ -5,7 +5,7 @@ LABEL description="ETA Go Base Image"
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /ETA/go/src/ElephantTrunkArch
+ENV GO_WORK_DIR /ETA/go/src/IEdgeInsights
 ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
 ENV GOPATH="/ETA/go"
 WORKDIR ${GO_WORK_DIR}

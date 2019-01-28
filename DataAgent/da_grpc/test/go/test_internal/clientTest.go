@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
-	client "ElephantTrunkArch/DataAgent/da_grpc/client/go/client_internal"
+	client "IEdgeInsights/DataAgent/da_grpc/client/go/client_internal"
 	"errors"
 	"fmt"
 	"os"

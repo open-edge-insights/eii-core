@@ -64,18 +64,18 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### ** ETA pre-requisites **
 
-1. Copy the PCB demo test videos to the `test_videos` folder under `ElephantTrunkArch` by using the following commands:
+1. Copy the PCB demo test videos to the `test_videos` folder under `IEdgeInsights` by using the following commands:
 
     ```
-	cd ElephantTrunkArch/test_videos
+	cd IEdgeInsights/test_videos
 	wget -q http://wheeljack.ch.intel.com/test_videos/pcb_d2000.avi
     ```
 
-2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `ElephantTrunkArch` folder by obtaining the command from gerrit/teamforge
+2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/IEdgeInsights/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-3. Download the full package for OpenVINO toolkit for Linux version 2018 R5 from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside ElephantTrunkArch/DataAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside DataAnalytics directory.
+3. Download the full package for OpenVINO toolkit for Linux version 2018 R4 from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside DataAnalytics directory.
 
 4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
 
@@ -88,7 +88,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
    1. `factory.json` - value to be used if working with defect video files
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
-      1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/ElephantTrunkArch/blob/master/agent/README.md)
+      1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/IEdgeInsights/IEdgeInsights/blob/master/agent/README.md)
 
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
@@ -108,7 +108,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys.
 
-        2. Provision the secrets to Vault (**present working dir - `<ElephantTrunkArch>/docker_setup/`**)
+        2. Provision the secrets to Vault (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
             Run the script:
             ```sh
@@ -125,7 +125,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
-        3. Build and run ETA images as per the dependency order (**present working dir - `<ElephantTrunkArch>/docker_setup/deploy`**)
+        3. Build and run ETA images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/deploy`**)
 
             For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
             ```sh

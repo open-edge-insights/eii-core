@@ -118,7 +118,7 @@ services:
       - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
       - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
-      - "${ETA_INSTALL_PATH}/logs/DataAgent:/ETA/go/src/ElephantTrunkArch/log/DataAgent"
+      - "${ETA_INSTALL_PATH}/logs/DataAgent:/ETA/go/src/IEdgeInsights/log/DataAgent"
     command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}"]
     ports:
       - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
@@ -164,7 +164,7 @@ services:
     volumes:
       - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${ETA_INSTALL_PATH}/logs/telegraf_logs:/ETA/telegraf_logs"
-      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/ETA/go/src/ElephantTrunkArch/Telegraf/Telegraf.conf"
+      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/ETA/go/src/IEdgeInsights/Telegraf/Telegraf.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

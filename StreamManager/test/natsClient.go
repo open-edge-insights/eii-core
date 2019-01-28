@@ -14,7 +14,7 @@ import (
 	"flag"
 	"runtime"
 
-	stm "ElephantTrunkArch/StreamManager"
+	stm "IEdgeInsights/StreamManager"
 
 	"github.com/golang/glog"
 	nats "github.com/nats-io/go-nats"
