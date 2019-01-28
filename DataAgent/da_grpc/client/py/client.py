@@ -42,7 +42,7 @@ class GrpcClient(object):
             GrpcClient constructor.
             Keyword Arguments:
             hostname   - refers to hostname/ip address of the m/c
-                         where DataAgent module of ETA is running
+                         where DataAgent module of IEI is running
                          (default: localhost)
             port       - refers to gRPC port (default: 50051)
             clientCert - client certificate

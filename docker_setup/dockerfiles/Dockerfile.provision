@@ -1,6 +1,6 @@
 # Dockerfile for DataAgent
-ARG ETA_VERSION
-FROM ia/gobase:${ETA_VERSION}
+ARG IEI_VERSION
+FROM ia/gobase:${IEI_VERSION}
 LABEL description="DataAgent image"
 
 RUN mkdir -p ${GO_WORK_DIR}/log
@@ -69,6 +69,6 @@ ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 ADD Util ./Util
 RUN mkdir -p ./vault/file
 
-RUN go build -o /ETA/go/bin/provision_iei ./provision_iei.go
+RUN go build -o /IEI/go/bin/provision_iei ./provision_iei.go
 ENTRYPOINT ["./provision_iei.sh"]
 HEALTHCHECK NONE

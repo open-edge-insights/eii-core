@@ -31,13 +31,13 @@ from distutils.dir_util import copy_tree
 
 SYSTEMD_PATH = "/etc/systemd/system"
 INSTALL_PATH = "/opt/intel/iei/"
-
+CERT_PATH = ""
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('-c', '--create_iei_pkg',
-                        help='Creates a ETA package', action="store_true")
+                        help='Creates a IEI package', action="store_true")
 
     parser.add_argument('-i', '--install_iei', help='install iei pkg',
                         action="store_true")
@@ -56,7 +56,8 @@ def parse_args():
     args = parser.parse_args()
     if args.install_iei and not args.path_to_certs_dir:
         parser.error("-i/--install_iei requires \"-p\" option")
-
+    global CERT_PATH
+    CERT_PATH = os.path.abspath(args.path_to_certs_dir)
     return args
 
 
@@ -69,7 +70,7 @@ def enable_systemd_service():
         print("Unable to copy the systemd service file")
         exit(-1)
 
-    # This is to keep systemctl DB sane after adding ETA service.
+    # This is to keep systemctl DB sane after adding IEI service.
     print("systemctl daemon reload in progress...")
     output = subprocess.run(["systemctl", "daemon-reload"])
     if output.returncode != 0:
@@ -77,16 +78,16 @@ def enable_systemd_service():
         exit(-1)
 
     os.chdir("{0}{1}".format(INSTALL_PATH, "deploy/"))
-    print("systemctl start of ETA service in progress...")
+    print("systemctl start of IEI service in progress...")
     output = subprocess.run(["systemctl", "start", "iei"])
     if output.returncode != 0:
-        print("Unable to start ETA systemd service")
+        print("Unable to start IEI systemd service")
         exit(-1)
 
-    print("systemctl enable of ETA service in progress...")
+    print("systemctl enable of IEI service in progress...")
     output = subprocess.run(["systemctl", "enable", "iei"])
     if output.returncode != 0:
-        print("Unable to add ETA systemd service as part of boot")
+        print("Unable to add IEI systemd service as part of boot")
         exit(-1)
 
 
@@ -130,16 +131,16 @@ def execute_compose_startup():
 
 
 def uninstall_iei():
-    print("***********Un-installing ETA***********")
+    print("***********Un-installing IEI***********")
     uninstall_list = ["/opt/intel/iei/",
                       "/etc/systemd/system/iei.service"]
-    print("systemctl stop of ETA service in progress...")
+    print("systemctl stop of IEI service in progress...")
     output = subprocess.run(["systemctl", "stop", "iei"])
     if output.returncode != 0:
-        print("Unable to stop ETA systemd service file")
+        print("Unable to stop IEI systemd service file")
 
     cwd = os.getcwd()
-    os.chdir("/opt/intel/iei/")
+    os.chdir(INSTALL_PATH)
     for i in uninstall_list:
         print("Removing "+i+" ...")
         if i == "/opt/intel/iei/":
@@ -156,13 +157,13 @@ def uninstall_iei():
                 print("Unable to remove" + i)
     os.chdir(cwd)
 
-    # This is to keep systemctl DB sane after deleting ETA service.
+    # This is to keep systemctl DB sane after deleting IEI service.
     print("systemctl daemon reload in progress...")
     output = subprocess.run(["systemctl", "daemon-reload"])
     if output.returncode != 0:
         print("Unable to do systemd daemon-reload")
 
-    print("***********Finished Un-installing ETA***********")
+    print("***********Finished Un-installing IEI***********")
 
 
 if __name__ == '__main__':
@@ -176,14 +177,15 @@ if __name__ == '__main__':
         # uninstall previous iei instance and files
         if os.path.exists(INSTALL_PATH):
             uninstall_iei()
-        print("*****Installing ETA without any pre-created container*******")
+        print("*****Installing IEI without any pre-created container*******")
         execute_compose_startup()
         enable_systemd_service()
         print("***********Installation Finished***********")
 
     if args.create_iei_pkg:
-        print("******Preparing ETA tarball for deployment box********")
-        uninstall_iei()
+        print("******Preparing IEI tarball for deployment box********")
+        if os.path.exists(INSTALL_PATH):
+            uninstall_iei()
         execute_compose_startup()
 
         # Save the images
@@ -193,7 +195,7 @@ if __name__ == '__main__':
             print("Failed to run save_built_images.sh successfully")
             exit(-1)
 
-        print("***Preparing compressed archive of ETA package***")
+        print("***Preparing compressed archive of IEI package***")
         docker_setup_dir = os.getcwd()
         os.chdir(INSTALL_PATH + "dist_libs/")
         dist_libs_dir = os.getcwd()
@@ -215,7 +217,7 @@ if __name__ == '__main__':
         test_videos_path = docker_setup_dir + "/deploy/" + \
             test_videos_tar_name
         test_videos_dir = os.getcwd() + "/../test_videos/"
-        os.chdir(test_videos_dir)  # ETA root directory
+        os.chdir(test_videos_dir)  # IEI root directory
 
         if os.path.exists(os.getcwd()):
             print("Preparing {0}".format(test_videos_path))
@@ -244,7 +246,7 @@ if __name__ == '__main__':
                 os.remove(file)
 
         install_guide = '''
-        Completed preparing the compressed archive for ETA package.
+        Completed preparing the compressed archive for IEI package.
         Kindly copy the archive name "iei.tar.gz" to the deployment
         system's prefered directory.
 
@@ -265,7 +267,8 @@ if __name__ == '__main__':
 
     if args.install_iei:
         # uninstall previous iei instance and files
-        uninstall_iei()
+        if os.path.exists(INSTALL_PATH):
+            uninstall_iei()
         create_install_dir()
 
         # untar the docker setup files
@@ -288,9 +291,9 @@ if __name__ == '__main__':
             print("Failed to run load_built_images.sh successfully")
             exit(-1)
 
+        print(CERT_PATH)
         print("Provisioning the system with certificates provided by user")
-        dir_path = os.path.abspath(args.path_to_certs_dir)
-        output = subprocess.run(["./provision_startup.sh", dir_path,
+        output = subprocess.run(["./provision_startup.sh", CERT_PATH,
                                  "deploy_mode",
                                  "|", "tee", "provision_iei_log.txt"])
         if output.returncode != 0:

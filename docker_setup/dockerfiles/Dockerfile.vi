@@ -1,6 +1,6 @@
 # Dockerfile for VideoIngestion
-ARG ETA_VERSION
-FROM ia/pybase:$ETA_VERSION
+ARG IEI_VERSION
+FROM ia/pybase:$IEI_VERSION
 LABEL description="VideoIngestion image"
 
 ADD VideoIngestion/basler-video-capture ./basler-video-capture
@@ -126,8 +126,8 @@ ADD VideoIngestion/test .
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
 
-ARG ETA_UID
-RUN chown -R ${ETA_UID} /etc/ssl/
-ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/ETA/video_ingestion_logs"]
+ARG IEI_UID
+RUN chown -R ${IEI_UID} /etc/ssl/
+ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/IEI/video_ingestion_logs"]
 CMD ["--config", "factory_prod.json", "--log", ${PY_LOG_LEVEL}]
 HEALTHCHECK NONE

@@ -46,7 +46,7 @@ const (
 var daCfg config.DAConfig
 
 func initializeInfluxDB() error {
-	cmd := exec.Command("/ETA/go/src/IEdgeInsights/DataAgent/influx_start.sh")
+	cmd := exec.Command("/IEI/go/src/IEdgeInsights/DataAgent/influx_start.sh")
 	err := cmd.Run()
 	if err != nil {
 		glog.Errorf("Failed to start influxdb Server, Error: %s", err)

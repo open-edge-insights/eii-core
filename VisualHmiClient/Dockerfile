@@ -3,7 +3,7 @@ FROM ubuntu:16.04
 ARG HOST_TIME_ZONE=""
 
 USER root
-WORKDIR /eta
+WORKDIR /iei
 
 ENV no_proxy localhost
 
@@ -52,4 +52,4 @@ ADD Util/crypto/encrypt_decrypt.py Util/crypto/encrypt_decrypt.py
 ENV PYTHONPATH .:./ImageStore/protobuff/py/:./DataBusAbstraction/py
 ENV PYTHONIOENCODING UTF-8
 
-ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiEtaDataSync.py", "-c", "VisualHmiClient/config.json"]
+ENTRYPOINT [ "python3.6", "VisualHmiClient/VisualHmiIeiDataSync.py", "-c", "VisualHmiClient/config.json"]

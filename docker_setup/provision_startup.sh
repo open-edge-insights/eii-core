@@ -24,7 +24,7 @@ fi
 echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
 cp -f resolv.conf /etc/resolv.conf
 
-echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
+echo "0.2 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
 if [ "$2" = "deploy_mode" ]
 then
 	source ./setenv.sh
@@ -33,7 +33,7 @@ else
 fi
 
 echo "0.3 Deleting any pre-provisioned vault data before proceeding..."
-rm -rf $ETA_INSTALL_PATH/secret_store
+rm -rf $IEI_INSTALL_PATH/secret_store
 
 echo "0.4 Updating .env for container timezone..."
 # Get Docker Host timezone
@@ -46,16 +46,16 @@ sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 echo "0.5 Get docker Host IP address and write it to .env"
 ./update_host_ip.sh
 
-echo "1. create $ETA_USER_NAME if it doesn't exists."
-if ! id $ETA_USER_NAME >/dev/null 2>&1; then
-    groupadd $ETA_USER_NAME
-    useradd -r -g $ETA_USER_NAME $ETA_USER_NAME
+echo "1. create $IEI_USER_NAME if it doesn't exists."
+if ! id $IEI_USER_NAME >/dev/null 2>&1; then
+    groupadd $IEI_USER_NAME
+    useradd -r -g $IEI_USER_NAME $IEI_USER_NAME
 fi
 
 if [ "$TPM_ENABLE" = "true" ]
 then
 	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
-	chown $ETA_USER_NAME /dev/tpm0
+	chown $IEI_USER_NAME /dev/tpm0
 fi
 
 echo "2. Removing previous iei/provisioning containers if existed..."
@@ -63,7 +63,7 @@ docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
 echo "Remove the influx/imagestore data..."
-rm -rf $ETA_INSTALL_PATH/data
+rm -rf $IEI_INSTALL_PATH/data
 
 if [ "$2" != "deploy_mode" ]
 then
@@ -95,5 +95,5 @@ echo "4. Creating and starting the provisioning containers..."
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML up
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
-# ETA containers will be executed as ieiuser
-chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH
+# IEI containers will be executed as ieiuser
+chown -R $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH

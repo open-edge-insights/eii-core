@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     # If executing this script from other m/c, provide
     # the right hostname/ip addr of the system running
-    # DataAgent module of ETA
+    # DataAgent module of IEI
     client = GrpcClient(hostname="localhost")
 
     # Testing GetBlob(imgHandle) gRPC call

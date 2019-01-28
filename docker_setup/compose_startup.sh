@@ -6,15 +6,15 @@
 
 pre_build_steps() {
 	source .env
-	if ! id $ETA_USER_NAME >/dev/null 2>&1;
+	if ! id $IEI_USER_NAME >/dev/null 2>&1;
 	then
-		echo "User for ETA does not exist on host machine, please execute provision."
+		echo "User for IEI does not exist on host machine, please execute provision."
 		exit 1
 	fi
 	echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
 	cp -f resolv.conf /etc/resolv.conf
 
-	echo "0.2 Setting up $ETA_INSTALL_PATH directory and copying all the necessary config files..."
+	echo "0.2 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
 	if [ "$1" = "deploy_mode" ]
 	then
 		source ./setenv.sh
@@ -31,7 +31,7 @@ pre_build_steps() {
 	sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
 	# This will remove the iei user id entry if it exists and adds a new one with the right iei user id
-	sed -i '/ETA_UID/d' .env && echo "ETA_UID=$(id -u $ETA_USER_NAME)" >> .env
+	sed -i '/IEI_UID/d' .env && echo "IEI_UID=$(id -u $IEI_USER_NAME)" >> .env
 
 
 	echo "0.4 create $COMPOSE_PROJECT_NAME if it doesn't exists"
@@ -48,7 +48,7 @@ pre_build_steps() {
 		# Intentionally not chnaging the group of device file to keep the
 		# root group based users unaffected and keep the host machine setting change minimal.
 		# TODO: Revert the changes the after the TPM read is over forever.
-		chown $ETA_USER_NAME /dev/tpm0
+		chown $IEI_USER_NAME /dev/tpm0
 	fi
 
 	echo "0.6 Get docker Host IP address and write it to .env"
@@ -57,21 +57,20 @@ pre_build_steps() {
 
 post_build_steps() {
 
-	mkdir -p $ETA_INSTALL_PATH/grpc_int_ssl_secrets
-	chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/grpc_int_ssl_secrets
-	mkdir -p $ETA_INSTALL_PATH/data
-	mkdir -p $ETA_INSTALL_PATH/data/influxdata
-	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data
-	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/data/influxdata
-	chmod -R 760 $ETA_INSTALL_PATH/data
-	chown $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH/logs
-	mkdir -p $ETA_INSTALL_PATH/logs/classifier_logs
-	mkdir -p $ETA_INSTALL_PATH/logs/DataAgent
-	mkdir -p $ETA_INSTALL_PATH/logs/factoryctrl_app_logs
-	mkdir -p $ETA_INSTALL_PATH/logs/telegraf_logs
-	mkdir -p $ETA_INSTALL_PATH/logs/video_ingestion_logs
-	chmod -R 777 $ETA_INSTALL_PATH/logs
-	chown -R $ETA_USER_NAME /dev/dri
+	mkdir -p $IEI_INSTALL_PATH/grpc_int_ssl_secrets
+	chown -R $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/grpc_int_ssl_secrets
+	mkdir -p $IEI_INSTALL_PATH/data
+	mkdir -p $IEI_INSTALL_PATH/data/influxdata
+	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/data
+	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/data/influxdata
+	chmod -R 760 $IEI_INSTALL_PATH/data
+	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/logs
+	mkdir -p $IEI_INSTALL_PATH/logs/classifier_logs
+	mkdir -p $IEI_INSTALL_PATH/logs/DataAgent
+	mkdir -p $IEI_INSTALL_PATH/logs/factoryctrl_app_logs
+	mkdir -p $IEI_INSTALL_PATH/logs/telegraf_logs
+	mkdir -p $IEI_INSTALL_PATH/logs/video_ingestion_logs
+	chmod -R 777 $IEI_INSTALL_PATH/logs
 }
 
 build_iei() {

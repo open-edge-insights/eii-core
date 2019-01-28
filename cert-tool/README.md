@@ -1,8 +1,8 @@
 
-# CERT-TOOL for Generating the Asymmetric Key Generation of ETA:
+# CERT-TOOL for Generating the Asymmetric Key Generation of IEI:
 
-Cert-Tool is a certificate generation tool created for ETA platform based on the openssl commands.It creates x509 
-standard certificates for the server and client. Root Certificate Authority certificate and private is generated atfirst then all the ETA server and client components are signed by the RootCA.
+Cert-Tool is a certificate generation tool created for IEI platform based on the openssl commands.It creates x509 
+standard certificates for the server and client. Root Certificate Authority certificate and private is generated atfirst then all the IEI server and client components are signed by the RootCA.
 
 ## Prerequisites:
     i.  OPENSSL(v1.0 or later) 
@@ -53,7 +53,7 @@ standard certificates for the server and client. Root Certificate Authority cert
     - grpc_internal/  --> consists of the server (grpc server of `ia_data_agent`) and client certs/keys consumed by containers making 
                           `GetConfigInt()` internal gRPC call
                          exposed by `ia_data_agent` container
-    - grpc_external/  --> consists of the server (`ETA host ip`) and client certs/keys consumed by external clients calling into `ia_data_agent`                         exposed `Config()` and `Query()` interface. This is not consumed as of now
+    - grpc_external/  --> consists of the server (`IEI host ip`) and client certs/keys consumed by external clients calling into `ia_data_agent`                         exposed `Config()` and `Query()` interface. This is not consumed as of now
     - ImageStore /    --> consists of the server (consumed by external grpc server of `ia_imagestore`) and client certs/keys consumed by the                             internal and external clients calling into the exposed gRPC interfaces
     - kapacitor/      --> consists of the server certificate/key consumed by `ia_data_analytics` container to bring up kapacitor daemon
     - streammanager/  --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module which is one of the influxdb 

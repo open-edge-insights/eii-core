@@ -1,13 +1,13 @@
 # ImageStore dockerfile
-ARG ETA_VERSION
-FROM ia/gobase:$ETA_VERSION
+ARG IEI_VERSION
+FROM ia/gobase:$IEI_VERSION
 
-ENV GO_WORK_DIR /ETA/go/src/IEdgeInsights
-ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
+ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
 WORKDIR ${GO_WORK_DIR}
-ENV PYTHONPATH .:/ETA/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff
+ENV PYTHONPATH .:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff
 
-ENV GOPATH /ETA/go
+ENV GOPATH /IEI/go
 
 RUN mkdir -p ${GO_WORK_DIR}/log
 
@@ -107,10 +107,10 @@ RUN apt-get -y install tcl
 ARG REDIS_VERSION
 RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
 RUN tar xzf redis-${REDIS_VERSION}.tar.gz
-RUN cd /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION} && \
+RUN cd /IEI/go/src/IEdgeInsights/redis-${REDIS_VERSION} && \
     make && \
-    cp /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
-    cp /ETA/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
+    cp /IEI/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-server /usr/local/bin && \
+    cp /IEI/go/src/IEdgeInsights/redis-${REDIS_VERSION}/src/redis-cli /usr/local/bin
 
 ARG MINIO_VERSION
 RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MINIO_VERSION}
@@ -131,7 +131,7 @@ RUN	git clone https://github.com/intel/safestringlib.git && \
 	git checkout ${SAFESTRING_VER} && \
     make
 
-WORKDIR /ETA/go/src/IEdgeInsights
+WORKDIR /IEI/go/src/IEdgeInsights
 ADD ImageStore/ ./ImageStore
 ADD DataAgent/ ./DataAgent
 ADD Util/ ./Util
@@ -145,11 +145,11 @@ RUN cd Util/cpuid && \
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py
 
-RUN go build -o /ETA/go/src/IEdgeInsights/ImageStore/main ImageStore/main.go
+RUN go build -o /IEI/go/src/IEdgeInsights/ImageStore/main ImageStore/main.go
 
 RUN mkdir /.minio
-ARG ETA_UID
-RUN chown -R ${ETA_UID} /.minio
+ARG IEI_UID
+RUN chown -R ${IEI_UID} /.minio
 ENTRYPOINT ["./ImageStore/main"]
 CMD ["-stderrthreshold", ${GO_LOG_LEVEL}, "-v", ${GO_VERBOSE}]
 HEALTHCHECK NONE

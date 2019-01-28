@@ -111,7 +111,7 @@ class RemoveVisualHmiEntries:
         try:
             command = "export PYTHONPATH=$PYTHONPATH:{0};/usr/bin/python2.7\
              {1}/VisualHmiCleaner.py -c {1}/config.json -log-dir {1}/logs"\
-             .format(config["docker_eta_home"], path)
+             .format(config["docker_iei_home"], path)
             cron = CronTab(user='root')
             cron.remove_all(comment="VisualHmiCleaner")
             job = cron.new(command=command, comment='VisualHmiCleaner')
@@ -142,9 +142,9 @@ class RemoveVisualHmiEntries:
             self.config = json.load(f)
         hmi_image_folder = self.config["hmi_image_folder"]
         self.dbConfig = self.config["database"]
-        eta_dir = self.config["docker_eta_home"]
+        iei_dir = self.config["docker_iei_home"]
         self.logger.info("HMI ImageFolder : {}".format(hmi_image_folder))
-        self.logger.info("ETA Home Dir for CronJob : {}".format(eta_dir))
+        self.logger.info("IEI Home Dir for CronJob : {}".format(iei_dir))
 
         if self.args.enableCron is True:
             self.logger.info("Enabling CronJob")

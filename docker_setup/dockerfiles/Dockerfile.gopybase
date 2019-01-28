@@ -1,14 +1,14 @@
-# ETA Base Dockerfile for Go/Py modules
-ARG ETA_VERSION
-FROM ia/pybase:$ETA_VERSION
-LABEL description="ETA Go/Py Base Image"
+# IEI Base Dockerfile for Go/Py modules
+ARG IEI_VERSION
+FROM ia/pybase:$IEI_VERSION
+LABEL description="IEI Go/Py Base Image"
 
 # Python envs
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 
-ENV GO_WORK_DIR /ETA/go/src/IEdgeInsights
-ENV GOPATH="/ETA/go"
-ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
+ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
+ENV GOPATH="/IEI/go"
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
 
 WORKDIR ${GO_WORK_DIR}
 

@@ -6,4 +6,4 @@ services:
     devices:
       - "/dev/tpm0:/dev/tpm0"
 
-  #----End: ETA Containers ----
+  #----End: IEI Containers ----

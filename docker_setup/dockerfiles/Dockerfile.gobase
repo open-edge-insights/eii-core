@@ -1,13 +1,13 @@
-# ETA Base Dockerfile for Go modules
+# IEI Base Dockerfile for Go modules
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:$UBUNTU_IMAGE_VERSION
-LABEL description="ETA Go Base Image"
+LABEL description="IEI Go Base Image"
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /ETA/go/src/IEdgeInsights
-ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
-ENV GOPATH="/ETA/go"
+ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
+ENV GOPATH="/IEI/go"
 WORKDIR ${GO_WORK_DIR}
 
 RUN apt-get update

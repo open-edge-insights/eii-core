@@ -7,9 +7,9 @@ DataAgentClient python program is used for demonstrating GetBlob(imgHandle) gRPC
   * Install gRPC, gRPC tools by running below commands. More details @ [python grpc quick start](https://grpc.io/docs/quickstart/python.html)
     * `sudo -H pip3 install grpcio`
     * `sudo -H pip3 install grpcio-tools`
-  * If the ETA is running on a node behind a coporate network/proxy server, please set IP address      of the node in the no_proxy/NO_PROXY env variable  on the system where you are executing   
+  * If the IEI is running on a node behind a coporate network/proxy server, please set IP address      of the node in the no_proxy/NO_PROXY env variable  on the system where you are executing   
     the grpc clients so that the communication doesn't go via the proxy server.
-    Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
+    Eg. `export no_proxy=$no_proxy,<IEI node IP address>`
     If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`      
 
 * Start python gRPC client: `python3.6 grpc_example.py --img_Handle [imgHandle key] --output_file [output_image_file_path]`

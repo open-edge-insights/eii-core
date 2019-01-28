@@ -8,8 +8,8 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
       args:
-        ETA_VERSION: ${ETA_VERSION}
-    image: ia/gopybase:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia/gopybase:${IEI_VERSION}
 
   # Define Test Container service
   ia_client_tests:
@@ -19,10 +19,10 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.ct
       args:
-        ETA_VERSION: ${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         REDIS_VERSION: ${REDIS_VERSION}
         MINIO_VERSION: ${MINIO_VERSION}
-    image: ia/client_tests:${ETA_VERSION}
+    image: ia/client_tests:${IEI_VERSION}
     container_name: ia_client_tests
     hostname: ia_client_tests
     network_mode: host

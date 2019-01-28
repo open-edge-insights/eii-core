@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	outDir   = "/ETA/tpm_secret/"
+	outDir   = "/IEI/tpm_secret/"
 	tpmAddr  = "0x81010001"
 	pcrBank  = "sha256:"
 	pcrIndex = "7,8,9"

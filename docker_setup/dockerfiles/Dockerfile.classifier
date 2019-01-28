@@ -1,14 +1,14 @@
 # Dockerfile for Classifier
-ARG ETA_VERSION
-FROM ia/gopybase:$ETA_VERSION
+ARG IEI_VERSION
+FROM ia/gopybase:$IEI_VERSION
 LABEL description="Classifier image"
 
-ENV DIR /ETA
+ENV DIR /IEI
 WORKDIR ${DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py
-ENV HOME /ETA
-ENV KAPACITOR_REPO /ETA/go/src/github.com/influxdata/kapacitor
-ENV GO_ROOT_BIN /ETA/go/bin
+ENV HOME /IEI
+ENV KAPACITOR_REPO /IEI/go/src/github.com/influxdata/kapacitor
+ENV GO_ROOT_BIN /IEI/go/bin
 
 RUN apt-get update
 
@@ -65,11 +65,11 @@ ADD Util ./Util
 
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
-ARG ETA_UID
+ARG IEI_UID
 
-RUN chown ${ETA_UID} /ETA
-RUN chown -R ${ETA_UID} /etc/ssl
+RUN chown ${IEI_UID} /IEI
+RUN chown -R ${IEI_UID} /etc/ssl
 RUN mkdir -p /etc/kapacitor
-RUN chown ${ETA_UID} /etc/kapacitor
+RUN chown ${IEI_UID} /etc/kapacitor
 ENTRYPOINT ["./classifier_start.sh"]
 HEALTHCHECK NONE

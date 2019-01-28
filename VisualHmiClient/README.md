@@ -22,12 +22,12 @@ VisualHmiClient is a datasync app which uses python binding of `ImageStore` gRPC
   ```
 
   Change the Databus Host & Port Details.
-  **(Your ETA running machine IP & Opcua Port)**
+  **(Your IEI running machine IP & Opcua Port)**
 
 > **NOTE**:
-> If the ETA is running on a node behind a coporate network/proxy server, please set IP address      of the node in the no_proxy/NO_PROXY env > >
+> If the IEI is running on a node behind a coporate network/proxy server, please set IP address      of the node in the no_proxy/NO_PROXY env > >
 > variable on the system where you are executing VisualHmiClient app so that the communication doesn't go via the proxy server.
-> Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
+> Eg. `export no_proxy=$no_proxy,<IEI node IP address>`
 > If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`
 
 ### Installation
@@ -46,12 +46,12 @@ VisualHmiClient is a datasync app which uses python binding of `ImageStore` gRPC
   > Refer [docker_setup/README.md](../docker_setup/README.md) for docker daemon and container proxy
   > configuration
 
-* Building and Running VisualHmiClient as a container (**present working dir - ElephantTrunckArch repo_dir**)
+* Building and Running VisualHmiClient as a container (**present working dir - IEdgeInsights repo_dir**)
 
   ```sh
-    sudo VisualHmiClient/build_and_run_visualhmiclient.sh ETA_IP_ADDR=[ETA_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]
+    sudo VisualHmiClient/build_and_run_visualhmiclient.sh IEI_IP_ADDR=[IEI_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]
 
-    where ETA_IP_ADDR refers to system's IP on which ETA is running on
+    where IEI_IP_ADDR refers to system's IP on which IEI is running on
           IMG_DIR refers to the image dir where the images are stored on the host
           LOCAL[yes|no] refers to if posting of metadata to VisualHmi backend
   ```

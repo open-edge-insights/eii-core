@@ -38,5 +38,5 @@ OPCUA
                             -trustFile /etc/ssl/ca/ca_certificate.der
   ```
 
-> **Note**: Change the opcua endpoint as per the usecase. If one wish to subscribe to ETA opcua bus, then make sure to change the endpoint to
->           opcua://<ETA_node_ip_address>:4840
+> **Note**: Change the opcua endpoint as per the usecase. If one wish to subscribe to IEI opcua bus, then make sure to change the endpoint to
+>           opcua://<IEI_node_ip_address>:4840

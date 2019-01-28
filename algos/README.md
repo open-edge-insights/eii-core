@@ -1,4 +1,4 @@
-This is the reference for all the algorithms used in ETA
+This is the reference for all the algorithms used in IEI
 
 
 ## Configuration

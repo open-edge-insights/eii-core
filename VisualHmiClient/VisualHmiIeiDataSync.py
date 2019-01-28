@@ -43,7 +43,7 @@ IM_CLIENT_KEY = filePath + '/../cert-tool/Certificates/imagestore/' + \
     'imagestore_client_key.pem'
 
 
-class EtaDataSync:
+class IeiDataSync:
 
     def __init__(self, log):
         self.logger = log
@@ -192,14 +192,14 @@ class EtaDataSync:
                          "privateFile": privateFile,
                          "trustFile": trustFile}
         try:
-            etadbus = databus(self.logger)
-            etadbus.ContextCreate(contextConfig)
+            ieidbus = databus(self.logger)
+            ieidbus.ContextCreate(contextConfig)
             topicConfig = {"name": "classifier_results", "type": "string"}
-            etadbus.Subscribe(topicConfig, "START", self.databus_callback)
+            ieidbus.Subscribe(topicConfig, "START", self.databus_callback)
         except Exception as e:
             self.logger.error("Exception: %s", str(e))
             raise
-        return etadbus
+        return ieidbus
 
 
 def parse_arg():
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     currentDateTime = str(datetime.datetime.now())
     listDateTime = currentDateTime.split(" ")
     currentDateTime = "_".join(listDateTime)
-    logFileName = 'visual_hmi_eta_data_sync_' + currentDateTime + '.log'
+    logFileName = 'visual_hmi_iei_data_sync_' + currentDateTime + '.log'
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
@@ -237,7 +237,7 @@ if __name__ == "__main__":
 
     try:
         condition = Condition()
-        etaDataSync = EtaDataSync(log).main(args)
+        ieiDataSync = IeiDataSync(log).main(args)
         with condition:
             condition.wait()
     except KeyboardInterrupt:
@@ -247,8 +247,8 @@ if __name__ == "__main__":
         log.error("Exception: %s", str(e))
     finally:
         try:
-            etaDataSync.ContextDestroy()
+            ieiDataSync.ContextDestroy()
             os._exit(1)
         except Exception as e:
-            log.error("Exception while calling etaDataSync.ContextDestroy(): \
+            log.error("Exception while calling ieiDataSync.ContextDestroy(): \
                       %s", str(e))

@@ -1,6 +1,6 @@
 FROM ubuntu:16.04
 
-WORKDIR /eta
+WORKDIR /iei
 
 ENV no_proxy localhost
 
@@ -23,8 +23,8 @@ ADD algos/__init__.py algos/__init__.py
 ADD algos/etr_utils algos/etr_utils
 ADD VisualHmiClient/ VisualHmiClient/
 
-ENV PYTHONPATH $PYTHONPATH:/eta/DataBusAbstraction/py:/eta
+ENV PYTHONPATH $PYTHONPATH:/iei/DataBusAbstraction/py:/iei
 ENV PYTHONIOENCODING UTF-8
 
-ENTRYPOINT ["python3.6", "/eta/VisualHmiClient/VisualHmiCleaner/VisualHmiCleaner.py","-c", "/eta/VisualHmiClient/VisualHmiCleaner/config.json"]
+ENTRYPOINT ["python3.6", "/iei/VisualHmiClient/VisualHmiCleaner/VisualHmiCleaner.py","-c", "/iei/VisualHmiClient/VisualHmiCleaner/config.json"]
 CMD [""]

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Creates the ETA_INSTALL_PATH directory and other sub-dirs here like logs, config
+# Creates the IEI_INSTALL_PATH directory and other sub-dirs here like logs, config
 # data, test_videos which will be used during volume mount of containers
 
 source ./setenv.sh
@@ -12,6 +12,7 @@ mkdir -p $ieiConfDir
 
 # Creating iei log directory
 mkdir -p $ieiLogDir/consolidatedLogs
+
 
 # Copy config files
 cp -rf $configDir $ieiRootDir

@@ -1,11 +1,11 @@
-# ETA Base Dockerfile for Py modules
+# IEI Base Dockerfile for Py modules
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:$UBUNTU_IMAGE_VERSION
-LABEL description="ETA Py Base Image"
+LABEL description="IEI Py Base Image"
 
 ARG HOST_TIME_ZONE=""
 
-ENV PY_WORK_DIR /ETA
+ENV PY_WORK_DIR /IEI
 WORKDIR ${PY_WORK_DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 
@@ -29,5 +29,5 @@ RUN cat /etc/timezone
 RUN apt-get install -y tzdata
 RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
 RUN dpkg-reconfigure -f noninteractive tzdata
-ENV PATH ${PATH}:/usr/local/go/bin:/ETA/go/bin
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
 HEALTHCHECK NONE

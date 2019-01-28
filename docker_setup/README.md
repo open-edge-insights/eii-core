@@ -1,5 +1,5 @@
 
-Docker compose setup of ETA solution:
+Docker compose setup of IEI solution:
 =====================================
 --------------------------------------
 
@@ -62,7 +62,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 4. Make sure host machine and docker daemon are configured with below security recommendations. [docker_security_recommendation.md](docker_security_recommendation.md)
    Note: This step is required for the final production setup for full security.
 
-### ** ETA pre-requisites **
+### ** IEI pre-requisites **
 
 1. Copy the PCB demo test videos to the `test_videos` folder under `IEdgeInsights` by using the following commands:
 
@@ -79,12 +79,12 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and iei processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_iei_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and iei processes.
 
-## Steps to setup ETA solution on test/factory system
+## Steps to setup IEI solution on test/factory system
 
 ### <u>Configuration</u>
 
-1. All configurable options for ETA goes into [.env](.env) file.
-2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and ETA containers goes into [docker-compose.yml](docker-compose.yml)
+1. All configurable options for IEI goes into [.env](.env) file.
+2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and IEI containers goes into [docker-compose.yml](docker-compose.yml)
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
    1. `factory.json` - value to be used if working with defect video files
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
@@ -92,7 +92,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
-5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the ETA is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
+5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
     1. `true` -  for enabling the tpm to store credentials
     2. `false` - for disabling the tpm
 
@@ -102,7 +102,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 1. Building the iei containers from source
 
-    * Follow below steps to generate certificates, provision and build/start ETA.
+    * Follow below steps to generate certificates, provision and build/start IEI.
 
         1. Certificates generation:
 
@@ -125,13 +125,13 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
-        3. Build and run ETA images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/deploy`**)
+        3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/deploy`**)
 
-            For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
+            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script:
             ```sh
             sudo ./setup_iei.py -a | tee setup_iei_logs.txt
             ```
-            This will install ETA as a systemd service in Ubuntu. Post installation, ETA can be started / stopped using commands:
+            This will install IEI as a systemd service in Ubuntu. Post installation, IEI can be started / stopped using commands:
             ```sh
             sudo systemctl stop iei
             sudo systemctl start iei
@@ -142,19 +142,19 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```sh
             sudo ./compose_startup.sh | tee compose_startup.txt
             ```
-            Verify all ETA containers coming up and working by following the `Post Installation Verification` steps.
+            Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
 
-        4. This is an `optional` step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful
-           when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the ETA.
+        4. This is an `optional` step where in IEI user wants to build and run IEI images as a redistributable .tar image. This is very helpful
+           when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the IEI.
 
-            Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
+            Creating The IEI tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
             ```sh
             sudo ./setup_iei.py -c | tee create_iei_targz.txt
             ```
             > **Note**:
-            > 1. This step will create an file named iei.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying ETA in the target machine.
+            > 1. This step will create an file named iei.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying IEI in the target machine.
 
-            Installing the ETA tar Ball ( make sure an untampered iei.tar.gz file present in the current working directory)
+            Installing the IEI tar Ball ( make sure an untampered iei.tar.gz file present in the current working directory)
 
             ```sh
             tar xzf iei.tar.gz
@@ -175,37 +175,37 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### Post Installation Verification
 
-1. To check if all the ETA images are built successfully, use cmd: `docker images|grep ia` and
-   all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+1. To check if all the IEI images are built successfully, use cmd: `docker images|grep ia` and
+   all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and IEI containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building IEI images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911
     ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. `docker ps` should list the below containers in ETA stack:
+2. `docker ps` should list the below containers in IEI stack:
     * Dependency containers: log rotate (`ia_log_rotate`)
-    * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
+    * IEI core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
       Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
 
     **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/iei/logs/consolidatedLogs/iei.log` to find out the reason for container failure
 
-3. To verify if the data pipeline withing ETA is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the
+3. To verify if the data pipeline withing IEI is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the
    databus, then check the logs of `ia_data_agent` container using cmd: `docker logs -f ia_data_agent`. One should see, publish messages like `Publishing topic: [topic_name]`
 
-4. To verify the E2E data flow working between ETA running on ECN (Edge Compute Node) and VisualHmiClient running on the same node or on a diff
+4. To verify the E2E data flow working between IEI running on ECN (Edge Compute Node) and VisualHmiClient running on the same node or on a diff
    node, check if the classified images and their respective metadata is been received in the VisualHmiClient container. Refer [VisualHmiClient/README.md](../VisualHmiClient/README.md) for more details.
 
-5. `/opt/intel/iei` root directory gets created - This is the installation path for ETA:
-     * `config/` - all the ETA configs reside here.
-     * `logs/` - all the ETA logs reside here.
+5. `/opt/intel/iei` root directory gets created - This is the installation path for IEI:
+     * `config/` - all the IEI configs reside here.
+     * `logs/` - all the IEI logs reside here.
      * `dist_libs/` - is the client external libs distribution package
         * `DataAgentClient` -
             * cpp - consists of gRPC cpp client wrappers, protobuff files and test programs
             * py - consists of gRPC py client wrappers, protobuff files and test programs
         * `DataBusAbstraction` -
             * py - consists of opcua py client wrappers and test programs
-     * `secret_store/` - This is the vault's persistent storage wherein ETA secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
+     * `secret_store/` - This is the vault's persistent storage wherein IEI secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
      * `data/` - stores the backup data for persistent imagestore and influxdb
 
 > Note:

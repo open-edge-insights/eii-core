@@ -15,9 +15,9 @@ Pre-requisites:
         * ./greeter_client (In a separate terminal)
         * Terminal displaying Greeter received: Hello world on correct installation.
     * Refer DataAgent README for further instructions on how to run gRPC C++ client.
-* If the ETA is running on a node behind a coporate network/proxy server, please set IP address        of the node in the no_proxy/NO_PROXY env variable  on the system where you are executing   
+* If the IEI is running on a node behind a coporate network/proxy server, please set IP address        of the node in the no_proxy/NO_PROXY env variable  on the system where you are executing   
   the grpc clients so that the communication doesn't go via the proxy server.
-  Eg. `export no_proxy=$no_proxy,<ETA node IP address>`
+  Eg. `export no_proxy=$no_proxy,<IEI node IP address>`
   If this is not set, one would into gRPC errors like `StatusCode.UNAVIALABLE`      
 
 * Start C++ gRPC client: `sudo ./clientTest [imgHandle] [output_image_file_path]`

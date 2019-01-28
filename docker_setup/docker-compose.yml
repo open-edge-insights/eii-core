@@ -2,7 +2,7 @@ version: '3'
 
 services:
 
-  #---- Start: ETA Dependency Services----
+  #---- Start: IEI Dependency Services----
   # Define a log_rotate service
   ia_log_rotate:
     build:
@@ -10,13 +10,13 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.logrotate
       args:
         LOG_ROTATE_VERSION: ${LOG_ROTATE_VERSION}
-        ETA_UID: ${ETA_UID}
+        IEI_UID: ${IEI_UID}
     container_name: ia_log_rotate
     hostname: ia_log_rotate
-    image: ia/logrotate:${ETA_VERSION}
+    image: ia/logrotate:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      LOGS_DIRECTORIES: ${ETA_INSTALL_PATH}/logs
+      LOGS_DIRECTORIES: ${IEI_INSTALL_PATH}/logs
     
       # Logrotate can rotate logfile according to the following intervals:
       # hourly
@@ -31,19 +31,19 @@ services:
       LOGROTATE_DATEFORMAT: "%Y%m%d_%H:%M:%S"
       TZ: ${HOST_TIME_ZONE}
     volumes:
-      - "${ETA_INSTALL_PATH}/logs:${ETA_INSTALL_PATH}/logs"
+      - "${IEI_INSTALL_PATH}/logs:${IEI_INSTALL_PATH}/logs"
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
     
 
-  #---- End: ETA Dependency Services----
+  #---- End: IEI Dependency Services----
 
-  #----Start: ETA Base Images----
+  #----Start: IEI Base Images----
   # Define ia-gobase service
   ia-gobase:
     build:
@@ -51,7 +51,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/gobase:${ETA_VERSION}
+    image: ia/gobase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
@@ -62,7 +62,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/pybase:${ETA_VERSION}
+    image: ia/pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
@@ -72,15 +72,15 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
       args:
-        ETA_VERSION: ${ETA_VERSION}
-    image: ia/gopybase:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia/gopybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
     
     
-  #----End: ETA Base Images----
+  #----End: IEI Base Images----
 
-  #----Start: ETA Containers ----
+  #----Start: IEI Containers ----
   # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
   ia_data_agent:
     links:
@@ -89,10 +89,10 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.da
       args:
-        ETA_VERSION: ${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
-        ETA_UID: ${ETA_UID}
-    image: ia/data_agent:${ETA_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia/data_agent:${IEI_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -113,12 +113,12 @@ services:
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
     volumes:
-      - "${ETA_INSTALL_PATH}/data/influxdata:/influxdata"
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
-      - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
-      - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
-      - "${ETA_INSTALL_PATH}/logs/DataAgent:/ETA/go/src/IEdgeInsights/log/DataAgent"
+      - "${IEI_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "${IEI_INSTALL_PATH}/secret_store:/vault/file"
+      - "${IEI_INSTALL_PATH}/tpm_secret:/IEI/tpm_secret"
+      - "${IEI_INSTALL_PATH}/logs/DataAgent:/IEI/go/src/IEdgeInsights/log/DataAgent"
     command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}"]
     ports:
       - "127.0.0.1:${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
@@ -132,7 +132,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -147,11 +147,11 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
       args:
-        ETA_VERSION: ${ETA_VERSION}
-        ETA_UID: ${ETA_UID}
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
     container_name: ia_telegraf
     hostname: ia_telegraf
-    image: ia/telegraf:${ETA_VERSION}
+    image: ia/telegraf:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       SHARED_KEY: ${SHARED_KEY}
@@ -162,9 +162,9 @@ services:
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       HOST_IP: ${HOST_IP}
     volumes:
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/logs/telegraf_logs:/ETA/telegraf_logs"
-      - "${ETA_INSTALL_PATH}/config/telegraf.conf:/ETA/go/src/IEdgeInsights/Telegraf/Telegraf.conf"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/logs/telegraf_logs:/IEI/telegraf_logs"
+      - "${IEI_INSTALL_PATH}/config/telegraf.conf:/IEI/go/src/IEdgeInsights/Telegraf/Telegraf.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -173,7 +173,7 @@ services:
     healthcheck:
        test: ["CMD-SHELL", "exit", "0"]
        interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -187,13 +187,13 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.imagestore
       args:
-        ETA_VERSION: ${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         REDIS_VERSION: ${REDIS_VERSION}
         MINIO_VERSION: ${MINIO_VERSION}
-        ETA_UID: ${ETA_UID}
+        IEI_UID: ${IEI_UID}
     container_name: ia_imagestore
     hostname: ia_imagestore
-    image: ia/imagestore:${ETA_VERSION}
+    image: ia/imagestore:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
@@ -209,8 +209,8 @@ services:
     ports:
       - "${HOST_IP}:${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
-      - "${ETA_INSTALL_PATH}/data:/data"
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/data:/data"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -219,7 +219,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -235,9 +235,9 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.classifier
       args:
-        ETA_VERSION: ${ETA_VERSION}
-        ETA_UID: ${ETA_UID}
-    image: ia/data_analytics:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia/data_analytics:${IEI_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -256,12 +256,12 @@ services:
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
-      - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
-      - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
-      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/algos/algo_config"
-      - "${ETA_INSTALL_PATH}/logs/classifier_logs:/ETA/classifier_logs"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
+      - "${IEI_INSTALL_PATH}/config/factory.json:/IEI/factory.json"
+      - "${IEI_INSTALL_PATH}/config/factory_prod.json:/IEI/factory_prod.json"
+      - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
+      - "${IEI_INSTALL_PATH}/logs/classifier_logs:/IEI/classifier_logs"
     expose:
       - ${KAPACITOR_PORT}
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
@@ -275,7 +275,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -291,9 +291,9 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.factoryctrlapp
       args:
-        ETA_VERSION: ${ETA_VERSION}
-        ETA_UID: ${ETA_UID}
-    image: ia/factoryctrl_app:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia/factoryctrl_app:${IEI_VERSION}
     container_name: ia_factoryctrl_app
     hostname: ia_factoryctrl_app
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -305,8 +305,8 @@ services:
       NO_PROXY: ${NO_PROXY},${HOST_IP}
       no_proxy: ${NO_PROXY},${HOST_IP}
     volumes:
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/logs/factoryctrl_app_logs:/ETA/factoryctrl_app_logs"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/logs/factoryctrl_app_logs:/IEI/factoryctrl_app_logs"
     command: ["--log", "${PY_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
@@ -316,7 +316,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -330,9 +330,9 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.vi
       args:
-        ETA_VERSION: ${ETA_VERSION}
-        ETA_UID: ${ETA_UID}
-    image: ia/video_ingestion:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia/video_ingestion:${IEI_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
@@ -355,12 +355,12 @@ services:
       TERM: "xterm"
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
-      - "${ETA_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${ETA_INSTALL_PATH}/test_videos:/ETA/test_videos"
-      - "${ETA_INSTALL_PATH}/config/factory.json:/ETA/factory.json"
-      - "${ETA_INSTALL_PATH}/config/factory_prod.json:/ETA/factory_prod.json"
-      - "${ETA_INSTALL_PATH}/config/algo_config:/ETA/algos/algo_config"
-      - "${ETA_INSTALL_PATH}/logs/video_ingestion_logs:/ETA/video_ingestion_logs"
+      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
+      - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
+      - "${IEI_INSTALL_PATH}/config/factory.json:/IEI/factory.json"
+      - "${IEI_INSTALL_PATH}/config/factory_prod.json:/IEI/factory_prod.json"
+      - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
+      - "${IEI_INSTALL_PATH}/logs/video_ingestion_logs:/IEI/video_ingestion_logs"
     command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
     devices:
       - "/dev/dri"
@@ -372,7 +372,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-    user: ${ETA_UID}
+    user: ${IEI_UID}
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
@@ -383,4 +383,4 @@ networks:
     external:
       name: ${COMPOSE_PROJECT_NAME}
 
-  #----End: ETA Containers ----
+  #----End: IEI Containers ----

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Sets the env variables needed for ETA build environment
+# Sets the env variables needed for IEI build environment
 
 # Exit the script if any one command fails
 set -e
 
 source .env
 
-ieiRootDir=$ETA_INSTALL_PATH
+ieiRootDir=$IEI_INSTALL_PATH
 ieiLogDir=$ieiRootDir/logs
 ieiConfDir=$ieiRootDir/config
 ieiDataDir=$ieiRootDir/data

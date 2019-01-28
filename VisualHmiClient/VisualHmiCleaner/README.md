@@ -49,7 +49,7 @@ VisualHmiCleaner is a utiliy to clear the VisualHmi images on the disk & postgre
 
     **Running VisualHmiCleaner container**:
     ```sh
-      $docker run -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/config.json:/eta/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/logs:/eta/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
+      $docker run -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/config.json:/iei/VisualHmiClient/VisualHmiCleaner/config.json -v /root/saved_images:/root/saved_images -v /root/IEdgeInsights/VisualHmiClient/VisualHmiCleaner/logs:/iei/VisualHmiClient/VisualHmiCleaner/logs --privileged=true --network host --name visualhmicleanernew -itd visualhmicleanernew -m docker -cron
     ```
   * Simple Run - For Immediate run.
     ```sh

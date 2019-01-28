@@ -3,7 +3,7 @@
 if [ "$#" -lt 3 ]
 then
     fileName=`basename "$0"`
-    echo "Usage: sudo ./$fileName ETA_IP_ADDR=[ETA_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]"
+    echo "Usage: sudo ./$fileName IEI_IP_ADDR=[IEI_IP_ADDR] IMG_DIR=[IMG_DIR] LOCAL=[yes|no]"
     exit 1
 fi
 
@@ -14,7 +14,7 @@ do
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
     case "$KEY" in
-            ETA_IP_ADDR)    ETA_IP_ADDR=${VALUE} ;;
+            IEI_IP_ADDR)    IEI_IP_ADDR=${VALUE} ;;
             IMG_DIR)        IMG_DIR=${VALUE} ;;
             LOCAL)          LOCAL=${VALUE} ;;
             *)
@@ -27,7 +27,7 @@ hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\
 hostTimezone=`echo $hostTimezone`
 
 echo "0. Updating databus_host field in VisualHmiClient/config.json..."
-sed -i 's/"databus_host": .*/"databus_host": "'"$ETA_IP_ADDR"'",/g' VisualHmiClient/config.json
+sed -i 's/"databus_host": .*/"databus_host": "'"$IEI_IP_ADDR"'",/g' VisualHmiClient/config.json
 
 echo "1. Building VisualHmiClient image..."
 cp docker_setup/dockerignores/.dockerignore .
@@ -47,11 +47,11 @@ then
 fi
 
 echo "3.1 Running VisualHmiClient container..."
-docker run --env no_proxy="localhost,127.0.0.1,$ETA_IP_ADDR" \
-           -v $PWD/cert-tool/Certificates:/eta/cert-tool/Certificates \
-           -v $PWD/VisualHmiClient/config.json:/eta/VisualHmiClient/config.json \
+docker run --env no_proxy="localhost,127.0.0.1,$IEI_IP_ADDR" \
+           -v $PWD/cert-tool/Certificates:/iei/cert-tool/Certificates \
+           -v $PWD/VisualHmiClient/config.json:/iei/VisualHmiClient/config.json \
            -v $IMG_DIR:/root/saved_images --privileged=true \
-           -v /tmp/logs:/eta/log \
+           -v /tmp/logs:/iei/log \
            --network host --name visualhmi \
            --log-opt max-size=50m --log-opt max-file=5 \
-           -it --restart always visual_hmi -local $LOCAL -log INFO -log-dir /eta/log
+           -it --restart always visual_hmi -local $LOCAL -log INFO -log-dir /iei/log

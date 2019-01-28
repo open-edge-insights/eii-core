@@ -2,7 +2,7 @@ version: '3'
 
 services:
 
-  #----Start: ETA Base Images----
+  #----Start: IEI Base Images----
   # Define ia-gobase service
   ia-gobase:
     build:
@@ -10,9 +10,9 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/gobase:${ETA_VERSION}
+    image: ia/gobase:${IEI_VERSION}
 
-  #----End: ETA Base Images----
+  #----End: IEI Base Images----
 
   ia_provision:
     depends_on:
@@ -21,8 +21,8 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.provision
       args:
-        ETA_VERSION: ${ETA_VERSION}
-    image: ia/provision:${ETA_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia/provision:${IEI_VERSION}
     container_name: ia_provision
     hostname: ia_provision
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -34,8 +34,8 @@ services:
       LD_LIBRARY_PATH: /usr/local/lib
     volumes:
       - "${CERTIFICATES_PATH}:/etc/ssl"
-      - "${ETA_INSTALL_PATH}/secret_store:/vault/file"
-      - "${ETA_INSTALL_PATH}/tpm_secret:/ETA/tpm_secret"
+      - "${IEI_INSTALL_PATH}/secret_store:/vault/file"
+      - "${IEI_INSTALL_PATH}/tpm_secret:/IEI/tpm_secret"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -46,4 +46,4 @@ services:
       interval: ${HEALTHCHECK_DURATION}
         
 
-  #----End: ETA Containers ----
+  #----End: IEI Containers ----

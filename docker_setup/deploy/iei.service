@@ -1,5 +1,5 @@
 [Unit]
-Description=ETA infrastructure service
+Description=IEI infrastructure service
 Requires=docker.service
 After=docker.service
 
