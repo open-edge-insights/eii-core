@@ -82,6 +82,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 ## Steps to setup ETA solution on test/factory system
 
 ### <u>Configuration</u>
+
 1. All configurable options for ETA goes into [.env](.env) file.
 2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and ETA containers goes into [docker-compose.yml](docker-compose.yml)
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
@@ -95,18 +96,19 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     1. `true` -  for enabling the tpm to store credentials
     2. `false` - for disabling the tpm
 
-    **NOTE**: Please use TPM_ENABLE=true only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
+    **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
 
 ### <u>Build & Installation</u>
+
 1. Building the eta containers from source
 
-    - Follow below steps to generate certificates, provision and start ETA.
+    * Follow below steps to generate certificates, provision and build/start ETA.
 
         1. Certificates generation:
 
             Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys.
 
-        2. Provision the secrets to Vault (**scripts should be executed from `<ElephantTrunkArch>/docker_setup/` directory**)
+        2. Provision the secrets to Vault (**present working dir - `<ElephantTrunkArch>/docker_setup/`**)
 
             Run the script:
             ```sh
@@ -123,7 +125,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
-        3. Build and run ETA images as per the dependency order
+        3. Build and run ETA images as per the dependency order (**present working dir - `<ElephantTrunkArch>/docker_setup/deploy`**)
 
             For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
             ```sh
@@ -142,7 +144,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```
             Verify all ETA containers coming up and working by following the `Post Installation Verification` steps.
 
-        4. This is an `optional` step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful    
+        4. This is an `optional` step where in ETA user wants to build and run ETA images as a redistributable .tar image. This is very helpful
            when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the ETA.
 
             Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
@@ -162,15 +164,19 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     > starting it off.
 
-2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either     natively (due to dependencies, this works only on Ubuntu) or dockerized version.
+2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either natively (due to dependencies, this works
+   only on Ubuntu) or dockerized version.
 
-3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
+   **Note**: VisualHmiClient is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/eta/dist_libs` to receive classified images and their metadata.
+
+3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by
+   `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
    `docker restart ia_video_ingestion`
 
 ### Post Installation Verification
 
 1. To check if all the ETA images are built successfully, use cmd: `docker images|grep ia` and
-all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
+   all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and ETA containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building ETA images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911
@@ -178,23 +184,29 @@ all containers are running, use cmd: `docker ps` (`one should see all the depend
     ```
 
 2. `docker ps` should list the below containers in ETA stack:
-    * Provisioning containers: provision (`ia_provision`)
     * Dependency containers: log rotate (`ia_log_rotate`)
     * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
       Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
 
     **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/eta/logs/consolidatedLogs/eta.log` to find out the reason for container failure
 
-3. Installation directory - `/opt/intel/eta` root directory details gets created:
+3. To verify if the data pipeline withing ETA is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the
+   databus, then check the logs of `ia_data_agent` container using cmd: `docker logs -f ia_data_agent`. One should see, publish messages like `Publishing topic: [topic_name]`
+
+4. To verify the E2E data flow working between ETA running on ECN (Edge Compute Node) and VisualHmiClient running on the same node or on a diff
+   node, check if the classified images and their respective metadata is been received in the VisualHmiClient container. Refer [VisualHmiClient/README.md](../VisualHmiClient/README.md) for more details.
+
+5. `/opt/intel/eta` root directory gets created - This is the installation path for ETA:
      * `config/` - all the ETA configs reside here.
      * `logs/` - all the ETA logs reside here.
      * `dist_libs/` - is the client external libs distribution package
         * `DataAgentClient` -
-            * cpp - consists of gRPC cpp client wrappers, protobuff files and example programs
-            * py - consists of gRPC py client wrappers, protobuff files and example programs
+            * cpp - consists of gRPC cpp client wrappers, protobuff files and test programs
+            * py - consists of gRPC py client wrappers, protobuff files and test programs
         * `DataBusAbstraction` -
-            * py - consists of opcua py client wrappers and example programs
+            * py - consists of opcua py client wrappers and test programs
      * `secret_store/` - This is the vault's persistent storage wherein ETA secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
+     * `data/` - stores the backup data for persistent imagestore and influxdb
 
 > Note:
 1. Few useful docker-compose and docker commands:
@@ -218,4 +230,3 @@ all containers are running, use cmd: `docker ps` (`one should see all the depend
 5. Run these commands to build & start the client tests container:
    `sudo ./client_tests_startup.sh`
    `docker-compose -f client-tests-compose.yml run --entrypoint /bin/bash ia_client_tests`
-

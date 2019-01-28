@@ -23,7 +23,6 @@ def py_serverContextCreate(host, port, certificateFile, privateKeyFile, trustLis
   cdef char *ckeyFile = keyFile;
 
   cdef int ctrustListSize = len(trustList);
-  print("before calling to_cstring_array")
 
   cdef char **ctrustList = to_cstring_array(trustList);
 
@@ -45,7 +44,7 @@ def py_serverStartTopic(ns, topic):
 
 def py_serverPublish(nsIndex, topic, data):
   cdef int cnsIndex = nsIndex;
-  
+
   cdef bytes topic_bytes = topic.encode();
   cdef char *ctopic = topic_bytes;
 
@@ -55,7 +54,6 @@ def py_serverPublish(nsIndex, topic, data):
   return copen62541W.serverPublish(cnsIndex, ctopic, cdata)
 
 def py_serverContextDestroy():
-  print("Destroy the server context")
   copen62541W.serverContextDestroy()
 
 
@@ -96,11 +94,9 @@ def py_clientSubscribe(nsIndex, topic, pyFunc):
 
   cdef bytes topic_bytes = topic.encode();
   cdef char *ctopic = topic_bytes;
- 
-  print("in pyx clientSubscribe")
+
   val = copen62541W.clientSubscribe(cnsIndex, ctopic, pyxCallback, <void *> pyFunc)
   return val
 
 def py_clientContextDestroy():
-  print("Destroy the client context")
   copen62541W.clientContextDestroy()

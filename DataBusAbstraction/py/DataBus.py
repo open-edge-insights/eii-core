@@ -223,13 +223,6 @@ class databus:
         try:
             self.mutex.acquire()
             try:
-                self.bus.stopTopic()
-                for key, item in self.subTopics.items():
-                    self.bus.receive(key, "STOP")
-                    self.subTopics[key]["queue"].join()
-                    self.subTopics[key]["event"].set()
-                    self.subTopics[key]["thread"].join()
-                    self.subTopics.pop(key)
                 self.bus.destroyContext()
             except Exception as e:
                 self.logger.error("{} Failure!!!".format(

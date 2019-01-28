@@ -86,13 +86,13 @@ class EtaDataSync:
             response = requests.post(posturi, json=data)
             if response.status_code != 200:
                 self.logger.error("HMI Failure Response Code : %s",
-                             response.status_code)
+                                  response.status_code)
             else:
                 self.logger.info("HMI Success Response Code : %s",
-                            response.status_code)
+                                 response.status_code)
         except Exception as e:
             self.logger.error("Exception Occured: %s in Posting MetaData : %s",
-                         str(e), data)
+                              str(e), data)
             raise
 
     def getBlob(self, key):
@@ -119,8 +119,10 @@ class EtaDataSync:
             self.logger.info("Blob Successfully received for key: %s", keyname)
             imgName = self.config["hmi_image_folder"] + filename + ".png"
             reshape_frame = np.reshape(Frame, (height, width, channels))
-            cv2.imwrite(imgName, reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION, 3])
-            self.logger.info("Image Conversion & Written Success as : %s", imgName)
+            cv2.imwrite(imgName, reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION,
+                                                 3])
+            self.logger.info("Image Conversion & Written Success as : %s",
+                             imgName)
         except Exception as e:
             self.logger.error("Exception: %s", str(e))
             raise
@@ -168,7 +170,8 @@ class EtaDataSync:
         # Client handle for image store
         self.client = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
                                            ROOTCA_CERT,
-                                           hostname=self.config['databus_host'])
+                                           hostname=self.config['databus_host']
+                                           )
 
         # Client handle for data bus abstraction
         filePath = os.path.abspath(os.path.dirname(__file__))
@@ -229,26 +232,23 @@ if __name__ == "__main__":
     if not os.path.exists(args.log_dir):
         os.mkdir(args.log_dir)
 
-    log = configure_logging(args.log.upper(), logFileName, args.log_dir, __name__)
+    log = configure_logging(args.log.upper(), logFileName, args.log_dir,
+                            __name__)
 
-    condition = Condition()
     try:
+        condition = Condition()
         etaDataSync = EtaDataSync(log).main(args)
-    except Exception as e:
-        log.error("Exception: %s", str(e))
-        if "refused" in e.message:
-            log.error("Retrying to establish connection with opcua \
-                            server...")
-            time.sleep(10)
+        with condition:
+            condition.wait()
     except KeyboardInterrupt:
         log.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
                         down now !!!")
+    except Exception as e:
+        log.error("Exception: %s", str(e))
+    finally:
         try:
             etaDataSync.ContextDestroy()
+            os._exit(1)
         except Exception as e:
-            log.error("Exiting..")
-        condition.notifyAll()
-
-    with condition:
-        condition.wait()
-        os._exit(1)
+            log.error("Exception while calling etaDataSync.ContextDestroy(): \
+                      %s", str(e))
