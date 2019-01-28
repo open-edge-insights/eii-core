@@ -7,15 +7,15 @@ set -e
 
 source .env
 
-etaRootDir=$ETA_INSTALL_PATH
-etaLogDir=$etaRootDir/logs
-etaConfDir=$etaRootDir/config
-etaDataDir=$etaRootDir/data
+ieiRootDir=$ETA_INSTALL_PATH
+ieiLogDir=$ieiRootDir/logs
+ieiConfDir=$ieiRootDir/config
+ieiDataDir=$ieiRootDir/data
 
 # We have to create here as this a deploy mode
 # required folder. And setenv.sh script is executed
 # during deploy mode instead of init.sh
-mkdir -p $etaLogDir/consolidatedLogs
+mkdir -p $ieiLogDir/consolidatedLogs
 
 rootDir=".."
 configDir="config"

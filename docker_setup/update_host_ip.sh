@@ -11,7 +11,7 @@ if [ ! "$hostIP" ]; then
         And add the proper IP ADDRESS of the host against the HOST_IP
         field. For example the line in file should look like below
                  HOST_IP=10.223.97.5
-        Kindly re-run the ./setup_eta -i if you are installing with "-i" option.
+        Kindly re-run the ./setup_iei -i if you are installing with "-i" option.
 EOF
 	exit -1
     fi

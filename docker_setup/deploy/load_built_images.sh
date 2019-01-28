@@ -7,7 +7,7 @@ curDir=`pwd`
 
 echo "Loading all the docker images from $curDir folder..."
 
-# loading all docker images of eta along with its dependencies
+# loading all docker images of iei along with its dependencies
 docker load -i log_rotate-$LOG_ROTATE_VERSION.tar && echo "Loaded log_rotate docker image.."
 docker load -i gobase-$ETA_VERSION.tar && echo "Loaded gobase docker image.."
 docker load -i pybase-$ETA_VERSION.tar && echo "Loaded pybase docker image.."

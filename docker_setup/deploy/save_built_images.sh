@@ -6,7 +6,7 @@ curDir=`pwd`
 
 echo "Saving all the docker images to $curDir folder..."
 
-# saving all docker images of eta along with its dependencies
+# saving all docker images of iei along with its dependencies
 docker save -o log_rotate-$LOG_ROTATE_VERSION.tar blacklabelops/logrotate:$LOG_ROTATE_VERSION && echo "Saved log_rotate docker image.."
 docker save -o gobase-$ETA_VERSION.tar ia/gobase:$ETA_VERSION && echo "Saved gobase docker image.."
 docker save -o pybase-$ETA_VERSION.tar ia/pybase:$ETA_VERSION && echo "Saved pybase docker image.."

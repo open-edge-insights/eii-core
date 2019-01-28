@@ -77,7 +77,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 3. Download the full package for OpenVINO toolkit for Linux version 2018 R4 from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside DataAnalytics directory.
 
-4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and eta processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_eta_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and eta processes.
+4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and iei processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_iei_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and iei processes.
 
 ## Steps to setup ETA solution on test/factory system
 
@@ -100,7 +100,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### <u>Build & Installation</u>
 
-1. Building the eta containers from source
+1. Building the iei containers from source
 
     * Follow below steps to generate certificates, provision and build/start ETA.
 
@@ -129,12 +129,12 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             For factory deployments, we want ETA to come up automatically on system boot. For doing this, run the script:
             ```sh
-            sudo ./setup_eta.py -a | tee setup_eta_logs.txt
+            sudo ./setup_iei.py -a | tee setup_iei_logs.txt
             ```
             This will install ETA as a systemd service in Ubuntu. Post installation, ETA can be started / stopped using commands:
             ```sh
-            sudo systemctl stop eta
-            sudo systemctl start eta
+            sudo systemctl stop iei
+            sudo systemctl start iei
             ```
 
             **Note**:
@@ -149,16 +149,16 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             Creating The ETA tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
             ```sh
-            sudo ./setup_eta.py -c | tee create_eta_targz.txt
+            sudo ./setup_iei.py -c | tee create_iei_targz.txt
             ```
             > **Note**:
-            > 1. This step will create an file named eta.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying ETA in the target machine.
+            > 1. This step will create an file named iei.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying ETA in the target machine.
 
-            Installing the ETA tar Ball ( make sure an untampered eta.tar.gz file present in the current working directory)
+            Installing the ETA tar Ball ( make sure an untampered iei.tar.gz file present in the current working directory)
 
             ```sh
-            tar xzf eta.tar.gz
-            sudo ./setup_eta.py -i -p <PATH OF CERTIFICATES DIR>
+            tar xzf iei.tar.gz
+            sudo ./setup_iei.py -i -p <PATH OF CERTIFICATES DIR>
             ```
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
@@ -167,7 +167,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either natively (due to dependencies, this works
    only on Ubuntu) or dockerized version.
 
-   **Note**: VisualHmiClient is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/eta/dist_libs` to receive classified images and their metadata.
+   **Note**: VisualHmiClient is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/iei/dist_libs` to receive classified images and their metadata.
 
 3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by
    `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
@@ -188,7 +188,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     * ETA core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
       Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
 
-    **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/eta/logs/consolidatedLogs/eta.log` to find out the reason for container failure
+    **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/iei/logs/consolidatedLogs/iei.log` to find out the reason for container failure
 
 3. To verify if the data pipeline withing ETA is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the
    databus, then check the logs of `ia_data_agent` container using cmd: `docker logs -f ia_data_agent`. One should see, publish messages like `Publishing topic: [topic_name]`
@@ -196,7 +196,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 4. To verify the E2E data flow working between ETA running on ECN (Edge Compute Node) and VisualHmiClient running on the same node or on a diff
    node, check if the classified images and their respective metadata is been received in the VisualHmiClient container. Refer [VisualHmiClient/README.md](../VisualHmiClient/README.md) for more details.
 
-5. `/opt/intel/eta` root directory gets created - This is the installation path for ETA:
+5. `/opt/intel/iei` root directory gets created - This is the installation path for ETA:
      * `config/` - all the ETA configs reside here.
      * `logs/` - all the ETA logs reside here.
      * `dist_libs/` - is the client external libs distribution package

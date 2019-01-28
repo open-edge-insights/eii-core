@@ -30,7 +30,7 @@ pre_build_steps() {
 	# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 	sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-	# This will remove the eta user id entry if it exists and adds a new one with the right eta user id
+	# This will remove the iei user id entry if it exists and adds a new one with the right iei user id
 	sed -i '/ETA_UID/d' .env && echo "ETA_UID=$(id -u $ETA_USER_NAME)" >> .env
 
 
@@ -76,10 +76,10 @@ post_build_steps() {
 
 build_iei() {
 
-	echo "1. Removing previous dependency/eta containers if existed..."
+	echo "1. Removing previous dependency/iei containers if existed..."
 	docker-compose down --remove-orphans
 
-	echo "2. Building the dependency/eta containers..."
+	echo "2. Building the dependency/iei containers..."
 	# set .dockerignore to the base one
 	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
@@ -114,27 +114,27 @@ build_iei() {
 	unlink ../.dockerignore
 }
 
-# don't start containers if $1 is set - needed when starting eta.service
+# don't start containers if $1 is set - needed when starting iei.service
 # to avoid unnecessary start of containers by compose_startup.sh script
 up_iei() {
 
-	if [ -e $etaLogDir/consolidatedLogs/eta.log ]; then
+	if [ -e $ieiLogDir/consolidatedLogs/iei.log ]; then
 	    DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
-	    mv $etaLogDir/consolidatedLogs/eta.log $etaLogDir/consolidatedLogs/eta_$DATE.log.bkp
+	    mv $ieiLogDir/consolidatedLogs/iei.log $ieiLogDir/consolidatedLogs/iei_$DATE.log.bkp
 	fi
 
 	if [ "$1" = "deploy_mode" ]
 	then
 		#Logging the docker compose logs to file.
-		docker-compose $OVERRIDE_COMPOSE_YML up &> $etaLogDir/consolidatedLogs/eta.log
+		docker-compose $OVERRIDE_COMPOSE_YML up &> $ieiLogDir/consolidatedLogs/iei.log
 	else
-		echo "3. Creating and starting the dependency/eta containers..."
-		docker-compose $OVERRIDE_COMPOSE_YML up &> $etaLogDir/consolidatedLogs/eta.log &
+		echo "3. Creating and starting the dependency/iei containers..."
+		docker-compose $OVERRIDE_COMPOSE_YML up &> $ieiLogDir/consolidatedLogs/iei.log &
 	fi
 }
 
 down_iei() {
-	echo "Shutting down & Removing eta & dependent containers"
+	echo "Shutting down & Removing iei & dependent containers"
 	docker-compose down
 }
 

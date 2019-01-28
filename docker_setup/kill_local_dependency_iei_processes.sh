@@ -8,7 +8,7 @@ sudo service postgresql stop
 sudo service kapacitor stop
 pkill -9 -f kapacitord
 
-echo "Killing all eta processes..."
+echo "Killing all iei processes..."
 pkill -9 -f DataAgent.go
 pkill -9 -f VideoIngestion.py
 pkill -9 -f classifier.py

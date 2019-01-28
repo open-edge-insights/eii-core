@@ -58,7 +58,7 @@ then
 	chown $ETA_USER_NAME /dev/tpm0
 fi
 
-echo "2. Removing previous eta/provisioning containers if existed..."
+echo "2. Removing previous iei/provisioning containers if existed..."
 docker-compose down --remove-orphans
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
@@ -95,5 +95,5 @@ echo "4. Creating and starting the provisioning containers..."
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML up
 docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML down
 
-# ETA containers will be executed as etauser
+# ETA containers will be executed as ieiuser
 chown -R $ETA_USER_NAME:$ETA_USER_NAME $ETA_INSTALL_PATH

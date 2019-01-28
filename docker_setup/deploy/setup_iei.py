@@ -30,32 +30,32 @@ import tarfile
 from distutils.dir_util import copy_tree
 
 SYSTEMD_PATH = "/etc/systemd/system"
-INSTALL_PATH = "/opt/intel/eta/"
+INSTALL_PATH = "/opt/intel/iei/"
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('-c', '--create_eta_pkg',
+    parser.add_argument('-c', '--create_iei_pkg',
                         help='Creates a ETA package', action="store_true")
 
-    parser.add_argument('-i', '--install_eta', help='install eta pkg',
+    parser.add_argument('-i', '--install_iei', help='install iei pkg',
                         action="store_true")
 
     parser.add_argument('-p', '--path_to_certs_dir',
                         help='Directory path of certificates')
 
-    parser.add_argument('-u', '--uninstall_eta', help='uninstall eta pkg',
+    parser.add_argument('-u', '--uninstall_iei', help='uninstall iei pkg',
                         action="store_true")
 
-    parser.add_argument('-a', '--add_eta_without_tar',
-                        help='Install eta in the target system without any \
+    parser.add_argument('-a', '--add_iei_without_tar',
+                        help='Install iei in the target system without any \
                         container tar file',
                         action="store_true")
 
     args = parser.parse_args()
-    if args.install_eta and not args.path_to_certs_dir:
-        parser.error("-i/--install_eta requires \"-p\" option")
+    if args.install_iei and not args.path_to_certs_dir:
+        parser.error("-i/--install_iei requires \"-p\" option")
 
     return args
 
@@ -64,7 +64,7 @@ def enable_systemd_service():
     # Copy the systemd service file to /etc/systemd/system
     print("Copying the service file to systemd path...")
     os.chdir("{0}{1}".format(INSTALL_PATH, "deploy/"))
-    output = subprocess.run(["cp", "eta.service", SYSTEMD_PATH])
+    output = subprocess.run(["cp", "iei.service", SYSTEMD_PATH])
     if output.returncode != 0:
         print("Unable to copy the systemd service file")
         exit(-1)
@@ -78,13 +78,13 @@ def enable_systemd_service():
 
     os.chdir("{0}{1}".format(INSTALL_PATH, "deploy/"))
     print("systemctl start of ETA service in progress...")
-    output = subprocess.run(["systemctl", "start", "eta"])
+    output = subprocess.run(["systemctl", "start", "iei"])
     if output.returncode != 0:
         print("Unable to start ETA systemd service")
         exit(-1)
 
     print("systemctl enable of ETA service in progress...")
-    output = subprocess.run(["systemctl", "enable", "eta"])
+    output = subprocess.run(["systemctl", "enable", "iei"])
     if output.returncode != 0:
         print("Unable to add ETA systemd service as part of boot")
         exit(-1)
@@ -129,20 +129,20 @@ def execute_compose_startup():
         exit(-1)
 
 
-def uninstall_eta():
+def uninstall_iei():
     print("***********Un-installing ETA***********")
-    uninstall_list = ["/opt/intel/eta/",
-                      "/etc/systemd/system/eta.service"]
+    uninstall_list = ["/opt/intel/iei/",
+                      "/etc/systemd/system/iei.service"]
     print("systemctl stop of ETA service in progress...")
-    output = subprocess.run(["systemctl", "stop", "eta"])
+    output = subprocess.run(["systemctl", "stop", "iei"])
     if output.returncode != 0:
         print("Unable to stop ETA systemd service file")
 
     cwd = os.getcwd()
-    os.chdir("/opt/intel/eta/")
+    os.chdir("/opt/intel/iei/")
     for i in uninstall_list:
         print("Removing "+i+" ...")
-        if i == "/opt/intel/eta/":
+        if i == "/opt/intel/iei/":
             keepers = ['secret_store', 'tpm_secret']
             for filename in os.listdir('.'):
                 if filename not in keepers:
@@ -172,18 +172,18 @@ if __name__ == '__main__':
     test_videos_tar_name = "test_videos.tar.gz"
     dist_libs_tar_name = "dist_libs.tar.gz"
 
-    if args.add_eta_without_tar:
-        # uninstall previous eta instance and files
+    if args.add_iei_without_tar:
+        # uninstall previous iei instance and files
         if os.path.exists(INSTALL_PATH):
-            uninstall_eta()
+            uninstall_iei()
         print("*****Installing ETA without any pre-created container*******")
         execute_compose_startup()
         enable_systemd_service()
         print("***********Installation Finished***********")
 
-    if args.create_eta_pkg:
+    if args.create_iei_pkg:
         print("******Preparing ETA tarball for deployment box********")
-        uninstall_eta()
+        uninstall_iei()
         execute_compose_startup()
 
         # Save the images
@@ -224,19 +224,19 @@ if __name__ == '__main__':
                 for file in os.listdir(test_videos_dir):
                     tar.add(file)
 
-        eta_tar_name = "eta.tar.gz"
-        eta_path = docker_setup_dir + "/deploy/" + \
-            eta_tar_name
-        eta_setup_file = "setup_eta.py"
+        iei_tar_name = "iei.tar.gz"
+        iei_path = docker_setup_dir + "/deploy/" + \
+            iei_tar_name
+        iei_setup_file = "setup_iei.py"
         print("Preparing {0}. It consists of {1}, {2} and {3}".format(
-              eta_path, test_videos_tar_name, docker_setup_tar_name,
-              eta_setup_file))
+              iei_path, test_videos_tar_name, docker_setup_tar_name,
+              iei_setup_file))
         os.chdir("../docker_setup/deploy")
-        with tarfile.open(eta_path, "w:gz") as tar:
+        with tarfile.open(iei_path, "w:gz") as tar:
             tar.add(dist_libs_tar_name)
             tar.add(test_videos_tar_name)
             tar.add(docker_setup_tar_name)
-            tar.add(eta_setup_file)
+            tar.add(iei_setup_file)
 
         for file in [docker_setup_path, test_videos_path, dist_libs_path]:
             print("Removing {0}...".format(file))
@@ -245,27 +245,27 @@ if __name__ == '__main__':
 
         install_guide = '''
         Completed preparing the compressed archive for ETA package.
-        Kindly copy the archive name "eta.tar.gz" to the deployment
+        Kindly copy the archive name "iei.tar.gz" to the deployment
         system's prefered directory.
 
         extarct the tar ball in prefered directory and execute below
         command:
-            ./setup_eta.py -i Or  ./setup_eta.py --install_eta
+            ./setup_iei.py -i Or  ./setup_iei.py --install_iei
 
-        This will install necessary files in "/opt/intel/eta" folder.
-        Additionally it will create systemd service having name "eta"
+        This will install necessary files in "/opt/intel/iei" folder.
+        Additionally it will create systemd service having name "iei"
 
-        If the installation is successful, one can start/stop eta
+        If the installation is successful, one can start/stop iei
         service by excuting below:
-            systemctl stop eta
-            systemctl start eta
-            systemctl status eta
+            systemctl stop iei
+            systemctl start iei
+            systemctl status iei
         '''
         print(install_guide)
 
-    if args.install_eta:
-        # uninstall previous eta instance and files
-        uninstall_eta()
+    if args.install_iei:
+        # uninstall previous iei instance and files
+        uninstall_iei()
         create_install_dir()
 
         # untar the docker setup files
@@ -292,15 +292,15 @@ if __name__ == '__main__':
         dir_path = os.path.abspath(args.path_to_certs_dir)
         output = subprocess.run(["./provision_startup.sh", dir_path,
                                  "deploy_mode",
-                                 "|", "tee", "provision_eta_log.txt"])
+                                 "|", "tee", "provision_iei_log.txt"])
         if output.returncode != 0:
             print("Failed to run provision_startup.sh successfully")
             exit(-1)
 
-        print("Creating systemd entry for eta and enabling it ...")
+        print("Creating systemd entry for iei and enabling it ...")
         enable_systemd_service()
 
         print("***********Installation Finished***********")
 
-    if args.uninstall_eta:
-        uninstall_eta()
+    if args.uninstall_iei:
+        uninstall_iei()

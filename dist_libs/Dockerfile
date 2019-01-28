@@ -1,7 +1,7 @@
 FROM ubuntu:16.04
 
 USER root
-WORKDIR /eta
+WORKDIR /iei
 
 ENV no_proxy localhost
 
@@ -23,12 +23,12 @@ RUN apt-get install -y libmbedtls-dev
 ADD DataBusAbstraction/ DataBusAbstraction/
 
 # Build the open62541W.so file
-RUN cd /eta/DataBusAbstraction/py && \
+RUN cd /iei/DataBusAbstraction/py && \
     pip3.6 install -r databus_requirements.txt && \
     cd test && \
     make build
 
-RUN mkdir -p /eta/dist_libs
+RUN mkdir -p /iei/dist_libs
 
 # Copying DataBusAbstraction py library/test files.
 ADD DataBusAbstraction/py/databus_requirements.txt /dist_libs/DataBusAbstraction/py/
@@ -59,4 +59,4 @@ ADD ImageStore/protobuff/cpp/*.cc /dist_libs/ImageStore/protobuff/cpp/
 ADD ImageStore/protobuff/cpp/*.h /dist_libs/ImageStore/protobuff/cpp/
 ADD ImageStore/protobuff/*.proto /dist_libs/ImageStore/protobuff/
 
-ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /eta/dist_libs/"]
+ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /iei/dist_libs/"]

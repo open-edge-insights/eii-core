@@ -5,20 +5,20 @@
 
 source ./setenv.sh
 
-# Creating eta directory
-mkdir -p $etaRootDir
-mkdir -p $etaLogDir
-mkdir -p $etaConfDir
+# Creating iei directory
+mkdir -p $ieiRootDir
+mkdir -p $ieiLogDir
+mkdir -p $ieiConfDir
 
-# Creating eta log directory
-mkdir -p $etaLogDir/consolidatedLogs
+# Creating iei log directory
+mkdir -p $ieiLogDir/consolidatedLogs
 
 # Copy config files
-cp -rf $configDir $etaRootDir
+cp -rf $configDir $ieiRootDir
 
 # Copy test video files
 if [ -d "$rootDir/test_videos" ]; then
     echo "test_videos exist..."
-    cp -rf $rootDir/test_videos $etaRootDir/
+    cp -rf $rootDir/test_videos $ieiRootDir/
 fi
 

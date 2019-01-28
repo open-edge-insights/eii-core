@@ -63,24 +63,24 @@ class A:
                          "privateFile": args.privateFile,
                          "trustFile": args.trustFile}
         try:
-            etadbus = databus(logger)
-            etadbus.ContextCreate(contextConfig)
+            ieidbus = databus(logger)
+            ieidbus.ContextCreate(contextConfig)
             if args.direction == "PUB":
                 topicConfig = {"name": args.topic, "type": "string"}
                 for i in range(0, 20):
                     result = "Hello {}".format(i)
-                    etadbus.Publish(topicConfig, result)
+                    ieidbus.Publish(topicConfig, result)
                     print("Published [" + result + "]")
                     time.sleep(5)
             elif args.direction == "SUB":
                 topicConfig = {"name": args.topic, "type": "string"}
-                etadbus.Subscribe(topicConfig, "START", self.cbFunc)
+                ieidbus.Subscribe(topicConfig, "START", self.cbFunc)
                 flag = "START"
                 while True:
                     pass
             else:
                 raise Exception("Wrong direction flag for databus!!!")
-            etadbus.ContextDestroy()
+            ieidbus.ContextDestroy()
         except Exception as e:
             raise
 

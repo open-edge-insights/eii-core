@@ -68,12 +68,12 @@ func main() {
 	}
 
 	defer errHandler()
-	etaDatab, err := databus.NewDataBus()
+	ieiDatab, err := databus.NewDataBus()
 	if err != nil {
 		panic(err)
 	}
 
-	err = etaDatab.ContextCreate(contextConfig)
+	err = ieiDatab.ContextCreate(contextConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -88,7 +88,7 @@ func main() {
 		for i := 0; i < 20; i++ {
 			time.Sleep(5 * time.Second)
 			result := fmt.Sprintf("%s %d", "Hello ", i)
-			etaDatab.Publish(topicConfig, result)
+			ieiDatab.Publish(topicConfig, result)
 			glog.Errorf("Published result: %s\n", result)
 		}
 	} else if *direction == "SUB" {
@@ -97,10 +97,10 @@ func main() {
 		// 	"name": *topic,
 		// 	"type": "string",
 		// }
-		// etaDatab.Subscribe(topicConfig, "START", cbFunc)
+		// ieiDatab.Subscribe(topicConfig, "START", cbFunc)
 		// for true {
 		// 	time.Sleep(10 * time.Second)
 		// }
 	}
-	etaDatab.ContextDestroy()
+	ieiDatab.ContextDestroy()
 }

@@ -8,7 +8,7 @@ Dist_Libs provides external client sdk for DataBusAbstraction and ImageStore alo
 ```
 sudo ./create_client_dist_package.sh
 ```
-* Also, added create_client_dist_package.sh as part of docker_setup/deploy/setup_eta.py
+* Also, added create_client_dist_package.sh as part of docker_setup/deploy/setup_iei.py
 
  **Note**:
- * Append PYTHONPATH with "/opt/intel/eta/dist_libs/:/opt/intel/eta/dist_libs/ImageStore/protobuff/py:/opt/intel/eta/dist_libs/DataBusAbstraction/py" in order to run the test scripts for the usage of dist_libs.
+ * Append PYTHONPATH with "/opt/intel/iei/dist_libs/:/opt/intel/iei/dist_libs/ImageStore/protobuff/py:/opt/intel/iei/dist_libs/DataBusAbstraction/py" in order to run the test scripts for the usage of dist_libs.
