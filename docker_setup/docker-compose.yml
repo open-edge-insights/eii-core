@@ -265,6 +265,8 @@ services:
     expose:
       - ${KAPACITOR_PORT}
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
+    devices:
+      - "/dev/dri"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
