@@ -91,7 +91,8 @@ build_iei() {
 	do
 	    echo "Building $service image..."
 	    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-
+		# disabling error check here as any failure in building the image was aborting the script
+		set +e
 	    if [ "$service" == "ia-gobase" ] || [ "$service" == "ia-pybase" ]; then
 	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
 	    else
@@ -99,10 +100,14 @@ build_iei() {
 	    fi
 
 		errorCode=`echo $?`
-	    if [ $errorCode != "0" ]; then
-	        echo "docker-compose build failed for $service..."
-	        exit -1
-	    fi
+		if [ $errorCode != "0" ]
+		then
+			echo "docker-compose build failed for $service. Rebuilding it with --no-cache switch..."
+			docker-compose $OVERRIDE_COMPOSE_YML build --no-cache $service
+			exit -1
+		fi
+		set -e
+
 	    count=$((count+1))
 	done
 
