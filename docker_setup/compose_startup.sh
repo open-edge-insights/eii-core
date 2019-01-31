@@ -99,16 +99,14 @@ build_iei() {
 	    else
 	        docker-compose $OVERRIDE_COMPOSE_YML build $service
 	    fi
+		set -e
 
 		errorCode=`echo $?`
 		if [ $errorCode != "0" ]
 		then
 			echo "docker-compose build failed for $service. Rebuilding it with --no-cache switch..."
 			docker-compose $OVERRIDE_COMPOSE_YML build --no-cache $service
-			exit -1
 		fi
-		set -e
-
 	    count=$((count+1))
 	done
 
