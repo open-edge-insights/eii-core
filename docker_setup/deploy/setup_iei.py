@@ -31,7 +31,7 @@ from distutils.dir_util import copy_tree
 
 SYSTEMD_PATH = "/etc/systemd/system"
 INSTALL_PATH = "/opt/intel/iei/"
-CERT_PATH = ""
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -56,8 +56,7 @@ def parse_args():
     args = parser.parse_args()
     if args.install_iei and not args.path_to_certs_dir:
         parser.error("-i/--install_iei requires \"-p\" option")
-    global CERT_PATH
-    CERT_PATH = os.path.abspath(args.path_to_certs_dir)
+    
     return args
 
 
@@ -168,6 +167,9 @@ def uninstall_iei():
 
 if __name__ == '__main__':
     args = parse_args()
+
+    if args.path_to_certs_dir:
+        CERT_PATH = os.path.abspath(args.path_to_certs_dir)
 
     docker_setup_tar_name = "docker_setup.tar.gz"
     test_videos_tar_name = "test_videos.tar.gz"
