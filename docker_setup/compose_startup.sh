@@ -71,6 +71,7 @@ post_build_steps() {
 	mkdir -p $ETA_INSTALL_PATH/logs/telegraf_logs
 	mkdir -p $ETA_INSTALL_PATH/logs/video_ingestion_logs
 	chmod -R 777 $ETA_INSTALL_PATH/logs
+	chown -R $ETA_USER_NAME /dev/dri
 }
 
 build_iei() {
