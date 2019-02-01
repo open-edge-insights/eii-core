@@ -38,6 +38,7 @@ static UA_Server *server = NULL;
 static UA_ServerConfig *serverConfig;
 static UA_ByteString* remoteCertificate = NULL;
 static UA_Boolean serverRunning = true;
+static pthread_mutex_t *serverLock = NULL;
 
 // opcua client global variables
 static UA_Client *client = NULL;
@@ -181,16 +182,31 @@ addTopicDataSourceVariable(UA_Server *server, char *namespace, char *topic) {
 /* cleanupServer deletes the memory allocated for server configuration */
 static void
 cleanupServer() {
-    UA_Server_delete(server);
-    UA_ServerConfig_delete(serverConfig);
+    if (server) {
+        UA_Server_delete(server);
+    }
+    if (serverConfig) {
+        UA_ServerConfig_delete(serverConfig);
+    }
+    if (serverLock) {
+        pthread_mutex_destroy(serverLock);
+        free(serverLock);
+    }
 }
 
 static void*
 startServer(void *ptr) {
+
     /* run server */
     UA_StatusCode retval = UA_Server_run(server, &serverRunning);
     if (retval != UA_STATUSCODE_GOOD) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
+        return NULL;
+    }
+    while (serverRunning) {
+        pthread_mutex_lock(serverLock);
+        UA_Server_run_iterate(server, 100);
+        pthread_mutex_unlock(serverLock);
     }
     return NULL;
 }
@@ -267,6 +283,15 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
         return str;
     }
 
+    /* Creation of mutex for server instance */
+    serverLock = malloc(sizeof(pthread_mutex_t));
+
+    if (!serverLock || pthread_mutex_init(serverLock, NULL) != 0) {
+        static char str[] = "server lock mutex init has failed!";
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", str);
+        return str;
+    }
+
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
         static char str[] = "server pthread creation to start server failed";
@@ -328,10 +353,14 @@ serverPublish(int nsIndex, char *topic, char* data) {
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
     DBA_STRCPY(dataToPublish, data);
-    UA_Variant_setScalarCopy(val, dataToPublish, &UA_TYPES[UA_TYPES_STRING]);
+    UA_String str = UA_STRING(data);
+    UA_Variant_setScalarCopy(val, &str, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
+    pthread_mutex_lock(serverLock);
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
+    pthread_mutex_unlock(serverLock);
+
     if (retval == UA_STATUSCODE_GOOD) {
         UA_Variant_delete(val);
         return "0";
@@ -351,8 +380,12 @@ void serverContextDestroy() {
 /* cleanupClient deletes the memory allocated for client configuration */
 static void
 cleanupClient() {
-    UA_ByteString_delete(remoteCertificate);
-    UA_Client_delete(client);
+    if (remoteCertificate) {
+        UA_ByteString_delete(remoteCertificate);
+    }
+    if (client) {
+        UA_Client_delete(client);
+    }
 }
 
 static void
