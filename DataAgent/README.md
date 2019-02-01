@@ -74,13 +74,3 @@ For Any Client it Requires,
   1. Certificates/ca/ca_certificate.pem
   2. Certificates/client/client_certificate.pem
   3. Certificates/client/client_key.pem
-
-
-## Generating Certificates
-
-**Note** Following steps are followed by us for Development & Validation
-Any OpenSSL Standard Certificate Generation Will work. Please follow the certificate
-names & extension as per Certificates directory / as above
-
-To Generate the Certificate please follow the wiki.
-  https://github.intel.com/IEdgeInsights/IEdgeInsights/wiki/Generating-TLS-certificates-and-keys

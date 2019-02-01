@@ -131,7 +131,7 @@ def execute_compose_startup():
 
 def uninstall_iei():
     print("***********Un-installing IEI***********")
-    uninstall_list = ["/opt/intel/iei/",
+    uninstall_list = [INSTALL_PATH,
                       "/etc/systemd/system/iei.service"]
     print("systemctl stop of IEI service in progress...")
     output = subprocess.run(["systemctl", "stop", "iei"])
@@ -142,7 +142,7 @@ def uninstall_iei():
     os.chdir(INSTALL_PATH)
     for i in uninstall_list:
         print("Removing "+i+" ...")
-        if i == "/opt/intel/iei/":
+        if i == INSTALL_PATH:
             keepers = ['secret_store', 'tpm_secret']
             for filename in os.listdir('.'):
                 if filename not in keepers:
@@ -293,7 +293,7 @@ if __name__ == '__main__':
             print("Failed to run load_built_images.sh successfully")
             exit(-1)
 
-        print(CERT_PATH)
+        print("Ceritifcates Path:{0}".format(CERT_PATH))
         print("Provisioning the system with certificates provided by user")
         output = subprocess.run(["./provision_startup.sh", CERT_PATH,
                                  "deploy_mode",

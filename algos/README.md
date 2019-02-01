@@ -2,7 +2,7 @@ This is the reference for all the algorithms used in IEI
 
 
 ## Configuration
-[factory.json](https://github.intel.com/IEdgeInsights/IEdgeInsights/blob/master/docker_setup/config/factory.json)
+[factory.json](https://github.intel.com/ElephantTrunkArch/IEdgeInsights/blob/master/docker_setup/config/factory.json)
 is the configuration file where algorithm related configurations have been made with the following entires:
 
 ```
@@ -77,7 +77,7 @@ classifier is not correct, then the classifier will fail to be loaded.
 
 | Classifier | Reference |
 | :--------: | :-----------: |
-| pcbdemo     | [Link](https://github.intel.com/IEdgeInsights/IEdgeInsights/tree/master/algos/dpm/classification/classifiers/pcbdemo) |
+| pcbdemo     | [Link](https://github.intel.com/ElephantTrunkArch/IEdgeInsights/tree/master/algos/dpm/classification/classifiers/pcbdemo) |
 
 ### Ingestion
 
@@ -98,4 +98,4 @@ configure them.
 
 | Ingestor | Documentation |
 | :------: | :-----------: |
-| video_file    | [Link](https://github.intel.com/IEdgeInsights/IEdgeInsights/blob/master/algos/dpm/ingestion/video_file.py) |
+| video_file    | [Link](https://github.intel.com/ElephantTrunkArch/IEdgeInsights/blob/master/algos/dpm/ingestion/video_file.py) |

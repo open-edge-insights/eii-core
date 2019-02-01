@@ -32,7 +32,7 @@ Follow below steps to start DataAnalytics module:
     ```
     > Note:
     > Pre-requisite for this step: 
-    > 1. Clone the a locally maintained [kapacitor repository](https://github.intel.com/IEdgeInsights/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
+    > 1. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
     > 2. Run commands `./build.py --clean -o $GOPATH/bin` from kapacitor directory to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
 
 2. To install python dependencies for this module, use cmd:

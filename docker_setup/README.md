@@ -71,7 +71,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 	wget -q http://wheeljack.ch.intel.com/test_videos/pcb_d2000.avi
     ```
 
-2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/IEdgeInsights/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
+2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
@@ -88,7 +88,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
    1. `factory.json` - value to be used if working with defect video files
    2. `factory_prod.json` (default) - value to be used if working with the camera setup
-      1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/IEdgeInsights/IEdgeInsights/blob/master/agent/README.md)
+      1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/IEdgeInsights/blob/master/agent/README.md)
 
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
