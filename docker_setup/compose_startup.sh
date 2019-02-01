@@ -98,14 +98,28 @@ build_iei() {
 	    else
 	        docker-compose $OVERRIDE_COMPOSE_YML build $service
 	    fi
-		set -e
-
 		errorCode=`echo $?`
+
+		# priting non-zero error code as it will be useful to handle such error cases in future from the logs
 		if [ $errorCode != "0" ]
 		then
-			echo "docker-compose build failed for $service. Rebuilding it with --no-cache switch..."
-			docker-compose $OVERRIDE_COMPOSE_YML build --no-cache $service
+			echo "ERROR: Error code for docker-compose build for $service : $errorCode"
 		fi
+		# error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
+		if [ $errorCode = "100" ]
+		then
+			echo "ERROR: docker-compose build failed for $service. Rebuilding it with --no-cache switch..."
+			docker-compose $OVERRIDE_COMPOSE_YML build --no-cache $service
+			errorCode=`echo $?`
+			if [ $errorCode != "0" ]
+			then
+				echo "ERROR: docker-compose build --no-cache $service failed too, so exiting..."
+				echo "ERROR: Error code for docker-compose build --no-cache $service : $errorCode"
+				# exiting to notify users immediately, no point in proceeding further
+				exit -1
+			fi
+		fi
+		set -e
 	    count=$((count+1))
 	done
 
