@@ -68,7 +68,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
     ```
 	cd IEdgeInsights/test_videos
-	wget -q http://wheeljack.ch.intel.com/test_videos/pcb_d2000.avi
+	wget -q http://wheeljack.ch.intel.com/downloads/test_videos/pcb_d2000.avi
     ```
 
 2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
