@@ -46,10 +46,15 @@ sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 echo "0.5 Get docker Host IP address and write it to .env"
 ./update_host_ip.sh
 
-echo "1. create $IEI_USER_NAME if it doesn't exists."
+echo "1. create $IEI_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 if ! id $IEI_USER_NAME >/dev/null 2>&1; then
-    groupadd $IEI_USER_NAME
-    useradd -r -g $IEI_USER_NAME $IEI_USER_NAME
+    groupadd $IEI_USER_NAME -g $IEI_UID
+    useradd -r -u $IEI_UID -g $IEI_USER_NAME $IEI_USER_NAME
+else
+	if ! [ $(id -u $IEI_USER_NAME) = $IEI_UID ]; then
+		usermod -u $IEI_UID $IEI_USER_NAME
+		groupmod -g $IEI_UID $IEI_USER_NAME
+	fi
 fi
 
 if [ "$TPM_ENABLE" = "true" ]

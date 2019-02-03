@@ -30,10 +30,6 @@ pre_build_steps() {
 	# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 	sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-	# This will remove the iei user id entry if it exists and adds a new one with the right iei user id
-	sed -i '/IEI_UID/d' .env && echo "IEI_UID=$(id -u $IEI_USER_NAME)" >> .env
-
-
 	echo "0.4 create $COMPOSE_PROJECT_NAME if it doesn't exists"
 	if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
 		docker network create $COMPOSE_PROJECT_NAME
