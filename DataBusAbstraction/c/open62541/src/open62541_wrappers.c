@@ -198,7 +198,7 @@ static void*
 startServer(void *ptr) {
 
     /* run server */
-    UA_StatusCode retval = UA_Server_run(server, &serverRunning);
+    UA_StatusCode retval = UA_Server_run_startup(server);
     if (retval != UA_STATUSCODE_GOOD) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
         return NULL;
@@ -208,6 +208,7 @@ startServer(void *ptr) {
         UA_Server_run_iterate(server, 100);
         pthread_mutex_unlock(serverLock);
     }
+    UA_Server_run_shutdown(server);
     return NULL;
 }
 
