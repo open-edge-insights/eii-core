@@ -3,7 +3,39 @@ ARG IEI_VERSION
 FROM ia/pybase:$IEI_VERSION
 LABEL description="VideoIngestion image"
 
+ADD VideoIngestion/basler-video-capture ./basler-video-capture
+
+# Adding basler camera's essentials by referring it's repo's README
+RUN cd basler-video-capture && \
+    wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
+    tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
+    cd pylon-5.1.0.12682-x86_64 && \
+    pip3.6 install numpy && \
+    pip3.6 install setuptools && \
+    tar -C /opt -zxf pylonSDK-5.1.0.12682-x86_64.tar.gz && \
+    wget https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.gz && \
+    tar xvf boost_1_66_0.tar.gz && \
+    cd boost_1_66_0 && \
+    ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
+    ./b2 --with-python && \
+    ./b2 install && \
+    cd ../../ && \
+    python3.6 setup.py install
+
+# Removing unwanted files
+RUN rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64.tar.gz && \
+    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz && \
+    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/boost_1_66_0.tar.gz
+
 RUN apt-get update
+
+# Installing python boost dependencies
+RUN apt-get install -y libboost-python-dev
+
+# Installing dependent python modules
+ADD VideoIngestion/vi_requirements.txt .
+RUN pip3.6 install -r vi_requirements.txt && \
+    rm -rf vi_requirements.txt
 
 ENV PYLON_CAMEMU 1
 # Adding gstreamer capabilities
@@ -80,38 +112,6 @@ RUN cd gstreamer-media-SDK && mkdir build && cd build && cmake .. && make -j8 &&
 
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore
-
-ADD VideoIngestion/basler-video-capture ./basler-video-capture
-
-# Adding basler camera's essentials by referring it's repo's README
-RUN cd basler-video-capture && \
-    wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
-    tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
-    cd pylon-5.1.0.12682-x86_64 && \
-    pip3.6 install numpy && \
-    pip3.6 install setuptools && \
-    tar -C /opt -zxf pylonSDK-5.1.0.12682-x86_64.tar.gz && \
-    wget https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.gz && \
-    tar xvf boost_1_66_0.tar.gz && \
-    cd boost_1_66_0 && \
-    ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
-    ./b2 --with-python && \
-    ./b2 install && \
-    cd ../../ && \
-    python3.6 setup.py install
-
-# Removing unwanted files
-RUN rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/boost_1_66_0.tar.gz
-
-# Installing python boost dependencies
-RUN apt-get install -y libboost-python-dev
-
-# Installing dependent python modules
-ADD VideoIngestion/vi_requirements.txt .
-RUN pip3.6 install -r vi_requirements.txt && \
-    rm -rf vi_requirements.txt
 
 # Adding project depedency modules
 ADD algos ./algos
