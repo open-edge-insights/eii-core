@@ -96,11 +96,6 @@ build_iei() {
 	    fi
 		errorCode=`echo $?`
 
-		# priting non-zero error code as it will be useful to handle such error cases in future from the logs
-		if [ $errorCode != "0" ]
-		then
-			echo "ERROR: Error code for docker-compose build for $service : $errorCode"
-		fi
 		# error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
 		if [ $errorCode = "100" ]
 		then
@@ -114,6 +109,11 @@ build_iei() {
 				# exiting to notify users immediately, no point in proceeding further
 				exit -1
 			fi
+		elif [ $errorCode != "0" ]
+		then
+			echo "ERROR: Error code for docker-compose build for $service : $errorCode"
+			# exiting to notify users immediately, no point in proceeding further
+			exit -1
 		fi
 		set -e
 	    count=$((count+1))
