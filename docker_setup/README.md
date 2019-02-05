@@ -97,6 +97,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     2. `false` - for disabling the tpm
 
     **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
+6. Algo configuration:
+    * The trigger and classifier algorithm configuration is available in `factory.json` or `factory_prod.json`. The choice of the
+      algorithm and the parameters accepted by it can be configured in these files.
 
 ### <u>Build & Installation</u>
 

@@ -30,33 +30,38 @@ RUN cd /iei/DataBusAbstraction/py && \
 
 RUN mkdir -p /iei/dist_libs
 
+ENV DBA_PATH /dist_libs/DataBusAbstraction
+ENV IMGSTORE_PATH /dist_libs/ImageStore
+
 # Copying DataBusAbstraction py library/test files.
-ADD DataBusAbstraction/py/databus_requirements.txt /dist_libs/DataBusAbstraction/py/
-ADD DataBusAbstraction/py/DataBus*.py /dist_libs/DataBusAbstraction/py/
-RUN mkdir -p /dist_libs/DataBusAbstraction/py/Util
-ADD Util/log.py /dist_libs/DataBusAbstraction/py/Util/
-RUN cp DataBusAbstraction/py/open62541W.so /dist_libs/DataBusAbstraction/py/
-ADD DataBusAbstraction/py/test/DataBusTest.py /dist_libs/DataBusAbstraction/py/test/
-ADD DataBusAbstraction/py/test/README.md /dist_libs/DataBusAbstraction/py/test/
+ADD DataBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/
+ADD DataBusAbstraction/py/DataBus*.py ${DBA_PATH}/py/
+RUN mkdir -p ${DBA_PATH}/py/Util
+ADD Util/log.py ${DBA_PATH}/py/Util/
+RUN cp DataBusAbstraction/py/open62541W.so ${DBA_PATH}/py/
+ADD DataBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/
+ADD DataBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/
 
 # Copying ImageStore py library/test files.
-ADD ImageStore/__init__.py /dist_libs/ImageStore/
-ADD ImageStore/client/py/client.py /dist_libs/ImageStore/client/py/
-ADD ImageStore/client/py/__init__.py /dist_libs/ImageStore/client/py/
-ADD ImageStore/test/py/clientTest.py /dist_libs/ImageStore/test/py/
-ADD ImageStore/protobuff/py/ImageStore_pb2_grpc.py /dist_libs/ImageStore/protobuff/py/
-ADD ImageStore/protobuff/py/ImageStore_pb2.py /dist_libs/ImageStore/protobuff/py/
-ADD ImageStore/protobuff/py/__init__.py /dist_libs/ImageStore/protobuff/py/
-ADD ImageStore/test/py/README.md /dist_libs/ImageStore/test/py/
-ADD Util/crypto/encrypt_decrypt.py /dist_libs/ImageStore/test/py/Util/crypto/encrypt_decrypt.py
+ADD ImageStore/__init__.py ${IMGSTORE_PATH}/
+ADD ImageStore/client/py/client.py ${IMGSTORE_PATH}/client/py/
+ADD ImageStore/client/py/__init__.py ${IMGSTORE_PATH}/client/py/
+ADD ImageStore/py/imagestore_requirements.txt ${IMGSTORE_PATH}/test/py/
+ADD ImageStore/test/py/clientTest.py ${IMGSTORE_PATH}/test/py/
+ADD ImageStore/protobuff/py/ImageStore_pb2_grpc.py ${IMGSTORE_PATH}/protobuff/py/
+ADD ImageStore/protobuff/py/ImageStore_pb2.py ${IMGSTORE_PATH}/protobuff/py/
+ADD ImageStore/protobuff/py/__init__.py ${IMGSTORE_PATH}/protobuff/py/
+ADD ImageStore/test/py/README.md ${IMGSTORE_PATH}/test/py/
+ADD Util/crypto/encrypt_decrypt.py ${IMGSTORE_PATH}/test/py/Util/crypto/encrypt_decrypt.py
 
-# Copying ImageStore py library/test files.
-ADD ImageStore/client/cpp/ImageStoreClient.cc /dist_libs/ImageStore/client/cpp/ImageStoreClient.cc
-ADD ImageStore/test/cpp/README.md /dist_libs/ImageStore/test/cpp/README.md
-ADD ImageStore/test/cpp/clientTest.cc /dist_libs/ImageStore/test/cpp/clientTest.cc
-ADD ImageStore/test/cpp/Makefile /dist_libs/ImageStore/test/cpp/Makefile
-ADD ImageStore/protobuff/cpp/*.cc /dist_libs/ImageStore/protobuff/cpp/
-ADD ImageStore/protobuff/cpp/*.h /dist_libs/ImageStore/protobuff/cpp/
-ADD ImageStore/protobuff/*.proto /dist_libs/ImageStore/protobuff/
+# Copying ImageStore cpp library/test files.
+ADD ImageStore/client/cpp/ImageStoreClient.cc ${IMGSTORE_PATH}/client/cpp/ImageStoreClient.cc
+ADD ImageStore/test/cpp/README.md ${IMGSTORE_PATH}/test/cpp/README.md
+ADD ImageStore/test/cpp/clientTest.cc ${IMGSTORE_PATH}/test/cpp/clientTest.cc
+ADD ImageStore/test/cpp/Makefile ${IMGSTORE_PATH}/test/cpp/Makefile
+ADD ImageStore/test/cpp/setup_ubuntu_dev_env_cpp.sh ${IMGSTORE_PATH}/test/cpp/setup_ubuntu_dev_env_cpp.sh
+ADD ImageStore/protobuff/cpp/*.cc ${IMGSTORE_PATH}/protobuff/cpp/
+ADD ImageStore/protobuff/cpp/*.h ${IMGSTORE_PATH}/protobuff/cpp/
+ADD ImageStore/protobuff/*.proto ${IMGSTORE_PATH}/protobuff/
 
 ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /iei/dist_libs/"]

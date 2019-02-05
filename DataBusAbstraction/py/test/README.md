@@ -6,6 +6,15 @@ The python example program demonstrates publish and subscription over OPCUA bus 
 OPCUA
   * python3.6 (for python)
   * Install databus_requirements.txt (for python) by running cmd: `sudo -H pip3.6 install -r databus_requirements.txt`
+  * Install open62541 library dependencies (mbedTLS, python dev):
+
+    ```sh
+    sudo apt-get install -y libmbedtls-dev python3.6-dev
+    ```
+    > **Note**: This works only on Ubuntu OS. On ClearLinux or any other OS, please
+    >           run the dockerized version of the DataBusAbstraction client like
+    >           `VisualHmiClient` app
+
   * Set `PYTHONPATH` env variable to DataBusAbstraction/py folder path
     ```sh
     export PYTHONPATH=..
@@ -38,5 +47,5 @@ OPCUA
                             -trustFile /etc/ssl/ca/ca_certificate.der
   ```
 
-> **Note**: Change the opcua endpoint as per the usecase. If one wish to subscribe to IEI opcua bus, then make sure to change the endpoint to
+> **Note**: Change the opcua endpoint as per the usecase. If one wish to subscribe to IEI opcua bus, then make sure to change the
 >           opcua://<IEI_node_ip_address>:4840
