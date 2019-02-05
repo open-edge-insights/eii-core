@@ -23,8 +23,8 @@ OPCUA
   ```sh
   python3.6 DataBusTest.py -direction PUB -endpoint opcua://localhost:65003 -ns StreamManager \
                             -topic classifier_results \
-                            -certFile /etc/ssl/opcua/opcua_client_certificate.der \
-                            -privateFile /etc/ssl/opcua/opcua_client_key.der \
+                            -certFile /etc/ssl/opcua/opcua_server_certificate.der \
+                            -privateFile /etc/ssl/opcua/opcua_server_key.der \
                             -trustFile /etc/ssl/ca/ca_certificate.der
   ```
 
