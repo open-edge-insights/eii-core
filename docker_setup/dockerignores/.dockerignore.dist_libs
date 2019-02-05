@@ -1,6 +1,19 @@
-vendor
-docker_setup/deploy/*.tar.gz
+algos/
+cert-tool/
+DataAgent/
+DataAnalytics/
+DataIngestionLib/
+dist_libs/
+docker_setup/
+FactoryControlApp/
+kapacitor/
+licenses/
+StreamManager/
+StreamSubLib/
+Telegraf/
 test_videos/
+VideoIngestion/
+VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

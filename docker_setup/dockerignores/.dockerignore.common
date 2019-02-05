@@ -1,17 +1,22 @@
-agent
-DataAgent
-DataAnalytics
-DataBusAbstraction
-DataIngestionLib
-go-python
-ImageStore
-kapacitor
-StreamManager
-Util
-vendor
-docker_setup
-docker_setup/deploy/*.tar.gz
+algos/
+cert-tool/
+DataAgent/
+DataAnalytics/
+DataBusAbstraction/
+DataIngestionLib/
+dist_libs/
+docker_setup/
+FactoryControlApp/
+ImageStore/
+kapacitor/
+licenses/
+StreamManager/
+StreamSubLib/
+Telegraf/
 test_videos/
+Util/
+VideoIngestion/
+VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

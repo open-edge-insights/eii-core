@@ -1,14 +1,15 @@
-DataAnalytics
-DataBusAbstraction/go
-ImageStore/go
-StreamManager
-go-python
-kapacitor
-VisualHmiClient
-docker_setup
-docker_setup/deploy/*.tar.gz
+cert-tool/
+DataAnalytics/
+dist_libs/
+docker_setup/
+FactoryControlApp/
+kapacitor/
+licenses/
+StreamManager/
+StreamSubLib/
+Telegraf/
 test_videos/
-vendor
+VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

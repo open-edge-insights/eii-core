@@ -1,14 +1,15 @@
-DataBusAbstraction/go
-DataIngestionLib
-ImageStore/go
-StreamManager
-VideoIngestion
-VisualHmiClient
-go-python
-docker_setup
-docker_setup/deploy/*.tar.gz
+cert-tool/
+DataIngestionLib/
+dist_libs/
+docker_setup/
+FactoryControlApp/
+licenses/
+StreamManager/
+StreamSubLib/
+Telegraf/
 test_videos/
-vendor
+VideoIngestion/
+VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

@@ -1,13 +1,17 @@
-agent
-DataAnalytics
-DataIngestionLib
-ImageStore/py
-kapacitor
-VideoIngestion
-VisualHmiClient
+algos/
+cert-tool/
+DataAnalytics/
+DataIngestionLib/
+dist_libs/
 docker_setup/deploy/*.tar.gz
+FactoryControlApp/
+kapacitor/
+licenses/
+StreamSubLib/
+Telegraf/
 test_videos/
-vendor
+VideoIngestion/
+VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files
