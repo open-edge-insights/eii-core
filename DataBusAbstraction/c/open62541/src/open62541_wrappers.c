@@ -24,10 +24,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         unsigned int srcLength = (unsigned int)strlen(src) + 1; \
         unsigned int destSize = (unsigned int)sizeof(dest); \
         if (srcLength >= destSize) { \
-	    strcpy_s(dest, destSize - 1, src); \
-	} else { \
-	    strcpy_s(dest, srcLength, src); \
-	} \
+	        strcpy_s(dest, destSize - 1, src); \
+	    } else { \
+	        strcpy_s(dest, srcLength, src); \
+	    } \
     }
 
 // logger global varaibles
@@ -104,8 +104,7 @@ getNamespaceIndex(char *ns, char *topic) {
                        (int)ref->browseName.name.length, ref->browseName.name.data,
                        (int)ref->displayName.text.length, ref->displayName.text.data);
                 char nodeIdentifier[NAMESPACE_SIZE];
-                strcpy_s(nodeIdentifier, TOPIC_SIZE,
-                       ref->nodeId.nodeId.identifier.string.data);
+                DBA_STRCPY(nodeIdentifier, ref->nodeId.nodeId.identifier.string.data);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
                     UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
@@ -410,9 +409,8 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
             if (userCallback) {
-                unsigned int strLength = (unsigned int)str.length + 1;
-                char subscribedData[strLength];
-                strcpy_s(subscribedData, strLength, str.data);
+                static char subscribedData[PUBLISH_DATA_SIZE];
+                DBA_STRCPY(subscribedData, str.data);
                 userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
@@ -470,7 +468,7 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
             (int)nodeId.identifier.string.length,
             nodeId.identifier.string.data, monResponse.monitoredItemId);
         if (topic != NULL)
-            strcpy_s(lastSubscribedTopic, TOPIC_SIZE, topic);
+            DBA_STRCPY(lastSubscribedTopic, topic);
         if (nsIndex != FAILURE)
             lastNamespaceIndex = nsIndex;
         return 0;
@@ -560,7 +558,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     remoteCertificate = UA_ByteString_new();
 
     char portStr[10];
-    strcpy_s(endpoint, ENDPOINT_SIZE, "opc.tcp://");
+    DBA_STRCPY(endpoint, "opc.tcp://");
     strcat_s(endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(endpoint, ENDPOINT_SIZE, ":");
     strcat_s(endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
@@ -661,7 +659,7 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     retval = UA_Client_connect_username(client, endpoint, username, password);
     if(retval != UA_STATUSCODE_GOOD) {
         cleanupClient();
-        strcpy_s(errorMsg, "UA_Client_Connect() API failed!, error: %s", UA_StatusCode_name(retval));
+        DBA_STRCPY(errorMsg, "UA_Client_Connect() API failed!");
         return errorMsg;
     }
     #endif
