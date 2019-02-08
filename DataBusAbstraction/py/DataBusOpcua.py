@@ -33,6 +33,16 @@ gQueue = None
 
 
 def cbFunc(topic, msg):
+    # TODO: Find the root cause for this behavior and fix it
+    # This is to address extra character that seems to come in the json
+    # formatted `msg` C string in pyx callback
+    # Here, number 123 and 125 refers to ascii values of "{" and "}"
+    # respectively
+    if msg[0] == 123 and msg[-1] != 125:
+        msgByteArr = bytearray(msg)
+        # This is to ignore the 2 additional hex chars eg. \x01\x02
+        msg = bytes(msgByteArr[:-2])
+    msg = msg.decode("utf-8")
     gQueue.put(msg)
 
 

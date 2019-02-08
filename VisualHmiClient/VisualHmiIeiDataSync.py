@@ -104,8 +104,7 @@ class IeiDataSync:
             outputBytes = self.client.Read(key)
             return outputBytes
         except Exception as e:
-            print("Exception: ", e)
-            self.logger.error("Exception: %s", str(e))
+            self.logger.exception("Exception: {}", e)
             raise
 
     def writeImageToDisk(self, keyname, filename, width, height, channels):
@@ -121,10 +120,9 @@ class IeiDataSync:
             reshape_frame = np.reshape(Frame, (height, width, channels))
             cv2.imwrite(imgName, reshape_frame, [cv2.IMWRITE_PNG_COMPRESSION,
                                                  3])
-            self.logger.info("Image Conversion & Written Success as : %s",
-                             imgName)
+            self.logger.info("Saving the blob as image at: %s", imgName)
         except Exception as e:
-            self.logger.error("Exception: %s", str(e))
+            self.logger.exception("Exception: {}", e)
             raise
 
     def databus_callback(self, topic, msg):
@@ -150,16 +148,15 @@ class IeiDataSync:
             databus_data['meta-data'] = metalist
 
             if self.args.savelocal == "yes":
-                self.logger.info("No Post Request Made to HMI as You are\
-                Running on Local Mode")
+                self.logger.info("Running in Local Mode\n")
             else:
-                self.logger.info("Started Sending Payload to HMI Server")
+                self.logger.info("Sending Payload to HMI Server")
                 self.post_metadata(self.config["hmi_host"],
                                    self.config["hmi_port"],
                                    databus_data)
 
         except Exception as e:
-            self.logger.error("Exception: %s", str(e))
+            self.logger.exception("Exception: {}", e)
             raise
 
     def main(self, args):
@@ -197,7 +194,7 @@ class IeiDataSync:
             topicConfig = {"name": "classifier_results", "type": "string"}
             ieidbus.Subscribe(topicConfig, "START", self.databus_callback)
         except Exception as e:
-            self.logger.error("Exception: %s", str(e))
+            self.logger.exception("Exception: %s", str(e))
             raise
         return ieidbus
 
@@ -241,14 +238,12 @@ if __name__ == "__main__":
         with condition:
             condition.wait()
     except KeyboardInterrupt:
-        log.error("Recevied Ctrl+C & VisualHMIClient App is shutting \
-                        down now !!!")
+        log.error("Recevied SIGTERM signal, so shutting down!!")
     except Exception as e:
-        log.error("Exception: %s", str(e))
+        log.exception("Exception: {}", str(e))
     finally:
         try:
             ieiDataSync.ContextDestroy()
             os._exit(1)
         except Exception as e:
-            log.error("Exception while calling ieiDataSync.ContextDestroy(): \
-                      %s", str(e))
+            log.exception("Exception: {}", e)

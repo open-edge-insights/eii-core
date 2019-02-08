@@ -71,14 +71,14 @@ def py_clientContextCreate(host, port, certificateFile, privateKeyFile, trustLis
 
   cdef int ctrustListSize = len(trustList);
   cdef char **ctrustList = to_cstring_array(trustList);
-  
+
   val = copen62541W.clientContextCreate(chostname, cport, ccertFile, ckeyFile, ctrustList,
                                  ctrustListSize)
   free(ctrustList)
   return val
 
 cdef void pyxCallback(char *topic, char *data, void *func) with gil:
-  (<object>func)(topic.decode('utf-8'), data.decode('utf-8'))
+  (<object>func)(topic, data)
 
 def py_clientStartTopic(ns, topic):
   cdef bytes namespace = ns.encode();

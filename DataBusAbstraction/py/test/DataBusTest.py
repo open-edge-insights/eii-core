@@ -77,13 +77,16 @@ class A:
                 ieidbus.Subscribe(topicConfig, "START", self.cbFunc)
                 flag = "START"
                 while True:
-                    pass
+                    time.sleep(60)
             else:
                 raise Exception("Wrong direction flag for databus!!!")
+        except KeyboardInterrupt as e:
+            logger.exception("Received SIGTERM signal, doing app shutdown")
+            logger.exception("Exception: {}".format(e))
             ieidbus.ContextDestroy()
+            os._exit(-1)
         except Exception as e:
-            raise
-
+            logger.exception("Exception: {}".format(e))
 
 if __name__ == "__main__":
     a = A()
