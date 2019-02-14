@@ -71,7 +71,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 	wget -q http://wheeljack.ch.intel.com/downloads/test_videos/pcb_d2000.avi
     ```
 
-2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
+2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from github.
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
