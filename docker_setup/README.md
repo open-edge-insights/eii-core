@@ -31,7 +31,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
     * Configure proxy settings for docker daemon by following the steps at [https://docs.docker.com/config/daemon/systemd/#httphttps-proxy](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy). Use the values for http proxy and https proxy as used above (**Note**: `Depending on the geo location where the system is setup, please use the proxy settings of that geo. This change may not be needed in  non-proxy environment`)
 
-    * If you still see issues of not being able to access internet from container, please update `resolv.conf` file at `docker_setup/resolv.conf`. The `docker_setup/compose_startup.sh` and `docker_setup/deploy/deploy_compose_startup.sh` scripts will re-copy the resolv.conf to `/etc/resolv.conf` to keep it updated across system restarts (**Note**: `This change may not be needed in non-proxy environment`):
+    * If you still see issues of not being able to access internet from container, please update /etc/resolv.conf with correct configuration.
 
         ```
         A. Ubuntu 16.04 and earlier
@@ -145,6 +145,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```sh
             sudo ./compose_startup.sh | tee compose_startup.txt
             ```
+            This will not make a systemd service and just build and start IEI.
             Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
 
         4. This is an `optional` step where in IEI user wants to build and run IEI images as a redistributable .tar image. This is very helpful

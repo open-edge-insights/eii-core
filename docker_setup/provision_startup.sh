@@ -21,10 +21,7 @@ else
     echo "$1 directory doesn't exist"
 fi
 
-echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
-cp -f resolv.conf /etc/resolv.conf
-
-echo "0.2 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
+echo "0.1 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
 if [ "$2" = "deploy_mode" ]
 then
 	source ./setenv.sh
@@ -32,10 +29,10 @@ else
 	source ./init.sh
 fi
 
-echo "0.3 Deleting any pre-provisioned vault data before proceeding..."
+echo "0.2 Deleting any pre-provisioned vault data before proceeding..."
 rm -rf $IEI_INSTALL_PATH/secret_store
 
-echo "0.4 Updating .env for container timezone..."
+echo "0.3 Updating .env for container timezone..."
 # Get Docker Host timezone
 hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 hostTimezone=`echo $hostTimezone`
@@ -43,7 +40,8 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-echo "0.5 Get docker Host IP address and write it to .env"
+echo "0.4 Get docker Host IP address and write it to .env"
+echo "If automatic IP discovery is not working well, comment this line and update HOST_IP in .env file"
 ./update_host_ip.sh
 
 echo "1. create $IEI_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"

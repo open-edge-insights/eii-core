@@ -11,10 +11,8 @@ pre_build_steps() {
 		echo "User for IEI does not exist on host machine, please execute provision."
 		exit 1
 	fi
-	echo "0.1 Copying resolv.conf to /etc/resolv.conf (On non-proxy environment, please comment below cp instruction before you start)"
-	cp -f resolv.conf /etc/resolv.conf
 
-	echo "0.2 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
+	echo "0.1 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
 	if [ "$1" = "deploy_mode" ]
 	then
 		source ./setenv.sh
@@ -22,7 +20,7 @@ pre_build_steps() {
 		source ./init.sh
 	fi
 
-	echo "0.3 Updating .env for container timezone..."
+	echo "0.2 Updating .env for container timezone..."
 	# Get Docker Host timezone
 	hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
 	hostTimezone=`echo $hostTimezone`
@@ -30,12 +28,12 @@ pre_build_steps() {
 	# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 	sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-	echo "0.4 create $COMPOSE_PROJECT_NAME if it doesn't exists"
+	echo "0.3 create $COMPOSE_PROJECT_NAME if it doesn't exists"
 	if [ ! "$(docker network ls | grep -w $COMPOSE_PROJECT_NAME)" ]; then
 		docker network create $COMPOSE_PROJECT_NAME
 	fi
 
-	echo "0.5 Generating shared key and nonce for grpc internal secrets..."
+	echo "0.4 Generating shared key and nonce for grpc internal secrets..."
 	source ./set_shared_key_nonce_env_vars.sh
 
 	if [ "$TPM_ENABLE" = "true" ]
@@ -47,7 +45,8 @@ pre_build_steps() {
 		chown $IEI_USER_NAME /dev/tpm0
 	fi
 
-	echo "0.6 Get docker Host IP address and write it to .env"
+	echo "0.5 Get docker Host IP address and write it to .env"
+	echo "If automatic IP discovery is not working well, comment this line and update HOST_IP in .env file"
 	./update_host_ip.sh
 }
 
