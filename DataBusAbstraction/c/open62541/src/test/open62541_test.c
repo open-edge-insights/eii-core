@@ -9,9 +9,35 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 */
 
 #include "open62541_wrappers.h"
+#include <time.h>
+#include <math.h>
+#include <sys/time.h>
 
-void cb(char *topic, char *data, void *pyFunc) {
-    printf("Data received: topic=%s and data=%s\n", topic, data);
+
+char* printTime() {
+
+    int millisec;
+    struct tm* tm_info;
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+
+    millisec = tv.tv_usec / 1000.0;
+    if (millisec >= 1000) {
+        millisec -= 1000;
+        tv.tv_sec++;
+    }
+
+    char buffer[26];
+    static char timeStr[100];
+    tm_info = localtime(&tv.tv_sec);
+    strftime(buffer, 26, "%Y:%m:%d %H:%M:%S", tm_info);
+    sprintf(timeStr, "%s.%03d", buffer, millisec);
+    return timeStr;
+}
+
+void cb(char *topic, char* data, void *pyFunc) {
+    printf("%s %s Data received: topic=%s and data=%s\n", __DATE__, printTime(), topic, data);
 }
 
 int main(int argc, char **argv) {
@@ -50,50 +76,49 @@ int main(int argc, char **argv) {
 
         errorMsg = serverContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
-            printf("serverContextCreate() API failed, error: %s", errorMsg);
+            printf("serverContextCreate() API failed, error: %s\n", errorMsg);
             return -1;
         }
-        printf("serverContextCreate() API successfully executed!");
+        printf("serverContextCreate() API successfully executed!\n");
 
         int nsIndex = serverStartTopic(ns, topic);
         if(nsIndex == 100) {
-            printf("serverStartTopic() API failed");
+            printf("serverStartTopic() API failed\n");
             return -1;
         }
-        printf("serverStartTopic() API successfully executed!, nsIndex: %d", nsIndex);
+        printf("serverStartTopic() API successfully executed!, nsIndex: %d\n", nsIndex);
 
         char result[100];
 
-        for (int i = 0; i < 100; i++) {
-            sleep(5);
-            sprintf(result, "Hello %d", i);
+        for (int i = 0; i < 10000; i++) {
+            sprintf(result, "Hello %ld", i);
             errorMsg = serverPublish(nsIndex, topic, result);
             if(strcmp(errorMsg, "0")) {
-                printf("serverPublish() API failed, error: %s", errorMsg);
+                printf("serverPublish() API failed, error: %s\n", errorMsg);
                 return -1;
             }
-            printf("Publishing [%s]\n", result);
+            printf("%s %s Publishing [%s]\n", __DATE__,  printTime(), result);
         }
         serverContextDestroy();
     } else if (!strcmp(argv[1], "client")) {
         errorMsg = clientContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
-            printf("clientContextCreate() API failed, error: %s", errorMsg);
+            printf("clientContextCreate() API failed, error: %s\n", errorMsg);
             return -1;
         }
         printf("clientContextCreate() API successfully executed!\n");
         int nsIndex = clientStartTopic(ns, topic);
         if (nsIndex == 100) {
-            printf("clienStartTopic() API failed!");
+            printf("clienStartTopic() API failed!\n");
             return -1;
         }
         printf("clienStartTopic() API successfully executed!, nsIndex: %d\n", nsIndex);
         errorMsg = clientSubscribe(nsIndex, topic, cb, NULL);
         if(strcmp(errorMsg, "0")) {
-            printf("clientSubscribe() API failed, error: %s", errorMsg);
+            printf("clientSubscribe() API failed, error: %s\n", errorMsg);
             return -1;
         }
-        printf("clientSubscribe() API successfully executed!");
+        printf("clientSubscribe() API successfully executed!\n");
         sleep(120); /* sleep for 2 mins */
         clientContextDestroy();
     }

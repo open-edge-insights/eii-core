@@ -205,7 +205,7 @@ startServer(void *ptr) {
     }
     while (serverRunning) {
         pthread_mutex_lock(serverLock);
-        UA_Server_run_iterate(server, 100);
+        UA_Server_run_iterate(server, false);
         pthread_mutex_unlock(serverLock);
     }
     UA_Server_run_shutdown(server);
@@ -271,7 +271,7 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
     UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
 
-    UA_DurationRange range = {5.0, 10.0};
+    UA_DurationRange range = {5.0, 5.0};
     serverConfig->publishingIntervalLimits = range;
     serverConfig->samplingIntervalLimits = range;
 
@@ -358,6 +358,9 @@ serverPublish(int nsIndex, char *topic, char* data) {
     UA_Variant_setScalarCopy(val, &str, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
+    /*sleep for mininum publishing interval in ms*/
+    UA_sleep_ms((int)serverConfig->publishingIntervalLimits.min);
+
     pthread_mutex_lock(serverLock);
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
     pthread_mutex_unlock(serverLock);
@@ -428,9 +431,10 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
     UA_CreateSubscriptionResponse response = UA_Client_Subscriptions_create(client, request,
                                                                             NULL, NULL, deleteSubscriptionCallback);
 
-    if(response.responseHeader.serviceResult == UA_STATUSCODE_GOOD)
+    if(response.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
         UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Create subscription succeeded, id %u", response.subscriptionId);
-    else {
+        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Subscription's revisedPublishingInterval: %u ms", response.revisedPublishingInterval);
+    } else {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
         return 1;
     }
@@ -687,7 +691,7 @@ runClient(void *ptr) {
                 UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
                 /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
                 /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
-                sleep(1);
+                UA_sleep_ms(1000);
                 continue;
             }
         }
