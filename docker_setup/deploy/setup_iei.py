@@ -26,7 +26,8 @@ SOFTWARE.
 import argparse
 import subprocess
 import os
-import tarfile
+import tempfile
+import shutil
 from distutils.dir_util import copy_tree
 
 SYSTEMD_PATH = "/etc/systemd/system"
@@ -56,9 +57,8 @@ def parse_args():
     args = parser.parse_args()
     if args.install_iei and not args.path_to_certs_dir:
         parser.error("-i/--install_iei requires \"-p\" option")
-    
-    return args
 
+    return args
 
 def enable_systemd_service():
     # Copy the systemd service file to /etc/systemd/system
@@ -171,6 +171,9 @@ if __name__ == '__main__':
     if args.path_to_certs_dir:
         CERT_PATH = os.path.abspath(args.path_to_certs_dir)
 
+    iei_tar_name = "iei.tar"
+    iei_setup_file = "setup_iei.py"
+
     docker_setup_tar_name = "docker_setup.tar.gz"
     test_videos_tar_name = "test_videos.tar.gz"
     dist_libs_tar_name = "dist_libs.tar.gz"
@@ -189,6 +192,7 @@ if __name__ == '__main__':
         if os.path.exists(INSTALL_PATH):
             uninstall_iei()
         execute_compose_startup()
+        #The above statement leaves the environment at the 'docker_setup' folder
 
         # Save the images
         output = subprocess.run(["./deploy/save_built_images.sh", "|", "tee",
@@ -198,63 +202,100 @@ if __name__ == '__main__':
             exit(-1)
 
         print("***Preparing compressed archive of IEI package***")
-        docker_setup_dir = os.getcwd()
-        os.chdir(INSTALL_PATH + "dist_libs/")
-        dist_libs_dir = os.getcwd()
-        dist_libs_path = docker_setup_dir + "/deploy/" + \
-            dist_libs_tar_name
-        print("Preparing {0}".format(dist_libs_path))
-        with tarfile.open(dist_libs_path, "w:gz") as tar:
-            for file in os.listdir(dist_libs_dir):
-                tar.add(file)
 
-        os.chdir(docker_setup_dir)
-        docker_setup_path = docker_setup_dir + "/deploy/" + \
-            docker_setup_tar_name
-        print("Preparing {0}".format(docker_setup_path))
-        with tarfile.open(docker_setup_path, "w:gz") as tar:
-            for file in os.listdir(docker_setup_dir):
-                tar.add(file)
+        #The current directory is the 'docker_setup' folder
+        docker_setup_path = os.getcwd()
 
-        test_videos_path = docker_setup_dir + "/deploy/" + \
-            test_videos_tar_name
-        test_videos_dir = os.getcwd() + "/../test_videos/"
-        os.chdir(test_videos_dir)  # IEI root directory
+        # Create temp folder
+        temp_dir_name = tempfile.mkdtemp(prefix="iei-tmp-", dir='/tmp')
 
-        if os.path.exists(os.getcwd()):
-            print("Preparing {0}".format(test_videos_path))
-            print(test_videos_dir)
-            with tarfile.open(test_videos_path, "w:gz") as tar:
-                for file in os.listdir(test_videos_dir):
-                    tar.add(file)
+        # Setup the names for the final tar file and path
+        iei_path = os.path.join(docker_setup_path, "deploy", iei_tar_name)
 
-        iei_tar_name = "iei.tar.gz"
-        iei_path = docker_setup_dir + "/deploy/" + \
-            iei_tar_name
-        iei_setup_file = "setup_iei.py"
-        print("Preparing {0}. It consists of {1}, {2} and {3}".format(
-              iei_path, test_videos_tar_name, docker_setup_tar_name,
-              iei_setup_file))
-        os.chdir("../docker_setup/deploy")
-        with tarfile.open(iei_path, "w:gz") as tar:
-            tar.add(dist_libs_tar_name)
-            tar.add(test_videos_tar_name)
-            tar.add(docker_setup_tar_name)
-            tar.add(iei_setup_file)
 
-        for file in [docker_setup_path, test_videos_path, dist_libs_path]:
-            print("Removing {0}...".format(file))
-            if os.path.exists(file):
-                os.remove(file)
+        # Tar the dist_libs
+        print(("Creating " + dist_libs_tar_name).ljust(40, '.'), end='', flush=True)
+        dist_libs_tar_file_path = os.path.join(temp_dir_name, dist_libs_tar_name)
+        dist_libs_source_path = os.path.join(INSTALL_PATH, "dist_libs")
+        output = subprocess.run(["tar", "-I", "pigz", "-cf", dist_libs_tar_file_path, "-C", INSTALL_PATH, "dist_libs"])
+        if output.returncode != 0:
+            print("Failed to tar " + dist_libs_tar_name)
+            exit(-1)
+        print("Done")
+
+        # Tar the Setup Directory
+        print(("Creating " + docker_setup_tar_name).ljust(40, '.'), end='', flush=True)
+        docker_setup_tar_file_path = os.path.join(temp_dir_name, docker_setup_tar_name)
+        output = subprocess.run(["tar", "-I", "pigz", "-cf", docker_setup_tar_file_path, "."])
+        if output.returncode != 0:
+            print("Failed to tar " + docker_setup_path)
+            exit(-1)
+        print("Done")
+
+        # Tar the test video files, If they exist
+        print(("Creating " + test_videos_tar_name).ljust(40, '.'), end='', flush=True)
+        test_videos_tar_file_path = os.path.join(temp_dir_name, test_videos_tar_name)
+        test_videos_source_path = os.path.join(INSTALL_PATH, "test_videos")
+        if os.path.exists(test_videos_source_path):
+            output = subprocess.run(["tar", "-I", "pigz", "-cf", test_videos_tar_file_path, "-C", INSTALL_PATH, "test_videos" ])
+            if output.returncode != 0:
+                print("Failed to tar " + test_videos_path)
+                exit(-1)
+            print("Done")
+
+            #produce the final Tarball with the test video files
+            print("Preparing {0}. It consists of {1}, {2}, {3}, and {4}".format(
+                  iei_tar_name,
+                  dist_libs_tar_name,
+                  docker_setup_tar_name,
+                  test_videos_tar_name,
+                  iei_setup_file))
+
+            output = subprocess.run(["tar", "-cf", iei_path, \
+                       "-C", temp_dir_name, \
+                           dist_libs_tar_name, \
+                           docker_setup_tar_name, \
+                           test_videos_tar_name, \
+                       "-C", os.path.join(docker_setup_path, "deploy"), \
+                           iei_setup_file \
+                     ])
+        else:
+            #produce the final Tarball without the test video files
+            print("Preparing {0}. It consists of {1}, {2}, and {3}".format(
+                  iei_tar_name,
+                  dist_libs_tar_name,
+                  docker_setup_tar_name,
+                  iei_setup_file))
+
+
+            output = subprocess.run(["tar", "-cf", iei_path, \
+                       "-C", temp_dir_name, \
+                           dist_libs_tar_name, \
+                           docker_setup_tar_name, \
+                       "-C", os.path.join(docker_setup_path, "deploy"), \
+                           iei_setup_file \
+                     ])
+
+        if output.returncode != 0:
+            print("Failed to tar " + iei_setup_file)
+            exit(-1)
+
+
+
+
+        shutil.rmtree(temp_dir_name)
+        shutil.rmtree(os.path.join(docker_setup_path, "deploy", "docker_images"))
 
         install_guide = '''
         Completed preparing the compressed archive for IEI package.
-        Kindly copy the archive name "iei.tar.gz" to the deployment
-        system's prefered directory.
+        Kindly copy the archive name "iei.tar" to the deployment
+        system's preferred directory.
 
-        extarct the tar ball in prefered directory and execute below
-        command:
-            ./setup_iei.py -i Or  ./setup_iei.py --install_iei
+        Extract the tar ball in a preferred directory and execute either
+        of the commands below:
+
+            ./setup_iei.py -i -p path/to/ssl/certificates
+            ./setup_iei.py --install_iei --path_to_certs_dir path/to/ssl/certificates
 
         This will install necessary files in "/opt/intel/iei" folder.
         Additionally it will create systemd service having name "iei"
@@ -273,17 +314,15 @@ if __name__ == '__main__':
             uninstall_iei()
         create_install_dir()
 
-        # untar the docker setup files
-        for file in [docker_setup_tar_name, test_videos_tar_name,
-                     dist_libs_tar_name]:
-            print("Extracting {0} at {1}".format(file, INSTALL_PATH))
-            with tarfile.open(file) as tar:
-                if "test_videos" in file:
-                    tar.extractall(path=(INSTALL_PATH + "/test_videos"))
-                elif "dist_libs" in file:
-                    tar.extractall(path=(INSTALL_PATH + "/dist_libs"))
-                else:
-                    tar.extractall(path=INSTALL_PATH)
+        # un-Tar the dist_libs
+        for file in os.listdir():
+          if file.endswith('.tar.gz'):
+            print(("Expanding " + file).ljust(40, '.'), end='', flush=True)
+            output = subprocess.run(["tar", "-I", "pigz", "-xf", file, "-C", INSTALL_PATH])
+            if output.returncode != 0:
+                print("Failed to Expand" + file)
+                exit(-1)
+            print("Done")
 
         os.chdir(INSTALL_PATH)
         # Load the images

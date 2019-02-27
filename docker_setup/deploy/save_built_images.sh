@@ -4,16 +4,37 @@ mkdir -p $PWD/deploy/docker_images
 cd $PWD/deploy/docker_images
 curDir=`pwd`
 
+function SaveImage()
+{
+  text="ia/$1:$2.."
+  (( len=40-${#text} ))
+
+  echo -n $text
+  for i in $(seq 1 $len); do
+    echo -n '.'
+  done
+
+
+  docker save -o "$1-$2.tar" "ia/$1:$2"
+
+  echo "Done"
+}
+
+
 echo "Saving all the docker images to $curDir folder..."
 
 # saving all docker images of iei along with its dependencies
-docker save -o log_rotate-$LOG_ROTATE_VERSION.tar blacklabelops/logrotate:$LOG_ROTATE_VERSION && echo "Saved log_rotate docker image.."
-docker save -o gobase-$IEI_VERSION.tar ia/gobase:$IEI_VERSION && echo "Saved gobase docker image.."
-docker save -o pybase-$IEI_VERSION.tar ia/pybase:$IEI_VERSION && echo "Saved pybase docker image.."
-docker save -o gopybase-$IEI_VERSION.tar ia/gopybase:$IEI_VERSION && echo "Saved gopybase docker image.."
-docker save -o data_agent-$IEI_VERSION.tar ia/data_agent:$IEI_VERSION && echo "Saved data agent docker image.."
-docker save -o data_analytics-$IEI_VERSION.tar ia/data_analytics:$IEI_VERSION && echo "Saved data analytics docker image.."
-docker save -o video_ingestion-$IEI_VERSION.tar ia/video_ingestion:$IEI_VERSION && echo "Saved video ingestion docker image.."
-docker save -o telegraf-$IEI_VERSION.tar ia/telegraf:$IEI_VERSION && echo "Saved telegraf docker image.."
-docker save -o factoryctrl_app-$IEI_VERSION.tar ia/factoryctrl_app:$IEI_VERSION && echo "Saved factory control App docker image.."
-docker save -o provision-$IEI_VERSION.tar ia/provision:$IEI_VERSION && echo "Saved provision docker image.."
+
+SaveImage logrotate              $IEI_VERSION
+SaveImage gobase                 $IEI_VERSION
+SaveImage pybase                 $IEI_VERSION
+SaveImage gopybase               $IEI_VERSION
+SaveImage data_agent             $IEI_VERSION
+SaveImage data_analytics         $IEI_VERSION
+SaveImage video_ingestion        $IEI_VERSION
+SaveImage telegraf               $IEI_VERSION
+SaveImage factoryctrl_app        $IEI_VERSION
+SaveImage provision              $IEI_VERSION
+SaveImage imagestore             $IEI_VERSION
+
+
