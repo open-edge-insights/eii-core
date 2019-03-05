@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Visual trigger for PCB anomaly detection.
+"""Bypass trigger to send all the frames without any trigger logic to select key frames.
 """
 import logging
 import cv2
@@ -29,7 +29,7 @@ from . import BaseTrigger
 
 
 class Trigger(BaseTrigger):
-    """PCB anomaly detection trigger object.
+    """Bypass trigger to send all the frames without any trigger logic to select key frames.
     """
 
     def __init__(self, training_mode):
