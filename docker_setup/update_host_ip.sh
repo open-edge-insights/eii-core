@@ -17,6 +17,10 @@ EOF
     fi
 fi
 
+
 # Replacing 'localhost or host ip address' in .env
 sed -i 's/HOST_IP=.*/HOST_IP='$hostIP'/g' .env
+
+dockerHostName=`hostname` 
+sed -i 's/DOCKER_HOSTNAME=.*/DOCKER_HOSTNAME='$dockerHostName'/g' .env
 

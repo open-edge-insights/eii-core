@@ -20,7 +20,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
 import logging
 import ssl
 from influxdb import InfluxDBClient
@@ -53,7 +52,7 @@ class StreamSubLib:
     '''This Class creates a subscription to influx db and provides
     the streams as callbacks like a pub-sub message bus'''
 
-    def init(self, log_level=logging.INFO):
+    def init(self, log_level=logging.INFO, cert_path=None, key_path=None):
         '''Creates a subscription to to influxdb
         Arguments:
         log_level:(Optional) Log levels are used to track the severity
@@ -64,6 +63,9 @@ class StreamSubLib:
         self.port = (randint(49153, 65500))
         logging.basicConfig(level=log_level)
         self.log = logging.getLogger(__name__)
+        self.cert_path = cert_path
+        self.key_path = key_path
+
         try:
             self.maxbytes = 1024
             client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
@@ -105,6 +107,7 @@ class StreamSubLib:
                 uuid4())).replace("-", "_")
 
             subscriptionLink = 'https://' + hostname + ':' + str(self.port)
+            self.log.info('Subscription link: {0}'.format(subscriptionLink))
             query_in = "create subscription " + self.subscriptionName + \
                 " ON " + self.database + ".autogen DESTINATIONS ANY \'" + \
                 subscriptionLink + "\'"
@@ -134,11 +137,17 @@ class StreamSubLib:
         ''' Receives data from the socket and converts it to json format
         and sends the formated data to callback'''
         try:
-            path = "/etc/ssl/streamsublib"
-            crt = path + "/streamsublib_server_certificate.pem"
-            key = path + "/streamsublib_server_key.pem"
-            file_list = [crt, key]
-            write_certs(file_list, self.certBlobMap)
+
+            if not (self.cert_path and self.key_path):
+                self.log.info("Creating cert and key files...")
+                path = "/etc/ssl/streamsublib"
+                self.cert_path = path + "/streamsublib_server_certificate.pem"
+                self.key_path = path + "/streamsublib_server_key.pem"
+                file_list = [self.cert_path, self.key_path]
+                write_certs(file_list, self.certBlobMap)
+
+            self.log.info('server cert path : {0}'.format(self.cert_path))
+            self.log.info('server key path : {0}'.format(self.key_path))
 
             def handler(*args):
                 HttpHandlerFunc(self.stream_map, *args)
@@ -147,7 +156,8 @@ class StreamSubLib:
                 hostname), self.port), handler)
 
             httpd.socket = ssl.wrap_socket(
-                httpd.socket, server_side=True, keyfile=key, certfile=crt)
+                httpd.socket, server_side=True, keyfile=self.key_path,
+                certfile=self.cert_path)
 
             while(self.initialized):
                 httpd.handle_request()

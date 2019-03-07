@@ -136,6 +136,8 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    extra_hosts:
+      - "${DOCKER_HOSTNAME}:${HOST_IP}"
 
   # Define telegraf service
   ia_telegraf:
