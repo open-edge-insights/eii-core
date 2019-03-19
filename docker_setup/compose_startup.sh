@@ -8,7 +8,7 @@ pre_build_steps() {
 	source .env
 
 	echo "Checking if required ports are already up..."
-	ports=($GRPC_EXTERNAL_PORT $GRPC_INTERNAL_PORT $INFLUXDB_PORT $REDIS_PORT $IMAGESTORE_PORT $MINIO_PORT)
+	ports=($GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $IMAGESTORE_PORT)
 	for port in "${ports[@]}"
 	do
 		fuser $port/tcp
