@@ -8,13 +8,12 @@ pre_build_steps() {
 	source .env
 
 	echo "Checking if required ports are already up..."
-	apt-get -y -qq install lsof
-	ports=($GRPC_EXTERNAL_PORT $GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $REDIS_PORT $IMAGESTORE_PORT $MINIO_PORT $KAPACITOR_PORT)
+	ports=($GRPC_EXTERNAL_PORT $GRPC_INTERNAL_PORT $INFLUXDB_PORT $REDIS_PORT $IMAGESTORE_PORT $MINIO_PORT)
 	for port in "${ports[@]}"
 	do
-		lsof -t -i:$port
+		fuser $port/tcp
 		if [ $? -eq 0 ]; then
-			echo "$port already up. Stop process using $port. Exiting build...."
+			echo "$port is already being used, so please kill that process and re-run the script."
 			exit -1
 		fi
 	done
