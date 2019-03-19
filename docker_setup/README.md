@@ -115,8 +115,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             Run the script:
             ```sh
-            sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-                E.g. sudo ./provision_startup.sh ../cert-tool/Certificates/
+            sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
+                E.g. sudo make provision CERT_PATH=../cert-tool/Certificates/
             ```
             This will take the inputs from `provision_config.json` & certificates, following which it seal the secrets into the Vault.
             It is responsibility of the Admin to remove the source directory wherein certificates exist.
@@ -125,14 +125,14 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```sh
             <Take back up of image store, influx or any other data if it is needed in future because provisioning steps deletes all of it>
             <Update the new values into provision_config.json & custom certificates directory if necessary>
-            sudo ./provision_startup.sh <PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
+            sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
-        3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/deploy`**)
+        3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
             For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script:
             ```sh
-            sudo ./setup_iei.py -a | tee setup_iei_logs.txt
+            sudo make install | tee setup_iei_logs.txt
             ```
             This will install IEI as a systemd service in Ubuntu. Post installation, IEI can be started / stopped using commands:
             ```sh
@@ -143,27 +143,31 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             **Note**:
             Developers can make use of the below script:
             ```sh
-            sudo ./compose_startup.sh | tee compose_startup.txt
+            sudo make build run | tee compose_startup.txt
             ```
             This will not make a systemd service and just build and start IEI.
             Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
 
-        4. This is an `optional` step where in IEI user wants to build and run IEI images as a redistributable .tar image. This is very helpful
-           when one wants to deploy docker images directly instead of building in every system. This step doesn't need a provisioning step to be executed because internally it provisions the system first then setup the IEI.
+        4. This is an `optional` step where in IEI user wants to build and run IEI images using a DOCKER REGISTRY. This is very helpful
+           when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
-            Creating The IEI tar Ball (Make sure, the user present in ...docker_setup/deploy/ directory)
-            ```sh
-            sudo ./setup_iei.py -c | tee create_iei_targz.txt
-            ```
-            > **Note**:
-            > 1. This step will create an file named iei.tar.gz in deploy  directory. Now user need to copy this tar ball to the destination node's preferable directory. Following which user need to execute the below mentioned command for deploying IEI in the target machine.
-
-            Installing the IEI tar Ball ( make sure an untampered iei.tar.gz file present in the current working directory)
+            To install IEI in factory from a DOCKER REGISTRY, please use below option. * This step still needs a provisioning step to be executed locally first.
 
             ```sh
-            tar xzf iei.tar.gz
-            sudo ./setup_iei.py -i -p <PATH OF CERTIFICATES DIR>
+            sudo make install-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
             ```
+
+           > **Note**:
+            > 1. To build localy and push the images to registry, please use below option
+
+            ```sh
+            sudo make build push DOCKER_REGISTRY==<IP ADDRESS or URL>
+            ```
+            > 2. Developers can make use of the below script to run locally from a Docker registry:
+            ```sh
+            sudo make pull run  DOCKER_REGISTRY==<IP ADDRESS or URL> | tee compose_startup.txt
+            ```
+            
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     > starting it off.
