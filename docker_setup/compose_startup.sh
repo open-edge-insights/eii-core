@@ -6,6 +6,19 @@
 
 pre_build_steps() {
 	source .env
+
+	echo "Checking if required ports are already up..."
+	apt-get -y -qq install lsof
+	ports=($GRPC_EXTERNAL_PORT $GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $REDIS_PORT $IMAGESTORE_PORT $MINIO_PORT $KAPACITOR_PORT)
+	for port in "${ports[@]}"
+	do
+		lsof -t -i:$port
+		if [ $? -eq 0 ]; then
+			echo "$port already up. Stop process using $port. Exiting build...."
+			exit -1
+		fi
+	done
+
 	if ! id $IEI_USER_NAME >/dev/null 2>&1;
 	then
 		echo "User for IEI does not exist on host machine, please execute provision."
