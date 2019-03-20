@@ -155,9 +155,8 @@ func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb Cb
 	defer dbus.mutex.Unlock()
 	if dbus.direction == "SUB" && trig == "START" && cb != nil {
 		if _, ok := dbus.subTopics[topicConfig["name"]]; !ok {
-			//TODO: opcua integration needs to be done
-			if strings.Contains(dbus.busType, "mqtt") {
-				dbus.bus.startTopic(topicConfig)		
+			if strings.Contains(dbus.busType, "opcua") {
+				dbus.bus.startTopic(topicConfig)
 			}
 			dch := make(chan interface{})
 			ech := make(chan string)

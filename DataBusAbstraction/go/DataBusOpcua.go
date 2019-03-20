@@ -40,14 +40,13 @@ func newOpcuaInstance() (db *dataBusOpcua, err error) {
 	return
 }
 
-var cbType CbType
+var gCh chan interface{}
 
 //export goCallback
 func goCallback(topic *C.char, data *C.char) {
 	glog.Infoln("In goCallback() fucntion...")
-	topicGoStr := C.GoString(topic)
 	dataGoStr := C.GoString(data)
-	cbType(topicGoStr, dataGoStr)
+	gCh <- dataGoStr
 }
 
 //TODO: Debug the crash seen when this is called
@@ -150,6 +149,7 @@ func (dbOpcua *dataBusOpcua) receive(topic map[string]string, trig string, ch ch
 	//TODO: opcua integration needs to be done
 	if dbOpcua.direction == "SUB" {
 		cTopic := C.CString(topic["name"])
+		gCh = ch
 		cResp := C.clientSubscribe(C.int(dbOpcua.nsIndex), cTopic, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
 		goResp := C.GoString(cResp)
 		if goResp != "0" {

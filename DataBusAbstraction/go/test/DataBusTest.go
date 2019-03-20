@@ -15,6 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/golang/glog"
 )
@@ -79,26 +80,31 @@ func main() {
 
 	glog.Infoln("Direction..", *direction)
 	if *direction == "PUB" {
+
 		topicConfig := map[string]string{
 			"name": *topic,
 			"type": "string",
 		}
 
-		for i := 0; i < 10000; i++ {
+		ieiDatab.Publish(topicConfig, "Hello Init")
+		glog.Infof("Waiting for sub")
+		time.Sleep(10 * time.Second)
+		glog.Infof("Starting pub")
+
+		for i := 0; i < 200; i++ {
 			result := fmt.Sprintf("%s %d", "Hello ", i)
 			ieiDatab.Publish(topicConfig, result)
 			glog.Infof("Published result: %s\n", result)
 		}
 	} else if *direction == "SUB" {
-		panic("SUB APIs not integrated")
-		// topicConfig := map[string]string{
-		// 	"name": *topic,
-		// 	"type": "string",
-		// }
-		// ieiDatab.Subscribe(topicConfig, "START", cbFunc)
-		// for true {
-		// 	time.Sleep(10 * time.Second)
-		// }
+		topicConfig := map[string]string{
+			"name": *topic,
+			"type": "string",
+		}
+		ieiDatab.Subscribe(topicConfig, "START", cbFunc)
+		for true {
+			time.Sleep(10 * time.Second)
+		}
 	}
 	ieiDatab.ContextDestroy()
 }
