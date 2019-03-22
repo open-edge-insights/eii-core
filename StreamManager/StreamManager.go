@@ -146,7 +146,7 @@ func (pStrmMgr *StrmMgr) handlePointData() {
 		// Only allowing the measurements that are known to StreamManager
 		for key, val := range pStrmMgr.MsrmtTopicMap {
 			if key == msrTagsLst[0] {
-				glog.Infof("Publishing topic: %s\n", msrTagsLst)
+				glog.Infof("Publishing topic: %s\n", key)
 				// Publish only if a proper databus context available
 				if opcuaDatab != nil {
 					topicConfig := map[string]string{

@@ -20,10 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Classification module
-"""
 import inspect
 import importlib
+
+
+"""Classification module
+"""
 
 
 class ClassifierLoadError(Exception):
@@ -63,13 +65,13 @@ def load_classifier(classifier, classifier_config):
     """
     try:
         lib = importlib.import_module(
-                '.{}'.format(classifier), 
+                '.{}'.format(classifier),
                 package='algos.dpm.classification.classifiers')
 
         arg_names = inspect.getargspec(lib.Classifier.__init__).args
         if len(arg_names) > 0:
             # Skipping the first argument since it is the self argument
-            args = [classifier_config[arg] for arg in arg_names[1:]] 
+            args = [classifier_config[arg] for arg in arg_names[1:]]
         else:
             args = []
 
@@ -83,4 +85,3 @@ def load_classifier(classifier, classifier_config):
     except KeyError as e:
         raise ClassifierConfigError(
                 'Classifier config missing key: {}'.format(e))
-

@@ -9,7 +9,7 @@ copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software. Software to be used for 
+copies or substantial portions of the Software. Software to be used for
 Made in China 2025 initiatives.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -21,12 +21,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Test trigger for doing a trigger over a socket connection.
-"""
 import socket
 import logging
 
 from . import BaseTrigger, TriggerIter
+
+"""Test trigger for doing a trigger over a socket connection.
+"""
 
 
 class Trigger(BaseTrigger):
@@ -68,4 +69,3 @@ class Trigger(BaseTrigger):
         except socket.timeout:
             if self.is_triggered():
                 self.send_data(data)
-

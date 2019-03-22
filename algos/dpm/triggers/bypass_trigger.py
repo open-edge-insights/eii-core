@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Bypass trigger to send all the frames without any trigger logic to select key frames.
-"""
 import logging
 import cv2
 import numpy as np
@@ -29,7 +27,8 @@ from . import BaseTrigger
 
 
 class Trigger(BaseTrigger):
-    """Bypass trigger to send all the frames without any trigger logic to select key frames.
+    """Bypass trigger to send all the frames without any trigger logic to
+    select key frames.
     """
 
     def __init__(self, training_mode):

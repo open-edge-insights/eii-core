@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""FLANN algorithm classifier
-"""
 import os
 import logging
 import cv2
@@ -30,6 +28,9 @@ import json
 
 from algos.dpm.defect import Defect
 from openvino.inference_engine import IENetwork, IEPlugin
+
+"""FLANN algorithm classifier
+"""
 
 minMatches = 10
 D_MISSING = 0
@@ -158,9 +159,9 @@ class Classifier:
                     self.log.debug("******Defects_MISSING" + str(roi + 1))
                     bndbx.append(defect_roi[roi])
             elif d_type == D_SHORT:
-                    if probs[((roi + 5) * 2) + 1] > 0.7:
-                        self.log.debug("******Defects_SHORT" + str(roi + 1))
-                        bndbx.append(defect_roi[roi])
+                if probs[((roi + 5) * 2) + 1] > 0.7:
+                    self.log.debug("******Defects_SHORT" + str(roi + 1))
+                    bndbx.append(defect_roi[roi])
         return bndbx
 
     # Main classification algorithm

@@ -224,19 +224,20 @@ func main() {
 		os.Exit(-1)
 	}
 
-	var config = new(stm.OutStreamConfig)
-
 	// Fetch the streams from the DA config file
 	for key, val := range daCfg.OutStreams {
 		// TODO: Just using the 'key' as both measurement and topic for now.
 		// This will change later
-		config.Measurement = key
-		config.Topic = key
-		config.MsgBusType = val.DatabusFormat
+		for _, topic := range val.Topics {
+			var config = new(stm.OutStreamConfig)
+			config.MsgBusType = key
 
-		err = pStreamManager.SetupOutStream(config)
-		if err != nil {
-			glog.Errorf("Stream Manager, Error while setting up out stream: ", err)
+			config.Measurement = topic
+			config.Topic = topic
+			err = pStreamManager.SetupOutStream(config)
+			if err != nil {
+				glog.Errorf("Stream Manager, Error while setting up out stream: ", err)
+			}
 		}
 	}
 

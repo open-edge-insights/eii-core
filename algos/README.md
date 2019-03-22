@@ -46,6 +46,41 @@ If you are working with a RTSP camera, you will need to use opencv as your strea
         }
     },
 ```
+
+### Multiple camera configuration for RTSP cameras
+
+If one wants to add multiple RTSP cameras, they can do so by having a json object for `capture_streams` key with each key under this being a `serial number` of the camera and the json object it is pointing to, has all the configuration details for that camera. For reference, one can use [factory_mutli_cam.json](../docker_setup/config/factory_multi_cam.json) and do the necessary tweaks.
+
+```
+    "machine_id": "basler-capture-example",
+    "trigger_threads": 12,
+    "data_ingestion_manager": {
+        "ingestors": {
+            "video": {
+                "streams": {
+                    "opencv": {
+                        "capture_streams": {
+                            "cam_serial1": {
+                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                                "resolution": "1920x1080",
+                                "encoding_format": "jpeg",
+                                "img_store_type": "inmem",
+                                "poll_interval": 0.01
+                            },
+                            "cam_serial2": {
+                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                                "resolution": "1920x1080",
+                                "encoding_format": "jpeg",
+                                "img_store_type": "inmem",
+                                "poll_interval": 0.01
+                            }
+                        }
+                    }
+                }
+            }
+        }
+```
+
 > **Note**:
 > The example above contains the hard coded string: 'admin:intel123@192.168.0.14:554/cam/realmonitor?channel=1&subtype=1'. This string may need to be altered to work with the specific camera that is in use. Also, this string has embedded within it a user name (admin) and password (intel123). Care must be taken to assure that these values are set correct for your specific camera.
     

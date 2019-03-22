@@ -20,23 +20,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Simple classifier that does nothing. Meant for testing.
-"""
+
 import os
 import logging
 import cv2
 
 from algos.dpm.defect import Defect
 
+"""Simple classifier that does nothing. Meant for testing.
+"""
+
+
 class Classifier:
-    """Test classifier
+    """Test classifier: Simple classifier that does nothing. Meant for testing
     """
     def __init__(self, cascade_file, reject_levels, level_weights):
         """Constructor
         """
         self.log = logging.getLogger(__name__)
-        assert os.path.exists(cascade_file), ('Cascade file does not exist: {}').format(
-                cascade_file)
+        cascade_text = ('Cascade file does not exist: {}').format(
+                       cascade_file)
+        assert os.path.exists(cascade_file), cascade_text
         self.face_cascade = cv2.CascadeClassifier(cascade_file)
         self.reject_levels = reject_levels
         self.level_weights = level_weights
@@ -61,16 +65,15 @@ class Classifier:
         self.log.debug('Received frame to classify')
         gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         faces = self.face_cascade.detectMultiScale(
-                gray, self.reject_levels, self.level_weights) 
+                gray, self.reject_levels, self.level_weights)
 
         if len(faces) == 0:
             self.log.debug('No faces found')
-            return [] 
+            return []
 
         defects = []
         for (x, y, w, h) in faces:
             # Top left and bottom right of the rectangle
             defects.append(Defect(0x00, (x, y), (x + w, y + h)))
-        
-        return defects
 
+        return defects

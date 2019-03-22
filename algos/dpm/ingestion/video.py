@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Video ingestor
-"""
 import traceback as tb
 import logging
 import threading
@@ -43,9 +41,12 @@ try:
 except ImportError:
     dahua_supported = False
 
+"""Video ingestor
+"""
+
 
 class VideoCapture:
-    """Simple wrapper around external video capture objects. 
+    """Simple wrapper around external video capture objects.
     """
     def __init__(self, cam_type, name, config, cap):
         """Constructor
@@ -96,14 +97,14 @@ class Ingestor:
     The, "poll_interval", is how often the ingestor should loop over all of the
     camera streams and read the latest frame.
 
-    Currently the two supported streams are opencv, and basler. The configuration
-    for the opencv stream is as follows:
+    Currently the two supported streams are opencv, and basler. The
+    configuration for the opencv stream is as follows:
 
         {
             "capture_streams": <LIST OF PARAMTERS FOR VideoCapture>
         }
 
-    The opencv stream will open each of the capture streams as VideoCapture 
+    The opencv stream will open each of the capture streams as VideoCapture
     objects. What ever the first parameter of the cv2.VideoCapture object
     supports can be specified in the array.
 
@@ -112,18 +113,19 @@ class Ingestor:
         {
             "<CAMERA SERIAL NUMBER>": {
                 "gain": <INT: (Optional) Gain to setting for the camera>,
-                "exposure": <INT: (Optional) Exposure to setting for the camera>
+                "exposure": <INT: (Optional) Exposure to setting for the
+                            camera>
             }
         }
-    
-    Each key in the configuration object for Basler is the serial number of a
-    camera for the ingestor to ingest data from. The value is another dictionary
-    object with two optional keys, gain and exposure. If these keys are not
-    specified, then the camera will use whatever the default value is set to
-    on the camera for the gain and exposure.
 
-    An error will be raised if Basler cameras are not supported, i.e. the needed
-    library cannot be imported.
+    Each key in the configuration object for Basler is the serial number of a
+    camera for the ingestor to ingest data from. The value is another
+    dictionary object with two optional keys, gain and exposure. If these keys
+    are not specified, then the camera will use whatever the default value is
+    set to on the camera for the gain and exposure.
+
+    An error will be raised if Basler cameras are not supported, i.e. the
+    needed library cannot be imported.
     """
     def __init__(self, config, stop_ev, on_data):
         """Constructor
@@ -134,7 +136,7 @@ class Ingestor:
             Configuration object for the video ingestor
         stop_ev : Event
             Threading event telling the ingestor to stop
-        on_data : function 
+        on_data : function
             Callback to be called when data is available
 
         Exceptions
@@ -145,7 +147,7 @@ class Ingestor:
         self.log = logging.getLogger(__name__)
         self.stop_ev = stop_ev
         self.on_data = on_data
-        self.poll_interval = config['poll_interval']
+        self.poll_interval = config.get('poll_interval', 0.01)
         self.cameras = []
         streams = config['streams']
 
@@ -166,12 +168,15 @@ class Ingestor:
         if 'opencv' in streams:
             self.log.info('Loading OpenCV streams')
             cap_streams = streams['opencv']['capture_streams']
-            if( 'appsink' in cap_streams):
-                self.cameras.append(self._connect('opencv', cap_streams, None))
+            if isinstance(cap_streams, dict):
+                for (cam_sn, camConfig) in cap_streams.items():
+                    self.cameras.append(self._connect('opencv', cam_sn,
+                                        camConfig))
             else:
-                for stream in cap_streams:
-                    self.cameras.append(self._connect('opencv', stream, None))
-
+                # TODO: to support single stream (can go away later)
+                if 'appsink' in cap_streams:
+                    self.cameras.append(self._connect('opencv', cap_streams,
+                                        None))
         if 'dahua' in streams:
             if not dahua_supported:
                 raise IngestorError(
@@ -224,13 +229,13 @@ class Ingestor:
                     ret, frame = camera.read()
                     if not ret:
                         self.log.error(
-                                'Failed to retrieve frame from camera %s', 
+                                'Failed to retrieve frame from camera %s',
                                 camera)
                     else:
                         self.on_data('video', (camera.name, frame,))
-                except:
-                    self.log.error('Error while reading from camera: %s, \n%s', 
-                        camera, tb.format_exc())
+                except Exception:
+                    self.log.error('Error while reading from camera: %s, \n%s',
+                                   camera, tb.format_exc())
                     try:
                         self.log.info(
                                 'Attempting to reconnect to camera %s', camera)
@@ -238,11 +243,11 @@ class Ingestor:
                         camera = self._connect(
                                 camera.cam_type, camera.name, camera.config)
                         self.cameras[i] = camera
-                    except:
+                    except Exception:
                         self.log.error(
                                 'Reconnect failed: \n%s', tb.format_exc())
-
-            time.sleep(self.poll_interval)
+                if camera.config.get("poll_interval") is None:
+                    time.sleep(self.poll_interval)
 
     def _connect(self, cam_type, cam_sn, config):
         """Private method to abstract connecting to a given camera type.
@@ -266,33 +271,34 @@ class Ingestor:
             self.log.info('Initializing basler camera %s', cam_sn)
             try:
                 cam = bvc.BaslerVideoCapture(cam_sn)
-            except:
+            except Exception:
                 for i in range(25):
                     try:
                         cam = bvc.BaslerVideoCapture(cam_sn)
                         break
-                    except:
-                        self.log.error("Camera not responding, retrying %d", i+1)
+                    except Exception:
+                        self.log.error("Camera not responding, retrying %d",
+                                       i+1)
                         time.sleep(1)
                 if cam is None:
                     os._exit(1)
             if 'gain' in config:
-                self.log.info('Setting gain to %d on camera %s', 
-                        config['gain'], cam_sn)
+                self.log.info('Setting gain to %d on camera %s',
+                              config['gain'], cam_sn)
                 cam.set_gain(config['gain'])
             if 'exposure' in config:
-                self.log.info('Setting exposure to %d on camera %s', 
-                        config['exposure'], cam_sn)
+                self.log.info('Setting exposure to %d on camera %s',
+                              config['exposure'], cam_sn)
                 cam.set_exposure(config['exposure'])
             if 'inter_packet_delay' in config:
-                self.log.info('Setting inter_packet_delay to %d on camera %s', 
-                        config['inter_packet_delay'], cam_sn)
+                self.log.info('Setting inter_packet_delay to %d on camera %s',
+                              config['inter_packet_delay'], cam_sn)
                 cam.set_inter_packet_delay(config['inter_packet_delay'])
 
         elif cam_type == 'opencv':
             self.log.info('Initializing OpenCV camera: %s', str(cam_sn))
-            cam = cv2.VideoCapture(cam_sn)
-            cam_sn = 'opencv: {}'.format(cam_sn)
+            cam = cv2.VideoCapture(config["video_src"])
+            cam_sn = '{}'.format(cam_sn)
         elif cam_type == 'dahua':
             self.log.info('Initializing Dahua camera: %s', cam_sn)
             cam = dvc.DahuaVideoCapture(dev)

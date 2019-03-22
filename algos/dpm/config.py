@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Data pipeline manager configuration module
-"""
 import logging
 import json
 
@@ -44,7 +42,7 @@ class Configuration:
 
         Exceptions
         ----------
-        OSError 
+        OSError
             If the configuration file does not exist
         KeyError
             If the configuration is missing keys.
@@ -53,7 +51,7 @@ class Configuration:
         self.log.info('Loading configuration file %s', configfile)
         with open(configfile, 'r') as f:
             config = json.load(f)
-        
+
         # ID of the gateway
         self.machine_id = config['machine_id']
         self.trigger_threads = config.get('trigger_threads', None)
@@ -62,6 +60,5 @@ class Configuration:
         # Reading classifier configuration
         self.classification = config['classification']
         self.data_ingestion_manager = config['data_ingestion_manager']
-        self.triggers = config['triggers']
+        self.triggers = config.get('triggers', None)
         self.rsync_service = config.get('rsync_service', None)
-

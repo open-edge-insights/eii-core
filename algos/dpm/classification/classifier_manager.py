@@ -21,8 +21,6 @@ SOFTWARE.
 """
 
 
-"""Classifier Manager module
-"""
 import sys
 import uuid
 import json
@@ -34,6 +32,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 from . import ClassifierConfigError, load_classifier
 from Util.log import configure_logging, LOG_LEVELS
+
+"""Classifier Manager module
+"""
 
 
 class ClassifierManager:
@@ -48,7 +49,8 @@ class ClassifierManager:
     The configuration of the ClassifierManager must have the following
     structure:
         {
-            "max_workers": <INT: (Optional) Number of threads for classifier execution>,
+            "max_workers": <INT: (Optional) Number of threads for classifier
+                           execution>,
             "classifiers": {
                 "<CLASSIFIER NAME>": {
                     "trigger": <STRING: Trigger Name>,
@@ -172,7 +174,7 @@ class ClassifierManager:
                 try:
                     self.log.debug('Classifying frame %d', frame_count)
                     results = classifier.classify(sample_num, frame, user_data)
-                except:
+                except Exception:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
                     results = []  # Because of error, no results
 
@@ -211,8 +213,8 @@ class ClassifierManager:
             fps = frame_count / delta
             self.log.info('Classification finished')
             self.log.debug('Total Time = %f, Frames = %d, FPS = %f',
-                    delta, frame_count, fps)
-        except:
+                           delta, frame_count, fps)
+        except Exception:
             self.log.error('Error processing frames:\n%s', tb.format_exc())
 
             # Set error in the TriggerIter object to prevent build up of

@@ -20,14 +20,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Video file ingestor.
-"""
 import threading
 import time
 import logging
 import cv2
 import os
 from . import IngestorError
+
+"""Video file ingestor.
+"""
 
 
 class Ingestor:

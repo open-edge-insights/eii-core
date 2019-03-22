@@ -4,19 +4,22 @@
 # images and runs them in the dependency order using
 # docker-compose.yml
 
-pre_build_steps() {
-	source .env
-
-	echo "Checking if required ports are already up..."
+check_IEI_published_ports() {
+	echo "Checking if IEI published ports are already up..."
 	ports=($GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $IMAGESTORE_PORT)
 	for port in "${ports[@]}"
 	do
+		set +e
 		fuser $port/tcp
 		if [ $? -eq 0 ]; then
 			echo "$port is already being used, so please kill that process and re-run the script."
 			exit -1
 		fi
+		set -e
 	done
+}
+
+pre_build_steps() {
 
 	if ! id $IEI_USER_NAME >/dev/null 2>&1;
 	then
@@ -85,7 +88,12 @@ build_iei() {
 	echo "1. Removing previous dependency/iei containers if existed..."
 	docker-compose down --remove-orphans
 
+	check_IEI_published_ports
+
 	echo "2. Building the dependency/iei containers..."
+	# remove the existing .dockerignore file
+	rm -rf ../.dockerignore
+
 	# set .dockerignore to the base one
 	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 

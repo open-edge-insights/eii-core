@@ -20,8 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Trigger subsystem for the agent.
-"""
 import logging
 import importlib
 import inspect
@@ -30,9 +28,12 @@ import threading
 
 from algos.dpm.config import ConfigError
 
+"""Trigger subsystem for the agent.
+"""
+
 
 class TriggerLoadError(Exception):
-    """Exception raised if there is an error loading the trigger module. 
+    """Exception raised if there is an error loading the trigger module.
     """
     pass
 
@@ -53,16 +54,16 @@ class TriggerIter:
 
         Parameters
         ----------
-        init_data : Object 
+        init_data : Object
             Initial data received by the trigger indicating the start of
             the classification which the trigger is signalling
         """
         self.queue = queue.Queue()
-        self.stop_ev = threading.Event() 
-        self.full_stop_ev = threading.Event() 
-        self.err_flag = threading.Event() 
+        self.stop_ev = threading.Event()
+        self.full_stop_ev = threading.Event()
+        self.err_flag = threading.Event()
         self.queue.put(init_data)
-    
+
     def __iter__(self):
         """Iterator overload
         """
@@ -76,7 +77,8 @@ class TriggerIter:
     def next(self):
         """Get the next element in the iterator.
         """
-        if (self.queue.empty() and self.stop_ev.is_set()) or self.full_stop_ev.is_set():
+        if (self.queue.empty() and self.stop_ev.is_set()) or \
+           self.full_stop_ev.is_set():
             raise StopIteration()
         else:
             return self.queue.get()
@@ -124,7 +126,7 @@ class TriggerIter:
 
         self.err_flag.set()
 
-        # Clearing all current data in the queue to remove all references to 
+        # Clearing all current data in the queue to remove all references to
         # data frames
         try:
             while not self.queue.empty():
@@ -133,14 +135,15 @@ class TriggerIter:
         except queue.Empty:
             pass
 
+
 class BaseTrigger:
-    """Base trigger object. Handles all start/stop signaling, including full 
+    """Base trigger object. Handles all start/stop signaling, including full
     stopping the trigger iterator if it exists when the agent needs to fully
     shutdown.
     """
     def __init__(self):
-        """Constructor. This must be called by subclasses, otherwise errors will
-        occur when sending the start/stop signals.
+        """Constructor. This must be called by subclasses, otherwise errors
+        will occur when sending the start/stop signals.
         """
         self.trigger_iter = None
         self.cb = None
@@ -193,7 +196,7 @@ class BaseTrigger:
         """
         if self.cb is not None:
             self.lck.acquire()
-            if self.is_triggered():  
+            if self.is_triggered():
                 # If the start signal was sent while waiting for the lock,
                 # then just send this data
                 self.lck.release()
@@ -220,7 +223,8 @@ class BaseTrigger:
         AssertionError
             If the trigger has not been started
         """
-        assert self.trigger_iter is not None, 'Trigger has not sent start signal'
+        assert self.trigger_iter is not None, 'Trigger has not sent start \
+                                              signal'
         self.lck.acquire()
         if not self.is_triggered():
             # If the tirgger iterator was stopped prior to this being set
@@ -282,11 +286,11 @@ def load_trigger(trigger, config):
         arg_names = inspect.getargspec(lib.Trigger.__init__).args
         if len(arg_names) > 0:
             # Skipping the first argument since it is the self argument
-            args = [config[arg] for arg in arg_names[1:]] 
+            args = [config[arg] for arg in arg_names[1:]]
         else:
             args = []
-        
-        trigger = lib.Trigger(*args) 
+
+        trigger = lib.Trigger(*args)
 
         return trigger
     except AttributeError:
@@ -296,4 +300,3 @@ def load_trigger(trigger, config):
         raise TriggerConfigError('Failed to load trigger: {}'.format(trigger))
     except KeyError as e:
         raise TriggerConfigError('Trigger config missing key: {}'.format(e))
-

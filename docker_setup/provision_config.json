@@ -33,7 +33,6 @@
 	},
 
 	"OutStreams": {
-		"classifier_results": "OPCUA",
-		"video1": "NATS"
+		"OPCUA": ["classifier_results", "cam_serial1", "cam_serial2"]
 	}
 }

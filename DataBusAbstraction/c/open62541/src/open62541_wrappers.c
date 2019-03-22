@@ -411,7 +411,11 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
             if (userCallback) {
                 static char subscribedData[PUBLISH_DATA_SIZE];
                 DBA_STRCPY(subscribedData, str.data);
-                userCallback(lastSubscribedTopic, subscribedData, userFunc);
+                // TODO: Have better logic here to check the mapping between topics and
+                // their corresponding published data. Better to use DataBus wrappers in C
+                // and call the same in py and go to support multi pub/sub feature (needs some work)
+                if (strstr(subscribedData, lastSubscribedTopic) != NULL)
+                    userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
                 UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
             }

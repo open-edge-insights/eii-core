@@ -20,10 +20,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Common utilities used through out ETR.
-"""
+
 import os
 import traceback as tb
+
+"""Common utilities used through out algos module.
+"""
 
 
 class ConfigError(Exception):
@@ -40,13 +42,13 @@ def format_exc(exc):
     ----------
     exc : Exception
         Input exception
-    
+
     Returns
     -------
     String
     """
-    return '{0}{1}: {2}'.format(''.join(tb.format_tb(exc.__traceback__)), 
-            type(exc).__name__, str(exc))
+    return '{0}{1}: {2}'.format(''.join(tb.format_tb(exc.__traceback__)),
+                                type(exc).__name__, str(exc))
 
 
 def abspath(path):
@@ -58,7 +60,7 @@ def abspath(path):
     ----------
     path : str
         Path to expand
-    
+
     Returns
     -------
     String

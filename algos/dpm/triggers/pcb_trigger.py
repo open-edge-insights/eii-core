@@ -20,12 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Visual trigger for PCB anomaly detection.
-"""
 import logging
 import cv2
 import numpy as np
 from . import BaseTrigger
+
+"""Visual trigger for PCB anomaly detection.
+"""
 
 
 class Trigger(BaseTrigger):
@@ -119,8 +120,8 @@ class Trigger(BaseTrigger):
         """
         self.count = self.count + 1
         if self.training_mode is True:
-                self.send_start_signal(data, -1)
-                cv2.imwrite("./frames/"+str(self.count)+".png", data[1])
+            self.send_start_signal(data, -1)
+            cv2.imwrite("./frames/"+str(self.count)+".png", data[1])
         else:
             if self.trigger_lock is False:
                 if self._check_frame(data[1]) is True:

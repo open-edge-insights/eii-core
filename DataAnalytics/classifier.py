@@ -70,7 +70,8 @@ class ConnHandler(Handler):
     def classifier_init(self):
         self.config = Configuration(self.config_file)
         self._cm = ClassifierManager(
-                self.config.machine_id, self.config.classification, self.logger)
+                self.config.machine_id, self.config.classification,
+                self.logger)
         classifier_name = next(iter(self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
 
@@ -109,19 +110,18 @@ class ConnHandler(Handler):
         # self.logger.info("Recieved a point")
         response = udf_pb2.Response()
 
-
         img_handles = point.fieldsString["ImgHandle"]
         img_handles = img_handles.split(",")
-        img_handle = img_handles[0] # First one is in-mem
+        img_handle = img_handles[0]  # First one is in-mem
 
         if img_handle is None:
             self.logger.error('Input point doesnt have image')
             return
 
-        img_height = point.fieldsInt['Height']
-        img_width = point.fieldsInt['Width']
-        img_channels = point.fieldsInt['Channels']
-        user_data = point.fieldsInt['user_data']
+        img_height = point.fieldsDouble['Height']
+        img_width = point.fieldsDouble['Width']
+        img_channels = point.fieldsDouble['Channels']
+        user_data = point.fieldsDouble['user_data']
         data = []
         # Reject the frame with user_data -1
         if user_data == -1:
@@ -136,8 +136,8 @@ class ConnHandler(Handler):
         if frame is not None:
             # Convert the buffer into np array.
             Frame = np.frombuffer(frame, dtype=np.uint8)
-            reshape_frame = np.reshape(Frame, (img_height,
-                                       img_width, img_channels))
+            reshape_frame = np.reshape(Frame, (int(img_height),
+                                       int(img_width), int(img_channels)))
 
             # Call classification manager API with the tuple data
             val = (1, user_data, img_handle,

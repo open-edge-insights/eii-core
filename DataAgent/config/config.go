@@ -66,7 +66,7 @@ type persistentImageStore struct {
 }
 
 type outStreamCfg struct {
-	DatabusFormat string
+	Topics []string
 }
 
 type opcuaCfg struct {
@@ -174,7 +174,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 	cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
 	cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
 	cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
-  cfg.Minio.RetentionPollInterval = minio_secret.Data["retention_poll_interval"].(string)
+	cfg.Minio.RetentionPollInterval = minio_secret.Data["retention_poll_interval"].(string)
 
 	opcua_secret, err := logical_clnt.Read("secret/opcua")
 	if err != nil || opcua_secret == nil {
@@ -192,7 +192,12 @@ func (cfg *DAConfig) ReadFromVault() error {
 	if stream_secret.Data != nil {
 		cfg.OutStreams = make(map[string]outStreamCfg)
 		for k, v := range stream_secret.Data {
-			a := outStreamCfg{DatabusFormat: v.(string)}
+			arr := v.([]interface{})
+			topics := make([]string, len(arr))
+			for i, v := range arr {
+				topics[i] = v.(string)
+			}
+			a := outStreamCfg{Topics: topics}
 			cfg.OutStreams[k] = a
 		}
 	}

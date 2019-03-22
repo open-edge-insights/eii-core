@@ -172,7 +172,9 @@ class databOpcua:
                         self.logger.error("py_serverPublish() API failed!")
                         raise Exception(pyErrorMsg)
                 except Exception as e:
-                    self.logger.error("{} Failure!!!".format(self.send.__name__))
+                    self.logger.error("{} Failure!!!".format(
+                                                             self.send.__name__
+                                                            ))
                     raise
             else:
                 raise Exception("Wrong Data Type!!!")
@@ -190,8 +192,7 @@ class databOpcua:
         if (self.direction == "SUB") and (trig == "START"):
             global gQueue
             gQueue = queue
-            nsIndex = self.nsIndex
-            errMsg = open62541W.py_clientSubscribe(nsIndex, topic, cbFunc)
+            errMsg = open62541W.py_clientSubscribe(self.nsIndex, topic, cbFunc)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
                 self.logger.error("py_clientSubscribe() API failed!")

@@ -17,7 +17,7 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       LOGS_DIRECTORIES: ${IEI_INSTALL_PATH}/logs
-    
+
       # Logrotate can rotate logfile according to the following intervals:
       # hourly
       # daily
@@ -39,7 +39,7 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-    
+
 
   #---- End: IEI Dependency Services----
 
@@ -76,8 +76,8 @@ services:
     image: ia/gopybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
-    
-    
+
+
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
@@ -179,7 +179,7 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-    
+
 
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
@@ -225,7 +225,7 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-    
+
   # Define DataAnalytics service
   ia_data_analytics:
     links:
@@ -262,6 +262,7 @@ services:
       - "${IEI_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${IEI_INSTALL_PATH}/config/factory.json:/IEI/factory.json"
       - "${IEI_INSTALL_PATH}/config/factory_prod.json:/IEI/factory_prod.json"
+      - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/classifier_logs:/IEI/classifier_logs"
     expose:
@@ -322,7 +323,7 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-    
+
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
@@ -361,6 +362,7 @@ services:
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
       - "${IEI_INSTALL_PATH}/config/factory.json:/IEI/factory.json"
       - "${IEI_INSTALL_PATH}/config/factory_prod.json:/IEI/factory_prod.json"
+      - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_ingestion_logs:/IEI/video_ingestion_logs"
     command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]

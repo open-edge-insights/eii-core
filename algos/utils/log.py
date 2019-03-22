@@ -20,9 +20,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Logging configuration module. Provides setup for the default Python
-logging library.
-"""
 import os
 import logging
 import logging.handlers
@@ -37,8 +34,8 @@ LOG_LEVELS = {
 }
 
 
-def configure_logging(log_level, base_log_file, log_dir, 
-        max_bytes=5.12e+8, file_count=2):
+def configure_logging(log_level, base_log_file, log_dir,
+                      max_bytes=5.12e+8, file_count=2):
     """Configure logging to log to both stdout and to a rotating file. The
     rotating file names will use the base_log_file variable as the base name,
     where each rotating file will end with a number, except for the first log
@@ -50,8 +47,8 @@ def configure_logging(log_level, base_log_file, log_dir,
     This function should only ever be called once in a the Python runtime.
 
     The max_bytes and file_count parameters should never both be 0. If this is
-    the case, then the log files will never roll over. 
-    
+    the case, then the log files will never roll over.
+
     Paramters
     ---------
     log_level : str
@@ -77,11 +74,12 @@ def configure_logging(log_level, base_log_file, log_dir,
     elif max_bytes == 0 and file_count == 0:
         raise ConfigError('Max bytes and file count cannot both be 0')
     elif not os.path.exists(log_dir):
-        raise ConfigError('Logging directory {} does not exist'.format(log_dir))
+        raise ConfigError('Logging directory {} does not exist'.format(
+                                                                log_dir))
 
-    #fmt_str = '%(asctime)s %(levelname)s - %(name)s: %(message)s'
-    fmt_str=('%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :'+
-            '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+    fmt_str = ('%(asctime)s : %(levelname)s ' +
+               ': %(name)s : [%(filename)s] :' +
+               '%(funcName)s : in line : [%(lineno)d] : %(message)s')
     log_lvl = LOG_LEVELS[log_level]
     base_log = os.path.join(log_dir, base_log_file)
 
@@ -95,4 +93,3 @@ def configure_logging(log_level, base_log_file, log_dir,
     f = logging.Formatter(fmt_str)
     h.setFormatter(f)
     root.addHandler(h)
-

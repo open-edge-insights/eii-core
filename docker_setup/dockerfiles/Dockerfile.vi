@@ -120,7 +120,7 @@ ADD DataAgent ./DataAgent
 ADD DataIngestionLib ./DataIngestionLib
 ADD ImageStore ./ImageStore
 ADD Util ./Util
-# Adding VideoIngestion & test program 
+# Adding VideoIngestion & test program
 ADD VideoIngestion/VideoIngestion.py .
 ADD VideoIngestion/test .
 

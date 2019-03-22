@@ -20,8 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Dummy classifier module
-"""
+import logging
 
 
 class Classifier:
@@ -33,7 +32,8 @@ class Classifier:
         """Constructor
         """
         # Constructor does nothing...
-        pass
+        self.log = logging.getLogger(__name__)
+        self.log.info('Dummy classifier constructor')
 
     def classify(self, frame_num, img, user_data):
         """Classify the given image.
@@ -51,5 +51,5 @@ class Classifier:
         -------
             Always returns an empty list, since this is the dummy classifier
         """
+        self.log.info('Classify')
         return []
-

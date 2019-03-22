@@ -20,14 +20,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-"""Data ingestion manager
-"""
 import threading
 import logging
 import importlib
 
 from algos.dpm.config import ConfigError
 from . import IngestorError
+
+"""Data ingestion manager
+"""
 
 
 class IngestorWrapper:
@@ -77,7 +78,7 @@ class DataIngestionManager:
             }
         }
 
-    The, "ingestors", dictionary where the keys are ingestors to load and the 
+    The, "ingestors", dictionary where the keys are ingestors to load and the
     value is the dictionary object which is the configuration for the ingestor.
 
     See the submodules of the ingestion module for the available ingestors.
@@ -92,7 +93,7 @@ class DataIngestionManager:
 
         Exceptions
         ----------
-        KeyError 
+        KeyError
             If missing a configuration key
         IngestorError
             If an error occurs loading the ingestors
@@ -139,7 +140,7 @@ class DataIngestionManager:
 
         Exceptions
         ----------
-        IngestorError 
+        IngestorError
             If the ingestor does not exist
         """
         if ingestor not in self.ingestors:
@@ -180,7 +181,7 @@ class DataIngestionManager:
 
         Parameters
         ----------
-        ingestor : str 
+        ingestor : str
             String name of the ingestor
         data : Object
             Data that was made available
@@ -188,4 +189,3 @@ class DataIngestionManager:
         cbs = self.ingestors[ingestor].cbs
         for cb in cbs:
             cb(ingestor, data)
-
