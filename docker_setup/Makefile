@@ -11,18 +11,18 @@ run:
 	./compose_startup.sh --up
 down:
 	./compose_startup.sh --down
-install:
-	@echo "***********Building and Installing IEI ***********"
-	./compose_startup.sh
-	./create_client_dist_package.sh
-	./setup_iei.py -s
-install-registry:
-	@echo "***********Building and Installing IEI using DOCKER_REGISTRY ***********"
-	./registry.sh pull $(DOCKER_REGISTRY)
-	./compose_startup.sh --up
-	./create_client_dist_package.sh
-	./setup_iei.py -s
 uninstall:
 	./compose_startup.sh --down
 	./setup_iei.py -u
-
+install: uninstall provision
+	@echo "***********Building and Installing IEI ***********"
+	./compose_startup.sh --build
+	./create_client_dist_package.sh
+	cp -r . /opt/intel/iei/
+	./setup_iei.py -s
+install-registry: uninstall provision
+	@echo "***********Building and Installing IEI using DOCKER_REGISTRY ***********"
+	./registry.sh pull $(DOCKER_REGISTRY)
+	./create_client_dist_package.sh
+	cp -r . /opt/intel/iei/
+	./setup_iei.py -s

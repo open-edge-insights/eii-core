@@ -130,9 +130,11 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
         3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
-            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script:
+            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script: * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.*
+
             ```sh
-            sudo make install | tee setup_iei_logs.txt
+            sudo make install CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee setup_iei_logs.txt
+                E.g. sudo make install CERT_PATH=../cert-tool/Certificates/
             ```
             This will install IEI as a systemd service in Ubuntu. Post installation, IEI can be started / stopped using commands:
             ```sh
@@ -151,10 +153,10 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
         4. This is an `optional` step where in IEI user wants to build and run IEI images using a DOCKER REGISTRY. This is very helpful
            when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
-            To install IEI in factory from a DOCKER REGISTRY, please use below option. * This step still needs a provisioning step to be executed locally first.
+            To install IEI in factory from a DOCKER REGISTRY, please use below option. * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.*
 
             ```sh
-            sudo make install-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
+            sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL> 
             ```
 
            > **Note**:
@@ -167,6 +169,14 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```sh
             sudo make pull run  DOCKER_REGISTRY==<IP ADDRESS or URL> | tee compose_startup.txt
             ```
+             > **Note**:
+              1. Please use below command to run a local Docker Registry server
+              ```sh
+              docker run -d -p 5000:5000 --restart=always --name registry registry:2
+              ```  
+              2. To  use local registry without using secure TLS, please insert below key in /etc/docker/daemon.json
+                    "insecure-registries" : ["<IP ADDRESS / REGISTRY URL>"]
+              3. Please refer to below official docker documentation for more details on Docker Registry. https://docs.docker.com/registry/deploying/
             
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
