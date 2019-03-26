@@ -10,7 +10,8 @@ import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
 from Util.util \
-    import (write_certs, create_decrypted_pem_files, check_port_availability, delete_certs)
+    import (write_certs, create_decrypted_pem_files,
+            check_port_availability, delete_certs)
 
 
 SUCCESS = 0
@@ -52,10 +53,7 @@ def start_classifier(logFileName):
     """Starts the classifier module
     """
     try:
-        subprocess.call("python3.6 classifier.py --config " + args.config +
-                        " --log-dir " + args.log_dir + " --log-name " +
-                        logFileName + " --log " + args.log.upper() + "&",
-                        shell=True)
+        # Point data classifier to be called here
         logger.info("classifier started successfully")
         return True
     except Exception as e:
@@ -187,9 +185,10 @@ if __name__ == '__main__':
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
     if (start_classifier(logFileName) is True):
-        grant_permission_socket()
+        # grant_permission_socket()
         if(start_kapacitor(host_name) is True):
-            enable_classifier_task(host_name)
+            # enable_classifier_task(host_name)
+            pass
         else:
             logger.info("Kapacitor is not starting.So Exiting...")
             exit(FAILURE)

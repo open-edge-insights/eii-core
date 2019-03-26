@@ -27,30 +27,54 @@ import os
 import datetime
 import json
 
-from DataAnalytics.PCBClassification.DataHandler import DataHandler
+from DataHandler import DataHandler
 from StreamSubLib.StreamSubLib import StreamSubLib
 from Util.log import configure_logging, LOG_LEVELS
+from Util.util import create_decrypted_pem_files, check_port_availability
+
+
+CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
+CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
 
 class PCBDemoApp:
     """Subscribe to influxDB and register the callback"""
 
-    def __init__(self, config, log):
+    def __init__(self, config, log, container_mode='no'):
         self.config = config
         self.log = log
+        self.container_mode = container_mode
 
     def init(self):
         # load app configuration
         with open('config.json') as f:
             self.app_config = json.load(f)
 
+        self.stream_sub_lib = StreamSubLib()
+
+        if self.container_mode.lower() == 'yes':
+            self.log.info("Running in container mode")
+            # Wait for DA to be ready
+            ret = check_port_availability(os.environ['GRPC_SERVER'],
+                                          os.environ['GRPC_INTERNAL_PORT'])
+            if ret is False:
+                log.error("DataAgent is not up. So Exiting...")
+                exit(-1)
+
+            # Create cert
+            src_files = [CA_CERT]
+            files_to_decrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(src_files, files_to_decrypt)
+
+            self.stream_sub_lib.init()
+        else:
+            self.log.info("Running in baremetal mode")
+            self.stream_sub_lib.init(
+             cert_path=self.app_config['pcbdemo_cert_path'],
+             key_path=self.app_config['pcbdemo_key_path'])
+
         self.data_handler = DataHandler(self.config, self.log)
         self.data_handler.init()
-
-        self.stream_sub_lib = StreamSubLib()
-        self.stream_sub_lib.init(
-            cert_path=self.app_config['pcbdemo_cert_path'],
-            key_path=self.app_config['pcbdemo_key_path'])
 
     def main(self):
         """Subscribes to influxDB and register
@@ -72,10 +96,14 @@ def parse_args():
                         default='DEBUG', help='Logging level (df: DEFAULT)')
 
     parser.add_argument('--log-name', dest='log_name',
-                        default='factoryctrl_app_logs', help='Logfile name')
+                        default='videoAnalytics', help='Logfile name')
 
     parser.add_argument('--log-dir', dest='log_dir', default='logs',
-                        help='Directory to for log files')
+                        help='Directory for log files')
+
+    parser.add_argument('--container-mode', dest='container_mode',
+                        default='no',
+                        help='run in baremetal or container mode')
 
     return parser.parse_args()
 
@@ -88,11 +116,12 @@ if __name__ == "__main__":
 
     current_datetime = str(datetime.datetime.now())
     list_datetime = current_datetime.split(" ")
-    current_date_ime = "_".join(list_datetime)
-    log_file_name = args.log_name + '_' + current_date_ime + '.log'
+    current_date_time = "_".join(list_datetime)
+    log_file_name = args.log_name + '_' + current_date_time + '.log'
 
     log = configure_logging(args.log.upper(), log_file_name,
                             args.log_dir, __name__)
-    app = PCBDemoApp(args.config, log)
+
+    app = PCBDemoApp(args.config, log, args.container_mode)
     app.init()
     app.main()

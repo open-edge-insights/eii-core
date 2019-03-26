@@ -11,5 +11,3 @@ do
 done
 
 echo "Kapacitor daemon is running now..."
-kapacitor define classifier_task -tick classifier.tick
-kapacitor enable classifier_task
