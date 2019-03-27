@@ -127,4 +127,5 @@ if __name__ == '__main__':
         print("***********Installation Finished***********")
 
     if args.uninstall_iei:
-        uninstall_iei()
+        if os.path.exists(INSTALL_PATH):
+            uninstall_iei()
