@@ -128,9 +128,8 @@ class DataHandler:
         if frame is not None:
             # Convert the buffer into np array.
             Frame = np.frombuffer(frame, dtype=np.uint8)
-            reshape_frame = np.reshape(Frame, (int(img_height),
-                                               int(img_width),
-                                               int(img_channels)))
+            reshape_frame = np.reshape(Frame, (img_height,
+                                               img_width, img_channels))
 
             # Call classification manager API with the tuple data
             val = (1, user_data, img_handle,

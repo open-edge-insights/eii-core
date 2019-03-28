@@ -4,7 +4,7 @@
 source /opt/intel/computer_vision_sdk/bin/setupvars.sh
 
 # Set PythonPATH
-export PYTHONPATH="../../:../../ImageStore/protobuff:../../ImageStore/protobuff/py/:../../DataAgent/da_grpc/protobuff/py:../../DataAgent/da_grpc/protobuff/py/pb_internal:../../algos/dpm/classification/:/opt/intel/computer_vision_sdk_2018.5.445/python/python3.6/ubuntu16/:../PCBClassification/"
+export PYTHONPATH="../../:../../DataAnalytics/:../../ImageStore/protobuff:../../ImageStore/protobuff/py/:../../DataAgent/da_grpc/protobuff/py:../../DataAgent/da_grpc/protobuff/py/pb_internal:../../algos/dpm/classification/:/opt/intel/computer_vision_sdk_2018.5.445/python/python3.6/ubuntu16/"
 
 # Set add host IP to no_proxy
 host_ip="$1"
