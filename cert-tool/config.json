@@ -42,7 +42,7 @@
     },
     {
       "streamsublib": {
-        "server_alt_name": "ia_factoryctrl_app"
+        "server_alt_name": ["ia_factoryctrl_app", "ia_video_analytics"]
       }
     },
     {
