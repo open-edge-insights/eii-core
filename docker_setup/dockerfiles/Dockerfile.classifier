@@ -29,26 +29,29 @@ RUN cd ${KAPACITOR_REPO} && \
 
 #Creating dir for kapacitor certs file
 RUN mkdir -p /etc/ssl/kapacitor
-RUN mkdir -p /etc/ssl/imagestore
 
 # Adding classifier program
 ADD DataAnalytics/ .
 RUN chmod +x ./classifier_start.sh
 
 # Adding project depedency modules
-ADD algos ./algos
 ADD DataAgent/__init__.py ./DataAgent/__init__.py
 ADD DataAgent/da_grpc ./DataAgent/da_grpc
-ADD ImageStore ./ImageStore
 ADD Util ./Util
 
 RUN mkdir -p /etc/ssl/ca
-ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 ARG IEI_UID
 
 RUN chown ${IEI_UID} /IEI
 RUN chown -R ${IEI_UID} /etc/ssl
 RUN mkdir -p /etc/kapacitor
 RUN chown ${IEI_UID} /etc/kapacitor
+ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
+RUN mkdir -p ${GLOG_GO_PATH} && \
+    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
+    cd ${GLOG_GO_PATH} && \
+    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]
 HEALTHCHECK NONE

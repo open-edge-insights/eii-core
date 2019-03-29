@@ -26,8 +26,8 @@ Follow below steps to start DataAnalytics module:
     ```
     [udf]
     [udf.functions]
-        [udf.functions.classifier]
-            socket = "/tmp/classifier"
+        [udf.functions.point_classifier]
+            socket = "/tmp/point_classifier"
             timeout = "10s"
     ```
     > Note:
@@ -66,3 +66,41 @@ Follow below steps to start DataAnalytics module:
     
     kapacitor enable classifier_task
     ```
+
+## To run the point classifier UDF
+
+
+Follow below steps to start Point DataAnalytics module:
+1. Telegraf configuration:
+    Use the below config in **docker_setup/config/telegraf.conf** file for enabling the UDF. Change
+    ```
+    # # Read metrics from MQTT topic(s)
+    [[inputs.mqtt_consumer]]
+    #   ## MQTT broker URLs to be used. The format should be scheme://host:port,
+    #   ## schema can be tcp, ssl, or ws.
+        servers = ["tcp://$HOST_IP:1883"]
+    #
+    #   ## MQTT QoS, must be 0, 1, or 2
+    #   qos = 0
+    #   ## Connection timeout for initial connection in seconds
+    #   connection_timeout = "30s"
+    #
+    #   ## Topics to subscribe to
+        topics = [
+        "temperature/simulated/0",
+        ]
+        name_override = "point_data"
+        data_format = "json"
+    #
+    #   # if true, messages that can't be delivered while the subscriber is offline
+    #   # will be delivered when it comes back (such as on service restart).
+    #   # NOTE: if true, client_id MUST be set
+        persistent_session = false
+    #   # If empty, a random client ID will be generated.
+        client_id = ""
+    #
+    #   ## username and password to connect MQTT server.
+        username = ""
+        password = ""
+
+2.  Git clone the [mqtt-temp-sensor](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/mqtt-temp-sensor) repository and follow the given steps to run the broker and publisher.

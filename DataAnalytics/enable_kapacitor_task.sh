@@ -11,3 +11,6 @@ do
 done
 
 echo "Kapacitor daemon is running now..."
+
+kapacitor define point_classifier_task -tick point_classifier.tick
+kapacitor enable point_classifier_task

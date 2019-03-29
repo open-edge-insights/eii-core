@@ -10,9 +10,10 @@ import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
 from Util.util \
-    import (write_certs, create_decrypted_pem_files,
-            check_port_availability, delete_certs)
-
+    import (write_certs,
+            create_decrypted_pem_files,
+            check_port_availability,
+            delete_certs)
 
 SUCCESS = 0
 FAILURE = -1
@@ -20,9 +21,7 @@ KAPACITOR_PORT = 9092
 KAPACITOR_NAME = 'kapacitord'
 logger = None
 args = None
-SOCKET_FILE = "/tmp/classifier"
-
-logger = None
+POINT_SOCKET_FILE = "/tmp/point_classifier"
 
 CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
@@ -53,7 +52,7 @@ def start_classifier(logFileName):
     """Starts the classifier module
     """
     try:
-        # Point data classifier to be called here
+        subprocess.call("./point_classifier &", shell=True)
         logger.info("classifier started successfully")
         return True
     except Exception as e:
@@ -61,14 +60,14 @@ def start_classifier(logFileName):
         return False
 
 
-def grant_permission_socket():
+def grant_permission_socket(socket_path):
     """Grants chmod 0x777 permission for the classifier's socket file
     """
-    while not os.path.exists(SOCKET_FILE):
+    while not os.path.exists(socket_path):
         pass
     logger.info("Socket file present...")
-    if os.path.isfile(SOCKET_FILE):
-        os.chmod(SOCKET_FILE, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+    if os.path.isfile(socket_path):
+        os.chmod(socket_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
     logger.info("Permission Granted for Socket files")
 
 
@@ -141,11 +140,15 @@ def enable_classifier_task(host_name):
         time.sleep(1)
     logger.info("Kapacitor Port is Open for Communication....")
     while(retry < retry_count):
-        cmd = ["kapacitor", "-skipVerify", "define", "classifier_task",
-               "-tick", "classifier.tick"]
-        if (subprocess.check_call(cmd) == SUCCESS):
-            cmd = ["kapacitor", "-skipVerify", "enable", "classifier_task"]
-            if(subprocess.check_call(cmd) == SUCCESS):
+        definePointClCmd = ["kapacitor", "-skipVerify", "define",
+                            "point_classifier_task", "-tick",
+                            "point_classifier.tick"]
+
+        if (subprocess.check_call(definePointClCmd) == SUCCESS):
+            definePointClCmd = ["kapacitor", "-skipVerify", "enable",
+                                "point_classifier_task"]
+
+            if (subprocess.check_call(definePointClCmd) == SUCCESS):
                 logger.info("Kapacitor Tasks Enabled Successfully")
                 break
             else:
@@ -155,6 +158,7 @@ def enable_classifier_task(host_name):
         logger.info("Retrying Kapacitor Connection")
         time.sleep(0.0001)
         retry = retry + 1
+
     try:
         file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
                      "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
@@ -185,10 +189,9 @@ if __name__ == '__main__':
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
     if (start_classifier(logFileName) is True):
-        # grant_permission_socket()
+        grant_permission_socket(POINT_SOCKET_FILE)
         if(start_kapacitor(host_name) is True):
-            # enable_classifier_task(host_name)
-            pass
+            enable_classifier_task(host_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")
             exit(FAILURE)
