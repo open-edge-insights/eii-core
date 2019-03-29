@@ -246,7 +246,13 @@ class Ingestor:
                     except Exception:
                         self.log.error(
                                 'Reconnect failed: \n%s', tb.format_exc())
-                if camera.config.get("poll_interval") is None:
+
+                # Sleep for the poll interval.
+                # Camera specific poll interval takes priority over the global
+                # poll interval.
+                if camera.config.get("poll_interval") is not None:
+                    time.sleep(camera.config.get("poll_interval"))
+                elif self.poll_interval is not None:
                     time.sleep(self.poll_interval)
 
     def _connect(self, cam_type, cam_sn, config):
