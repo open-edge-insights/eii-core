@@ -5,6 +5,9 @@ LABEL description="VideoIngestion image"
 
 ADD VideoIngestion/basler-video-capture ./basler-video-capture
 
+ARG IEI_UID
+RUN useradd -r -u ${IEI_UID} -G video ieiuser
+
 # Adding basler camera's essentials by referring it's repo's README
 RUN cd basler-video-capture && \
     wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
@@ -127,8 +130,14 @@ ADD VideoIngestion/test .
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/
 
-ARG IEI_UID
 RUN chown -R ${IEI_UID} /etc/ssl/
+
+# Set graphics driver ownership
+RUN rm /usr/lib/x86_64-linux-gnu/libva.so
+RUN ln -s /usr/lib/x86_64-linux-gnu/libva.so.1.3900.0 /usr/lib/x86_64-linux-gnu/libva.so
+RUN chown ${IEI_UID} /usr/lib/x86_64-linux-gnu/libva.so.1.3900.0
+RUN chown ${IEI_UID} /usr/lib/x86_64-linux-gnu/libva.so
+
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/IEI/video_ingestion_logs"]
 CMD ["--config", "factory_prod.json", "--log", ${PY_LOG_LEVEL}]
 HEALTHCHECK NONE
