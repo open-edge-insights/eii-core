@@ -160,7 +160,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```
 
            > **Note**:
-            > 1. To build localy and push the images to registry, please use below option
+            > 1. To build locally and push the images to registry, please use below option
 
             ```sh
             sudo make build push DOCKER_REGISTRY==<IP ADDRESS or URL>

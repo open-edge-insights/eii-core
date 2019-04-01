@@ -12,8 +12,9 @@ run:
 down:
 	./compose_startup.sh --down
 uninstall:
-	./compose_startup.sh --down
 	./setup_iei.py -u
+distlibs:
+	./create_client_dist_package.sh
 install: uninstall provision
 	@echo "***********Building and Installing IEI ***********"
 	./compose_startup.sh --build
