@@ -33,6 +33,14 @@
 	},
 
 	"OutStreams": {
-		"OPCUA": ["classifier_results", "cam_serial1", "cam_serial2"]
+		"OPCUA": [
+		  "stream1_results",
+		  "cam_serial1_results",
+		  "cam_serial2_results",
+		  "cam_serial3_results",
+		  "cam_serial4_results",
+		  "cam_serial5_results",
+		  "cam_serial6_results"
+		]
 	}
 }

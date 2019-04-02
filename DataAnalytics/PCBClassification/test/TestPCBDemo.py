@@ -46,19 +46,32 @@ class PCBDemoTest(unittest.TestCase):
 
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
         cls.config = '../../docker_setup/config/factory.json'
-        cls.app = PCBDemoApp(cls.config, cls.log)
+        cls.multi_cam_config =\
+            '../../docker_setup/config/factory_multi_cam.json'
 
     def test_main(self):
-        self.app.init()
-        self.assertNotEqual(self.app.data_handler, None)
-        self.assertNotEqual(self.app.stream_sub_lib, None)
+        app = PCBDemoApp(self.config, self.log)
+        self.assertNotEqual(app.data_handler, None)
+        self.assertNotEqual(app.stream_sub_lib, None)
 
-        self.app.main()
+        app.main()
 
         # Since main is infinite call
         # lets this run for 5 second and unsubscribe to influx to stop the test
         time.sleep(5)
-        self.app.stream_sub_lib.deinit()
+        app.stream_sub_lib.deinit()
+
+    def test_main_multi_cam(self):
+        app = PCBDemoApp(self.multi_cam_config, self.log)
+        self.assertNotEqual(app.data_handler, None)
+        self.assertNotEqual(app.stream_sub_lib, None)
+
+        app.main()
+
+        # Since main is infinite call
+        # lets this run for 5 second and unsubscribe to influx to stop the test
+        time.sleep(5)
+        app.stream_sub_lib.deinit()
 
 
 if __name__ == '__main__':

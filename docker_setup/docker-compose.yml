@@ -382,6 +382,7 @@ services:
     depends_on:
       - ia_imagestore
       - ia_data_analytics
+      - ia_video_analytics
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.vi

@@ -27,6 +27,7 @@ import os
 import datetime
 import json
 
+from algos.dpm.config import Configuration
 from DataHandler import DataHandler
 from StreamSubLib.StreamSubLib import StreamSubLib
 from Util.log import configure_logging, LOG_LEVELS
@@ -45,7 +46,6 @@ class PCBDemoApp:
         self.log = log
         self.container_mode = container_mode
 
-    def init(self):
         # load app configuration
         with open('config.json') as f:
             self.app_config = json.load(f)
@@ -74,15 +74,36 @@ class PCBDemoApp:
              key_path=self.app_config['pcbdemo_key_path'])
 
         self.data_handler = DataHandler(self.config, self.log)
-        self.data_handler.init()
+
+    def _get_streams(self):
+        streams = []
+        config_obj = Configuration(self.config)
+        ingestors = config_obj.data_ingestion_manager['ingestors']
+        if ingestors.get('video') and\
+                ingestors['video'].get('streams') and\
+                ingestors['video']['streams'].get('opencv') and\
+                ingestors['video']['streams']['opencv'].get(
+                    'capture_streams'):
+            # if config is factory_multi_cam.json
+            capture_streams = ingestors.get('video').get('streams').get(
+                'opencv').get('capture_streams')
+            streams.extend(capture_streams.keys())
+        else:
+            # if config is factory.json or factory_prod.json
+            streams.append(self.app_config['stream_measurement_name'])
+
+        return streams
 
     def main(self):
-        """Subscribes to influxDB and register
+        """Subscribes to influxDB streams based on config and register
            point data handler as a callback
         """
-        self.stream_sub_lib.Subscribe(
-            self.app_config['stream_measurement_name'],
-            self.data_handler.handle_point_data)
+
+        streams = self._get_streams()
+        self.log.info("Subscribing to streams: {0}".format(streams))
+        for stream in streams:
+            self.stream_sub_lib.Subscribe(
+                stream, self.data_handler.handle_video_data)
 
 
 def parse_args():
@@ -123,5 +144,4 @@ if __name__ == "__main__":
                             args.log_dir, __name__)
 
     app = PCBDemoApp(args.config, log, args.container_mode)
-    app.init()
     app.main()

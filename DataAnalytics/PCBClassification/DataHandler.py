@@ -23,6 +23,9 @@ SOFTWARE.
 import numpy as np
 import time
 import json
+import threading
+import queue
+from concurrent.futures import ThreadPoolExecutor
 
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataAgent.da_grpc.client.py.client_internal.client \
@@ -42,6 +45,7 @@ GRPC_CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = GRPC_CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
+MAX_BUFFERS = 10
 
 
 class DataHandler:
@@ -50,17 +54,20 @@ class DataHandler:
     """
 
     def __init__(self, config_file, logger):
-        self.config_file = config_file
+        self.config = Configuration(config_file)
         self.logger = logger
+        self.frame_classify_ex = \
+            ThreadPoolExecutor(
+                max_workers=self.config.classification['max_workers'])
+        self.frame_submitter_thread = threading.Thread(
+            target=self.submit_frame)
+        self.frame_queue = queue.Queue(maxsize=MAX_BUFFERS)
+        self.frame_submitter_ev = threading.Event()
 
-    def init(self):
-        """Initialize the required object to call the classifier algos
-         and save result to influx
-        """
-        self.config = Configuration(self.config_file)
         self._cm = ClassifierManager(
             self.config.machine_id, self.config.classification, self.logger)
-        classifier_name = next(iter(self.config.classification['classifiers']))
+        classifier_name = next(iter(
+            self.config.classification['classifiers']))
         self.classifier = self._cm.get_classifier(classifier_name)
 
         # Use getConfigInt to read cert and create file
@@ -72,22 +79,25 @@ class DataHandler:
         write_certs(file_list, self.resp)
         self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
                                               ROOTCA_CERT)
-
         self.di = DataIngestionLib(self.logger)
+        self.frame_submitter_thread.start()
 
-    def handle_point_data(self, data_point_json):
+    def submit_frame(self):
+        while not self.frame_submitter_ev.is_set():
+            pending = self.frame_classify_ex._work_queue.qsize()
+            if pending < self.config.classification['max_workers']:
+                frame, point = self.frame_queue.get()
+                self.frame_classify_ex.submit(
+                    self.process_frame, frame, point)
+            else:
+                self.logger.info("Waiting for thread from pool...")
+                time.sleep(0.01)
+
+    def handle_video_data(self, data_point_json):
         """Process the data point stream and persist the classified
            result back to influxdb
-        This method reference from point method DataAnalytics/Classifier.py
-        Main differences:
-         1. it is called as callback by influx db subscription instead
-            of kapacitor
-         2. Received the data in json string format instead
-            of Kapacitor managed object
-         3. persist the classified data back to influxDB instead of giving
-            back to kapacitor
-         4. Form the classified data response in DataPoint object of
-            DataIngestionLib/DataPoint.py instead of protobuf
+           It just fetch the frame from image store and submit the frame to
+           queue which is monitor by a thread to process it
 
          @:arg data_point_json: Point data in json string format
          :returns True if successfully classified and
@@ -99,48 +109,66 @@ class DataHandler:
         point = json.loads(data_point_json)
 
         # Create the data point object
-        data_point = DataPoint(self.img_store, self.logger)
-        data_point.set_measurement_name('classifier_results')
-
+        stream_name = point.get('Measurement')
         img_handles = point["ImgHandle"]
         img_handles = img_handles.split(",")
         img_handle = img_handles[0]  # First one is in-mem
 
         if img_handle is None:
-            self.logger.error('Input point doesnt have image')
+            self.logger.error('[{0}]: Input point does not have image'.format(
+                stream_name))
             return
+
+        user_data = point['user_data']
+        # Reject the frame with user_data -1
+        if user_data == -1:
+            return
+        try:
+            frame = self.img_store.Read(img_handle)
+        except Exception:
+            self.logger.exception('[{0}]: Frame read failed : {1}'.format(
+                stream_name, img_handle))
+            return
+
+        if frame:
+            self.frame_queue.put((frame, point))
+        else:
+            self.logger.info("[{0}]: Frame read unsuccessful.".format(
+                stream_name))
+
+    def process_frame(self, frame, point):
+        """Classify the frame and save the classifier result to influxDB"""
+
+        stream_name = point.get('Measurement')
+        self.logger.info("[{0}]: Processing frame...".format(stream_name))
 
         img_height = point['Height']
         img_width = point['Width']
         img_channels = point['Channels']
+
+        # Convert the buffer into np array.
+        Frame = np.frombuffer(frame, dtype=np.uint8)
+        reshape_frame = np.reshape(Frame, (int(img_height),
+                                           int(img_width),
+                                           int(img_channels)))
+
+        img_handles = point["ImgHandle"]
+        img_handles = img_handles.split(",")
+        img_handle = img_handles[0]  # First one is in-mem
         user_data = point['user_data']
         data = []
-        # Reject the frame with user_data -1
-        if user_data == -1:
-            return
 
-        try:
-            frame = self.img_store.Read(img_handle)
-        except Exception:
-            self.logger.exception('Frame read failed : %s', img_handle)
-            return
-
-        if frame is not None:
-            # Convert the buffer into np array.
-            Frame = np.frombuffer(frame, dtype=np.uint8)
-            reshape_frame = np.reshape(Frame, (int(img_height),
-                                               int(img_width),
-                                               int(img_channels)))
-
-            # Call classification manager API with the tuple data
-            val = (1, user_data, img_handle,
-                   ('camera-serial-number', reshape_frame))
-            data.append(val)
-        else:
-            self.logger.info("Frame read unsuccessful.")
+        # Call classification manager API with the tuple data
+        val = (1, user_data, img_handle,
+               ('camera-serial-number', reshape_frame))
+        data.append(val)
 
         if len(data) == 0:
             return
+
+        # Create the data point object
+        data_point = DataPoint(self.img_store, self.logger)
+        data_point.set_measurement_name(stream_name + '_results')
 
         # Sending in the list data for one part
         ret = self._cm._process_frames(self.classifier, data)
@@ -165,19 +193,13 @@ class DataHandler:
                         img_handles[1]
                 else:
                     # Persistent handle not available.
-                    self.logger.info('Persistent handle not found. Sending \
-                                     inmem handle to export')
+                    self.logger.info('[{0}]: Persistent handle not found.'
+                                     ' Sending inmem handle to'
+                                     ' export'.format(stream_name))
                     data_point.data_point['fields']['ImgHandle'] =\
                         img_handles[0]
 
             data_point.add_fields('timestamp', time.time())
 
-            # saving the data point into influxdb 'classifier_results'
-            save_result = self.di.save_data_point(data_point)
-            if save_result:
-                self.logger.info("Successfully saved the point: {0}".format(
-                    data_point.data_point))
-                return True
-            else:
-                self.logger.error("Failed to saved the point: {0}".format(
-                    data_point.data_point))
+            # saving the data point into influxdb
+            self.di.save_data_point(data_point)

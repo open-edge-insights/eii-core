@@ -47,34 +47,32 @@ class DataHandlerTest(unittest.TestCase):
         log_file_name = 'test_datahandler_' + current_date_time + '.log'
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
         cls.config = '../../docker_setup/config/factory.json'
-        cls.dh = DataHandler(cls.config, cls.log)
+        cls.multi_cam_config =\
+            '../../docker_setup/config/factory_multi_cam.json'
 
     def test_init(self):
-        self.dh.init()
-        self.assertNotEqual(self.dh.classifier, None)
-        self.assertNotEqual(self.dh.img_store, None)
-        self.assertNotEqual(self.dh.di, None)
+        dh = DataHandler(self.config, self.log)
+        self.assertNotEqual(dh.classifier, None)
+        self.assertNotEqual(dh.img_store, None)
+        self.assertNotEqual(dh.di, None)
 
-    def test_handle_point_data(self):
-        self.dh.init()
+    def test_handle_video_data(self):
+        dh = DataHandler(self.config, self.log)
 
         # Read stream1 measurement
-        influx_client = self.dh.di.influx_c
+        influx_client = dh.di.influx_c
         result_set = influx_client.query(
             'select * from stream1 order by time desc limit 2;')
         data_points = result_set.get_points()
 
-        # Test the handle_point_data method
+        # Test the handle_video_data method
         for data_point in data_points:
-            result = self.dh.handle_point_data(json.dumps(data_point))
-            user_data = data_point['user_data']
-            if user_data == -1:
-                self.assertEqual(result, None)
-            else:
-                self.assertEqual(result, True)
+            data_point['Measurement'] = 'stream1'
+            dh.handle_video_data(json.dumps(data_point))
 
         # -ve scenario when invalid img_handle passed
         point_data_json = '{"time": "2019-03-12T17:09:14.839885818Z",' \
+                          ' "Measurement": "stream1",' \
                           ' "Cam_Sn": "pcb_d2000.avi", "Channels": 3,' \
                           ' "Height": 1200, "ImageStore": "1",' \
                           ' "ImgHandle": "inmem_invalid,persist_invalid", ' \
@@ -82,16 +80,31 @@ class DataHandlerTest(unittest.TestCase):
                           ' "Sample_num": 0, "Width": 1920, "user_data": 1}'
 
         self.assertRaises(
-            Exception, self.dh.handle_point_data(point_data_json))
+            Exception, dh.handle_video_data(point_data_json))
 
         # imageHandle not exists
         point_data_json = '{"time": "2019-03-12T17:09:14.839885818Z",' \
+                          ' "Measurement": "stream1",' \
                           ' "Cam_Sn": "pcb_d2000.avi", "Channels": 3,' \
                           ' "Height": 1200, "ImageStore": "1",' \
                           ' "ImgHandle": "", ' \
                           '"ImgName": "vid-fr-inmem,vid-fr-persist",' \
                           ' "Sample_num": 0, "Width": 1920, "user_data": 1}'
-        self.assertEqual(self.dh.handle_point_data(point_data_json), None)
+        self.assertEqual(dh.handle_video_data(point_data_json), None)
+
+    def test_handle_video_data_with_multi_cam(self):
+        dh = DataHandler(self.multi_cam_config, self.log)
+
+        # Read cam_serial1 measurement
+        influx_client = dh.di.influx_c
+        result_set = influx_client.query(
+            'select * from cam_serial1 order by time desc limit 2;')
+        data_points = result_set.get_points()
+
+        # Test the handle_video_data method
+        for data_point in data_points:
+            data_point['Measurement'] = 'cam_serial1'
+            dh.handle_video_data(json.dumps(data_point))
 
 
 if __name__ == '__main__':
