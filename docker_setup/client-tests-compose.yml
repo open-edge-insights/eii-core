@@ -2,8 +2,8 @@ version: '3'
 
 services:
 
-  # Define ia-gopybase service
-  ia-gopybase:
+  # Define ia_gopybase service
+  ia_gopybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
@@ -14,7 +14,7 @@ services:
   # Define Test Container service
   ia_client_tests:
     depends_on:
-      - ia-gopybase
+      - ia_gopybase
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.ct

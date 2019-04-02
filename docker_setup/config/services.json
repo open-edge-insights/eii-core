@@ -1,0 +1,34 @@
+{
+    
+    "iei_services": [
+       
+        {
+            "name": "ia_video_ingestion", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.vi"
+        },
+        {
+            "name": "ia_imagestore", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.imagestore"
+        },
+        {
+            "name": "ia_video_analytics", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.va"
+        },
+        {
+            "name": "ia_telegraf", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.telegraf"
+        },
+        {
+            "name": "ia_data_analytics", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.clasisfier"
+        },
+        {
+            "name": "ia_factoryctrl_app", 
+            "dockerignore": "docker_setup/dockerignores/.dockerignore.factoryctrlapp"
+        }
+
+        
+
+    ]
+    
+}

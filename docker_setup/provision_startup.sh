@@ -75,7 +75,7 @@ then
 	# set .dockerignore to the base one
 	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-	services=(ia-gobase ia_provision)
+	services=(ia_gobase ia_provision)
 	servDockerIgnore=(.dockerignore.common .dockerignore.provision)
 
 	count=0

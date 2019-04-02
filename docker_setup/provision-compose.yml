@@ -3,8 +3,8 @@ version: '3'
 services:
 
   #----Start: IEI Base Images----
-  # Define ia-gobase service
-  ia-gobase:
+  # Define ia_gobase service
+  ia_gobase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
@@ -16,7 +16,7 @@ services:
 
   ia_provision:
     depends_on:
-      - ia-gobase
+      - ia_gobase
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.provision

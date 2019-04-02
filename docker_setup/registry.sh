@@ -5,29 +5,34 @@ then
   echo "Please provide docker registry details"
   exit 1
 fi
-
+source .env
 export IEI_DOCKER_REGISTRY="$2" 
-images=(logrotate data_agent imagestore data_analytics factoryctrl_app video_ingestion telegraf)
+
+# Get list of services to push/pull
+services=(ia_log_rotate ia_gobase ia_pybase ia_gopybase ia_data_agent)
+while read line ; do
+	services+=($line)
+done < <(python3.6 get_services.py name)
  
 if [ "$1" = "push" ]
 then
   echo '** Pushing to registry ** ' 
-  echo "Images: ${images[@]}"
-  for image in "${images[@]}"
+  echo "Images: ${services[@]}"
+  for image in "${services[@]}"
   	do
       echo "Tagging $image image..."
-      docker tag ia/$image:1.0 $IEI_DOCKER_REGISTRY/ia/$image:1.0
+      docker tag $image:${IEI_VERSION} $IEI_DOCKER_REGISTRY/$image:${IEI_VERSION}
       echo "pushing $image image..."
-      docker push $IEI_DOCKER_REGISTRY/ia/$image:1.0
+      docker push $IEI_DOCKER_REGISTRY/$image:${IEI_VERSION}
   	done
 else
   echo '** Pulling from registry ** ' 
-  echo "Images: ${images[@]}"
-  for image in "${images[@]}"
+  echo "Images: ${services[@]}"
+  for image in "${services[@]}"
   	do
       echo "pulling $image image..."
-      docker pull $IEI_DOCKER_REGISTRY/ia/$image:1.0
+      docker pull $IEI_DOCKER_REGISTRY/$image:${IEI_VERSION}
       echo "Tagging $image image..."
-      docker tag $IEI_DOCKER_REGISTRY/ia/$image:1.0 ia/$image:1.0 
+      docker tag $IEI_DOCKER_REGISTRY/$image:${IEI_VERSION} $image:${IEI_VERSION}
   	done
 fi

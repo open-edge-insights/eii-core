@@ -101,6 +101,32 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     * The trigger and classifier algorithm configuration is available in `factory.json` or `factory_prod.json`. The choice of the
       algorithm and the parameters accepted by it can be configured in these files.
 
+7. **Selective container build and run.**
+
+   By default IEI will build and run all services. If you want to run selective services,please 
+   edit [docker_setup/config/services.json](./config/services.json) file. 
+   
+   1. Following services are required for Video analytics.
+
+   `ia_imagestore ia_video_ingestion ia_video_analytics ia_factoryctrl_app`
+
+   3. Following services are required for Data analytics. 
+
+   `ia_data_analytics ia_telegraf`
+
+   **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README](../DataAnalytics/README)
+
+   4. If you want to add your own services to IEI, Along with core services, please add your 
+   service to [docker-compose.yml](./docker-compose.yml) and also include it in [docker_setup/config/services.json](./config/services.json) along with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
+    
+    "iei_services": [
+        {
+            "name": "my_custom_service", 
+            "dockerignore": ".dockerignore.common"
+            
+        }
+
+
 ### <u>Build & Installation</u>
 
 1. Building the iei containers from source

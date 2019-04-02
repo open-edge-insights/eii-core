@@ -13,7 +13,7 @@ services:
         IEI_UID: ${IEI_UID}
     container_name: ia_log_rotate
     hostname: ia_log_rotate
-    image: ia/logrotate:${IEI_VERSION}
+    image: ia_log_rotate:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       LOGS_DIRECTORIES: ${IEI_INSTALL_PATH}/logs
@@ -44,36 +44,36 @@ services:
   #---- End: IEI Dependency Services----
 
   #----Start: IEI Base Images----
-  # Define ia-gobase service
-  ia-gobase:
+  # Define ia_gobase service
+  ia_gobase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/gobase:${IEI_VERSION}
+    image: ia_gobase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
-  # Define ia-pybase service
-  ia-pybase:
+  # Define ia_pybase service
+  ia_pybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/pybase:${IEI_VERSION}
+    image: ia_pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
-  # Define ia-gopybase service
-  ia-gopybase:
+  # Define ia_gopybase service
+  ia_gopybase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
       args:
         IEI_VERSION: ${IEI_VERSION}
-    image: ia/gopybase:${IEI_VERSION}
+    image: ia_gopybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
@@ -92,7 +92,7 @@ services:
         IEI_VERSION: ${IEI_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
         IEI_UID: ${IEI_UID}
-    image: ia/data_agent:${IEI_VERSION}
+    image: ia_data_agent:${IEI_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -153,7 +153,7 @@ services:
         IEI_UID: ${IEI_UID}
     container_name: ia_telegraf
     hostname: ia_telegraf
-    image: ia/telegraf:${IEI_VERSION}
+    image: ia_telegraf:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       SHARED_KEY: ${SHARED_KEY}
@@ -195,7 +195,7 @@ services:
         IEI_UID: ${IEI_UID}
     container_name: ia_imagestore
     hostname: ia_imagestore
-    image: ia/imagestore:${IEI_VERSION}
+    image: ia_imagestore:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       NO_PROXY: ${NO_PROXY}
@@ -230,7 +230,6 @@ services:
   ia_data_analytics:
     links:
       - ia_data_agent:ia_influxdb
-      - ia_imagestore
     external_links:
        -  ia_mqtt
     build:
@@ -240,7 +239,7 @@ services:
         ALPINE_VERSION: ${ALPINE_VERSION}
         IEI_UID: ${IEI_UID}
         HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-    image: ia/data_analytics:${IEI_VERSION}
+    image: ia_data_analytics:${IEI_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -297,7 +296,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-    image: ia/video_analytics:${IEI_VERSION}
+    image: ia_video_analytics:${IEI_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -350,7 +349,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-    image: ia/factoryctrl_app:${IEI_VERSION}
+    image: ia_factoryctrl_app:${IEI_VERSION}
     container_name: ia_factoryctrl_app
     hostname: ia_factoryctrl_app
     restart: on-failure:${FAILURE_ATTEMPTS}
@@ -389,7 +388,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-    image: ia/video_ingestion:${IEI_VERSION}
+    image: ia_video_ingestion:${IEI_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host

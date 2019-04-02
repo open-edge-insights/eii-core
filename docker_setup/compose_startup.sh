@@ -3,7 +3,6 @@
 # This scripts brings down the previous containers, builds the
 # images and runs them in the dependency order using
 # docker-compose.yml
-
 check_IEI_published_ports() {
 	echo "Checking if IEI published ports are already up..."
 	ports=($GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $IMAGESTORE_PORT)
@@ -34,7 +33,18 @@ pre_build_steps() {
 	else
 		source ./init.sh
 	fi
+	# Get list of services and respective dockerignores.
+	
+	services=(ia_log_rotate ia_gobase ia_pybase ia_gopybase ia_data_agent)
+	while read line ; do
+		services+=($line)
+	done < <(python3.6 get_services.py name)
 
+	dockerignores=(docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.da)
+	while read line ; do
+  		dockerignores+=($line)
+	done < <(python3.6 get_services.py dockerignore)
+	
 	echo "0.2 Updating .env for container timezone..."
 	# Get Docker Host timezone
 	hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
@@ -98,18 +108,15 @@ build_iei() {
 	# set .dockerignore to the base one
 	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-	services=(ia_log_rotate ia-gobase ia-pybase ia-gopybase ia_data_agent ia_imagestore ia_data_analytics ia_factoryctrl_app ia_video_ingestion ia_telegraf ia_video_analytics)
-	servDockerIgnore=(.dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.common .dockerignore.da .dockerignore.imagestore .dockerignore.classifier .dockerignore.factoryctrlapp .dockerignore.vi .dockerignore.telegraf .dockerignore.va)
-
 	count=0
 	echo "services: ${services[@]}"
 	for service in "${services[@]}"
 	do
 	    echo "Building $service image..."
-	    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
+	   	ln -sf ${dockerignores[$count]} ../.dockerignore
 		# disabling error check here as any failure in building the image was aborting the script
 		set +e
-	    if [ "$service" == "ia-gobase" ] || [ "$service" == "ia-pybase" ]; then
+	    if [ "$service" == "ia_gobase" ] || [ "$service" == "ia_pybase" ]; then
 	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
 	    else
 	        docker-compose $OVERRIDE_COMPOSE_YML build $service
@@ -155,10 +162,10 @@ up_iei() {
 	if [ "$1" = "deploy_mode" ]
 	then
 		#Logging the docker compose logs to file.
-		docker-compose $OVERRIDE_COMPOSE_YML up &> $ieiLogDir/consolidatedLogs/iei.log
+		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log
 	else
 		echo "3. Creating and starting the dependency/iei containers..."
-		docker-compose $OVERRIDE_COMPOSE_YML up &> $ieiLogDir/consolidatedLogs/iei.log &
+		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log &
 	fi
 }
 
