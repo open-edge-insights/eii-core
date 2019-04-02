@@ -90,8 +90,8 @@ int main(int argc, char **argv) {
 
         char result[100];
 
-        for (int i = 0; i < 10000; i++) {
-            sprintf(result, "Hello %ld", i);
+        for (int i = 0; ; i++) {
+            sprintf(result, "classifier_results %ld", i);
             errorMsg = serverPublish(nsIndex, topic, result);
             if(strcmp(errorMsg, "0")) {
                 printf("serverPublish() API failed, error: %s\n", errorMsg);
@@ -119,7 +119,9 @@ int main(int argc, char **argv) {
             return -1;
         }
         printf("clientSubscribe() API successfully executed!\n");
-        sleep(120); /* sleep for 2 mins */
+        while (1) {
+            sleep(60);
+        }
         clientContextDestroy();
     }
 }

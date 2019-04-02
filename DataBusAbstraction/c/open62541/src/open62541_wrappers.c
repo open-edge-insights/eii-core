@@ -202,10 +202,23 @@ startServer(void *ptr) {
         UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
         return NULL;
     }
+
+    UA_UInt16 timeout;
     while (serverRunning) {
         pthread_mutex_lock(serverLock);
-        UA_Server_run_iterate(server, false);
+        /* timeout is the maximum possible delay (in millisec) until the next
+        _iterate call. Otherwise, the server might miss an internal timeout
+        or cannot react to messages with the promised responsiveness. */
+        timeout = UA_Server_run_iterate(server, false);
         pthread_mutex_unlock(serverLock);
+
+        /* Now we can use the max timeout to do something else. In this case, we
+        just sleep. (select is used as a platform-independent sleep
+        function.) */
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = timeout * 1000;
+        select(0, NULL, NULL, NULL, &tv);
     }
     UA_Server_run_shutdown(server);
     return NULL;
