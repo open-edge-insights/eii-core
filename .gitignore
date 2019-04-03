@@ -1,0 +1,29 @@
+# ====For Python====
+__pycache__/
+*.py[cod]
+*$py.class
+*.ropeproject
+
+# ====For C====
+*.so
+*.so.*
+*.a
+*.o
+*.obj
+*.elf
+
+# ====For Golang====
+*.so
+*.dylib
+*.test
+
+test_videos/
+kapacitor/
+basler-source-plugin/
+DataAnalytics/l_openvino*
+cert-tool/Certificates
+cert-tool/client/
+cert-tool/rootca/
+cert-tool/server/
+.dockerignore
+.vscode
