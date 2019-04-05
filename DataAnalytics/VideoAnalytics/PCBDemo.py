@@ -81,15 +81,13 @@ class PCBDemoApp:
         ingestors = config_obj.data_ingestion_manager['ingestors']
         if ingestors.get('video') and\
                 ingestors['video'].get('streams') and\
-                ingestors['video']['streams'].get('opencv') and\
-                ingestors['video']['streams']['opencv'].get(
-                    'capture_streams'):
+                ingestors['video']['streams'].get('capture_streams'):
             # if config is factory_multi_cam.json
             capture_streams = ingestors.get('video').get('streams').get(
-                'opencv').get('capture_streams')
+                'capture_streams')
             streams.extend(capture_streams.keys())
         else:
-            # if config is factory.json or factory_prod.json
+            # if config is factory.json
             streams.append(self.app_config['stream_measurement_name'])
 
         return streams
