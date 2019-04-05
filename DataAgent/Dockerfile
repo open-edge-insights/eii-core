@@ -1,14 +1,27 @@
 # Dockerfile for DataAgent
-ARG IEI_VERSION
-FROM ia_gobase:${IEI_VERSION}
+
+ARG ALPINE_VERSION
+FROM alpine:$ALPINE_VERSION
 LABEL description="DataAgent image"
 
-RUN mkdir -p ${GO_WORK_DIR}/log
+ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
+ENV GOPATH="/IEI/go"
+WORKDIR ${GO_WORK_DIR}
+ARG HOST_TIME_ZONE=""
+ARG IEI_UID
 
-RUN apt-get update
+RUN mkdir -p ${GO_WORK_DIR}/log
+RUN echo 'hosts: file dns' >> /etc/nsswitch.conf
+
+RUN apk add --update tzdata \
+    && echo "$HOST_TIME_ZONE" > /etc/timezone \
+    && cp /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
 
 # Installing build tools
-RUN apt-get install -y cmake g++ build-essential
+RUN apk add --no-cache build-base cmake g++ git go bash
+
+RUN go get -u github.com/golang/dep/cmd/dep
 
 # Installing all golang dependencies
 # TODO: Use dep tool itself in future once the "source" value
@@ -89,37 +102,55 @@ RUN mkdir -p ${VAULT_GO_PATH} && \
     go install
 
 # tls, crypto library needs to open62541
-RUN apt-get install -y libmbedtls-dev
+RUN apk add --no-cache mbedtls-dev
 
 # Installing influxdb
 ARG INFLUXDB_VERSION
-RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-    dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
-    rm -rf influxdb_${INFLUXDB_VERSION}_amd64.deb
+RUN set -ex && \
+    apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
+    update-ca-certificates && \
+    for key in \
+        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
+    do \
+        gpg --keyserver ha.pool.sks-keyservers.net --keyserver-options http-proxy=$http_proxy --recv-keys "$key" || \
+        gpg --keyserver pgp.mit.edu --keyserver-options http-proxy=$http_proxy --recv-keys "$key" || \
+        gpg --keyserver keyserver.pgp.com --keyserver-options http-proxy=$http_proxy --recv-keys "$key" ; \
+    done && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
+    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    gpg --batch --verify influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    mkdir -p /usr/src && \
+    tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
+    rm -f /usr/src/influxdb-*/influxdb.conf && \
+    chmod +x /usr/src/influxdb-*/* && \
+    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
+    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    apk del .build-deps
 
 # These flags are needed for enabling security while compiling and linking with open62541, cpuidcheck in golang
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
-# Installing TPM
-RUN apt-get -y install \
-  autoconf-archive \
-  libcmocka0 \
-  libcmocka-dev \
-  iproute2 \
-  build-essential \
-  git \
-  pkg-config \
-  gcc \
-  g++ \
-  m4 \
-  libtool \
-  automake \
-  libgcrypt20-dev \
-  libssl-dev \
-  uthash-dev \
-  autoconf \
-  gnulib
+RUN apk add --no-cache --virtual .build-deps \
+    musl \
+    musl-dev \
+    iproute2 \
+    gcc \
+    m4 \
+    libtool \
+    automake \
+    libressl-dev \
+    uthash-dev \
+    autoconf \
+    npth-dev 
+        
+
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+  autoconf-archive  
+
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/main \
+  libgcrypt-dev \
+  curl-dev
 
 ENV TPM_PATH ./TPM_SRC
 RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
@@ -128,10 +159,8 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
 
 RUN cd ${TPM_PATH}/tpm2_tss/ && ./bootstrap &&  ./configure && make -j8 && make install
 
-# build TPM-tool
-RUN apt-get -y install autoconf automake libtool pkg-config gcc libssl-dev \
-    libcurl4-gnutls-dev
 
+# build TPM-tool
 RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
     git clone https://github.com/tpm2-software/tpm2-tools.git ${TPM_PATH}/tpm2_tools && \
     cd ${TPM_PATH}/tpm2_tools && git checkout -b sma-pv 9f765f1959f2a4ee9683165071d05f9878d78443
@@ -139,10 +168,10 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
 RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
 
 # Adding the CERTS dir
-RUN mkdir -p /etc/ssl/influxdb/
-RUN mkdir -p /etc/ssl/opcua/
-RUN mkdir -p /etc/ssl/streammanager/
-RUN mkdir -p /etc/ssl/ca/
+RUN mkdir -p /etc/ssl/influxdb/ \
+    && mkdir -p /etc/ssl/opcua/ \
+    && mkdir -p /etc/ssl/streammanager/ \
+    && mkdir -p /etc/ssl/ca/
 
 # Building safestringlib
 ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
@@ -151,14 +180,19 @@ RUN	git clone https://github.com/intel/safestringlib.git && \
 	git checkout ${SAFESTRING_VER} && \
     make
 
+RUN mkdir -p ./vault/file
+
+ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+
+RUN chown ${IEI_UID} /IEI/go/src/IEdgeInsights && \
+    chown -R ${IEI_UID} /etc/ssl/
+    
 ADD DataAgent ./DataAgent
 ADD Util ./Util
 ADD DataBusAbstraction/ ./DataBusAbstraction/
-
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
-RUN mkdir -p ./vault/file
 
 # Copying safestringlib to DataBusAbstraction and Util
 RUN cd safestringlib && \
@@ -170,17 +204,13 @@ RUN cd safestringlib && \
 RUN cd DataBusAbstraction/go/test && \
     make build_lib_for_docker
 
-ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
-
 RUN cd Util/cpuid && \
-    make
+    make && \
+    apk del .build-deps && \
+    rm -rf /var/cache/apk/*
 
 RUN go build -o /IEI/go/bin/DataAgent DataAgent/DataAgent.go
 
-
-ARG IEI_UID
-RUN chown ${IEI_UID} /IEI/go/src/IEdgeInsights
-RUN chown -R ${IEI_UID} /etc/ssl/
 ENTRYPOINT ["./DataAgent/da_startup.sh"]
 CMD ["-stderrthreshold", ${GO_LOG_LEVEL}, "-v", ${GO_VERBOSE}]
 HEALTHCHECK NONE

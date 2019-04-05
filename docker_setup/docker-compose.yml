@@ -89,9 +89,10 @@ services:
       context: ../
       dockerfile: $PWD/../DataAgent/Dockerfile
       args:
-        IEI_VERSION: ${IEI_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
         IEI_UID: ${IEI_UID}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_data_agent:${IEI_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
@@ -149,8 +150,10 @@ services:
       context: ../
       dockerfile: $PWD/../Telegraf/Dockerfile
       args:
-        IEI_VERSION: ${IEI_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
         IEI_UID: ${IEI_UID}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+        TELEGRAF_VERSION: ${TELEGRAF_VERSION} 
     container_name: ia_telegraf
     hostname: ia_telegraf
     image: ia_telegraf:${IEI_VERSION}
