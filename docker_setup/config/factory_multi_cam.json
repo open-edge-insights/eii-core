@@ -1,54 +1,52 @@
 {
     "machine_id": "basler-capture-example",
-    "trigger_threads": 12,
+    "trigger_threads": 1,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
                 "streams": {
-                    "opencv": {
-                        "capture_streams": {
-                            "cam_serial1": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            },
-                            "cam_serial2": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            },
-                            "cam_serial3": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            },
-                            "cam_serial4": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            },
-                            "cam_serial5": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            },
-                            "cam_serial6": {
-                                "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
-                                "resolution": "1920x1080",
-                                "encoding_format": "jpeg",
-                                "img_store_type": "inmem",
-                                "poll_interval": 0.01
-                            }
+                    "capture_streams": {
+                        "cam_serial1": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
+                        },
+                        "cam_serial2": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
+                        },
+                        "cam_serial3": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
+                        },
+                        "cam_serial4": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
+                        },
+                        "cam_serial5": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
+                        },
+                        "cam_serial6": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink",
+                            "resolution": "1920x1080",
+                            "encoding_format": "jpeg",
+                            "img_store_type": "inmem",
+                            "poll_interval": 0.01
                         }
                     }
                 }

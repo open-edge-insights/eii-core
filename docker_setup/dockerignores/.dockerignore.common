@@ -16,6 +16,7 @@ Telegraf/
 test_videos/
 Util/
 VideoIngestion/
+basler-source-plugin/
 .git
 
 # Recursively remove all unwanted files

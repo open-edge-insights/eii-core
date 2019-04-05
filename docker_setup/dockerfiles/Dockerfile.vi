@@ -3,32 +3,20 @@ ARG IEI_VERSION
 FROM ia_pybase:$IEI_VERSION
 LABEL description="VideoIngestion image"
 
-ADD VideoIngestion/basler-video-capture ./basler-video-capture
-
 ARG IEI_UID
 RUN useradd -r -u ${IEI_UID} -G video ieiuser
 
 # Adding basler camera's essentials by referring it's repo's README
-RUN cd basler-video-capture && \
-    wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
+RUN wget https://www.baslerweb.com/media/downloads/software/pylon_software/pylon-5.1.0.12682-x86_64.tar.gz && \
     tar xvf pylon-5.1.0.12682-x86_64.tar.gz && \
     cd pylon-5.1.0.12682-x86_64 && \
-    pip3.6 install numpy && \
-    pip3.6 install setuptools && \
-    tar -C /opt -zxf pylonSDK-5.1.0.12682-x86_64.tar.gz && \
-    wget https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.gz && \
-    tar xvf boost_1_66_0.tar.gz && \
-    cd boost_1_66_0 && \
-    ./bootstrap.sh --with-python=/usr/bin/python3.6 && \
-    ./b2 --with-python && \
-    ./b2 install && \
-    cd ../../ && \
-    python3.6 setup.py install
+    pip3.6 install numpy==1.14.5 && \
+    pip3.6 install setuptools==40.7.3 && \
+    tar -C /opt -zxf pylonSDK-5.1.0.12682-x86_64.tar.gz
 
 # Removing unwanted files
-RUN rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz && \
-    rm -rf basler-video-capture/libs/pylon-5.1.0.12682-x86_64/boost_1_66_0.tar.gz
+RUN rm -rf pylon-5.1.0.12682-x86_64.tar.gz && \
+    rm -rf pylon-5.1.0.12682-x86_64/pylonSDK-5.1.0.12682-x86_64.tar.gz
 
 RUN apt-get update
 
@@ -112,6 +100,14 @@ RUN sed -i "/^[ ]*parsers/i    /opt/intel/mediasdk/include/mfx" gstreamer-media-
 RUN sed -i "s/libmfx.a/libmfx.so/" gstreamer-media-SDK/cmake/FindMediaSDK.cmake
 RUN cd /opt/intel/mediasdk/lib/ && mkdir lin_x64 && cd lin_x64 && ln -s ../* .
 RUN cd gstreamer-media-SDK && mkdir build && cd build && cmake .. && make -j8 && make install
+
+# Adding capabilities to install basler source plugin
+RUN apt-get -y install automake
+ADD basler-source-plugin ./basler-source-plugin
+RUN cd basler-source-plugin && ./autogen.sh && make && make install
+RUN cd basler-source-plugin && \
+    cp ./plugins/libgstpylonsrc.la /usr/lib/x86_64-linux-gnu/gstreamer-1.0/ && \
+    cp ./plugins/.libs/libgstpylonsrc.so /usr/lib/x86_64-linux-gnu/gstreamer-1.0/
 
 # Adding cert dirs
 RUN mkdir -p /etc/ssl/imagestore

@@ -1,15 +1,13 @@
 {
     "machine_id": "basler-capture-example",
-    "trigger_threads": 12,
+    "trigger_threads": 1,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
-                "poll_interval": 0.01,
                 "streams": {
-                    "basler": {
-                        "0815-0000": {
-                            "exposure": 3250,
-                            "inter_packet_delay": 1500
+                    "capture_streams":{
+                        "cam_serial1": {
+                            "video_src": "pylonsrc imageformat=yuv422 exposure=3250 interpacketdelay=1500 ! videoconvert ! appsink"
                         }
                     }
                 }

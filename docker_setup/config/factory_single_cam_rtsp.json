@@ -1,0 +1,39 @@
+{
+    "machine_id": "basler-capture-example",
+    "trigger_threads": 1,
+    "data_ingestion_manager": {
+        "ingestors": {
+            "video": {
+                "streams": {
+                    "capture_streams":{
+                        "cam_serial1": {
+                            "video_src": "rtsp://admin:intel123@10.223.109.205:554/cam/realmonitor?channel=1&subtype=1 latency=100 ! rtph265depay ! h265parse ! mfxhevcdec ! videoconvert ! appsink"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "triggers": {
+        "pcb_trigger": {
+            "training_mode": false,
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
+        }
+    },
+    "classification": {
+        "max_workers": 1,
+        "classifiers": {
+            "pcbdemo": {
+                "trigger": ["pcb_trigger"],
+                "config": {
+                    "ref_img": "./algos/algo_config/ref_pcbdemo/ref.png",
+                    "ref_config_roi": "./algos/algo_config/ref_pcbdemo/roi_2.json",
+                    "model_xml": "./algos/algo_config/ref_pcbdemo/model_2.xml",
+                    "model_bin": "./algos/algo_config/ref_pcbdemo/model_2.bin"
+                }
+            }
+        }
+    }
+}

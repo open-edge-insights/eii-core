@@ -29,13 +29,6 @@ import os
 from . import IngestorError
 
 try:
-    import basler_video_capture as bvc
-    bvc.initialize()
-    basler_supported = True
-except ImportError:
-    basler_supported = False
-
-try:
     import dahua_video_capture as dvc
     dahua_supported = True
 except ImportError:
@@ -48,13 +41,11 @@ except ImportError:
 class VideoCapture:
     """Simple wrapper around external video capture objects.
     """
-    def __init__(self, cam_type, name, config, cap):
+    def __init__(self, name, config, cap):
         """Constructor
 
         Parameters
         ----------
-        cam_type : str
-            Type of the camera
         name : str
             Name of the video capture
         config : dict or None
@@ -62,7 +53,6 @@ class VideoCapture:
         cap : Object
             Video capture object
         """
-        self.cam_type = cam_type
         self.config = config
         self.name = name
         self.cap = cap
@@ -97,8 +87,7 @@ class Ingestor:
     The, "poll_interval", is how often the ingestor should loop over all of the
     camera streams and read the latest frame.
 
-    Currently the two supported streams are opencv, and basler. The
-    configuration for the opencv stream is as follows:
+    The configuration for  stream is as follows:
 
         {
             "capture_streams": <LIST OF PARAMTERS FOR VideoCapture>
@@ -108,24 +97,8 @@ class Ingestor:
     objects. What ever the first parameter of the cv2.VideoCapture object
     supports can be specified in the array.
 
-    The basler configuration is as follows:
-
-        {
-            "<CAMERA SERIAL NUMBER>": {
-                "gain": <INT: (Optional) Gain to setting for the camera>,
-                "exposure": <INT: (Optional) Exposure to setting for the
-                            camera>
-            }
-        }
-
-    Each key in the configuration object for Basler is the serial number of a
-    camera for the ingestor to ingest data from. The value is another
-    dictionary object with two optional keys, gain and exposure. If these keys
-    are not specified, then the camera will use whatever the default value is
-    set to on the camera for the gain and exposure.
-
-    An error will be raised if Basler cameras are not supported, i.e. the
-    needed library cannot be imported.
+    An error will be raised if Basler cameras are not supported, i.e.
+    the needed library cannot be imported.
     """
     def __init__(self, config, stop_ev, on_data):
         """Constructor
@@ -151,49 +124,14 @@ class Ingestor:
         self.cameras = []
         streams = config['streams']
 
-        if 'basler' in streams:
-            if not basler_supported:
-                raise IngestorError(
-                        'Basler cameras are not supported, missing lib')
-            self.log.info('Loading basler camera streams')
-            cameras = bvc.enumerate_devices()
-
-            self.log.debug('Enumerated Basler cameras: %s', cameras)
-
-            for (sn, conf) in streams['basler'].items():
-                if sn not in cameras:
-                    raise IngestorError('Cannot find camera: {}'.format(sn))
-                self.cameras.append(self._connect('basler', sn, conf))
-
-        if 'opencv' in streams:
-            self.log.info('Loading OpenCV streams')
-            cap_streams = streams['opencv']['capture_streams']
-            if isinstance(cap_streams, dict):
-                for (cam_sn, camConfig) in cap_streams.items():
-                    self.cameras.append(self._connect('opencv', cam_sn,
-                                        camConfig))
-            else:
-                # TODO: to support single stream (can go away later)
-                if 'appsink' in cap_streams:
-                    self.cameras.append(self._connect('opencv', cap_streams,
-                                        None))
-        if 'dahua' in streams:
-            if not dahua_supported:
-                raise IngestorError(
-                        'Dahua cameras are not supported, missing lib')
-            self.log.info('Loading Dahua streams')
-            num_cameras = streams['dahua']['number_of_cameras']
-            found = dvc.enumerate_devices()
-
-            if len(found) < num_cameras:
-                raise IngestorError('Found too few dahua cameras')
-
-            self.log.debug('Enumerated dahua cameras: %s', found)
-
-            # Connect to the first N cameras, where N is the num_cameras
-            for dev in found[:num_cameras]:
-                self.log.debug('Opening dahua device: %s', dev)
-                self.cameras.append(self._connect('dahua', dev, None))
+        self.log.info('Loading OpenCV streams')
+        cap_streams = streams['capture_streams']
+        if isinstance(cap_streams, dict):
+            for (cam_sn, camConfig) in cap_streams.items():
+                self.cameras.append(self._connect(cam_sn,
+                                    camConfig))
+        else:
+            raise IngestorError('capture_streams is not a json object')
 
         if not self.cameras:
             raise IngestorError('No capture streams for the video ingestor')
@@ -233,7 +171,7 @@ class Ingestor:
                                 camera)
                     else:
                         self.on_data('video', (camera.name, frame,))
-                except Exception:
+                except Exception as ex:
                     self.log.error('Error while reading from camera: %s, \n%s',
                                    camera, tb.format_exc())
                     try:
@@ -241,9 +179,9 @@ class Ingestor:
                                 'Attempting to reconnect to camera %s', camera)
                         camera.release()
                         camera = self._connect(
-                                camera.cam_type, camera.name, camera.config)
+                                 camera.name, camera.config)
                         self.cameras[i] = camera
-                    except Exception:
+                    except Exception as ex:
                         self.log.error(
                                 'Reconnect failed: \n%s', tb.format_exc())
 
@@ -255,13 +193,11 @@ class Ingestor:
                 elif self.poll_interval is not None:
                     time.sleep(self.poll_interval)
 
-    def _connect(self, cam_type, cam_sn, config):
+    def _connect(self, cam_sn, config):
         """Private method to abstract connecting to a given camera type.
 
         Parameters
         ----------
-        cam_type : str
-            Type of the camera (basler, dahua, or opencv)
         cam_sn : str or int
             Serial number of the camera, or integer for OpenCV
         config : None or dict
@@ -273,42 +209,11 @@ class Ingestor:
             If the given configuration is missing a required value
         """
         cam = None
-        if cam_type == 'basler':
-            self.log.info('Initializing basler camera %s', cam_sn)
-            try:
-                cam = bvc.BaslerVideoCapture(cam_sn)
-            except Exception:
-                for i in range(25):
-                    try:
-                        cam = bvc.BaslerVideoCapture(cam_sn)
-                        break
-                    except Exception:
-                        self.log.error("Camera not responding, retrying %d",
-                                       i+1)
-                        time.sleep(1)
-                if cam is None:
-                    os._exit(1)
-            if 'gain' in config:
-                self.log.info('Setting gain to %d on camera %s',
-                              config['gain'], cam_sn)
-                cam.set_gain(config['gain'])
-            if 'exposure' in config:
-                self.log.info('Setting exposure to %d on camera %s',
-                              config['exposure'], cam_sn)
-                cam.set_exposure(config['exposure'])
-            if 'inter_packet_delay' in config:
-                self.log.info('Setting inter_packet_delay to %d on camera %s',
-                              config['inter_packet_delay'], cam_sn)
-                cam.set_inter_packet_delay(config['inter_packet_delay'])
-
-        elif cam_type == 'opencv':
+        if cam_sn is not None:
             self.log.info('Initializing OpenCV camera: %s', str(cam_sn))
             cam = cv2.VideoCapture(config["video_src"])
             cam_sn = '{}'.format(cam_sn)
-        elif cam_type == 'dahua':
-            self.log.info('Initializing Dahua camera: %s', cam_sn)
-            cam = dvc.DahuaVideoCapture(dev)
         else:
-            raise IngestorError('Unknown camera type: {}'.format(cam_type))
+            raise IngestorError('Unknown camera : {}'.format(cam_sn))
 
-        return VideoCapture(cam_type, cam_sn, config, cam)
+        return VideoCapture(cam_sn, config, cam)

@@ -11,6 +11,7 @@ StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/
+basler-source-plugin/
 .git
 
 # Recursively remove all unwanted files

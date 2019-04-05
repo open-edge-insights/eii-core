@@ -71,13 +71,15 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 	wget -q http://wheeljack.ch.intel.com/downloads/test_videos/pcb_d2000.avi
     ```
 
-2. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from github.
+2. Clone the a locally maintained [kapacitor repository](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/kapacitor.git) inside the `IEdgeInsights` folder.
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
 
 3. #### [Requirement for video analytics container]
      Download the full package for OpenVINO toolkit for Linux version "2018 R5" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside VideoAnalytics directory.
+
+5. To work with Basler Source Plugin clone [basler-source-plugin](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/basler-source-plugin.git) inside the `IEdgeInsights` folder.
 
 ## Steps to setup IEI solution on test/factory system
 
@@ -86,10 +88,11 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 1. All configurable options for IEI goes into [.env](.env) file.
 2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and IEI containers goes into [docker-compose.yml](docker-compose.yml)
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
-   1. `factory.json` - value to be used if working with defect video files
-   2. `factory_prod.json` (default) - value to be used if working with the camera setup
-      1. Update `factory_prod.json` to use the correct ingestors. [Updating Ingestors](https://github.intel.com/ElephantTrunkArch/IEdgeInsights/blob/master/agent/README.md)
-
+   1. [factory.json](./config/factory.json) - value to be used if working with a defect video file
+   2. [factory_single_cam_basler.json](./config/factory_single_cam_basler.json) - value to be used if working with single basler camera setup
+   3. [factory_single_cam_rtsp.json](./config/factory_single_cam_rtsp.json) - value to be used if working with single rtsp camera setup or simulated rtsp
+                                                                              camera stream from VLC
+   4. [factory_multi_cam.json](./config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
 5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
@@ -103,27 +106,27 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 7. **Selective container build and run.**
 
-   By default IEI will build and run all services. If you want to run selective services,please 
-   edit [docker_setup/config/services.json](./config/services.json) file. 
-   
+   By default IEI will build and run all services. If you want to run selective services,please
+   edit [docker_setup/config/services.json](./config/services.json) file.
+
    1. Following services are required for Video analytics.
 
    `ia_imagestore ia_video_ingestion ia_video_analytics ia_factoryctrl_app`
 
-   3. Following services are required for Data analytics. 
+   3. Following services are required for Data analytics.
 
    `ia_data_analytics ia_telegraf`
 
    **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README](../DataAnalytics/README)
 
-   4. If you want to add your own services to IEI, Along with core services, please add your 
+   4. If you want to add your own services to IEI, Along with core services, please add your
    service to [docker-compose.yml](./docker-compose.yml) and also include it in [docker_setup/config/services.json](./config/services.json) along with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
-    
+
     "iei_services": [
         {
-            "name": "my_custom_service", 
+            "name": "my_custom_service",
             "dockerignore": ".dockerignore.common"
-            
+
         }
 
 
