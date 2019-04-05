@@ -27,7 +27,7 @@ import unittest
 import datetime
 import time
 from Util.log import configure_logging
-from DataAnalytics.PCBClassification.PCBDemo import PCBDemoApp
+from DataAnalytics.VideoAnalytics.PCBDemo import PCBDemoApp
 
 
 class PCBDemoTest(unittest.TestCase):
@@ -78,4 +78,4 @@ if __name__ == '__main__':
     unittest.main()
 
 # To run the test, use the following command
-# /IEdgeInsights/DataAnalytics/PCBClassification$ python3.6 test/TstPCBDemo.py
+# /IEdgeInsights/DataAnalytics/VideoAnalytics$ python3.6 test/TstPCBDemo.py

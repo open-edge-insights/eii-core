@@ -28,7 +28,7 @@ import datetime
 import json
 
 from Util.log import configure_logging
-from DataAnalytics.PCBClassification.DataHandler import DataHandler
+from DataAnalytics.VideoAnalytics.DataHandler import DataHandler
 
 
 class DataHandlerTest(unittest.TestCase):
@@ -111,4 +111,4 @@ if __name__ == '__main__':
     unittest.main()
 
 # To run the test, use following command
-# /DataAnalytics/PCBClassification$ python3.6 test/TestDataHandler.py
+# /DataAnalytics/VideoAnalytics$ python3.6 test/TestDataHandler.py

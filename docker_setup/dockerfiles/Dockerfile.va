@@ -11,7 +11,7 @@ ENV HOME /IEI
 RUN apt-get update
 
 # Installing dependent python modules
-ADD DataAnalytics/PCBClassification/pcbdemo_requirements.txt .
+ADD DataAnalytics/VideoAnalytics/pcbdemo_requirements.txt .
 RUN pip3.6 install -r pcbdemo_requirements.txt && \
     rm -rf pcbdemo_requirements.txt
 
@@ -20,7 +20,7 @@ RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
     build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio
 RUN apt-get install -y lsb-release
-ADD DataAnalytics/l_openvino_toolkit_p_2018.5.445 ./l_openvino_toolkit_p_2018.5.445
+ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit_p_2018.5.445 ./l_openvino_toolkit_p_2018.5.445
 RUN cd l_openvino_toolkit_p_2018.5.445 && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
     ./install.sh -s silent.cfg --ignore-cpu
@@ -45,7 +45,7 @@ RUN mkdir -p /etc/ssl/streamsublib
 RUN mkdir -p /etc/ssl/grpc_int_ssl_secrets
 
 # Adding classifier program
-ADD DataAnalytics/PCBClassification/ .
+ADD DataAnalytics/VideoAnalytics/ .
 
 # Adding project depedency modules
 ADD algos ./algos

@@ -1,5 +1,4 @@
-# Dockerfile for Data Analytics
-
+# Dockerfile for Point Data Analytics
 ARG ALPINE_VERSION
 FROM alpine:$ALPINE_VERSION
 LABEL description="Classifier image"
@@ -57,7 +56,7 @@ RUN mkdir -p ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998 
 
 # Installing dependent python modules
-ADD DataAnalytics/classifier_requirements.txt .
+ADD DataAnalytics/PointDataAnalytics/classifier_requirements.txt .
 
 RUN apk add --no-cache --virtual .build-deps \
     python3-dev \
@@ -68,7 +67,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk add --no-cache py3-cryptography 
 
 # Adding classifier program
-ADD DataAnalytics/ . 
+ADD DataAnalytics/PointDataAnalytics/ . 
    
 RUN go build -o point_classifier point_classifier.go \ 
     && chmod 755 ./classifier_start.sh \

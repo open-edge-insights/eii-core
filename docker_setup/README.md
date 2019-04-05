@@ -75,9 +75,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-3. Download the full package for OpenVINO toolkit for Linux version "2018 R5" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside DataAnalytics directory.
 
-4. Since docker compose setup publishes ports to host and ia_video_ingestion container runs on host network namespace, please ensure to kill all the dependency and iei processes running locally on the host. One could run this script to do so `sudo ./docker_setup/kill_local_dependency_iei_processes.sh`. This script is not extensively tested, so please use `ps -ef` command to see there are no locally running dependency and iei processes.
+3. #### [Requirement for video analytics container]
+     Download the full package for OpenVINO toolkit for Linux version "2018 R5" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside VideoAnalytics directory.
 
 ## Steps to setup IEI solution on test/factory system
 
