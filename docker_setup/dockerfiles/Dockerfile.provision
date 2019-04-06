@@ -1,6 +1,6 @@
 # Dockerfile for DataAgent
 ARG IEI_VERSION
-FROM ia/gobase:${IEI_VERSION}
+FROM ia_gobase:${IEI_VERSION}
 LABEL description="DataAgent image"
 
 RUN mkdir -p ${GO_WORK_DIR}/log

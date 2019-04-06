@@ -1,6 +1,6 @@
 # Dockerfile for VideoIngestion
 ARG IEI_VERSION
-FROM ia/pybase:$IEI_VERSION
+FROM ia_pybase:$IEI_VERSION
 LABEL description="VideoIngestion image"
 
 ADD VideoIngestion/basler-video-capture ./basler-video-capture

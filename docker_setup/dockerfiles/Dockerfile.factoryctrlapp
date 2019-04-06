@@ -1,6 +1,6 @@
 # Dockerfile for FactoryControlApp
 ARG IEI_VERSION
-FROM ia/pybase:$IEI_VERSION
+FROM ia_pybase:$IEI_VERSION
 LABEL description="FactoryControlApp image"
 
 # Installing dependent python modules

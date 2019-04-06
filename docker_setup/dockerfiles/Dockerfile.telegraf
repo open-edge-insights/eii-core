@@ -1,7 +1,7 @@
 # Dockerfile for Telegraf
 
 ARG IEI_VERSION
-FROM ia/gopybase:$IEI_VERSION
+FROM ia_gopybase:$IEI_VERSION
 LABEL description="Telegraf image"
 RUN mkdir -p ${GO_WORK_DIR}/log
 RUN pip install grpcio

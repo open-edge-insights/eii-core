@@ -1,6 +1,6 @@
 # Dockerfile for VideoAnalytics
 ARG IEI_VERSION
-FROM ia/pybase:$IEI_VERSION
+FROM ia_pybase:$IEI_VERSION
 LABEL description="VideoAnalytics image"
 
 ENV DIR /IEI

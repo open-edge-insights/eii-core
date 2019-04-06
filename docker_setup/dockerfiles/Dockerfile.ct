@@ -1,6 +1,6 @@
 # Client tests dockerfile
 ARG IEI_VERSION
-FROM ia/gopybase:$IEI_VERSION
+FROM ia_gopybase:$IEI_VERSION
 
 ARG HOST_TIME_ZONE=""
 

@@ -1,6 +1,6 @@
 # ImageStore dockerfile
 ARG IEI_VERSION
-FROM ia/gobase:$IEI_VERSION
+FROM ia_gobase:$IEI_VERSION
 
 ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
 ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin

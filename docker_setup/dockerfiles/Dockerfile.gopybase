@@ -1,6 +1,6 @@
 # IEI Base Dockerfile for Go/Py modules
 ARG IEI_VERSION
-FROM ia/pybase:$IEI_VERSION
+FROM ia_pybase:$IEI_VERSION
 LABEL description="IEI Go/Py Base Image"
 
 # Python envs
