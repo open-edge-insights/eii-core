@@ -10,7 +10,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-    image: ia/gobase:${IEI_VERSION}
+    image: ia_gobase:${IEI_VERSION}
 
   #----End: IEI Base Images----
 
