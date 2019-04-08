@@ -11,9 +11,10 @@ OPCUA
     ```sh
     sudo apt-get install -y libmbedtls-dev python3.6-dev
     ```
-    > **Note**: This works only on Ubuntu OS. On ClearLinux or any other OS, please
-    >           run the dockerized version of the DataBusAbstraction client like
-    >           `VisualHmiClient` app
+    
+  > **Note**: Due to `libmbedtls-dev` package not working with Ubuntu 18.04 for
+  >           open62541 clients, so please run the [iei-simple-visualizer](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/iei-simple-visualizer.git)
+  >           app's as a container
 
   * Set `PYTHONPATH` env variable to DataBusAbstraction/py folder path
     ```sh

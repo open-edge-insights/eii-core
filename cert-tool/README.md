@@ -41,7 +41,7 @@ standard certificates for the server and client. Root Certificate Authority cert
                 "grpc_external" :
                 {
                     "server_alt_name":"grpc_external",
-                    "client_alt_name": ["grpc_external", "visualhmi"]
+                    "client_alt_name": ["grpc_external", "iei-simple-visualizer"]
                 }
             }
         ]
@@ -60,7 +60,7 @@ standard certificates for the server and client. Root Certificate Authority cert
                           subscribers
     - streamsublib/   --> consists of the server certificate/key consumed by `ia_factoryctrl_app` stream subscriber module which is one of the influxdb
                           subscribers
-    - opcua/          --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module to bring up the opcua server                          and the client certificate is consumed by opcua clients like visual hmi
+    - opcua/          --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module to bring up the opcua server                          and the client certificate is consumed by opcua clients like `iei-simple-visualizer`
 
 ### CommandLine Options for Cert-Tool    
 

@@ -13,7 +13,6 @@ StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/
-VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

@@ -1,7 +1,0 @@
-{
- "hmi_host":"localhost",
- "hmi_port":80,
- "hmi_image_folder": "/root/saved_images/",
- "databus_host": "localhost",
- "databus_port": "4840"
-}

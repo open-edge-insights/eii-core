@@ -9,7 +9,6 @@ StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/
-VisualHmiClient/
 DataAnalytics/l_openvino_toolkit_p_2018.5.445
 DataAnalytics/PCBClassification
 .git

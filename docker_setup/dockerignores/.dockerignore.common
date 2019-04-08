@@ -16,7 +16,6 @@ Telegraf/
 test_videos/
 Util/
 VideoIngestion/
-VisualHmiClient/
 .git
 
 # Recursively remove all unwanted files

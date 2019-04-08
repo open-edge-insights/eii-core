@@ -208,10 +208,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     > starting it off.
 
-2. Follow [VisualHmiClient/README.md](../VisualHmiClient/README.md) to setup Visual HMI client either natively (due to dependencies, this works
-   only on Ubuntu) or dockerized version.
+2. Follow [iei-simple-visualizer](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/iei-simple-visualizer.git) to run either it as a containerized app or natively
 
-   **Note**: VisualHmiClient is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/iei/dist_libs` to receive classified images and their metadata.
+   **Note**: `iei-simple-visualizer` is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/iei/dist_libs` to receive classified images and their metadata.
 
 3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by
    `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
@@ -237,8 +236,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 3. To verify if the data pipeline withing IEI is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the
    databus, then check the logs of `ia_data_agent` container using cmd: `docker logs -f ia_data_agent`. One should see, publish messages like `Publishing topic: [topic_name]`
 
-4. To verify the E2E data flow working between IEI running on ECN (Edge Compute Node) and VisualHmiClient running on the same node or on a diff
-   node, check if the classified images and their respective metadata is been received in the VisualHmiClient container. Refer [VisualHmiClient/README.md](../VisualHmiClient/README.md) for more details.
+4. To verify the E2E data flow working between IEI running on ECN (Edge Compute Node) and `iei-simple-visualizer`
+   app running on the same node or on a diff node, check if the classified images and their respective metadata is been received in the `iei-simple-visualizer` container. Refer [iei-simple-visualizer](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/iei-simple-visualizer.git) for more details.
 
 5. `/opt/intel/iei` root directory gets created - This is the installation path for IEI:
      * `config/` - all the IEI configs reside here.
