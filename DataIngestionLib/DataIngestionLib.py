@@ -79,11 +79,7 @@ class DataPoint:
         return True
 
     def _add_fields_buffer(self, name, value, storage_type, time):
-        ''' This function sends the buffer to imagestore and saves the handle
-        returned in the data point which is further send to database. If more
-        than one buffer is present in a datapoint, the buffer and its name is
-        stored in comma separated way in the field.'''
-        # ToDo: Send the buffer to Image Store.
+        ''' This function sends the buffer to imagestore.'''
         try:
             handle = self.img_store.Store(value, storage_type)
         except Exception as e:
@@ -92,7 +88,19 @@ class DataPoint:
             self.log.error("Error in saving the buffer into ImageStore.")
             return False
         self.log.info("Stored the buffer in Image Store .")
+        if isinstance(handle, list):
+            for i in range(len(handle)):
+                self.add_to_datapoint(name, handle[i], time)
+        elif isinstance(handle, str):
+            self.add_to_datapoint(name, handle, time)
 
+        return True
+
+    def add_to_datapoint(self, name, handle, time):
+        ''' This function saves the handle returned in the data point which is
+        further send to database. If more than one buffer is present in a
+        datapoint, the buffer and its name is stored in comma separated way in
+        the field.'''
         # Save the handle of the image into Data Point.
         self.data_point['tags']['ImageStore'] = 1
         ImgHandle = 'ImgHandle'
@@ -114,6 +122,7 @@ class DataPoint:
             self.data_point['time'] = time
         self.log.debug("Added the buffer handle to Data Point.")
         return True
+
 
     def set_measurement_name(self, measurement_name):
         ''' Sets the measurement name. The measurement name is required by
