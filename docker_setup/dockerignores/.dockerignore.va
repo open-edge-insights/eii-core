@@ -14,7 +14,6 @@ DataAnalytics/PointDataAnalytics/
 **/*.md
 **/*.mp4
 **/*.avi
-**/*.json
 **/*.pyc
 **/*.tar
 **/*.log
