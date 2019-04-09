@@ -121,8 +121,6 @@ class DataPoint:
         if time is not None:
             self.data_point['time'] = time
         self.log.debug("Added the buffer handle to Data Point.")
-        return True
-
 
     def set_measurement_name(self, measurement_name):
         ''' Sets the measurement name. The measurement name is required by
