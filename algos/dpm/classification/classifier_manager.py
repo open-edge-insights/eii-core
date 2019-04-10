@@ -144,8 +144,7 @@ class ClassifierManager:
         """
         exc = fut.exception()
         if exc is not None:
-            self.log.error(
-                    'Error while classifying frames:\n%s', format_exc(exc))
+            self.log.error("Error while classifying frames:{0}".format(exc))
 
     def _process_frames(self, classifier, data):
         """Run method for the thread to process a stream of data coming from a
@@ -155,7 +154,7 @@ class ClassifierManager:
             if self.stopped.is_set():
                 return
 
-            self.log.info('Classification started')
+            self.log.debug('Classification started')
             frame_count = 0
             start = time.time()
             defects = {}
@@ -211,7 +210,7 @@ class ClassifierManager:
 
             delta = time.time() - start
             fps = frame_count / delta
-            self.log.info('Classification finished')
+            self.log.debug('Classification finished')
             self.log.debug('Total Time = %f, Frames = %d, FPS = %f',
                            delta, frame_count, fps)
         except Exception:

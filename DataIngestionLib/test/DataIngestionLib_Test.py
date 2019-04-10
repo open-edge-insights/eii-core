@@ -114,7 +114,7 @@ def send_point_data():
     try:
         di = datain()
     except Exception as e:
-        log.error(e)
+        log.error(e, exc_info=True)
         exit(1)
     di.set_measurement_name(measurement_name)
     # Adding 4 Data points each with three fields and saving them.
@@ -163,7 +163,8 @@ def retrieve_and_write_frames(data_points):
                 try:
                     frame = img_store.Read(img_handles[idx])
                 except Exception:
-                    log.error('Frame read failed')
+                    log.error("Failed to read frame {0}\
+                        ".format(img_handles[idx]))
                 if frame is not None:
                     # Convert the buffer into np array.
                     Frame = np.frombuffer(frame, dtype=np.uint8)
@@ -184,13 +185,13 @@ if __name__ == '__main__':
     try:
         send_point_data()
     except Exception as e:
-        log.error(e)
+        log.error(e, exc_info=True)
         exit(1)
     # Sending a buffer data to influx/imagestore.
     try:
         send_buffer_and_point_data()
     except Exception as e:
-        log.error(e)
+        log.error(e, exc_info=True)
         exit(1)
     # Retrieve data from database.
     data_points = retrieve_data_from_influx(measurement_name, '*')

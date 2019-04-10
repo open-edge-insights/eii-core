@@ -85,9 +85,10 @@ class DataPoint:
         except Exception as e:
             raise(e)
         if handle is None:
-            self.log.error("Error in saving the buffer into ImageStore.")
+            self.log.error("Error in saving the buffer into \
+                ImageStore.")
             return False
-        self.log.info("Stored the buffer in Image Store .")
+        self.log.debug("Stored the buffer in Image Store .")
         if isinstance(handle, list):
             for i in range(len(handle)):
                 self.add_to_datapoint(name, handle[i], time)
@@ -231,7 +232,7 @@ class DataIngestionLib:
         try:
             ret = self.influx_c.write_points(json_body)
             if ret is True:
-                self.log.info("Data Point sent successfully to influx.")
+                self.log.debug("Data Point sent successfully to influx.")
             else:
                 self.log.error("Data Point failed to sent...." + str(ret))
         except Exception as err:

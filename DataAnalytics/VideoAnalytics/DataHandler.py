@@ -91,7 +91,7 @@ class DataHandler:
                 self.frame_classify_ex.submit(
                     self.process_frame, frame, point)
             else:
-                self.logger.info("Waiting for thread from pool...")
+                self.logger.debug("Waiting for thread from pool...")
                 time.sleep(0.01)
 
     def handle_video_data(self, data_point_json):
@@ -105,7 +105,7 @@ class DataHandler:
                   saved the result otherwise None
         """
 
-        self.logger.info("Received a data point: {0}".format(data_point_json))
+        self.logger.debug("Received a data point: {0}".format(data_point_json))
         # convert json string to dict
         point = json.loads(data_point_json)
 
@@ -141,7 +141,7 @@ class DataHandler:
         """Classify the frame and save the classifier result to influxDB"""
 
         stream_name = point.get('Measurement')
-        self.logger.info("[{0}]: Processing frame...".format(stream_name))
+        self.logger.debug("[{0}]: Processing frame...".format(stream_name))
 
         img_height = point['Height']
         img_width = point['Width']

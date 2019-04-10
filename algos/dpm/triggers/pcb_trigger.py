@@ -127,7 +127,7 @@ class Trigger(BaseTrigger):
                 if self._check_frame(data[1]) is True:
                     # Send trigger start signal and send frame to classifier
                     self.send_start_signal(data, -1)
-                    self.log.info("Sending frame")
+                    self.log.debug("Sending frame")
                     self.send_data(data, 1)
                     # Send trigger stop signal and lock trigger
                     self.send_stop_signal()

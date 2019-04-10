@@ -127,7 +127,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	glog.Infof("**************STARTING DA**************")
+	glog.Infof("=============== STARTING data_agent ===============")
 
 	tString := os.Getenv("TPM_ENABLE")
 	ss, err := strconv.ParseBool(tString)

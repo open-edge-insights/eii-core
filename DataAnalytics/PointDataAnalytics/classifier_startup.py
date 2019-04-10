@@ -180,6 +180,7 @@ if __name__ == '__main__':
     logger = configure_logging(args.log.upper(), logFileName,
                                args.log_dir, __name__)
 
+    logger.info("=============== STARTING data_analytics ==============")
     # Wait for DA to be ready
     ret = check_port_availability(DAServiceName, DAPort)
     if ret is False:

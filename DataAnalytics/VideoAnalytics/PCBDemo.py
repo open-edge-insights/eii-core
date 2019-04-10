@@ -46,6 +46,8 @@ class PCBDemoApp:
         self.log = log
         self.container_mode = container_mode
 
+        self.log.info("=============== STARTING video_analytics \
+            ===============")
         # load app configuration
         with open('config.json') as f:
             self.app_config = json.load(f)
@@ -58,7 +60,7 @@ class PCBDemoApp:
             ret = check_port_availability(os.environ['GRPC_SERVER'],
                                           os.environ['GRPC_INTERNAL_PORT'])
             if ret is False:
-                log.error("DataAgent is not up. So Exiting...")
+                log.error("DataAgent is not up. So Exiting...", exc_info=True)
                 exit(-1)
 
             # Create cert

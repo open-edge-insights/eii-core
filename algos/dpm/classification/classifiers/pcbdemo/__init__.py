@@ -131,7 +131,7 @@ class Classifier:
                               required to overlay""")
             return None
 
-        self.log.info("Number of good matches: {}".format(len(matches)))
+        self.log.debug("Number of good matches: {}".format(len(matches)))
 
         src_pts = np.float32([ref_kp[m.queryIdx].pt for m
                               in matches]).reshape(-1, 1, 2)
@@ -192,7 +192,7 @@ class Classifier:
             self.log.debug('Received trigger frame')
             return defects
 
-        self.log.info('Classifying image')
+        self.log.debug('Classifying image')
 
         # Read correct reference image to
         # perform keypoint detection and overlay
