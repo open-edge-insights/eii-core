@@ -1,4 +1,4 @@
-# Dockerfile for DataAgent
+# Dockerfile for Provisioning
 ARG IEI_VERSION
 FROM ia_gobase:${IEI_VERSION}
 LABEL description="DataAgent image"

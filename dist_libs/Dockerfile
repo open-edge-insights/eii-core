@@ -1,4 +1,5 @@
-FROM ubuntu:16.04
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:${UBUNTU_IMAGE_VERSION}
 
 USER root
 WORKDIR /iei
@@ -15,6 +16,10 @@ RUN apt-get install -y git
 
 ENV TERM xterm
 RUN wget https://bootstrap.pypa.io/get-pip.py
+
+# Needed for only ubuntu 18.04
+RUN apt-get install -y python3-distutils
+
 RUN python3.6 get-pip.py
 
 # tls, crypto library needs to open62541
