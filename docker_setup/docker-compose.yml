@@ -87,7 +87,7 @@ services:
       - ia_log_rotate
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.da
+      dockerfile: $PWD/../DataAgent/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
@@ -147,7 +147,7 @@ services:
       - ia_mqtt
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.telegraf
+      dockerfile: $PWD/../Telegraf/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
@@ -187,7 +187,7 @@ services:
        - ia_data_agent
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.imagestore
+      dockerfile: $PWD/../ImageStore/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         REDIS_VERSION: ${REDIS_VERSION}
@@ -234,7 +234,7 @@ services:
        -  ia_mqtt
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.classifier
+      dockerfile: $PWD/../DataAnalytics/PointDataAnalytics/Dockerfile
       args:
         ALPINE_VERSION: ${ALPINE_VERSION}
         IEI_UID: ${IEI_UID}
@@ -293,7 +293,7 @@ services:
        -  ia_mqtt
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.va
+      dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
@@ -347,7 +347,7 @@ services:
        - ia_mqtt
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.factoryctrlapp
+      dockerfile: $PWD/../FactoryControlApp/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
@@ -387,7 +387,7 @@ services:
       - ia_video_analytics
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.vi
+      dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}

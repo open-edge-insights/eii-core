@@ -4,27 +4,27 @@
        
         {
             "name": "ia_video_ingestion", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.vi"
+            "dockerignore": "VideoIngestion/.dockerignore"
         },
         {
             "name": "ia_imagestore", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.imagestore"
+            "dockerignore": "ImageStore/.dockerignore"
         },
         {
             "name": "ia_video_analytics", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.va"
+            "dockerignore": "DataAnalytics/VideoAnalytics/.dockerignore"
         },
         {
             "name": "ia_telegraf", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.telegraf"
+            "dockerignore": "Telegraf/.dockerignore"
         },
         {
             "name": "ia_data_analytics", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.clasisfier"
+            "dockerignore": "DataAnalytics/PointDataAnalytics/.dockerignore"
         },
         {
             "name": "ia_factoryctrl_app", 
-            "dockerignore": "docker_setup/dockerignores/.dockerignore.factoryctrlapp"
+            "dockerignore": "FactoryControlApp/.dockerignore"
         }
 
         

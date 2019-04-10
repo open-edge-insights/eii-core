@@ -35,7 +35,7 @@ dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
-dockerignores+=(docker_setup/dockerignores/.dockerignore.da)
+dockerignores+=(DataAgent/.dockerignore)
 
 # List of Configurable IEI services and respective dockerignores.
 while read line ; do
