@@ -113,6 +113,7 @@ services:
       INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
+      PROFILING: ${PROFILING}
     volumes:
       - "${IEI_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -315,6 +316,7 @@ services:
       no_proxy: ${NO_PROXY}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
+      PROFILING: ${PROFILING}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/streamsublib"
@@ -416,6 +418,7 @@ services:
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
+      PROFILING: ${PROFILING}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"

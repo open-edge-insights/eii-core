@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import os
 import numpy as np
 import time
 import json
@@ -36,7 +37,7 @@ import algos.dpm.classification.classifiers
 from algos.dpm.classification.classifier_manager import ClassifierManager
 from algos.dpm.config import Configuration
 from DataIngestionLib.DataIngestionLib import DataIngestionLib, DataPoint
-
+from distutils.util import strtobool
 
 ROOTCA_CERT = '/etc/ssl/ca/ca_certificate.pem'
 IM_CLIENT_CERT = '/etc/ssl/imagestore/imagestore_client_certificate.pem'
@@ -83,6 +84,9 @@ class DataHandler:
         self.di = DataIngestionLib(self.logger)
         self.frame_submitter_thread.start()
 
+        self.profiling = bool(strtobool(os.environ['PROFILING']))
+        self.logger.debug('profiling is {0}'.format(self.profiling))
+
     def submit_frame(self):
         while not self.frame_submitter_ev.is_set():
             pending = self.frame_classify_ex._work_queue.qsize()
@@ -106,6 +110,10 @@ class DataHandler:
         """
 
         self.logger.debug("Received a data point: {0}".format(data_point_json))
+
+        if self.profiling is True:
+            ts_va_entry = float(time.time()*1000)
+
         # convert json string to dict
         point = json.loads(data_point_json)
 
@@ -124,12 +132,22 @@ class DataHandler:
         # Reject the frame with user_data -1
         if user_data == -1:
             return
+
+        if self.profiling is True:
+            point["ts_va_img_read_entry"] = float(time.time()*1000)
+
         try:
             frame = self.img_store.Read(img_handle)
         except Exception:
             self.logger.exception('[{0}]: Frame read failed : {1}'.format(
                 stream_name, img_handle))
             return
+
+        if self.profiling is True:
+            point["ts_va_img_read_exit"] = float(time.time()*1000)
+
+        if self.profiling is True:
+            point["ts_va_entry"] = ts_va_entry
 
         if frame:
             self.frame_queue.put((frame, point))
@@ -179,10 +197,35 @@ class DataHandler:
         data_point = DataPoint(self.img_store, self.logger)
         data_point.set_measurement_name(stream_name + '_results')
 
+        if self.profiling is True:
+            ts_va_analy_entry = float(time.time()*1000)
+
         # Sending in the list data for one part
         ret = self._cm._process_frames(self.classifier, data)
 
+        if self.profiling is True:
+            ts_va_analy_exit = float(time.time()*1000)
+
         for result in ret:
+
+            if self.profiling is True:
+                data_point.add_fields('ts_va_analy_entry',
+                                      ts_va_analy_entry)
+                data_point.add_fields('ts_va_analy_exit',
+                                      ts_va_analy_exit)
+                data_point.add_fields('ts_va_img_read_entry',
+                                      point['ts_va_img_read_entry'])
+                data_point.add_fields('ts_va_img_read_exit',
+                                      point['ts_va_img_read_exit'])
+                data_point.add_fields('ts_va_entry',
+                                      point['ts_va_entry'])
+                data_point.add_fields('ts_vi_fr_store_entry',
+                                      point['ts_vi_fr_store_entry'])
+                data_point.add_fields('ts_vi_fr_store_exit',
+                                      point['ts_vi_fr_store_exit'])
+                data_point.add_fields('ts_vi_influx_entry',
+                                      point['ts_vi_influx_entry'])
+
             # Process the Classifier Results into DataPoint
             for k, v in result.items():
                 if isinstance(v, str):
