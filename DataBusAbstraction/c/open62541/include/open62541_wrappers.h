@@ -13,6 +13,25 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "common.h"
 #include <pthread.h>
 
+#define FAILURE -1
+#define SECURITY_POLICY_URI "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+#define ENDPOINT_SIZE 100
+#define NAMESPACE_SIZE 100
+#define TOPIC_SIZE 100
+// TODO: we need to see what's the optimum size for this or have a better logic to handle this regardless of any size limits
+// imposed by safestringlib strcpy_s API
+#define PUBLISH_DATA_SIZE 4*1024
+#define DBA_STRCPY(dest, src) \
+    { \
+        unsigned int srcLength = (unsigned int)strlen(src) + 1; \
+        unsigned int destSize = (unsigned int)sizeof(dest); \
+        if (srcLength >= destSize) { \
+	        strcpy_s(dest, destSize - 1, src); \
+	    } else { \
+	        strcpy_s(dest, srcLength, src); \
+	    } \
+    }
+
 //*************open62541 server wrappers**********************
 char*
 serverContextCreateSecured(char *hostname,

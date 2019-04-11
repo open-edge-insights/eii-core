@@ -11,18 +11,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package databus
 
 /*
-#cgo CFLAGS: -I ../c/open62541/include
-#cgo LDFLAGS: -L ../c/open62541/src -lsafestring -lopen62541W -lmbedtls -lmbedx509 -lmbedcrypto -pthread
+#cgo CFLAGS: -I ../c/open62541/include -I ../c
+#cgo LDFLAGS: -L ../c/open62541/src -L ../c -lsafestring -lopen62541W -lmbedtls -lmbedx509 -lmbedcrypto -pthread
 void cgoFunc(char *topic, char *data);
 #include <stdlib.h>
-#include "open62541_wrappers.h"
+#include "DataBus.h"
 #include <stdio.h>
 */
 import "C"
 
 import (
-	"strconv"
-	"strings"
 	"unsafe"
 
 	"github.com/golang/glog"
@@ -44,7 +42,6 @@ var gCh chan interface{}
 
 //export goCallback
 func goCallback(topic *C.char, data *C.char) {
-	glog.Infoln("In goCallback() fucntion...")
 	dataGoStr := C.GoString(data)
 	gCh <- dataGoStr
 }
@@ -60,101 +57,44 @@ func free(cStrs []*C.char) {
 func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err error) {
 	defer errHandler("OPCUA Context Creation Failed!!!", &err)
 
-	devModeFlag := false
-	var cResp *_Ctype_char
-
 	dbOpcua.direction = contextConfig["direction"]
 	dbOpcua.namespace = contextConfig["name"]
-	endpoint := contextConfig["endpoint"]
 
-	hostPort := strings.Split(endpoint, "://")[1]
-	host := strings.Split(hostPort, ":")[0]
-	port, err := strconv.Atoi(strings.Split(hostPort, ":")[1])
-	if err != nil {
-		glog.Errorf("port int conversion failed, error: %v", err)
-		panic(err)
+	cDirection := C.CString(contextConfig["direction"])
+	cNamespace := C.CString(contextConfig["name"])
+	cEndpoint := C.CString(contextConfig["endpoint"])
+	cCertFile := C.CString(contextConfig["certFile"])
+	cPrivateFile := C.CString(contextConfig["privateFile"])
+
+	//TODO - Make contextConfig["trustFile"] an array
+	trustFiles := [1]string{contextConfig["trustFile"]}
+	cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
+	a := (*[1<<30 - 1]*C.char)(cArray)
+	for idx, substring := range trustFiles {
+		a[idx] = C.CString(substring)
 	}
 
-	if (contextConfig["certFile"] == "") && (contextConfig["privateFile"] == "") &&
-		(contextConfig["trustFile"] == "") {
-		devModeFlag = true
-	}
-	cHostname := C.CString(host)
-
-	if dbOpcua.direction == "PUB" {
-		if !devModeFlag {
-			cCertFile := C.CString(contextConfig["certFile"])
-			cPrivateFile := C.CString(contextConfig["privateFile"])
-
-			//TODO - Make contextConfig["trustFile"] an array
-			trustFiles := [1]string{contextConfig["trustFile"]}
-			cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
-
-			a := (*[1<<30 - 1]*C.char)(cArray)
-			for idx, substring := range trustFiles {
-				a[idx] = C.CString(substring)
-			}
-			cResp = C.serverContextCreateSecured(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
-		} else {
-			cResp = C.serverContextCreate(cHostname, C.int(port))
-		}
-
-		goResp := C.GoString(cResp)
-		if goResp != "0" {
-			glog.Errorln("Response: ", goResp)
-			panic(goResp)
-		}
-	}
-	if dbOpcua.direction == "SUB" {
-		if !devModeFlag {
-			cCertFile := C.CString(contextConfig["certFile"])
-			cPrivateFile := C.CString(contextConfig["privateFile"])
-
-			//TODO - Make contextConfig["trustFile"] an array
-			trustFiles := [1]string{contextConfig["trustFile"]}
-			cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
-
-			a := (*[1<<30 - 1]*C.char)(cArray)
-			for idx, substring := range trustFiles {
-				a[idx] = C.CString(substring)
-			}
-			cResp = C.clientContextCreateSecured(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
-		} else {
-			cResp = C.clientContextCreate(cHostname, C.int(port))
-		}
-
-		goResp := C.GoString(cResp)
-		if goResp != "0" {
-			glog.Errorln("Response: ", goResp)
-			panic(goResp)
-		}
+	contCfg := C.struct_ContextConfig{
+		endpoint:        cEndpoint,
+		direction:       cDirection,
+		name:            cNamespace,
+		certFile:        cCertFile,
+		privateFile:     cPrivateFile,
+		trustFile:       (**C.char)(cArray),
+		trustedListSize: 1,
 	}
 
+	cResp := C.ContextCreate(contCfg)
+	goResp := C.GoString(cResp)
+	if goResp != "0" {
+		glog.Errorln("Response: ", goResp)
+		panic(goResp)
+	}
 	return
 }
 
 func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err error) {
 	defer errHandler("OPCUA Topic Start Failed!!!", &err)
-	if dbOpcua.direction == "PUB" {
-		cNamespace := C.CString(dbOpcua.namespace)
-		cTopic := C.CString(topicConfig["name"])
-
-		nsIndex := C.serverStartTopic(cNamespace, cTopic)
-		dbOpcua.nsIndex = int(nsIndex)
-		if dbOpcua.nsIndex == 100 {
-			panic("Failed to add opcua variable for the topic!!")
-		}
-	} else if dbOpcua.direction == "SUB" {
-		//TODO: opcua integration needs to be done
-		cNamespace := C.CString(dbOpcua.namespace)
-		cTopic := C.CString(topicConfig["name"])
-
-		nsIndex := C.clientStartTopic(cNamespace, cTopic)
-		dbOpcua.nsIndex = int(nsIndex)
-		if dbOpcua.nsIndex == 100 {
-			panic("opcua variable for the topic doesn't exist!!")
-		}
-	}
 	return
 }
 
@@ -162,8 +102,14 @@ func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) 
 	defer errHandler("OPCUA Send Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
 		cTopic := C.CString(topic["name"])
+		cType := C.CString(topic["dType"])
 		cMsgData := C.CString(msgData.(string))
-		cResp := C.serverPublish(C.int(dbOpcua.nsIndex), cTopic, cMsgData)
+		topicCfg := C.struct_TopicConfig{
+			name:  cTopic,
+			dType: cType,
+		}
+
+		cResp := C.Publish(topicCfg, cMsgData)
 		goResp := C.GoString(cResp)
 		if goResp != "0" {
 			glog.Errorln("Response: ", goResp)
@@ -175,17 +121,21 @@ func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) 
 
 func (dbOpcua *dataBusOpcua) receive(topic map[string]string, trig string, ch chan interface{}) (err error) {
 	defer errHandler("OPCUA Receive Failed!!!", &err)
-	//TODO: opcua integration needs to be done
-	if dbOpcua.direction == "SUB" {
-		cTopic := C.CString(topic["name"])
-		gCh = ch
-		cResp := C.clientSubscribe(C.int(dbOpcua.nsIndex), cTopic, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
-		goResp := C.GoString(cResp)
-		if goResp != "0" {
-			glog.Errorln("Response: ", goResp)
-			panic(goResp)
-		}
+	gCh = ch
+	cTopicName := C.CString(topic["name"])
+	cType := C.CString(topic["dType"])
+	topicCfg := C.struct_TopicConfig{
+		name:  cTopicName,
+		dType: cType,
 	}
+	cTrig := C.CString(trig)
+	cResp := C.Subscribe(topicCfg, cTrig, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
+	goResp := C.GoString(cResp)
+	if goResp != "0" {
+		glog.Errorln("Response: ", goResp)
+		panic(goResp)
+	}
+
 	return
 }
 
@@ -196,10 +146,6 @@ func (dbOpcua *dataBusOpcua) stopTopic(topic string) (err error) {
 
 func (dbOpcua *dataBusOpcua) destroyContext() (err error) {
 	defer errHandler("OPCUA Context Termination Failed!!!", &err)
-	if dbOpcua.direction == "PUB" {
-		C.serverContextDestroy()
-	} else if dbOpcua.direction == "SUB" {
-		C.clientContextDestroy()
-	}
+	C.ContextDestroy()
 	return
 }

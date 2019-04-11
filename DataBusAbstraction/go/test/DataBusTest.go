@@ -82,28 +82,28 @@ func main() {
 	if *direction == "PUB" {
 
 		topicConfig := map[string]string{
-			"name": *topic,
-			"type": "string",
+			"name":  *topic,
+			"dType": "string",
 		}
 
-		ieiDatab.Publish(topicConfig, "Hello Init")
 		glog.Infof("Waiting for sub")
 		time.Sleep(10 * time.Second)
 		glog.Infof("Starting pub")
 
 		for i := 0; i < 200; i++ {
-			result := fmt.Sprintf("%s %d", "Hello ", i)
+			result := fmt.Sprintf("%s %d", topicConfig["name"], i)
 			ieiDatab.Publish(topicConfig, result)
 			glog.Infof("Published result: %s\n", result)
+			time.Sleep(time.Second)
 		}
 	} else if *direction == "SUB" {
 		topicConfig := map[string]string{
-			"name": *topic,
-			"type": "string",
+			"name":  *topic,
+			"dType": "string",
 		}
 		ieiDatab.Subscribe(topicConfig, "START", cbFunc)
-		for true {
-			time.Sleep(10 * time.Second)
+		for i := 0; i < 200; i++ {
+			time.Sleep(time.Second)
 		}
 	}
 	ieiDatab.ContextDestroy()

@@ -14,13 +14,13 @@ package streammanger
 
 import (
 	"fmt"
-	"time"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
+	"time"
 
 	util "IEdgeInsights/Util"
 	influxDBHelper "IEdgeInsights/Util/influxdb"
@@ -138,11 +138,11 @@ func convertToJSON(data string) string {
 func (pStrmMgr *StrmMgr) handlePointData() {
 	var jsonBuf string
 
-        value := os.Getenv("PROFILING")
-        profiling, err := strconv.ParseBool(value)
-        if err != nil {
-                glog.Errorf("Fail to read PROFILING environment variable: %s", err)
-        }
+	value := os.Getenv("PROFILING")
+	profiling, err := strconv.ParseBool(value)
+	if err != nil {
+		glog.Errorf("Fail to read PROFILING environment variable: %s", err)
+	}
 
 	for {
 		// Wait for data in point data buffer
@@ -163,23 +163,23 @@ func (pStrmMgr *StrmMgr) handlePointData() {
 						"type": "string",
 					}
 
-                                        if(profiling){
-                                            var temp_buf string
-					    jbuf := strings.Split(buf, " ")
+					if profiling {
+						var temp_buf string
+						jbuf := strings.Split(buf, " ")
 
-                                            for i := 0 ; i < (len(jbuf)-1) ; i++ {
-                                                if( i == 0 ){
-                                                    temp_buf += jbuf[i]
-                                                }else{
-                                                    temp_buf += " " + jbuf[i]
-                                                }
-                                            }
+						for i := 0; i < (len(jbuf) - 1); i++ {
+							if i == 0 {
+								temp_buf += jbuf[i]
+							} else {
+								temp_buf += " " + jbuf[i]
+							}
+						}
 
-                                            temp_s := ",ts_sm_pub_entry="
-                                            temp_s += strconv.FormatInt((time.Now().UnixNano() / 1e6),10)
-                                            temp_buf += temp_s + " " + jbuf[len(jbuf)-1]
-                                            buf = temp_buf
-                                        }
+						temp_s := ",ts_sm_pub_entry="
+						temp_s += strconv.FormatInt((time.Now().UnixNano() / 1e6), 10)
+						temp_buf += temp_s + " " + jbuf[len(jbuf)-1]
+						buf = temp_buf
+					}
 
 					jsonBuf = convertToJSON(buf)
 					databPublish(topicConfig, jsonBuf)

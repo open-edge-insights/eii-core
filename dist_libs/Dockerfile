@@ -25,12 +25,15 @@ RUN python3.6 get-pip.py
 # tls, crypto library needs to open62541
 RUN apt-get install -y libmbedtls-dev
 
-ADD DataBusAbstraction/ DataBusAbstraction/
+ADD DataBusAbstraction/c DataBusAbstraction/c/
+ADD DataBusAbstraction/py DataBusAbstraction/py/
 
 # Build the open62541W.so file
 RUN cd /iei/DataBusAbstraction/py && \
     pip3.6 install -r databus_requirements.txt && \
     cd test && \
+    make clean && \
+    make build_safestring_lib && \
     make build
 
 RUN mkdir -p /iei/dist_libs
@@ -39,7 +42,7 @@ ENV DBA_PATH /dist_libs/DataBusAbstraction
 ENV IMGSTORE_PATH /dist_libs/ImageStore
 
 # Build c open62541 static libraries
-RUN cd /iei/DataBusAbstraction/c/open62541/src/test && \
+RUN cd /iei/DataBusAbstraction/c/test && \
     make build_static_lib
 
 # Copying DataBusAbstraction py library/test files.
@@ -49,6 +52,7 @@ RUN mkdir -p ${DBA_PATH}/py/Util
 ADD Util/log.py ${DBA_PATH}/py/Util/
 RUN cp DataBusAbstraction/py/open62541W.so ${DBA_PATH}/py/
 ADD DataBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/
+ADD DataBusAbstraction/py/test/Makefile ${DBA_PATH}/py/test/
 ADD DataBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/
 
 # Copying DataBusAbstraction c library/test files.
@@ -60,7 +64,6 @@ RUN cp DataBusAbstraction/c/DataBus.h ${DBA_PATH}/c/
 RUN cp DataBusAbstraction/c/open62541/include/common.h ${DBA_PATH}/c/
 RUN cp DataBusAbstraction/c/open62541/include/open62541.h ${DBA_PATH}/c/
 RUN cp DataBusAbstraction/c/open62541/include/open62541_wrappers.h ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/open62541/src/test/libopen62541.a ${DBA_PATH}/c/test/
 RUN cp DataBusAbstraction/c/open62541/src/test/libopen62541_wrappers.a ${DBA_PATH}/c/test/
 
 # Copying ImageStore py library/test files.

@@ -66,14 +66,14 @@ class A:
             ieidbus = databus(logger)
             ieidbus.ContextCreate(contextConfig)
             if args.direction == "PUB":
-                topicConfig = {"name": args.topic, "type": "string"}
+                topicConfig = {"name": args.topic, "dtype": "string"}
                 for i in range(0, 20):
-                    result = "Hello {}".format(i)
+                    result = "classifier_results {}".format(i)
                     ieidbus.Publish(topicConfig, result)
                     print("Published [" + result + "]")
                     time.sleep(5)
             elif args.direction == "SUB":
-                topicConfig = {"name": args.topic, "type": "string"}
+                topicConfig = {"name": args.topic, "dtype": "string"}
                 ieidbus.Subscribe(topicConfig, "START", self.cbFunc)
                 flag = "START"
                 while True:

@@ -1,34 +1,42 @@
-# Compilation steps (current directory: <repo>/DataBusAbstraction/c/src/test):
+# How to Test from present working directory
 
-```sh
-make build
-```
+## 1. Pre-requisite
 
-# Start publisher, publish and destroy
+  ```sh
+  make clean
+  make build_safestring_lib
+  ```
+
+## 2. Testing with security enabled
+
+* Start publisher, publish and destroy
 
 ```sh
 make pub
 ```
 
-# Start subscriber, subscribe and destroy
-
-1. Passing the same ca_cert.der that was used to sign the server certificate used for
-   started the publisher above
+* Start subscriber, subscribe and destroy
 
 ```sh
 make sub
 ```
 
-2. Passing the different ca_cert.der that was `not` used to sign the server certificate used for
-   started the publisher above
+## 3. Testing with security disabled
+
+* Start publisher, publish and destroy
 
 ```sh
-make invalid_client
+make pub_insecure
 ```
 
-# Remove all binaries/object files
+* Start subscriber, subscribe and destroy
+
+```sh
+make sub_insecure
+```
+
+## 4. Remove all binaries/object files
 
 ```sh
 make clean
 ```
-

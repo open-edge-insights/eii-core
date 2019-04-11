@@ -60,23 +60,22 @@ int main(int argc, char **argv) {
     char *errorMsg;
     contextConfig.direction = argv[1];
     contextConfig.endpoint = argv[2];
-    contextConfig.ns = argv[3];
+    contextConfig.name = argv[3];
     topicConfig.name = argv[4];
-    contextConfig.certificatePath = argv[5];
-    contextConfig.privateKey = argv[6];
-    contextConfig.trustList = NULL;
+    contextConfig.certFile = argv[5];
+    contextConfig.privateFile = argv[6];
+    contextConfig.trustFile = NULL;
 
     size_t trustListSize = 0;
-
     if (argc > 7) {
         trustListSize = (size_t)argc-7;
     }
 
-    contextConfig.trustList = (char **) malloc(trustListSize * sizeof(char *));
-    // UA_STACKARRAY(UA_ByteString, trustList, trustListSize);
+    contextConfig.trustFile = (char **) malloc(trustListSize * sizeof(char *));
+    // UA_STACKARRAY(UA_ByteString, trustFile, trustListSize);
 
     for(size_t i = 0; i < trustListSize; i++)
-        contextConfig.trustList[i] = (char*)argv[i+7];
+        contextConfig.trustFile[i] = (char*)argv[i+7];
 
     errorMsg = ContextCreate(contextConfig);
     if(strcmp(errorMsg, "0")) {
@@ -87,25 +86,28 @@ int main(int argc, char **argv) {
 
     if (!strcmp(contextConfig.direction, "PUB")) {
         char result[100];
-        for (int i = 0; i < 10000; i++) {
-            sprintf(result, "classifier_results %ld", i);
+        for (int i = 0; i < 200; i++) {
+            sprintf(result, "%s %d", topicConfig.name, i);
             errorMsg = Publish(topicConfig, result);
             if(strcmp(errorMsg, "0")) {
                 printf("serverPublish() API failed, error: %s\n", errorMsg);
                 return -1;
             }
             printf("%s %s Publishing [%s]\n", __DATE__,  printTime(), result);
+            sleep(1);
         }
-        ContextDestroy();
     } else if (!strcmp(contextConfig.direction, "SUB")) {
 
-        errorMsg = Subscribe(topicConfig, "START", cb);
+        errorMsg = Subscribe(topicConfig, "START", cb, NULL);
         if(strcmp(errorMsg, "0")) {
             printf("clientSubscribe() API failed, error: %s\n", errorMsg);
             return -1;
         }
         printf("clientSubscribe() API successfully executed!\n");
-        sleep(120); /* sleep for 2 mins */
-        ContextDestroy();
+        for (int i = 0; i < 200; i++) {
+            sleep(1);
+        }
     }
+    ContextDestroy();
+    printf("ContextDestroy() for %s API successfully executed!\n", contextConfig.direction);
 }

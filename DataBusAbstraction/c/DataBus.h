@@ -10,23 +10,24 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "open62541_wrappers.h"
 
-struct ContextConfig{
-    char *direction;
-    char *ns;
-    char *endpoint;
-    char *certificatePath;
-    char *privateKey;
-    char *topic;
-    char **trustList;
-    size_t trustedListSize;
+// opcua context config
+struct ContextConfig {
+    char *endpoint;         // opcua endpoint ex:opcua://localhost:65003
+    char *direction;        // opcua direction ex: PUB|SUB
+    char *name;             // opcua name space
+    char *certFile;         // opcua certificates path
+    char *privateFile;      // opcua private key file
+    char **trustFile;       //opcua trust files list
+    size_t trustedListSize; //opcua trust files list size
 };
 
-struct TopicConfig{
-    char *name;
-    int nsIndex;
+//opcua topic config
+struct TopicConfig {
+    char *name;   // opcua topic name
+    char *dType;  //type of topic, ex: string|int
 };
 
-//*************open62541 bindings**********************
+//*************C bindings**********************
 char*
 ContextCreate(struct ContextConfig contextConfig);
 
@@ -35,8 +36,9 @@ Publish(struct TopicConfig topicConfig,
         char *data);
 
 char*
-Subscribe(struct TopicConfig topicConfig, 
-          char *trig, 
-          c_callback cb);
+Subscribe(struct TopicConfig topicConfig,
+          char *trig,
+          c_callback cb,
+          void* pyxFunc);
 
 void ContextDestroy();

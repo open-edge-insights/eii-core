@@ -104,7 +104,7 @@ class databMqtt:
             self.subElements[topicConfig["name"]]["type"] = topicConfig["type"]
             return
 
-    def send(self, topic, data):
+    def send(self, topicConfig, data):
         '''Publish data on the topic
         Arguments:
             topic: topic name as in the topicConfig
@@ -113,15 +113,15 @@ class databMqtt:
 
         try:
             if type(data) == str:
-                self.client.publish(topic, data)
+                self.client.publish(topicConfig['name'], data)
         except Exception as e:
             logger.error("{} Failure!!!".format(self.send.__name__))
             raise
 
-    def receive(self, topic, trig, queue=None):
+    def receive(self, topicConfig, trig, queue=None):
         '''Subscribe data from the topic
         Arguments:
-            topic: topic name as in the topicConfig
+            topicConfig: dict with topic name and it's data type
             trig: START/STOP to start/stop the subscription
             queue: A queue to which the message should be pushed on arrival
         Return/Exception: Will raise Exception in case of errors'''
@@ -130,10 +130,10 @@ class databMqtt:
                                                                 not None):
             # logger.info("MQTT recieve START....")
             # logger.info(topic)
-            self.subElements[topic]["queue"] = queue
+            self.subElements[topicConfig['name']]["queue"] = queue
             # logger.info(self.subElements)
             try:
-                self.client.subscribe(topic)
+                self.client.subscribe(topicConfig['name'])
             except Exception as e:
                 logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise
@@ -141,8 +141,8 @@ class databMqtt:
             # logger.info("MQTT recieve STOP....")
             # logger.info(topic)
             try:
-                self.client.unsubscribe(topic)
-                self.subElements[topic]["queue"] = None
+                self.client.unsubscribe(topicConfig['name'])
+                self.subElements[topicConfig['name']]["queue"] = None
             except Exception as e:
                 logger.error("{} Failure!!!".format(self.receive.__name__))
                 raise

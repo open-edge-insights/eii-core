@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 CURDIR = $(shell pwd)
 SAFESTRING_DIR = safestringlib
 SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
@@ -9,22 +10,25 @@ CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/ca
 INVALID_CERTS = invalid_certs
 
-prebuild: clean
+build_safestring_lib:
 	@echo "Clone the safestringlib if not cloned already..."
 	git clone https://github.com/intel/safestringlib.git && \
 	cd $(SAFESTRING_DIR) && \
 	git checkout $(SAFESTRING_VER) && \
 	make && \
-	cp -f libsafestring.a ../../ && \
-	cp -f libsafestring.a ../../../../../go/ && \
-	cp -f libsafestring.a ../ && \
+	cp -rf libsafestring.a $(CURDIR) && \
 	cd $(CURDIR) && \
 	rm -rf $(SAFESTRING_DIR)
 
-build: prebuild
+build_static_lib:
+	@echo "Building the open62541_wrappers static lib file.."
+	gcc -c $(INCLUDE) $(CPATH)/open62541_wrappers.c $(CPATH)/open62541.c
+	ar rcs libopen62541_wrappers.a open62541_wrappers.o open62541.o
+
+build: build_static_lib
 	@echo "Building the open62541 test file.."
 	gcc $(CFLAGS) $(INCLUDE) open62541_test.c \
-	$(CPATH)/open62541_wrappers.c $(CPATH)/open62541.c -L. -lsafestring -lmbedtls -lmbedx509 -lmbedcrypto -pthread \
+	-L. -lopen62541_wrappers -lsafestring -lmbedtls -lmbedx509 -lmbedcrypto -pthread \
 	-o open62541_test && pwd
 
 pub: build
@@ -52,13 +56,7 @@ invalid_client: build
 	                        $(INVALID_CERTS)/client/client2_key.der \
 							$(INVALID_CERTS)/ca/ca_certificate.der
 
-build_static_lib: prebuild
-	@echo "Building the open62541 so file.."
-	gcc -c -o open62541_wrappers.o $(INCLUDE) $(CPATH)/open62541_wrappers.c
-	ar rcs libopen62541_wrappers.a open62541_wrappers.o
-	gcc -c -o open62541.o $(INCLUDE) $(CPATH)/open62541.c
-	ar rcs libopen62541.a open62541.o
-
 clean:
 	@echo "Removing all the binary files..."
-	rm -rf open62541_test libsafestring.a $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CURDIR)/safestringlib
+	rm -rf open62541_test libsafestring.a $(CPATH)/*.o  $(CURDIR)/safestringlib \
+	       $(CURDIR)/*.a $(CURDIR)/*.o

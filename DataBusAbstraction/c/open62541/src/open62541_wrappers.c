@@ -11,7 +11,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unistd.h>
 #include "open62541_wrappers.h"
 
-#define FAILURE 100
 #define SECURITY_POLICY_URI "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
 #define ENDPOINT_SIZE 100
 #define NAMESPACE_SIZE 100
@@ -368,7 +367,7 @@ serverContextCreate(char *hostname, int port) {
  * @param  namespace(string)         opcua namespace name
  * @param  topic(string)             name of the opcua variable (aka topic name)
  *
- * @return Return namespace index for success and 100 for failure */
+ * @return Return namespace index for success and -1 for failure */
 int
 serverStartTopic(char *namespace, char *topic) {
 

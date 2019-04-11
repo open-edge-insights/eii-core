@@ -82,102 +82,51 @@ class databOpcua:
             self.devMode = True
 
         self.direction = contextConfig["direction"]
-        if self.direction == "PUB":
-            # Create default endpoint protocol for opcua from given endpoint
-            endpoint = contextConfig["endpoint"]
-            self.namespace = contextConfig["name"]
+        # Create default endpoint protocol for opcua from given endpoint
+        endpoint = contextConfig["endpoint"]
+        self.namespace = contextConfig["name"]
 
-            hostPortPath = endpoint.split('//')[1]
-            endpoint = "opc.tcp://" + hostPortPath
-            self.logger.info("PUB:: {}".format(endpoint))
-
-            hostPort = hostPortPath.split('/')[0]
-            host = hostPort.split(':')[0]
-            port = int(hostPort.split(':')[1])
-
-            if self.devMode:
-                errMsg = open62541W.py_serverContextCreate(host,
-                                                           port)
-            else:
-                errMsg = open62541W.py_serverContextCreateSecured(host,
-                                                                  port,
-                                                                  certFile,
-                                                                  privateFile,
-                                                                  trustFiles)
-            pyErrorMsg = errMsg.decode()
-            if pyErrorMsg != "0":
-                self.logger.error("py_serverContextCreate() API failed!")
-                raise Exception(pyErrorMsg)
-        elif self.direction == "SUB":
-            # Create default endpoint protocol for opcua from given endpoint
-            endpoint = contextConfig["endpoint"]
-            self.namespace = contextConfig["name"]
-
-            hostPortPath = endpoint.split('//')[1]
-            endpoint = "opc.tcp://" + hostPortPath
-            self.logger.info("SUB:: {}".format(endpoint))
-
-            hostPort = hostPortPath.split('/')[0]
-            host = hostPort.split(':')[0]
-            port = int(hostPort.split(':')[1])
-
-            if self.devMode:
-                errMsg = open62541W.py_clientContextCreate(host,
-                                                           port)
-            else:
-                errMsg = open62541W.py_clientContextCreateSecured(host,
-                                                                  port,
-                                                                  certFile,
-                                                                  privateFile,
-                                                                  trustFiles)
-            pyErrorMsg = errMsg.decode()
-            if pyErrorMsg != "0":
-                self.logger.error("py_clientContextCreate() API failed!")
-                raise Exception(pyErrorMsg)
-        else:
-            raise Exception("Wrong Bus Direction!!!")
+        errMsg = open62541W.ContextCreate(endpoint,
+                                          self.direction,
+                                          self.namespace,
+                                          contextConfig["certFile"],
+                                          contextConfig["privateFile"],
+                                          [contextConfig["trustFile"]])
+        pyErrorMsg = errMsg.decode()
+        if pyErrorMsg != "0":
+            self.logger.error("ContextCreate() API failed!")
+            raise Exception(pyErrorMsg)
 
     def startTopic(self, topicConfig):
-        '''Topic creation for the messagebus
+        '''
+        Topic creation for the messagebus
         Arguments:
             topicConfig<dict>: Publish topic parameters
                 <fields>
                 "name": Topic name (in hierarchical form with '/' as delimiter)
                     <example> "root/level1/level2/level3"
                 "type": Data type associated with the topic
-        Return/Exception: Will raise Exception in case of errors'''
+        Return/Exception: Will raise Exception in case of errors
+        '''
+        pass
 
-        if self.direction == "PUB":
-            self.nsIndex = open62541W.py_serverStartTopic(self.namespace,
-                                                          topicConfig["name"])
-            if self.nsIndex == 100:
-                self.logger.error("py_serverStartTopic() API failed!")
-                raise Exception("Topic creation failed!")
-        elif self.direction == "SUB":
-            self.nsIndex = open62541W.py_clientStartTopic(self.namespace,
-                                                          topicConfig["name"])
-            if self.nsIndex == 100:
-                self.logger.error("py_clientStartTopic() API failed!")
-                raise Exception("Topic creation failed!")
-        else:
-            raise Exception("Wrong Bus Direction!!!")
-
-    def send(self, topic, data):
-        '''Publish data on the topic
+    def send(self, topicConfig, data):
+        '''
+	    Publish data on the topic
         Arguments:
-            topic: topic name as in the topicConfig
+            topicConfig: topicConfig for opcua, with topic name & it's type
             data: actual message
-        Return/Exception: Will raise Exception in case of errors'''
+        Return/Exception: Will raise Exception in case of errors
+        '''
 
         if self.direction == "PUB":
             # TODO: Support for different data types
             if type(data) == str:
                 try:
-                    errMsg = open62541W.py_serverPublish(self.nsIndex, topic,
-                                                         data)
+                    errMsg = open62541W.Publish(topicConfig, data)
                     pyErrorMsg = errMsg.decode()
                     if pyErrorMsg != "0":
-                        self.logger.error("py_serverPublish() API failed!")
+                        self.logger.error("Publish() API failed!")
                         raise Exception(pyErrorMsg)
                 except Exception as e:
                     self.logger.error("{} Failure!!!".format(
@@ -189,10 +138,10 @@ class databOpcua:
         else:
             raise Exception("Wrong Bus Direction!!!")
 
-    def receive(self, topic, trig, queue):
+    def receive(self, topicConfig, trig, queue):
         '''Subscribe data from the topic
         Arguments:
-            topic: topic name as in the topicConfig
+            topicConfig: topicConfig for opcua, with topic name & it's type
             trig: START/STOP to start/stop the subscription
             queue: A queue to which the message should be pushed on arrival
         Return/Exception: Will raise Exception in case of errors'''
@@ -200,10 +149,10 @@ class databOpcua:
         if (self.direction == "SUB") and (trig == "START"):
             global gQueue
             gQueue = queue
-            errMsg = open62541W.py_clientSubscribe(self.nsIndex, topic, cbFunc)
+            errMsg = open62541W.Subscribe(topicConfig, trig, cbFunc)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
-                self.logger.error("py_clientSubscribe() API failed!")
+                self.logger.error("Subscribe() API failed!")
                 raise Exception(pyErrorMsg)
         elif (self.direction == "SUB") and (trig == "STOP"):
             # TODO: To be implemented - stop subscription
@@ -244,19 +193,10 @@ class databOpcua:
 
     def destroyContext(self):
         '''Destroy the messagebus context'''
-
-        if self.direction == "PUB":
-            self.logger.info("OPCUA Server Stopping...")
-            open62541W.py_serverContextDestroy()
-            self.logger.error("OPCUA Server Stopped")
-        elif self.direction == "SUB":
-            try:
-                self.logger.info("OPCUA Client Disconnecting...")
-                open62541W.py_clientContextDestroy()
-                self.logger.info("OPCUA Client Disconnected")
-            except Exception as e:
-                self.logger.error("{} Failure!!!".format(
-                    self.destroyContext.__name__))
-                raise
-        else:
-            raise Exception("Wrong Bus Direction!!!")
+        try:
+            open62541W.ContextDestroy()
+            self.logger.debug("OPCUA context is Terminated")
+        except Exception as e:
+            self.logger.error("{} Failure!!!".format(
+                self.destroyContext.__name__))
+            raise

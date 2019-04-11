@@ -1,39 +1,23 @@
-cdef extern from "open62541_wrappers.h":
+cdef extern from "DataBus.h":
+    struct ContextConfig:
+        char *endpoint;
+        char *direction;
+        char *name;
+        char *certFile;
+        char *privateFile;
+        char **trustFile;
+        size_t trustedListSize;
+
+    struct TopicConfig:
+        char *name;
+        char *dType;
+
     ctypedef void (*c_callback)(char *topic, char *data, void *pyFunc)
-    char* serverContextCreate(char *hostname,
-                              int port);
 
-    char* serverContextCreateSecured(char *hostname,
-                               int port,
-                               char *certificateFile,
-                               char *privateKeyFile,
-                               char **trustList,
-                               size_t trustListSize);                              
+    char * ContextCreate(ContextConfig);
 
-    int serverStartTopic(char *ns, 
-                        char *topic);
+    char *Publish(TopicConfig, char *);
 
-    char* serverPublish(int nsIndex, 
-                        char *topic,
-                        char *data);
+    char * Subscribe(TopicConfig, char *, c_callback cb, void* pyxFunc);
 
-    void serverContextDestroy();
-
-    char* clientContextCreate(char *hostname,
-                              int port);
-
-    char* clientContextCreateSecured(char *hostname,
-                               int port,
-                               char *certificateFile,
-                               char *privateKeyFile,
-                               char **trustList,
-                               size_t trustListSize);
-
-    int clientStartTopic(char *ns, 
-                         char *topic);
-
-    char* clientSubscribe(int nsIndex, 
-                          char* topic,
-                          c_callback cb, void* userFunc);
-                                
-    void clientContextDestroy();
+    void ContextDestroy();

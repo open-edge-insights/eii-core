@@ -8,10 +8,13 @@ compileArgs = ['-std=c99']
 extensionName = "open62541W"
 sources = ["open62541W.pyx",
            "../../c/open62541/src/open62541_wrappers.c",
-           "../../c/open62541/src/open62541.c"]
-includeDirs = ["../../c/open62541/include"]
-libraryDirs = ["../../c/open62541/src"]
-libraries = ["mbedtls", "mbedx509","safestring",
+           "../../c/open62541/src/open62541.c",
+           "../../c/DataBus.c"]
+includeDirs = ["../../c/open62541/include",
+               "../../c"]
+libraryDirs = ["../../c/open62541/src",
+"../../c"]
+libraries = ["mbedtls", "mbedx509", "safestring",
              "mbedcrypto", "pthread"]
 
 setup(

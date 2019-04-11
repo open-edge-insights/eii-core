@@ -1,3 +1,4 @@
+SHELL := /bin/bash
 CURDIR = $(shell pwd)
 SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
 SAFESTRING_DIR = safestringlib
@@ -11,24 +12,25 @@ INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
 HOST = localhost
 PORT = 65003
 
-prebuild: clean
+build_safestring_lib:
 	@echo "Clone the safestringlib if not cloned already..."
 	git clone https://github.com/intel/safestringlib.git && \
 	cd $(SAFESTRING_DIR) && \
 	git checkout $(SAFESTRING_VER) && \
 	make && \
-	cp -rf libsafestring.a ../ && \
-	cp -rf libsafestring.a ../../ && \
-	cp -rf libsafestring.a ../../../c/open62541/src/ && \
+	cp -rf libsafestring.a $(CURDIR) && \
 	cd $(CURDIR) && \
 	rm -rf $(SAFESTRING_DIR)
 
-build: prebuild
-	@echo "Building the open62541 wrapper library open62541W.so.."
-	cd $(PYXPATH) && make && cp open62541W.so .. && cd $(CURDIR)
+build:
+	if [ -a $(PYXPATH) ] ; \
+	then \
+		echo "Building the open62541 wrapper library open62541W.so.." ; \
+		cd $(PYXPATH) && make && cp open62541W.so .. && cd $(CURDIR) ; \
+	fi
 
 pub: build
-	@echo "Starting the opcua server and start publishing the data.."
+	@echo "Starting the opcua secure server and start publishing the data.."
 	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							-topic classifier_results \
 							-certFile $(SERVER_CERTS)/opcua_server_certificate.der \
@@ -36,12 +38,24 @@ pub: build
 							-trustFile $(CA_CERTS)/ca_certificate.der
 
 sub: build
-	@echo "Establish connection to opcua server and start subscribing the data.."
+	@echo "Establish connection to opcua secure server and start subscribing the data.."
 	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							-topic classifier_results \
 							-certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
 							-privateFile $(CLIENT_CERTS)/opcua_client_key.der \
 							-trustFile $(CA_CERTS)/ca_certificate.der
+
+pub_insecure: build
+	@echo "Starting the opcua insecure server and start publishing the data.."
+	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+							-topic classifier_results \
+							-certFile "" -privateFile "" -trustFile ""
+
+sub_insecure: build
+	@echo "Establish connection to opcua insecure server and start subscribing the data.."
+	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+							-topic classifier_results \
+							-certFile "" -privateFile "" -trustFile ""
 
 invalid_sub: build
 	@echo "Establish connection to opcua server with invalid cert and start subscribing the data.."
@@ -54,4 +68,4 @@ invalid_sub: build
 clean:
 	@echo "Removing all the binary files..."
 	find $(DBA_PATH) -name \open62541W.so -type f -delete
-	rm -rf $(CURDIR)/safestringlib
+	rm -rf $(CURDIR)/safestringlib $(CURDIR)/*.a $(CURDIR)/*.o

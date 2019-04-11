@@ -1,6 +1,13 @@
 UNIT_TEST_PATH = IEdgeInsights/DataBusAbstraction/go/test/unittest
+CURDIR = $(shell pwd)
 
-check: 
+build_dependencies:
+	# build safestringlib and open62541W so files
+	cd .. && \
+	   make build_lib && \
+	   cd $(CURDIR)
+
+check:
 	@echo "command to run Unit test: make <options>"
 	@echo "options are:"
 	@echo "1)TestNegativeSub "
@@ -14,7 +21,7 @@ check:
 
 # TODO: Run the all the testcases at a time instead of running individually once the DBA C stack works for multiple subscribers from a single process.
 
-TestNegativeSub: 
+TestNegativeSub:
 	go test -timeout 30s $(UNIT_TEST_PATH) -run TestNegativeSub
 
 TestNegativeContextDestroy:
@@ -37,7 +44,3 @@ TestCreateContext:
 
 TestContextDestroy:
 	go test -timeout 30s $(UNIT_TEST_PATH) -run TestContextDestroy
-
-
-
-

@@ -112,17 +112,25 @@ func (dbus *dataBus) ContextCreate(contextConfig map[string]string) (err error) 
 
 func (dbus *dataBus) Publish(topicConfig map[string]string, msgData interface{}) (err error) {
 	defer errHandler("DataBus Publish Failed!!!", &err)
+	if strings.Contains(dbus.busType, "opcua") {
+		err = dbus.bus.send(topicConfig, msgData)
+		if err != nil {
+			panic("send() Failed!!!")
+		}
+		return
+	}
 	dbus.mutex.Lock()
 	defer dbus.mutex.Unlock()
+
 	if dbus.direction == "PUB" {
-		if !dbus.checkMsgType(topicConfig["type"], msgData) {
+		if !dbus.checkMsgType(topicConfig["dType"], msgData) {
 			panic("Message Type Not supported")
 		}
 		if _, ok := dbus.pubTopics[topicConfig["name"]]; !ok {
 			dbus.bus.startTopic(topicConfig)
-			dbus.pubTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["type"], data: nil, ev: nil}
+			dbus.pubTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["dType"], data: nil, ev: nil}
 		}
-		if dbus.pubTopics[topicConfig["name"]].topicType != topicConfig["type"] {
+		if dbus.pubTopics[topicConfig["name"]].topicType != topicConfig["dType"] {
 			panic("Topic name & type NOT matching")
 		}
 		err = dbus.bus.send(topicConfig, msgData)
@@ -140,10 +148,10 @@ func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
 	for {
 		select {
 		case data := <-dch:
-			glog.Infoln("Worker receiving...")
+			glog.V(1).Infoln("Worker receiving...")
 			cb(topic, data)
 		case <-ech:
-			glog.Infoln("Worker terminating...")
+			glog.V(1).Infoln("Worker terminating...")
 			return
 		}
 	}
@@ -151,17 +159,23 @@ func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
 
 func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb CbType) (err error) {
 	defer errHandler("DataBus Subscription Failed!!!", &err)
-	dbus.mutex.Lock()
-	defer dbus.mutex.Unlock()
-	if dbus.direction == "SUB" && trig == "START" && cb != nil {
-		if _, ok := dbus.subTopics[topicConfig["name"]]; !ok {
-			if strings.Contains(dbus.busType, "opcua") {
-				dbus.bus.startTopic(topicConfig)
-			}
+
+	if strings.Contains(dbus.busType, "opcua") {
+		if dbus.direction == "SUB" && trig == "START" && cb != nil {
 			dch := make(chan interface{})
 			ech := make(chan string)
 			go worker(topicConfig["name"], dch, ech, cb)
-			dbus.subTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["type"], data: dch, ev: ech}
+			err = dbus.bus.receive(topicConfig, "START", dch)
+			if err != nil {
+				panic("receive() Failed!!!")
+			}
+		}
+	} else if dbus.direction == "SUB" && trig == "START" && cb != nil {
+		if _, ok := dbus.subTopics[topicConfig["name"]]; !ok {
+			dch := make(chan interface{})
+			ech := make(chan string)
+			go worker(topicConfig["name"], dch, ech, cb)
+			dbus.subTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["dType"], data: dch, ev: ech}
 			err = dbus.bus.receive(topicConfig, "START", dch)
 			if err != nil {
 				panic("receive() Failed!!!")
@@ -186,20 +200,21 @@ func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb Cb
 }
 
 func (dbus *dataBus) ContextDestroy() (err error) {
-	//TODO: opcua integration needs to be done
 	defer errHandler("DataBus Context Termination Failed!!!", &err)
-	dbus.mutex.Lock()
-	defer dbus.mutex.Unlock()
-	//Unsubscribe all existing ones
-	for k, v := range dbus.subTopics {
-		type tConfig map[string]string
-		topicConfig := tConfig{"name": k, "type": v.topicType}
-		dbus.bus.receive(topicConfig, "STOP", nil)
-		v.ev <- "STOP"
-		close(v.data)
-		close(v.ev)
-		dbus.bus.stopTopic(k)
-		delete(dbus.subTopics, k)
+	if !strings.Contains(dbus.busType, "opcua") {
+		dbus.mutex.Lock()
+		defer dbus.mutex.Unlock()
+		//Unsubscribe all existing ones
+		for k, v := range dbus.subTopics {
+			type tConfig map[string]string
+			topicConfig := tConfig{"name": k, "dType": v.topicType}
+			dbus.bus.receive(topicConfig, "STOP", nil)
+			v.ev <- "STOP"
+			close(v.data)
+			close(v.ev)
+			dbus.bus.stopTopic(k)
+			delete(dbus.subTopics, k)
+		}
 	}
 	dbus.bus.destroyContext()
 	dbus.direction = ""

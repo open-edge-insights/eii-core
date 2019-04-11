@@ -10,113 +10,72 @@ cdef char** to_cstring_array(list_str):
         ret[i] = temp
     return ret
 
-def py_serverContextCreateSecured(host, port, certificateFile, privateKeyFile, trustList):
-  cdef bytes hostname  = host.encode();
-  cdef char *chostname = hostname;
+def ContextCreate(endpoint, direction, name, certFile, privateFile, trustFiles):
+  cdef copen62541W.ContextConfig contextConfig
+  cdef bytes endpoint_bytes = endpoint.encode();
+  cdef char *cendpoint = endpoint_bytes;
 
-  cdef int cport = port;
+  cdef bytes direction_bytes = direction.encode();
+  cdef char *cdirection = direction_bytes;
 
-  cdef bytes certFile = certificateFile.encode();
-  cdef char *ccertFile = certFile;
+  cdef bytes name_bytes = name.encode();
+  cdef char *cname = name_bytes;
 
-  cdef bytes keyFile = privateKeyFile.encode();
+  cdef bytes certFile_bytes = certFile.encode();
+  cdef char *ccertFile = certFile_bytes;
+
+  cdef bytes keyFile = privateFile.encode();
   cdef char *ckeyFile = keyFile;
 
-  cdef int ctrustListSize = len(trustList);
+  contextConfig.endpoint = cendpoint
+  contextConfig.direction = cdirection
+  contextConfig.name = cname
+  contextConfig.certFile = ccertFile
+  contextConfig.privateFile = ckeyFile
+  contextConfig.trustFile = to_cstring_array(trustFiles)
+  contextConfig.trustedListSize = 1
 
-  cdef char **ctrustList = to_cstring_array(trustList);
-
-  cdef char *nil = NULL;
-
-  val = copen62541W.serverContextCreateSecured(chostname, cport, ccertFile,
-                                       ckeyFile, ctrustList, ctrustListSize)
-  free(ctrustList)
+  val = copen62541W.ContextCreate(contextConfig)
+  free(contextConfig.trustFile)
   return val
 
-def py_serverContextCreate(host, port):
-  cdef bytes hostname  = host.encode();
-  cdef char *chostname = hostname;
+def Publish(topicConf, data):
+  cdef copen62541W.TopicConfig topicConfig
 
-  cdef int cport = port;
-
-  cdef char *nil = NULL;
-
-  val = copen62541W.serverContextCreate(chostname, cport)
-  return val
-
-def py_serverStartTopic(ns, topic):
-  cdef bytes namespace = ns.encode();
-  cdef char *cnamespace = namespace;
-
-  cdef bytes topic_bytes = topic.encode();
+  cdef bytes topic_bytes = topicConf['name'].encode();
   cdef char *ctopic = topic_bytes;
 
-  return copen62541W.serverStartTopic(cnamespace, ctopic)
-
-def py_serverPublish(nsIndex, topic, data):
-  cdef int cnsIndex = nsIndex;
-
-  cdef bytes topic_bytes = topic.encode();
-  cdef char *ctopic = topic_bytes;
+  cdef bytes dtype_bytes = topicConf['dtype'].encode();
+  cdef char *cdtype = dtype_bytes;
 
   cdef bytes data_bytes = data.encode();
   cdef char *cdata = data_bytes;
 
-  return copen62541W.serverPublish(cnsIndex, ctopic, cdata)
-
-def py_serverContextDestroy():
-  copen62541W.serverContextDestroy()
-
-
-def py_clientContextCreateSecured(host, port, certificateFile, privateKeyFile, trustList):
-  cdef bytes host_bytes  = host.encode();
-  cdef char *chostname = host_bytes;
-
-  cdef int cport = port;
-
-  cdef bytes certFile = certificateFile.encode();
-  cdef char *ccertFile = certFile
-
-  cdef bytes keyFile = privateKeyFile.encode();
-  cdef char *ckeyFile = keyFile
-
-  cdef int ctrustListSize = len(trustList);
-  cdef char **ctrustList = to_cstring_array(trustList);
-
-  val = copen62541W.clientContextCreateSecured(chostname, cport, ccertFile, ckeyFile, ctrustList,
-                                 ctrustListSize)
-  free(ctrustList)
-  return val
-
-def py_clientContextCreate(host, port):
-  cdef bytes host_bytes  = host.encode();
-  cdef char *chostname = host_bytes;
-
-  cdef int cport = port;
-  val = copen62541W.clientContextCreate(chostname, cport)
-
-  return val
+  topicConfig.name =  ctopic
+  topicConfig.dType = cdtype
+  return copen62541W.Publish(topicConfig, cdata)
 
 cdef void pyxCallback(char *topic, char *data, void *func) with gil:
   (<object>func)(topic, data)
 
-def py_clientStartTopic(ns, topic):
-  cdef bytes namespace = ns.encode();
-  cdef char *cnamespace = namespace;
+def Subscribe(topicConf, trig, pyFunc):
+  cdef copen62541W.TopicConfig topicConfig
 
-  cdef bytes topic_bytes = topic.encode();
+  cdef bytes topic_bytes = topicConf['name'].encode();
   cdef char *ctopic = topic_bytes;
 
-  return copen62541W.clientStartTopic(cnamespace, ctopic)
+  cdef bytes dtype_bytes = topicConf['dtype'].encode();
+  cdef char *cdtype = dtype_bytes;
 
-def py_clientSubscribe(nsIndex, topic, pyFunc):
-  cdef int cnsIndex = nsIndex;
+  cdef bytes trig_bytes = trig.encode();
+  cdef char *ctrig = trig_bytes;
 
-  cdef bytes topic_bytes = topic.encode();
-  cdef char *ctopic = topic_bytes;
+  topicConfig.name =  ctopic
+  topicConfig.dType = cdtype
 
-  val = copen62541W.clientSubscribe(cnsIndex, ctopic, pyxCallback, <void *> pyFunc)
+  val = copen62541W.Subscribe(topicConfig, ctrig, pyxCallback, <void *> pyFunc)
   return val
 
-def py_clientContextDestroy():
-  copen62541W.clientContextDestroy()
+def ContextDestroy():
+  copen62541W.ContextDestroy()
+

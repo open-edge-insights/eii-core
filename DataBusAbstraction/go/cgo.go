@@ -14,8 +14,6 @@ package databus
 
 #include<stdio.h>
 void cgoFunc(char *topic, char *data, void *userFunc){
-	printf("C.cgoFunc(): called with topic=%s and data=%s\n", topic, data);
-	printf("in cgo fun....");
 	void goCallback(char *topic, char *data, void *userFunc);
 	goCallback(topic, data, NULL);
 }

@@ -1,4 +1,4 @@
-check: 
+check:
 	@echo "command to run Unit test: make <options>"
 	@echo "options are:"
 	@echo "1)test_a_negativeSubTest "
@@ -10,8 +10,7 @@ check:
 	@echo "7)test_g_createContext"
 	@echo "8)test_h_contextDestroy"
 
-
-test_a_negativeSubTest: 
+test_a_negativeSubTest:
 	python3.6 UnitTest_dba.py TestDBA.test_a_negativeSubTest
 
 test_b_negativeContextDestroy:
@@ -34,7 +33,3 @@ test_g_createContext:
 
 test_h_contextDestroy:
 	python3.6 UnitTest_dba.py TestDBA.test_h_contextDestroy
-
-
-
-

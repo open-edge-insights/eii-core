@@ -31,10 +31,10 @@ class databNats:
     def startTopic(self, topicConfig):
         return
 
-    def send(self, topic, data):
+    def send(self, topicConfig, data):
         return
 
-    def receive(self, topic, handler):
+    def receive(self, topicConfig, handler):
         return
 
     def stopTopic(self, topicConfig):

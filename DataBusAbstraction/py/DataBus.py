@@ -129,24 +129,31 @@ class databus:
             data: The message whose type should match the topic data type
         Return/Exception: Will raise Exception in case of errors'''
 
+        if self.busType == "opcua":
+            try:
+                self.bus.send(topicConfig, data)
+            except Exception as e:
+                self.logger.error("{} Failure!!!".format(self.Publish.__name__))
+                raise
+            return
         try:
             self.mutex.acquire()
             if self.direction == "PUB":
                 try:
-                    if not self.checkMsgType(topicConfig["type"], data):
+                    if not self.checkMsgType(topicConfig["dtype"], data):
                         raise Exception("Not a supported Message Type")
                     if topicConfig["name"] not in self.pubTopics.keys():
                         self.bus.startTopic(topicConfig)
                         self.pubTopics[topicConfig["name"]] = {}
-                        self.pubTopics[topicConfig["name"]]["type"] = \
-                            topicConfig["type"]
+                        self.pubTopics[topicConfig["name"]]["dtype"] = \
+                            topicConfig["dtype"]
                     # Now pubTopics has the topic for sure.
                     # (either created now/was present. Now check for type
-                    pubTopicType = self.pubTopics[topicConfig["name"]]["type"]
-                    if pubTopicType != topicConfig["type"]:
+                    pubTopicType = self.pubTopics[topicConfig["name"]]["dtype"]
+                    if pubTopicType != topicConfig["dtype"]:
                         raise Exception("Topic name & Type not matching")
                     # We are good to publish now
-                    self.bus.send(topicConfig["name"], data)
+                    self.bus.send(topicConfig, data)
                 except Exception as e:
                     self.logger.error("{} Failure!!!".format(self.Publish.__name__))
                     raise
@@ -167,69 +174,94 @@ class databus:
             cb: A callback function with data as argument
         Return/Exception: Will raise Exception in case of errors'''
 
-        try:
-            self.mutex.acquire()
-            if self.direction == "SUB":
-                try:
-                    if topicConfig["name"] not in self.subTopics.keys():
-                        self.bus.startTopic(topicConfig)
-                        self.subTopics[topicConfig["name"]] = {}
-                        self.subTopics[topicConfig["name"]]["type"] = \
-                            topicConfig["type"]
-                    subTopicType = self.subTopics[topicConfig["name"]]["type"]
-                    if subTopicType != topicConfig["type"]:
-                        raise Exception("Topic name & Type not matching")
-                    # We are good to receive now
-                    if (trig == "START") and (cb is not None):
-                        subTopics = self.subTopics[topicConfig["name"]]
-                        if "thread" in subTopics.keys():
-                            raise Exception("Already Subscribed!!!")
-                        qu = Queue()
-                        ev = Event()
-                        ev.clear()
-                        th = Thread(target=worker,
-                                    args=(topicConfig["name"],
-                                          qu, ev, cb, self.logger))
-                        th.deamon = True
-                        th.start()
-                        self.subTopics[topicConfig["name"]]["queue"] = qu
-                        self.subTopics[topicConfig["name"]]["event"] = ev
-                        self.subTopics[topicConfig["name"]]["thread"] = th
-                        self.bus.receive(topicConfig["name"], "START", qu)
-                    elif trig == "STOP":
-                        # This should stop putting data into queue
-                        self.bus.receive(topicConfig["name"], "STOP")
-                        # Block until all data is read
-                        self.subTopics[topicConfig["name"]]["queue"].join()
-                        self.subTopics[topicConfig["name"]]["event"].set()
-                        self.subTopics[topicConfig["name"]]["thread"].join()
-                        # Remove entry from subTopics
-                        self.subTopics.pop(topicConfig["name"])
-                    else:
-                        raise Exception("Unknown Trigger!!!")
-                except Exception as e:
-                    self.logger.error("{} Failure!!!".format(
-                        self.Subscribe.__name__))
-                    raise
-            else:
-                raise Exception("Not a supported BusDirection")
-        finally:
-            self.mutex.release()
+        if self.busType == "opcua":
+            try:
+                if (self.direction == "SUB") and (trig == "START") and (cb is not None):
+                    qu = Queue()
+                    ev = Event()
+                    ev.clear()
+                    th = Thread(target=worker,
+                                args=(topicConfig["name"], qu, ev, cb, self.logger))
+                    th.deamon = True
+                    th.start()
+                    self.bus.receive(topicConfig, "START", qu)
+            except Exception as e:
+                self.logger.error("receive {} Failure!!!".format(self.Subscribe.__name__))
+                raise
+        else:
+            try:
+                self.mutex.acquire()
+                if self.direction == "SUB":
+                    try:
+                        if topicConfig["name"] not in self.subTopics.keys():
+                            self.bus.startTopic(topicConfig)
+                            self.subTopics[topicConfig["name"]] = {}
+                            self.subTopics[topicConfig["name"]]["dtype"] = \
+                                topicConfig["dtype"]
+                        subTopicType = self.subTopics[topicConfig["name"]]["dtype"]
+                        if subTopicType != topicConfig["dtype"]:
+                            raise Exception("Topic name & Type not matching")
+                        # We are good to receive now
+                        if (trig == "START") and (cb is not None):
+                            subTopics = self.subTopics[topicConfig["name"]]
+                            if "thread" in subTopics.keys():
+                                raise Exception("Already Subscribed!!!")
+                            qu = Queue()
+                            ev = Event()
+                            ev.clear()
+                            th = Thread(target=worker,
+                                        args=(topicConfig["name"],
+                                            qu, ev, cb, self.logger))
+                            th.deamon = True
+                            th.start()
+                            self.subTopics[topicConfig["name"]]["queue"] = qu
+                            self.subTopics[topicConfig["name"]]["event"] = ev
+                            self.subTopics[topicConfig["name"]]["thread"] = th
+                            self.bus.receive(topicConfig, "START", qu)
+                        elif trig == "STOP":
+                            # This should stop putting data into queue
+                            self.bus.receive(
+                                topicConfig,
+                                "STOP")
+                            # Block until all data is read
+                            self.subTopics[topicConfig["name"]]["queue"].join()
+                            self.subTopics[topicConfig["name"]]["event"].set()
+                            self.subTopics[topicConfig["name"]]["thread"].join()
+                            # Remove entry from subTopics
+                            self.subTopics.pop(topicConfig["name"])
+                        else:
+                            raise Exception("Unknown Trigger!!!")
+                    except Exception as e:
+                        self.logger.error("{} Failure!!!".format(
+                            self.Subscribe.__name__))
+                        raise
+                else:
+                    raise Exception("Not a supported BusDirection")
+            finally:
+                self.mutex.release()
 
     def ContextDestroy(self):
         '''Destroys the underlying messagebus context
         It unsubscribe all the existing subscriptions too'''
 
         try:
-            self.mutex.acquire()
-            try:
-                self.bus.destroyContext()
-            except Exception as e:
-                self.logger.error("{} Failure!!!".format(
-                    self.ContextDestroy.__name__))
-                raise
-        finally:
-            self.mutex.release()
+            if self.busType != "opcua":
+                self.mutex.acquire()
+                try:
+                    self.bus.destroyContext()
+                except Exception as e:
+                    self.logger.error("{} Failure!!!".format(
+                        self.ContextDestroy.__name__))
+                    raise
+                finally:
+                    self.mutex.release()
+
+            self.bus.destroyContext()
+            self.bus.direction = " "
+        except Exception as e:
+            self.logger.error("{} Failure!!!".format(
+                self.ContextDestroy.__name__))
+            raise
 
     def checkMsgType(self, topicType, msgData):
         '''Pvt function'''
