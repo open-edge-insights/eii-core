@@ -170,7 +170,8 @@ class Ingestor:
                                 'Failed to retrieve frame from camera %s',
                                 camera)
                     else:
-                        self.on_data('video', (camera.name, frame,))
+                        self.on_data('video', (camera.name, frame,
+                                     camera.config))
                 except Exception as ex:
                     self.log.error('Error while reading from camera: %s, \n%s',
                                    camera, tb.format_exc())

@@ -26,6 +26,7 @@ import json
 import threading
 import queue
 from concurrent.futures import ThreadPoolExecutor
+import cv2
 
 from ImageStore.client.py.client import GrpcImageStoreClient
 from DataAgent.da_grpc.client.py.client_internal.client \
@@ -145,12 +146,20 @@ class DataHandler:
         img_height = point['Height']
         img_width = point['Width']
         img_channels = point['Channels']
+        if 'encoding' in point:
+            encoding = point['encoding']
+        else:
+            encoding = None
 
         # Convert the buffer into np array.
         Frame = np.frombuffer(frame, dtype=np.uint8)
-        reshape_frame = np.reshape(Frame, (int(img_height),
-                                           int(img_width),
-                                           int(img_channels)))
+        if encoding is not None:
+            reshape_frame = np.reshape(Frame, (Frame.shape))
+            reshape_frame = cv2.imdecode(reshape_frame, 1)
+        else:
+            reshape_frame = np.reshape(Frame, (int(img_height),
+                                               int(img_width),
+                                               int(img_channels)))
 
         img_handles = point["ImgHandle"]
         img_handles = img_handles.split(",")
@@ -186,6 +195,8 @@ class DataHandler:
                 data_point.add_fields('Height', float(img_height))
                 data_point.add_fields('Width', float(img_width))
                 data_point.add_fields('Channels', float(img_channels))
+                if encoding is not None:
+                    data_point.add_fields('encoding', encoding)
 
                 # Send only the persistent handle to export
                 if len(img_handles) > 1:

@@ -87,7 +87,7 @@ class PCBDemoApp:
                 'capture_streams')
             streams.extend(capture_streams.keys())
         else:
-            # if config is factory.json
+            # if config is factory_video_file.json
             streams.append(self.app_config['stream_measurement_name'])
 
         return streams

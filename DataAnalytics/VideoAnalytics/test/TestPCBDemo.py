@@ -45,7 +45,7 @@ class PCBDemoTest(unittest.TestCase):
         log_file_name = 'pcbDemoApp_' + current_date_time + '.log'
 
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
-        cls.config = '../../docker_setup/config/factory.json'
+        cls.config = '../../docker_setup/config/factory_video_file.json'
         cls.multi_cam_config =\
             '../../docker_setup/config/factory_multi_cam.json'
 

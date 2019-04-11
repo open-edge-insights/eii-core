@@ -135,5 +135,4 @@ RUN chown ${IEI_UID} /usr/lib/x86_64-linux-gnu/libva.so.1.3900.0
 RUN chown ${IEI_UID} /usr/lib/x86_64-linux-gnu/libva.so
 
 ENTRYPOINT ["python3.6", "VideoIngestion.py", "--log-dir", "/IEI/video_ingestion_logs"]
-CMD ["--config", "factory_prod.json", "--log", ${PY_LOG_LEVEL}]
 HEALTHCHECK NONE

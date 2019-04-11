@@ -31,7 +31,7 @@ call the classifier algos based on the input config and persists the classified 
     source ./setenv.sh <systemp_ip>
 
 4) Run app:
-    python3.6 PCBDemo.py --config ../../docker_setup/config/factory.json  --log-dir /home/pcbdemo --log-name pcbdemo.log
+    python3.6 PCBDemo.py --config ../../docker_setup/config/factory_video_file.json  --log-dir /home/pcbdemo --log-name pcbdemo.log
 
     
 5) Validation:

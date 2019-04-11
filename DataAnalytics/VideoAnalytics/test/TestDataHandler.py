@@ -46,7 +46,7 @@ class DataHandlerTest(unittest.TestCase):
 
         log_file_name = 'test_datahandler_' + current_date_time + '.log'
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
-        cls.config = '../../docker_setup/config/factory.json'
+        cls.config = '../../docker_setup/config/factory_video_file.json'
         cls.multi_cam_config =\
             '../../docker_setup/config/factory_multi_cam.json'
 
@@ -76,7 +76,7 @@ class DataHandlerTest(unittest.TestCase):
                           ' "Cam_Sn": "pcb_d2000.avi", "Channels": 3,' \
                           ' "Height": 1200, "ImageStore": "1",' \
                           ' "ImgHandle": "inmem_invalid,persist_invalid", ' \
-                          '"ImgName": "vid-fr-inmem,vid-fr-persist",' \
+                          '"ImgName": "vid-fr-inmemory,vid-fr-persistent",' \
                           ' "Sample_num": 0, "Width": 1920, "user_data": 1}'
 
         self.assertRaises(
@@ -88,7 +88,7 @@ class DataHandlerTest(unittest.TestCase):
                           ' "Cam_Sn": "pcb_d2000.avi", "Channels": 3,' \
                           ' "Height": 1200, "ImageStore": "1",' \
                           ' "ImgHandle": "", ' \
-                          '"ImgName": "vid-fr-inmem,vid-fr-persist",' \
+                          '"ImgName": "vid-fr-inmemory,vid-fr-persistent",' \
                           ' "Sample_num": 0, "Width": 1920, "user_data": 1}'
         self.assertEqual(dh.handle_video_data(point_data_json), None)
 

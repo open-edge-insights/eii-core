@@ -59,6 +59,7 @@ class Ingestor:
         self.frame_count = 0
         self.th = None
         self.cap = None
+        self.config = config
         try:
             self.video_file = os.path.expanduser(config['video_file'])
             self.filename = os.path.basename(self.video_file)
@@ -109,7 +110,7 @@ class Ingestor:
         while not self.stop_ev.is_set():
             ret, frame = self.cap.read()
             if ret:
-                self.on_data('video_file', (self.filename, frame))
+                self.on_data('video_file', (self.filename, frame, self.config))
 
             if self.poll_interval is not None:
                 time.sleep(self.poll_interval)

@@ -88,9 +88,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 1. All configurable options for IEI goes into [.env](.env) file.
 2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and IEI containers goes into [docker-compose.yml](docker-compose.yml)
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
-   1. [factory.json](./config/factory.json) - value to be used if working with a defect video file
-   2. [factory_single_cam_basler.json](./config/factory_single_cam_basler.json) - value to be used if working with single basler camera setup
-   3. [factory_single_cam_rtsp.json](./config/factory_single_cam_rtsp.json) - value to be used if working with single rtsp camera setup or simulated rtsp
+   1. [factory_video_file.json](./config/factory_video_file.json) - value to be used if working with a defect video file
+   2. [factory_basler.json](./config/factory_basler.json) - value to be used if working with single basler camera setup
+   3. [factory_rtsp.json](./config/factory_rtsp.json) - value to be used if working with single rtsp camera setup or simulated rtsp
                                                                               camera stream from VLC
    4. [factory_multi_cam.json](./config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
@@ -101,8 +101,8 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
     **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
 6. Algo configuration:
-    * The trigger and classifier algorithm configuration is available in `factory.json` or `factory_prod.json`. The choice of the
-      algorithm and the parameters accepted by it can be configured in these files.
+    * The trigger and classifier algorithm configuration is available in `factory_video_file.json`, `factory_basler.json`, `factory_rtsp.json` or `factory_multi_cam.json`. The choice of the algorithm and the parameters accepted by it can be configured in these files.
+    Refer [VideoIngestion/README](../VideoIngestion/README.md) for more details
 
 7. **Selective container build and run.**
 
@@ -221,7 +221,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
    **Note**: `iei-simple-visualizer` is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/iei/dist_libs` to receive classified images and their metadata.
 
-3. If working with video file i.e, `CONFIG_FILE` is set to `factory.json` in [.env](.env), by default the video frames are ingested in loop by
+3. If working with video file i.e, `CONFIG_FILE` is set to `factory_video_file.json` in [.env](.env), by default the video frames are ingested in loop by
    `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
    `docker restart ia_video_ingestion`
 
