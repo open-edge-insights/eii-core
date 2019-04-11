@@ -21,11 +21,10 @@ push: distlibs
 	./registry.sh push $(DOCKER_REGISTRY)
 pull:
 	./registry.sh pull $(DOCKER_REGISTRY)
-install-registry: uninstall
+install-registry: uninstall pull
 	@echo "***********Building and Installing IEI using DOCKER_REGISTRY ***********"
 	./provision_startup.sh $(CERT_PATH) deploy_mode
-	./registry.sh pull $(DOCKER_REGISTRY)
-	 cp -r . /opt/intel/iei/
+	cp -r . /opt/intel/iei/
 	./setup_iei.py -s
 distlibs-registry:
 	./create_client_dist_package.sh registry $(DOCKER_REGISTRY)
