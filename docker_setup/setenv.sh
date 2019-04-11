@@ -17,5 +17,4 @@ ieiDataDir=$ieiRootDir/data
 # during deploy mode instead of init.sh
 mkdir -p $ieiLogDir/consolidatedLogs
 
-rootDir=".."
 configDir="config"

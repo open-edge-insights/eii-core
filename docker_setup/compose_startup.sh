@@ -33,18 +33,7 @@ pre_build_steps() {
 	else
 		source ./init.sh
 	fi
-	# Get list of services and respective dockerignores.
-	
-	services=(ia_log_rotate ia_gobase ia_pybase ia_gopybase ia_data_agent)
-	while read line ; do
-		services+=($line)
-	done < <(python3.6 get_services.py name)
-
-	dockerignores=(docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.common docker_setup/dockerignores/.dockerignore.da)
-	while read line ; do
-  		dockerignores+=($line)
-	done < <(python3.6 get_services.py dockerignore)
-	
+		
 	echo "0.2 Updating .env for container timezone..."
 	# Get Docker Host timezone
 	hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`

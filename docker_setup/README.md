@@ -64,10 +64,10 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### ** IEI pre-requisites **
 
-1. Copy the PCB demo test videos to the `test_videos` folder under `IEdgeInsights` by using the following commands:
+1. Copy the PCB demo test videos to the `test_videos` folder under `IEdgeInsights/docker_setup/` by using the following commands:
 
     ```
-	cd IEdgeInsights/test_videos
+	cd IEdgeInsights/docker_setup/test_videos
 	wget -q http://wheeljack.ch.intel.com/downloads/test_videos/pcb_d2000.avi
     ```
 
@@ -182,10 +182,16 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
         4. This is an `optional` step where in IEI user wants to build and run IEI images using a DOCKER REGISTRY. This is very helpful
            when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
-            To install IEI in factory from a DOCKER REGISTRY, please use below option. * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.*
+            To install IEI in factory from a DOCKER REGISTRY, only [<IEdgeInsights>/docker_setup/](../docker_setup/) folder needs to be copied to
+            target system. Once copied please use below commands. * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.* Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
 
             ```sh
             sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL> 
+            ```
+            To generate client external libs distribution package using Docker registry, please use below option
+
+            ```sh
+            sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL> 
             ```
 
            > **Note**:

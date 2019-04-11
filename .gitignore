@@ -17,10 +17,10 @@ __pycache__/
 *.dylib
 *.test
 
-test_videos/
+docker_setup/test_videos
 kapacitor/
 basler-source-plugin/
-DataAnalytics/l_openvino*
+DataAnalytics/VideoAnalytics/l_openvino*
 cert-tool/Certificates
 cert-tool/client/
 cert-tool/rootca/

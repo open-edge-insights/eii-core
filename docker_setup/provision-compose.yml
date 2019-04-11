@@ -22,7 +22,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.provision
       args:
         IEI_VERSION: ${IEI_VERSION}
-    image: ia/provision:${IEI_VERSION}
+    image: ia_provision:${IEI_VERSION}
     container_name: ia_provision
     hostname: ia_provision
     restart: on-failure:${FAILURE_ATTEMPTS}

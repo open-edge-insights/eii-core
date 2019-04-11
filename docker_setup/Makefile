@@ -3,10 +3,6 @@ provision:
 	./provision_startup.sh $(CERT_PATH)
 build:
 	./compose_startup.sh --build	
-push: 
-	./registry.sh push $(DOCKER_REGISTRY) 
-pull: 
-	./registry.sh pull $(DOCKER_REGISTRY)
 run:
 	./compose_startup.sh --up
 down:
@@ -21,9 +17,15 @@ install: uninstall provision
 	./create_client_dist_package.sh
 	cp -r . /opt/intel/iei/
 	./setup_iei.py -s
-install-registry: uninstall provision
-	@echo "***********Building and Installing IEI using DOCKER_REGISTRY ***********"
+push: distlibs
+	./registry.sh push $(DOCKER_REGISTRY)
+pull:
 	./registry.sh pull $(DOCKER_REGISTRY)
-	./create_client_dist_package.sh
-	cp -r . /opt/intel/iei/
+install-registry: uninstall
+	@echo "***********Building and Installing IEI using DOCKER_REGISTRY ***********"
+	./provision_startup.sh $(CERT_PATH) deploy_mode
+	./registry.sh pull $(DOCKER_REGISTRY)
+	 cp -r . /opt/intel/iei/
 	./setup_iei.py -s
+distlibs-registry:
+	./create_client_dist_package.sh registry $(DOCKER_REGISTRY)
