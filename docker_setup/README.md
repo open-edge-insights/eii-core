@@ -106,21 +106,16 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 7. **Selective container build and run.**
 
-   By default IEI will build and run all services. If you want to run selective services,please
-   edit [docker_setup/config/services.json](./config/services.json) file.
-
-   1. Following services are required for Video analytics.
-
-   `ia_imagestore ia_video_ingestion ia_video_analytics ia_factoryctrl_app`
-
-   3. Following services are required for Data analytics.
-
-   `ia_data_analytics ia_telegraf`
-
+   By default IEI will build and run video analytics services. If you want to run selective services,please
+   provide the right value for "CONFIG_FILE" in [.env](.env) file for IEI_SERVICES.
+   1. [services_video.json](./config/services_video.json) - value to be used if working with a video analytics use case.
+   2. [services_pointdata.json](./config/services_pointdata.json) - value to be used if working with point data analytics use case.
+   3. [services_all.json](./config/services_all.json) - value to be used if working with both pointdata and video analytics.
+   
    **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README](../DataAnalytics/README)
 
    4. If you want to add your own services to IEI, Along with core services, please add your
-   service to [docker-compose.yml](./docker-compose.yml) and also include it in [docker_setup/config/services.json](./config/services.json) along with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
+   service to json file mentioned [.env](.env) with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
 
     "iei_services": [
         {

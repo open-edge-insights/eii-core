@@ -1,0 +1,16 @@
+{
+    
+    "iei_services": [
+       
+        {
+            "name": "ia_telegraf", 
+            "dockerignore": "Telegraf/.dockerignore"
+        },
+        {
+            "name": "ia_data_analytics", 
+            "dockerignore": "DataAnalytics/PointDataAnalytics/.dockerignore"
+        }
+
+    ]
+    
+}

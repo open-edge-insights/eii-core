@@ -143,6 +143,13 @@ build_iei() {
 # to avoid unnecessary start of containers by compose_startup.sh script
 up_iei() {
 
+	# Exclude base images from -up
+	exclude=(ia_gobase ia_pybase ia_gopybase)
+	for del in ${exclude[@]}
+	do
+   		services=("${services[@]/$del}")
+	done
+	
 	if [ -e $ieiLogDir/consolidatedLogs/iei.log ]; then
 	    DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
 	    mv $ieiLogDir/consolidatedLogs/iei.log $ieiLogDir/consolidatedLogs/iei_$DATE.log.bkp
@@ -160,6 +167,8 @@ up_iei() {
 
 down_iei() {
 	echo "Shutting down & Removing iei & dependent containers"
+	source .env
+	./update_host_ip.sh
 	docker-compose down
 }
 

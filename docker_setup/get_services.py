@@ -22,7 +22,7 @@ SOFTWARE.
 
 import sys
 import json
-with open('./config/services.json') as json_file:
+with open(str(sys.argv[1])) as json_file:
     data = json.load(json_file)
     for p in data['iei_services']:
-        print(p[str(sys.argv[1])])
+        print(p[str(sys.argv[2])])
