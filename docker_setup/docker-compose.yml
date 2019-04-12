@@ -346,7 +346,6 @@ services:
   # Define FactoryControlApp service
   ia_factoryctrl_app:
     links:
-       - ia_data_analytics
        - ia_data_agent:ia_influxdb
     external_links:
        - ia_mqtt
@@ -388,7 +387,6 @@ services:
   ia_video_ingestion:
     depends_on:
       - ia_imagestore
-      - ia_data_analytics
       - ia_video_analytics
     build:
       context: ../
