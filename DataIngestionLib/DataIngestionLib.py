@@ -118,7 +118,6 @@ class DataPoint:
                 self.data_point['fields'][ImgName] + ',' + name
         else:
             self.data_point['fields'][ImgName] = name
-
         if time is not None:
             self.data_point['time'] = time
         self.log.debug("Added the buffer handle to Data Point.")
@@ -158,10 +157,14 @@ class DataIngestionLib:
     If the data contains buffer, it stores the buffer into the image store
     and saves the handle in database.'''
 
-    def __init__(self, log, storage_type='inmemory'):
+    def __init__(self, log, storage_type='inmemory', dev_mode=False):
         self.log = log
+        self.dev_mode = dev_mode
         try:
-            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+            if self.dev_mode is False:
+                client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+            else:
+                client = GrpcInternalClient()
             self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with gRPC server." +
@@ -169,21 +172,25 @@ class DataIngestionLib:
 
         # Creates the influxDB client handle.
         try:
-            self._create_influx_client()
+            self._create_influx_client(self.dev_mode)
         except Exception as e:
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
 
         # TODO: plan a better approach to set this config later, not to be in
         # DataAgent.conf file as it's not intended to be known to user
-        self.resp = client.GetConfigInt("ImgStoreClientCert")
-
-        # Write File
-        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
-        write_certs(file_list, self.resp)
         try:
-            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
-                                                  IM_CLIENT_KEY, CA_CERT)
+            if self.dev_mode is False:
+                self.resp = client.GetConfigInt("ImgStoreClientCert")
+
+                # Write File
+                file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
+                write_certs(file_list, self.resp)
+                self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
+                                                      IM_CLIENT_KEY,
+                                                      CA_CERT)
+            else:
+                self.img_store = GrpcImageStoreClient()
         except Exception as e:
             raise e
         self.log.debug("Instance created successfully.")
@@ -198,18 +205,25 @@ class DataIngestionLib:
         except Exception:
             self._reconnect_to_influx()
 
-    def _create_influx_client(self):
-        srcFiles = [CA_CERT]
-        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-        create_decrypted_pem_files(srcFiles, filesToDecrypt)
+    def _create_influx_client(self, dev_mode):
+        if dev_mode:
+            self.influx_c = InfluxDBClient(self.config["Host"],
+                                           self.config["Port"],
+                                           self.config["UserName"],
+                                           self.config["Password"],
+                                           self.config["DBName"])
+        else:
+            srcFiles = [CA_CERT]
+            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(srcFiles, filesToDecrypt)
 
-        self.influx_c = InfluxDBClient(self.config["Host"],
-                                       self.config["Port"],
-                                       self.config["UserName"],
-                                       self.config["Password"],
-                                       self.config["DBName"],
-                                       True if self.config["Ssl"] == "True"
-                                       else False, filesToDecrypt[0])
+            self.influx_c = InfluxDBClient(self.config["Host"],
+                                           self.config["Port"],
+                                           self.config["UserName"],
+                                           self.config["Password"],
+                                           self.config["DBName"],
+                                           True if self.config["Ssl"] == "True"
+                                           else False, filesToDecrypt[0])
 
     def _reconnect_to_influx(self):
         '''Reconnects to the influx server.Retry logic added '''
@@ -217,7 +231,7 @@ class DataIngestionLib:
         while i in range(RETRY_COUNT_INFLUX_CLI):
             try:
                 self.log.info("Attempting to reconnect to influx-server ")
-                self._create_influx_client()
+                self._create_influx_client(self.dev_mode)
                 if self.influx_c.ping():
                     self.log.info("InfluxDB handle created successfully.")
                     break

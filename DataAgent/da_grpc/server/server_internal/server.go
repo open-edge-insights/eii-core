@@ -100,6 +100,8 @@ func getConfig(cfgType string) (string, error) {
 func StartGrpcServer(DaCfg config.DAConfig) {
 
 	IntDaCfg = DaCfg
+	var s *grpc.Server
+
 	ipAddr, err := net.LookupIP("ia_data_agent")
 	if err != nil {
 		glog.Errorf("Failed to fetch the IP address for host: %v, error:%v", ipAddr, err)
@@ -109,30 +111,44 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 
 	addr := gRPCHost + ":" + gRPCPort
 
-	certPEMBlock, valid_cert := DaCfg.Certs[ServerCert].([]byte)
-	keyPEMBlock, valid_key := DaCfg.Certs[ServerKey].([]byte)
+	if !DaCfg.DevMode {
+		certPEMBlock, valid_cert := DaCfg.Certs[ServerCert].([]byte)
+		keyPEMBlock, valid_key := DaCfg.Certs[ServerKey].([]byte)
 
-	// Load the certificates from binary
-	if !valid_cert || !valid_key {
-		glog.Error("Malformed certificate obtained")
-		os.Exit(-1)
-	}
-	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
-	if err != nil {
-		glog.Errorf("Failed to Load ServerKey Pair : %s", err)
-		os.Exit(-1)
-	}
-
-	// Create a certificate pool from the certificate authority
-	certPool := x509.NewCertPool()
-	ca, valid_cert := DaCfg.Certs[RootCA].([]byte)
-
-	// Append the certificates from the CA
-	if valid_cert {
-		if ok := certPool.AppendCertsFromPEM(ca); !ok {
-			glog.Errorf("Failed to Append CA Certificate")
+		// Load the certificates from binary
+		if !valid_cert || !valid_key {
+			glog.Error("Malformed certificate obtained")
 			os.Exit(-1)
 		}
+		certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+		if err != nil {
+			glog.Errorf("Failed to Load ServerKey Pair : %s", err)
+			os.Exit(-1)
+		}
+
+		// Create a certificate pool from the certificate authority
+		certPool := x509.NewCertPool()
+		ca, valid_cert := DaCfg.Certs[RootCA].([]byte)
+
+		// Append the certificates from the CA
+		if valid_cert {
+			if ok := certPool.AppendCertsFromPEM(ca); !ok {
+				glog.Errorf("Failed to Append CA Certificate")
+				os.Exit(-1)
+			}
+		}
+
+		// Create the TLS configuration to pass to the GRPC server
+		creds := credentials.NewTLS(&tls.Config{
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			Certificates: []tls.Certificate{certificate},
+			ClientCAs:    certPool,
+		})
+		// Create the gRPC server
+		s = grpc.NewServer(grpc.Creds(creds))
+	} else {
+		// Create the gRPC server
+		s = grpc.NewServer()
 	}
 
 	lis, err := net.Listen("tcp", addr)
@@ -140,16 +156,6 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 		glog.Errorf("Failed to Listen: %v", err)
 		os.Exit(-1)
 	}
-
-	// Create the TLS configuration to pass to the GRPC server
-	creds := credentials.NewTLS(&tls.Config{
-		ClientAuth:   tls.RequireAndVerifyClientCert,
-		Certificates: []tls.Certificate{certificate},
-		ClientCAs:    certPool,
-	})
-
-	// Create the gRPC server
-	s := grpc.NewServer(grpc.Creds(creds))
 
 	// Register the handle object
 	pb.RegisterDainternalServer(s, &DainternalServer{})

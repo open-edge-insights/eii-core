@@ -38,8 +38,8 @@ from DataAgent.da_grpc.protobuff.py.pb_internal \
 
 class GrpcInternalClient(object):
 
-    def __init__(self, clientCert, clientKey,
-                 caCert, hostname="localhost", port="50052"):
+    def __init__(self, clientCert="", clientKey="",
+                 caCert="", hostname="localhost", port="50052"):
         """
             GrpcInternalClient constructor.
             Keyword Arguments:
@@ -58,18 +58,22 @@ class GrpcInternalClient(object):
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing GRPC channel to %s", addr)
 
+        if (not clientKey) and (not clientCert) and (not caCert):
+            devMode = True
+        else:
+            devMode = False
         try:
-            key = os.environ["SHARED_KEY"]
-            nonce = os.environ["SHARED_NONCE"]
+            if not devMode:
+                key = os.environ["SHARED_KEY"]
+                nonce = os.environ["SHARED_NONCE"]
 
-            symEncrypt = SymmetricEncryption(key)
-            ca_certs = symEncrypt.DecryptFile(caCert, nonce)
-            client_key = symEncrypt.DecryptFile(clientKey, nonce)
-            client_certs = symEncrypt.DecryptFile(clientCert, nonce)
-            credentials = grpc.ssl_channel_credentials(
-                root_certificates=ca_certs, private_key=client_key,
-                certificate_chain=client_certs)
-
+                symEncrypt = SymmetricEncryption(key)
+                ca_certs = symEncrypt.DecryptFile(caCert, nonce)
+                client_key = symEncrypt.DecryptFile(clientKey, nonce)
+                client_certs = symEncrypt.DecryptFile(clientCert, nonce)
+                credentials = grpc.ssl_channel_credentials(
+                    root_certificates=ca_certs, private_key=client_key,
+                    certificate_chain=client_certs)
         except Exception as e:
             errMsg = "Exception Occured : {}".format(e)
             log.error(errMsg)
@@ -79,7 +83,11 @@ class GrpcInternalClient(object):
         if not check_port_availability(self.hostname, self.port):
             raise Exception("{}:{} port is not up!".format(self.hostname,
                             self.port))
-        channel = grpc.secure_channel(addr, credentials)
+        if devMode:
+            channel = grpc.insecure_channel(addr)
+        else:
+            channel = grpc.secure_channel(addr, credentials)
+
         self.stub = da_pb2_grpc.dainternalStub(channel)
 
     def GetConfigInt(self, config):

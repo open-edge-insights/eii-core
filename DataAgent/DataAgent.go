@@ -46,7 +46,14 @@ const (
 var daCfg config.DAConfig
 
 func initializeInfluxDB() error {
-	cmd := exec.Command("/IEI/go/src/IEdgeInsights/DataAgent/influx_start.sh")
+	var cmd *exec.Cmd
+
+	if daCfg.DevMode {
+		cmd = exec.Command("./DataAgent/influx_start.sh", "dev_mode")
+	} else {
+		cmd = exec.Command("./DataAgent/influx_start.sh")
+	}
+
 	err := cmd.Run()
 	if err != nil {
 		glog.Errorf("Failed to start influxdb Server, Error: %s", err)
@@ -62,7 +69,7 @@ func initializeInfluxDB() error {
 
 	glog.Infof("*************INFLUX DB STARTED*********")
 	influxCfg := daCfg.InfluxDB
-	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "")
+	clientAdmin, err := inflxUtil.CreateHTTPClient(influxServer, influxCfg.Port, "", "", daCfg.DevMode)
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
 		return err
@@ -83,7 +90,7 @@ func initializeInfluxDB() error {
 	// Create InfluxDB database
 	glog.Infof("Creating InfluxDB database: %s", influxCfg.DBName)
 	client, err := inflxUtil.CreateHTTPClient(influxServer,
-		influxCfg.Port, influxCfg.UserName, influxCfg.Password)
+		influxCfg.Port, influxCfg.UserName, influxCfg.Password, daCfg.DevMode)
 
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
@@ -112,6 +119,9 @@ func initializeInfluxDB() error {
 
 func main() {
 
+	var cfgPath string
+	flag.StringVar(&cfgPath, "config", "", "config file path")
+
 	flag.Parse()
 
 	vendor_name := cpuidutil.Cpuid()
@@ -121,11 +131,6 @@ func main() {
 	}
 
 	defer glog.Flush()
-	if len(os.Args) < 1 {
-		glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
-			"[-log_dir=<glog_dir_path>]")
-		os.Exit(-1)
-	}
 
 	glog.Infof("=============== STARTING data_agent ===============")
 
@@ -136,47 +141,73 @@ func main() {
 		glog.Errorf("Fail to read TPM environment variable: %s", err)
 	}
 
-	// Waiting for Vault to be up
-	vaultPort := os.Getenv("VAULT_PORT")
-	portUp := util.CheckPortAvailability("localhost", vaultPort)
-	if !portUp {
-		glog.Error("VAULT server is not up, so exiting...")
-		os.Exit(-1)
-	}
-	err = daCfg.ReadFromVault()
+	devMode := os.Getenv("DEV_MODE")
+	daCfg.DevMode, err = strconv.ParseBool(devMode)
 	if err != nil {
-		glog.Errorf("Error: %s", err)
+		glog.Errorf("Fail to read DEV_MODE environment variable: %s", err)
 		os.Exit(-1)
 	}
 
-	fileList := []string{influxServerCertPath, influxServerKeyPath}
+	if !daCfg.DevMode {
+		if len(os.Args) < 2 {
+			glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
+				"[-log_dir=<glog_dir_path>]")
+			os.Exit(-1)
+		}
+		// Waiting for Vault to be up
+		vaultPort := os.Getenv("VAULT_PORT")
+		portUp := util.CheckPortAvailability("localhost", vaultPort)
+		if !portUp {
+			glog.Error("VAULT server is not up, so exiting...")
+			os.Exit(-1)
+		}
+		err = daCfg.ReadFromVault()
+		if err != nil {
+			glog.Errorf("Error: %s", err)
+			os.Exit(-1)
+		}
 
-	err = util.WriteCertFile(fileList, daCfg.Certs)
-	if err != nil {
-		glog.Error("Error while starting Certificate in container")
-		os.Exit(-1)
-	}
+		fileList := []string{influxServerCertPath, influxServerKeyPath}
 
-	// Encrypting the grpc internal ssl secrets - grpc internal client key/cert and ca cert
-	fileList = []string{grpcIntClientCert, grpcIntClientKey, grpcCACert}
-	err = util.WriteEncryptedPEMFiles(fileList, daCfg.Certs)
-	if err != nil {
-		glog.Error("Error while writing encrypted PEM files")
-		os.Exit(-1)
-	}
+		err = util.WriteCertFile(fileList, daCfg.Certs)
+		if err != nil {
+			glog.Error("Error while starting Certificate in container")
+			os.Exit(-1)
+		}
 
-	// Decrypting the encrypted ca cert for use by influxdb
-	fileContents, err := util.GetDecryptedBlob(grpcCACert)
-	if err != nil {
-		glog.Errorf("Failed to decrypt file: %s, Error: %v", grpcCACert, err)
-		os.Exit(-1)
-	}
+		// Encrypting the grpc internal ssl secrets - grpc internal client key/cert and ca cert
+		fileList = []string{grpcIntClientCert, grpcIntClientKey, grpcCACert}
+		err = util.WriteEncryptedPEMFiles(fileList, daCfg.Certs)
+		if err != nil {
+			glog.Error("Error while writing encrypted PEM files")
+			os.Exit(-1)
+		}
 
-	newCaCertPath := "/etc/ssl/ca/ca_certificate.pem"
-	err = ioutil.WriteFile(newCaCertPath, fileContents, 0755)
-	if err != nil {
-		glog.Errorf("Failed to write file: %s, Error: %v", newCaCertPath, err)
-		os.Exit(-1)
+		// Decrypting the encrypted ca cert for use by influxdb
+		fileContents, err := util.GetDecryptedBlob(grpcCACert)
+		if err != nil {
+			glog.Errorf("Failed to decrypt file: %s, Error: %v", grpcCACert, err)
+			os.Exit(-1)
+		}
+
+		newCaCertPath := "/etc/ssl/ca/ca_certificate.pem"
+		err = ioutil.WriteFile(newCaCertPath, fileContents, 0755)
+		if err != nil {
+			glog.Errorf("Failed to write file: %s, Error: %v", newCaCertPath, err)
+			os.Exit(-1)
+		}
+	} else {
+		// read the JSON file and populate the credentials.
+		if len(os.Args) < 3 {
+			glog.Errorf("Usage: go run DataAgent/DataAgent.go " +
+				"[-config=<config_file_path>] [-log_dir=<glog_dir_path>]")
+			os.Exit(-1)
+		}
+		err = daCfg.ParseConfig(cfgPath)
+		if err != nil {
+			glog.Errorf("Failed to parse provision JSON in development mode")
+			os.Exit(-1)
+		}
 	}
 
 	glog.Infof("*************STARTING INFLUX DB***********")
@@ -185,10 +216,12 @@ func main() {
 		glog.Errorf("Failed to start and initialize Influx DB")
 		os.Exit(-1)
 	} else {
-		fileList := []string{influxServerCertPath, influxServerKeyPath}
-		err = util.DeleteCertFile(fileList)
-		if err == nil {
-			glog.V(1).Infof("Removed InfluxDB certificates from /etc/ssl/influxdb/")
+		if !daCfg.DevMode {
+			fileList := []string{influxServerCertPath, influxServerKeyPath}
+			err = util.DeleteCertFile(fileList)
+			if err == nil {
+				glog.V(1).Infof("Removed InfluxDB certificates from /etc/ssl/influxdb/")
+			}
 		}
 	}
 

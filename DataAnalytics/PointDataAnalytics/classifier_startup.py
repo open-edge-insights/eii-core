@@ -46,6 +46,8 @@ def parse_args():
 
     parser.add_argument('--log-dir', dest='log_dir', default='logs',
                         help='Directory to for log files')
+    parser.add_argument('--dev-mode', dest='dev_mode', default=False,
+                        help='Mode of run (Developement/ Production)')
     return parser.parse_args()
 
 
@@ -72,25 +74,36 @@ def grant_permission_socket(socket_path):
     logger.info("Permission Granted for Socket files")
 
 
-def start_kapacitor(host_name):
+def start_kapacitor(host_name, dev_mode):
     """Starts the kapacitor Daemon in the background
     """
     try:
-        client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+        if dev_mode:
+            client = GrpcInternalClient()
+        else:
+            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+
         config = client.GetConfigInt("InfluxDBCfg")
         os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["UserName"]
         os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["Password"]
-        # Populate the certificates for kapacitor server
-        cert_data = client.GetConfigInt("KapacitorServerCert")
-        file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
-                     "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
-        write_certs(file_list, cert_data)
 
-        srcFiles = [CA_CERT]
-        filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-        create_decrypted_pem_files(srcFiles, filesToDecrypt)
+        if dev_mode:
+            kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
+        else:
+            # Populate the certificates for kapacitor server
+            cert_data = client.GetConfigInt("KapacitorServerCert")
+            file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
+                         "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
+            write_certs(file_list, cert_data)
 
-        subprocess.call("kapacitord -hostname "+host_name+" &", shell=True)
+            srcFiles = [CA_CERT]
+            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(srcFiles, filesToDecrypt)
+            kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
+
+        subprocess.call("kapacitord -hostname " + host_name +
+                        " -config " + kapacitor_conf + " &", shell=True)
+
         logger.info("Started kapacitor Successfully...")
         return True
     except Exception as e:
@@ -192,7 +205,7 @@ if __name__ == '__main__':
          container.So exiting..')
     if (start_classifier(logFileName) is True):
         grant_permission_socket(POINT_SOCKET_FILE)
-        if(start_kapacitor(host_name) is True):
+        if(start_kapacitor(host_name, args.dev_mode) is True):
             enable_classifier_task(host_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")

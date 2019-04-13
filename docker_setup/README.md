@@ -123,13 +123,19 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             "dockerignore": ".dockerignore.common"
 
         }
+8. **Enablind Development Mode.**
 
+   Inorder to enable Development mode, **DEV_MODE** variable in .env need to be changed as mentioned below. 
+   1. DEV_MODE=true -  For disabling security & Enabling trigger algo modification dynamically in host machine 
+   2. DEV_MODE=false - This mode runs all container in secured Mode. 
 
 ### <u>Build & Installation</u>
 
 1. Building the iei containers from source
 
     * Follow below steps to generate certificates, provision and build/start IEI.
+
+        **NOTE** If Development mode is set true then provisioning steps should be skipped. 
 
         1. Certificates generation:
 

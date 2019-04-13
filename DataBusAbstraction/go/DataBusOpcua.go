@@ -59,6 +59,10 @@ func free(cStrs []*C.char) {
 
 func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err error) {
 	defer errHandler("OPCUA Context Creation Failed!!!", &err)
+
+	devModeFlag := false
+	var cResp *_Ctype_char
+
 	dbOpcua.direction = contextConfig["direction"]
 	dbOpcua.namespace = contextConfig["name"]
 	endpoint := contextConfig["endpoint"]
@@ -71,20 +75,29 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 		panic(err)
 	}
 
-	cHostname := C.CString(host)
-	cCertFile := C.CString(contextConfig["certFile"])
-	cPrivateFile := C.CString(contextConfig["privateFile"])
-
-	//TODO - Make contextConfig["trustFile"] an array
-	trustFiles := [1]string{contextConfig["trustFile"]}
-	cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
-	a := (*[1<<30 - 1]*C.char)(cArray)
-	for idx, substring := range trustFiles {
-		a[idx] = C.CString(substring)
+	if (contextConfig["certFile"] == "") && (contextConfig["privateFile"] == "") &&
+		(contextConfig["trustFile"] == "") {
+		devModeFlag = true
 	}
+	cHostname := C.CString(host)
 
 	if dbOpcua.direction == "PUB" {
-		cResp := C.serverContextCreate(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		if !devModeFlag {
+			cCertFile := C.CString(contextConfig["certFile"])
+			cPrivateFile := C.CString(contextConfig["privateFile"])
+
+			//TODO - Make contextConfig["trustFile"] an array
+			trustFiles := [1]string{contextConfig["trustFile"]}
+			cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
+
+			a := (*[1<<30 - 1]*C.char)(cArray)
+			for idx, substring := range trustFiles {
+				a[idx] = C.CString(substring)
+			}
+			cResp = C.serverContextCreateSecured(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		} else {
+			cResp = C.serverContextCreate(cHostname, C.int(port))
+		}
 
 		goResp := C.GoString(cResp)
 		if goResp != "0" {
@@ -93,7 +106,23 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 		}
 	}
 	if dbOpcua.direction == "SUB" {
-		cResp := C.clientContextCreate(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		if !devModeFlag {
+			cCertFile := C.CString(contextConfig["certFile"])
+			cPrivateFile := C.CString(contextConfig["privateFile"])
+
+			//TODO - Make contextConfig["trustFile"] an array
+			trustFiles := [1]string{contextConfig["trustFile"]}
+			cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
+
+			a := (*[1<<30 - 1]*C.char)(cArray)
+			for idx, substring := range trustFiles {
+				a[idx] = C.CString(substring)
+			}
+			cResp = C.clientContextCreateSecured(cHostname, C.int(port), cCertFile, cPrivateFile, (**C.char)(cArray), 1)
+		} else {
+			cResp = C.clientContextCreate(cHostname, C.int(port))
+		}
+
 		goResp := C.GoString(cResp)
 		if goResp != "0" {
 			glog.Errorln("Response: ", goResp)

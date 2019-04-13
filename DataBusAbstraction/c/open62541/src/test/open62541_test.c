@@ -74,12 +74,12 @@ int main(int argc, char **argv) {
     if (!strcmp(argv[1], "server")) {
 
 
-        errorMsg = serverContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
+        errorMsg = serverContextCreateSecured(hostname, port, certificatePath, privateKey, trustList, trustListSize);
         if(strcmp(errorMsg, "0")) {
-            printf("serverContextCreate() API failed, error: %s\n", errorMsg);
+            printf("serverContextCreateSecured() API failed, error: %s\n", errorMsg);
             return -1;
         }
-        printf("serverContextCreate() API successfully executed!\n");
+        printf("serverContextCreateSecured() API successfully executed!\n");
 
         int nsIndex = serverStartTopic(ns, topic);
         if(nsIndex == 100) {

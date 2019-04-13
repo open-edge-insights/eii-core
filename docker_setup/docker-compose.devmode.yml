@@ -1,0 +1,16 @@
+version: '3'
+services:
+  # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
+  ia_data_analytics:
+    environment:
+      KAPACITOR_URL: http://ia_data_analytics:${KAPACITOR_PORT}/
+      KAPACITOR_UNSAFE_SSL: "true"
+      KAPACITOR_INFLUXDB_0_URLS_0: http://ia_influxdb:${INFLUXDB_PORT}/
+
+  ia_video_ingestion:
+    volumes:
+      - "$PWD/../algos/:/IEI/algos/"
+
+  ia_video_analytics:
+    volumes:
+      - "$PWD/../algos/:/IEI/algos/"

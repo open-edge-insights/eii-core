@@ -52,7 +52,8 @@ class StreamSubLib:
     '''This Class creates a subscription to influx db and provides
     the streams as callbacks like a pub-sub message bus'''
 
-    def init(self, log_level=logging.INFO, cert_path=None, key_path=None):
+    def init(self, log_level=logging.INFO, cert_path=None, key_path=None,
+             dev_mode=False):
         '''Creates a subscription to to influxdb
         Arguments:
         log_level:(Optional) Log levels are used to track the severity
@@ -65,35 +66,47 @@ class StreamSubLib:
         self.log = logging.getLogger(__name__)
         self.cert_path = cert_path
         self.key_path = key_path
+        self.dev_mode = dev_mode
 
         try:
             self.maxbytes = 1024
-            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
-            self.config = client.GetConfigInt("InfluxDBCfg")
-
-            self.certBlobMap = client.GetConfigInt("StrmLibServerCert")
+            if not dev_mode:
+                client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+                self.config = client.GetConfigInt("InfluxDBCfg")
+                self.certBlobMap = client.GetConfigInt("StrmLibServerCert")
+            else:
+                client = GrpcInternalClient()
+                self.config = client.GetConfigInt("InfluxDBCfg")
         except Exception as e:
             raise DAException("Seems to be some issue with GRPC Server." +
                               "Exception: {0}".format(e))
 
         # Creates the influxDB client handle.
         try:
-            srcFiles = [CA_CERT]
-            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-            create_decrypted_pem_files(srcFiles, filesToDecrypt)
+            if not self.dev_mode:
+                srcFiles = [CA_CERT]
+                filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+                create_decrypted_pem_files(srcFiles, filesToDecrypt)
 
-            self.influx_c = InfluxDBClient(self.config["Host"],
-                                           self.config["Port"],
-                                           self.config["UserName"],
-                                           self.config["Password"],
-                                           self.config["DBName"],
-                                           True
-                                           if self.config["Ssl"] ==
-                                           "True"
-                                           else False,
-                                           filesToDecrypt[0])
+                self.influx_c = InfluxDBClient(self.config["Host"],
+                                               self.config["Port"],
+                                               self.config["UserName"],
+                                               self.config["Password"],
+                                               self.config["DBName"],
+                                               True
+                                               if self.config["Ssl"] ==
+                                               "True"
+                                               else False,
+                                               filesToDecrypt[0])
+            else:
+                self.influx_c = InfluxDBClient(self.config["Host"],
+                                               self.config["Port"],
+                                               self.config["UserName"],
+                                               self.config["Password"],
+                                               self.config["DBName"])
 
         except Exception as e:
+            self.log.error("Error", exc_info=True)
             raise DAException("Failed creating the InfluxDB client " +
                               "Exception: {0}".format(e))
 
@@ -106,7 +119,11 @@ class StreamSubLib:
             self.subscriptionName = (self.database + "_" + str(
                 uuid4())).replace("-", "_")
 
-            subscriptionLink = 'https://' + hostname + ':' + str(self.port)
+            if not self.dev_mode:
+                subscriptionLink = 'https://' + hostname + ':' + str(self.port)
+            else:
+                subscriptionLink = 'http://' + hostname + ':' + str(self.port)
+
             self.log.info('Subscription link: {0}'.format(subscriptionLink))
             query_in = "create subscription " + self.subscriptionName + \
                 " ON " + self.database + ".autogen DESTINATIONS ANY \'" + \
@@ -135,10 +152,10 @@ class StreamSubLib:
 
     def listen_on_server(self):
         ''' Receives data from the socket and converts it to json format
+
         and sends the formated data to callback'''
         try:
-
-            if not (self.cert_path and self.key_path):
+            if not self.dev_mode:
                 self.log.info("Creating cert and key files...")
                 path = "/etc/ssl/streamsublib"
                 self.cert_path = path + "/streamsublib_server_certificate.pem"
@@ -146,19 +163,15 @@ class StreamSubLib:
                 file_list = [self.cert_path, self.key_path]
                 write_certs(file_list, self.certBlobMap)
 
-            self.log.info('server cert path : {0}'.format(self.cert_path))
-            self.log.info('server key path : {0}'.format(self.key_path))
-
             def handler(*args):
                 HttpHandlerFunc(self.stream_map, *args)
 
             httpd = HTTPServer((socket.gethostbyname(
                 hostname), self.port), handler)
-
-            httpd.socket = ssl.wrap_socket(
-                httpd.socket, server_side=True, keyfile=self.key_path,
-                certfile=self.cert_path)
-
+            if not self.dev_mode:
+                httpd.socket = ssl.wrap_socket(
+                    httpd.socket, server_side=True, keyfile=self.key_path,
+                    certfile=self.cert_path)
             while(self.initialized):
                 httpd.handle_request()
 

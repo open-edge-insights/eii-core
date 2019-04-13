@@ -39,58 +39,73 @@ func NewGrpcInternalClient(clientCert, clientKey, caCert, hostname, port string)
 	return &GrpcInternalClient{hostname: hostname, port: port, clientCert: clientCert, clientKey: clientKey, caCert: caCert}, nil
 }
 
+// NewGrpcInternalClientUnsecured : This is the constructor to initialize the GrpcClient in dev mode
+func NewGrpcInternalClientUnsecured(hostname, port string) (*GrpcInternalClient, error) {
+	return &GrpcInternalClient{hostname: hostname, port: port, clientCert: "", clientKey: "", caCert: ""}, nil
+}
+
 // getDaClient: It is a private method called to get the DaClient object
 func (pClient *GrpcInternalClient) getDaClient() (pb.DainternalClient, error) {
+
+	var conn *grpc.ClientConn
+	var err error
 	addr := pClient.hostname + ":" + pClient.port
 
-	glog.Infof("Addr: %s", addr)
+	if (pClient.clientKey != "") && (pClient.clientCert != "") &&
+		(pClient.caCert != "") {
+		// Read certificate binary
+		certPEMBlock, err := util.GetDecryptedBlob(pClient.clientCert)
+		if err != nil {
+			glog.Errorf("Failed to Read Client Certificate : %s", err)
+			return nil, err
+		}
 
-	// Read certificate binary
-	certPEMBlock, err := util.GetDecryptedBlob(pClient.clientCert)
-	if err != nil {
-		glog.Errorf("Failed to Read Client Certificate : %s", err)
-		return nil, err
+		keyPEMBlock, err := util.GetDecryptedBlob(pClient.clientKey)
+		if err != nil {
+			glog.Errorf("Failed to Read Client Key : %s", err)
+			return nil, err
+		}
+
+		// Load the certificates from binary
+		certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
+		if err != nil {
+			glog.Errorf("Failed to Load ClientKey Pair : %s", err)
+			return nil, err
+		}
+
+		// Create a certificate pool from the certificate authority
+		certPool := x509.NewCertPool()
+		ca, err := util.GetDecryptedBlob(pClient.caCert)
+		if err != nil {
+			glog.Errorf("Failed to Read CA Certificate : %s", err)
+			return nil, err
+		}
+
+		// Append the Certificates from the CA
+		if ok := certPool.AppendCertsFromPEM(ca); !ok {
+			glog.Errorf("Failed to Append Certificate")
+			return nil, nil
+		}
+
+		// Create the TLS credentials for transport
+		creds := credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{certificate},
+			RootCAs:      certPool,
+		})
+
+		conn, err = grpc.Dial(addr, grpc.WithTransportCredentials(creds))
+		if err != nil {
+			glog.Errorf("Grpc Dial Error, Not able to Connect %s: %s", addr, err)
+			return nil, err
+		}
+
+	} else {
+		conn, err = grpc.Dial(addr, grpc.WithInsecure())
+		if err != nil {
+			glog.Errorf("Grpc Dial Error, Not able to Connect %s: %s", addr, err)
+			return nil, err
+		}
 	}
-
-	keyPEMBlock, err := util.GetDecryptedBlob(pClient.clientKey)
-	if err != nil {
-		glog.Errorf("Failed to Read Client Key : %s", err)
-		return nil, err
-	}
-
-	// Load the certificates from binary
-	certificate, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
-	if err != nil {
-		glog.Errorf("Failed to Load ClientKey Pair : %s", err)
-		return nil, err
-	}
-
-	// Create a certificate pool from the certificate authority
-	certPool := x509.NewCertPool()
-	ca, err := util.GetDecryptedBlob(pClient.caCert)
-	if err != nil {
-		glog.Errorf("Failed to Read CA Certificate : %s", err)
-		return nil, err
-	}
-
-	// Append the Certificates from the CA
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		glog.Errorf("Failed to Append Certificate")
-		return nil, nil
-	}
-
-	// Create the TLS credentials for transport
-	creds := credentials.NewTLS(&tls.Config{
-		Certificates: []tls.Certificate{certificate},
-		RootCAs:      certPool,
-	})
-
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(creds))
-	if err != nil {
-		glog.Errorf("Grpc Dial Error, Not able to Connect %s: %s", addr, err)
-		return nil, err
-	}
-
 	daClient := pb.NewDainternalClient(conn)
 	return daClient, nil
 }

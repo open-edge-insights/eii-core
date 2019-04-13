@@ -15,12 +15,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 //*************open62541 server wrappers**********************
 char*
-serverContextCreate(char *hostname,
+serverContextCreateSecured(char *hostname,
                     int port,
                     char *certificateFile,
                     char *privateKeyFile,
                     char **trustList,
                     size_t trustListSize);
+
+char*
+serverContextCreate(char *hostname,
+                    int port);
 
 int
 serverStartTopic(char *nsName,
@@ -38,13 +42,16 @@ void serverContextDestroy();
 typedef void (*c_callback)(char *topic, char *data, void *pyxFunc);
 
 char*
-clientContextCreate(char *hostname,
-                    int port,
-                    char *certificateFile,
-                    char *privateKeyFile,
-                    char **trustList,
-                    size_t trustListSize);
+clientContextCreateSecured(char *hostname,
+                           int port,
+                           char *certificateFile,
+                           char *privateKeyFile,
+                           char **trustList,
+                           size_t trustListSize);
 
+char*
+clientContextCreate(char *hostname,
+                    int port);
 int
 clientStartTopic(char *nsName,
                  char *topic);

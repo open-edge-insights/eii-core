@@ -18,6 +18,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"os"
 
 	"github.com/golang/glog"
 	"github.com/hashicorp/vault/api"
@@ -34,6 +35,7 @@ type DAConfig struct {
 	Minio                minioCfg
 	Certs                map[string]interface{}
 	TpmEnabled           bool
+	DevMode              bool
 }
 
 type influxDBCfg struct {
@@ -66,7 +68,7 @@ type persistentImageStore struct {
 }
 
 type outStreamCfg struct {
-	Topics []string
+	Topics []string `json:"OPCUA"`
 }
 
 type opcuaCfg struct {
@@ -76,6 +78,29 @@ type opcuaCfg struct {
 const (
 	VAULT_SECRET_FILE_PATH = "/vault/file/vault_secret_file"
 )
+
+// ParseConfig parses the DA config file and fills up the config structure.
+// Also, takes care of parsing the env variables prefixed with $ and
+// replacing them with the actual values.
+func (cfg *DAConfig) ParseConfig(filepath string) error {
+
+	jsonFd, err := os.Open(filepath)
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		glog.Errorf("Error opening file %s: %v", filepath, err)
+		return err
+	}
+
+	byteValue, _ := ioutil.ReadAll(jsonFd)
+
+	err = json.Unmarshal(byteValue, &cfg)
+	if err != nil {
+		glog.Errorf("Error in unmarshalling the json: %v", err)
+		return err
+	}
+
+	return err
+}
 
 // ReadFromVault initializes and read secrets from vault.
 func (cfg *DAConfig) ReadFromVault() error {
@@ -135,13 +160,13 @@ func (cfg *DAConfig) ReadFromVault() error {
 		glog.Errorf("DataAgent: Failed to read vault secrets for influxDB: %s", err)
 		return errors.New("Failed to read secrets")
 	}
-	cfg.InfluxDB.Port = inflx_secret.Data["influxdb_port"].(string)
+	cfg.InfluxDB.Port = inflx_secret.Data["port"].(string)
 	cfg.InfluxDB.Retention = inflx_secret.Data["retention"].(string)
 	cfg.InfluxDB.UserName = inflx_secret.Data["username"].(string)
 	cfg.InfluxDB.Password = inflx_secret.Data["password"].(string)
 	cfg.InfluxDB.DBName = inflx_secret.Data["dbname"].(string)
 	cfg.InfluxDB.Ssl = inflx_secret.Data["ssl"].(string)
-	cfg.InfluxDB.VerifySsl = inflx_secret.Data["verify_ssl"].(string)
+	cfg.InfluxDB.VerifySsl = inflx_secret.Data["verifySsl"].(string)
 
 	//Read Redis secret
 	redis_secret, err := logical_clnt.Read("secret/redis")
@@ -150,7 +175,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 		return errors.New("Failed to read secrets")
 	}
 
-	cfg.Redis.Port = redis_secret.Data["redis_port"].(string)
+	cfg.Redis.Port = redis_secret.Data["port"].(string)
 	cfg.Redis.Retention = redis_secret.Data["retention"].(string)
 	cfg.Redis.Password = redis_secret.Data["password"].(string)
 
@@ -169,19 +194,19 @@ func (cfg *DAConfig) ReadFromVault() error {
 		return errors.New("Failed to read secrets")
 	}
 
-	cfg.Minio.Port = minio_secret.Data["minio_port"].(string)
-	cfg.Minio.AccessKey = minio_secret.Data["access_key"].(string)
-	cfg.Minio.SecretKey = minio_secret.Data["secret_key"].(string)
-	cfg.Minio.RetentionTime = minio_secret.Data["retention_time"].(string)
+	cfg.Minio.Port = minio_secret.Data["port"].(string)
+	cfg.Minio.AccessKey = minio_secret.Data["accessKey"].(string)
+	cfg.Minio.SecretKey = minio_secret.Data["secretKey"].(string)
+	cfg.Minio.RetentionTime = minio_secret.Data["retentionTime"].(string)
 	cfg.Minio.Ssl = minio_secret.Data["ssl"].(string)
-	cfg.Minio.RetentionPollInterval = minio_secret.Data["retention_poll_interval"].(string)
+	cfg.Minio.RetentionPollInterval = minio_secret.Data["retentionPollInterval"].(string)
 
 	opcua_secret, err := logical_clnt.Read("secret/opcua")
 	if err != nil || opcua_secret == nil {
 		glog.Errorf("DataAgent: Failed to read vault secrets for OPCUA: %s", err)
 		return errors.New("Failed to read secrets")
 	}
-	cfg.Opcua.Port = opcua_secret.Data["opcua_port"].(string)
+	cfg.Opcua.Port = opcua_secret.Data["port"].(string)
 
 	stream_secret, err := logical_clnt.Read("secret/OutStreams")
 	if err != nil || stream_secret == nil {
@@ -191,7 +216,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 
 	if stream_secret.Data != nil {
 		cfg.OutStreams = make(map[string]outStreamCfg)
-		for k, v := range stream_secret.Data {
+		for k, v := range stream_secret.Data["outStreamCfg"].(map[string]interface{}) {
 			arr := v.([]interface{})
 			topics := make([]string, len(arr))
 			for i, v := range arr {

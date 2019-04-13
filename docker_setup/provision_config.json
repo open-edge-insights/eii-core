@@ -1,16 +1,16 @@
 {
 	"influxdb": {
-		"influxdb_port": "8086",
+		"port": "8086",
 		"retention": "1h30m5s",
 		"username": "admin",
 		"password": "admin123",
 		"dbname": "datain",
 		"ssl": "True",
-		"verify_ssl": "False"
+		"verifySsl": "False"
 	},
 
 	"redis": {
-		"redis_port": "6379",
+		"port": "6379",
 		"password": "redis123",
 		"retention": "40s"
 	},
@@ -20,27 +20,29 @@
     },
 
     "minio": {
-        "minio_port": "9000",
-        "access_key": "admin",
-        "secret_key": "password",
-        "retention_time": "1h",
-        "retention_poll_interval": "60s",
+        "port": "9000",
+        "accessKey": "admin",
+        "secretKey": "password",
+        "retentionTime": "1h",
+        "retentionPollInterval": "60s",
         "ssl": "false"
     },
 
 	"opcua": {
-		"opcua_port": "4840"
+		"port": "4840"
 	},
 
 	"OutStreams": {
-		"OPCUA": [
-		  "stream1_results",
-		  "cam_serial1_results",
-		  "cam_serial2_results",
-		  "cam_serial3_results",
-		  "cam_serial4_results",
-		  "cam_serial5_results",
-		  "cam_serial6_results"
-		]
+		"outStreamCfg": {
+			"OPCUA": [
+				"stream1_results",
+				"cam_serial1_results",
+				"cam_serial2_results",
+				"cam_serial3_results",
+				"cam_serial4_results",
+				"cam_serial5_results",
+				"cam_serial6_results"
+			]
+		}
 	}
 }

@@ -19,6 +19,21 @@ check_IEI_published_ports() {
 }
 
 pre_build_steps() {
+	source .env
+	if [ "$DEV_MODE" = "true" ]
+	then
+		echo "IEI is configured to run in Developement Mode with Security disabled"
+		OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.devmode.yml"
+		if ! id $IEI_USER_NAME >/dev/null 2>&1; then
+			groupadd $IEI_USER_NAME -g $IEI_UID
+			useradd -r -u $IEI_UID -g $IEI_USER_NAME $IEI_USER_NAME
+		else
+			if ! [ $(id -u $IEI_USER_NAME) = $IEI_UID ]; then
+				usermod -u $IEI_UID $IEI_USER_NAME
+				groupmod -g $IEI_UID $IEI_USER_NAME
+			fi
+		fi
+	fi
 
 	if ! id $IEI_USER_NAME >/dev/null 2>&1;
 	then
@@ -52,6 +67,12 @@ pre_build_steps() {
 
 	if [ "$TPM_ENABLE" = "true" ]
 	then
+		if [ "$DEV_MODE" = "true" ]
+		then
+			echo "TPM and Developement mode are mutuallly exclusive. Kindly config accordingly."
+			exit -1
+		fi
+
 		OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.tpm.yml"
 		# Intentionally not chnaging the group of device file to keep the
 		# root group based users unaffected and keep the host machine setting change minimal.

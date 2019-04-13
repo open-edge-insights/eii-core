@@ -55,9 +55,10 @@ class DataHandler:
        points and save the classified result back to influxDB.
     """
 
-    def __init__(self, config_file, logger):
+    def __init__(self, config_file, logger, dev_mode=False):
         self.config = Configuration(config_file)
         self.logger = logger
+        self.dev_mode = dev_mode
         self.frame_classify_ex = \
             ThreadPoolExecutor(
                 max_workers=self.config.classification['max_workers'])
@@ -73,15 +74,21 @@ class DataHandler:
         self.classifier = self._cm.get_classifier(classifier_name)
 
         # Use getConfigInt to read cert and create file
-        client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
-        self.resp = client.GetConfigInt("ImgStoreClientCert")
+        if self.dev_mode:
+            client = GrpcInternalClient()
+            self.img_store = GrpcImageStoreClient()
+        else:
+            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+            self.resp = client.GetConfigInt("ImgStoreClientCert")
 
-        # Write File
-        file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
-        write_certs(file_list, self.resp)
-        self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT, IM_CLIENT_KEY,
-                                              ROOTCA_CERT)
-        self.di = DataIngestionLib(self.logger)
+            # Write File
+            file_list = [IM_CLIENT_CERT, IM_CLIENT_KEY]
+            write_certs(file_list, self.resp)
+            self.img_store = GrpcImageStoreClient(IM_CLIENT_CERT,
+                                                  IM_CLIENT_KEY,
+                                                  ROOTCA_CERT)
+
+        self.di = DataIngestionLib(self.logger, dev_mode=self.dev_mode)
         self.frame_submitter_thread.start()
 
         self.profiling = bool(strtobool(os.environ['PROFILING']))

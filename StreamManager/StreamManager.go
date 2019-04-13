@@ -199,7 +199,7 @@ func (pStrmMgr *StrmMgr) Init(DaCfg config.DAConfig) error {
 	StrmDaCfg = DaCfg
 
 	client, err := influxDBHelper.CreateHTTPClient(pStrmMgr.InfluxDBHost,
-		pStrmMgr.InfluxDBPort, pStrmMgr.InfluxDBUserName, pStrmMgr.InfluxDBPassword)
+		pStrmMgr.InfluxDBPort, pStrmMgr.InfluxDBUserName, pStrmMgr.InfluxDBPassword, DaCfg.DevMode)
 
 	if err != nil {
 		glog.Errorf("Error creating InfluxDB client: %v", err)
@@ -214,11 +214,11 @@ func (pStrmMgr *StrmMgr) Init(DaCfg config.DAConfig) error {
 	}
 
 	response, err = influxDBHelper.CreateSubscription(client, subscriptionName,
-		pStrmMgr.InfluxDBName, pStrmMgr.ServerHost, pStrmMgr.ServerPort)
+		pStrmMgr.InfluxDBName, pStrmMgr.ServerHost, pStrmMgr.ServerPort, StrmDaCfg.DevMode)
 
 	if err == nil && response.Error() == nil {
 		glog.Infoln("Successfully created subscription")
-		go startServer(pStrmMgr)
+		go startServer(pStrmMgr, DaCfg.DevMode)
 	} else if response.Error() != nil {
 		glog.Errorf("Response error: %v while creating subscription", response.Error())
 		const str = "already exists"
@@ -228,7 +228,7 @@ func (pStrmMgr *StrmMgr) Init(DaCfg config.DAConfig) error {
 		if strings.Contains(response.Error().Error(), str) {
 			glog.Infoln("subscription already exists, let's start the UDP" +
 				" server anyways..")
-			go startServer(pStrmMgr)
+			go startServer(pStrmMgr, DaCfg.DevMode)
 		}
 	}
 
@@ -251,7 +251,7 @@ func (pStrmMgr *StrmMgr) httpHandlerFunc(w http.ResponseWriter, req *http.Reques
 	}
 }
 
-func startServer(pStrmMgr *StrmMgr) {
+func startServer(pStrmMgr *StrmMgr, devMode bool) {
 	var dstAddr string
 	var err error
 	if pStrmMgr.ServerHost != "" {
@@ -276,10 +276,17 @@ func startServer(pStrmMgr *StrmMgr) {
 		hostname = "localhost"
 	}
 
-	opcuaFileList := []string{opcuaContext["certFile"], opcuaContext["privateFile"], opcuaContext["trustFile"]}
-	util.WriteCertFile(opcuaFileList, StrmDaCfg.Certs)
-	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname, pStrmMgr.OpcuaPort)
+	if !devMode {
+		opcuaFileList := []string{opcuaContext["certFile"], opcuaContext["privateFile"], opcuaContext["trustFile"]}
+		util.WriteCertFile(opcuaFileList, StrmDaCfg.Certs)
+	} else {
+		// We need to nullify as this global variable created with initialized data.
+		opcuaContext["certFile"] = ""
+		opcuaContext["privateFile"] = ""
+		opcuaContext["trustFile"] = ""
+	}
 
+	opcuaContext["endpoint"] = fmt.Sprintf(opcuaContext["endpoint"], hostname, pStrmMgr.OpcuaPort)
 	err = opcuaDatab.ContextCreate(opcuaContext)
 	if err != nil {
 		glog.Errorf("DataBus-OPCUA context creation Error: %v", err)
@@ -309,14 +316,18 @@ func startServer(pStrmMgr *StrmMgr) {
 	// Start the HTTP server handler
 	http.HandleFunc("/", pStrmMgr.httpHandlerFunc)
 
-	// Populate the certificates from vault. TODO: make a util function to fill the same.
-	StrmMngrFileList := []string{strmCertificatesPath["strmMngrCertFile"], strmCertificatesPath["strmMngrKeyFile"]}
-	util.WriteCertFile(StrmMngrFileList, StrmDaCfg.Certs)
+	if !devMode {
+		// Populate the certificates from vault. TODO: make a util function to fill the same.
+		StrmMngrFileList := []string{strmCertificatesPath["strmMngrCertFile"], strmCertificatesPath["strmMngrKeyFile"]}
+		util.WriteCertFile(StrmMngrFileList, StrmDaCfg.Certs)
 
-	err = http.ListenAndServeTLS(dstAddr,
-		strmCertificatesPath["strmMngrCertFile"],
-		strmCertificatesPath["strmMngrKeyFile"],
-		nil)
+		err = http.ListenAndServeTLS(dstAddr,
+			strmCertificatesPath["strmMngrCertFile"],
+			strmCertificatesPath["strmMngrKeyFile"],
+			nil)
+	} else {
+		err = http.ListenAndServe(dstAddr, nil)
+	}
 	if err != nil {
 		glog.Errorf("Error in connection to client due to: %v\n", err)
 		os.Exit(-1)

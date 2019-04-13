@@ -18,7 +18,6 @@ basler-source-plugin/
 **/*.md
 **/*.mp4
 **/*.avi
-**/*.json
 **/*.pyc
 **/*.tar
 **/*.log

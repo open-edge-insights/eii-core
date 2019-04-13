@@ -1,11 +1,14 @@
 cdef extern from "open62541_wrappers.h":
     ctypedef void (*c_callback)(char *topic, char *data, void *pyFunc)
     char* serverContextCreate(char *hostname,
-                              int port,
-                              char *certificateFile, 
-                              char *privateKeyFile,
-                              char **trustList,
-                              size_t trustListSize);
+                              int port);
+
+    char* serverContextCreateSecured(char *hostname,
+                               int port,
+                               char *certificateFile,
+                               char *privateKeyFile,
+                               char **trustList,
+                               size_t trustListSize);                              
 
     int serverStartTopic(char *ns, 
                         char *topic);
@@ -17,11 +20,14 @@ cdef extern from "open62541_wrappers.h":
     void serverContextDestroy();
 
     char* clientContextCreate(char *hostname,
-                              int port,
-                              char *certificateFile,
-                              char *privateKeyFile,
-                              char **trustList,
-                              size_t trustListSize);
+                              int port);
+
+    char* clientContextCreateSecured(char *hostname,
+                               int port,
+                               char *certificateFile,
+                               char *privateKeyFile,
+                               char **trustList,
+                               size_t trustListSize);
 
     int clientStartTopic(char *ns, 
                          char *topic);

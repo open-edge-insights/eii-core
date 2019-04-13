@@ -54,6 +54,7 @@ class databOpcua:
         self.nsIndex = None
         self.direction = None
         self.namespace = None
+        self.devMode = False
 
     def createContext(self, contextConfig):
         '''Creates a new messagebus context
@@ -73,6 +74,12 @@ class databOpcua:
                 "privateFile": server/client private key file
                 "trustFile"  : ca cert used to sign server/client cert
         Return/Exception: Will raise Exception in case of errors'''
+        certFile = contextConfig["certFile"]
+        privateFile = contextConfig["privateFile"]
+        trustFiles = [contextConfig["trustFile"]]
+
+        if not certFile or not privateFile or not trustFiles:
+            self.devMode = True
 
         self.direction = contextConfig["direction"]
         if self.direction == "PUB":
@@ -88,14 +95,15 @@ class databOpcua:
             host = hostPort.split(':')[0]
             port = int(hostPort.split(':')[1])
 
-            certFile = contextConfig["certFile"]
-            privateFile = contextConfig["privateFile"]
-            trustFiles = [contextConfig["trustFile"]]
-            errMsg = open62541W.py_serverContextCreate(host,
-                                                       port,
-                                                       certFile,
-                                                       privateFile,
-                                                       trustFiles)
+            if self.devMode:
+                errMsg = open62541W.py_serverContextCreate(host,
+                                                           port)
+            else:
+                errMsg = open62541W.py_serverContextCreateSecured(host,
+                                                                  port,
+                                                                  certFile,
+                                                                  privateFile,
+                                                                  trustFiles)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
                 self.logger.error("py_serverContextCreate() API failed!")
@@ -113,15 +121,15 @@ class databOpcua:
             host = hostPort.split(':')[0]
             port = int(hostPort.split(':')[1])
 
-            certFile = contextConfig["certFile"]
-            privateFile = contextConfig["privateFile"]
-            trustFiles = [contextConfig["trustFile"]]
-            trustFiles = [contextConfig["trustFile"]]
-            errMsg = open62541W.py_clientContextCreate(host,
-                                                       port,
-                                                       certFile,
-                                                       privateFile,
-                                                       trustFiles)
+            if self.devMode:
+                errMsg = open62541W.py_clientContextCreate(host,
+                                                           port)
+            else:
+                errMsg = open62541W.py_clientContextCreateSecured(host,
+                                                                  port,
+                                                                  certFile,
+                                                                  privateFile,
+                                                                  trustFiles)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
                 self.logger.error("py_clientContextCreate() API failed!")

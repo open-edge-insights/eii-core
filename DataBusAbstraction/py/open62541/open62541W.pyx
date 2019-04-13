@@ -10,7 +10,7 @@ cdef char** to_cstring_array(list_str):
         ret[i] = temp
     return ret
 
-def py_serverContextCreate(host, port, certificateFile, privateKeyFile, trustList):
+def py_serverContextCreateSecured(host, port, certificateFile, privateKeyFile, trustList):
   cdef bytes hostname  = host.encode();
   cdef char *chostname = hostname;
 
@@ -28,9 +28,20 @@ def py_serverContextCreate(host, port, certificateFile, privateKeyFile, trustLis
 
   cdef char *nil = NULL;
 
-  val = copen62541W.serverContextCreate(chostname, cport, ccertFile,
+  val = copen62541W.serverContextCreateSecured(chostname, cport, ccertFile,
                                        ckeyFile, ctrustList, ctrustListSize)
   free(ctrustList)
+  return val
+
+def py_serverContextCreate(host, port):
+  cdef bytes hostname  = host.encode();
+  cdef char *chostname = hostname;
+
+  cdef int cport = port;
+
+  cdef char *nil = NULL;
+
+  val = copen62541W.serverContextCreate(chostname, cport)
   return val
 
 def py_serverStartTopic(ns, topic):
@@ -57,7 +68,7 @@ def py_serverContextDestroy():
   copen62541W.serverContextDestroy()
 
 
-def py_clientContextCreate(host, port, certificateFile, privateKeyFile, trustList):
+def py_clientContextCreateSecured(host, port, certificateFile, privateKeyFile, trustList):
   cdef bytes host_bytes  = host.encode();
   cdef char *chostname = host_bytes;
 
@@ -72,9 +83,18 @@ def py_clientContextCreate(host, port, certificateFile, privateKeyFile, trustLis
   cdef int ctrustListSize = len(trustList);
   cdef char **ctrustList = to_cstring_array(trustList);
 
-  val = copen62541W.clientContextCreate(chostname, cport, ccertFile, ckeyFile, ctrustList,
+  val = copen62541W.clientContextCreateSecured(chostname, cport, ccertFile, ckeyFile, ctrustList,
                                  ctrustListSize)
   free(ctrustList)
+  return val
+
+def py_clientContextCreate(host, port):
+  cdef bytes host_bytes  = host.encode();
+  cdef char *chostname = host_bytes;
+
+  cdef int cport = port;
+  val = copen62541W.clientContextCreate(chostname, cport)
+
   return val
 
 cdef void pyxCallback(char *topic, char *data, void *func) with gil:

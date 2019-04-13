@@ -8,5 +8,8 @@ do
 done
 
 chmod 777 /tmp/point_classifier
-
-kapacitord -hostname ia_data_analytics
+if [-z $DEV_MODE]
+then
+    kapacitord -config /etc/kapacitor/kapacitor.conf -hostname ia_data_analytics
+else
+    kapacitord -config /etc/kapacitor/kapacitor_devmode.conf -hostname ia_data_analytics 

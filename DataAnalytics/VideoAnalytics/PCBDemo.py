@@ -31,6 +31,7 @@ from algos.dpm.config import Configuration
 from DataHandler import DataHandler
 from StreamSubLib.StreamSubLib import StreamSubLib
 from Util.log import configure_logging, LOG_LEVELS
+from distutils.util import strtobool
 from Util.util import create_decrypted_pem_files, check_port_availability
 
 
@@ -45,6 +46,7 @@ class PCBDemoApp:
         self.config = config
         self.log = log
         self.container_mode = container_mode
+        self.devmode = bool(strtobool(os.environ['DEV_MODE']))
 
         self.log.info("=============== STARTING video_analytics \
             ===============")
@@ -63,19 +65,32 @@ class PCBDemoApp:
                 log.error("DataAgent is not up. So Exiting...", exc_info=True)
                 exit(-1)
 
-            # Create cert
-            src_files = [CA_CERT]
-            files_to_decrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-            create_decrypted_pem_files(src_files, files_to_decrypt)
-
-            self.stream_sub_lib.init()
+            if not self.devmode:
+                # Create cert
+                src_files = [CA_CERT]
+                files_to_decrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+                create_decrypted_pem_files(src_files, files_to_decrypt)
+                self.stream_sub_lib.init()
+            else:
+                self.stream_sub_lib.init(dev_mode=True)
         else:
             self.log.info("Running in baremetal mode")
-            self.stream_sub_lib.init(
-             cert_path=self.app_config['pcbdemo_cert_path'],
-             key_path=self.app_config['pcbdemo_key_path'])
+            try:
+                if self.devmode:
+                    self.stream_sub_lib.init(dev_mode=self.devmode)
+                else:
+                    self.stream_sub_lib.init(
+                        cert_path=self.app_config['pcbdemo_cert_path'],
+                        key_path=self.app_config['pcbdemo_key_path'])
+            except Exception as e:
+                self.log.error(e)
+                os._exit(1)
 
-        self.data_handler = DataHandler(self.config, self.log)
+            # self.stream_sub_lib.init(
+            #  cert_path=self.app_config['pcbdemo_cert_path'],
+            #  key_path=self.app_config['pcbdemo_key_path'])
+
+        self.data_handler = DataHandler(self.config, self.log, self.devmode)
 
     def _get_streams(self):
         streams = []

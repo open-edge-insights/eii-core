@@ -22,33 +22,44 @@ import (
 )
 
 // CreateHTTPClient returns a http client connected to Influx DB
-func CreateHTTPClient(host string, port string, userName string, passwd string) (client.Client, error) {
+func CreateHTTPClient(host string, port string, userName string, passwd string, devMode bool) (client.Client, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "https://%s:%s", host, port)
-	const (
-		RootCA = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
-	)
-	certPool := x509.NewCertPool()
-	ca, err := util.GetDecryptedBlob(RootCA)
+	var err error
+	var httpClient client.Client
 
-	if err != nil {
-		glog.Errorf("Failed to Read CA Certificate : %s", err)
-		return nil, err
-	}
-	if ok := certPool.AppendCertsFromPEM(ca); !ok {
-		glog.Errorf("Failed to Append Certificate")
-		return nil, nil
-	}
-	client, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr:               buff.String(),
-		Username:           userName,
-		Password:           passwd,
-		InsecureSkipVerify: false,
-		TLSConfig: &tls.Config{
-			RootCAs: certPool}})
+	if !devMode {
+		fmt.Fprintf(&buff, "https://%s:%s", host, port)
+		const (
+			RootCA = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
+		)
+		certPool := x509.NewCertPool()
+		ca, err := util.GetDecryptedBlob(RootCA)
 
-	return client, err
+		if err != nil {
+			glog.Errorf("Failed to Read CA Certificate : %s", err)
+			return nil, err
+		}
+		if ok := certPool.AppendCertsFromPEM(ca); !ok {
+			glog.Errorf("Failed to Append Certificate")
+			return nil, nil
+		}
+		httpClient, err = client.NewHTTPClient(client.HTTPConfig{
+			Addr:               buff.String(),
+			Username:           userName,
+			Password:           passwd,
+			InsecureSkipVerify: false,
+			TLSConfig: &tls.Config{
+				RootCAs: certPool}})
+	} else {
+		fmt.Fprintf(&buff, "http://%s:%s", host, port)
+		httpClient, err = client.NewHTTPClient(client.HTTPConfig{
+			Addr:     buff.String(),
+			Username: userName,
+			Password: passwd})
+	}
+
+	return httpClient, err
 }
 
 // DropAllSubscriptions drops all the subscriptions in InfluxDB
@@ -83,10 +94,14 @@ func DropAllSubscriptions(cli client.Client, dbName string) (*client.Response, e
 }
 
 // CreateSubscription creates the subscription in InfluxDB
-func CreateSubscription(cli client.Client, subName string, dbName string, httpHost string, httpPort string) (*client.Response, error) {
+func CreateSubscription(cli client.Client, subName string, dbName string, httpHost string, httpPort string, devMode bool) (*client.Response, error) {
 	var buff bytes.Buffer
 
-	fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'https://%s:%s'", subName, dbName, httpHost, httpPort)
+	if devMode {
+		fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'http://%s:%s'", subName, dbName, httpHost, httpPort)
+	} else {
+		fmt.Fprintf(&buff, "create subscription %s ON \"%s\".\"autogen\" DESTINATIONS ALL 'https://%s:%s'", subName, dbName, httpHost, httpPort)
+	}
 
 	q := client.NewQuery(buff.String(), "", "")
 	response, err := cli.Query(q)

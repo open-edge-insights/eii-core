@@ -224,7 +224,7 @@ startServer(void *ptr) {
     return NULL;
 }
 
-/* serverContextCreate function creates the opcua namespace, opcua variable and starts the server
+/* serverContextCreateSecured function creates the opcua namespace, opcua variable and starts the server
  *
  * @param  hostname(string)           hostname of the system where opcua server should run
  * @param  port(uint)                 opcua port
@@ -235,7 +235,7 @@ startServer(void *ptr) {
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-serverContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
+serverContextCreateSecured(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
 
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
@@ -284,6 +284,57 @@ serverContextCreate(char *hostname, int port, char *certificateFile, char *priva
     UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
 
     UA_DurationRange range = {5.0, 5.0};
+    serverConfig->publishingIntervalLimits = range;
+    serverConfig->samplingIntervalLimits = range;
+
+    /* Initiate server instance */
+    server = UA_Server_new(serverConfig);
+    if(server == NULL) {
+        static char str[] = "UA_Server_new() API failed";
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            str);
+        return str;
+    }
+
+    /* Creation of mutex for server instance */
+    serverLock = malloc(sizeof(pthread_mutex_t));
+
+    if (!serverLock || pthread_mutex_init(serverLock, NULL) != 0) {
+        static char str[] = "server lock mutex init has failed!";
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", str);
+        return str;
+    }
+
+    pthread_t serverThread;
+    if (pthread_create(&serverThread, NULL, startServer, NULL)) {
+        static char str[] = "server pthread creation to start server failed";
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            str);
+        return str;
+    }
+    return "0";
+}
+/* serverContextCreate function creates the opcua namespace, opcua variable and starts the server
+ * in insecure mode
+ *
+ * @param  hostname(string)           hostname of the system where opcua server should run
+ * @param  port(uint)                 opcua port
+ *
+ * @return Return a string "0" for success and other string for failure of the function */
+char*
+serverContextCreate(char *hostname, int port) {
+
+    /* Initiate server config */
+    serverConfig = UA_ServerConfig_new_minimal(port, NULL);;
+    if(!serverConfig) {
+        static char str[] = "Could not create the server config";
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+            str);
+        return str;
+    }
+    UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
+
+    UA_DurationRange range = {5.0, 10.0};
     serverConfig->publishingIntervalLimits = range;
     serverConfig->samplingIntervalLimits = range;
 
@@ -537,7 +588,7 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-clientContextCreate(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
+clientContextCreateSecured(char *hostname, int port, char *certificateFile, char *privateKeyFile, char **trustedCerts, size_t trustedListSize) {
 
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
     UA_ByteString *revocationList = NULL;
@@ -644,7 +695,6 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     }
 
     clientConfig = UA_ClientConfig_default;
-
     /* Set stateCallback */
     clientConfig.timeout = 1000;
     clientConfig.stateCallback = stateCallback;
@@ -668,6 +718,72 @@ clientContextCreate(char *hostname, int port, char *certificateFile, char *priva
     UA_ByteString_deleteMembers(&privateKey);
     for(size_t deleteCount = 0; deleteCount < trustedListSize; deleteCount++) {
         UA_ByteString_deleteMembers(&trustList[deleteCount]);
+    }
+
+    //TODO: Need to enable this while enabling ACL (Access Control List)
+    #if 0
+    /* Secure client connect */
+    retval = UA_Client_connect_username(client, endpoint, username, password);
+    if(retval != UA_STATUSCODE_GOOD) {
+        cleanupClient();
+        DBA_STRCPY(errorMsg, "UA_Client_Connect() API failed!");
+        return errorMsg;
+    }
+    #endif
+
+    retval = UA_Client_connect(client, endpoint);
+    if(retval != UA_STATUSCODE_GOOD) {
+        cleanupClient();
+        return UA_StatusCode_name(retval);
+    }
+    return "0";
+}
+
+/* clientContextCreate function establishes unsecure connection with the opcua server
+ *
+ * @param  hostname(string)           hostname of the system where opcua server is running
+ * @param  port(uint)                 opcua port
+ *
+ * @return Return a string "0" for success and other string for failure of the function */
+char*
+clientContextCreate(char *hostname, int port) {
+    // TODO: fill
+    UA_StatusCode retval = UA_STATUSCODE_GOOD;
+
+    /* endpointArray holds the available endpoints in the server
+     * and endpointArraySize holds the number of endpoints available */
+    UA_EndpointDescription* endpointArray = NULL;
+    size_t endpointArraySize = 0;
+
+    client = UA_Client_new(UA_ClientConfig_default);
+    if(client == NULL) {
+        static char str[] = "UA_Client_new() API returned NULL";
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+            "%s", str);
+        return str;
+    }
+
+    char portStr[10];
+    DBA_STRCPY(endpoint, "opc.tcp://");
+    strcat_s(endpoint, ENDPOINT_SIZE, hostname);
+    strcat_s(endpoint, ENDPOINT_SIZE, ":");
+    strcat_s(endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
+
+    UA_Client_delete(client); /* Disconnects the client internally */
+ 
+    /* Set stateCallback */
+    clientConfig.timeout = 1000;
+    clientConfig.stateCallback = stateCallback;
+    clientConfig.subscriptionInactivityCallback = subscriptionInactivityCallback;
+
+    /* client initialization */
+    //client = UA_Client_new(clientConfig);
+    client = UA_Client_new(UA_ClientConfig_default);
+    if(client == NULL) {
+        static char str[] = "UA_Client_new() API returned NULL";
+        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+            "%s", str);
+        return str;
     }
 
     //TODO: Need to enable this while enabling ACL (Access Control List)
