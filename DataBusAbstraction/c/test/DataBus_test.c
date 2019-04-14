@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
                 trusted_certs: list of trusted_certs");
         exit(-1);
     }
-    
+
     char *errorMsg;
     contextConfig.direction = argv[1];
     contextConfig.endpoint = argv[2];
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
     contextConfig.trustList = NULL;
 
     size_t trustListSize = 0;
-    
+
     if (argc > 7) {
         trustListSize = (size_t)argc-7;
     }
@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
     if (!strcmp(contextConfig.direction, "PUB")) {
         char result[100];
         for (int i = 0; i < 10000; i++) {
-            sprintf(result, "Hello %ld", i);
+            sprintf(result, "classifier_results %ld", i);
             errorMsg = Publish(topicConfig, result);
             if(strcmp(errorMsg, "0")) {
                 printf("serverPublish() API failed, error: %s\n", errorMsg);

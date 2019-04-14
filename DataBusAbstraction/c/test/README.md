@@ -25,3 +25,14 @@ make sub
 make clean
 ```
 
+# Compilation steps for running DBA tests in dist_libs:
+
+# Start publisher, publish and destroy
+```sh
+make -f Makefile.dist_libs dist_libs_pub
+```
+
+# Start subscriber, subscribe and destroy
+```sh
+make -f Makefile.dist_libs dist_libs_sub
+```

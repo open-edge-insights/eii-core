@@ -52,6 +52,13 @@ invalid_client: build
 	                        $(INVALID_CERTS)/client/client2_key.der \
 							$(INVALID_CERTS)/ca/ca_certificate.der
 
+build_static_lib: prebuild
+	@echo "Building the open62541 so file.."
+	gcc -c -o open62541_wrappers.o $(INCLUDE) $(CPATH)/open62541_wrappers.c
+	ar rcs libopen62541_wrappers.a open62541_wrappers.o
+	gcc -c -o open62541.o $(INCLUDE) $(CPATH)/open62541.c
+	ar rcs libopen62541.a open62541.o
+
 clean:
 	@echo "Removing all the binary files..."
 	rm -rf open62541_test libsafestring.a $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CURDIR)/safestringlib
