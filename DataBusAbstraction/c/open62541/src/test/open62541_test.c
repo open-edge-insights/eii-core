@@ -72,14 +72,21 @@ int main(int argc, char **argv) {
         trustList[i] = (char*)argv[i+4];
 
     if (!strcmp(argv[1], "server")) {
-
-
-        errorMsg = serverContextCreateSecured(hostname, port, certificatePath, privateKey, trustList, trustListSize);
-        if(strcmp(errorMsg, "0")) {
-            printf("serverContextCreateSecured() API failed, error: %s\n", errorMsg);
-            return -1;
+        if (!strcmp(certificatePath, "") && !strcmp(privateKey, "") && !strcmp(trustList[0], "")) {
+            errorMsg = serverContextCreate(hostname, port);
+            if(strcmp(errorMsg, "0")) {
+                printf("serverContextCreate() API failed, error: %s\n", errorMsg);
+                return -1;
+            }
+            printf("serverContextCreate() API successfully executed!\n");
+        } else {
+            errorMsg = serverContextCreateSecured(hostname, port, certificatePath, privateKey, trustList, trustListSize);
+            if(strcmp(errorMsg, "0")) {
+                printf("serverContextCreateSecured() API failed, error: %s\n", errorMsg);
+                return -1;
+            }
+            printf("serverContextCreateSecured() API successfully executed!\n");
         }
-        printf("serverContextCreateSecured() API successfully executed!\n");
 
         int nsIndex = serverStartTopic(ns, topic);
         if(nsIndex == 100) {
@@ -101,12 +108,22 @@ int main(int argc, char **argv) {
         }
         serverContextDestroy();
     } else if (!strcmp(argv[1], "client")) {
-        errorMsg = clientContextCreate(hostname, port, certificatePath, privateKey, trustList, trustListSize);
-        if(strcmp(errorMsg, "0")) {
-            printf("clientContextCreate() API failed, error: %s\n", errorMsg);
-            return -1;
+        if (!strcmp(certificatePath, "") && !strcmp(privateKey, "") && !strcmp(trustList[0], "")) {
+            errorMsg = clientContextCreate(hostname, port);
+            if(strcmp(errorMsg, "0")) {
+                printf("clientContextCreate() API failed, error: %s\n", errorMsg);
+                return -1;
+            }
+            printf("clientContextCreate() API successfully executed!\n");
+        } else {
+            errorMsg = clientContextCreateSecured(hostname, port, certificatePath, privateKey, trustList, trustListSize);
+            if(strcmp(errorMsg, "0")) {
+                printf("clientContextCreateSecured() API failed, error: %s\n", errorMsg);
+                return -1;
+            }
+            printf("clientContextCreateSecured() API successfully executed!\n");
         }
-        printf("clientContextCreate() API successfully executed!\n");
+
         int nsIndex = clientStartTopic(ns, topic);
         if (nsIndex == 100) {
             printf("clienStartTopic() API failed!\n");

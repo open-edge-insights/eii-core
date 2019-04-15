@@ -30,9 +30,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	    } \
     }
 
-// logger global varaibles
-static UA_Logger logger = UA_Log_Stdout;
-
 // opcua server global variables
 static UA_Server *server = NULL;
 static UA_ServerConfig *serverConfig;
@@ -42,7 +39,7 @@ static pthread_mutex_t *serverLock = NULL;
 
 // opcua client global variables
 static UA_Client *client = NULL;
-static UA_ClientConfig clientConfig;
+static UA_ClientConfig* clientConfig;
 static char lastSubscribedTopic[TOPIC_SIZE] = "";
 static int lastNamespaceIndex = FAILURE;
 static char endpoint[ENDPOINT_SIZE];
@@ -59,7 +56,7 @@ static bool clientExited = false;
 static void
 logMsg(const char *msg, ...) {
     va_list args; va_start(args, msg);
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, msg, args);
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, msg, args);
     va_end(args);
 }
 */
@@ -84,7 +81,7 @@ static char* convertToString(char str[], int num) {
 
 static UA_Int16
 getNamespaceIndex(char *ns, char *topic) {
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
     UA_BrowseRequest bReq;
     UA_BrowseRequest_init(&bReq);
     bReq.requestedMaxReferencesPerNode = 0;
@@ -93,12 +90,12 @@ getNamespaceIndex(char *ns, char *topic) {
     bReq.nodesToBrowse[0].nodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER); /* browse objects folder */
     bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL; /* return everything */
     UA_BrowseResponse bResp = UA_Client_Service_browse(client, bReq);
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%-9s %-16s %-16s %-16s\n", "NAMESPACE", "NODEID", "BROWSE NAME", "DISPLAY NAME");
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%-9s %-16s %-16s %-16s\n", "NAMESPACE", "NODEID", "BROWSE NAME", "DISPLAY NAME");
     for(size_t i = 0; i < bResp.resultsSize; ++i) {
         for(size_t j = 0; j < bResp.results[i].referencesSize; ++j) {
             UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
             if(ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
-                UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%-9d %-16.*s %-16.*s %-16.*s\n", ref->nodeId.nodeId.namespaceIndex,
+                UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%-9d %-16.*s %-16.*s %-16.*s\n", ref->nodeId.nodeId.namespaceIndex,
                        (int)ref->nodeId.nodeId.identifier.string.length,
                        ref->nodeId.nodeId.identifier.string.data,
                        (int)ref->browseName.name.length, ref->browseName.name.data,
@@ -107,7 +104,7 @@ getNamespaceIndex(char *ns, char *topic) {
                 DBA_STRCPY(nodeIdentifier, ref->nodeId.nodeId.identifier.string.data);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
-                    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
+                    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
                     UA_BrowseRequest_deleteMembers(&bReq);
                     UA_BrowseResponse_deleteMembers(&bResp);
                     return nodeNs;
@@ -129,7 +126,7 @@ readPublishedData(UA_Server *server,
                 const UA_NodeId *nodeId, void *nodeContext,
                 UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
                 UA_DataValue *data) {
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND,
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
                      "In readPublishedData() function");
     data->hasValue = true;
     UA_String str = UA_STRING(dataToPublish);
@@ -151,10 +148,10 @@ addTopicDataSourceVariable(UA_Server *server, char *namespace, char *topic) {
 
     UA_UInt16 namespaceIndex = UA_Server_addNamespace(server, namespace);
     if (namespaceIndex == 0) {
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "UA_Server_addNamespace has failed");
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "UA_Server_addNamespace has failed");
         return FAILURE;
     }
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%u:namespaceIndex created for namespace: %s\n", namespaceIndex, namespace);
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%u:namespaceIndex created for namespace: %s\n", namespaceIndex, namespace);
 
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", topic);
@@ -199,7 +196,7 @@ startServer(void *ptr) {
     /* run server */
     UA_StatusCode retval = UA_Server_run_startup(server);
     if (retval != UA_STATUSCODE_GOOD) {
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "\nServer failed to start, error: %s", UA_StatusCode_name(retval));
         return NULL;
     }
 
@@ -241,14 +238,14 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
         static char str[] = "Unable to load certificate file";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
         static char str[] = "Unable to load private key file";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
@@ -260,7 +257,7 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
         trustList[i] = loadFile(trustedCerts[i]);
         if(trustList[i].length == 0) {
             static char str[] = "Unable to load trusted cert file";
-            UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+            UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
                 "%s", str);
             return str;
         }
@@ -277,7 +274,7 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
                                           revocationList, revocationListSize);
     if(!serverConfig) {
         static char str[] = "Could not create the server config";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -291,7 +288,7 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
         static char str[] = "UA_Server_new() API failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -308,7 +305,7 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
         static char str[] = "server pthread creation to start server failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -328,7 +325,7 @@ serverContextCreate(char *hostname, int port) {
     serverConfig = UA_ServerConfig_new_minimal(port, NULL);;
     if(!serverConfig) {
         static char str[] = "Could not create the server config";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -342,7 +339,7 @@ serverContextCreate(char *hostname, int port) {
     server = UA_Server_new(serverConfig);
     if(server == NULL) {
         static char str[] = "UA_Server_new() API failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -359,7 +356,7 @@ serverContextCreate(char *hostname, int port) {
     pthread_t serverThread;
     if (pthread_create(&serverThread, NULL, startServer, NULL)) {
         static char str[] = "server pthread creation to start server failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -378,7 +375,7 @@ serverStartTopic(char *namespace, char *topic) {
     /* check if server is started or not */
     if (server == NULL) {
         static char str[] = "UA_Server instance is not instantiated";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
     }
@@ -389,7 +386,7 @@ serverStartTopic(char *namespace, char *topic) {
     UA_Int16 nsIndex = addTopicDataSourceVariable(server, namespace, topic);
     if (nsIndex == FAILURE) {
         static char str[] = "Failed to add topic data source variable node";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
     }
@@ -409,7 +406,7 @@ serverPublish(int nsIndex, char *topic, char* data) {
     /* check if server is started or not */
     if (server == NULL) {
         static char str[] = "UA_Server instance is not instantiated";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -419,7 +416,7 @@ serverPublish(int nsIndex, char *topic, char* data) {
     DBA_STRCPY(dataToPublish, data);
     UA_String str = UA_STRING(data);
     UA_Variant_setScalarCopy(val, &str, &UA_TYPES[UA_TYPES_STRING]);
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "nsIndex: %d, topic:%s\n", nsIndex, topic);
 
     /*sleep for mininum publishing interval in ms*/
     UA_sleep_ms((int)serverConfig->publishingIntervalLimits.min);
@@ -432,7 +429,7 @@ serverPublish(int nsIndex, char *topic, char* data) {
         UA_Variant_delete(val);
         return "0";
     }
-    UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s", UA_StatusCode_name(retval));
+    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", UA_StatusCode_name(retval));
     UA_Variant_delete(val);
     return UA_StatusCode_name(retval);
 }
@@ -457,12 +454,12 @@ cleanupClient() {
 
 static void
 deleteSubscriptionCallback(UA_Client *client, UA_UInt32 subscriptionId, void *subscriptionContext) {
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Subscription Id %u was deleted", subscriptionId);
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription Id %u was deleted", subscriptionId);
 }
 
 static void
 subscriptionInactivityCallback (UA_Client *client, UA_UInt32 subId, void *subContext) {
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Inactivity for subscription %u", subId);
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Inactivity for subscription %u", subId);
 }
 
 static void
@@ -481,7 +478,7 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                 if (strstr(subscribedData, lastSubscribedTopic) != NULL)
                     userCallback(lastSubscribedTopic, subscribedData, userFunc);
             } else {
-                UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
+                UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
             }
         }
     }
@@ -498,21 +495,21 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
                                                                             NULL, NULL, deleteSubscriptionCallback);
 
     if(response.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Create subscription succeeded, id %u", response.subscriptionId);
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Subscription's revisedPublishingInterval: %u ms", response.revisedPublishingInterval);
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription succeeded, id %u", response.subscriptionId);
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription's revisedPublishingInterval: %u ms", response.revisedPublishingInterval);
     } else {
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
         return 1;
     }
 
     if (topic == NULL) {
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "topic is NULL!");
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "topic is NULL!");
         return 1;
     }
 
     UA_NodeId nodeId = UA_NODEID_STRING(nsIndex, topic);
 
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "ns: %d, identifier: %.*s\n", nodeId.namespaceIndex,
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "ns: %d, identifier: %.*s\n", nodeId.namespaceIndex,
         (int)nodeId.identifier.string.length,
         nodeId.identifier.string.data);
 
@@ -527,10 +524,10 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
     if(monResponse.statusCode == UA_STATUSCODE_GOOD) {
         /* house keeping of last subscribed topic */
         if (cb != NULL) {
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "callback(cb) is not NULL\n");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "callback(cb) is not NULL\n");
             userCallback = cb;
         }
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "Monitoring NODEID(%d, %.*s),id %u\n",
             nodeId.namespaceIndex,
             (int)nodeId.identifier.string.length,
@@ -547,31 +544,31 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
 static void stateCallback(UA_Client *client, UA_ClientState clientState) {
     switch(clientState) {
         case UA_CLIENTSTATE_WAITING_FOR_ACK:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "The client is waiting for ACK");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "The client is waiting for ACK");
             break;
         case UA_CLIENTSTATE_DISCONNECTED:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "The client is disconnected");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "The client is disconnected");
             break;
         case UA_CLIENTSTATE_CONNECTED:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A TCP connection to the server is open");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "A TCP connection to the server is open");
             break;
         case UA_CLIENTSTATE_SECURECHANNEL:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A SecureChannel to the server is open");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "A SecureChannel to the server is open");
             break;
         case UA_CLIENTSTATE_SESSION:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A session with the server is open");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "A session with the server is open");
             /* recreating the subscription upon opcua server connect */
             if (lastNamespaceIndex != FAILURE) {
                 if (createSubscription(lastNamespaceIndex, lastSubscribedTopic, NULL) == 1)
-                    UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
+                    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
             }
             break;
         case UA_CLIENTSTATE_SESSION_RENEWED:
             /* The session was renewed. We don't need to recreate the subscription. */
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "A session with the server is open (renewed)");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "A session with the server is open (renewed)");
             break;
         case UA_CLIENTSTATE_SESSION_DISCONNECTED:
-            UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "Session disconnected");
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Session disconnected");
             break;
     }
     return;
@@ -603,22 +600,22 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
         static char str[] = "Unable to load certificate file";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
     UA_ByteString privateKey = loadFile(privateKeyFile);
     if(privateKey.length == 0) {
         static char str[] = "Unable to load private key file";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
 
-    client = UA_Client_new(UA_ClientConfig_default);
+    client = UA_Client_new();
     if(client == NULL) {
         static char str[] = "UA_Client_new() API returned NULL";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
@@ -631,111 +628,43 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
     strcat_s(endpoint, ENDPOINT_SIZE, ":");
     strcat_s(endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
 
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Getting endpoints of: %s\n", endpoint);
-    /* The getEndpoints API (discovery service) is done with security mode as none to
-       see the server's capability and certificate */
-    retval = UA_Client_getEndpoints(client, endpoint,
-                                    &endpointArraySize, &endpointArray);
-    if(retval != UA_STATUSCODE_GOOD) {
-        UA_Array_delete(endpointArray, endpointArraySize,
-                        &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
-        cleanupClient();
-        return UA_StatusCode_name(retval);
-    }
-
-    UA_String securityPolicyUri = UA_STRING(SECURITY_POLICY_URI);
-    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "%i endpoints found\n", (int)endpointArraySize);
-    for(size_t endPointCount = 0; endPointCount < endpointArraySize; endPointCount++) {
-        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "URL of endpoint %i is %.*s / %.*s\n", (int)endPointCount,
-               (int)endpointArray[endPointCount].endpointUrl.length,
-               endpointArray[endPointCount].endpointUrl.data,
-               (int)endpointArray[endPointCount].securityPolicyUri.length,
-               endpointArray[endPointCount].securityPolicyUri.data);
-
-        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d\n", endpointArray[endPointCount].securityMode);
-        if(endpointArray[endPointCount].securityMode != UA_MESSAGESECURITYMODE_SIGNANDENCRYPT) {
-            UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "endpointArray[endPointCount].securityMode: %d is not equal to UA_MESSAGESECUREITYMODE_SIGNANDENCRYPT\n",
-            endpointArray[endPointCount].securityMode);
-            continue;
-        }
-
-
-        if(UA_String_equal(&endpointArray[endPointCount].securityPolicyUri, &securityPolicyUri)) {
-            UA_LOG_DEBUG(logger, UA_LOGCATEGORY_USERLAND, "Equal...endpointArray[endPointCount].securityPolicyUri and securityPolicyUri\n");
-            UA_ByteString_copy(&endpointArray[endPointCount].serverCertificate, remoteCertificate);
-            break;
-        }
-    }
-
-    if(UA_ByteString_equal(remoteCertificate, &UA_BYTESTRING_NULL)) {
-        static char str[] = "Server does not support Security Basic256Sha256 Mode of \
-            UA_MESSAGESECURITYMODE_SIGNANDENCRYPT";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
-            str);
-        cleanupClient();
-        return str;
-    }
-
-    UA_Array_delete(endpointArray, endpointArraySize,
-                    &UA_TYPES[UA_TYPES_ENDPOINTDESCRIPTION]);
-
-    UA_Client_delete(client); /* Disconnects the client internally */
-
-    /* Load the trustList. Load revocationList is not supported now */
     UA_STACKARRAY(UA_ByteString, trustList, trustedListSize);
-
-    for(size_t i = 0; i < trustedListSize; i++) {
-        trustList[i] = loadFile(trustedCerts[i]);
-        if(trustList[i].length == 0) {
+    for(size_t trustListCount = 0; trustListCount < trustedListSize; trustListCount++) {
+        trustList[trustListCount] = loadFile(trustedCerts[trustListCount]);
+          if(trustList[trustListCount].length == 0) {
             static char str[] = "Unable to load trusted cert file";
-            UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+            UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
                 "%s", str);
             return str;
         }
     }
 
-    clientConfig = UA_ClientConfig_default;
+    clientConfig = UA_Client_getConfig(client);
+    clientConfig->securityMode = UA_MESSAGESECURITYMODE_SIGNANDENCRYPT;
+    UA_ClientConfig_setDefaultEncryption(clientConfig, certificate, privateKey,
+                                         trustList, trustedListSize,
+                                         revocationList, revocationListSize);
+
     /* Set stateCallback */
-    clientConfig.timeout = 1000;
-    clientConfig.stateCallback = stateCallback;
-    clientConfig.subscriptionInactivityCallback = subscriptionInactivityCallback;
+    clientConfig->timeout = 1000;
+    clientConfig->stateCallback = stateCallback;
+    clientConfig->subscriptionInactivityCallback = subscriptionInactivityCallback;
 
-    /* Secure client initialization */
-    client = UA_Client_secure_new(clientConfig,
-                                  certificate, privateKey,
-                                  remoteCertificate,
-                                  trustList, trustedListSize,
-                                  revocationList, revocationListSize,
-                                  UA_SecurityPolicy_Basic256Sha256);
-
-    if(client == NULL) {
-        UA_ByteString_delete(remoteCertificate); /* Dereference the memory */
-        static char str[] = "UA_Client_secure_new() API failed!";
-        return str;
-    }
-
-    UA_ByteString_deleteMembers(&certificate);
-    UA_ByteString_deleteMembers(&privateKey);
+    UA_ByteString_clear(&certificate);
+    UA_ByteString_clear(&privateKey);
     for(size_t deleteCount = 0; deleteCount < trustedListSize; deleteCount++) {
-        UA_ByteString_deleteMembers(&trustList[deleteCount]);
+        UA_ByteString_clear(&trustList[deleteCount]);
     }
 
-    //TODO: Need to enable this while enabling ACL (Access Control List)
-    #if 0
     /* Secure client connect */
-    retval = UA_Client_connect_username(client, endpoint, username, password);
-    if(retval != UA_STATUSCODE_GOOD) {
-        cleanupClient();
-        DBA_STRCPY(errorMsg, "UA_Client_Connect() API failed!");
-        return errorMsg;
-    }
-    #endif
-
+    clientConfig->securityMode = UA_MESSAGESECURITYMODE_SIGNANDENCRYPT; /* require encryption */
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
+        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
         cleanupClient();
         return UA_StatusCode_name(retval);
     }
+
     return "0";
 }
 
@@ -750,52 +679,27 @@ clientContextCreate(char *hostname, int port) {
     // TODO: fill
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
 
-    /* endpointArray holds the available endpoints in the server
-     * and endpointArraySize holds the number of endpoints available */
-    UA_EndpointDescription* endpointArray = NULL;
-    size_t endpointArraySize = 0;
-
-    client = UA_Client_new(UA_ClientConfig_default);
-    if(client == NULL) {
-        static char str[] = "UA_Client_new() API returned NULL";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
-            "%s", str);
-        return str;
-    }
-
     char portStr[10];
     DBA_STRCPY(endpoint, "opc.tcp://");
     strcat_s(endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(endpoint, ENDPOINT_SIZE, ":");
     strcat_s(endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
 
-    UA_Client_delete(client); /* Disconnects the client internally */
- 
-    /* Set stateCallback */
-    clientConfig.timeout = 1000;
-    clientConfig.stateCallback = stateCallback;
-    clientConfig.subscriptionInactivityCallback = subscriptionInactivityCallback;
-
     /* client initialization */
-    //client = UA_Client_new(clientConfig);
-    client = UA_Client_new(UA_ClientConfig_default);
+    client = UA_Client_new();
     if(client == NULL) {
         static char str[] = "UA_Client_new() API returned NULL";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND,
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
             "%s", str);
         return str;
     }
+    clientConfig = UA_Client_getConfig(client);
+    UA_ClientConfig_setDefault(clientConfig);
 
-    //TODO: Need to enable this while enabling ACL (Access Control List)
-    #if 0
-    /* Secure client connect */
-    retval = UA_Client_connect_username(client, endpoint, username, password);
-    if(retval != UA_STATUSCODE_GOOD) {
-        cleanupClient();
-        DBA_STRCPY(errorMsg, "UA_Client_Connect() API failed!");
-        return errorMsg;
-    }
-    #endif
+    /* Set stateCallback */
+    clientConfig->timeout = 1000;
+    clientConfig->stateCallback = stateCallback;
+    clientConfig->subscriptionInactivityCallback = subscriptionInactivityCallback;
 
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
@@ -809,7 +713,7 @@ clientContextCreate(char *hostname, int port) {
 static void*
 runClient(void *ptr) {
 
-    UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
     while(!clientExited) {
         /* if already connected, this will return GOOD and do nothing */
         /* if the connection is closed/errored, the connection will be reset and then reconnected */
@@ -818,8 +722,8 @@ runClient(void *ptr) {
         if (clientState == UA_CLIENTSTATE_DISCONNECTED) {
             UA_StatusCode retval = UA_Client_connect(client, endpoint);
             if(retval != UA_STATUSCODE_GOOD) {
-                UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
-                UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
+                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
+                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
                 /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
                 /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
                 UA_sleep_ms(1000);
@@ -843,7 +747,7 @@ int
 clientStartTopic(char *namespace, char *topic) {
     if (client == NULL) {
         static char str[] = "UA_Client instance is not created";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return FAILURE;
     }
@@ -865,21 +769,21 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     userFunc = pyxFunc;
     if (client == NULL) {
         static char str[] = "UA_Client instance is not created";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
     UA_ClientState clientState = UA_Client_getState(client);
     if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
         static char str[] = "Not a valid client state: for subscription to occurinstance is not created";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
 
     if (createSubscription(nsIndex, topic, cb) == 1) {
         static char str[] = "Subscription failed!";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
@@ -887,7 +791,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     pthread_t clientThread;
     if (pthread_create(&clientThread, NULL, runClient, NULL)) {
         static char str[] = "pthread creation to run the client thread iteratively failed";
-        UA_LOG_FATAL(logger, UA_LOGCATEGORY_USERLAND, "%s",
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }

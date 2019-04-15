@@ -28,15 +28,23 @@ build: prebuild
 	-o open62541_test && pwd
 
 pub: build
-	@echo "Start server, publish and destroy..."
+	@echo "Start secure server, publish and destroy..."
 	./open62541_test server $(SERVER_CERTS)/opcua_server_certificate.der \
 	                        $(SERVER_CERTS)/opcua_server_key.der \
 							$(CA_CERTS)/ca_certificate.der
 sub: build
-	@echo "Start client, subscribe and destroy..."
+	@echo "Start secure client, subscribe and destroy..."
 	./open62541_test client $(CLIENT_CERTS)/opcua_client_certificate.der \
 	                        $(CLIENT_CERTS)/opcua_client_key.der \
 							$(CA_CERTS)/ca_certificate.der
+
+pub_insecure: build
+	@echo "Start insecure server, publish and destroy..."
+	./open62541_test server "" "" ""
+
+sub_insecure: build
+	@echo "Start insecure client, subscribe and destroy..."
+	./open62541_test client "" "" ""
 
 invalid_client: build
 	@echo "Establish connection to opcua server and start subscribing the data with invalid client certs.."

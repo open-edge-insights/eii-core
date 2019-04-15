@@ -79,7 +79,7 @@ Publish(struct TopicConfig topicConfig, char *data){
     if (!checkTopicExistence(topicConfig.name)){
         if(gPubIndex > (NUM_OF_TOPICS-1)){
             static char errStr[] = "Exceeded the limit of pub topics";
-            UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "%s", errStr);
+            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
             return errStr;
         }
         gPubTopics[gPubIndex]=topicConfig.name;
@@ -89,11 +89,11 @@ Publish(struct TopicConfig topicConfig, char *data){
         topicConfig.nsIndex = nsIndex;
         if(topicConfig.nsIndex == 100) {
             static char errStr[] = "serverStartTopic() API failed";
-            UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "%s", errStr);
+            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
             return errStr;
         }
         gTopicConfig = topicConfig;
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "serverStartTopic() API successfully executed!, nsIndex: %d\n", 
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "serverStartTopic() API successfully executed!, nsIndex: %d\n", 
                     gTopicConfig.nsIndex);
     }
     return serverPublish(gTopicConfig.nsIndex, gTopicConfig.name, data);
@@ -105,7 +105,7 @@ Subscribe(struct TopicConfig topicConfig, char *trig, c_callback cb){
     if (!checkTopicExistence(topicConfig.name)){
         if(gSubIndex > (NUM_OF_TOPICS-1)){
             static char errStr[] = "Exceeded the limit of sub topics";
-            UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "%s", errStr);
+            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
             return errStr;
         }
         gSubTopics[gSubIndex]=topicConfig.name;
@@ -114,10 +114,10 @@ Subscribe(struct TopicConfig topicConfig, char *trig, c_callback cb){
         topicConfig.nsIndex = clientStartTopic(gContextConfig.ns, topicConfig.name);
         if (topicConfig.nsIndex == 100) {
             static char errStr[] = "clientStartTopic() API failed";
-            UA_LOG_ERROR(logger, UA_LOGCATEGORY_USERLAND, "%s", errStr);
+            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
             return errStr;
         }
-        UA_LOG_INFO(logger, UA_LOGCATEGORY_USERLAND, "clientStartTopic() API successfully executed!, nsIndex: %d\n", 
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "clientStartTopic() API successfully executed!, nsIndex: %d\n", 
                     topicConfig.nsIndex);
 
     }

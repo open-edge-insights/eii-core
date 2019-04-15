@@ -67,7 +67,9 @@ authorityKeyIdentifier=keyid,issuer
 [ client_alt_names ]
 DNS.1 = localhost
 @MULTIPLE_CLI_DOMAINS@
+URI.1 = urn:unconfigured:application
 
 [ server_alt_names ]
 DNS.1 = localhost
 @MULTIPLE_SERVER_DOMAINS@
+URI.1 = urn:unconfigured:application
