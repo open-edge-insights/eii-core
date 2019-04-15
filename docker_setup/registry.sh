@@ -6,7 +6,8 @@ then
   exit 1
 fi
 
-source ./init.sh
+source .env
+source ./get_service.sh
 export IEI_DOCKER_REGISTRY="$2"
 
 services+=('ia_provision')

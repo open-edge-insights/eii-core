@@ -22,6 +22,3 @@ if [ -d "./test_videos" ]; then
     echo "test_videos exist..."
     cp -rf ./test_videos $ieiRootDir/
 fi
-
-# Get list of services and respective dockerignores.
-source ./get_services.sh

@@ -48,7 +48,10 @@ pre_build_steps() {
 	else
 		source ./init.sh
 	fi
-		
+
+	# Get list of services and respective dockerignores.
+	source ./get_services.sh
+
 	echo "0.2 Updating .env for container timezone..."
 	# Get Docker Host timezone
 	hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
@@ -175,7 +178,6 @@ up_iei() {
 	    DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
 	    mv $ieiLogDir/consolidatedLogs/iei.log $ieiLogDir/consolidatedLogs/iei_$DATE.log.bkp
 	fi
-
 	if [ "$1" = "deploy_mode" ]
 	then
 		#Logging the docker compose logs to file.
