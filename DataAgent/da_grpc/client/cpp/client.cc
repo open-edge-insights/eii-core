@@ -62,12 +62,11 @@ std::string GetBlob(const std::string& imgHandle)
       response = response + reply.chunk();
     }
     Status status = reader->Finish();
-    if (status.ok()) {
-      return response;
-    } else {
-      std::cout << status.error_code() << "Transfer failed." << status.error_message() << std::endl;
-      return response;
+    if ((status.ok()) != 1 ) {
+      std::cout << "Transfer failed." << std::endl;
+      return "";
     }
+    return response;
 }
 private:
   std::unique_ptr<da::Stub> stub_;

@@ -39,33 +39,38 @@ ContextCreate(struct ContextConfig contextConfig) {
     char *delimeter = "://";
     char *endpointStr = gContextConfig.endpoint;
     char *endpointArr = strtok(endpointStr, delimeter);
-    for (int i = 0; endpointArr != NULL; i++) {
-        hostNamePort[i] = endpointArr;
-        endpointArr = strtok(NULL, delimeter);
-    }
-    hostname = hostNamePort[1];
-    port = atol(hostNamePort[2]);
-
-    if((!strcmp(gContextConfig.certFile, "")) && (!strcmp(gContextConfig.privateFile, "")) \
-        && (!strcmp(gContextConfig.trustFile[0], ""))){
-        devmode = true;
-    }
-
-    if(devmode){
-        if(!strcmp(gContextConfig.direction, "PUB")) {
-            errorMsg = serverContextCreate(hostname, port);
-        } else if(!strcmp(gContextConfig.direction, "SUB")) {
-            errorMsg = clientContextCreate(hostname, port);
+    if(endpointArr != NULL)
+    {
+        for (int i = 0; endpointArr != NULL; i++) {
+            hostNamePort[i] = endpointArr;
+            endpointArr = strtok(NULL, delimeter);
         }
-    } else {
-        if(!strcmp(gContextConfig.direction, "PUB")) {
-            errorMsg = serverContextCreateSecured(hostname, port, gContextConfig.certFile,
-                        gContextConfig.privateFile, gContextConfig.trustFile,
-                        gContextConfig.trustedListSize);
-        } else if(!strcmp(gContextConfig.direction, "SUB")) {
-            errorMsg = clientContextCreateSecured(hostname, port, gContextConfig.certFile,
-                        gContextConfig.privateFile, gContextConfig.trustFile,
-                        gContextConfig.trustedListSize);
+        if(hostNamePort[1] != NULL && hostNamePort[2] != NULL) {
+            hostname = hostNamePort[1];
+            port = atol(hostNamePort[2]);
+            if((!strcmp(gContextConfig.certFile, "")) && (!strcmp(gContextConfig.privateFile, "")) \
+            && (!strcmp(gContextConfig.trustFile[0], ""))){
+                devmode = true;
+            }
+            if (hostname != NULL) {
+                if(devmode){
+                    if(!strcmp(gContextConfig.direction, "PUB")) {
+                        errorMsg = serverContextCreate(hostname, port);
+                    } else if(!strcmp(gContextConfig.direction, "SUB")) {
+                        errorMsg = clientContextCreate(hostname, port);
+                    }
+                } else {
+                    if(!strcmp(gContextConfig.direction, "PUB")) {
+                        errorMsg = serverContextCreateSecured(hostname, port, gContextConfig.certFile,
+                                    gContextConfig.privateFile, gContextConfig.trustFile,
+                                    gContextConfig.trustedListSize);
+                    } else if(!strcmp(gContextConfig.direction, "SUB")) {
+                        errorMsg = clientContextCreateSecured(hostname, port, gContextConfig.certFile,
+                                    gContextConfig.privateFile, gContextConfig.trustFile,
+                                    gContextConfig.trustedListSize);
+                    }
+                }
+            }
         }
     }
     return errorMsg;

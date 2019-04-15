@@ -24,7 +24,7 @@ strcat_s(char *dest, unsigned int dmax, const char *src);
 static UA_Server *server = NULL;
 static UA_ServerConfig *serverConfig;
 static UA_ByteString* remoteCertificate = NULL;
-static UA_Boolean serverRunning = true;
+static UA_Boolean serverRunning = false;
 static pthread_mutex_t *serverLock = NULL;
 
 // opcua client global variables
@@ -169,13 +169,15 @@ addTopicDataSourceVariable(UA_Server *server, char *namespace, char *topic) {
 static void
 cleanupServer() {
     if (server) {
+        UA_Server_run_shutdown(server);
         UA_Server_delete(server);
     }
     if (serverConfig) {
         UA_ServerConfig_delete(serverConfig);
     }
     if (serverLock) {
-        pthread_mutex_destroy(serverLock);
+        int rc = pthread_mutex_destroy(serverLock);
+        assert(rc == 0);
         free(serverLock);
     }
 }
@@ -191,13 +193,16 @@ startServer(void *ptr) {
     }
 
     UA_UInt16 timeout;
+    serverRunning = true;
     while (serverRunning) {
-        pthread_mutex_lock(serverLock);
+        int rc = pthread_mutex_lock(serverLock);
+        assert(rc == 0);
         /* timeout is the maximum possible delay (in millisec) until the next
         _iterate call. Otherwise, the server might miss an internal timeout
         or cannot react to messages with the promised responsiveness. */
         timeout = UA_Server_run_iterate(server, false);
-        pthread_mutex_unlock(serverLock);
+        rc = pthread_mutex_unlock(serverLock);
+        assert(rc == 0);
 
         /* Now we can use the max timeout to do something else. In this case, we
         just sleep. (select is used as a platform-independent sleep
@@ -207,7 +212,6 @@ startServer(void *ptr) {
         tv.tv_usec = timeout * 1000;
         select(0, NULL, NULL, NULL, &tv);
     }
-    UA_Server_run_shutdown(server);
     return NULL;
 }
 
@@ -411,9 +415,11 @@ serverPublish(int nsIndex, char *topic, char* data) {
     /*sleep for mininum publishing interval in ms*/
     UA_sleep_ms((int)serverConfig->publishingIntervalLimits.min);
 
-    pthread_mutex_lock(serverLock);
+    int rc = pthread_mutex_lock(serverLock);
+    assert(rc == 0);
     UA_StatusCode retval = UA_Server_writeValue(server, UA_NODEID_STRING(nsIndex, topic), *val);
-    pthread_mutex_unlock(serverLock);
+    rc = pthread_mutex_unlock(serverLock);
+    assert(rc == 0);
 
     if (retval == UA_STATUSCODE_GOOD) {
         UA_Variant_delete(val);
