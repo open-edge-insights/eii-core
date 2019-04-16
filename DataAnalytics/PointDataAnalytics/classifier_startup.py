@@ -6,6 +6,7 @@ import stat
 import socket
 import datetime
 from Util.log import configure_logging, LOG_LEVELS
+from distutils.util import strtobool
 import os
 from DataAgent.da_grpc.client.py.client_internal.client \
     import GrpcInternalClient
@@ -184,7 +185,6 @@ def enable_classifier_task(host_name):
 if __name__ == '__main__':
 
     args = parse_args()
-
     currentDateTime = str(datetime.datetime.now())
     listDateTime = currentDateTime.split(" ")
     currentDateTime = "_".join(listDateTime)
@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
     logger = configure_logging(args.log.upper(), logFileName,
                                args.log_dir, __name__)
-
+    args.dev_mode = bool(strtobool(args.dev_mode))
     logger.info("=============== STARTING data_analytics ==============")
     # Wait for DA to be ready
     ret = check_port_availability(DAServiceName, DAPort)

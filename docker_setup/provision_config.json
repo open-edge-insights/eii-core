@@ -36,6 +36,7 @@
 		"outStreamCfg": {
 			"OPCUA": [
 				"stream1_results",
+				"point_classifier_results",
 				"cam_serial1_results",
 				"cam_serial2_results",
 				"cam_serial3_results",
