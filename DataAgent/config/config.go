@@ -175,7 +175,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 		return errors.New("Failed to read secrets")
 	}
 
-	cfg.Redis.Port = redis_secret.Data["port"].(string)
+	cfg.Redis.Port = os.Getenv("REDIS_PORT")
 	cfg.Redis.Retention = redis_secret.Data["retention"].(string)
 	cfg.Redis.Password = redis_secret.Data["password"].(string)
 
@@ -194,7 +194,7 @@ func (cfg *DAConfig) ReadFromVault() error {
 		return errors.New("Failed to read secrets")
 	}
 
-	cfg.Minio.Port = minio_secret.Data["port"].(string)
+	cfg.Minio.Port = os.Getenv("MINIO_PORT")
 	cfg.Minio.AccessKey = minio_secret.Data["accessKey"].(string)
 	cfg.Minio.SecretKey = minio_secret.Data["secretKey"].(string)
 	cfg.Minio.RetentionTime = minio_secret.Data["retentionTime"].(string)

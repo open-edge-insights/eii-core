@@ -1,6 +1,5 @@
 {
 	"influxdb": {
-		"port": "8086",
 		"retention": "1h30m5s",
 		"username": "admin",
 		"password": "admin123",
@@ -10,7 +9,6 @@
 	},
 
 	"redis": {
-		"port": "6379",
 		"password": "redis123",
 		"retention": "40s"
 	},
@@ -20,7 +18,6 @@
     },
 
     "minio": {
-        "port": "9000",
         "accessKey": "admin",
         "secretKey": "password",
         "retentionTime": "1h",
@@ -29,7 +26,6 @@
     },
 
 	"opcua": {
-		"port": "4840"
 	},
 
 	"OutStreams": {
