@@ -108,6 +108,7 @@ services:
       GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       VAULT_PORT: ${VAULT_PORT}
+      OPCUA_PORT: ${OPCUA_PORT}
       TPM_ENABLE: ${TPM_ENABLE}
       DEV_MODE: ${DEV_MODE}
       LD_LIBRARY_PATH: /usr/local/lib
@@ -115,6 +116,8 @@ services:
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
       PROFILING: ${PROFILING}
+      REDIS_PORT: ${REDIS_PORT}
+      MINIO_PORT: ${MINIO_PORT}
     volumes:
       - "${IEI_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -211,8 +214,8 @@ services:
       DEV_MODE: ${DEV_MODE}
       SHARED_KEY: ${SHARED_KEY}
       SHARED_NONCE: ${SHARED_NONCE}
-      REDIS_PORT: 6379
-      MINIO_PORT: 9000
+      REDIS_PORT: ${REDIS_PORT}
+      MINIO_PORT: ${MINIO_PORT}
       GRPC_SERVER: ${GRPC_SERVER_HOST}
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}

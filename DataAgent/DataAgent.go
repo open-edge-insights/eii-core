@@ -204,6 +204,8 @@ func main() {
 			os.Exit(-1)
 		}
 		err = daCfg.ParseConfig(cfgPath)
+		daCfg.InfluxDB.Port = os.Getenv("INFLUXDB_PORT")
+		daCfg.Opcua.Port = os.Getenv("OPCUA_PORT")
 		if err != nil {
 			glog.Errorf("Failed to parse provision JSON in development mode")
 			os.Exit(-1)
