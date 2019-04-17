@@ -193,7 +193,6 @@ ADD DataBusAbstraction/ ./DataBusAbstraction/
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
-ADD docker_setup/provision_config.json ./DataAgent/provision_config.json
 
 # Copying safestringlib to DataBusAbstraction and Util
 RUN cd safestringlib && \

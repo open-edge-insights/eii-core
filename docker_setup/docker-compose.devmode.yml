@@ -1,6 +1,10 @@
 version: '3'
 services:
   # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
+  ia_data_agent:
+    volumes:
+      - "${IEI_INSTALL_PATH}/config/provision_config.json:/IEI/go/src/IEdgeInsights/DataAgent/provision_config.json"
+  
   ia_data_analytics:
     environment:
       KAPACITOR_URL: http://ia_data_analytics:${KAPACITOR_PORT}/
