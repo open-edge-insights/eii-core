@@ -29,17 +29,9 @@ func write_secret(config_file_path string, vlt_client *api.Client) error {
 
 	json.Unmarshal([]byte(byteValue), &data)
 	//secret_paths := reflect.ValueOf(data).MapKeys()
+
 	logical_clnt := vlt_client.Logical()
 	for k, v := range data {
-		if k == "influxdb" {
-			arr := v.(map[string]interface{})
-			arr["port"] = os.Getenv("INFLUXDB_PORT")
-			v = arr
-		} else if k == "opcua" {
-			arr := v.(map[string]interface{})
-			arr["port"] = os.Getenv("OPCUA_PORT")
-			v = arr
-		}
 		_, err := logical_clnt.Write("secret/"+k, v.(map[string]interface{}))
 		if err != nil {
 			glog.Errorf("Failed to write secret %s to vault err:%s", "secret"+k, err)

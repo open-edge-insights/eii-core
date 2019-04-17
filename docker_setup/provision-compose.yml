@@ -31,10 +31,6 @@ services:
       no_proxy: ${NO_PROXY}
       VAULT_PORT: ${VAULT_PORT}
       TPM_ENABLE: ${TPM_ENABLE}
-      REDIS_PORT: ${REDIS_PORT}
-      MINIO_PORT: ${MINIO_PORT}
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
-      OPCUA_PORT: ${OPCUA_PORT}
       LD_LIBRARY_PATH: /usr/local/lib
     volumes:
       - "${CERTIFICATES_PATH}:/etc/ssl"
@@ -48,6 +44,6 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: ${HEALTHCHECK_DURATION}
-
+        
 
   #----End: IEI Containers ----
