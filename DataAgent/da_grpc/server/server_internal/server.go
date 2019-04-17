@@ -28,7 +28,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-var gRPCHost = "localhost"
+var gRPCHost = os.Getenv("DATA_AGENT_GRPC_SERVER")
 var gRPCPort = os.Getenv("GRPC_INTERNAL_PORT")
 
 const (
@@ -102,12 +102,7 @@ func StartGrpcServer(DaCfg config.DAConfig) {
 	IntDaCfg = DaCfg
 	var s *grpc.Server
 
-	ipAddr, err := net.LookupIP("ia_data_agent")
-	if err != nil {
-		glog.Errorf("Failed to fetch the IP address for host: %v, error:%v", ipAddr, err)
-	} else {
-		gRPCHost = ipAddr[0].String()
-	}
+	
 
 	addr := gRPCHost + ":" + gRPCPort
 

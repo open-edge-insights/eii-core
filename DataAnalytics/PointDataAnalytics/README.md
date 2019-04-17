@@ -47,7 +47,7 @@ Follow below steps to start Point DataAnalytics module:
     [[inputs.mqtt_consumer]]
     #   ## MQTT broker URLs to be used. The format should be scheme://host:port,
     #   ## schema can be tcp, ssl, or ws.
-        servers = ["tcp://$HOST_IP:1883"]
+        servers = ["tcp://localhost:1883"]
     #
     #   ## MQTT QoS, must be 0, 1, or 2
     #   qos = 0

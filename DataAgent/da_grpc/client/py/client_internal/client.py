@@ -53,8 +53,8 @@ class GrpcInternalClient(object):
         """
         self.hostname = hostname
         self.port = port
-        if 'GRPC_SERVER' in os.environ:
-            self.hostname = os.environ['GRPC_SERVER']
+        if 'DATA_AGENT_GRPC_SERVER' in os.environ:
+            self.hostname = os.environ['DATA_AGENT_GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing GRPC channel to %s", addr)
 
@@ -109,7 +109,7 @@ class GrpcInternalClient(object):
         if config == "InfluxDBCfg" and 'INFLUX_SERVER' in os.environ:
             respDict["Host"] = os.environ['INFLUX_SERVER']
         elif ((config == "RedisCfg" or config == "MinioCfg") and
-              'IMAGESTORE_SERVER' in os.environ):
-            respDict["Host"] = os.environ['IMAGESTORE_SERVER']
+              'IMAGESTORE_GRPC_SERVER' in os.environ):
+            respDict["Host"] = os.environ['IMAGESTORE_GRPC_SERVER']
 
         return respDict

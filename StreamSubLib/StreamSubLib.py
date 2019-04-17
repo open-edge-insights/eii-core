@@ -38,7 +38,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 
 callback_executor = ThreadPoolExecutor()
-hostname = socket.gethostname()
 
 CLIENT_CERT = "/etc/ssl/grpc_int_ssl_secrets/" + \
     "grpc_internal_client_certificate.pem"
@@ -53,7 +52,7 @@ class StreamSubLib:
     the streams as callbacks like a pub-sub message bus'''
 
     def init(self, log_level=logging.INFO, cert_path=None, key_path=None,
-             dev_mode=False):
+             dev_mode=False, hostname='localhost'):
         '''Creates a subscription to to influxdb
         Arguments:
         log_level:(Optional) Log levels are used to track the severity
@@ -67,6 +66,7 @@ class StreamSubLib:
         self.cert_path = cert_path
         self.key_path = key_path
         self.dev_mode = dev_mode
+        self.hostname = hostname
 
         try:
             self.maxbytes = 1024
@@ -167,7 +167,7 @@ class StreamSubLib:
                 HttpHandlerFunc(self.stream_map, *args)
 
             httpd = HTTPServer((socket.gethostbyname(
-                hostname), self.port), handler)
+                self.hostname), self.port), handler)
             if not self.dev_mode:
                 httpd.socket = ssl.wrap_socket(
                     httpd.socket, server_side=True, keyfile=self.key_path,

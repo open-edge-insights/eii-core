@@ -51,8 +51,8 @@ class GrpcClient(object):
         """
         self.hostname = hostname
         self.port = port
-        if 'GRPC_SERVER' in os.environ:
-            self.hostname = os.environ['GRPC_SERVER']
+        if 'DATA_AGENT_GRPC_SERVER' in os.environ:
+            self.hostname = os.environ['DATA_AGENT_GRPC_SERVER']
         addr = "{0}:{1}".format(self.hostname, self.port)
         log.debug("Establishing Secure GRPC channel to %s", addr)
 

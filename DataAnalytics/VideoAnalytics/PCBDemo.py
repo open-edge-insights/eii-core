@@ -59,7 +59,7 @@ class PCBDemoApp:
         if self.container_mode.lower() == 'yes':
             self.log.info("Running in container mode")
             # Wait for DA to be ready
-            ret = check_port_availability(os.environ['GRPC_SERVER'],
+            ret = check_port_availability(os.environ['DATA_AGENT_GRPC_SERVER'],
                                           os.environ['GRPC_INTERNAL_PORT'])
             if ret is False:
                 log.error("DataAgent is not up. So Exiting...", exc_info=True)

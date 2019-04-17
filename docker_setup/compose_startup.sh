@@ -84,8 +84,8 @@ pre_build_steps() {
 	fi
 
 	echo "0.5 Get docker Host IP address and write it to .env"
-	echo "If automatic IP discovery is not working well, comment this line and update HOST_IP in .env file"
-	./update_host_ip.sh
+
+	
 }
 
 post_build_steps() {
@@ -191,7 +191,6 @@ up_iei() {
 down_iei() {
 	echo "Shutting down & Removing iei & dependent containers"
 	source .env
-	./update_host_ip.sh
 	docker-compose down
 }
 

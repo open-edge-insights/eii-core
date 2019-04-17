@@ -267,15 +267,9 @@ func startServer(pStrmMgr *StrmMgr, devMode bool) {
 		os.Exit(1)
 	}
 
-	// This change is required to tie the opcua address to localhost or container's address
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Errorf("Failed to fetch the hostname of the node: %v", err)
-	}
-	if hostname != "ia_data_agent" {
-		hostname = "localhost"
-	}
-
+	
+	hostname := os.Getenv("DATA_AGENT_GRPC_SERVER")
+	
 	if !devMode {
 		opcuaFileList := []string{opcuaContext["certFile"], opcuaContext["privateFile"], opcuaContext["trustFile"]}
 		util.WriteCertFile(opcuaFileList, StrmDaCfg.Certs)

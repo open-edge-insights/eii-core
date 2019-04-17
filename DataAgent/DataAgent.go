@@ -30,8 +30,8 @@ import (
 	"github.com/golang/glog"
 )
 
-var strmMgrTCPServHost = "ia_data_agent"
-
+var strmMgrTCPServHost = os.Getenv("DATA_AGENT_GRPC_SERVER")
+var influxServer = os.Getenv("DATA_AGENT_GRPC_SERVER")
 const (
 	strmMgrTCPServPort   = "61971"
 	influxServerCertPath = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
@@ -39,12 +39,10 @@ const (
 	grpcIntClientCert    = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_certificate.pem"
 	grpcIntClientKey     = "/etc/ssl/grpc_int_ssl_secrets/grpc_internal_client_key.pem"
 	grpcCACert           = "/etc/ssl/grpc_int_ssl_secrets/ca_certificate.pem"
-	influxServer         = "localhost"
 )
 
 // daCfg - stores parsed DataAgent config
 var daCfg config.DAConfig
-
 func initializeInfluxDB() error {
 	var cmd *exec.Cmd
 
@@ -231,16 +229,7 @@ func main() {
 	glog.Infof("**************STARTING STREAM MANAGER**************")
 
 	var pStreamManager = new(stm.StrmMgr)
-
-	// This change is required to tie the opcua address to localhost or container's address
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Errorf("Failed to fetch the hostname of the node: %v", err)
-	}
-	if strmMgrTCPServHost != hostname {
-		strmMgrTCPServHost = "localhost"
-	}
-
+	
 	pStreamManager.ServerHost = strmMgrTCPServHost
 	pStreamManager.ServerPort = strmMgrTCPServPort
 	pStreamManager.InfluxDBHost = influxServer

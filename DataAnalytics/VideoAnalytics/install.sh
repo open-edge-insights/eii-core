@@ -17,13 +17,6 @@ cp ../../cert-tool/Certificates/ca/ca_certificate.pem /etc/ssl/ca/ca_certificate
 # Copy certificates from data agent
 docker cp ia_data_agent:/etc/ssl/grpc_int_ssl_secrets /etc/ssl/
 
-# Add host entry
-cat /etc/hosts | grep ^$host_ip.*localhost$
-host_entry_exists=$?
-if [ $host_entry_exists -ne 0 ];then
-   echo "$host_ip  localhost" >>  /etc/hosts
-fi
-
 # Create symbolic link
 mkdir -p algos
 ln -sdf ../../../docker_setup/config/algo_config ./algos/algo_config

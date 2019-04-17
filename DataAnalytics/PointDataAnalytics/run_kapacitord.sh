@@ -10,6 +10,6 @@ done
 chmod 777 /tmp/point_classifier
 if [-z $DEV_MODE]
 then
-    kapacitord -config /etc/kapacitor/kapacitor.conf -hostname ia_data_analytics
+    kapacitord -config /etc/kapacitor/kapacitor.conf -hostname ${KAPACITOR_SERVER}
 else
-    kapacitord -config /etc/kapacitor/kapacitor_devmode.conf -hostname ia_data_analytics 
+    kapacitord -config /etc/kapacitor/kapacitor_devmode.conf -hostname ${KAPACITOR_SERVER} 

@@ -32,7 +32,7 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-var gRPCHost = "localhost"
+var gRPCHost = os.Getenv("DATA_AGENT_GRPC_SERVER")
 var gRPCPort = os.Getenv("GRPC_EXTERNAL_PORT")
 
 const (
@@ -75,7 +75,7 @@ func (s *DaServer) GetBlob(in *pb.BlobReq, srv pb.Da_GetBlobServer) error {
 	json.Unmarshal(minioConfigBytes, &minioConfigMap)
 
 	// Manually set the host to ia_minio since we are inside the docker network
-	minioConfigMap["Host"] = "ia_imagestore"
+	minioConfigMap["Host"] = os.Getenv("IMAGESTORE_GRPC_SERVER")
 
 	imgStore, err := imagestore.GetImageStoreInstance(configMap, minioConfigMap)
 	if err != nil {
@@ -141,13 +141,7 @@ func getConfig(cfgType string) (string, error) {
 func StartGrpcServer(DaCfg config.DAConfig) {
 
 	ExtDaCfg = DaCfg
-	ipAddr, err := net.LookupIP("ia_data_agent")
-	if err != nil {
-		glog.Errorf("Failed to fetch the IP address for host: %v, error:%v", ipAddr, err)
-		os.Exit(-1)
-	} else {
-		gRPCHost = ipAddr[0].String()
-	}
+	
 
 	addr := gRPCHost + ":" + gRPCPort
 

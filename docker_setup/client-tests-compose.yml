@@ -28,9 +28,9 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      INFLUX_SERVER: ${INFLUX_SERVER_HOST}
-      NO_PROXY: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
-      no_proxy: ${NO_PROXY},${HOST_IP},${RTSP_CAMERA_IP}
+      INFLUX_SERVER: ${INFLUX_SERVER}
+      NO_PROXY: ${NO_PROXY},${RTSP_CAMERA_IP}
+      no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
     volumes:
       - "$PWD/../cert-tool/Certificates/imagestore:/etc/ssl/imagestore"
       - "$PWD/../cert-tool/Certificates/grpc_internal:/etc/ssl/grpc_internal"

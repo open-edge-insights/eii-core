@@ -7,9 +7,9 @@ services:
   
   ia_data_analytics:
     environment:
-      KAPACITOR_URL: http://ia_data_analytics:${KAPACITOR_PORT}/
+      KAPACITOR_URL: http://${KAPACITOR_SERVER}:${KAPACITOR_PORT}/
       KAPACITOR_UNSAFE_SSL: "true"
-      KAPACITOR_INFLUXDB_0_URLS_0: http://ia_influxdb:${INFLUXDB_PORT}/
+      KAPACITOR_INFLUXDB_0_URLS_0: http://${INFLUX_SERVER}:${INFLUXDB_PORT}/
 
   ia_video_ingestion:
     volumes:

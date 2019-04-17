@@ -46,9 +46,6 @@ hostTimezone=`echo $hostTimezone`
 # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
 sed -i '/HOST_TIME_ZONE/d' .env && echo "HOST_TIME_ZONE=$hostTimezone" >> .env
 
-echo "0.4 Get docker Host IP address and write it to .env"
-echo "If automatic IP discovery is not working well, comment this line and update HOST_IP in .env file"
-./update_host_ip.sh
 
 echo "1. create $IEI_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 if ! id $IEI_USER_NAME >/dev/null 2>&1; then

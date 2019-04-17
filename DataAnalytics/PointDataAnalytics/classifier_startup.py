@@ -29,8 +29,8 @@ CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
-DAServiceName = "ia_data_agent"
-DAPort = "50052"
+DAServiceName = os.environ["DATA_AGENT_GRPC_SERVER"]
+DAPort = os.environ["GRPC_INTERNAL_PORT"]
 
 
 def parse_args():
@@ -199,7 +199,7 @@ if __name__ == '__main__':
     if ret is False:
         exit_with_failure_message("DataAgent is not up.So Exiting...")
 
-    host_name = 'ia_data_analytics'
+    host_name = os.environ["KAPACITOR_SERVER"]
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
