@@ -41,7 +41,7 @@ class Classifier:
     """Classifier object
     """
 
-    def __init__(self, ref_img, ref_config_roi, model_xml, model_bin):
+    def __init__(self, ref_img, ref_config_roi, model_xml, model_bin, device):
         """Constructor
         Parameters
         ----------
@@ -73,8 +73,15 @@ class Classifier:
         with open(ref_config_roi, 'r') as f:
             self.config_roi = json.load(f)
 
+        # Select run time device [CPU/GPU/MYRIAD], default : CPU
+        r_device = "CPU"
+        if device == "GPU" or device == "gpu" or device == "Gpu":
+            r_device = "GPU"
+        if device == "MYRIAD" or device == "myriad" or device == "Myriad":
+            r_device = "MYRIAD"
+
         # Load OpenVINO model
-        self.plugin = IEPlugin(device="CPU", plugin_dirs="")
+        self.plugin = IEPlugin(device=r_device, plugin_dirs="")
         self.net = IENetwork.from_ir(model=model_xml, weights=model_bin)
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))

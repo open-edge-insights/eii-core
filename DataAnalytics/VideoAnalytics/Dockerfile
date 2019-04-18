@@ -3,6 +3,9 @@ ARG IEI_VERSION
 FROM ia_pybase:$IEI_VERSION
 LABEL description="VideoAnalytics image"
 
+ARG IEI_UID
+RUN useradd -r -u ${IEI_UID} -G video ieiuser
+
 ENV DIR /IEI
 WORKDIR ${DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
@@ -58,8 +61,6 @@ ADD Util ./Util
 
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/:./algos/dpm/classification/
-
-ARG IEI_UID
 
 RUN chown ${IEI_UID} /IEI
 RUN chown -R ${IEI_UID} /etc/ssl
