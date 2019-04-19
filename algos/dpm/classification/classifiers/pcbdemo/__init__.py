@@ -50,6 +50,7 @@ class Classifier:
                           file for the reference images
         model_xml      : TF model xml file
         model_bin      : TF model bin file
+        device         : Run time device [CPU/GPU/MYRIAD]
             Classifier configuration
         """
 
@@ -75,9 +76,9 @@ class Classifier:
 
         # Select run time device [CPU/GPU/MYRIAD], default : CPU
         r_device = "CPU"
-        if device == "GPU" or device == "gpu" or device == "Gpu":
+        if device.upper() == "GPU":
             r_device = "GPU"
-        if device == "MYRIAD" or device == "myriad" or device == "Myriad":
+        if device.upper() == "MYRIAD":
             r_device = "MYRIAD"
 
         # Load OpenVINO model
