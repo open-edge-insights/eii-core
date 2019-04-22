@@ -168,7 +168,7 @@ build_iei() {
 up_iei() {
 
 	# Exclude base images from -up
-	exclude=(ia_gobase ia_pybase ia_gopybase)
+	exclude=(ia_gobase ia_pybase)
 	for del in ${exclude[@]}
 	do
    		services=("${services[@]/$del}")
@@ -184,7 +184,7 @@ up_iei() {
 		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log
 	else
 		echo "3. Creating and starting the dependency/iei containers..."
-		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log &
+		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log & 
 	fi
 }
 

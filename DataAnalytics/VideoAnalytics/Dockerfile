@@ -1,6 +1,6 @@
 # Dockerfile for VideoAnalytics
-ARG IEI_VERSION
-FROM ia_pybase:$IEI_VERSION
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
 LABEL description="VideoAnalytics image"
 
 ARG IEI_UID
@@ -10,8 +10,30 @@ ENV DIR /IEI
 WORKDIR ${DIR}
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 ENV HOME /IEI
+ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
 
+ARG HOST_TIME_ZONE=""
+
+# Installing python 2, pip2, python 3.6 and pip3.6
 RUN apt-get update
+RUN apt-get install -y software-properties-common
+RUN apt-get install -y pkg-config python python-pip
+RUN add-apt-repository ppa:deadsnakes/ppa
+RUN apt-get update
+RUN apt-get install -y cmake g++ build-essential python3.6 python3.6-dev
+RUN apt-get install -y wget iputils-ping
+RUN wget https://bootstrap.pypa.io/get-pip.py
+RUN python3.6 get-pip.py
+RUN apt-get install -y libsm6 libxext6
+RUN apt-get install -y libfontconfig1 libxrender1
+ENV TERM xterm
+ENV DEBIAN_FRONTEND noninteractive
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
+    apt-get install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime && \ 
+    dpkg-reconfigure -f noninteractive tzdata
 
 # Installing dependent python modules
 ADD DataAnalytics/VideoAnalytics/va_requirements.txt .
@@ -21,8 +43,7 @@ RUN pip3.6 install -r va_requirements.txt && \
 # OpenVINO install
 RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
-    build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio
-RUN apt-get install -y lsb-release
+    build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio lsb-release
 ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit*  ${HOME}/openvino_toolkit/
 RUN cd ${HOME}/openvino_toolkit && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
@@ -61,7 +82,6 @@ ADD Util ./Util
 
 #Myriad and HDDL requirements
 RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 libboost-filesystem1.58.0 libssl1.0.0 libudev1 libjson-c2 udev 
-RUN apt install -y udev
 RUN echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc
 RUN cp /IEI/97-myriad-usbboot.rules /etc/udev/rules.d/
 RUN echo "udevadm control --reload-rules" >> ~/.bashrc

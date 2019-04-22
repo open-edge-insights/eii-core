@@ -1,8 +1,6 @@
 # Client tests dockerfile
 ARG IEI_VERSION
-FROM ia_gopybase:$IEI_VERSION
-
-ARG HOST_TIME_ZONE=""
+FROM ia_pybase:$IEI_VERSION
 
 ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
 ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
@@ -13,9 +11,28 @@ ENV GOPATH /IEI/go
 
 RUN mkdir -p ${GO_WORK_DIR}/log
 
-RUN apt-get update
+RUN apk add --no-cache go libstdc++ mbedtls-dev 
+
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+    gflags
+
 # Installing build tools
-RUN apt-get install -y cmake g++ build-essential
+RUN apk add --no-cache --virtual .build-deps \
+    cmake \
+    g++ \
+    build-base \
+    git \
+    wget \
+    tar \
+    libtool \
+    autoconf \
+    pkgconfig \
+    gtest-dev \
+    clang \
+    curl \
+    linux-headers \
+    python3-dev \
+    automake
 
 # Installing all golang dependencies
 # TODO: Use dep tool itself in future once the "source" value
@@ -69,10 +86,6 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-RUN apt-get update
-RUN apt-get -y install build-essential
-RUN apt-get -y install tcl
-
 ARG REDIS_VERSION
 RUN wget http://download.redis.io/releases/redis-${REDIS_VERSION}.tar.gz
 RUN tar xzf redis-${REDIS_VERSION}.tar.gz
@@ -86,22 +99,10 @@ RUN wget https://dl.minio.io/server/minio/release/linux-amd64/archive/minio.${MI
 RUN mv minio.${MINIO_VERSION} minio
 RUN chmod +x minio
 
-RUN pip3.6 install grpcio==1.12.1
 RUN pip3.6 install grpcio-tools
 
-# Setting timezone inside the container
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-RUN ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
-RUN dpkg-reconfigure -f noninteractive tzdata
-
 # Installing grpc for cpp
-RUN echo "Installing required packages..." && \
-    apt-get -y install build-essential autoconf libtool pkg-config && \
-    apt-get -y install libgflags-dev libgtest-dev && \
-    apt-get -y install clang libc++-dev && \
-    apt-get -y install curl && \
-    echo "Building grpc from source..." && \
+RUN echo "Building grpc from source..." && \
     git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc && \
     cd grpc && \
     git submodule update --init && \
@@ -115,7 +116,7 @@ RUN echo "Installing required packages..." && \
 WORKDIR /IEI/go/src/IEdgeInsights
 
 # tls, crypto library needs to open62541
-RUN apt-get install -y libmbedtls-dev
+#RUN apt-get install -y libmbedtls-dev
 
 ADD DataBusAbstraction/ DataBusAbstraction/
 ENV TERM xterm
@@ -128,7 +129,8 @@ ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 RUN cd DataBusAbstraction/py && \
     pip3.6 install -r databus_requirements.txt && \
     cd test && \
-    make build
+    make build && \
+    apk del .build-deps
 
 ADD DataAgent/da_grpc/client ./DataAgent/da_grpc/client
 ADD DataAgent/da_grpc/protobuff ./DataAgent/da_grpc/protobuff

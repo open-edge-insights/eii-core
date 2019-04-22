@@ -1,25 +1,15 @@
 # Dockerfile for DataAgent
 
-ARG ALPINE_VERSION
-FROM alpine:$ALPINE_VERSION
+ARG IEI_VERSION
+FROM ia_gobase:$IEI_VERSION
 LABEL description="DataAgent image"
 
-ENV GO_WORK_DIR /IEI/go/src/IEdgeInsights
-ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
-ENV GOPATH="/IEI/go"
-WORKDIR ${GO_WORK_DIR}
-ARG HOST_TIME_ZONE=""
 ARG IEI_UID
 
 RUN mkdir -p ${GO_WORK_DIR}/log
-RUN echo 'hosts: file dns' >> /etc/nsswitch.conf
-
-RUN apk add --update tzdata \
-    && echo "$HOST_TIME_ZONE" > /etc/timezone \
-    && cp /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime
 
 # Installing build tools
-RUN apk add --no-cache build-base cmake g++ git go bash
+RUN apk add --no-cache cmake g++  
 
 RUN go get -u github.com/golang/dep/cmd/dep
 
@@ -124,7 +114,7 @@ RUN set -ex && \
     rm -f /usr/src/influxdb-*/influxdb.conf && \
     chmod +x /usr/src/influxdb-*/* && \
     cp -a /usr/src/influxdb-*/* /usr/bin/ && \
-    rm -rf *.tar.gz* /usr/src /root/.gnupg && \
+    rm -rf *.tar.gz* /usr/src  && \
     apk del .build-deps
 
 # These flags are needed for enabling security while compiling and linking with open62541, cpuidcheck in golang

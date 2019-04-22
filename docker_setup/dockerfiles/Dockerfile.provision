@@ -1,8 +1,9 @@
 # Dockerfile for Provisioning
 ARG IEI_VERSION
-FROM ia_gobase:${IEI_VERSION}
+FROM ia_gobase:$IEI_VERSION
 LABEL description="DataAgent image"
 
+WORKDIR ${GO_WORK_DIR}
 RUN mkdir -p ${GO_WORK_DIR}/log
 
 # Installing all golang dependencies
@@ -23,27 +24,29 @@ RUN mkdir -p ${VAULT_GO_PATH} && \
     git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2 && \
     go install
 
-RUN apt-get update
+ENV PACKAGES="\
+    musl \
+    musl-dev \
+    iproute2 \
+    gcc \
+    m4 \
+    libtool \
+    automake \
+    libressl-dev \
+    uthash-dev \
+    autoconf \
+    npth-dev \
+    "
 
-# Installing TPM
-RUN apt-get -y install \
-  autoconf-archive \
-  libcmocka0 \
-  libcmocka-dev \
-  iproute2 \
-  build-essential \
-  git \
-  pkg-config \
-  gcc \
-  g++ \
-  m4 \
-  libtool \
-  automake \
-  libgcrypt20-dev \
-  libssl-dev \
-  uthash-dev \
-  autoconf \
-  gnulib
+RUN apk add --no-cache $PACKAGES
+
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+  autoconf-archive
+
+RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/main \
+  libgcrypt-dev \
+  curl-dev
+
 
 ENV TPM_PATH ./TPM_SRC
 RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
@@ -53,21 +56,18 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
 RUN cd ${TPM_PATH}/tpm2_tss/ && ./bootstrap &&  ./configure && make -j8 && make install
 
 # build TPM-tool
-RUN apt-get -y install autoconf automake libtool pkg-config gcc libssl-dev \
-    libcurl4-gnutls-dev
-
 RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
     git clone https://github.com/tpm2-software/tpm2-tools.git ${TPM_PATH}/tpm2_tools && \
     cd ${TPM_PATH}/tpm2_tools && git checkout -b sma-pv 9f765f1959f2a4ee9683165071d05f9878d78443
 
 RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
 
+RUN mkdir -p ./vault/file
 ADD DataAgent/provision/provision_iei.go ./
 ADD DataAgent/provision/provision_iei.sh ./
 ADD docker_setup/config/provision_config.json ./config_file.json
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 ADD Util ./Util
-RUN mkdir -p ./vault/file
 
 RUN go build -o /IEI/go/bin/provision_iei ./provision_iei.go
 ENTRYPOINT ["./provision_iei.sh"]
