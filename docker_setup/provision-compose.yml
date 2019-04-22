@@ -3,13 +3,14 @@ version: '3'
 services:
 
   #----Start: IEI Base Images----
-  # Define ia_gobase service
   ia_gobase:
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        GOLANG_VERSION: ${GOLANG_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_gobase:${IEI_VERSION}
 
   #----End: IEI Base Images----

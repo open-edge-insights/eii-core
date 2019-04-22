@@ -1,14 +1,14 @@
 # Dockerfile for Point Data Analytics
-ARG ALPINE_VERSION
-FROM alpine:$ALPINE_VERSION
+
+ARG IEI_VERSION
+FROM ia_pybase:$IEI_VERSION
 LABEL description="Classifier image"
 
 ENV PACKAGES="\
   python2 \ 
-  python3 \
-  wget \
   go \
   bash \
+  openssl-dev \
   "
 
 ENV DIR /IEI
@@ -18,15 +18,9 @@ ENV KAPACITOR_REPO /IEI/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /IEI/go/bin
 ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./kapacitor/udf/agent/py:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 ENV PATH ${PATH}:/usr/local/go/bin:${GO_ROOT_BIN}
-ARG HOST_TIME_ZONE=""
 
 RUN apk add --no-cache $PACKAGES
 
-# Updating the timezone
-RUN apk add --update tzdata \
-    && echo "$HOST_TIME_ZONE" > /etc/timezone \
-    && cp /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime 
-     
 # Adding kapacitor related files
 ADD kapacitor ${KAPACITOR_REPO}
 RUN apk add  --no-cache --virtual .build-deps \
@@ -54,17 +48,6 @@ RUN mkdir -p ${GLOG_GO_PATH} && \
     git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
     cd ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998 
-
-# Installing dependent python modules
-ADD DataAnalytics/PointDataAnalytics/classifier_requirements.txt .
-
-RUN apk add --no-cache --virtual .build-deps \
-    python3-dev \
-    build-base \
-    libffi-dev \
-    && pip3.6 install -r classifier_requirements.txt \
-    && rm -rf classifier_requirements.txt \ 
-    && apk add --no-cache py3-cryptography 
 
 # Adding classifier program
 ADD DataAnalytics/PointDataAnalytics/ . 
