@@ -27,10 +27,10 @@ import unittest
 import datetime
 import time
 from Util.log import configure_logging
-from DataAnalytics.VideoAnalytics.PCBDemo import PCBDemoApp
+from DataAnalytics.VideoAnalytics.VideoAnalytics import VideoAnalytics
 
 
-class PCBDemoTest(unittest.TestCase):
+class VideoAnalyticsTest(unittest.TestCase):
     """Test cases for PCBDemo module"""
 
     @classmethod
@@ -39,10 +39,10 @@ class PCBDemoTest(unittest.TestCase):
         list_date_time = current_date_time.split(" ")
         current_date_time = "_".join(list_date_time)
 
-        log_dir = 'testPCBDemo'
+        log_dir = 'testVideoAnalytics'
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
-        log_file_name = 'pcbDemoApp_' + current_date_time + '.log'
+        log_file_name = 'videoanalyticsApp_' + current_date_time + '.log'
 
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
         cls.config = '../../docker_setup/config/factory_video_file.json'
@@ -50,7 +50,7 @@ class PCBDemoTest(unittest.TestCase):
             '../../docker_setup/config/factory_multi_cam.json'
 
     def test_main(self):
-        app = PCBDemoApp(self.config, self.log)
+        app = VideoAnalytics(self.config, self.log)
         self.assertNotEqual(app.data_handler, None)
         self.assertNotEqual(app.stream_sub_lib, None)
 
@@ -62,7 +62,7 @@ class PCBDemoTest(unittest.TestCase):
         app.stream_sub_lib.deinit()
 
     def test_main_multi_cam(self):
-        app = PCBDemoApp(self.multi_cam_config, self.log)
+        app = VideoAnalytics(self.multi_cam_config, self.log)
         self.assertNotEqual(app.data_handler, None)
         self.assertNotEqual(app.stream_sub_lib, None)
 
@@ -78,4 +78,4 @@ if __name__ == '__main__':
     unittest.main()
 
 # To run the test, use the following command
-# /IEdgeInsights/DataAnalytics/VideoAnalytics$ python3.6 test/TstPCBDemo.py
+# DataAnalytics/VideoAnalytics$ python3.6 test/TestVideoAnalytics.py

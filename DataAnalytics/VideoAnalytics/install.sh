@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 #Install python dependencies
-pip3.6 install -r pcbdemo_requirements.txt
+pip3.6 install -r va_requirements.txt
 
 # Set the Permission
 chmod -R 777 /etc/ssl

@@ -39,7 +39,7 @@ CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
 
-class PCBDemoApp:
+class VideoAnalytics:
     """Subscribe to influxDB and register the callback"""
 
     def __init__(self, config, log, container_mode='no'):
@@ -80,15 +80,15 @@ class PCBDemoApp:
                     self.stream_sub_lib.init(dev_mode=self.devmode)
                 else:
                     self.stream_sub_lib.init(
-                        cert_path=self.app_config['pcbdemo_cert_path'],
-                        key_path=self.app_config['pcbdemo_key_path'])
+                        cert_path=self.app_config['va_cert_path'],
+                        key_path=self.app_config['va_key_path'])
             except Exception as e:
                 self.log.error(e)
                 os._exit(1)
 
             # self.stream_sub_lib.init(
-            #  cert_path=self.app_config['pcbdemo_cert_path'],
-            #  key_path=self.app_config['pcbdemo_key_path'])
+            #  cert_path=self.app_config['va_cert_path'],
+            #  key_path=self.app_config['va_key_path'])
 
         self.data_handler = DataHandler(self.config, self.log, self.devmode)
 
@@ -158,5 +158,5 @@ if __name__ == "__main__":
     log = configure_logging(args.log.upper(), log_file_name,
                             args.log_dir, __name__)
 
-    app = PCBDemoApp(args.config, log, args.container_mode)
+    app = VideoAnalytics(args.config, log, args.container_mode)
     app.main()

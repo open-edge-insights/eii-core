@@ -1,5 +1,6 @@
 {
   "stream_measurement_name": "stream1",
-  "pcbdemo_cert_path": "../../cert-tool/Certificates/pcbdemo/pcbdemo_server_certificate.pem",
-  "pcbdemo_key_path": "../../cert-tool/Certificates/pcbdemo/pcbdemo_server_key.pem"
+  "va_cert_path": "../../cert-tool/Certificates/videoanalytics/videoanalytics_server_certificate.pem",
+  "va_key_path": "../../cert-tool/Certificates/videoanalytics/videoanalytics_server_key.pem"
+
 }

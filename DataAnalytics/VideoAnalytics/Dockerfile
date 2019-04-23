@@ -14,9 +14,9 @@ ENV HOME /IEI
 RUN apt-get update
 
 # Installing dependent python modules
-ADD DataAnalytics/VideoAnalytics/pcbdemo_requirements.txt .
-RUN pip3.6 install -r pcbdemo_requirements.txt && \
-    rm -rf pcbdemo_requirements.txt
+ADD DataAnalytics/VideoAnalytics/va_requirements.txt .
+RUN pip3.6 install -r va_requirements.txt && \
+    rm -rf va_requirements.txt
 
 # OpenVINO install
 RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
@@ -64,5 +64,5 @@ ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grp
 
 RUN chown ${IEI_UID} /IEI
 RUN chown -R ${IEI_UID} /etc/ssl
-ENTRYPOINT ["./pcb_classifier_start.sh"]
+ENTRYPOINT ["./va_classifier_start.sh"]
 HEALTHCHECK NONE

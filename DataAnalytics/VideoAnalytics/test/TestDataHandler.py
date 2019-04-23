@@ -40,7 +40,7 @@ class DataHandlerTest(unittest.TestCase):
         list_date_time = current_date_time.split(" ")
         current_date_time = "_".join(list_date_time)
 
-        log_dir = 'testPCBDemo'
+        log_dir = 'testVideoAnalytics'
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
 

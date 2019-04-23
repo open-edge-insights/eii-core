@@ -7,7 +7,7 @@ apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev lib
 
 apt-get install -y lsb-release
 
-cd ../l_openvino_toolkit* && \
+cd ./l_openvino_toolkit* && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
     ./install.sh -s silent.cfg --ignore-cpu
 
