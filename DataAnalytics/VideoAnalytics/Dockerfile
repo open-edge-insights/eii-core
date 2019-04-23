@@ -23,8 +23,8 @@ RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
     build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio
 RUN apt-get install -y lsb-release
-ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit_p_2018.5.445 ./l_openvino_toolkit_p_2018.5.445
-RUN cd l_openvino_toolkit_p_2018.5.445 && \
+ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit*  ${HOME}/openvino_toolkit/
+RUN cd ${HOME}/openvino_toolkit && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
     ./install.sh -s silent.cfg --ignore-cpu
 
@@ -40,7 +40,7 @@ RUN bash -c 'source /opt/intel/computer_vision_sdk/bin/setupvars.sh && \
     ./install_NEO_OCL_driver.sh'
 
 # Remove OpenVINO toolkit after installation
-RUN rm -rf /IEI/l_openvino_toolkit_p_2018.5.445
+RUN rm -rf ${HOME}/l_openvino_toolkit*
 
 #Creating dir for certs file
 RUN mkdir -p /etc/ssl/imagestore
