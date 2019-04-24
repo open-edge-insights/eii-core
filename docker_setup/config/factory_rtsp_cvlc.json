@@ -7,7 +7,7 @@
                 "streams": {
                     "capture_streams": {
                         "cam_serial1": {
-                            "video_src": "rtspsrc location=\"rtsp://<HOST IP ADDR>:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
+                            "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
                                 "level": 95
