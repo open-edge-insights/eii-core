@@ -1,5 +1,5 @@
 {
-    "machine_id": "basler-example",
+    "machine_id": "rtsp-hikvision-ds2-example",
     "trigger_threads": 1,
     "data_ingestion_manager": {
         "ingestors": {
@@ -7,7 +7,7 @@
                 "streams": {
                     "capture_streams": {
                         "cam_serial1": {
-                            "video_src": "pylonsrc imageformat=yuv422 exposure=3250 interpacketdelay=1500 ! videoconvert ! appsink",
+                            "video_src": "rtspsrc location=\"rtsp://admin:intel123@<HOST IP ADDR>:554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
                                 "level": 95

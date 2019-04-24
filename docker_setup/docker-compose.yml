@@ -277,9 +277,6 @@ services:
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
-      - "${IEI_INSTALL_PATH}/config/factory_video_file.json:/IEI/factory_video_file.json"
-      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp.json"
-      - "${IEI_INSTALL_PATH}/config/factory_basler.json:/IEI/factory_basler.json"
       - "${IEI_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
       - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
@@ -337,8 +334,10 @@ services:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/streamsublib"
       - "${IEI_INSTALL_PATH}/config/factory_video_file.json:/IEI/factory_video_file.json"
       - "${IEI_INSTALL_PATH}/config/factory_profiling.json:/IEI/factory_profiling.json"
-      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp.json"
+      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp_hikvision_ds2.json"
+      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp_cvlc.json"
       - "${IEI_INSTALL_PATH}/config/factory_basler.json:/IEI/factory_basler.json"
+      - "${IEI_INSTALL_PATH}/config/factory_usb.json:/IEI/factory_usb.json"
       - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_analytics_logs:/IEI/video_analytics_logs"
@@ -439,14 +438,18 @@ services:
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
       - "${IEI_INSTALL_PATH}/config/factory_video_file.json:/IEI/factory_video_file.json"
       - "${IEI_INSTALL_PATH}/config/factory_profiling.json:/IEI/factory_profiling.json"
-      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp.json"
+      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp_hikvision_ds2.json"
+      - "${IEI_INSTALL_PATH}/config/factory_rtsp.json:/IEI/factory_rtsp_cvlc.json"
       - "${IEI_INSTALL_PATH}/config/factory_basler.json:/IEI/factory_basler.json"
+      - "${IEI_INSTALL_PATH}/config/factory_usb.json:/IEI/factory_usb.json"
       - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_ingestion_logs:/IEI/video_ingestion_logs"
     command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
+    privileged: true
     devices:
       - "/dev/dri"
+      - "/dev/:/dev/"
     logging:
       driver: ${LOGGING_DRIVER}
       options:

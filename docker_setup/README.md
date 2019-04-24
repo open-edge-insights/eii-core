@@ -90,9 +90,10 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
    1. [factory_video_file.json](./config/factory_video_file.json) - value to be used if working with a defect video file
    2. [factory_basler.json](./config/factory_basler.json) - value to be used if working with single basler camera setup
-   3. [factory_rtsp.json](./config/factory_rtsp.json) - value to be used if working with single rtsp camera setup or simulated rtsp
-                                                                              camera stream from VLC
-   4. [factory_multi_cam.json](./config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
+   3. [factory_rtsp_hikvision_ds2.json](./config/factory_rtsp_hikvision_ds2.json) - value to be used if working with physical hikvision ds2 rtsp camera setup
+   4. [factory_rtsp_cvlc.json](./config/factory_rtsp_cvlc.json) - value to be used if working with stimulated cvlc rtsp camera setup
+   5. [factory_usb.json](./config/factory_usb.json) - value to be used if working with usb webcam.
+   6. [factory_multi_cam.json](./config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
 5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.

@@ -1,5 +1,5 @@
 {
-    "machine_id": "basler-capture-example",
+    "machine_id": "rtsp-cvlc-example",
     "trigger_threads": 1,
     "data_ingestion_manager": {
         "ingestors": {
