@@ -5,6 +5,7 @@
         "ingestors": {
             "video_file": {
                 "video_file": "./test_videos/pcb_d2000.avi",
+                "resize_resolution": "1270x720",
                 "encoding": {
                     "type": "jpg",
                     "level": 95
@@ -16,7 +17,7 @@
     },
 
     "classification": {
-        "max_workers": 1,
+        "max_workers": 15,
         "classifiers": {
             "dummy": {
                 "config": {

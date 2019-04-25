@@ -165,6 +165,9 @@ class DataHandler:
     def process_frame(self, frame, point):
         """Classify the frame and save the classifier result to influxDB"""
 
+        if self.profiling is True:
+            ts_va_proc_entry = float(time.time()*1000)
+
         stream_name = point.get('Measurement')
         self.logger.debug("[{0}]: Processing frame...".format(stream_name))
 
@@ -176,15 +179,28 @@ class DataHandler:
         else:
             encoding = None
 
+        if self.profiling is True:
+            ts_va_proc_np_entry = float(time.time()*1000)
+
         # Convert the buffer into np array.
         Frame = np.frombuffer(frame, dtype=np.uint8)
         if encoding is not None:
+            if self.profiling is True:
+                ts_va_proc_np_reshape_entry = float(time.time() * 1000)
+
             reshape_frame = np.reshape(Frame, (Frame.shape))
+
+            if self.profiling is True:
+                ts_va_proc_np_reshape_exit = float(time.time() * 1000)
+
             reshape_frame = cv2.imdecode(reshape_frame, 1)
         else:
             reshape_frame = np.reshape(Frame, (int(img_height),
                                                int(img_width),
                                                int(img_channels)))
+
+        if self.profiling is True:
+            ts_va_proc_np_exit = float(time.time()*1000)
 
         img_handles = point["ImgHandle"]
         img_handles = img_handles.split(",")
@@ -216,10 +232,25 @@ class DataHandler:
         for result in ret:
 
             if self.profiling is True:
+                data_point.add_fields('ts_va_proc_np_reshape_entry',
+                                      ts_va_proc_np_reshape_entry)
+                data_point.add_fields('ts_va_proc_np_reshape_exit',
+                                      ts_va_proc_np_reshape_exit)
+                data_point.add_fields('ts_va_proc_np_entry',
+                                      ts_va_proc_np_entry)
+                data_point.add_fields('ts_va_proc_np_exit',
+                                      ts_va_proc_np_exit)
+                data_point.add_fields('ts_va_proc_entry',
+                                      ts_va_proc_entry)
                 data_point.add_fields('ts_va_analy_entry',
                                       ts_va_analy_entry)
                 data_point.add_fields('ts_va_analy_exit',
                                       ts_va_analy_exit)
+
+                data_point.add_fields('ts_vi_fr_encode_entry',
+                                      point['ts_vi_fr_encode_entry'])
+                data_point.add_fields('ts_vi_fr_encode_exit',
+                                      point['ts_vi_fr_encode_exit'])
                 data_point.add_fields('ts_va_img_read_entry',
                                       point['ts_va_img_read_entry'])
                 data_point.add_fields('ts_va_img_read_exit',
