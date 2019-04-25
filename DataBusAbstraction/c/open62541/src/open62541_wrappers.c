@@ -8,26 +8,17 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#define _DEFAULT_SOURCE 1
+
 #include <unistd.h>
 #include "open62541_wrappers.h"
 
-#define SECURITY_POLICY_URI "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
-#define ENDPOINT_SIZE 100
-#define NAMESPACE_SIZE 100
-#define TOPIC_SIZE 100
-// TODO: we need to see what's the optimum size for this or have a better logic to handle this regardless of any size limits
-// imposed by safestringlib strcpy_s API
-#define PUBLISH_DATA_SIZE 4*1024
-#define DBA_STRCPY(dest, src) \
-    { \
-        unsigned int srcLength = (unsigned int)strlen(src) + 1; \
-        unsigned int destSize = (unsigned int)sizeof(dest); \
-        if (srcLength >= destSize) { \
-	        strcpy_s(dest, destSize - 1, src); \
-	    } else { \
-	        strcpy_s(dest, srcLength, src); \
-	    } \
-    }
+// strcpy_s and strcat_s extern declarations are required for safstringlib
+extern int
+strcpy_s(char *dest, unsigned int dmax, const char *src);
+
+extern int
+strcat_s(char *dest, unsigned int dmax, const char *src);
 
 // opcua server global variables
 static UA_Server *server = NULL;
@@ -100,7 +91,7 @@ getNamespaceIndex(char *ns, char *topic) {
                        (int)ref->browseName.name.length, ref->browseName.name.data,
                        (int)ref->displayName.text.length, ref->displayName.text.data);
                 char nodeIdentifier[NAMESPACE_SIZE];
-                DBA_STRCPY(nodeIdentifier, ref->nodeId.nodeId.identifier.string.data);
+                DBA_STRCPY(nodeIdentifier, (char*)ref->nodeId.nodeId.identifier.string.data);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
                     UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
@@ -430,7 +421,7 @@ serverPublish(int nsIndex, char *topic, char* data) {
     }
     UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", UA_StatusCode_name(retval));
     UA_Variant_delete(val);
-    return UA_StatusCode_name(retval);
+    return (char *)UA_StatusCode_name(retval);
 }
 
 /* serverContextDestroy function destroys the opcua server context */
@@ -470,7 +461,7 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
             UA_String str = *(UA_String*)value->data;
             if (userCallback) {
                 static char subscribedData[PUBLISH_DATA_SIZE];
-                DBA_STRCPY(subscribedData, str.data);
+                DBA_STRCPY(subscribedData, (char*)str.data);
                 // TODO: Have better logic here to check the mapping between topics and
                 // their corresponding published data. Better to use DataBus wrappers in C
                 // and call the same in py and go to support multi pub/sub feature (needs some work)
@@ -495,7 +486,6 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
 
     if(response.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
         UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription succeeded, id %u", response.subscriptionId);
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription's revisedPublishingInterval: %u ms", response.revisedPublishingInterval);
     } else {
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
         return 1;
@@ -590,11 +580,6 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
     UA_ByteString *revocationList = NULL;
     size_t revocationListSize = 0;
 
-    /* endpointArray holds the available endpoints in the server
-     * and endpointArraySize holds the number of endpoints available */
-    UA_EndpointDescription* endpointArray = NULL;
-    size_t endpointArraySize = 0;
-
     /* Load certificate and private key */
     UA_ByteString certificate = loadFile(certificateFile);
     if(certificate.length == 0) {
@@ -661,7 +646,7 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
     if(retval != UA_STATUSCODE_GOOD) {
         UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
         cleanupClient();
-        return UA_StatusCode_name(retval);
+        return (char *)UA_StatusCode_name(retval);
     }
 
     return "0";
@@ -703,7 +688,7 @@ clientContextCreate(char *hostname, int port) {
     retval = UA_Client_connect(client, endpoint);
     if(retval != UA_STATUSCODE_GOOD) {
         cleanupClient();
-        return UA_StatusCode_name(retval);
+        return (char *)UA_StatusCode_name(retval);
     }
     return "0";
 }

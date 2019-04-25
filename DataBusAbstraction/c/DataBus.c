@@ -31,6 +31,7 @@ subscriber (client) - If all certs/keys are set to empty string, the opcua clien
 char*
 ContextCreate(struct ContextConfig contextConfig) {
     char *hostname;
+    char *errorMsg;
     int port;
     bool devmode = false;
     gContextConfig = contextConfig;
@@ -52,21 +53,22 @@ ContextCreate(struct ContextConfig contextConfig) {
 
     if(devmode){
         if(!strcmp(gContextConfig.direction, "PUB")) {
-	        serverContextCreate(hostname, port);
+	        errorMsg = serverContextCreate(hostname, port);
         } else if(!strcmp(gContextConfig.direction, "SUB")) {
-            clientContextCreate(hostname, port);
+            errorMsg = clientContextCreate(hostname, port);
         }
     } else {
         if(!strcmp(gContextConfig.direction, "PUB")) {
-            serverContextCreateSecured(hostname, port, gContextConfig.certFile,
-                gContextConfig.privateFile, gContextConfig.trustFile,
-                gContextConfig.trustedListSize);
+            errorMsg = serverContextCreateSecured(hostname, port, gContextConfig.certFile,
+                        gContextConfig.privateFile, gContextConfig.trustFile,
+                        gContextConfig.trustedListSize);
         } else if(!strcmp(gContextConfig.direction, "SUB")) {
-            clientContextCreateSecured(hostname, port, gContextConfig.certFile,
-                gContextConfig.privateFile, gContextConfig.trustFile,
-                gContextConfig.trustedListSize);
+            errorMsg = clientContextCreateSecured(hostname, port, gContextConfig.certFile,
+                        gContextConfig.privateFile, gContextConfig.trustFile,
+                        gContextConfig.trustedListSize);
         }
     }
+    return errorMsg;
 }
 
 static bool
