@@ -341,6 +341,7 @@ services:
       - "${IEI_INSTALL_PATH}/config/factory_multi_cam.json:/IEI/factory_multi_cam.json"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_analytics_logs:/IEI/video_analytics_logs"
+      - "/dev:/dev"
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
     devices:
       - "/dev/dri"

@@ -74,15 +74,8 @@ class Classifier:
         with open(ref_config_roi, 'r') as f:
             self.config_roi = json.load(f)
 
-        # Select run time device [CPU/GPU/MYRIAD], default : CPU
-        r_device = "CPU"
-        if device.upper() == "GPU":
-            r_device = "GPU"
-        if device.upper() == "MYRIAD":
-            r_device = "MYRIAD"
-
         # Load OpenVINO model
-        self.plugin = IEPlugin(device=r_device, plugin_dirs="")
+        self.plugin = IEPlugin(device=device.upper(), plugin_dirs="")
         self.net = IENetwork.from_ir(model=model_xml, weights=model_bin)
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))
@@ -167,7 +160,7 @@ class Classifier:
                     self.log.debug("******Defects_MISSING" + str(roi + 1))
                     bndbx.append(defect_roi[roi])
             elif d_type == D_SHORT:
-                if probs[((roi + 5) * 2) + 1] > 0.7:
+                if probs[((roi + 4) * 2) + 1] > 0.7:
                     self.log.debug("******Defects_SHORT" + str(roi + 1))
                     bndbx.append(defect_roi[roi])
         return bndbx

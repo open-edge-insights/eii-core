@@ -79,7 +79,8 @@
             "pcbdemo": {
                 "trigger": ["pcb_trigger"],
                 "config": {
-                    "ref_img": "./algos/algo_config/ref_pcbdemo/ref.png",
+                    "device": "CPU",
+		    "ref_img": "./algos/algo_config/ref_pcbdemo/ref.png",
                     "ref_config_roi": "./algos/algo_config/ref_pcbdemo/roi_2.json",
                     "model_xml": "./algos/algo_config/ref_pcbdemo/model_2.xml",
                     "model_bin": "./algos/algo_config/ref_pcbdemo/model_2.bin",

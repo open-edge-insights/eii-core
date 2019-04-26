@@ -59,6 +59,15 @@ ADD StreamSubLib ./StreamSubLib
 ADD DataIngestionLib ./DataIngestionLib
 ADD Util ./Util
 
+#Myriad and HDDL requirements
+RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 libboost-filesystem1.58.0 libssl1.0.0 libudev1 libjson-c2 udev 
+RUN apt install -y udev
+RUN echo "source /opt/intel/computer_vision_sdk/bin/setupvars.sh" >> ~/.bashrc
+RUN cp /IEI/97-myriad-usbboot.rules /etc/udev/rules.d/
+RUN echo "udevadm control --reload-rules" >> ~/.bashrc
+RUN echo "udevadm trigger" >> ~/.bashrc
+
+
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/:./algos/dpm/classification/
 
