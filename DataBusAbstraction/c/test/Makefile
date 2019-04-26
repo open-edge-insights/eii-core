@@ -60,6 +60,6 @@ sub_insecure: build
 clean:
 	@echo "Removing all the binary files..."
 	rm -rf DataBus_test libsafestring.a $(CPATH)/open62541_wrappers.o $(CPATH)/open62541.o $(CURDIR)/safestringlib \
-	       $(CURDIR)/*.a $(CURDIR)/*.o
+	       $(CURDIR)/*.a $(CURDIR)/*.o $(CURDIR)/../*.a
 
 

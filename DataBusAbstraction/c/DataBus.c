@@ -31,7 +31,7 @@ subscriber (client) - If all certs/keys are set to empty string, the opcua clien
 char*
 ContextCreate(struct ContextConfig contextConfig) {
     char *hostname;
-    char *errorMsg;
+    char *errorMsg = "0";
     int port;
     bool devmode = false;
     gContextConfig = contextConfig;
@@ -53,7 +53,7 @@ ContextCreate(struct ContextConfig contextConfig) {
 
     if(devmode){
         if(!strcmp(gContextConfig.direction, "PUB")) {
-	        errorMsg = serverContextCreate(hostname, port);
+            errorMsg = serverContextCreate(hostname, port);
         } else if(!strcmp(gContextConfig.direction, "SUB")) {
             errorMsg = clientContextCreate(hostname, port);
         }

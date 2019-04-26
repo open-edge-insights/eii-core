@@ -24,7 +24,11 @@ SOFTWARE.
 #include "cpuid-check.h"
 #define DEST_SIZE 13
 
-char* get_vendor(){	
+// safestringlib API declaration
+extern int
+memcpy_s (void *dest, unsigned int dmax, const void *src, unsigned int smax);
+
+char* get_vendor(){
 	uint32_t regs[4];
 	static char vendor[13];
 	asm volatile ("cpuid":"=a" (regs[0]), "=b" (regs[1]), "=c" (regs[3]), "=d" (regs[2]) : "a" (0), "c" (2));

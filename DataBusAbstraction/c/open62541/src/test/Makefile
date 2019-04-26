@@ -59,4 +59,4 @@ invalid_client: build
 clean:
 	@echo "Removing all the binary files..."
 	rm -rf open62541_test libsafestring.a $(CPATH)/*.o  $(CURDIR)/safestringlib \
-	       $(CURDIR)/*.a $(CURDIR)/*.o
+	       $(CURDIR)/*.a $(CURDIR)/*.o $(CURDIR)/../*.a

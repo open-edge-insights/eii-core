@@ -18,7 +18,7 @@ build_safestring_lib:
 	cd $(SAFESTRING_DIR) && \
 	git checkout $(SAFESTRING_VER) && \
 	make && \
-	cp -rf libsafestring.a $(CURDIR) && \
+	cp -rf libsafestring.a $(CURDIR)/../open62541 && \
 	cd $(CURDIR) && \
 	rm -rf $(SAFESTRING_DIR)
 
@@ -68,4 +68,4 @@ invalid_sub: build
 clean:
 	@echo "Removing all the binary files..."
 	find $(DBA_PATH) -name \open62541W.so -type f -delete
-	rm -rf $(CURDIR)/safestringlib $(CURDIR)/*.a $(CURDIR)/*.o
+	rm -rf $(CURDIR)/safestringlib $(CURDIR)/*.a $(CURDIR)/*.o $(CURDIR)/../*.a $(CURDIR)/../*.so

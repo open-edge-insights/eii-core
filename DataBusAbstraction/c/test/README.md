@@ -7,6 +7,12 @@ The C example program demonstrates publish and subscription over OPCUA bus only 
 
 ### 1. Pre-requisite
 
+> **NOTE**:
+> The `Pre-requisite` section below is `only` needed if executing from
+> the IEI repo. It should not be run from IEI dist libs path
+> (/opt/intel/iei/dist_libs). If run, it would fail and one may have to re-create
+> dist_libs to overcome any issue thereafter.
+
   ```sh
   make clean
   make build_safestring_lib

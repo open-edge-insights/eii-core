@@ -25,46 +25,60 @@ RUN python3.6 get-pip.py
 # tls, crypto library needs to open62541
 RUN apt-get install -y libmbedtls-dev
 
-ADD DataBusAbstraction/c DataBusAbstraction/c/
-ADD DataBusAbstraction/py DataBusAbstraction/py/
+# Building safestringlib
+ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
+RUN	git clone https://github.com/intel/safestringlib.git && \
+	cd safestringlib && \
+	git checkout ${SAFESTRING_VER} && \
+    make && \
+    cp -rf libsafestring.a /iei
 
 # Build the open62541W.so file
-RUN cd /iei/DataBusAbstraction/py && \
-    pip3.6 install -r databus_requirements.txt && \
-    cd test && \
+ADD DataBusAbstraction/py/databus_requirements.txt DataBusAbstraction/py/databus_requirements.txt
+RUN cd /iei/DataBusAbstraction/py/ && \
+    pip3.6 install -r databus_requirements.txt
+
+ADD DataBusAbstraction/c DataBusAbstraction/c/
+# Build c open62541 static libraries
+RUN cd /iei/DataBusAbstraction/c/test && \
     make clean && \
-    make build_safestring_lib && \
-    make build
+    make build_static_lib
+
+ADD DataBusAbstraction/py DataBusAbstraction/py/
+RUN cd /iei/DataBusAbstraction/py/test && \
+    make clean && \
+    cp -rf /iei/libsafestring.a ../open62541 && \
+    make build && \
+    rm -rf ../libsafestring.a
 
 RUN mkdir -p /iei/dist_libs
 
 ENV DBA_PATH /dist_libs/DataBusAbstraction
 ENV IMGSTORE_PATH /dist_libs/ImageStore
 
-# Build c open62541 static libraries
-RUN cd /iei/DataBusAbstraction/c/test && \
-    make build_static_lib
-
-# Copying DataBusAbstraction py library/test files.
-ADD DataBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/
-ADD DataBusAbstraction/py/DataBus*.py ${DBA_PATH}/py/
-RUN mkdir -p ${DBA_PATH}/py/Util
 ADD Util/log.py ${DBA_PATH}/py/Util/
-RUN cp DataBusAbstraction/py/open62541W.so ${DBA_PATH}/py/
-ADD DataBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/
-ADD DataBusAbstraction/py/test/Makefile ${DBA_PATH}/py/test/
-ADD DataBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/
+# Copying DataBusAbstraction py library/test files.
+RUN cp DataBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/ && \
+    cp DataBusAbstraction/py/DataBus*.py ${DBA_PATH}/py/ && \
+    cp DataBusAbstraction/py/open62541W.so ${DBA_PATH}/py/ && \
+    mkdir -p ${DBA_PATH}/py/test && \
+    cp DataBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/ && \
+    cp DataBusAbstraction/py/test/Makefile ${DBA_PATH}/py/test/ && \
+    cp DataBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/ && \
+    rm -rf DataBusAbstraction/py
 
 # Copying DataBusAbstraction c library/test files.
 RUN mkdir -p ${DBA_PATH}/c/
 RUN mkdir -p ${DBA_PATH}/c/test/
 ADD DataBusAbstraction/c/test/ ${DBA_PATH}/c/test/
-RUN cp DataBusAbstraction/c/DataBus.c ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/DataBus.h ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/open62541/include/common.h ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/open62541/include/open62541.h ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/open62541/include/open62541_wrappers.h ${DBA_PATH}/c/
-RUN cp DataBusAbstraction/c/open62541/src/test/libopen62541_wrappers.a ${DBA_PATH}/c/test/
+RUN cp DataBusAbstraction/c/DataBus.c ${DBA_PATH}/c/ && \
+    cp DataBusAbstraction/c/DataBus.h ${DBA_PATH}/c/ && \
+    cp DataBusAbstraction/c/open62541/include/common.h ${DBA_PATH}/c/ && \
+    cp DataBusAbstraction/c/open62541/include/open62541.h ${DBA_PATH}/c/ && \
+    cp DataBusAbstraction/c/open62541/include/open62541_wrappers.h ${DBA_PATH}/c/ && \
+    cp DataBusAbstraction/c/test/libopen62541_wrappers.a ${DBA_PATH}/c/test/ && \
+    cp /iei/libsafestring.a ${DBA_PATH}/c/test/ && \
+    rm -rf DataBusAbstraction/c
 
 # Copying ImageStore py library/test files.
 ADD ImageStore/__init__.py ${IMGSTORE_PATH}/
@@ -88,4 +102,4 @@ ADD ImageStore/protobuff/cpp/*.cc ${IMGSTORE_PATH}/protobuff/cpp/
 ADD ImageStore/protobuff/cpp/*.h ${IMGSTORE_PATH}/protobuff/cpp/
 ADD ImageStore/protobuff/*.proto ${IMGSTORE_PATH}/protobuff/
 
-ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /iei/dist_libs/"]
+ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /iei/dist_libs/ && rm -rf /dist_libs/"]

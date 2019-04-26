@@ -12,8 +12,7 @@ sources = ["open62541W.pyx",
            "../../c/DataBus.c"]
 includeDirs = ["../../c/open62541/include",
                "../../c"]
-libraryDirs = ["../../c/open62541/src",
-"../../c"]
+libraryDirs = ["."]
 libraries = ["mbedtls", "mbedx509", "safestring",
              "mbedcrypto", "pthread"]
 
