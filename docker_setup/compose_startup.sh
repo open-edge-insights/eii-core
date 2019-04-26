@@ -5,7 +5,7 @@
 # docker-compose.yml
 check_IEI_published_ports() {
 	echo "Checking if IEI published ports are already up..."
-	ports=($GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $IMAGESTORE_PORT)
+	ports=($GRPC_INTERNAL_PORT $OPCUA_PORT $INFLUXDB_PORT $IMAGESTORE_PORT $REDIS_PORT $MINIO_PORT $VAULT_PORT $KAPACITOR_PORT)
 	for port in "${ports[@]}"
 	do
 		set +e
