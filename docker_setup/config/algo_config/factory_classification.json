@@ -7,7 +7,7 @@
                 "video_file": "./test_videos/classification_vid.avi",
                 "encoding": {
                     "type": "jpg",
-                    "level": 95
+                    "level": 100
                 },
                 "img_store_type": "inmemory_persistent",
                 "loop_video": true

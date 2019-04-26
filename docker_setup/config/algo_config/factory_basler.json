@@ -10,7 +10,7 @@
                             "video_src": "pylonsrc imageformat=yuv422 exposure=3250 interpacketdelay=1500 ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
-                                "level": 95
+                                "level": 100
                             },
                             "img_store_type": "inmemory_persistent"
                         }

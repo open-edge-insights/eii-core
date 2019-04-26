@@ -10,7 +10,7 @@
                             "video_src": "rtspsrc location=\"rtsp://admin:intel123@<HOST IP ADDR>:554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
-                                "level": 95
+                                "level": 100
                             },
                             "img_store_type": "inmemory_persistent"
                         }

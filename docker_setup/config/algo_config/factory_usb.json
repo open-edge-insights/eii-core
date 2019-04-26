@@ -10,7 +10,7 @@
                             "video_src": "v4l2src! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
-                                "level": 95
+                                "level": 100
                             },
                             "img_store_type": "inmemory_persistent"
                         }
