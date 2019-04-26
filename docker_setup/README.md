@@ -204,7 +204,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```
             > 2. Developers can make use of the below script to run locally from a Docker registry:
             ```sh
-            sudo make pull run  DOCKER_REGISTRY==<IP ADDRESS or URL> | tee compose_startup.txt
+            sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
             ```
              > **Note**:
               1. Please use below command to run a local Docker Registry server
