@@ -25,7 +25,7 @@ echo "2. Buidling the client test container..."
 # set .dockerignore to the base one
 ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-services=(ia_pybase ia_client_tests)
+services=(ia_gopybase ia_client_tests)
 servDockerIgnore=(.dockerignore.common .dockerignore.ct)
 
 count=0

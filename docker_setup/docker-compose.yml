@@ -50,9 +50,7 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
-        GOLANG_VERSION: ${GOLANG_VERSION}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-        ALPINE_VERSION: ${ALPINE_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
     image: ia_gobase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
@@ -63,12 +61,22 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
-        PYTHON_VERSION: ${PYTHON_VERSION}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-        ALPINE_VERSION: ${ALPINE_VERSION}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
     image: ia_pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
+
+  # Define ia_gopybase service
+  ia_gopybase:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_gopybase:${IEI_VERSION}
+    depends_on:
+      - ia_log_rotate
+
 
   #----End: IEI Base Images----
 
@@ -81,9 +89,10 @@ services:
       context: ../
       dockerfile: $PWD/../DataAgent/Dockerfile
       args:
-        IEI_VERSION: ${IEI_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
         INFLUXDB_VERSION: ${INFLUXDB_VERSION}
         IEI_UID: ${IEI_UID}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_data_agent:${IEI_VERSION}
     container_name: ia_data_agent
     hostname: ia_data_agent
@@ -146,8 +155,9 @@ services:
       context: ../
       dockerfile: $PWD/../Telegraf/Dockerfile
       args:
-        IEI_VERSION: ${IEI_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
         IEI_UID: ${IEI_UID}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
         TELEGRAF_VERSION: ${TELEGRAF_VERSION} 
     container_name: ia_telegraf
     hostname: ia_telegraf
@@ -240,8 +250,9 @@ services:
       context: ../
       dockerfile: $PWD/../DataAnalytics/PointDataAnalytics/Dockerfile
       args:
-        IEI_VERSION: ${IEI_VERSION}
+        ALPINE_VERSION: ${ALPINE_VERSION}
         IEI_UID: ${IEI_UID}
+        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_data_analytics:${IEI_VERSION}
     container_name: ia_data_analytics
     hostname: ia_data_analytics
@@ -297,7 +308,7 @@ services:
       context: ../
       dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
     image: ia_video_analytics:${IEI_VERSION}
     container_name: ia_video_analytics
