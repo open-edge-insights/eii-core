@@ -28,6 +28,7 @@ build_safestring_lib:
 	git checkout $(SAFESTRING_VER) && \
 	make && \
 	cp -rf libsafestring.a $(CURDIR)/../ && \
+	cp -rf libsafestring.a $(CURDIR)/../../c/open62541/src/ && \
 	cd $(CURDIR) && \
 	rm -rf $(SAFESTRING_DIR)
 
