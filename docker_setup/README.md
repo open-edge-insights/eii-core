@@ -1,4 +1,3 @@
-
 Docker compose setup of IEI solution:
 =====================================
 --------------------------------------
@@ -197,10 +196,10 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ```
 
            > **Note**:
-            > 1. To build locally and push the images to registry, please use below option
+            > 1. To build locally and push the images to registry, please use below option. ** Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry **
 
             ```sh
-            sudo make build push DOCKER_REGISTRY==<IP ADDRESS or URL>
+            sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
             ```
             > 2. Developers can make use of the below script to run locally from a Docker registry:
             ```sh
