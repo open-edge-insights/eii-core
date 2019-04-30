@@ -112,30 +112,36 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    2. [services_pointdata.json](./config/services_pointdata.json) - value to be used if working with point data analytics use case.
    3. [services_all.json](./config/services_all.json) - value to be used if working with both pointdata and video analytics.
    
-   **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README](../DataAnalytics/README)
+   **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README.md](../DataAnalytics/README.md)
 
    4. If you want to add your own services to IEI, Along with core services, please add your
    service to json file mentioned [.env](.env) with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
 
-    "iei_services": [
+   ```sh
+   "iei_services": [
         {
             "name": "my_custom_service",
             "dockerignore": ".dockerignore.common"
 
-        }
-8. **Enablind Development Mode.**
+        }]
+   ```
 
-   Inorder to enable Development mode, **DEV_MODE** variable in .env need to be changed as mentioned below. 
-   1. DEV_MODE=true -  For disabling security & Enabling trigger algo modification dynamically in host machine 
-   2. DEV_MODE=false - This mode runs all container in secured Mode. 
+8. **Enabling Development Mode.**
+
+   Inorder to enable Development mode, **DEV_MODE** variable in .env need to be changed as mentioned below.
+   1. DEV_MODE=false (default) - This mode runs all container in secured mode.
+   2. DEV_MODE=true -  For disabling security & enabling trigger algo modification dynamically in host machine 
+      
+      **NOTE**:                
+      * If Development mode is set true then provisioning steps should be skipped.
+      * Any configuration changes in the  [provision_config.json](./config/provision_config.json) will be effective
+        only when the provisioning step is run again.
 
 ### <u>Build & Installation</u>
 
 1. Building the iei containers from source
 
     * Follow below steps to generate certificates, provision and build/start IEI.
-
-        **NOTE** If Development mode is set true then provisioning steps should be skipped. 
 
         1. Certificates generation:
 
