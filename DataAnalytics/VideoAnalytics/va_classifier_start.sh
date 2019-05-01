@@ -3,7 +3,7 @@
 configFile=$1
 logLevel=$2
 
-source /opt/intel/computer_vision_sdk/bin/setupvars.sh
+source /opt/intel/openvino/bin/setupvars.sh
 
 udevadm control --reload-rules
 udevadm trigger

@@ -27,6 +27,7 @@ import numpy as np
 import json
 
 from algos.dpm.defect import Defect
+from algos.dpm.display_info import DisplayInfo
 from openvino.inference_engine import IENetwork, IEPlugin
 
 """FLANN algorithm classifier
@@ -160,7 +161,7 @@ class Classifier:
                     self.log.debug("******Defects_MISSING" + str(roi + 1))
                     bndbx.append(defect_roi[roi])
             elif d_type == D_SHORT:
-                if probs[((roi + 4) * 2) + 1] > 0.7:
+                if probs[((roi + 5) * 2) + 1] > 0.7:
                     self.log.debug("******Defects_SHORT" + str(roi + 1))
                     bndbx.append(defect_roi[roi])
         return bndbx
@@ -254,6 +255,7 @@ class Classifier:
             if 'short' in self.config_roi:
                 short_ROI = self.config_roi["short"]["A1_roi"]
         defects = []
+        d_info = []
 
         # Missing component defect classification
         missing_bndbx = []
@@ -292,9 +294,14 @@ class Classifier:
                 # (x,y) -> top left bounding box coordinates
                 # (x1,y1) -> bottom right bounding box coordinates
                 defects.append(Defect(D_SHORT, (x, y), (x1, y1)))
+
+        # If defects exists display HIGH [priority: 2] alert string
+        if len(defects) > 0:
+            d_info.append(DisplayInfo('DEFECT DETECTED', 2))
+
         # Set state of random number generator after every frame to overcome
         # probabilistic nature of Flann matcher. This might need to be changed.
         cv2.setRNGSeed(0)
 
         # Return list of defect classes with bounding box coordinates
-        return defects
+        return d_info, defects

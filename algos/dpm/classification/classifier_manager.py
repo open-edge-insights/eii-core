@@ -172,7 +172,8 @@ class ClassifierManager:
 
                 try:
                     self.log.debug('Classifying frame %d', frame_count)
-                    results = classifier.classify(sample_num, frame, user_data)
+                    dinfo, results = classifier.classify(sample_num, frame,
+                                                         user_data)
                 except Exception:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
                     results = []  # Because of error, no results
@@ -191,6 +192,13 @@ class ClassifierManager:
                         'br': d.br
                     })
 
+                display_info = []
+                for d in dinfo:
+                    display_info.append({
+                        'info': d.info,
+                        'priority': d.priority
+                    })
+
                 msg = {
                         'idx': self.meta_idx,
                         'timestamp': ts,
@@ -198,7 +206,8 @@ class ClassifierManager:
                         'part_id': part_id,
                         'image_id': image_id,
                         'cam_sn': cam_sn,
-                        'defects': defect_res
+                        'defects': defect_res,
+                        'display_info': display_info
                 }
                 # Roll over the msg_idx value if we have reached the maximum
                 # value that an int can store in Python

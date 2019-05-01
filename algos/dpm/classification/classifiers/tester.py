@@ -26,6 +26,7 @@ import logging
 import cv2
 
 from algos.dpm.defect import Defect
+from algos.dpm.display_info import DisplayInfo
 
 """Simple classifier that does nothing. Meant for testing.
 """
@@ -72,8 +73,12 @@ class Classifier:
             return []
 
         defects = []
+        d_info = []
         for (x, y, w, h) in faces:
             # Top left and bottom right of the rectangle
             defects.append(Defect(0x00, (x, y), (x + w, y + h)))
 
-        return defects
+        if len(defects) > 0:
+            d_info.append(DisplayInfo('Face(s) found', 0))
+
+        return d_info, defects

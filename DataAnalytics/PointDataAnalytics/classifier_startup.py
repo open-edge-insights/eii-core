@@ -38,7 +38,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', dest='config',
-                        default='factory_video_file.json',
+                        default='factory_pcbdemo.json',
                         help='JSON configuration file')
     parser.add_argument('--log', choices=LOG_LEVELS.keys(), default='DEBUG',
                         help='Logging level (df: DEBUG)')

@@ -36,7 +36,7 @@ call the classifier algos based on the input config and persists the classified 
     ```
 
 4) Run app:
-    python3.6 VideoAnalytics.py --config ../../docker_setup/config/factory_video_file.json  --log-dir /home/videoanalytics --log-name videoanalytics.log
+    python3.6 VideoAnalytics.py --config ../../docker_setup/config/algo_config/factory_pcbdemo.json  --log-dir /home/videoanalytics --log-name videoanalytics.log
 
 5) Validation:
   Stop the ia_video_analytics container

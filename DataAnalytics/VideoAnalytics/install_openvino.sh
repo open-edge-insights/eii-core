@@ -11,11 +11,11 @@ cd ./l_openvino_toolkit* && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
     ./install.sh -s silent.cfg --ignore-cpu
 
-cd /opt/intel/computer_vision_sdk/deployment_tools/model_optimizer/install_prerequisites && \
+cd /opt/intel/openvino/deployment_tools/model_optimizer/install_prerequisites && \
     sed -i -e "s/sudo \(-[^- ]*\)\?//g" install_prerequisites.sh && \
     sed -i '/onnx/d' ../requirements.txt && echo "onnx==1.1.2" >> ../requirements.txt && \
     sed -i '/networkx/d' ../requirements.txt && echo "networkx==1.11" >> ../requirements.txt && \
     sed -i '/numpy/d' ../requirements.txt && echo "numpy==1.12.0" >> ../requirements.txt && \
     ./install_prerequisites.sh && \
-    cd /opt/intel/computer_vision_sdk/install_dependencies && \
+    cd /opt/intel/openvino/install_dependencies && \
     ./install_NEO_OCL_driver.sh

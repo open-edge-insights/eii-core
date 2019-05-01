@@ -63,22 +63,27 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### ** IEI pre-requisites **
 
-1. Copy the PCB demo test videos to the `test_videos` folder under `IEdgeInsights/docker_setup/` by using the following commands:
+1. Copy the PCB demo and classification sample test videos to the `test_videos` folder under `IEdgeInsights/docker_setup/` by using the following commands:
 
-    ```
+    ```sh
 	cd IEdgeInsights/docker_setup/test_videos
-	wget -q http://wheeljack.ch.intel.com/downloads/test_videos/pcb_d2000.avi
+ 	wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/4e92aff009c16f676b51f0ac744364ca/pcb_d2000.avi --no-proxy
+    
+    wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/b9bd04be5230957bc313bad1ca65beb0/classification_vid.avi --no-proxy
     ```
 
 2. Clone the a locally maintained [kapacitor repository](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/kapacitor.git) inside the `IEdgeInsights` folder.
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-
 3. #### [Requirement for video analytics container]
-     Download the full package for OpenVINO toolkit for Linux version "2018 R5" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside VideoAnalytics directory.
+     Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
 
-5. To work with Basler Source Plugin clone [basler-source-plugin](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/basler-source-plugin.git) inside the `IEdgeInsights` folder.
+  > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
+  > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
+  > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones
+
+4. To work with Basler Source Plugin clone [basler-source-plugin](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/basler-source-plugin.git) inside the `IEdgeInsights` folder.
 
 ## Steps to setup IEI solution on test/factory system
 
@@ -87,12 +92,13 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 1. All configurable options for IEI goes into [.env](.env) file.
 2. All the provisioning related containers goes into [provision-compose.yml](provision-compose.yml)    and IEI containers goes into [docker-compose.yml](docker-compose.yml)
 3. Provide the right value for "CONFIG_FILE" in [.env](.env) file for video source.
-   1. [factory_video_file.json](./config/factory_video_file.json) - value to be used if working with a defect video file
-   2. [factory_basler.json](./config/factory_basler.json) - value to be used if working with single basler camera setup
-   3. [factory_rtsp_hikvision_ds2.json](./config/factory_rtsp_hikvision_ds2.json) - value to be used if working with physical hikvision ds2 rtsp camera setup
-   4. [factory_rtsp_cvlc.json](./config/factory_rtsp_cvlc.json) - value to be used if working with stimulated cvlc rtsp camera setup
-   5. [factory_usb.json](./config/factory_usb.json) - value to be used if working with usb webcam.
-   6. [factory_multi_cam.json](./config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
+   1. [factory_pcbdemo.json](./config/algo_config/factory_pcbdemo.json) - value to be used if working with a defect video file for the sample pcbdemo application
+   2. [factory_basler.json](./config/algo_config/factory_basler.json) - value to be used if working with single basler camera setup
+   3. [factory_rtsp_hikvision_ds2.json](./config/algo_config/factory_rtsp_hikvision_ds2.json) - value to be used if working with physical hikvision ds2 rtsp camera setup
+   4. [factory_rtsp_cvlc.json](./config/algo_config/factory_rtsp_cvlc.json) - value to be used if working with stimulated cvlc rtsp camera setup
+   5. [factory_usb.json](./config/algo_config/factory_usb.json) - value to be used if working with usb webcam.
+   6. [factory_multi_cam.json](./config/algo_config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
+   7. [factory_classification.json](./config/algo_config/factory_classification.json) - value to be used if working with the sample classification application
 4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
   over MQTT, alarm light and reset button
 5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
@@ -101,7 +107,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
     **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
 6. Algo configuration:
-    * The trigger and classifier algorithm configuration is available in `factory_video_file.json`, `factory_basler.json`, `factory_rtsp.json` or `factory_multi_cam.json`. The choice of the algorithm and the parameters accepted by it can be configured in these files.
+    * The trigger and classifier algorithm configuration is available in `factory_pcbdemo.json`, `factory_basler.json`, `factory_rtsp.json` or `factory_multi_cam.json` for the sample pcbdemo application and in `factory_classification.json` for the sample classification algorithm. The choice of the algorithm and the parameters accepted by it can be configured in these files.
     Refer [VideoIngestion/README](../VideoIngestion/README.md) for more details
 
 7. **Selective container build and run.**
@@ -228,7 +234,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
    **Note**: `iei-simple-visualizer` is a sample python gRPC/OPCUA client created by us for demonstrating the usage of `ImageStore` and `DataBusAbstraction` distribution libs package. If one wants to develop a similar app, one can make use of the `ImageStore` and `DataBusAbstraction` python clients available at `/opt/intel/iei/dist_libs` to receive classified images and their metadata.
 
-3. If working with video file i.e, `CONFIG_FILE` is set to `factory_video_file.json` in [.env](.env), by default the video frames are ingested in loop by
+3. If working with video file i.e, `CONFIG_FILE` is set to `factory_pcbdemo.json` for the sample pcbdemo application and `factory_classification.json` for the sample classification algorithm in [.env](.env), by default the video frames are ingested in loop by
    `ia_video_ingestion` container. One can also restart ia_video_ingestion container manually by running:
    `docker restart ia_video_ingestion`
 

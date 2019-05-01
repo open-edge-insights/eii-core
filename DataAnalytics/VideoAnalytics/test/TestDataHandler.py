@@ -44,11 +44,12 @@ class DataHandlerTest(unittest.TestCase):
         if not os.path.exists(log_dir):
             os.mkdir(log_dir)
 
+        base_config_path = '../../docker_setup/config/algo_config'
         log_file_name = 'test_datahandler_' + current_date_time + '.log'
         cls.log = configure_logging('DEBUG', log_file_name, log_dir, __name__)
-        cls.config = '../../docker_setup/config/factory_video_file.json'
+        cls.config = base_config_path + '/factory_pcbdemo.json'
         cls.multi_cam_config =\
-            '../../docker_setup/config/factory_multi_cam.json'
+            base_config_path + '/factory_multi_cam.json'
 
     def test_init(self):
         dh = DataHandler(self.config, self.log)

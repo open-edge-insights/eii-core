@@ -272,6 +272,8 @@ class DataHandler:
                     data_point.add_fields(k, float(v))
                 elif k == "defects":
                     data_point.add_fields(k, json.dumps(v))
+                elif k == "display_info":
+                    data_point.add_fields(k, json.dumps(v))
 
                 data_point.add_fields('Height', float(img_height))
                 data_point.add_fields('Width', float(img_width))

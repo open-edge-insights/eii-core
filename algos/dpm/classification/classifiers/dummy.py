@@ -52,4 +52,4 @@ class Classifier:
             Always returns an empty list, since this is the dummy classifier
         """
         self.log.info('Classify')
-        return []
+        return [], []

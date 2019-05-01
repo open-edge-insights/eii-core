@@ -29,14 +29,14 @@ RUN cd ${HOME}/openvino_toolkit && \
     ./install.sh -s silent.cfg --ignore-cpu
 
 # Configure MO and install dependencies for processor graphics
-RUN bash -c 'source /opt/intel/computer_vision_sdk/bin/setupvars.sh && \
-    cd /opt/intel/computer_vision_sdk/deployment_tools/model_optimizer/install_prerequisites && \
+RUN bash -c 'source /opt/intel/openvino/bin/setupvars.sh && \
+    cd /opt/intel/openvino/deployment_tools/model_optimizer/install_prerequisites && \
     sed -i -e "s/sudo \(-[^- ]*\)\?//g" install_prerequisites.sh && \
     sed -i '/onnx/d' ../requirements.txt && echo "onnx==1.1.2" >> ../requirements.txt && \
     sed -i '/networkx/d' ../requirements.txt && echo "networkx==1.11" >> ../requirements.txt && \
     sed -i '/numpy/d' ../requirements.txt && echo "numpy==1.12.0" >> ../requirements.txt && \
     ./install_prerequisites.sh && \
-    cd /opt/intel/computer_vision_sdk/install_dependencies && \
+    cd /opt/intel/openvino/install_dependencies && \
     ./install_NEO_OCL_driver.sh'
 
 # Remove OpenVINO toolkit after installation
@@ -62,7 +62,7 @@ ADD Util ./Util
 #Myriad and HDDL requirements
 RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 libboost-filesystem1.58.0 libssl1.0.0 libudev1 libjson-c2 udev 
 RUN apt install -y udev
-RUN echo "source /opt/intel/computer_vision_sdk/bin/setupvars.sh" >> ~/.bashrc
+RUN echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc
 RUN cp /IEI/97-myriad-usbboot.rules /etc/udev/rules.d/
 RUN echo "udevadm control --reload-rules" >> ~/.bashrc
 RUN echo "udevadm trigger" >> ~/.bashrc
