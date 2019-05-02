@@ -168,9 +168,11 @@ services:
       SHARED_KEY: ${SHARED_KEY}
       SHARED_NONCE: ${SHARED_NONCE}
       INFLUX_SERVER: ${INFLUX_SERVER}
+      INFLUXDB_PORT: ${INFLUXDB_PORT}
       NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
+      HOST_IP: ${HOST_IP}
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -281,8 +283,8 @@ services:
       - "${IEI_INSTALL_PATH}/config/algo_config/${CONFIG_FILE}:/IEI/${CONFIG_FILE}"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/classifier_logs:/IEI/classifier_logs"
-    expose:
-      - ${KAPACITOR_PORT}
+    ports:
+      - "${KAPACITOR_PORT}:${KAPACITOR_PORT}"
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}", "${DEV_MODE}"]
     devices:
       - "/dev/dri"
