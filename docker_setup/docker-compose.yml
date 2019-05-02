@@ -99,7 +99,6 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       SHARED_KEY: ${SHARED_KEY}
       SHARED_NONCE: ${SHARED_NONCE}
@@ -169,7 +168,6 @@ services:
       SHARED_NONCE: ${SHARED_NONCE}
       INFLUX_SERVER: ${INFLUX_SERVER}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
       HOST_IP: ${HOST_IP}
@@ -211,7 +209,6 @@ services:
     image: ia_imagestore:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
       SHARED_KEY: ${SHARED_KEY}
@@ -271,7 +268,6 @@ services:
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
       IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       KAPACITOR_PORT: ${KAPACITOR_PORT}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
@@ -325,7 +321,6 @@ services:
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
       IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
@@ -334,11 +329,10 @@ services:
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/streamsublib"
-      - "${IEI_INSTALL_PATH}/config/algo_config/${CONFIG_FILE}:/IEI/${CONFIG_FILE}"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_analytics_logs:/IEI/video_analytics_logs"
       - "/dev:/dev"
-    command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
+    command: ["./algos/algo_config/${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
     devices:
       - "/dev/dri"
     logging:
@@ -375,7 +369,6 @@ services:
       INFLUX_SERVER: ${INFLUX_SERVER}
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
       DEV_MODE: ${DEV_MODE}
-      NO_PROXY: ${NO_PROXY}
       no_proxy: ${NO_PROXY}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -418,7 +411,6 @@ services:
       IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
-      NO_PROXY: ${NO_PROXY},${RTSP_CAMERA_IP}
       no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
       DEBIAN_FRONTEND: noninteractive
       MFX_HOME: "/opt/intel/mediasdk/"
@@ -433,10 +425,9 @@ services:
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
-      - "${IEI_INSTALL_PATH}/config/algo_config/${CONFIG_FILE}:/IEI/${CONFIG_FILE}"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
       - "${IEI_INSTALL_PATH}/logs/video_ingestion_logs:/IEI/video_ingestion_logs"
-    command: ["--config", "${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
+    command: ["--config", "./algos/algo_config/${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
     privileged: true
     devices:
       - "/dev/dri"

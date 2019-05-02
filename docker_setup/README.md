@@ -66,9 +66,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 1. Copy the PCB demo and classification sample test videos to the `test_videos` folder under `IEdgeInsights/docker_setup/` by using the following commands:
 
     ```sh
-	cd IEdgeInsights/docker_setup/test_videos
- 	wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/4e92aff009c16f676b51f0ac744364ca/pcb_d2000.avi --no-proxy
-    
+    cd IEdgeInsights/docker_setup/test_videos
+    wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/4e92aff009c16f676b51f0ac744364ca/pcb_d2000.avi --no-proxy
+
     wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/b9bd04be5230957bc313bad1ca65beb0/classification_vid.avi --no-proxy
     ```
 
@@ -99,13 +99,15 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    5. [factory_usb.json](./config/algo_config/factory_usb.json) - value to be used if working with usb webcam.
    6. [factory_multi_cam.json](./config/algo_config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
    7. [factory_classification.json](./config/algo_config/factory_classification.json) - value to be used if working with the sample classification application
-4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion configuration
-  over MQTT, alarm light and reset button
+
+4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion    
+   configuration over MQTT, alarm light and reset button
 5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
     1. `true` -  for enabling the tpm to store credentials
     2. `false` - for disabling the tpm
 
-    **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabledusing PTT Firmware in the BIOS.
+    **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabled using PTT Firmware in the BIOS.
+
 6. Algo configuration:
     * The trigger and classifier algorithm configuration is available in `factory_pcbdemo.json`, `factory_basler.json`, `factory_rtsp.json` or `factory_multi_cam.json` for the sample pcbdemo application and in `factory_classification.json` for the sample classification algorithm. The choice of the algorithm and the parameters accepted by it can be configured in these files.
     Refer [VideoIngestion/README](../VideoIngestion/README.md) for more details
@@ -117,7 +119,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    1. [services_video.json](./config/services_video.json) - value to be used if working with a video analytics use case.
    2. [services_pointdata.json](./config/services_pointdata.json) - value to be used if working with point data analytics use case.
    3. [services_all.json](./config/services_all.json) - value to be used if working with both pointdata and video analytics.
-   
+
    **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README.md](../DataAnalytics/README.md)
 
    4. If you want to add your own services to IEI, Along with core services, please add your
@@ -136,12 +138,21 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
    Inorder to enable Development mode, **DEV_MODE** variable in .env need to be changed as mentioned below.
    1. DEV_MODE=false (default) - This mode runs all container in secured mode.
-   2. DEV_MODE=true -  For disabling security & enabling trigger algo modification dynamically in host machine 
-      
-      **NOTE**:                
+   2. DEV_MODE=true -  For disabling security & enabling trigger algo modification dynamically in host machine
+
+      **NOTE**:
       * If Development mode is set true then provisioning steps should be skipped.
       * Any configuration changes in the  [provision_config.json](./config/provision_config.json) will be effective
         only when the provisioning step is run again.
+
+9. The inferencing by default will happen on `CPU`. With EIS v1.0.3 version onwards, there is support added
+   for running inference on `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) from factory json files in [algo_config](../algos/algo_config/) folder. To run on HDDL devices, make sure to uncomment the below section of code in [DataAnalytics/VideoAnalytics/va_classifier_start.sh](../DataAnalytics/VideoAnalytics/va_classifier_start.sh).
+
+    ```sh
+    #Uncomment these lines if you are using HDDL
+    #$HDDL_INSTALL_DIR/bin/hddldaemon &
+    #sleep 20
+    ```
 
 ### <u>Build & Installation</u>
 
@@ -172,13 +183,15 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
         3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
-            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script: * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.*
+            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script: **This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed first.**
 
             ```sh
             sudo make install CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee setup_iei_logs.txt
                 E.g. sudo make install CERT_PATH=../cert-tool/Certificates/
             ```
+
             This will install IEI as a systemd service in Ubuntu. Post installation, IEI can be started / stopped using commands:
+
             ```sh
             sudo systemctl stop iei
             sudo systemctl start iei
@@ -186,9 +199,11 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
             **Note**:
             Developers can make use of the below script:
+
             ```sh
             sudo make build run | tee compose_startup.txt
             ```
+
             This will not make a systemd service and just build and start IEI.
             Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
 
@@ -196,36 +211,46 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
            when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
             To install IEI in factory from a DOCKER REGISTRY, only [<IEdgeInsights>/docker_setup/](../docker_setup/) folder needs to be copied to
-            target system. Once copied please use below commands. * This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed  first.* Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
+            target system. Once copied please use below commands. **This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed first.** Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
 
             ```sh
-            sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL> 
+            sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL>
             ```
+
             To generate client external libs distribution package using Docker registry, please use below option
 
             ```sh
-            sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL> 
+            sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
             ```
 
            > **Note**:
-            > 1. To build locally and push the images to registry, please use below option. ** Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry **
+            > 1. To build locally and push the images to registry, please use below option. **Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry**
 
             ```sh
             sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
             ```
+
             > 2. Developers can make use of the below script to run locally from a Docker registry:
+
             ```sh
             sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
             ```
+
              > **Note**:
-              1. Please use below command to run a local Docker Registry server
+              * Please use below command to run a local Docker Registry server
+
               ```sh
               docker run -d -p 5000:5000 --restart=always --name registry registry:2
-              ```  
-              2. To  use local registry without using secure TLS, please insert below key in /etc/docker/daemon.json
+              ```
+
+              * To use local registry without using secure TLS, please insert below key in `/etc/docker/daemon.json`
+
+                    ```sh
                     "insecure-registries" : ["<IP ADDRESS / REGISTRY URL>"]
-              3. Please refer to below official docker documentation for more details on Docker Registry. https://docs.docker.com/registry/deploying/
-            
+                    ```
+
+              * Please refer to [official docker documentation](https://docs.docker.com/registry/deploying/) for more details on Docker Registry.
+
     > **Note**:
     > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
     > starting it off.
