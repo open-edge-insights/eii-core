@@ -142,8 +142,9 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
       **NOTE**:
       * If Development mode is set true then provisioning steps should be skipped.
-      * Any configuration changes in the  [provision_config.json](./config/provision_config.json) will be effective
+      * Any configuration changes in the  [provision_config.json](./config/provision_config.json) will be effective in DEV mode
         only when the provisioning step is run again.
+      * If influxDB credentials are changed in the provision_config.json, then `${IEI_INSTALL_PATH}/data/` folder should be deleted in order to take the new credentials into effect.  
 
 9. The inferencing by default will happen on `CPU`. With EIS v1.0.3 version onwards, there is support added
    for running inference on `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) from factory json files in [algo_config](../algos/algo_config/) folder. To run on HDDL devices, make sure to uncomment the below section of code in [DataAnalytics/VideoAnalytics/va_classifier_start.sh](../DataAnalytics/VideoAnalytics/va_classifier_start.sh).
