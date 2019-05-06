@@ -72,6 +72,7 @@ static char* convertToString(char str[], int num) {
 static UA_Int16
 getNamespaceIndex(char *ns, char *topic) {
     UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
+    char nodeIdentifier[NAMESPACE_SIZE];
     UA_BrowseRequest bReq;
     UA_BrowseRequest_init(&bReq);
     bReq.requestedMaxReferencesPerNode = 0;
@@ -85,13 +86,13 @@ getNamespaceIndex(char *ns, char *topic) {
         for(size_t j = 0; j < bResp.results[i].referencesSize; ++j) {
             UA_ReferenceDescription *ref = &(bResp.results[i].references[j]);
             if(ref->nodeId.nodeId.identifierType == UA_NODEIDTYPE_STRING) {
+                int len = (int)ref->nodeId.nodeId.identifier.string.length;
                 UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%-9d %-16.*s %-16.*s %-16.*s\n", ref->nodeId.nodeId.namespaceIndex,
                        (int)ref->nodeId.nodeId.identifier.string.length,
                        ref->nodeId.nodeId.identifier.string.data,
                        (int)ref->browseName.name.length, ref->browseName.name.data,
                        (int)ref->displayName.text.length, ref->displayName.text.data);
-                char nodeIdentifier[NAMESPACE_SIZE];
-                DBA_STRCPY(nodeIdentifier, (char*)ref->nodeId.nodeId.identifier.string.data);
+                DBA_STRNCPY(nodeIdentifier, (char*)ref->nodeId.nodeId.identifier.string.data, len);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
                     UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");

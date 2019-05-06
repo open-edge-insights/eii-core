@@ -32,6 +32,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	    } \
     }
 
+#define DBA_STRNCPY(dest, src, srclen) \
+    { \
+        unsigned int destSize = (unsigned int)sizeof(dest); \
+        if (srclen >= destSize) { \
+            strncpy_s(dest, destSize, src, destSize - 1); \
+        } else { \
+            strncpy_s(dest, srclen + 1 , src, srclen); \
+        } \
+    }
+
+
 //*************open62541 server wrappers**********************
 char*
 serverContextCreateSecured(char *hostname,

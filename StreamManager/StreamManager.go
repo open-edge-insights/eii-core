@@ -126,7 +126,7 @@ func convertToJSON(data string) string {
 	for j := 1; j < len(keyValBuf)-1; j++ { //wrapping other keys with in the quotes
 		keyBuf := strings.Split(keyValBuf[j], ",")
 		quotedKey2 := "\"" + keyBuf[len(keyBuf)-1] + "\""
-		jsonStr = strings.Replace(jsonStr, keyBuf[len(keyBuf)-1], quotedKey2, -1)
+		jsonStr = strings.Replace(jsonStr, "," + keyBuf[len(keyBuf)-1], "," + quotedKey2, -1)
 	}
 
 	jsonStr = strings.Replace(jsonStr, "=", ":", -1)  //As the value of idx is in not in the Json
