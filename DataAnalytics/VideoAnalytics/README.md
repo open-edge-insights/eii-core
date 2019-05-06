@@ -6,43 +6,40 @@ call the classifier algos based on the input config and persists the classified 
 
 # Running App
 
-1) Edit the file cert-tool/config.json . Add the following entry in the "Certificate" list
-
-   {
-      "videoanalytics": {
-        "server_alt_name": "<SYSTEM_HOSTNAME>"
-      }
-   }
-
-   Note: SYSTEM_HOSTNAME has to be replaced with the host name.
-   
-   Follow Build & Installation process of IEI at:
+1) Follow Build & Installation process of IEI at:
    https://gitlab.devtools.intel.com/Indu/IEdgeInsights/IEdgeInsights/blob/master/docker_setup/README.md
-      
+
+   For running VideoAnalytics in bare-metal, the DEV_MODE should be set to "true" in docker_setup/.env file.
 
 2) Install OpenVino:
-   Download the full package for OpenVINO toolkit for Linux version "2018 R5" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named l_openvino_toolkit_xxxxx/ will be present inside VideoAnalytics directory.
-   and extract inside DataAnalytics dir(Download and extract are optional if done in first steps)
+   Download the right version of OpenVINO and extract inside the VideAnalytics directory as per the docker_setup/README.md.
    Run the following script:
    ```
    cd DataAnalytics/VideoAnalytics/
    sudo ./install_openvino.sh
    ```
 
+   If you are running in Ubuntu 18.04, the install of OpenVino will fail. You will have to manually install the drivers by following instructions in the below link:
+   https://github.com/intel/compute-runtime/releases
+
+
 3) Install python dependencies and set environment variable:
     ```
-    sudo ./install.sh <systemp_ip>
-    source ./setenv.sh <systemp_ip>
+    sudo ./install.sh
+    source ./setenv.sh
     ```
 
-4) Run app:
-    python3.6 VideoAnalytics.py --config ../../docker_setup/config/algo_config/factory_pcbdemo.json  --log-dir /home/videoanalytics --log-name videoanalytics.log
-
-5) Validation:
-  Stop the ia_video_analytics container
+4) Initialize openvino environment:
+   ```
+   source /opt/intel/openvino/bin/setupvars.sh
+   ```
+5) Stop ia_video_analytics container if it is running:
     ```
     # docker stop ia_video_analytics
     ```
+6) Run app:
+    python3.6 VideoAnalytics.py --config ../../docker_setup/config/algo_config/factory_pcbdemo.json  --log-dir ./ --log-name videoanalytics.log
+
   Start the visualizer app, it will start showing the processed images
   
       

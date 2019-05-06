@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Install OpenVino
-apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
+apt-get install -y libpng12-0 libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
     build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio
 
