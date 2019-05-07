@@ -100,7 +100,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    6. [factory_multi_cam.json](./config/algo_config/factory_multi_cam.json) - value to be used if working with multiple streams coming from the same or diff sources (rtsp,                                                                basler, usb)
    7. [factory_classification.json](./config/algo_config/factory_classification.json) - value to be used if working with the sample classification application
 
-4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion    
+4. `<Factory control App>`Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for ingestion
    configuration over MQTT, alarm light and reset button
 5. Provide the right value for TPM_ENABLE in [.env](.env) file for using TPM feature. This configuration should be used when the IEI is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
     1. `true` -  for enabling the tpm to store credentials
@@ -120,19 +120,19 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
    2. [services_pointdata.json](./config/services_pointdata.json) - value to be used if working with point data analytics use case.
    3. [services_all.json](./config/services_all.json) - value to be used if working with both pointdata and video analytics.
 
-   **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README.md](../DataAnalytics/README.md)
+        **NOTE** For doing MQTT point data ingestion, please follow [DataAnalytics/README.md](../DataAnalytics/README.md). This is needed to exercise point data usecase.
 
    4. If you want to add your own services to IEI, Along with core services, please add your
    service to json file mentioned [.env](.env) with the dockerignore file. if there is no dockerignore file, please mention .dockerignore.common.
 
-   ```sh
-   "iei_services": [
-        {
-            "name": "my_custom_service",
-            "dockerignore": ".dockerignore.common"
+        ```sh
+        "iei_services": [
+                {
+                    "name": "my_custom_service",
+                    "dockerignore": ".dockerignore.common"
 
-        }]
-   ```
+                }]
+        ```
 
 8. **Enabling Development Mode.**
 
@@ -144,7 +144,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
       * If Development mode is set true then provisioning steps should be skipped.
       * Any configuration changes in the  [provision_config.json](./config/provision_config.json) will be effective in DEV mode
         only when the provisioning step is run again.
-      * If influxDB credentials are changed in the provision_config.json, then `${IEI_INSTALL_PATH}/data/` folder should be deleted in order to take the new credentials into effect.  
+      * If influxDB credentials are changed in the provision_config.json, then `${IEI_INSTALL_PATH}/data/` folder should be deleted in order to take the new credentials into effect.
 
 9. The inferencing by default will happen on `CPU`. With EIS v1.0.3 version onwards, there is support added
    for running inference on `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) from factory json files in [algo_config](../algos/algo_config/) folder. To run on HDDL devices, make sure to uncomment the below section of code in [DataAnalytics/VideoAnalytics/va_classifier_start.sh](../DataAnalytics/VideoAnalytics/va_classifier_start.sh).
@@ -168,93 +168,126 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
         2. Provision the secrets to Vault (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
             Run the script:
+
             ```sh
             sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-                E.g. sudo make provision CERT_PATH=../cert-tool/Certificates/
+
+            E.g. sudo make provision CERT_PATH=../cert-tool/Certificates/
             ```
+
             This will take the inputs from `provision_config.json` & certificates, following which it seal the secrets into the Vault.
             It is responsibility of the Admin to remove the source directory wherein certificates exist.
 
-            **Note**: If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
+            ---
+            **Note**:
+            If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
+
             ```sh
             <Take back up of image store, influx or any other data if it is needed in future because provisioning steps deletes all of it>
+
             <Update the new values into provision_config.json & custom certificates directory if necessary>
+
             sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
             ```
 
+            ---
+
         3. Build and run IEI images as per the dependency order (**present working dir - `<IEdgeInsights>/docker_setup/`**)
 
-            For factory deployments, we want IEI to come up automatically on system boot. For doing this, run the script: **This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed first.**
+            * For factory deployments, we want IEI to come up automatically
+              on system boot. For doing this, we would be installing `IEI` containers from `iei.service`. **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
 
-            ```sh
-            sudo make install CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee setup_iei_logs.txt
+                ```sh
+                sudo make install CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee make_install.txt
+
                 E.g. sudo make install CERT_PATH=../cert-tool/Certificates/
-            ```
+                ```
 
-            This will install IEI as a systemd service in Ubuntu. Post installation, IEI can be started / stopped using commands:
+            * Post installation, IEI can be started / stopped using commands:
 
-            ```sh
-            sudo systemctl stop iei
-            sudo systemctl start iei
-            ```
+                ```sh
+                sudo systemctl stop iei
+                sudo systemctl start iei
+                ```
 
+            ---
             **Note**:
-            Developers can make use of the below script:
+            * Developers can make use of the below script:
 
-            ```sh
-            sudo make build run | tee compose_startup.txt
-            ```
+                ```sh
+                sudo make build run | tee make_build_run.txt
+                ```
 
-            This will not make a systemd service and just build and start IEI.
-            Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
+                This will not make a systemd service and just build and start IEI.
+                Verify all IEI containers coming up and working by following the `Post Installation Verification` steps.
+            ---
 
-        4. This is an `optional` step where in IEI user wants to build and run IEI images using a DOCKER REGISTRY. This is very helpful
+        4. This is an `optional` step where in IEI user wants to build and
+           run IEI images using a DOCKER REGISTRY. This is very helpful
            when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
-            To install IEI in factory from a DOCKER REGISTRY, only [<IEdgeInsights>/docker_setup/](../docker_setup/) folder needs to be copied to
-            target system. Once copied please use below commands. **This step will unsinstall any previous version of IEI. This step does not need a provisioning step to be executed first.** Follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
+           Follow below commands:
 
-            ```sh
-            sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL>
-            ```
+           * Configuring private docker registry
 
-            To generate client external libs distribution package using Docker registry, please use below option
+             Please refer to [official docker documentation](https://docs.docker.com/registry/deploying/) for setting up Docker Registry.
 
-            ```sh
-            sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
-            ```
-
-           > **Note**:
-            > 1. To build locally and push the images to registry, please use below option. **Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry**
-
-            ```sh
-            sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
-            ```
-
-            > 2. Developers can make use of the below script to run locally from a Docker registry:
-
-            ```sh
-            sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
-            ```
-
-             > **Note**:
-              * Please use below command to run a local Docker Registry server
-
-              ```sh
-              docker run -d -p 5000:5000 --restart=always --name registry registry:2
-              ```
-
-              * To use local registry without using secure TLS, please insert below key in `/etc/docker/daemon.json`
+                **NOTE**:
+                1. To access docker registry from the host system where docker push/pull operations,  are performed, please follow below commands:
 
                     ```sh
-                    "insecure-registries" : ["<IP ADDRESS / REGISTRY URL>"]
+                    <Add docker registry system ip address to NO_PROXY in http-proxy.conf and https-proxy.conf files at `/etc/systemd/system/docker.service.d`>
+
+                    <If using insecure http registry, please follow the steps called out in the section `Deploy a plain HTTP registry` at [Insecure registry access](https://docs.docker.com/registry/insecure/)>
+
+                    sudo systemctl daemon-reload
+                    sudo systemctl restart docker
+
                     ```
 
-              * Please refer to [official docker documentation](https://docs.docker.com/registry/deploying/) for more details on Docker Registry.
 
-    > **Note**:
-    > 1. Please note: `cp -f resolv.conf /etc/resolv.conf` line in `compose_startup.sh` needs to be commented in non-proxy environment before
-    > starting it off.
+           * Follow [cert-tool/README.md](../cert-tool/README.md) to
+             generate the required certificates/keys first before installing from registry.
+
+           * Building IEI and dist_libs images and pushing the same to docker registry (`Entire    IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
+
+                ```sh
+                sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
+
+                Eg: sudo make build push DOCKER_REGISTRY=ip_address:5000
+                ```
+
+           * Pulling IEI images from configured docker registry and install
+             `iei.service`. **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
+
+                ```sh
+                sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL>
+
+                Eg: sudo make install-registry CERT_PATH=../cert-tool/Certificates  DOCKER_REGISTRY=ip_address:5000
+                ```
+
+                **NOTE**:
+                To install IEI in factory from a DOCKER REGISTRY, only [docker_setup](../ docker_setup/) folder needs to be copied to target system.
+
+           * Pulling `ia_dist_libs` image from docker registry and setup
+             `/opt/intel/iei/dist_libs` client external libs distribution package
+
+                ```sh
+                sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
+
+                Eg: sudo make distlibs-registry DOCKER_REGISTRY=ip_address:5000
+                ```
+
+            ---
+           **Note**:
+            * Developers can make use of the below script to pull and run IEI images locally from a
+              Docker registry:
+
+                ```sh
+                sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
+                ```
+
+            ---
 
 2. Follow [iei-simple-visualizer](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/iei-simple-visualizer.git) to run either it as a containerized app or natively
 
@@ -274,10 +307,7 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. `docker ps` should list the below containers in IEI stack:
-    * Dependency containers: log rotate (`ia_log_rotate`)
-    * IEI core containers:  DataAgent (`ia_data_agent`), imagestore (`ia_imagestore`), Video Ingestion (`ia_video_ingestion`),
-      Data Analytics (`ia_data_analytics`), Telegraf based Data ingestion (`ia_telegraf`) and Factory Control App (`ia_factoryctrl_app`)
+2. `docker ps` should list the below containers in IEI stack
 
     **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/iei/logs/consolidatedLogs/iei.log` to find out the reason for container failure
 
@@ -295,11 +325,13 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             * cpp - consists of gRPC cpp client wrappers, protobuff files and test programs
             * py - consists of gRPC py client wrappers, protobuff files and test programs
         * `DataBusAbstraction` -
+            * c - consists of opcua C client wrappers and test programs
             * py - consists of opcua py client wrappers and test programs
      * `secret_store/` - This is the vault's persistent storage wherein IEI secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
      * `data/` - stores the backup data for persistent imagestore and influxdb
 
-> Note:
+---
+**Note**:
 1. Few useful docker-compose and docker commands:
      * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
      * `docker-compose down` - stops and removes the service containers
@@ -321,3 +353,4 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 5. Run these commands to build & start the client tests container:
    `sudo ./client_tests_startup.sh`
    `docker-compose -f client-tests-compose.yml run --entrypoint /bin/bash ia_client_tests`
+---
