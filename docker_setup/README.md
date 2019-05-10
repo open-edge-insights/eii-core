@@ -155,6 +155,16 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
     #sleep 20
     ```
 
+10. For running on NCS2 and HDDL-R , please follow these steps
+
+    - Download required PCB demo models  
+      ```sh
+       wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/860fabb585ee13791e49aca11389087e/PCB_FP16.zip --no-proxy
+      ```  
+      and add the contents to the folder where the other models are placed at [config/algo_config/ref_pcbdemo](./config/algo_config/ref_pcbdemo)
+
+    - Please update required factory json files at [config/algo_config](./config/algo_config) to point to the downloaded xml and bin files
+
 ### <u>Build & Installation</u>
 
 1. Building the iei containers from source
