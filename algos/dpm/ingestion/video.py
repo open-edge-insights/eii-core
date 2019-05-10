@@ -122,26 +122,24 @@ class Ingestor:
         self.on_data = on_data
         self.poll_interval = config.get('poll_interval', 0.01)
         self.cameras = []
+        self.cam_threads = []
         streams = config['streams']
 
         self.log.info('Loading OpenCV streams')
-        cap_streams = streams['capture_streams']
-        if isinstance(cap_streams, dict):
-            for (cam_sn, camConfig) in cap_streams.items():
-                self.cameras.append(self._connect(cam_sn,
-                                    camConfig))
+        self.cap_streams = streams['capture_streams']
+        if isinstance(self.cap_streams, dict):
+            for (cam_sn, camConfig) in self.cap_streams.items():
+                thread_id = threading.Thread(target=self._run,
+                                             args=(cam_sn, camConfig))
+                self.cam_threads.append(thread_id)
         else:
             raise IngestorError('capture_streams is not a json object')
-
-        if not self.cameras:
-            raise IngestorError('No capture streams for the video ingestor')
-
-        self.th = threading.Thread(target=self._run)
 
     def start(self):
         """Start the ingestor.
         """
-        self.th.start()
+        for thread in self.cam_threads:
+            thread.start()
 
     def join(self):
         """Blocks until the ingestor has stopped running. Note that to signal
@@ -149,7 +147,8 @@ class Ingestor:
         constructor.
         """
         self.log.info('Stopping the video ingestor')
-        self.th.join()
+        for thread in self.cam_threads:
+            thread.join()
         try:
             for camera in self.cameras:
                 self.log.debug('Releasing camera %s', camera.name)
@@ -157,42 +156,43 @@ class Ingestor:
         except AttributeError:
             pass  # If the video capture does not support release, that is okay
 
-    def _run(self):
+    def _run(self, cam_sn, camConfig):
         """Video stream ingestor run thread.
         """
         self.log.info('Capture thread started')
+        camera = self._connect(cam_sn, camConfig)
+        self.cameras.append(camera)
         while not self.stop_ev.is_set():
-            for (i, camera) in enumerate(self.cameras):
+            try:
+                ret, frame = camera.read()
+                if not ret:
+                    self.log.error(
+                            'Failed to retrieve frame from camera %s',
+                            camera)
+                else:
+                    self.on_data('video', (camera.name, frame,
+                                 camera.config))
+            except Exception as ex:
+                self.log.error('Error while reading from camera: %s, \n%s',
+                               camera, tb.format_exc())
                 try:
-                    ret, frame = camera.read()
-                    if not ret:
-                        self.log.error(
-                                'Failed to retrieve frame from camera %s',
-                                camera)
-                    else:
-                        self.on_data('video', (camera.name, frame,
-                                     camera.config))
+                    self.log.info(
+                            'Attempting to reconnect to camera %s', camera)
+                    camera.release()
+                    camera = self._connect(
+                                camera.name, camera.config)
+                    self.cameras = camera
                 except Exception as ex:
-                    self.log.error('Error while reading from camera: %s, \n%s',
-                                   camera, tb.format_exc())
-                    try:
-                        self.log.info(
-                                'Attempting to reconnect to camera %s', camera)
-                        camera.release()
-                        camera = self._connect(
-                                 camera.name, camera.config)
-                        self.cameras[i] = camera
-                    except Exception as ex:
-                        self.log.error(
-                                'Reconnect failed: \n%s', tb.format_exc())
+                    self.log.error(
+                            'Reconnect failed: \n%s', tb.format_exc())
 
-                # Sleep for the poll interval.
-                # Camera specific poll interval takes priority over the global
-                # poll interval.
-                if camera.config.get("poll_interval") is not None:
-                    time.sleep(camera.config.get("poll_interval"))
-                elif self.poll_interval is not None:
-                    time.sleep(self.poll_interval)
+            # Sleep for the poll interval.
+            # Camera specific poll interval takes priority over the global
+            # poll interval.
+            if camera.config.get("poll_interval") is not None:
+                time.sleep(camera.config.get("poll_interval"))
+            elif self.poll_interval is not None:
+                time.sleep(self.poll_interval)
 
     def _connect(self, cam_sn, config):
         """Private method to abstract connecting to a given camera type.
