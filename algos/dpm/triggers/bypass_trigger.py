@@ -38,6 +38,7 @@ class Trigger(BaseTrigger):
         self.log = logging.getLogger(__name__)
         self.training_mode = training_mode
         self.count = 0
+        self.startSignal = True
 
     def get_supported_ingestors(self):
         return ['video', 'video_file']
@@ -59,8 +60,9 @@ class Trigger(BaseTrigger):
             cv2.imwrite("./frames/"+str(self.count)+".png", data[1])
         else:
             # Send trigger start signal and send frame to classifier
-            self.send_start_signal(data, -1)
+            if self.startSignal:
+                self.send_start_signal(data, -1)
+                self.startSignal = False
+            # Sending Frames to Store
             self.log.debug("Sending frame")
             self.send_data(data, 1)
-            # Send trigger stop signal and lock trigger
-            self.send_stop_signal()

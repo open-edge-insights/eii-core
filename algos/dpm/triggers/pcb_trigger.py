@@ -55,6 +55,7 @@ class Trigger(BaseTrigger):
         self.lock_frame_count = 0
         self.training_mode = training_mode
         self.count = 0
+        self.startSignal = True
 
     def get_supported_ingestors(self):
         return ['video', 'video_file']
@@ -126,11 +127,14 @@ class Trigger(BaseTrigger):
             if self.trigger_lock is False:
                 if self._check_frame(data[1]) is True:
                     # Send trigger start signal and send frame to classifier
-                    self.send_start_signal(data, -1)
+                    # As we are not sending pcb frames as seperate parts.
+                    # Currently we are sending start Signal only Once
+                    # at 1st time for the entire demo duration.
+                    if self.startSignal:
+                        self.send_start_signal(data, -1)
+                        self.startSignal = False
                     self.log.debug("Sending frame")
                     self.send_data(data, 1)
-                    # Send trigger stop signal and lock trigger
-                    self.send_stop_signal()
                     self.trigger_lock = True
                     # Re-initialize frame count during trigger lock to 0
                     self.lock_frame_count = 0
