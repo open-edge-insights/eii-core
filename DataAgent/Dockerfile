@@ -99,12 +99,14 @@ ARG INFLUXDB_VERSION
 RUN set -ex && \
     apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
     update-ca-certificates && \
+    gpg --list-keys && \
+    echo "honor-http-proxy" >> ~/.gnupg/dirmngr.conf && \
     for key in \
         05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
     do \
-        gpg --keyserver ha.pool.sks-keyservers.net --keyserver-options http-proxy=$http_proxy --recv-keys "$key" || \
-        gpg --keyserver pgp.mit.edu --keyserver-options http-proxy=$http_proxy --recv-keys "$key" || \
-        gpg --keyserver keyserver.pgp.com --keyserver-options http-proxy=$http_proxy --recv-keys "$key" ; \
+        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
+        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
+        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
     done && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
     wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
