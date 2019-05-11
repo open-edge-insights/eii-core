@@ -50,9 +50,7 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
-        GOLANG_VERSION: ${GOLANG_VERSION}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-        ALPINE_VERSION: ${ALPINE_VERSION}
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
     image: ia_gobase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
@@ -63,13 +61,22 @@ services:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
-        PYTHON_VERSION: ${PYTHON_VERSION}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-        ALPINE_VERSION: ${ALPINE_VERSION}
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
     image: ia_pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
 
+  # Define ia_gopybase service
+  ia_gopybase:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.gopybase
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_gopybase:${IEI_VERSION}
+    depends_on:
+      - ia_log_rotate
+ 
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
@@ -147,8 +154,6 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-        TELEGRAF_VERSION: ${TELEGRAF_VERSION}
     container_name: ia_telegraf
     hostname: ia_telegraf
     network_mode: host
@@ -296,9 +301,8 @@ services:
       context: ../
       dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_video_analytics:${IEI_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
@@ -387,9 +391,8 @@ services:
       context: ../
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_video_ingestion:${IEI_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion

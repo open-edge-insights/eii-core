@@ -8,8 +8,8 @@ source .env
 
 if [ $DEV_MODE = "true" ]
 then
-	echo "Certificate & Credentials provisioning is not required while running in Developement Mode."
-	exit 0
+    echo "Certificate & Credentials provisioning is not required while running in Development Mode."
+    exit 0
 fi
 
 if [ ! -n "$1" ]
@@ -30,9 +30,9 @@ fi
 echo "0.1 Setting up $IEI_INSTALL_PATH directory and copying all the necessary config files..."
 if [ "$2" = "deploy_mode" ]
 then
-	source ./setenv.sh
+    source ./setenv.sh
 else
-	source ./init.sh
+    source ./init.sh
 fi
 
 echo "0.2 Deleting any pre-provisioned vault data before proceeding..."
@@ -52,16 +52,16 @@ if ! id $IEI_USER_NAME >/dev/null 2>&1; then
     groupadd $IEI_USER_NAME -g $IEI_UID
     useradd -r -u $IEI_UID -g $IEI_USER_NAME $IEI_USER_NAME
 else
-	if ! [ $(id -u $IEI_USER_NAME) = $IEI_UID ]; then
-		usermod -u $IEI_UID $IEI_USER_NAME
-		groupmod -g $IEI_UID $IEI_USER_NAME
-	fi
+    if ! [ $(id -u $IEI_USER_NAME) = $IEI_UID ]; then
+        usermod -u $IEI_UID $IEI_USER_NAME
+        groupmod -g $IEI_UID $IEI_USER_NAME
+    fi
 fi
 
 if [ "$TPM_ENABLE" = "true" ]
 then
-	OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
-	chown $IEI_USER_NAME /dev/tpm0
+    OVERRIDE_COMPOSE_YML="-f provision-compose.override.yml"
+    chown $IEI_USER_NAME /dev/tpm0
 fi
 
 echo "2. Removing previous iei/provisioning containers if existed..."
@@ -73,28 +73,51 @@ rm -rf $IEI_INSTALL_PATH/data
 
 if [ "$2" != "deploy_mode" ]
 then
-	echo "3. Buidling the provisioning containers..."
+    echo "3. Buidling the provisioning containers..."
 
-	# set .dockerignore to the base one
-	ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
+    # set .dockerignore to the base one
+    ln -sf docker_setup/dockerignores/.dockerignore ../.dockerignore
 
-	services=(ia_gobase ia_provision)
-	servDockerIgnore=(.dockerignore.common .dockerignore.provision)
+    services=(ia_gobase ia_provision)
+    servDockerIgnore=(.dockerignore.common .dockerignore.provision)
 
-	count=0
-	echo "services: ${services[@]}"
-	for service in "${services[@]}"
-	do
-	    echo "Building $service image..."
-	    ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
-	    docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
-	    errorCode=`echo $?`
-	    if [ $errorCode != "0" ]; then
-		echo "docker-compose build failed for $service..."
-		exit -1
-	    fi
-	    count=$((count+1))
-	done
+    count=0
+    echo "services: ${services[@]}"
+    for service in "${services[@]}"
+    do
+        echo "Building $service image..."
+        ln -sf docker_setup/dockerignores/${servDockerIgnore[$count]} ../.dockerignore
+        set +e
+        buildLogFile="build_logs.log"
+        docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service | tee $buildLogFile
+        tail $buildLogFile | grep "fix-missing"
+        if [ `echo $?` = "0" ]
+        then
+            errorCode="100"
+        fi
+
+        # error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
+        if [ $errorCode = "100" ]
+        then
+            echo "ERROR: docker-compose build failed for $service. Rebuilding it with --no-cache switch..."
+            docker-compose -f provision-compose.yml $OVERRIDE_COMPOSE_YML build --no-cache --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+            errorCode=`echo $?`
+            if [ $errorCode != "0" ]
+            then
+                echo "ERROR: docker-compose build --no-cache $service failed too, so exiting..."
+                echo "ERROR: Error code for docker-compose build --no-cache $service : $errorCode"
+                # exiting to notify users immediately, no point in proceeding further
+                exit -1
+            fi
+        elif [ $errorCode != "0" ]
+        then
+            echo "ERROR: Error code for docker-compose build for $service : $errorCode"
+            # exiting to notify users immediately, no point in proceeding further
+            exit -1
+        fi
+        set -e
+        count=$((count+1))
+    done
 fi
 
 echo "4. Creating and starting the provisioning containers..."

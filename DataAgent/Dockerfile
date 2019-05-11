@@ -1,17 +1,10 @@
 # Dockerfile for DataAgent
-
 ARG IEI_VERSION
-FROM ia_gobase:$IEI_VERSION
+FROM ia_gobase:${IEI_VERSION}
 LABEL description="DataAgent image"
 
-ARG IEI_UID
-
-RUN mkdir -p ${GO_WORK_DIR}/log
-
-# Installing build tools
-RUN apk add --no-cache cmake g++  
-
-RUN go get -u github.com/golang/dep/cmd/dep
+RUN mkdir -p ${GO_WORK_DIR}/log && \
+    apt-get update
 
 # Installing all golang dependencies
 # TODO: Use dep tool itself in future once the "source" value
@@ -92,57 +85,35 @@ RUN mkdir -p ${VAULT_GO_PATH} && \
     go install
 
 # tls, crypto library needs to open62541
-RUN apk add --no-cache mbedtls-dev
+RUN apt-get install -y libmbedtls-dev
 
 # Installing influxdb
 ARG INFLUXDB_VERSION
-RUN set -ex && \
-    apk add --no-cache --virtual .build-deps wget gnupg tar ca-certificates && \
-    update-ca-certificates && \
-    gpg --list-keys && \
-    echo "honor-http-proxy" >> ~/.gnupg/dirmngr.conf && \
-    for key in \
-        05CE15085FC09D18E99EFB22684A14CF2582E0C5 ; \
-    do \
-        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$key" || \
-        gpg --keyserver pgp.mit.edu --recv-keys "$key" || \
-        gpg --keyserver keyserver.pgp.com --recv-keys "$key" ; \
-    done && \
-    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc && \
-    wget --no-verbose https://dl.influxdata.com/influxdb/releases/influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    gpg --batch --verify influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz.asc influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    mkdir -p /usr/src && \
-    tar -C /usr/src -xzf influxdb-${INFLUXDB_VERSION}-static_linux_amd64.tar.gz && \
-    rm -f /usr/src/influxdb-*/influxdb.conf && \
-    chmod +x /usr/src/influxdb-*/* && \
-    cp -a /usr/src/influxdb-*/* /usr/bin/ && \
-    rm -rf *.tar.gz* /usr/src  && \
-    apk del .build-deps
+RUN wget https://dl.influxdata.com/influxdb/releases/influxdb_${INFLUXDB_VERSION}_amd64.deb && \
+    dpkg -i influxdb_${INFLUXDB_VERSION}_amd64.deb && \
+    rm -rf influxdb_${INFLUXDB_VERSION}_amd64.deb
 
 # These flags are needed for enabling security while compiling and linking with open62541, cpuidcheck in golang
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
-RUN apk add --no-cache --virtual .build-deps \
-    musl \
-    musl-dev \
-    iproute2 \
-    gcc \
-    m4 \
-    libtool \
-    automake \
-    libressl-dev \
-    uthash-dev \
-    autoconf \
-    npth-dev 
-        
-
-RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/testing \
-  autoconf-archive  
-
-RUN apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/main \
-  libgcrypt-dev \
-  curl-dev
+# Installing TPM
+RUN apt-get -y install \
+  autoconf-archive \
+  libcmocka0 \
+  libcmocka-dev \
+  iproute2 \
+  pkg-config \
+  gcc \
+  m4 \
+  libtool \
+  automake \
+  libgcrypt20-dev \
+  libssl-dev \
+  uthash-dev \
+  autoconf \
+  gnulib \
+  libcurl4-gnutls-dev
 
 ENV TPM_PATH ./TPM_SRC
 RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
@@ -150,7 +121,6 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tss && \
     cd ${TPM_PATH}/tpm2_tss && git checkout -b 2.1.0 tags/2.1.0
 
 RUN cd ${TPM_PATH}/tpm2_tss/ && ./bootstrap &&  ./configure && make -j8 && make install
-
 
 # build TPM-tool
 RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
@@ -160,10 +130,10 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
 RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
 
 # Adding the CERTS dir
-RUN mkdir -p /etc/ssl/influxdb/ \
-    && mkdir -p /etc/ssl/opcua/ \
-    && mkdir -p /etc/ssl/streammanager/ \
-    && mkdir -p /etc/ssl/ca/
+RUN mkdir -p /etc/ssl/influxdb/ && \
+    mkdir -p /etc/ssl/opcua/ && \
+    mkdir -p /etc/ssl/streammanager/ && \
+    mkdir -p /etc/ssl/ca/
 
 # Building safestringlib
 ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
@@ -172,19 +142,14 @@ RUN	git clone https://github.com/intel/safestringlib.git && \
 	git checkout ${SAFESTRING_VER} && \
     make
 
-RUN mkdir -p ./vault/file
-
-ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
-
-RUN chown ${IEI_UID} /IEI/go/src/IEdgeInsights && \
-    chown -R ${IEI_UID} /etc/ssl/
-    
 ADD DataAgent ./DataAgent
 ADD Util ./Util
 ADD DataBusAbstraction/ ./DataBusAbstraction/
+
 ADD ImageStore/ ./ImageStore/
 ADD StreamManager ./StreamManager
 ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
+RUN mkdir -p ./vault/file
 
 # Copying safestringlib to DataBusAbstraction and Util
 RUN cd safestringlib && \
@@ -196,14 +161,17 @@ RUN cd safestringlib && \
 RUN cd DataBusAbstraction/go/test && \
     make build_lib_for_docker
 
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+
 RUN cd Util/cpuid && \
-    make && \
-    apk del .build-deps && \
-    rm -rf /var/cache/apk/*
+    make
 
 RUN go build -o /IEI/go/bin/DataAgent DataAgent/DataAgent.go
-ARG DEV_MODE
 
+ARG IEI_UID
+RUN chown ${IEI_UID} /IEI/go/src/IEdgeInsights
+RUN chown -R ${IEI_UID} /etc/ssl/
 ENTRYPOINT ["./DataAgent/da_startup.sh"]
 CMD ["-stderrthreshold", ${GO_LOG_LEVEL}, "-v", ${GO_VERBOSE}, "-m", ${DEV_MODE}]
 HEALTHCHECK NONE
+

@@ -84,8 +84,6 @@ pre_build_steps() {
 	fi
 
 	echo "0.5 Get docker Host IP address and write it to .env"
-
-	
 }
 
 post_build_steps() {
@@ -129,12 +127,17 @@ build_iei() {
 	   	ln -sf ${dockerignores[$count]} ../.dockerignore
 		# disabling error check here as any failure in building the image was aborting the script
 		set +e
+		buildLogFile="build_logs.log"
 	    if [ "$service" == "ia_gobase" ] || [ "$service" == "ia_pybase" ]; then
-	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service
+	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service | tee $buildLogFile
 	    else
-	        docker-compose $OVERRIDE_COMPOSE_YML build $service
+	        docker-compose $OVERRIDE_COMPOSE_YML build $service | tee $buildLogFile
 	    fi
-		errorCode=`echo $?`
+		tail $buildLogFile | grep "fix-missing"
+		if [ `echo $?` = "0" ]
+		then
+		    errorCode="100"
+		fi
 
 		# error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
 		if [ $errorCode = "100" ]
@@ -168,12 +171,12 @@ build_iei() {
 up_iei() {
 
 	# Exclude base images from -up
-	exclude=(ia_gobase ia_pybase)
+	exclude=(ia_gobase ia_pybase ia_gopybase)
 	for del in ${exclude[@]}
 	do
    		services=("${services[@]/$del}")
 	done
-	
+
 	if [ -e $ieiLogDir/consolidatedLogs/iei.log ]; then
 	    DATE=`echo $(date '+%Y-%m-%d_%H:%M:%S,%3N')`
 	    mv $ieiLogDir/consolidatedLogs/iei.log $ieiLogDir/consolidatedLogs/iei_$DATE.log.bkp
@@ -184,7 +187,7 @@ up_iei() {
 		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log
 	else
 		echo "3. Creating and starting the dependency/iei containers..."
-		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log & 
+		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log &
 	fi
 }
 
