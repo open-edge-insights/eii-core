@@ -51,6 +51,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_gobase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
@@ -62,6 +63,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate
