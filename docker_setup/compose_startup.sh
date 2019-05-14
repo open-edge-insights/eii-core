@@ -137,6 +137,8 @@ build_iei() {
 		if [ `echo $?` = "0" ]
 		then
 		    errorCode="100"
+		else
+		    errorCode="0"
 		fi
 
 		# error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
