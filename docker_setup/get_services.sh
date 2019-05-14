@@ -14,7 +14,7 @@ dockerignores+=(DataAgent/.dockerignore)
 
 while read line ; do
 	services+=($line)
-done < <(python3.6 get_services.py ./config/$IEI_SERVICES name)
+done < <(python3 get_services.py ./config/$IEI_SERVICES name)
 while read line ; do
 	dockerignores+=($line)
-done < <(python3.6 get_services.py ./config/$IEI_SERVICES dockerignore)
+done < <(python3 get_services.py ./config/$IEI_SERVICES dockerignore)
