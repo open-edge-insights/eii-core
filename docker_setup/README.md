@@ -291,10 +291,17 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
             ---
            **Note**:
             * Developers can make use of the below script to pull and run IEI images locally from a
-              Docker registry:
+              Docker registry:  
+              In case of DEV_MODE as true in .env file
 
                 ```sh
                 sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
+                ```
+
+              In case of DEV_MODE as false in .env file
+ 
+                ```sh
+                sudo make pull provision run CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
                 ```
 
             ---
