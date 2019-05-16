@@ -13,10 +13,6 @@
         {
             "name": "ia_video_analytics", 
             "dockerignore": "DataAnalytics/VideoAnalytics/.dockerignore"
-        },
-        {
-            "name": "ia_factoryctrl_app", 
-            "dockerignore": "FactoryControlApp/.dockerignore"
         }
 
     ]

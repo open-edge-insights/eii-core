@@ -128,6 +128,7 @@ build_iei() {
 		# disabling error check here as any failure in building the image was aborting the script
 		set +e
 		buildLogFile="build_logs.log"
+		buildSuccessLogFile="build_success_logs.log"
 	    if [ "$service" == "ia_gobase" ] || [ "$service" == "ia_pybase" ]; then
 	        docker-compose $OVERRIDE_COMPOSE_YML build --build-arg HOST_TIME_ZONE="$hostTimezone" $service | tee $buildLogFile
 	    else
@@ -139,6 +140,13 @@ build_iei() {
 		    errorCode="100"
 		else
 		    errorCode="0"
+		fi
+		tail $buildLogFile | grep "Successfully" > $buildSuccessLogFile
+		if [ `echo $?` = "0" ]
+		then
+		    passCode="0"
+		else
+		    passCode="1"
 		fi
 
 		# error code - 100 refers to "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing" error
@@ -154,7 +162,7 @@ build_iei() {
 				# exiting to notify users immediately, no point in proceeding further
 				exit -1
 			fi
-		elif [ $errorCode != "0" ]
+		elif [ $passCode = "1" ]
 		then
 			echo "ERROR: Error code for docker-compose build for $service : $errorCode"
 			# exiting to notify users immediately, no point in proceeding further
