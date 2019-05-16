@@ -8,7 +8,7 @@ CERT_DIR_PATH = $(DBA_PATH)/../cert-tool/Certificates
 SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/ca
-INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
+TOPICS = cam_serial1_results,cam_serial2_results
 HOST = localhost
 PORT = 65003
 
@@ -32,38 +32,28 @@ build:
 pub: build
 	@echo "Starting the opcua secure server and start publishing the data.."
 	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
-							-topic classifier_results \
-							-certFile $(SERVER_CERTS)/opcua_server_certificate.der \
-							-privateFile $(SERVER_CERTS)/opcua_server_key.der \
-							-trustFile $(CA_CERTS)/ca_certificate.der
+							 -topics $(TOPICS) \
+							 -certFile $(SERVER_CERTS)/opcua_server_certificate.der \
+							 -privateFile $(SERVER_CERTS)/opcua_server_key.der \
+							 -trustFile $(CA_CERTS)/ca_certificate.der
 
 sub: build
 	@echo "Establish connection to opcua secure server and start subscribing the data.."
 	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
-							-topic classifier_results \
-							-certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
-							-privateFile $(CLIENT_CERTS)/opcua_client_key.der \
-							-trustFile $(CA_CERTS)/ca_certificate.der
+							 -topics $(TOPICS) \
+							 -certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
+							 -privateFile $(CLIENT_CERTS)/opcua_client_key.der \
+							 -trustFile $(CA_CERTS)/ca_certificate.der
 
 pub_insecure: build
 	@echo "Starting the opcua insecure server and start publishing the data.."
 	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
-							-topic classifier_results \
-							-certFile "" -privateFile "" -trustFile ""
+							 -topics $(TOPICS) -certFile "" -privateFile "" -trustFile ""
 
 sub_insecure: build
 	@echo "Establish connection to opcua insecure server and start subscribing the data.."
 	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
-							-topic classifier_results \
-							-certFile "" -privateFile "" -trustFile ""
-
-invalid_sub: build
-	@echo "Establish connection to opcua server with invalid cert and start subscribing the data.."
-	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
-							-topic classifier_results \
-							-certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
-							-privateFile $(CLIENT_CERTS)/opcua_client_key.der \
-							-trustFile $(INVALID_CERTS)/ca/ca_certificate.der
+							 -topics $(TOPICS) -certFile "" -privateFile "" -trustFile ""
 
 clean:
 	@echo "Removing all the binary files..."

@@ -10,6 +10,9 @@ SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/ca
 WRAPPERS_PATH = $(SOURCE_FILE)/open62541_wrappers.c
+TOPICS = cam_serial1_results,cam_serial2_results
+HOST = localhost
+PORT = 65003
 
 build_safestring_lib:
 	echo "Clone the safestringlib if not cloned already..."
@@ -38,24 +41,26 @@ build: build_static_lib
 
 pub: build
 	@echo "Start secure server, publish and destroy..."
-	./DataBus_test PUB opcua://localhost:65003 streammanager classifier_results \
-							$(SERVER_CERTS)/opcua_server_certificate.der \
-	                    	$(SERVER_CERTS)/opcua_server_key.der \
-							$(CA_CERTS)/ca_certificate.der
+	./DataBus_test PUB opcua://$(HOST):$(PORT) streammanager \
+				   $(TOPICS) \
+				   $(SERVER_CERTS)/opcua_server_certificate.der \
+				   $(SERVER_CERTS)/opcua_server_key.der \
+				   $(CA_CERTS)/ca_certificate.der
 sub: build
 	@echo "Start secure client, subscribe and destroy..."
-	./DataBus_test SUB opcua://localhost:65003 streammanager classifier_results \
-							$(CLIENT_CERTS)/opcua_client_certificate.der \
-	                        $(CLIENT_CERTS)/opcua_client_key.der \
-							$(CA_CERTS)/ca_certificate.der
+	./DataBus_test SUB opcua://$(HOST):$(PORT) streammanager \
+				   $(TOPICS) \
+				   $(CLIENT_CERTS)/opcua_client_certificate.der \
+	               $(CLIENT_CERTS)/opcua_client_key.der \
+				   $(CA_CERTS)/ca_certificate.der
 
 pub_insecure: build
 	@echo "Start insecure server, publish and destroy..."
-	./DataBus_test PUB opcua://localhost:65003 streammanager classifier_results "" "" ""
+	./DataBus_test PUB opcua://$(HOST):$(PORT) streammanager $(TOPICS) "" "" ""
 
 sub_insecure: build
 	@echo "Start insecure client, subscribe and destroy..."
-	./DataBus_test SUB opcua://localhost:65003 streammanager classifier_results "" "" ""
+	./DataBus_test SUB opcua://$(HOST):$(PORT) streammanager $(TOPICS) "" "" ""
 
 clean:
 	@echo "Removing all the binary files..."

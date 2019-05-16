@@ -119,22 +119,30 @@ func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) 
 	return
 }
 
-func (dbOpcua *dataBusOpcua) receive(topic map[string]string, trig string, ch chan interface{}) (err error) {
+func (dbOpcua *dataBusOpcua) receive(topicConfigs []map[string]string, totalConfigs int, trig string, ch chan interface{}) (err error) {
 	defer errHandler("OPCUA Receive Failed!!!", &err)
 	gCh = ch
-	cTopicName := C.CString(topic["name"])
-	cType := C.CString(topic["dType"])
-	topicCfg := C.struct_TopicConfig{
-		name:  cTopicName,
-		dType: cType,
-	}
-	cTrig := C.CString(trig)
-	cResp := C.Subscribe(topicCfg, cTrig, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
-	goResp := C.GoString(cResp)
-	if goResp != "0" {
-		glog.Errorln("Response: ", goResp)
-		panic(goResp)
-	}
+	//TODO: opcua subscriber isn't working
+	// cTrig := C.CString(trig)
+	// cTotalConfigs := C.int(totalConfigs)
+	// topicCfg := C.struct_TopicConfig{}
+	// cArray := C.malloc(C.size_t(totalConfigs) * C.size_t(unsafe.Sizeof(C.struct_TopicConfig)))
+	// a := (*[1<<30 - 1]C.struct_TopicConfig)(cArray)
+	// for idx, topicCfg := range topicConfigs {
+	// 	cTopic := C.CString(topicCfg["name"])
+	// 	cType := C.CString(topicCfg["dType"])
+	// 	a[idx] = C.struct_TopicConfig{
+	// 		name:  cTopic,
+	// 		dType: cType,
+	// 	}
+	// }
+
+	// cResp := C.Subscribe(cArray, totalConfigs, cTrig, (C.c_callback)(unsafe.Pointer(C.cgoFunc)), nil)
+	// goResp := C.GoString(cResp)
+	// if goResp != "0" {
+	// 	glog.Errorln("Response: ", goResp)
+	// 	panic(goResp)
+	// }
 
 	return
 }

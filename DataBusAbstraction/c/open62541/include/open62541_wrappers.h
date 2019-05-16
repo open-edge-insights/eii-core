@@ -43,6 +43,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     }
 
 
+// opcua context config
+struct ContextConfig {
+    char *endpoint;         // opcua endpoint ex:opcua://localhost:65003
+    char *direction;        // opcua direction ex: PUB|SUB
+    char *name;             // opcua name space
+    char *certFile;         // opcua certificates path
+    char *privateFile;      // opcua private key file
+    char **trustFile;       //opcua trust files list
+    size_t trustedListSize; //opcua trust files list size
+};
+
+// opcua topic config
+struct TopicConfig {
+    char *name;   // opcua topic name
+    char *dType;  //type of topic, ex: string|int
+};
+
 //*************open62541 server wrappers**********************
 char*
 serverContextCreateSecured(char *hostname,
@@ -88,8 +105,9 @@ clientStartTopic(char *nsName,
 
 char*
 clientSubscribe(int nsIndex,
-                char* topic,
+                struct TopicConfig topicConfig[],
+                int totalTopics,
                 c_callback cb,
-                void* pyFunc);
+                void* pyxFunc);
 
 void clientContextDestroy();

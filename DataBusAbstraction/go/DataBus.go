@@ -22,7 +22,7 @@ type dataBusContext interface {
 	createContext(map[string]string) error
 	startTopic(map[string]string) error
 	send(map[string]string, interface{}) error
-	receive(map[string]string, string, chan interface{}) error
+	receive([]map[string]string, int, string, chan interface{}) error
 	stopTopic(string) error
 	destroyContext() error
 }
@@ -30,7 +30,7 @@ type dataBusContext interface {
 type DataBus interface {
 	ContextCreate(map[string]string) error
 	Publish(map[string]string, interface{}) error
-	Subscribe(map[string]string, string, CbType) error
+	Subscribe([]map[string]string, int, string, CbType) error
 	ContextDestroy() error
 }
 
@@ -50,7 +50,7 @@ type dataBus struct {
 }
 
 // TODO: A dynamic importing?
-var dataBusTypes = map[string]string{"OPCUA": "opcua:", "MQTT": "mqtt:", "NATS": "nats:"}
+var dataBusTypes = map[string]string{"OPCUA": "opcua:"}
 
 func errHandler(errMsg string, err *error) {
 	if r := recover(); r != nil {
@@ -83,15 +83,6 @@ func (dbus *dataBus) ContextCreate(contextConfig map[string]string) (err error) 
 		if err != nil {
 			panic("newOpcuaInstance() Failed!!!")
 		}
-	case dataBusTypes["MQTT"]:
-		dbus.busType = dataBusTypes["MQTT"]
-		dbus.bus, err = newMqttInstance()
-		if err != nil {
-			panic("newMqttInstance() Failed!!!")
-		}
-	case dataBusTypes["NATS"]:
-		dbus.busType = dataBusTypes["NATS"]
-		panic("TBD!!!")
 	default:
 		panic("Unsupported DataBus Type!!!")
 	}
@@ -117,26 +108,6 @@ func (dbus *dataBus) Publish(topicConfig map[string]string, msgData interface{})
 		if err != nil {
 			panic("send() Failed!!!")
 		}
-		return
-	}
-	dbus.mutex.Lock()
-	defer dbus.mutex.Unlock()
-
-	if dbus.direction == "PUB" {
-		if !dbus.checkMsgType(topicConfig["dType"], msgData) {
-			panic("Message Type Not supported")
-		}
-		if _, ok := dbus.pubTopics[topicConfig["name"]]; !ok {
-			dbus.bus.startTopic(topicConfig)
-			dbus.pubTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["dType"], data: nil, ev: nil}
-		}
-		if dbus.pubTopics[topicConfig["name"]].topicType != topicConfig["dType"] {
-			panic("Topic name & type NOT matching")
-		}
-		err = dbus.bus.send(topicConfig, msgData)
-		if err != nil {
-			panic("send() Failed!!!")
-		}
 	}
 	return
 }
@@ -157,65 +128,26 @@ func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
 	}
 }
 
-func (dbus *dataBus) Subscribe(topicConfig map[string]string, trig string, cb CbType) (err error) {
+func (dbus *dataBus) Subscribe(topicConfigs []map[string]string, totalConfigs int, trig string, cb CbType) (err error) {
 	defer errHandler("DataBus Subscription Failed!!!", &err)
 
+	//TODO: Fix the opcua subscriber logic
 	if strings.Contains(dbus.busType, "opcua") {
 		if dbus.direction == "SUB" && trig == "START" && cb != nil {
-			dch := make(chan interface{})
-			ech := make(chan string)
-			go worker(topicConfig["name"], dch, ech, cb)
-			err = dbus.bus.receive(topicConfig, "START", dch)
-			if err != nil {
-				panic("receive() Failed!!!")
-			}
+			//dch := make(chan interface{})
+			//ech := make(chan string)
+			// go worker(topicConfig["name"], dch, ech, cb)
+			// err = dbus.bus.receive(topicConfigs, totalConfigs, "START", dch)
+			// if err != nil {
+			// 	panic("receive() Failed!!!")
+			// }
 		}
-	} else if dbus.direction == "SUB" && trig == "START" && cb != nil {
-		if _, ok := dbus.subTopics[topicConfig["name"]]; !ok {
-			dch := make(chan interface{})
-			ech := make(chan string)
-			go worker(topicConfig["name"], dch, ech, cb)
-			dbus.subTopics[topicConfig["name"]] = &topicMeta{topicType: topicConfig["dType"], data: dch, ev: ech}
-			err = dbus.bus.receive(topicConfig, "START", dch)
-			if err != nil {
-				panic("receive() Failed!!!")
-			}
-		}
-	} else if dbus.direction == "SUB" && trig == "STOP" {
-		//TODO: opcua integration needs to be done
-		err = dbus.bus.receive(topicConfig, "STOP", nil)
-		if err != nil {
-			panic("receive() Failed!!!")
-		}
-		//Signal worker to stop
-		dbus.subTopics[topicConfig["name"]].ev <- "STOP"
-		close(dbus.subTopics[topicConfig["name"]].data)
-		close(dbus.subTopics[topicConfig["name"]].ev)
-		dbus.bus.stopTopic(topicConfig["name"])
-		delete(dbus.subTopics, topicConfig["name"])
-	} else {
-		panic("Wrong parameters passed for Subscribe()")
 	}
 	return
 }
 
 func (dbus *dataBus) ContextDestroy() (err error) {
 	defer errHandler("DataBus Context Termination Failed!!!", &err)
-	if !strings.Contains(dbus.busType, "opcua") {
-		dbus.mutex.Lock()
-		defer dbus.mutex.Unlock()
-		//Unsubscribe all existing ones
-		for k, v := range dbus.subTopics {
-			type tConfig map[string]string
-			topicConfig := tConfig{"name": k, "dType": v.topicType}
-			dbus.bus.receive(topicConfig, "STOP", nil)
-			v.ev <- "STOP"
-			close(v.data)
-			close(v.ev)
-			dbus.bus.stopTopic(k)
-			delete(dbus.subTopics, k)
-		}
-	}
 	dbus.bus.destroyContext()
 	dbus.direction = ""
 	glog.Infoln("DataBus Context Terminated")

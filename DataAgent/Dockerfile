@@ -65,12 +65,6 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
-ENV PAHO_MQTT_GO_PATH ${GOPATH}/src/github.com/eclipse/paho.mqtt.golang
-RUN mkdir -p ${PAHO_MQTT_GO_PATH} && \
-    git clone https://github.com/eclipse/paho.mqtt.golang ${PAHO_MQTT_GO_PATH} && \
-    cd ${PAHO_MQTT_GO_PATH} && \
-    git checkout -b v1.1.1 tags/v1.1.1
-
 ENV INFLUXDB_GO_PATH ${GOPATH}/src/github.com/influxdata/influxdb
 RUN mkdir -p ${INFLUXDB_GO_PATH} && \
     git clone https://github.com/influxdata/influxdb ${INFLUXDB_GO_PATH} && \

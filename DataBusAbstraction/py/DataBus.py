@@ -20,19 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from DataBusMqtt import databMqtt
 from DataBusOpcua import databOpcua
-from DataBusNats import databNats
 from queue import Queue
 from threading import Thread, Lock
 from threading import Event
 import logging
 from Util.log import configure_logging, LOG_LEVELS
 
-busTypes = {"OPCUA": "opcua:", "MQTT": "mqtt:", "NATS": "nats:"}
+busTypes = {"OPCUA": "opcua:"}
 
 
-def worker(topic, qu, ev, fn, log):
+def worker(qu, ev, fn, log):
     '''Worker function to fetch data from queue and trigger cb'''
     logger = log
     while True:
@@ -40,7 +38,8 @@ def worker(topic, qu, ev, fn, log):
             logger.info("Worker Done")
             break
         try:
-            fn(topic, qu.get(timeout=2))
+            subDict = qu.get(timeout=2)
+            fn(subDict["topic"], subDict["data"])
             qu.task_done()
         except Exception:
             # TODO: pass only for Empty exception
@@ -76,8 +75,6 @@ class databus:
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
                     OPCUA -> opcua://0.0.0.0:4840/
-                    MQTT -> mqtt://localhost:1883/
-                    NATS -> nats://127.0.0.1:4222/
                 "certFile"   : server/client certificate file
                 "privateFile": server/client private key file
                 "trustFile"  : ca cert used to sign server/client cert
@@ -91,21 +88,12 @@ class databus:
                 self.busType = busTypes["OPCUA"]
                 self.bus = databOpcua(self.logger)
                 self.logger.info("DataBus type: {}".format(busTypes["OPCUA"]))
-            elif endpoint.split('//')[0] == busTypes["MQTT"]:
-                self.busType = busTypes["MQTT"]
-                self.bus = databMqtt(self.logger)
-                self.logger.info("DataBus type: {}".format(busTypes["MQTT"]))
-                self.logger.info(busTypes["MQTT"])
-            elif endpoint.split('//')[0] == busTypes["NATS"]:
-                self.busType = busTypes["NATS"]
-                self.bus = databNats(self.logger)
-                self.logger.info("DataBus type: {}".format(busTypes["NATS"]))
             else:
                 raise Exception("Not a supported BusType")
             self.logger.info(contextConfig)
             try:
                 self.bus.createContext(contextConfig)
-            except Exception as e:
+            except Exception:
                 self.logger.error("{} Failure!!!".format(
                     self.ContextCreate.__name__))
                 raise
@@ -129,136 +117,61 @@ class databus:
             data: The message whose type should match the topic data type
         Return/Exception: Will raise Exception in case of errors'''
 
-        if self.busType == "opcua":
+        if "opcua" in self.busType:
             try:
                 self.bus.send(topicConfig, data)
-            except Exception as e:
-                self.logger.error("{} Failure!!!".format(self.Publish.__name__))
+            except Exception:
+                self.logger.error("{} Failure!!!".format(
+                                 self.Publish.__name__))
                 raise
-            return
-        try:
-            self.mutex.acquire()
-            if self.direction == "PUB":
-                try:
-                    if not self.checkMsgType(topicConfig["dtype"], data):
-                        raise Exception("Not a supported Message Type")
-                    if topicConfig["name"] not in self.pubTopics.keys():
-                        self.bus.startTopic(topicConfig)
-                        self.pubTopics[topicConfig["name"]] = {}
-                        self.pubTopics[topicConfig["name"]]["dtype"] = \
-                            topicConfig["dtype"]
-                    # Now pubTopics has the topic for sure.
-                    # (either created now/was present. Now check for type
-                    pubTopicType = self.pubTopics[topicConfig["name"]]["dtype"]
-                    if pubTopicType != topicConfig["dtype"]:
-                        raise Exception("Topic name & Type not matching")
-                    # We are good to publish now
-                    self.bus.send(topicConfig, data)
-                except Exception as e:
-                    self.logger.error("{} Failure!!!".format(self.Publish.__name__))
-                    raise
-            else:
-                raise Exception("Not a supported BusDirection")
-        finally:
-            self.mutex.release()
 
-    def Subscribe(self, topicConfig, trig, cb=None):
+    def Subscribe(self, topicConfigs, topicConfigCount, trig, cb=None):
         '''Subscribe data from the databus
         Arguments:
-            topicConfig<dict>: Subscribe topic parameters
-                <fields>
-                "name": Topic name (in hierarchical form with '/' as delimiter)
-                    <example> "root/level1/level2/level3"
-                "type": Data type associated with the topic
+            topicConfigs<list of dicts>: Subscribe topic parameters
+                <dict_fields>
+                "name": Topic name
+                "dType": Data type associated with the topic
+            topicConfigCount: length of topicConfigs list
             trig: START/STOP- Start OR Stop Subscription
             cb: A callback function with data as argument
         Return/Exception: Will raise Exception in case of errors'''
-
-        if self.busType == "opcua":
+        print("self.busType: ", self.busType)
+        if "opcua" in self.busType:
             try:
-                if (self.direction == "SUB") and (trig == "START") and (cb is not None):
+                if (self.direction == "SUB") and (trig == "START") and \
+                   (cb is not None):
                     qu = Queue()
                     ev = Event()
                     ev.clear()
                     th = Thread(target=worker,
-                                args=(topicConfig["name"], qu, ev, cb, self.logger))
+                                args=(qu, ev, cb, self.logger))
                     th.deamon = True
                     th.start()
-                    self.bus.receive(topicConfig, "START", qu)
-            except Exception as e:
-                self.logger.error("receive {} Failure!!!".format(self.Subscribe.__name__))
+                    self.bus.receive(topicConfigs, topicConfigCount,
+                                     "START", qu)
+            except Exception:
+                self.logger.error("receive {} Failure!!!".format(
+                                 self.Subscribe.__name__))
                 raise
-        else:
-            try:
-                self.mutex.acquire()
-                if self.direction == "SUB":
-                    try:
-                        if topicConfig["name"] not in self.subTopics.keys():
-                            self.bus.startTopic(topicConfig)
-                            self.subTopics[topicConfig["name"]] = {}
-                            self.subTopics[topicConfig["name"]]["dtype"] = \
-                                topicConfig["dtype"]
-                        subTopicType = self.subTopics[topicConfig["name"]]["dtype"]
-                        if subTopicType != topicConfig["dtype"]:
-                            raise Exception("Topic name & Type not matching")
-                        # We are good to receive now
-                        if (trig == "START") and (cb is not None):
-                            subTopics = self.subTopics[topicConfig["name"]]
-                            if "thread" in subTopics.keys():
-                                raise Exception("Already Subscribed!!!")
-                            qu = Queue()
-                            ev = Event()
-                            ev.clear()
-                            th = Thread(target=worker,
-                                        args=(topicConfig["name"],
-                                            qu, ev, cb, self.logger))
-                            th.deamon = True
-                            th.start()
-                            self.subTopics[topicConfig["name"]]["queue"] = qu
-                            self.subTopics[topicConfig["name"]]["event"] = ev
-                            self.subTopics[topicConfig["name"]]["thread"] = th
-                            self.bus.receive(topicConfig, "START", qu)
-                        elif trig == "STOP":
-                            # This should stop putting data into queue
-                            self.bus.receive(
-                                topicConfig,
-                                "STOP")
-                            # Block until all data is read
-                            self.subTopics[topicConfig["name"]]["queue"].join()
-                            self.subTopics[topicConfig["name"]]["event"].set()
-                            self.subTopics[topicConfig["name"]]["thread"].join()
-                            # Remove entry from subTopics
-                            self.subTopics.pop(topicConfig["name"])
-                        else:
-                            raise Exception("Unknown Trigger!!!")
-                    except Exception as e:
-                        self.logger.error("{} Failure!!!".format(
-                            self.Subscribe.__name__))
-                        raise
-                else:
-                    raise Exception("Not a supported BusDirection")
-            finally:
-                self.mutex.release()
 
     def ContextDestroy(self):
         '''Destroys the underlying messagebus context
         It unsubscribe all the existing subscriptions too'''
 
         try:
-            if self.busType != "opcua":
+            if "opcua" in self.busType:
                 self.mutex.acquire()
                 try:
                     self.bus.destroyContext()
-                except Exception as e:
+                    self.bus.direction = " "
+                except Exception:
                     self.logger.error("{} Failure!!!".format(
                         self.ContextDestroy.__name__))
                     raise
                 finally:
                     self.mutex.release()
-
-            self.bus.destroyContext()
-            self.bus.direction = " "
-        except Exception as e:
+        except Exception:
             self.logger.error("{} Failure!!!".format(
                 self.ContextDestroy.__name__))
             raise

@@ -13,12 +13,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <unistd.h>
 #include "open62541_wrappers.h"
 
-// strcpy_s and strcat_s extern declarations are required for safstringlib
+// strcpy_s, strcat_s and strncpy_s extern declarations are required for safstringlib
 extern int
 strcpy_s(char *dest, unsigned int dmax, const char *src);
 
 extern int
 strcat_s(char *dest, unsigned int dmax, const char *src);
+
+extern int
+strncpy_s (char *dest, unsigned int dmax, const char *src, unsigned int slen);
 
 // opcua server global variables
 static UA_Server *server = NULL;
@@ -28,15 +31,31 @@ static UA_Boolean serverRunning = false;
 static pthread_mutex_t *serverLock = NULL;
 
 // opcua client global variables
+typedef struct {
+    int namespaceIndex;
+    char *topic;
+    void *userFunc;
+    c_callback userCallback;
+} subscribe_args_t;
+
+typedef struct {
+    struct TopicConfig *topicCfgArr;
+    int topicCfgItems;
+    int namespaceIndex;
+    void *userFunc;
+    c_callback userCallback;
+} thread_args_t;
+
 static UA_Client *client = NULL;
 static UA_ClientConfig* clientConfig;
-static char lastSubscribedTopic[TOPIC_SIZE] = "";
-static int lastNamespaceIndex = FAILURE;
 static char endpoint[ENDPOINT_SIZE];
-static c_callback userCallback;
 static char dataToPublish[PUBLISH_DATA_SIZE];
-static void *userFunc = NULL;
 static bool clientExited = false;
+static thread_args_t *threadArgs = NULL;
+static UA_MonitoredItemCreateRequest *items = NULL;
+static UA_Client_DataChangeNotificationCallback *subCallbacks = NULL;
+static UA_Client_DeleteMonitoredItemCallback *deleteCallbacks = NULL;
+void **contexts = NULL;
 
 //*************open62541 common wrappers**********************
 
@@ -95,7 +114,7 @@ getNamespaceIndex(char *ns, char *topic) {
                 DBA_STRNCPY(nodeIdentifier, (char*)ref->nodeId.nodeId.identifier.string.data, len);
                 UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
-                    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
+                    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
                     UA_BrowseRequest_deleteMembers(&bReq);
                     UA_BrowseResponse_deleteMembers(&bResp);
                     return nodeNs;
@@ -118,7 +137,7 @@ readPublishedData(UA_Server *server,
                 UA_Boolean sourceTimeStamp, const UA_NumericRange *range,
                 UA_DataValue *data) {
     UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-                     "In readPublishedData() function");
+                     "In %s function...", __FUNCTION__);
     data->hasValue = true;
     UA_String str = UA_STRING(dataToPublish);
     UA_Variant_setScalarCopy(&data->value, &str, &UA_TYPES[UA_TYPES_STRING]);
@@ -219,7 +238,7 @@ startServer(void *ptr) {
 /* serverContextCreateSecured function creates the opcua namespace, opcua variable and starts the server
  *
  * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(uint)                 opcua port
+ * @param  port(int)                  opcua port
  * @param  certificateFile(string)    server certificate file in .der format
  * @param  privateKeyFile(string)     server private key file in .der format
  * @param  trustedCerts(string array) list of trusted certs
@@ -318,7 +337,7 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
  * in insecure mode
  *
  * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(uint)                 opcua port
+ * @param  port(int)                  opcua port
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
@@ -340,6 +359,7 @@ serverContextCreate(char *hostname, int port) {
 
     /* Initiate server instance */
     server = UA_Server_new(serverConfig);
+
     if(server == NULL) {
         static char str[] = "UA_Server_new() API failed";
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
@@ -446,6 +466,13 @@ void serverContextDestroy() {
 
 //*************open62541 client wrappers**********************
 
+/* freeMemory frees up heap allocated memory */
+static void
+freeMemory(void *ptr) {
+    if (ptr != NULL)
+        free(ptr);
+}
+
 /* cleanupClient deletes the memory allocated for client configuration */
 static void
 cleanupClient() {
@@ -455,6 +482,10 @@ cleanupClient() {
     if (client) {
         UA_Client_delete(client);
     }
+    freeMemory(items);
+    freeMemory(subCallbacks);
+    freeMemory(deleteCallbacks);
+    freeMemory(contexts);
 }
 
 static void
@@ -470,18 +501,17 @@ subscriptionInactivityCallback (UA_Client *client, UA_UInt32 subId, void *subCon
 static void
 subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
                         UA_UInt32 monId, void *monContext, UA_DataValue *data) {
+    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In %s...", __FUNCTION__);
     UA_Variant *value = &data->value;
-    if(UA_Variant_isScalar(value)) {
+    subscribe_args_t *args = (subscribe_args_t*) monContext;
+    if(args != NULL && UA_Variant_isScalar(value)) {
         if (value->type == &UA_TYPES[UA_TYPES_STRING]) {
             UA_String str = *(UA_String*)value->data;
-            if (userCallback) {
+            if (args->userCallback) {
                 static char subscribedData[PUBLISH_DATA_SIZE];
                 DBA_STRCPY(subscribedData, (char*)str.data);
-                // TODO: Have better logic here to check the mapping between topics and
-                // their corresponding published data. Better to use DataBus wrappers in C
-                // and call the same in py and go to support multi pub/sub feature (needs some work)
-                if (strstr(subscribedData, lastSubscribedTopic) != NULL)
-                    userCallback(lastSubscribedTopic, subscribedData, userFunc);
+                if (strstr(subscribedData, args->topic) != NULL)
+                    args->userCallback(args->topic, subscribedData, args->userFunc);
             } else {
                 UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "userCallback is NULL");
             }
@@ -491,11 +521,12 @@ subscriptionCallback(UA_Client *client, UA_UInt32 subId, void *subContext,
 
 /* creates the subscription for the opcua variable with topic name */
 static UA_Int16
-createSubscription(int nsIndex, char *topic, c_callback cb) {
+createSubscription(thread_args_t* args) {
 
     UA_CreateSubscriptionRequest request = UA_CreateSubscriptionRequest_default();
     request.requestedPublishingInterval = 0;
 
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In %s...!", __FUNCTION__);
     UA_CreateSubscriptionResponse response = UA_Client_Subscriptions_create(client, request,
                                                                             NULL, NULL, deleteSubscriptionCallback);
 
@@ -505,44 +536,56 @@ createSubscription(int nsIndex, char *topic, c_callback cb) {
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
         return 1;
     }
+    int subId = response.subscriptionId;
 
-    if (topic == NULL) {
-        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "topic is NULL!");
-        return 1;
+    if(items == NULL) {
+        items = (UA_MonitoredItemCreateRequest*)malloc(args->topicCfgItems * sizeof(UA_MonitoredItemCreateRequest));
+    }
+    if(subCallbacks == NULL) {
+        subCallbacks = (UA_Client_DataChangeNotificationCallback*)malloc(args->topicCfgItems * sizeof(UA_Client_DataChangeNotificationCallback));
+    }
+    if(deleteCallbacks == NULL) {
+        deleteCallbacks = (UA_Client_DeleteMonitoredItemCallback*)malloc(args->topicCfgItems * sizeof(UA_Client_DeleteMonitoredItemCallback));
+    }
+    if(contexts == NULL) {
+        contexts = (void*)malloc(args->topicCfgItems * sizeof(void*));;
     }
 
-    UA_NodeId nodeId = UA_NODEID_STRING(nsIndex, topic);
+    for(int i = 0; i < args->topicCfgItems; i++) {
+        char *topic = args->topicCfgArr[i].name;
+        UA_NodeId nodeId = UA_NODEID_STRING(args->namespaceIndex, topic);
 
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "ns: %d, identifier: %.*s\n", nodeId.namespaceIndex,
-        (int)nodeId.identifier.string.length,
-        nodeId.identifier.string.data);
+        items[i] = UA_MonitoredItemCreateRequest_default(nodeId);
+        subCallbacks[i] = subscriptionCallback;
 
-    /* Add a MonitoredItem */
-    UA_MonitoredItemCreateRequest monRequest =
-        UA_MonitoredItemCreateRequest_default(nodeId);
+        subscribe_args_t *subArgs = (subscribe_args_t*) malloc(sizeof(subscribe_args_t));
+        subArgs->namespaceIndex = args->namespaceIndex;
+        subArgs->userCallback = args->userCallback;
+        subArgs->userFunc = args->userFunc;
+        subArgs->topic = topic;
 
-    UA_MonitoredItemCreateResult monResponse =
-        UA_Client_MonitoredItems_createDataChange(client, response.subscriptionId,
-                                                    UA_TIMESTAMPSTORETURN_BOTH,
-                                                    monRequest, NULL, subscriptionCallback, NULL);
-    if(monResponse.statusCode == UA_STATUSCODE_GOOD) {
-        /* house keeping of last subscribed topic */
-        if (cb != NULL) {
-            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "callback(cb) is not NULL\n");
-            userCallback = cb;
+        contexts[i] = subArgs;
+        deleteCallbacks[i] = NULL;
+    }
+
+    UA_CreateMonitoredItemsRequest createRequest;
+    UA_CreateMonitoredItemsRequest_init(&createRequest);
+    createRequest.subscriptionId = subId;
+    createRequest.timestampsToReturn = UA_TIMESTAMPSTORETURN_BOTH;
+    createRequest.itemsToCreate = items;
+    createRequest.itemsToCreateSize = args->topicCfgItems;
+    UA_CreateMonitoredItemsResponse createResponse =
+       UA_Client_MonitoredItems_createDataChanges(client, createRequest, contexts,
+                                                   subCallbacks, deleteCallbacks);
+
+    for(int i = 0; i < args->topicCfgItems; i++) {
+        if (createResponse.results[0].statusCode == UA_STATUSCODE_GOOD) {
+            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"MonitorItemId: %d created successfully for topic: %s\n",
+                        createResponse.results[0].monitoredItemId, args->topicCfgArr[i].name);
         }
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-            "Monitoring NODEID(%d, %.*s),id %u\n",
-            nodeId.namespaceIndex,
-            (int)nodeId.identifier.string.length,
-            nodeId.identifier.string.data, monResponse.monitoredItemId);
-        if (topic != NULL)
-            DBA_STRCPY(lastSubscribedTopic, topic);
-        if (nsIndex != FAILURE)
-            lastNamespaceIndex = nsIndex;
-        return 0;
     }
-    return 1;
+
+    return 0;
 }
 
 static void stateCallback(UA_Client *client, UA_ClientState clientState) {
@@ -561,11 +604,6 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
             break;
         case UA_CLIENTSTATE_SESSION:
             UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "A session with the server is open");
-            /* recreating the subscription upon opcua server connect */
-            if (lastNamespaceIndex != FAILURE) {
-                if (createSubscription(lastNamespaceIndex, lastSubscribedTopic, NULL) == 1)
-                    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
-            }
             break;
         case UA_CLIENTSTATE_SESSION_RENEWED:
             /* The session was renewed. We don't need to recreate the subscription. */
@@ -576,6 +614,45 @@ static void stateCallback(UA_Client *client, UA_ClientState clientState) {
             break;
     }
     return;
+}
+
+
+/* Runs iteratively the client to auto-reconnect and re-subscribe to the last subscribed topic of the client */
+static void*
+runClient(void *tArgs) {
+    thread_args_t *args = (thread_args_t*) tArgs;
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In %s...threadid: %lu", __FUNCTION__, pthread_self());
+
+    while(!clientExited) {
+        /* if already connected, this will return GOOD and do nothing */
+        /* if the connection is closed/errored, the connection will be reset and then reconnected */
+        /* Alternatively you can also use UA_Client_getState to get the current state */
+        UA_ClientState clientState = UA_Client_getState(client);
+        if (clientState == UA_CLIENTSTATE_DISCONNECTED) {
+            UA_StatusCode retval = UA_Client_connect(client, endpoint);
+            if(retval != UA_STATUSCODE_GOOD) {
+                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
+                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
+                /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
+                /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
+                UA_sleep_ms(1000);
+                continue;
+            }
+            //TODO: Fix the opcua subscriber's reconnect logic
+            clientState = UA_Client_getState(client);
+            if (clientState == UA_CLIENTSTATE_SESSION) {
+                /* recreating the subscription upon opcua server connect */
+                if (args != NULL) {
+                    if (createSubscription(args) == 1)
+                        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
+                }
+            }
+        }
+
+        UA_Client_run_iterate(client, 1000);
+    }
+    return NULL;
+
 }
 
 /* clientContextCreate function establishes secure connection with the opcua server
@@ -611,14 +688,6 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
         return str;
     }
 
-    client = UA_Client_new();
-    if(client == NULL) {
-        static char str[] = "UA_Client_new() API returned NULL";
-        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-            "%s", str);
-        return str;
-    }
-
     remoteCertificate = UA_ByteString_new();
 
     char portStr[10];
@@ -636,6 +705,14 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
                 "%s", str);
             return str;
         }
+    }
+
+    client = UA_Client_new();
+    if(client == NULL) {
+        static char str[] = "UA_Client_new() API returned NULL";
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
+            "%s", str);
+        return str;
     }
 
     clientConfig = UA_Client_getConfig(client);
@@ -670,12 +747,11 @@ clientContextCreateSecured(char *hostname, int port, char *certificateFile, char
 /* clientContextCreate function establishes unsecure connection with the opcua server
  *
  * @param  hostname(string)           hostname of the system where opcua server is running
- * @param  port(uint)                 opcua port
+ * @param  port(int)                  opcua port
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientContextCreate(char *hostname, int port) {
-    // TODO: fill
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
 
     char portStr[10];
@@ -708,33 +784,6 @@ clientContextCreate(char *hostname, int port) {
     return "0";
 }
 
-/* Runs iteratively the client to auto-reconnect and re-subscribe to the last subscribed topic of the client */
-static void*
-runClient(void *ptr) {
-
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In runClient...\n");
-    while(!clientExited) {
-        /* if already connected, this will return GOOD and do nothing */
-        /* if the connection is closed/errored, the connection will be reset and then reconnected */
-        /* Alternatively you can also use UA_Client_getState to get the current state */
-        UA_ClientState clientState = UA_Client_getState(client);
-        if (clientState == UA_CLIENTSTATE_DISCONNECTED) {
-            UA_StatusCode retval = UA_Client_connect(client, endpoint);
-            if(retval != UA_STATUSCODE_GOOD) {
-                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Error: %s", UA_StatusCode_name(retval));
-                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Not connected. Retrying to connect in 1 second");
-                /* The connect may timeout after 1 second (see above) or it may fail immediately on network errors */
-                /* E.g. name resolution errors or unreachable network. Thus there should be a small sleep here */
-                UA_sleep_ms(1000);
-                continue;
-            }
-        }
-
-        UA_Client_run_iterate(client, 1000);
-    }
-    return NULL;
-
-}
 
 /* clientStartTopic function checks for the existence of the opcua variable(topic)
  *
@@ -756,7 +805,9 @@ clientStartTopic(char *namespace, char *topic) {
 
 /* clientSubscribe function makes the subscription to the opcua varaible named topic for a given namespace
  *
- * @param  namespace(string)         opcua namespace
+ * @param  nsIndex(int)              opcua namespace index
+ * @param  topicConfigs(array)       array of `struct TopicConfig` instances
+ * @param  topicConfigCount(int)     length of topicConfigs array
  * @param  topic(string)             opcua variable name
  * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
  * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback.
@@ -764,23 +815,28 @@ clientStartTopic(char *namespace, char *topic) {
  *
  * @return Return a string "0" for success and other string for failure of the function */
 char*
-clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
-    userFunc = pyxFunc;
+clientSubscribe(int nsIndex, struct TopicConfig topicConfigs[], int topicConfigCount, c_callback cb, void* pyxFunc) {
+    // userFunc = pyxFunc;
+
     if (client == NULL) {
         static char str[] = "UA_Client instance is not created";
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
     }
-    UA_ClientState clientState = UA_Client_getState(client);
-    if ((clientState != UA_CLIENTSTATE_SESSION) && (clientState != UA_CLIENTSTATE_SESSION_RENEWED)) {
-        static char str[] = "Not a valid client state: for subscription to occurinstance is not created";
-        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
-            str);
-        return str;
+
+    threadArgs = (thread_args_t*) malloc(sizeof(thread_args_t));
+    threadArgs->namespaceIndex = nsIndex;
+    threadArgs->userFunc = pyxFunc;
+    threadArgs->userCallback = cb;
+    threadArgs->topicCfgItems = topicConfigCount;
+    threadArgs->topicCfgArr = (struct TopicConfig*) malloc(topicConfigCount * sizeof(struct TopicConfig));
+
+    for(int i = 0; i < topicConfigCount; i++) {
+        threadArgs->topicCfgArr[i] = topicConfigs[i];
     }
 
-    if (createSubscription(nsIndex, topic, cb) == 1) {
+    if (createSubscription(threadArgs) == 1) {
         static char str[] = "Subscription failed!";
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
@@ -788,7 +844,7 @@ clientSubscribe(int nsIndex, char* topic, c_callback cb, void* pyxFunc) {
     }
 
     pthread_t clientThread;
-    if (pthread_create(&clientThread, NULL, runClient, NULL)) {
+    if (pthread_create(&clientThread, NULL, runClient, threadArgs)) {
         static char str[] = "pthread creation to run the client thread iteratively failed";
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);

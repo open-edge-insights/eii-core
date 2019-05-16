@@ -15,7 +15,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/golang/glog"
 )
@@ -24,8 +24,6 @@ import (
 endpoint:
 <examples>
 	OPCUA -> opcua://localhost:4840
-	MQTT -> mqtt://localhost:1883
-	NATS -> nats://127.0.0.1:4222
 */
 
 func errHandler() {
@@ -42,14 +40,13 @@ func cbFunc(topic string, msg interface{}) {
 
 func main() {
 
-	endPoint := flag.String("endpoint", "", "Provide the message bus details")
+	endPoint := flag.String("endpoint", "", "Provide the message bus details Eg:opcua://localhost:4840")
 	direction := flag.String("direction", "", "One of PUB/SUB")
-	certFile := flag.String("certFile", "", "provide server or client certificate file path as value")
-	privateFile := flag.String("privateFile", "", "provide server or client private key file pathas value")
-	trustFile := flag.String("trustFile", "", "provide ca cert file path as value")
-
 	ns := flag.String("ns", "", "namespace")
-	topic := flag.String("topic", "", "topic name")
+	topics := flag.String("topics", "", "list of comma separated topics (Eg: topic1,topic2)")
+	certFile := flag.String("certFile", "", "provide server or client certificate file in der format as value")
+	privateFile := flag.String("privateFile", "", "provide server or client private key file in der format as value")
+	trustFile := flag.String("trustFile", "", "provide ca cert file in der format as value")
 
 	flag.Parse()
 
@@ -57,7 +54,13 @@ func main() {
 	flag.Lookup("log_dir").Value.Set("/var/log")
 
 	defer glog.Flush()
-	//now start the tests
+
+	topicsArr := strings.Split(*topics, ",")
+	topicConfigs := make([]map[string]string, len(topicsArr))
+	for i, topic := range topicsArr {
+		topicConfigs[i] = map[string]string{"name": topic, "dType": "string"}
+	}
+
 	contextConfig := map[string]string{
 		"endpoint":    *endPoint,
 		"direction":   *direction,
@@ -78,33 +81,23 @@ func main() {
 		panic(err)
 	}
 
-	glog.Infoln("Direction..", *direction)
 	if *direction == "PUB" {
 
-		topicConfig := map[string]string{
-			"name":  *topic,
-			"dType": "string",
-		}
-
-		glog.Infof("Waiting for sub")
-		time.Sleep(10 * time.Second)
-		glog.Infof("Starting pub")
-
-		for i := 0; i < 200; i++ {
-			result := fmt.Sprintf("%s %d", topicConfig["name"], i)
-			ieiDatab.Publish(topicConfig, result)
-			glog.Infof("Published result: %s\n", result)
-			time.Sleep(time.Second)
+		for i := 0; ; i++ {
+			for _, topicConfig := range topicConfigs {
+				result := fmt.Sprintf("%s %d", topicConfig["name"], i)
+				ieiDatab.Publish(topicConfig, result)
+				glog.Infof("Published result: %s\n", result)
+			}
 		}
 	} else if *direction == "SUB" {
-		topicConfig := map[string]string{
-			"name":  *topic,
-			"dType": "string",
-		}
-		ieiDatab.Subscribe(topicConfig, "START", cbFunc)
-		for i := 0; i < 200; i++ {
-			time.Sleep(time.Second)
-		}
+		glog.Info("opcua subscriber is not implemented...")
+		// ieiDatab.Subscribe(topicConfigs, len(topicConfigs) "START", cbFunc)
+		// time.Sleep(5 * time.Second)
+
+		// for i := 0; i < 200; i++ {
+		// 	time.Sleep(time.Second)
+		// }
 	}
 	ieiDatab.ContextDestroy()
 }

@@ -34,25 +34,25 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 
 
-# TODO: Need to come up with a generic test program that works with all
-# databuses abstracted, not just opcua
-
-
 class A:
     def cbFunc(self, topic, msg):
         logger.info("Msg: {} received on topic: {}".format(msg, topic))
 
     def main(self):
         p = argparse.ArgumentParser()
-        p.add_argument('-endpoint', help="Provide the messagebus details")
+        p.add_argument('-endpoint', help="Provide the messagebus details (Eg: \
+                                         opcua://localhost:4840)")
         p.add_argument('-direction', help="one of \'PUB | SUB\'")
         p.add_argument('-ns', help="namespace")
-        p.add_argument('-topic', help="topic names")
+        p.add_argument('-topics', help="list of comma separated topics (Eg: \
+                                        topic1,topic2) ")
         p.add_argument('-certFile', help="provide server/client certificate\
-                                         file path as value")
+                                         file in der format as value")
         p.add_argument('-privateFile', help="provide server or client private\
-                                            key file pathas value")
-        p.add_argument('-trustFile', help="provide ca cert file path as value")
+                                            key file in der format as \
+                                            value")
+        p.add_argument('-trustFile', help="provide ca cert file in der format \
+                                           as value")
 
         args = p.parse_args()
 
@@ -65,17 +65,23 @@ class A:
         try:
             ieidbus = databus(logger)
             ieidbus.ContextCreate(contextConfig)
+            topicConfigs = []
+            topicsList = args.topics.split(',')
+            for topic in topicsList:
+                topicConfigs.append({"name": topic, "dType": "string"})
+
             if args.direction == "PUB":
-                topicConfig = {"name": args.topic, "dtype": "string"}
                 for i in range(0, 20):
-                    result = "classifier_results {}".format(i)
-                    ieidbus.Publish(topicConfig, result)
-                    print("Published [" + result + "]")
-                    time.sleep(5)
+                    for topicConfig in topicConfigs:
+                        result = "classifier_results {}".format(i)
+                        ieidbus.Publish(topicConfig, result)
+                        print("Published [" + result + "]")
+                        time.sleep(5)
             elif args.direction == "SUB":
-                topicConfig = {"name": args.topic, "dtype": "string"}
-                ieidbus.Subscribe(topicConfig, "START", self.cbFunc)
-                flag = "START"
+                ieidbus.Subscribe(topicConfigs, len(topicConfigs), 'START',
+                                  self.cbFunc)
+
+                # flag = "START"
                 while True:
                     time.sleep(60)
             else:
@@ -87,6 +93,7 @@ class A:
             os._exit(-1)
         except Exception as e:
             logger.exception("Exception: {}".format(e))
+
 
 if __name__ == "__main__":
     a = A()

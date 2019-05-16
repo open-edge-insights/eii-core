@@ -3,10 +3,7 @@
 DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs.
 Available in C, python & golang
 
-Currently supported messagebus (Only OPCUA is been tested so far):
-
-1. OPCUA
-2. MQTT
+Currently supported messagebus: **OPCUA**
 
 ## Test modules
 

@@ -14,10 +14,10 @@ cdef extern from "DataBus.h":
 
     ctypedef void (*c_callback)(char *topic, char *data, void *pyFunc)
 
-    char * ContextCreate(ContextConfig);
+    char* ContextCreate(ContextConfig cxtConfig);
 
-    char *Publish(TopicConfig, char *);
+    char* Publish(TopicConfig topicCfg, char *data);
 
-    char * Subscribe(TopicConfig, char *, c_callback cb, void* pyxFunc);
+    char* Subscribe(TopicConfig[] topicCfg, int, char *, c_callback cb, void* pyxFunc);
 
     void ContextDestroy();

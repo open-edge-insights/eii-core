@@ -1,6 +1,9 @@
 cimport copen62541W
 from libc.stdlib cimport malloc, free
-from libc.string cimport strcpy
+from libc.string cimport strcpy, strlen
+
+cdef copen62541W.TopicConfig *cTopicConfig
+gTopicConfigCount = 0
 
 cdef char** to_cstring_array(list_str):
     cdef char **ret = <char **>malloc(len(list_str) * sizeof(char *))
@@ -33,7 +36,7 @@ def ContextCreate(endpoint, direction, name, certFile, privateFile, trustFiles):
   contextConfig.certFile = ccertFile
   contextConfig.privateFile = ckeyFile
   contextConfig.trustFile = to_cstring_array(trustFiles)
-  contextConfig.trustedListSize = 1
+  contextConfig.trustedListSize = len(trustFiles)
 
   val = copen62541W.ContextCreate(contextConfig)
   free(contextConfig.trustFile)
@@ -58,24 +61,41 @@ def Publish(topicConf, data):
 cdef void pyxCallback(char *topic, char *data, void *func) with gil:
   (<object>func)(topic, data)
 
-def Subscribe(topicConf, trig, pyFunc):
-  cdef copen62541W.TopicConfig topicConfig
+def Subscribe(topicConfigs, topicConfigCount, trig, pyFunc):
+  cTopicConfig = <copen62541W.TopicConfig *>malloc(topicConfigCount * sizeof(copen62541W.TopicConfig))
+  cdef bytes topic_bytes
+  cdef char *ctopic
+  cdef bytes dtype_bytes
+  cdef char *cdtype
 
-  cdef bytes topic_bytes = topicConf['name'].encode();
-  cdef char *ctopic = topic_bytes;
+  for i in range(topicConfigCount):
+    topic_bytes = topicConfigs[i]["name"].encode();
+    ctopic = topic_bytes;
 
-  cdef bytes dtype_bytes = topicConf['dtype'].encode();
-  cdef char *cdtype = dtype_bytes;
+    dtype_bytes = topicConfigs[i]["dType"].encode();
+    cdtype = dtype_bytes;
+
+    cTopicConfig[i].name = <char *>malloc(strlen(ctopic) + 1)
+    strcpy(cTopicConfig[i].name, ctopic)
+    cTopicConfig[i].dType = <char *>malloc(strlen(cdtype) + 1)
+    strcpy(cTopicConfig[i].dType, cdtype)
 
   cdef bytes trig_bytes = trig.encode();
   cdef char *ctrig = trig_bytes;
 
-  topicConfig.name =  ctopic
-  topicConfig.dType = cdtype
+  val = copen62541W.Subscribe(cTopicConfig, topicConfigCount, ctrig, pyxCallback, <void *> pyFunc)
+  gTopicConfigCount = topicConfigCount
 
-  val = copen62541W.Subscribe(topicConfig, ctrig, pyxCallback, <void *> pyFunc)
   return val
 
 def ContextDestroy():
   copen62541W.ContextDestroy()
+  for i in range(gTopicConfigCount):
+    if cTopicConfig[i].name is not NULL:
+      free(cTopicConfig[i].name)
+    if cTopicConfig[i].dType is not NULL:
+      free(cTopicConfig[i].dType)
+
+  if cTopicConfig is not NULL:
+    free(cTopicConfig)
 

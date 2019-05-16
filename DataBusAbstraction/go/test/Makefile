@@ -10,7 +10,9 @@ INCLUDE = -I../include -I../../
 SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/ca
-INVALID_CERTS = ../../c/open62541/src/test/invalid_certs
+TOPICS = cam_serial1_results,cam_serial2_results
+HOST = localhost
+PORT = 65003
 
 define build_dependencies
 	@echo "Building the open62541 wrapper library libopen62541W.a.."
@@ -42,39 +44,31 @@ build_lib_for_docker:
 
 pub: build
 	@echo "Starting the secure opcua server and start publishing the data.."
-	./DataBusTest -direction PUB -endpoint opcua://localhost:65003 -ns StreamManager \
-				  -topic classifier_results \
+	./DataBusTest -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+				  -topics $(TOPICS) \
 				  -certFile $(SERVER_CERTS)/opcua_server_certificate.der \
 			      -privateFile $(SERVER_CERTS)/opcua_server_key.der \
 				  -trustFile $(CA_CERTS)/ca_certificate.der
 
 sub: build
 	@echo "Establish connection to opcua secure server and start subscribing the data.."
-	./DataBusTest -direction SUB -endpoint opcua://localhost:65003 -ns StreamManager \
-				  -topic classifier_results \
+	./DataBusTest -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+				  -topics $(TOPICS) \
 				  -certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
 	              -privateFile $(CLIENT_CERTS)/opcua_client_key.der \
 		          -trustFile $(CA_CERTS)/ca_certificate.der
 
 pub_insecure: build
 	@echo "Starting the insecure opcua server and start publishing the data.."
-	./DataBusTest -direction PUB -endpoint opcua://localhost:65003 -ns StreamManager \
-				  -topic classifier_results \
+	./DataBusTest -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+				  -topics $(TOPICS) \
 				  -certFile "" -privateFile "" -trustFile ""
 
 sub_insecure: build
 	@echo "Establish connection to insecure opcua server and start subscribing the data.."
-	./DataBusTest -direction SUB -endpoint opcua://localhost:65003 -ns StreamManager \
-				  -topic classifier_results \
+	./DataBusTest -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
+				  -topics $(TOPICS) \
 				  -certFile "" -privateFile "" -trustFile ""
-
-invalid_sub: build
-	@echo "Establish connection to opcua server with invalid cert and start subscribing the data.."
-	./DataBusTest -direction SUB -endpoint opcua://localhost:4840 -ns StreamManager \
-				  -topic classifier_results \
-				  -certFile $(CLIENT_CERTS)/opcua_client_certificate.der \
-	              -privateFile $(CLIENT_CERTS)/opcua_client_key.der \
-		          -trustFile $(INVALID_CERTS)/ca/ca_certificate.der
 
 clean:
 	@echo "Removing all the binary files..."

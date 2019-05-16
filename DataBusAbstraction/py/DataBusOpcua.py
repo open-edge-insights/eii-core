@@ -43,7 +43,8 @@ def cbFunc(topic, msg):
         # This is to ignore the 2 additional hex chars eg. \x01\x02
         msg = bytes(msgByteArr[:-2])
     msg = msg.decode("utf-8")
-    gQueue.put(msg)
+    topic = topic.decode("utf-8")
+    gQueue.put({"topic": topic, "data": msg})
 
 
 class databOpcua:
@@ -68,8 +69,6 @@ class databOpcua:
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
                     OPCUA -> opcua://0.0.0.0:65003
-                    MQTT -> mqtt://localhost:1883
-                    NATS -> nats://127.0.0.1:4222
                 "certFile"   : server/client certificate file
                 "privateFile": server/client private key file
                 "trustFile"  : ca cert used to sign server/client cert
@@ -112,7 +111,7 @@ class databOpcua:
 
     def send(self, topicConfig, data):
         '''
-	    Publish data on the topic
+        Publish data on the topic
         Arguments:
             topicConfig: topicConfig for opcua, with topic name & it's type
             data: actual message
@@ -128,7 +127,7 @@ class databOpcua:
                     if pyErrorMsg != "0":
                         self.logger.error("Publish() API failed!")
                         raise Exception(pyErrorMsg)
-                except Exception as e:
+                except Exception:
                     self.logger.error("{} Failure!!!".format(
                                                              self.send.__name__
                                                             ))
@@ -138,10 +137,11 @@ class databOpcua:
         else:
             raise Exception("Wrong Bus Direction!!!")
 
-    def receive(self, topicConfig, trig, queue):
+    def receive(self, topicConfigs, topicConfigCount, trig, queue):
         '''Subscribe data from the topic
         Arguments:
-            topicConfig: topicConfig for opcua, with topic name & it's type
+            topicConfigs: topicConfigs for opcua, with topic name & it's type
+            topicConfigCount: length of topicConfigs dict
             trig: START/STOP to start/stop the subscription
             queue: A queue to which the message should be pushed on arrival
         Return/Exception: Will raise Exception in case of errors'''
@@ -149,7 +149,8 @@ class databOpcua:
         if (self.direction == "SUB") and (trig == "START"):
             global gQueue
             gQueue = queue
-            errMsg = open62541W.Subscribe(topicConfig, trig, cbFunc)
+            errMsg = open62541W.Subscribe(topicConfigs, topicConfigCount, trig,
+                                          cbFunc)
             pyErrorMsg = errMsg.decode()
             if pyErrorMsg != "0":
                 self.logger.error("Subscribe() API failed!")
@@ -196,7 +197,7 @@ class databOpcua:
         try:
             open62541W.ContextDestroy()
             self.logger.debug("OPCUA context is Terminated")
-        except Exception as e:
+        except Exception:
             self.logger.error("{} Failure!!!".format(
                 self.destroyContext.__name__))
             raise

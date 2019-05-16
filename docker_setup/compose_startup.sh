@@ -196,6 +196,7 @@ up_iei() {
 		#Logging the docker compose logs to file.
 		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log
 	else
+		source ./init.sh
 		echo "3. Creating and starting the dependency/iei containers..."
 		docker-compose $OVERRIDE_COMPOSE_YML up ${services[@]} &> $ieiLogDir/consolidatedLogs/iei.log &
 	fi
