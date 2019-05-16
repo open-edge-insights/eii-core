@@ -42,10 +42,9 @@ CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 class VideoAnalytics:
     """Subscribe to influxDB and register the callback"""
 
-    def __init__(self, config, log, container_mode='no'):
+    def __init__(self, config, log):
         self.config = config
         self.log = log
-        self.container_mode = container_mode
         self.devmode = bool(strtobool(os.environ['DEV_MODE']))
 
         self.log.info("=============== STARTING video_analytics \
@@ -56,39 +55,21 @@ class VideoAnalytics:
 
         self.stream_sub_lib = StreamSubLib()
 
-        if self.container_mode.lower() == 'yes':
-            self.log.info("Running in container mode")
-            # Wait for DA to be ready
-            ret = check_port_availability(os.environ['DATA_AGENT_GRPC_SERVER'],
-                                          os.environ['GRPC_INTERNAL_PORT'])
-            if ret is False:
-                log.error("DataAgent is not up. So Exiting...", exc_info=True)
-                exit(-1)
+        # Wait for DA to be ready
+        ret = check_port_availability(os.environ['DATA_AGENT_GRPC_SERVER'],
+                                      os.environ['GRPC_INTERNAL_PORT'])
+        if ret is False:
+            log.error("DataAgent is not up. So Exiting...", exc_info=True)
+            exit(-1)
 
-            if not self.devmode:
-                # Create cert
-                src_files = [CA_CERT]
-                files_to_decrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-                create_decrypted_pem_files(src_files, files_to_decrypt)
-                self.stream_sub_lib.init()
-            else:
-                self.stream_sub_lib.init(dev_mode=True)
+        if not self.devmode:
+            # Create cert
+            src_files = [CA_CERT]
+            files_to_decrypt = ["/etc/ssl/ca/ca_certificate.pem"]
+            create_decrypted_pem_files(src_files, files_to_decrypt)
+            self.stream_sub_lib.init()
         else:
-            self.log.info("Running in baremetal mode")
-            try:
-                if self.devmode:
-                    self.stream_sub_lib.init(dev_mode=self.devmode)
-                else:
-                    self.stream_sub_lib.init(
-                        cert_path=self.app_config['va_cert_path'],
-                        key_path=self.app_config['va_key_path'])
-            except Exception as e:
-                self.log.error(e)
-                os._exit(1)
-
-            # self.stream_sub_lib.init(
-            #  cert_path=self.app_config['va_cert_path'],
-            #  key_path=self.app_config['va_key_path'])
+            self.stream_sub_lib.init(dev_mode=True)
 
         self.data_handler = DataHandler(self.config, self.log, self.devmode)
 
@@ -137,10 +118,6 @@ def parse_args():
     parser.add_argument('--log-dir', dest='log_dir', default='logs',
                         help='Directory for log files')
 
-    parser.add_argument('--container-mode', dest='container_mode',
-                        default='no',
-                        help='run in baremetal or container mode')
-
     return parser.parse_args()
 
 
@@ -158,5 +135,5 @@ if __name__ == "__main__":
     log = configure_logging(args.log.upper(), log_file_name,
                             args.log_dir, __name__)
 
-    app = VideoAnalytics(args.config, log, args.container_mode)
+    app = VideoAnalytics(args.config, log)
     app.main()
