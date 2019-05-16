@@ -9,6 +9,7 @@ ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 ENV HOME /IEI
 ENV KAPACITOR_REPO /IEI/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /IEI/go/bin
+ARG IEI_UID
 
 # Installing protobuf module needed for UDF function
 RUN pip2 install protobuf
@@ -30,8 +31,10 @@ RUN mkdir -p /etc/ssl/kapacitor && \
     chown ${IEI_UID} /IEI && \
     chown -R ${IEI_UID} /etc/ssl && \
     mkdir -p /etc/kapacitor && \
-    chown ${IEI_UID} /etc/kapacitor
-
+    chown ${IEI_UID} /etc/kapacitor && \
+    mkdir -p /etc/ssl/ca && \
+    chown ${IEI_UID} /etc/ssl/ca
+    
 ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
 RUN mkdir -p ${GLOG_GO_PATH} && \
     git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
@@ -49,7 +52,6 @@ ADD Util ./Util
 
 RUN mkdir -p /etc/ssl/ca
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
-ARG IEI_UID
 
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]
