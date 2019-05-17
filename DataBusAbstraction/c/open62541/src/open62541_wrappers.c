@@ -273,6 +273,14 @@ serverContextCreateSecured(char *hostname, int port, char *certificateFile, char
             str);
         return str;
     }
+
+    for(int i = 0; i < serverConfig->endpointsSize; i++) {
+        if(serverConfig->endpoints[i].securityMode != UA_MESSAGESECURITYMODE_SIGNANDENCRYPT) {
+            serverConfig->endpoints[i].userIdentityTokens = NULL;
+            serverConfig->endpoints[i].userIdentityTokensSize = 0;
+        }
+    }
+
     UA_ServerConfig_set_customHostname(serverConfig, UA_STRING(hostname));
 
     UA_DurationRange range = {5.0, 5.0};
