@@ -18,7 +18,7 @@ RUN pip3.6 install -r va_requirements.txt && \
 # OpenVINO install
 RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
-    build-essential cmake libusb-1.0-0-dev libva-dev libdrm-dev cpio lsb-release
+    libusb-1.0-0-dev libva-dev libdrm-dev cpio lsb-release
 ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit*  ${HOME}/openvino_toolkit/
 RUN cd ${HOME}/openvino_toolkit && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \

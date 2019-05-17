@@ -17,54 +17,6 @@ RUN mkdir -p ${TOML_GO_PATH} && \
     cd ${TOML_GO_PATH} && \
     git checkout -b v0.3.0 tags/v0.3.0
 
-ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
-RUN mkdir -p ${GLOG_GO_PATH} && \
-    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
-    cd ${GLOG_GO_PATH} && \
-    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
-
-ENV UUID_GO_PATH ${GOPATH}/src/github.com/google/uuid
-RUN mkdir -p ${UUID_GO_PATH} && \
-    git clone https://github.com/google/uuid ${UUID_GO_PATH} && \
-    cd ${UUID_GO_PATH} && \
-    git checkout -b known_version 9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8
-
-ENV PROTOBUF_GO_PATH ${GOPATH}/src/github.com/golang/protobuf
-RUN mkdir -p ${PROTOBUF_GO_PATH} && \
-    git clone https://github.com/golang/protobuf ${PROTOBUF_GO_PATH} && \
-    cd ${PROTOBUF_GO_PATH} && \
-    git checkout -b v1.1.0 tags/v1.1.0
-
-ENV GO_X_NET ${GOPATH}/src/golang.org/x/net
-RUN mkdir -p ${GO_X_NET} && \
-    git clone https://github.com/golang/net ${GO_X_NET} && \
-    cd ${GO_X_NET} && \
-    git checkout -b known_version 26e67e76b6c3f6ce91f7c52def5af501b4e0f3a2
-
-ENV GO_X_TEXT ${GOPATH}/src/golang.org/x/text
-RUN mkdir -p ${GO_X_TEXT} && \
-    git clone https://github.com/golang/text ${GO_X_TEXT} && \
-    cd ${GO_X_TEXT} && \
-    git checkout -b v0.3.0 tags/v0.3.0
-
-ENV GO_X_SYS ${GOPATH}/src/golang.org/x/sys
-RUN mkdir -p ${GO_X_SYS} && \
-    git clone https://github.com/golang/sys ${GO_X_SYS} && \
-    cd ${GO_X_SYS} && \
-    git checkout -b known_version d0be0721c37eeb5299f245a996a483160fc36940
-
-ENV GO_GRPC ${GOPATH}/src/google.golang.org/grpc
-RUN mkdir -p ${GO_GRPC} && \
-    git clone https://github.com/grpc/grpc-go ${GO_GRPC} && \
-    cd ${GO_GRPC} && \
-    git checkout -b v1.13.0 tags/v1.13.0
-
-ENV GO_PROTOGEN ${GOPATH}/src/google.golang.org/genproto
-RUN mkdir -p ${GO_PROTOGEN} && \
-    git clone https://github.com/google/go-genproto ${GO_PROTOGEN} && \
-    cd ${GO_PROTOGEN} && \
-    git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
-
 ENV INFLUXDB_GO_PATH ${GOPATH}/src/github.com/influxdata/influxdb
 RUN mkdir -p ${INFLUXDB_GO_PATH} && \
     git clone https://github.com/influxdata/influxdb ${INFLUXDB_GO_PATH} && \

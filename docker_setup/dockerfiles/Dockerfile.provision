@@ -10,12 +10,6 @@ RUN mkdir -p ${GO_WORK_DIR}/log
 # is obeyed and just "name" value is not used for deducing the
 # repo (https://github.com/golang/dep/pull/1857/commits)
 
-ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
-RUN mkdir -p ${GLOG_GO_PATH} && \
-    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
-    cd ${GLOG_GO_PATH} && \
-    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
-
 ENV VAULT_GO_PATH ${GOPATH}/src/github.com/hashicorp/vault
 RUN mkdir -p ${VAULT_GO_PATH} && \
     git clone https://github.com/hashicorp/vault ${VAULT_GO_PATH} && \
