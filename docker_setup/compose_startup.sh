@@ -134,13 +134,19 @@ build_iei() {
 	    else
 	        docker-compose $OVERRIDE_COMPOSE_YML build $service | tee $buildLogFile
 	    fi
-		tail $buildLogFile | grep "fix-missing"
-		if [ `echo $?` = "0" ]
-		then
-		    errorCode="100"
-		else
-		    errorCode="0"
-		fi
+		# logic to take care of some of the docker build issues happening due to `apt` cache issue
+		errorStrs=("fix-missing" "Unable to locate package")
+		errorCode="0"
+		for errorStr in "${errorStrs[@]}"
+		do
+			tail $buildLogFile | grep "$errorStr"
+			if [ `echo $?` = "0" ]
+			then
+				errorCode="100"
+			fi
+		done
+
+		# logic to determine if the build was successful or not
 		tail $buildLogFile | grep "Successfully" > $buildSuccessLogFile
 		if [ `echo $?` = "0" ]
 		then
