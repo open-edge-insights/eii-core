@@ -27,12 +27,15 @@ import time
 import cv2
 import os
 from . import IngestorError
+import queue
 
 try:
     import dahua_video_capture as dvc
     dahua_supported = True
 except ImportError:
     dahua_supported = False
+
+MAX_BUFFERS = 10
 
 """Video ingestor
 """
@@ -123,6 +126,7 @@ class Ingestor:
         self.poll_interval = config.get('poll_interval', 0.01)
         self.cameras = []
         self.cam_threads = []
+        self.ondata_threads = []
         streams = config['streams']
 
         self.log.info('Loading OpenCV streams')
@@ -131,7 +135,11 @@ class Ingestor:
             for (cam_sn, camConfig) in self.cap_streams.items():
                 thread_id = threading.Thread(target=self._run,
                                              args=(cam_sn, camConfig))
+                self.ondata_queue = queue.Queue(maxsize=MAX_BUFFERS)
                 self.cam_threads.append(thread_id)
+                thread = threading.Thread(target=self._call_ondata,
+                                          args=(cam_sn, camConfig))
+                self.ondata_threads.append(thread)
         else:
             raise IngestorError('capture_streams is not a json object')
 
@@ -139,6 +147,8 @@ class Ingestor:
         """Start the ingestor.
         """
         for thread in self.cam_threads:
+            thread.start()
+        for thread in self.ondata_threads:
             thread.start()
 
     def join(self):
@@ -167,11 +177,14 @@ class Ingestor:
                 ret, frame = camera.read()
                 if not ret:
                     self.log.error(
-                            'Failed to retrieve frame from camera %s',
-                            camera)
+                                'Failed to retrieve frame from camera %s',
+                                camera)
                 else:
-                    self.on_data('video', (camera.name, frame,
-                                 camera.config))
+                    try:
+                        self.ondata_queue.put(frame, block=False)
+                    except Exception as ex:
+                        # Frames are skipped if the queue is full.
+                        pass
             except Exception as ex:
                 self.log.error('Error while reading from camera: %s, \n%s',
                                camera, tb.format_exc())
@@ -193,6 +206,16 @@ class Ingestor:
                 time.sleep(camera.config.get("poll_interval"))
             elif self.poll_interval is not None:
                 time.sleep(self.poll_interval)
+
+    def _call_ondata(self, cameraName, cameraConfig):
+        while not self.stop_ev.is_set():
+            try:
+                frame = self.ondata_queue.get(block=True)
+                self.on_data('video', (cameraName, frame, cameraConfig))
+            except Exception as ex:
+                self.log.error('Error while reading frames from queue: \n%s',
+                               tb.format_exc())
+
 
     def _connect(self, cam_sn, config):
         """Private method to abstract connecting to a given camera type.
