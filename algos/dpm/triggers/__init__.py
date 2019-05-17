@@ -151,6 +151,7 @@ class BaseTrigger:
         self.stopped = threading.Event()
         self.sample_count = 0
         self.triggered_ev = threading.Event()
+        self.name = None
 
     def register_trigger_callback(self, cb):
         """Register callback to be called when the classifier should be
@@ -256,6 +257,12 @@ class BaseTrigger:
     def process_data(self, ingestor, data):
         if not self.stopped.is_set():
             self.on_data(ingestor, data)
+
+    def set_name(self, name):
+        self.name = name
+
+    def get_name(self):
+        return self.name
 
 
 def load_trigger(trigger, config):
