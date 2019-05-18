@@ -13,6 +13,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include "common.h"
 #include <pthread.h>
 
+// strcpy_s, strcat_s and strncpy_s extern declarations are required for safstringlib
+extern int
+strcpy_s(char *dest, unsigned int dmax, const char *src);
+
+extern int
+strcat_s(char *dest, unsigned int dmax, const char *src);
+
+extern int
+strncpy_s (char *dest, unsigned int dmax, const char *src, unsigned int slen);
+
 #define FAILURE -1
 #define SECURITY_POLICY_URI "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
 #define ENDPOINT_SIZE 100
@@ -47,17 +57,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 struct ContextConfig {
     char *endpoint;         // opcua endpoint ex:opcua://localhost:65003
     char *direction;        // opcua direction ex: PUB|SUB
-    char *name;             // opcua name space
     char *certFile;         // opcua certificates path
     char *privateFile;      // opcua private key file
-    char **trustFile;       //opcua trust files list
-    size_t trustedListSize; //opcua trust files list size
+    char **trustFile;       // opcua trust files list
+    size_t trustedListSize; // opcua trust files list size
 };
 
 // opcua topic config
 struct TopicConfig {
-    char *name;   // opcua topic name
-    char *dType;  //type of topic, ex: string|int
+    char *namespace; // opcua namespace name
+    char *name;      // opcua topic name
+    char *dType;     // type of topic, ex: string|int
 };
 
 //*************open62541 server wrappers**********************
@@ -73,13 +83,8 @@ char*
 serverContextCreate(char *hostname,
                     int port);
 
-int
-serverStartTopic(char *nsName,
-                 char *topic);
-
 char*
-serverPublish(int nsIndex,
-              char *topic,
+serverPublish(struct TopicConfig topicConfig,
               char *data);
 
 void serverContextDestroy();
@@ -99,13 +104,9 @@ clientContextCreateSecured(char *hostname,
 char*
 clientContextCreate(char *hostname,
                     int port);
-int
-clientStartTopic(char *nsName,
-                 char *topic);
 
 char*
-clientSubscribe(int nsIndex,
-                struct TopicConfig topicConfig[],
+clientSubscribe(struct TopicConfig topicConfig[],
                 int totalTopics,
                 c_callback cb,
                 void* pyxFunc);

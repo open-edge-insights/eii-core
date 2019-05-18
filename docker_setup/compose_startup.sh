@@ -22,7 +22,7 @@ pre_build_steps() {
 	source .env
 	if [ "$DEV_MODE" = "true" ]
 	then
-		echo "IEI is configured to run in Developement Mode with Security disabled"
+		echo "IEI is configured to run in Development Mode with Security disabled"
 		OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.devmode.yml"
 		if ! id $IEI_USER_NAME >/dev/null 2>&1; then
 			groupadd $IEI_USER_NAME -g $IEI_UID

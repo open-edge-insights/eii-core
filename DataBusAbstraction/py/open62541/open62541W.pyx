@@ -13,16 +13,13 @@ cdef char** to_cstring_array(list_str):
         ret[i] = temp
     return ret
 
-def ContextCreate(endpoint, direction, name, certFile, privateFile, trustFiles):
+def ContextCreate(endpoint, direction, certFile, privateFile, trustFiles):
   cdef copen62541W.ContextConfig contextConfig
   cdef bytes endpoint_bytes = endpoint.encode();
   cdef char *cendpoint = endpoint_bytes;
 
   cdef bytes direction_bytes = direction.encode();
   cdef char *cdirection = direction_bytes;
-
-  cdef bytes name_bytes = name.encode();
-  cdef char *cname = name_bytes;
 
   cdef bytes certFile_bytes = certFile.encode();
   cdef char *ccertFile = certFile_bytes;
@@ -32,7 +29,6 @@ def ContextCreate(endpoint, direction, name, certFile, privateFile, trustFiles):
 
   contextConfig.endpoint = cendpoint
   contextConfig.direction = cdirection
-  contextConfig.name = cname
   contextConfig.certFile = ccertFile
   contextConfig.privateFile = ckeyFile
   contextConfig.trustFile = to_cstring_array(trustFiles)
@@ -45,15 +41,19 @@ def ContextCreate(endpoint, direction, name, certFile, privateFile, trustFiles):
 def Publish(topicConf, data):
   cdef copen62541W.TopicConfig topicConfig
 
+  cdef bytes namespace_bytes = topicConf['namespace'].encode();
+  cdef char *cnamespace = namespace_bytes;
+
   cdef bytes topic_bytes = topicConf['name'].encode();
   cdef char *ctopic = topic_bytes;
 
-  cdef bytes dtype_bytes = topicConf['dtype'].encode();
+  cdef bytes dtype_bytes = topicConf['dType'].encode();
   cdef char *cdtype = dtype_bytes;
 
   cdef bytes data_bytes = data.encode();
   cdef char *cdata = data_bytes;
 
+  topicConfig.namespace = cnamespace
   topicConfig.name =  ctopic
   topicConfig.dType = cdtype
   return copen62541W.Publish(topicConfig, cdata)
@@ -65,16 +65,23 @@ def Subscribe(topicConfigs, topicConfigCount, trig, pyFunc):
   cTopicConfig = <copen62541W.TopicConfig *>malloc(topicConfigCount * sizeof(copen62541W.TopicConfig))
   cdef bytes topic_bytes
   cdef char *ctopic
+  cdef bytes namespace_bytes
+  cdef char *cnamespace
   cdef bytes dtype_bytes
   cdef char *cdtype
 
   for i in range(topicConfigCount):
+    namespace_bytes = topicConfigs[i]["namespace"].encode();
+    cnamespace = namespace_bytes;
+
     topic_bytes = topicConfigs[i]["name"].encode();
     ctopic = topic_bytes;
 
     dtype_bytes = topicConfigs[i]["dType"].encode();
     cdtype = dtype_bytes;
 
+    cTopicConfig[i].namespace = <char *>malloc(strlen(cnamespace) + 1)
+    strcpy(cTopicConfig[i].namespace, cnamespace)
     cTopicConfig[i].name = <char *>malloc(strlen(ctopic) + 1)
     strcpy(cTopicConfig[i].name, ctopic)
     cTopicConfig[i].dType = <char *>malloc(strlen(cdtype) + 1)

@@ -58,7 +58,6 @@ class A:
 
         contextConfig = {"endpoint": args.endpoint,
                          "direction": args.direction,
-                         "name": args.ns,
                          "certFile": args.certFile,
                          "privateFile": args.privateFile,
                          "trustFile": args.trustFile}
@@ -68,15 +67,16 @@ class A:
             topicConfigs = []
             topicsList = args.topics.split(',')
             for topic in topicsList:
-                topicConfigs.append({"name": topic, "dType": "string"})
+                topicConfigs.append({"namespace": args.ns, "name": topic,
+                                    "dType": "string"})
 
             if args.direction == "PUB":
                 for i in range(0, 20):
                     for topicConfig in topicConfigs:
-                        result = "classifier_results {}".format(i)
+                        result = "{0} {1}".format(topicConfig["name"], i)
                         ieidbus.Publish(topicConfig, result)
                         print("Published [" + result + "]")
-                        time.sleep(5)
+                        time.sleep(1)
             elif args.direction == "SUB":
                 ieidbus.Subscribe(topicConfigs, len(topicConfigs), 'START',
                                   self.cbFunc)

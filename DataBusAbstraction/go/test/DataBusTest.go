@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/golang/glog"
 )
@@ -58,13 +59,12 @@ func main() {
 	topicsArr := strings.Split(*topics, ",")
 	topicConfigs := make([]map[string]string, len(topicsArr))
 	for i, topic := range topicsArr {
-		topicConfigs[i] = map[string]string{"name": topic, "dType": "string"}
+		topicConfigs[i] = map[string]string{"namespace": *ns, "name": topic, "dType": "string"}
 	}
 
 	contextConfig := map[string]string{
 		"endpoint":    *endPoint,
 		"direction":   *direction,
-		"name":        *ns,
 		"certFile":    *certFile,
 		"privateFile": *privateFile,
 		"trustFile":   *trustFile,
@@ -83,11 +83,12 @@ func main() {
 
 	if *direction == "PUB" {
 
-		for i := 0; ; i++ {
+		for i := 0; i < 100; i++ {
 			for _, topicConfig := range topicConfigs {
 				result := fmt.Sprintf("%s %d", topicConfig["name"], i)
 				ieiDatab.Publish(topicConfig, result)
 				glog.Infof("Published result: %s\n", result)
+				time.Sleep(time.Second)
 			}
 		}
 	} else if *direction == "SUB" {

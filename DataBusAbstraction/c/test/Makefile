@@ -3,7 +3,7 @@ CURDIR = $(shell pwd)
 SAFESTRING_DIR = safestringlib
 SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
 CPATH = ..
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -g
 INCLUDE = -I $(CPATH)/open62541/include
 SOURCE_FILE = $(CPATH)/open62541/src
 SERVER_CERTS = /etc/ssl/opcua

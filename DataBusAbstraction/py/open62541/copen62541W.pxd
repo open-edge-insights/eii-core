@@ -2,13 +2,13 @@ cdef extern from "DataBus.h":
     struct ContextConfig:
         char *endpoint;
         char *direction;
-        char *name;
         char *certFile;
         char *privateFile;
         char **trustFile;
         size_t trustedListSize;
 
     struct TopicConfig:
+        char *namespace;
         char *name;
         char *dType;
 

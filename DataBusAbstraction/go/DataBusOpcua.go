@@ -27,9 +27,7 @@ import (
 )
 
 type dataBusOpcua struct {
-	namespace string
 	direction string
-	nsIndex   int
 }
 
 func newOpcuaInstance() (db *dataBusOpcua, err error) {
@@ -58,17 +56,16 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 	defer errHandler("OPCUA Context Creation Failed!!!", &err)
 
 	dbOpcua.direction = contextConfig["direction"]
-	dbOpcua.namespace = contextConfig["name"]
 
 	cDirection := C.CString(contextConfig["direction"])
-	cNamespace := C.CString(contextConfig["name"])
 	cEndpoint := C.CString(contextConfig["endpoint"])
 	cCertFile := C.CString(contextConfig["certFile"])
 	cPrivateFile := C.CString(contextConfig["privateFile"])
 
 	//TODO - Make contextConfig["trustFile"] an array
 	trustFiles := [1]string{contextConfig["trustFile"]}
-	cArray := C.malloc(C.size_t(len(trustFiles)) * C.size_t(unsafe.Sizeof(uintptr(0))))
+	cTrustFilesCount := C.size_t(len(trustFiles))
+	cArray := C.malloc(cTrustFilesCount * C.size_t(unsafe.Sizeof(uintptr(0))))
 	a := (*[1<<30 - 1]*C.char)(cArray)
 	for idx, substring := range trustFiles {
 		a[idx] = C.CString(substring)
@@ -77,11 +74,10 @@ func (dbOpcua *dataBusOpcua) createContext(contextConfig map[string]string) (err
 	contCfg := C.struct_ContextConfig{
 		endpoint:        cEndpoint,
 		direction:       cDirection,
-		name:            cNamespace,
 		certFile:        cCertFile,
 		privateFile:     cPrivateFile,
 		trustFile:       (**C.char)(cArray),
-		trustedListSize: 1,
+		trustedListSize: cTrustFilesCount,
 	}
 
 	cResp := C.ContextCreate(contCfg)
@@ -101,12 +97,14 @@ func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err erro
 func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) (err error) {
 	defer errHandler("OPCUA Send Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
+		cNamespace := C.CString(topic["namespace"])
 		cTopic := C.CString(topic["name"])
 		cType := C.CString(topic["dType"])
 		cMsgData := C.CString(msgData.(string))
 		topicCfg := C.struct_TopicConfig{
-			name:  cTopic,
-			dType: cType,
+			namespace: cNamespace,
+			name:      cTopic,
+			dType:     cType,
 		}
 
 		cResp := C.Publish(topicCfg, cMsgData)

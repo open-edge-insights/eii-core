@@ -5,7 +5,7 @@ SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
 DBA_PATH = ../../../DataBusAbstraction
 CERT_DIR_PATH = $(DBA_PATH)/cert-tool/Certificates
 CPATH = ../../c/open62541/src
-CFLAGS = -std=c99
+CFLAGS = -std=c99 -g
 INCLUDE = -I../include -I../../
 SERVER_CERTS = /etc/ssl/opcua
 CLIENT_CERTS = /etc/ssl/opcua

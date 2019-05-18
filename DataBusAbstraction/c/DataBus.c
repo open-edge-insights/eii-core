@@ -10,20 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include "DataBus.h"
 
-#define NUM_OF_TOPICS 50
+static char gDirection[4];
 
-// opcua binding global variables
-static char *gPubTopics[NUM_OF_TOPICS];
-static char *gSubTopics[NUM_OF_TOPICS];
-static int gPubIndex = 0;
-static int gSubIndex = 0;
-struct ContextConfig gContextConfig;
-struct TopicConfig gTopicConfig;
-static int gNamespaceIndex = 0;
-
-static bool checkTopicExistence(char *topic);
-
-/* serverContextCreateSecured function creates the opcua namespace, opcua variable and starts the server
+/* ContextCreate function creates the opcua server/client (pub/sub) context based on `contextConfig.direction` field
  *
  * @param  contextConfig(struct)     ContextConfig structure for opcua publisher/subscriber
  *                                   publisher (server) - If all certs/keys are set to empty string, the opcua server starts in insecure mode. If
@@ -38,10 +27,10 @@ ContextCreate(struct ContextConfig contextConfig) {
     char *errorMsg = "0";
     int port;
     bool devmode = false;
-    gContextConfig = contextConfig;
+    DBA_STRCPY(gDirection, contextConfig.direction);
     char *hostNamePort[3];
     char *delimeter = "://";
-    char *endpointStr = gContextConfig.endpoint;
+    char *endpointStr = contextConfig.endpoint;
     char *endpointArr = strtok(endpointStr, delimeter);
     if(endpointArr != NULL)
     {
@@ -52,52 +41,32 @@ ContextCreate(struct ContextConfig contextConfig) {
         if(hostNamePort[1] != NULL && hostNamePort[2] != NULL) {
             hostname = hostNamePort[1];
             port = atol(hostNamePort[2]);
-            if((!strcmp(gContextConfig.certFile, "")) && (!strcmp(gContextConfig.privateFile, "")) \
-            && (!strcmp(gContextConfig.trustFile[0], ""))){
+            if((!strcmp(contextConfig.certFile, "")) && (!strcmp(contextConfig.privateFile, "")) \
+            && (!strcmp(contextConfig.trustFile[0], ""))){
                 devmode = true;
             }
             if (hostname != NULL) {
                 if(devmode){
-                    if(!strcmp(gContextConfig.direction, "PUB")) {
+                    if(!strcmp(contextConfig.direction, "PUB")) {
                         errorMsg = serverContextCreate(hostname, port);
-                    } else if(!strcmp(gContextConfig.direction, "SUB")) {
+                    } else if(!strcmp(contextConfig.direction, "SUB")) {
                         errorMsg = clientContextCreate(hostname, port);
                     }
                 } else {
-                    if(!strcmp(gContextConfig.direction, "PUB")) {
-                        errorMsg = serverContextCreateSecured(hostname, port, gContextConfig.certFile,
-                                                              gContextConfig.privateFile, gContextConfig.trustFile,
-                                                              gContextConfig.trustedListSize);
-                    } else if(!strcmp(gContextConfig.direction, "SUB")) {
-                        errorMsg = clientContextCreateSecured(hostname, port, gContextConfig.certFile,
-                                                              gContextConfig.privateFile, gContextConfig.trustFile,
-                                                              gContextConfig.trustedListSize);
+                    if(!strcmp(contextConfig.direction, "PUB")) {
+                        errorMsg = serverContextCreateSecured(hostname, port, contextConfig.certFile,
+                                                              contextConfig.privateFile, contextConfig.trustFile,
+                                                              contextConfig.trustedListSize);
+                    } else if(!strcmp(contextConfig.direction, "SUB")) {
+                        errorMsg = clientContextCreateSecured(hostname, port, contextConfig.certFile,
+                                                              contextConfig.privateFile, contextConfig.trustFile,
+                                                              contextConfig.trustedListSize);
                     }
                 }
             }
         }
     }
     return errorMsg;
-}
-
-static bool
-checkTopicExistence(char *topic) {
-    for (int j = 0; j < NUM_OF_TOPICS; j++) {
-        if (!strcmp(gContextConfig.direction, "PUB")) {
-            if (gPubTopics[j] != NULL) {
-                if (!strcmp(topic, gPubTopics[j])) {
-                    return true;
-                }
-            }
-        } else if (!strcmp(gContextConfig.direction, "SUB")) {
-            if (gSubTopics[j] != NULL) {
-                if (!strcmp(topic, gSubTopics[j])) {
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
 }
 
 /* Publish function for publishing the data by opcua server process
@@ -107,28 +76,7 @@ checkTopicExistence(char *topic) {
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 Publish(struct TopicConfig topicConfig, char *data) {
-
-    if (!checkTopicExistence(topicConfig.name)) {
-        if (gPubIndex > (NUM_OF_TOPICS - 1)) {
-            static char errStr[] = "Exceeded the limit of pub topics";
-            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
-            return errStr;
-        }
-        gPubTopics[gPubIndex] = topicConfig.name;
-        gPubIndex++;
-
-        gNamespaceIndex = serverStartTopic(gContextConfig.name, topicConfig.name);
-        if (gNamespaceIndex == FAILURE) {
-            static char errStr[] = "serverStartTopic() API failed";
-            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
-            return errStr;
-        }
-        gTopicConfig = topicConfig;
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "serverStartTopic() API successfully executed!, nsIndex: %d\n",
-                    gNamespaceIndex);
-    }
-
-    return serverPublish(gNamespaceIndex, topicConfig.name, data);
+    return serverPublish(topicConfig, data);
 }
 
 /* Subscribe function makes the subscription to the opcua variable named topic
@@ -142,36 +90,14 @@ Publish(struct TopicConfig topicConfig, char *data) {
  * @return Return a string "0" for success and other string for failure of the function */
 char*
 Subscribe(struct TopicConfig topicConfigs[], int topicConfigCount, char *trig, c_callback cb, void* pyxFunc) {
-
-    for (int i = 0; i < topicConfigCount; i++) {
-        if (!checkTopicExistence(topicConfigs[i].name)) {
-            if (gSubIndex > (NUM_OF_TOPICS - 1)) {
-                static char errStr[] = "Exceeded the limit of sub topics";
-                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
-                return errStr;
-            }
-            gSubTopics[gSubIndex] = topicConfigs[i].name;
-            gSubIndex++;
-            gNamespaceIndex = clientStartTopic(gContextConfig.name, topicConfigs[i].name);
-            if (gNamespaceIndex == FAILURE) {
-                static char errStr[] = "clientStartTopic() API failed";
-                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", errStr);
-                return errStr;
-            }
-            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "clientStartTopic() API successfully executed for topic: %s\n",
-                        topicConfigs[i].name);
-
-        }
-    }
-    char* response = clientSubscribe(gNamespaceIndex, topicConfigs, topicConfigCount, cb, pyxFunc);
-    return response;
+    return clientSubscribe(topicConfigs, topicConfigCount, cb, pyxFunc);
 }
 
 //ContextDestroy function destroys the opcua server/client context
 void ContextDestroy() {
-    if (!strcmp(gContextConfig.direction, "PUB")) {
+    if (!strcmp(gDirection, "PUB")) {
         serverContextDestroy();
-    } else if (!strcmp(gContextConfig.direction, "SUB")) {
+    } else if (!strcmp(gDirection, "SUB")) {
         clientContextDestroy();
     }
 }

@@ -52,9 +52,7 @@ class databOpcua:
 
     def __init__(self, log):
         self.logger = log
-        self.nsIndex = None
         self.direction = None
-        self.namespace = None
         self.devMode = False
 
     def createContext(self, contextConfig):
@@ -83,11 +81,9 @@ class databOpcua:
         self.direction = contextConfig["direction"]
         # Create default endpoint protocol for opcua from given endpoint
         endpoint = contextConfig["endpoint"]
-        self.namespace = contextConfig["name"]
 
         errMsg = open62541W.ContextCreate(endpoint,
                                           self.direction,
-                                          self.namespace,
                                           contextConfig["certFile"],
                                           contextConfig["privateFile"],
                                           [contextConfig["trustFile"]])

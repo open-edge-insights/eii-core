@@ -41,7 +41,6 @@ const (
 
 var opcuaContext = map[string]string{
 	"direction":   "PUB",
-	"name":        "streammanager",
 	"endpoint":    "opcua://%s:%s",
 	"certFile":    "/etc/ssl/opcua/opcua_server_certificate.der",
 	"privateFile": "/etc/ssl/opcua/opcua_server_key.der",
@@ -126,7 +125,7 @@ func convertToJSON(data string) string {
 	for j := 1; j < len(keyValBuf)-1; j++ { //wrapping other keys with in the quotes
 		keyBuf := strings.Split(keyValBuf[j], ",")
 		quotedKey2 := "\"" + keyBuf[len(keyBuf)-1] + "\""
-		jsonStr = strings.Replace(jsonStr, "," + keyBuf[len(keyBuf)-1], "," + quotedKey2, -1)
+		jsonStr = strings.Replace(jsonStr, ","+keyBuf[len(keyBuf)-1], ","+quotedKey2, -1)
 	}
 
 	jsonStr = strings.Replace(jsonStr, "=", ":", -1)  //As the value of idx is in not in the Json
@@ -159,8 +158,9 @@ func (pStrmMgr *StrmMgr) handlePointData() {
 				// Publish only if a proper databus context available
 				if opcuaDatab != nil {
 					topicConfig := map[string]string{
-						"name": val.Topic,
-						"type": "string",
+						"namespace": "streammanager",
+						"name":      val.Topic,
+						"type":      "string",
 					}
 
 					if profiling {
@@ -267,9 +267,8 @@ func startServer(pStrmMgr *StrmMgr, devMode bool) {
 		os.Exit(1)
 	}
 
-	
 	hostname := os.Getenv("DATA_AGENT_GRPC_SERVER")
-	
+
 	if !devMode {
 		opcuaFileList := []string{opcuaContext["certFile"], opcuaContext["privateFile"], opcuaContext["trustFile"]}
 		util.WriteCertFile(opcuaFileList, StrmDaCfg.Certs)
@@ -295,7 +294,7 @@ func startServer(pStrmMgr *StrmMgr, devMode bool) {
 	for _, val := range pStrmMgr.MsrmtTopicMap {
 		if val.MsgBusType == "OPCUA" {
 			dummyMsg := "dummy"
-			topicConfig := map[string]string{"name": val.Topic, "type": "string"}
+			topicConfig := map[string]string{"namespace": "streammanager", "name": val.Topic, "type": "string"}
 			err := opcuaDatab.Publish(topicConfig, dummyMsg)
 			if err != nil {
 				glog.Errorf("Publish Error: %v", err)

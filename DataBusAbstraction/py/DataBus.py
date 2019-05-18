@@ -69,8 +69,6 @@ class databus:
             contextConfig<dict>: Messagebus params to create the context
                 <fields>
                 "direction": PUB/SUB/NONE - Mutually exclusive
-                "name": context namespace (PUB/SUB context namespaces should
-                        match)
                 "endpoint": messagebus endpoint address
                     <format> proto://host:port/, proto://host:port/.../
                     <examples>
@@ -87,7 +85,6 @@ class databus:
             if endpoint.split('//')[0] == busTypes["OPCUA"]:
                 self.busType = busTypes["OPCUA"]
                 self.bus = databOpcua(self.logger)
-                self.logger.info("DataBus type: {}".format(busTypes["OPCUA"]))
             else:
                 raise Exception("Not a supported BusType")
             self.logger.info(contextConfig)
@@ -111,8 +108,8 @@ class databus:
         Arguments:
             topicConfig<dict>: Publish topic parameters
                 <fields>
-                "name": Topic name (in hierarchical form with '/' as delimiter)
-                    <example> "root/level1/level2/level3"
+                "namespace": Namespace name
+                "name": Topic name
                 "type": Data type associated with the topic
             data: The message whose type should match the topic data type
         Return/Exception: Will raise Exception in case of errors'''
@@ -130,6 +127,7 @@ class databus:
         Arguments:
             topicConfigs<list of dicts>: Subscribe topic parameters
                 <dict_fields>
+                "namespace": Namespace name
                 "name": Topic name
                 "dType": Data type associated with the topic
             topicConfigCount: length of topicConfigs list

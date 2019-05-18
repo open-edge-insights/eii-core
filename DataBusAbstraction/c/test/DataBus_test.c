@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     char *errorMsg;
     contextConfig.direction = argv[1];
     contextConfig.endpoint = argv[2];
-    contextConfig.name = argv[3];
+    char *namespace = argv[3];
     char *topics = argv[4];
     contextConfig.certFile = argv[5];
     contextConfig.privateFile = argv[6];
@@ -79,11 +79,11 @@ int main(int argc, char **argv) {
     /* First tokenization here is to get the number of topics */
     char delim[] = ",";
     char tempTopics[TOPIC_SIZE * 100];
-    strcpy(tempTopics, topics);
+    DBA_STRCPY(tempTopics, topics);
+    printf("\ntempTopics: %s\n", tempTopics);
 	char *token = strtok(topics, delim);
     int totalTopics = 0;
 	while(token != NULL) {
-		printf("%s\n", token);
         totalTopics++;
 		token = strtok(NULL, delim);
 	}
@@ -93,12 +93,19 @@ int main(int argc, char **argv) {
     char *topic = strtok(tempTopics, delim);
     char *topicDataType = "string";
     int i = 0;
+    int namespaceLen = strlen(namespace) + 1;
+    int topicLen = 0;
+    int dTypeLen = strlen(topicDataType) + 1;
 	while(topic != NULL) {
-		printf("%s\n", topic);
-        topicConfigs[i].name = (char*)malloc(sizeof(strlen(topic) + 1));
-        strcpy(topicConfigs[i].name, topic);
-        topicConfigs[i].dType = (char*)malloc(sizeof(strlen(topic) + 1));
-        strcpy(topicConfigs[i].dType, topicDataType);
+        topicConfigs[i].namespace = (char*)malloc(namespaceLen);
+        strcpy_s(topicConfigs[i].namespace, namespaceLen, namespace);
+
+        topicLen = strlen(topic) + 1;
+        topicConfigs[i].name = (char*)malloc(topicLen);
+        strcpy_s(topicConfigs[i].name, topicLen, topic);
+
+        topicConfigs[i].dType = (char*)malloc(dTypeLen);
+        strcpy_s(topicConfigs[i].dType, dTypeLen, topicDataType);
         i++;
 		topic = strtok(NULL, delim);
 	}
