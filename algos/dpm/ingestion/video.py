@@ -133,12 +133,14 @@ class Ingestor:
         self.cap_streams = streams['capture_streams']
         if isinstance(self.cap_streams, dict):
             for (cam_sn, camConfig) in self.cap_streams.items():
+                ondata_queue = queue.Queue(maxsize=MAX_BUFFERS)
                 thread_id = threading.Thread(target=self._run,
-                                             args=(cam_sn, camConfig))
-                self.ondata_queue = queue.Queue(maxsize=MAX_BUFFERS)
+                                             args=(cam_sn, camConfig,
+                                                   ondata_queue))
                 self.cam_threads.append(thread_id)
                 thread = threading.Thread(target=self._call_ondata,
-                                          args=(cam_sn, camConfig))
+                                          args=(cam_sn, camConfig,
+                                                ondata_queue))
                 self.ondata_threads.append(thread)
         else:
             raise IngestorError('capture_streams is not a json object')
@@ -166,7 +168,7 @@ class Ingestor:
         except AttributeError:
             pass  # If the video capture does not support release, that is okay
 
-    def _run(self, cam_sn, camConfig):
+    def _run(self, cam_sn, camConfig, ondata_queue):
         """Video stream ingestor run thread.
         """
         self.log.info('Capture thread started')
@@ -181,7 +183,7 @@ class Ingestor:
                                 camera)
                 else:
                     try:
-                        self.ondata_queue.put(frame, block=False)
+                        ondata_queue.put(frame, block=False)
                     except Exception as ex:
                         # Frames are skipped if the queue is full.
                         pass
@@ -207,15 +209,14 @@ class Ingestor:
             elif self.poll_interval is not None:
                 time.sleep(self.poll_interval)
 
-    def _call_ondata(self, cameraName, cameraConfig):
+    def _call_ondata(self, cameraName, cameraConfig, ondata_queue):
         while not self.stop_ev.is_set():
             try:
-                frame = self.ondata_queue.get(block=True)
+                frame = ondata_queue.get(block=True)
                 self.on_data('video', (cameraName, frame, cameraConfig))
             except Exception as ex:
                 self.log.error('Error while reading frames from queue: \n%s',
                                tb.format_exc())
-
 
     def _connect(self, cam_sn, config):
         """Private method to abstract connecting to a given camera type.
