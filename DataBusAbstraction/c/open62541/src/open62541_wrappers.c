@@ -568,9 +568,6 @@ createSubscription() {
     if(gClientContext.contexts == NULL) {
         gClientContext.contexts = (void*) malloc(gClientContext.subArgs->topicCfgItems * sizeof(void*));;
     }
-    if(gClientContext.subArgs->monitorContext == NULL) {
-        gClientContext.subArgs->monitorContext = (monitor_context_t*) malloc(gClientContext.subArgs->topicCfgItems * sizeof(monitor_context_t));
-    }
 
     char *topic;
     char *namespace;
@@ -589,7 +586,6 @@ createSubscription() {
         gClientContext.subArgs->monitorContext[i].topic = topic;
         gClientContext.subArgs->monitorContext[i].userCallback = gClientContext.subArgs->userCallback;
         gClientContext.subArgs->monitorContext[i].userFunc = gClientContext.subArgs->userFunc;
-
         gClientContext.contexts[i] = &gClientContext.subArgs->monitorContext[i];
         gClientContext.deleteCallbacks[i] = NULL;
     }
@@ -843,6 +839,7 @@ clientSubscribe(struct TopicConfig topicConfigs[],
     gClientContext.subArgs->userCallback = cb;
     gClientContext.subArgs->topicCfgItems = topicConfigCount;
     gClientContext.subArgs->topicCfgArr = (struct TopicConfig*) malloc(topicConfigCount * sizeof(struct TopicConfig));
+    gClientContext.subArgs->monitorContext = (monitor_context_t*) malloc(gClientContext.subArgs->topicCfgItems * sizeof(monitor_context_t));
 
     for(int i = 0; i < topicConfigCount; i++) {
         gClientContext.subArgs->topicCfgArr[i] = topicConfigs[i];
