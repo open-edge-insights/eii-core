@@ -6,6 +6,9 @@ The setup instructions below assume the OS is installed and ready.
 If Clearlinux is used, please follow the [docker_setup/clear_linux_setup_guide.md](clear_linux_setup_guide.md) for installing the Clearlinux OS.
 Rest of the README will mention steps to be followed in Ubuntu for setting up the Edge insights platform.
 
+> **NOTE**:
+> 1. If one doesn't have access to Intel's gitlab server (https://gitlab.devtools.intel.com) to clone the repos and any static resources mentioned below, please get the required repos/static resources from the release package
+
 ## <u>Pre-requisities</u>:
 
 1. Install latest docker cli/docker daemon by following [https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). Follow **Install using the repository** and **Install Docker CE (follow first 2 steps)** sections there. Also, follow the manage docker as a non-root user section at [https://docs.docker.com/install/linux/linux-postinstall/](https://docs.docker.com/install/linux/linux-postinstall/) to run docker without sudo
@@ -63,27 +66,33 @@ Rest of the README will mention steps to be followed in Ubuntu for setting up th
 
 ### ** IEI pre-requisites **
 
-1. Copy the PCB demo and classification sample test videos to the `test_videos` folder under `IEdgeInsights/docker_setup/` by using the following commands:
+1. Clone the IEI repo from [here](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/IEdgeInsights)
 
-    ```sh
-    cd IEdgeInsights/docker_setup/test_videos
-    wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/4e92aff009c16f676b51f0ac744364ca/pcb_d2000.avi --no-proxy
+2. #### [Requirement for point data analytics container (ia_data_analytics)]
 
-    wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/b9bd04be5230957bc313bad1ca65beb0/classification_vid.avi --no-proxy
-    ```
-
-2. Clone the a locally maintained [kapacitor repository](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/kapacitor.git) inside the `IEdgeInsights` folder.
+    Clone the a locally maintained [kapacitor repository](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/kapacitor.git) inside the `IEdgeInsights` folder.
 
     **NOTE**: Please use the git repo of kapacitor as is, the script `build.py` is dependent on that.
 
-3. #### [Requirement for video analytics container]
-     Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
+3. #### [Requirement for video analytics container (ia_video_analytics)]
 
-  > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
-  > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
-  > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones
+    * Copy the PCB demo and classification sample test videos to the `test_videos` folder   under `IEdgeInsights/docker_setup/` by using the following commands:
 
-4. To work with Basler Source Plugin clone [basler-source-plugin](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/basler-source-plugin.git) inside the `IEdgeInsights` folder.
+        ```sh
+        cd IEdgeInsights/docker_setup/test_videos
+        wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/4e92aff009c16f676b51f0ac744364ca/pcb_d2000.avi --no-proxy
+
+        wget https://gitlab.devtools.intel.com/uploads/-/system/personal_snippet/289/b9bd04be5230957bc313bad1ca65beb0/classification_vid.avi --no-proxy
+        ```
+
+    * Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website
+      (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside `IEdgeInsights/DataAnalytics/VideoAnalytics`. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
+
+        > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
+        > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
+        > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones
+
+    * Clone [Basler Source Plugin](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/basler-source-plugin.git) inside the `IEdgeInsights` folder.
 
 ## Steps to setup IEI solution on test/factory system
 

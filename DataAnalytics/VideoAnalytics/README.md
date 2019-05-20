@@ -7,7 +7,7 @@ call the classifier algos based on the input config and persists the classified 
 # Running App
 
 1) Follow Build & Installation process of IEI at:
-   https://gitlab.devtools.intel.com/Indu/IEdgeInsights/IEdgeInsights/blob/master/docker_setup/README.md
+   [IEI README.md](../../docker_setup/README.md)
 
    For running VideoAnalytics in bare-metal, the DEV_MODE should be set to "true" in docker_setup/.env file.
 
