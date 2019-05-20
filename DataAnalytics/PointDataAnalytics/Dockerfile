@@ -1,5 +1,7 @@
 # Dockerfile for Point Data Analytics
 ARG IEI_VERSION
+FROM ia_gobase:$IEI_VERSION as base
+
 FROM ia_gopybase:$IEI_VERSION
 LABEL description="Data Analytics image"
 
@@ -9,18 +11,15 @@ ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
 ENV HOME /IEI
 ENV KAPACITOR_REPO /IEI/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /IEI/go/bin
+ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 ARG IEI_UID
 
 # Installing protobuf module needed for UDF function
 RUN pip2 install protobuf
-
-# Installing dependent python modules
-ADD DataAnalytics/PointDataAnalytics/classifier_requirements.txt .
-RUN pip3.6 install -r classifier_requirements.txt && \
-    rm -rf classifier_requirements.txt
+RUN mkdir -p /etc/ssl/ca
 
 # Adding kapacitor related files
-ADD kapacitor ${KAPACITOR_REPO}
+COPY kapacitor ${KAPACITOR_REPO}
 RUN cd ${KAPACITOR_REPO} && \
     python2.7 build.py --clean -o ${GO_ROOT_BIN} && \
     mkdir -p ${DIR}/kapacitor && \
@@ -35,23 +34,21 @@ RUN mkdir -p /etc/ssl/kapacitor && \
     mkdir -p /etc/ssl/ca && \
     chown ${IEI_UID} /etc/ssl/ca
     
-ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
-RUN mkdir -p ${GLOG_GO_PATH} && \
-    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
-    cd ${GLOG_GO_PATH} && \
-    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+# Installing dependent python modules
+COPY DataAnalytics/PointDataAnalytics/classifier_requirements.txt .
+RUN pip3.6 install -r classifier_requirements.txt && \
+    rm -rf classifier_requirements.txt
+
+RUN mkdir -p /IEI/go/src/github.com/golang/glog
+COPY --from=base /IEI/go/src/github.com/golang/glog /IEI/go/src/github.com/golang/glog
 
 # Adding classifier program
-ADD DataAnalytics/PointDataAnalytics .
+COPY DataAnalytics/PointDataAnalytics .
 RUN chmod +x ./classifier_start.sh
 
 # Adding project depedency modules
-ADD DataAgent/__init__.py ./DataAgent/__init__.py
-ADD DataAgent/da_grpc ./DataAgent/da_grpc
-ADD Util ./Util
-
-RUN mkdir -p /etc/ssl/ca
-ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+COPY DataAgent/__init__.py ./DataAgent/__init__.py
+COPY DataAgent/da_grpc ./DataAgent/da_grpc
 
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]

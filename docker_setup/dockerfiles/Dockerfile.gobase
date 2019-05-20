@@ -1,4 +1,5 @@
 # IEI Base Dockerfile for Go modules
+
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:$UBUNTU_IMAGE_VERSION
 LABEL description="IEI Go Base Image"
@@ -10,12 +11,11 @@ ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
 ENV GOPATH="/IEI/go"
 WORKDIR ${GO_WORK_DIR}
 
-RUN apt-get update
-
 #Installing Go and dep package manager tool for Go
-RUN apt-get install -y wget git build-essential iputils-ping cmake g++ && \
+RUN apt-get update && \
+    apt-get install -y wget git build-essential iputils-ping cmake g++ && \
     wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && rm -rf go1.10.3.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
     go get -u github.com/golang/dep/cmd/dep
 
 # Setting timezone inside the container
@@ -73,5 +73,6 @@ RUN mkdir -p ${GO_PROTOGEN} && \
     cd ${GO_PROTOGEN} && \
     git checkout -b known_version 4b56f30a1fd96a133a036b62cdd2a249883dd89b
 
+COPY Util/ ./Util/
 HEALTHCHECK NONE
 

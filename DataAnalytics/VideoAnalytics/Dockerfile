@@ -8,18 +8,12 @@ RUN useradd -r -u ${IEI_UID} -G video ieiuser
 
 ENV HOME /IEI
 
-RUN apt-get update
-
-# Installing dependent python modules
-ADD DataAnalytics/VideoAnalytics/va_requirements.txt .
-RUN pip3.6 install -r va_requirements.txt && \
-    rm -rf va_requirements.txt
-
 # OpenVINO install
-RUN apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
+RUN apt-get update && \
+    apt-get install -y libpng12-dev libcairo2-dev libpango1.0-dev libglib2.0-dev libgtk2.0-dev \
     libswscale-dev libavcodec-dev libavformat-dev libgstreamer1.0-0 gstreamer1.0-plugins-base \
     libusb-1.0-0-dev libva-dev libdrm-dev cpio lsb-release
-ADD DataAnalytics/VideoAnalytics/l_openvino_toolkit*  ${HOME}/openvino_toolkit/
+COPY DataAnalytics/VideoAnalytics/l_openvino_toolkit*  ${HOME}/openvino_toolkit/
 RUN cd ${HOME}/openvino_toolkit && \
     sed -i -e 's/^ACCEPT_EULA=decline/ACCEPT_EULA=accept/g' silent.cfg && \
     ./install.sh -s silent.cfg --ignore-cpu
@@ -48,8 +42,13 @@ RUN mkdir -p /etc/ssl/imagestore && \
 
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/:./algos/dpm/classification/
 
+# Installing dependent python modules
+COPY DataAnalytics/VideoAnalytics/va_requirements.txt .
+RUN pip3.6 install -r va_requirements.txt && \
+    rm -rf va_requirements.txt
+
 # Adding classifier program
-ADD DataAnalytics/VideoAnalytics/ .
+COPY DataAnalytics/VideoAnalytics/ .
 
 #Myriad and HDDL requirements
 RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 \
@@ -60,13 +59,12 @@ RUN echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc && \
     echo "udevadm trigger" >> ~/.bashrc 
 
 # Adding project depedency modules
-ADD algos ./algos
-ADD DataAgent/__init__.py ./DataAgent/__init__.py
-ADD DataAgent/da_grpc ./DataAgent/da_grpc
-ADD ImageStore ./ImageStore
-ADD StreamSubLib ./StreamSubLib
-ADD DataIngestionLib ./DataIngestionLib
-ADD Util ./Util
+COPY algos ./algos
+COPY DataAgent/__init__.py ./DataAgent/__init__.py
+COPY DataAgent/da_grpc ./DataAgent/da_grpc
+COPY ImageStore ./ImageStore
+COPY StreamSubLib ./StreamSubLib
+COPY DataIngestionLib ./DataIngestionLib
 
 ENTRYPOINT ["./va_classifier_start.sh"]
 HEALTHCHECK NONE

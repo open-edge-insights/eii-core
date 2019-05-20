@@ -63,7 +63,7 @@ services:
       dockerfile: $PWD/dockerfiles/Dockerfile.pybase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+          IEI_VERSION: ${IEI_VERSION}
     image: ia_pybase:${IEI_VERSION}
     depends_on:
       - ia_log_rotate

@@ -86,15 +86,14 @@ ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
 RUN	git clone https://github.com/intel/safestringlib.git && \
 	cd safestringlib && \
 	git checkout ${SAFESTRING_VER} && \
-    make
+    make -j8
 
-ADD DataAgent ./DataAgent
-ADD Util ./Util
-ADD DataBusAbstraction/ ./DataBusAbstraction/
+COPY DataAgent ./DataAgent
+COPY DataBusAbstraction/ ./DataBusAbstraction/
 
-ADD ImageStore/ ./ImageStore/
-ADD StreamManager ./StreamManager
-ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
+COPY ImageStore/ ./ImageStore/
+COPY StreamManager ./StreamManager
+COPY docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 RUN mkdir -p ./vault/file
 
 # Copying safestringlib to DataBusAbstraction and Util
@@ -110,7 +109,7 @@ RUN cd DataBusAbstraction/go/test && \
 ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
 
 RUN cd Util/cpuid && \
-    make
+    make -j8
 
 RUN go build -o /IEI/go/bin/DataAgent DataAgent/DataAgent.go
 

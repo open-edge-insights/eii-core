@@ -17,10 +17,9 @@ RUN mkdir -p ${VAULT_GO_PATH} && \
     git checkout -b v1.0.0-beta2 tags/v1.0.0-beta2 && \
     go install
 
-RUN apt-get update
-
 # Installing TPM
-RUN apt-get -y install \
+RUN apt-get update && \
+  apt-get -y install \
   autoconf-archive \
   libcmocka0 \
   libcmocka-dev \
@@ -51,11 +50,10 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
 
 RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
 
-ADD DataAgent/provision/provision_iei.go ./
-ADD DataAgent/provision/provision_iei.sh ./
-ADD docker_setup/config/provision_config.json ./config_file.json
-ADD docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
-ADD Util ./Util
+COPY DataAgent/provision/provision_iei.go ./
+COPY DataAgent/provision/provision_iei.sh ./
+COPY docker_setup/config/provision_config.json ./config_file.json
+COPY docker_setup/config/vault_config.hcl ./vault/config/vault_config.hcl
 RUN mkdir -p ./vault/file
 
 RUN go build -o /IEI/go/bin/provision_iei ./provision_iei.go
