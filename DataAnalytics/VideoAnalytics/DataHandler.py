@@ -47,7 +47,7 @@ GRPC_CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
 CLIENT_CERT = GRPC_CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = GRPC_CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = GRPC_CERTS_PATH + "/ca_certificate.pem"
-MAX_BUFFERS = 10
+MAX_BUFFERS = 100
 
 
 class DataHandler:

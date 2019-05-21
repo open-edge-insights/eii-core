@@ -145,7 +145,6 @@ class BaseTrigger:
         """Constructor. This must be called by subclasses, otherwise errors
         will occur when sending the start/stop signals.
         """
-        self.trigger_iter = None
         self.cb = None
         self.lck = threading.Lock()
         self.stopped = threading.Event()
@@ -205,9 +204,8 @@ class BaseTrigger:
             else:
                 # Clear the previous trigger of images
                 self.triggered_ev.set()
-                self.trigger_iter = TriggerIter((0, user_data, data))
                 self.lck.release()
-                self.cb(self.trigger_iter)
+                self.cb((self.sample_count, user_data, data))
 
     def send_data(self, data, user_data=None):
         """Send data to the trigger iterator.
@@ -224,35 +222,28 @@ class BaseTrigger:
         AssertionError
             If the trigger has not been started
         """
-        assert self.trigger_iter is not None, 'Trigger has not sent start \
-                                              signal'
         self.lck.acquire()
         if not self.is_triggered():
             # If the tirgger iterator was stopped prior to this being set
             self.lck.release()
             return
-        self.trigger_iter.put((self.sample_count, user_data, data))
+        self.cb((self.sample_count, user_data, data))
         self.sample_count += 1
         self.lck.release()
 
     def send_stop_signal(self):
         """Send the stop signal to the trigger iterator if it has been started.
         """
-        if self.trigger_iter is not None:
-            self.lck.acquire()
-            self.trigger_iter.stop()
-            self.trigger_iter.put(None)
-            self.sample_count = 0
-            self.triggered_ev.clear()
-            self.lck.release()
+        self.lck.acquire()
+        self.sample_count = 0
+        self.triggered_ev.clear()
+        self.lck.release()
 
     def stop(self):
         """Full stop the iterator, cutting short the actual iterator even if
         there is currently data in the queue.
         """
         self.stopped.set()
-        if self.is_triggered():
-            self.trigger_iter.stop(full_stop=True)
 
     def process_data(self, ingestor, data):
         if not self.stopped.is_set():

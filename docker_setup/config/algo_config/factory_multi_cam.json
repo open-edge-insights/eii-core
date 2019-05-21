@@ -12,7 +12,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         },
                         "cam_serial2": {
@@ -21,7 +21,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         },
                         "cam_serial3": {
@@ -30,7 +30,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         },
                         "cam_serial4": {
@@ -39,7 +39,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         },
                         "cam_serial5": {
@@ -48,7 +48,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         },
                         "cam_serial6": {
@@ -57,7 +57,7 @@
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory",
+                            "img_store_type": "inmemory_persistent",
                             "poll_interval": 0.01
                         }
                     }
