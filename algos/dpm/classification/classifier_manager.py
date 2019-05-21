@@ -177,6 +177,7 @@ class ClassifierManager:
                 except Exception:
                     self.log.error('Error in classifier:\n%s', tb.format_exc())
                     results = []  # Because of error, no results
+                    dinfo = []
 
                 image_id = str(uuid.uuid4())
 
