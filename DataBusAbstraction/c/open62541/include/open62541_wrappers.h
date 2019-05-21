@@ -28,9 +28,8 @@ strncpy_s (char *dest, unsigned int dmax, const char *src, unsigned int slen);
 #define ENDPOINT_SIZE 100
 #define NAMESPACE_SIZE 100
 #define TOPIC_SIZE 100
-// TODO: we need to see what's the optimum size for this or have a better logic to handle this regardless of any size limits
-// imposed by safestringlib strcpy_s API
-#define PUBLISH_DATA_SIZE 4*1024
+// Setting this value to 60KB since influxdb supports a max size of 64KB
+#define PUBLISH_DATA_SIZE 60*1024
 #define DBA_STRCPY(dest, src) \
     { \
         unsigned int srcLength = (unsigned int)strlen(src) + 1; \

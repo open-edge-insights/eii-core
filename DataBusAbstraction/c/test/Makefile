@@ -13,12 +13,16 @@ WRAPPERS_PATH = $(SOURCE_FILE)/open62541_wrappers.c
 TOPICS = cam_serial1_results,cam_serial2_results
 HOST = localhost
 PORT = 65003
+MAX_SAFESTRING_SIZE = 60
 
 build_safestring_lib:
 	echo "Clone the safestringlib if not cloned already..."
 	git clone https://github.com/intel/safestringlib.git && \
 	cd $(SAFESTRING_DIR) && \
 	git checkout $(SAFESTRING_VER) && \
+	cd include && \
+	sed -i "s|4|$(MAX_SAFESTRING_SIZE)|g" "safe_str_lib.h" && \
+	cd .. && \
 	make && \
 	cp -rf libsafestring.a $(CURDIR) && \
 	cd $(CURDIR) && \
