@@ -27,9 +27,13 @@ RUN apt-get install -y libmbedtls-dev
 
 # Building safestringlib
 ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
-RUN	git clone https://github.com/intel/safestringlib.git && \
-	cd safestringlib && \
-	git checkout ${SAFESTRING_VER} && \
+ENV MAX_SAFESTRING_SIZE 60
+RUN git clone https://github.com/intel/safestringlib.git && \
+    cd safestringlib && \
+    git checkout ${SAFESTRING_VER} && \
+    cd include && \
+    sed -i "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( ${MAX_SAFESTRING_SIZE}UL << 10 )      /* ${MAX_SAFESTRING_SIZE}KB */" "safe_str_lib.h" && \
+    cd .. && \
     make && \
     cp -rf libsafestring.a /iei
 

@@ -21,7 +21,7 @@ build_safestring_lib:
 	cd $(SAFESTRING_DIR) && \
 	git checkout $(SAFESTRING_VER) && \
 	cd include && \
-	sed -i "s|4|$(MAX_SAFESTRING_SIZE)|g" "safe_str_lib.h" && \
+	sed -i "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( $(MAX_SAFESTRING_SIZE)UL << 10 )      /* $(MAX_SAFESTRING_SIZE)KB */" "safe_str_lib.h" && \
 	cd .. && \
 	make && \
 	cp -rf libsafestring.a $(CURDIR) && \
