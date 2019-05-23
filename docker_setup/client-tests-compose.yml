@@ -2,20 +2,20 @@ version: '3'
 
 services:
 
-# Define ia_pybase service
-  ia_gopybase:
+  # Define ia_gobase service
+  ia_gobase:
     build:
       context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.pybase
+      dockerfile: $PWD/dockerfiles/Dockerfile.gobase
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-        HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-    image: ia_gopybase:${IEI_VERSION}
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+    image: ia_gobase:${IEI_VERSION}
 
   # Define Test Container service
   ia_client_tests:
     depends_on:
-      - ia_gopybase
+      - ia_gobase
     build:
       context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.ct

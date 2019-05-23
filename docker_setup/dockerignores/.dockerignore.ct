@@ -16,7 +16,6 @@ basler-source-plugin/
 .git
 
 # Recursively remove all unwanted files
-**/*.md
 **/*.mp4
 **/*.avi
 **/*.json
