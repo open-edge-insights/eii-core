@@ -20,7 +20,7 @@ typedef struct {
     UA_ServerConfig *serverConfig;
     UA_ByteString* remoteCertificate;
     UA_Boolean serverRunning;
-    char *existingTopic;
+    char *topicContext;
     pthread_mutex_t *serverLock;
 } server_context_t;
 
@@ -168,6 +168,7 @@ static void
 addTopicDataSourceVariable(char *namespace,
                            char *topic,
                            size_t* namespaceIndex) {
+
     UA_StatusCode ret = UA_Server_getNamespaceByName(gServerContext.server, UA_STRING(namespace), namespaceIndex);
     if (ret == UA_STATUSCODE_GOOD) {
         UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Namespace: %s exist.",
@@ -189,14 +190,17 @@ addTopicDataSourceVariable(char *namespace,
 
     /* Add the variable node to the information model */
     UA_NodeId currentNodeId = UA_NODEID_STRING(*namespaceIndex, topic);
-    gServerContext.existingTopic = (char*) malloc(strlen(topic) + 1);
-    char *newTopic;
-    ret = UA_Server_getNodeContext(gServerContext.server, currentNodeId, (void**) &newTopic);
-    if (newTopic != NULL && !strcmp(newTopic, topic)) {
-        static char str[] = "Topic already exist for namespace";
-        UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", str);
-        return;
+    ret = UA_Server_getNodeContext(gServerContext.server, currentNodeId, (void**) &gServerContext.topicContext);
+
+    if (gServerContext.topicContext != NULL) {
+        UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Topic context: %s", gServerContext.topicContext);
+        if (!strcmp(gServerContext.topicContext, topic)) {
+            static char str[] = "Topic already exist for namespace";
+            UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s", str);
+            return;
+        }
     }
+
     UA_QualifiedName currentName = UA_QUALIFIEDNAME(*namespaceIndex, topic);
     UA_NodeId parentNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_OBJECTSFOLDER);
     UA_NodeId parentReferenceNodeId = UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
@@ -232,7 +236,7 @@ cleanupServer() {
         assert(rc == 0);
         free(gServerContext.serverLock);
     }
-    free(gServerContext.existingTopic);
+    free(gServerContext.topicContext);
 }
 
 static void*
@@ -369,6 +373,7 @@ serverContextCreateSecured(char *hostname,
             str);
         return str;
     }
+    gServerContext.topicContext = NULL;
     return "0";
 }
 /* serverContextCreate function creates the opcua namespace, opcua variable and starts the server
@@ -422,6 +427,7 @@ serverContextCreate(char *hostname,
             str);
         return str;
     }
+    gServerContext.topicContext = NULL;
     return "0";
 }
 
@@ -444,6 +450,10 @@ serverPublish(struct TopicConfig topicConfig,
     }
 
     size_t nsIndex;
+    if(gServerContext.topicContext == NULL) {
+        gServerContext.topicContext = (char*) malloc(strlen(topicConfig.name) + 1);
+    }
+
     addTopicDataSourceVariable(topicConfig.namespace,
                                topicConfig.name,
                                &nsIndex);
