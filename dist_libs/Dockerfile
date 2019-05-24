@@ -106,4 +106,11 @@ ADD ImageStore/protobuff/cpp/*.cc ${IMGSTORE_PATH}/protobuff/cpp/
 ADD ImageStore/protobuff/cpp/*.h ${IMGSTORE_PATH}/protobuff/cpp/
 ADD ImageStore/protobuff/*.proto ${IMGSTORE_PATH}/protobuff/
 
+# Generating documentation for c,cpp, py modules
+ADD docker_setup/generate_doc_doxygen.sh /dist_libs/generate_doc_doxygen.sh
+RUN cd /dist_libs && \
+    chmod +x generate_doc_doxygen.sh && \
+    ./generate_doc_doxygen.sh && \
+    rm -rf Doxyfile generate_doc_doxygen.sh
+
 ENTRYPOINT ["/bin/bash", "-c", "cp -rf /dist_libs/* /iei/dist_libs/ && rm -rf /dist_libs/"]

@@ -85,3 +85,9 @@ make sub_insecure
 ```sh
 make clean
 ```
+
+### 5. To view the documentation navigate to the below link
+
+```sh
+/opt/intel/iei/dist_libs/DataBusAbstraction/py/doc/html/index.html
+```

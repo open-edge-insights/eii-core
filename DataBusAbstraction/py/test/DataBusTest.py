@@ -67,7 +67,7 @@ class A:
             topicConfigs = []
             topicsList = args.topics.split(',')
             for topic in topicsList:
-                topicConfigs.append({"namespace": args.ns, "name": topic,
+                topicConfigs.append({"ns": args.ns, "name": topic,
                                     "dType": "string"})
 
             if args.direction == "PUB":

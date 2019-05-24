@@ -97,14 +97,14 @@ func (dbOpcua *dataBusOpcua) startTopic(topicConfig map[string]string) (err erro
 func (dbOpcua *dataBusOpcua) send(topic map[string]string, msgData interface{}) (err error) {
 	defer errHandler("OPCUA Send Failed!!!", &err)
 	if dbOpcua.direction == "PUB" {
-		cNamespace := C.CString(topic["namespace"])
+		cNamespace := C.CString(topic["ns"])
 		cTopic := C.CString(topic["name"])
 		cType := C.CString(topic["dType"])
 		cMsgData := C.CString(msgData.(string))
 		topicCfg := C.struct_TopicConfig{
-			namespace: cNamespace,
-			name:      cTopic,
-			dType:     cType,
+			ns:    cNamespace,
+			name:  cTopic,
+			dType: cType,
 		}
 
 		cResp := C.Publish(topicCfg, cMsgData)

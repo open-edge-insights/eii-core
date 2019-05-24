@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
     int topicLen = 0;
     int dTypeLen = strlen(topicDataType) + 1;
 	while(topic != NULL) {
-        topicConfigs[i].namespace = (char*)malloc(namespaceLen);
-        strcpy_s(topicConfigs[i].namespace, namespaceLen, namespace);
+        topicConfigs[i].ns = (char*)malloc(namespaceLen);
+        strcpy_s(topicConfigs[i].ns, namespaceLen, namespace);
 
         topicLen = strlen(topic) + 1;
         topicConfigs[i].name = (char*)malloc(topicLen);

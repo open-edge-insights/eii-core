@@ -8,7 +8,7 @@ cdef extern from "DataBus.h":
         size_t trustedListSize;
 
     struct TopicConfig:
-        char *namespace;
+        char *ns;
         char *name;
         char *dType;
 

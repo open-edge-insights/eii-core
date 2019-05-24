@@ -59,7 +59,7 @@ func main() {
 	topicsArr := strings.Split(*topics, ",")
 	topicConfigs := make([]map[string]string, len(topicsArr))
 	for i, topic := range topicsArr {
-		topicConfigs[i] = map[string]string{"namespace": *ns, "name": topic, "dType": "string"}
+		topicConfigs[i] = map[string]string{"ns": *ns, "name": topic, "dType": "string"}
 	}
 
 	contextConfig := map[string]string{

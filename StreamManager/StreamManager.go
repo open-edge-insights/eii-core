@@ -32,6 +32,8 @@ import (
 )
 
 var opcuaDatab databus.DataBus
+
+// StrmDaCfg config
 var StrmDaCfg config.DAConfig
 
 const (
@@ -158,27 +160,27 @@ func (pStrmMgr *StrmMgr) handlePointData() {
 				// Publish only if a proper databus context available
 				if opcuaDatab != nil {
 					topicConfig := map[string]string{
-						"namespace": "streammanager",
-						"name":      val.Topic,
-						"type":      "string",
+						"ns":   "streammanager",
+						"name": val.Topic,
+						"type": "string",
 					}
 
 					if profiling {
-						var temp_buf string
+						var tempBuf string
 						jbuf := strings.Split(buf, " ")
 
 						for i := 0; i < (len(jbuf) - 1); i++ {
 							if i == 0 {
-								temp_buf += jbuf[i]
+								tempBuf += jbuf[i]
 							} else {
-								temp_buf += " " + jbuf[i]
+								tempBuf += " " + jbuf[i]
 							}
 						}
 
-						temp_s := ",ts_sm_pub_entry="
-						temp_s += strconv.FormatInt((time.Now().UnixNano() / 1e6), 10)
-						temp_buf += temp_s + " " + jbuf[len(jbuf)-1]
-						buf = temp_buf
+						tempS := ",ts_sm_pub_entry="
+						tempS += strconv.FormatInt((time.Now().UnixNano() / 1e6), 10)
+						tempBuf += tempS + " " + jbuf[len(jbuf)-1]
+						buf = tempBuf
 					}
 
 					jsonBuf = convertToJSON(buf)
@@ -294,7 +296,7 @@ func startServer(pStrmMgr *StrmMgr, devMode bool) {
 	for _, val := range pStrmMgr.MsrmtTopicMap {
 		if val.MsgBusType == "OPCUA" {
 			dummyMsg := "dummy"
-			topicConfig := map[string]string{"namespace": "streammanager", "name": val.Topic, "type": "string"}
+			topicConfig := map[string]string{"ns": "streammanager", "name": val.Topic, "type": "string"}
 			err := opcuaDatab.Publish(topicConfig, dummyMsg)
 			if err != nil {
 				glog.Errorf("Publish Error: %v", err)

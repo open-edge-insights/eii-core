@@ -41,7 +41,7 @@ def ContextCreate(endpoint, direction, certFile, privateFile, trustFiles):
 def Publish(topicConf, data):
   cdef copen62541W.TopicConfig topicConfig
 
-  cdef bytes namespace_bytes = topicConf['namespace'].encode();
+  cdef bytes namespace_bytes = topicConf['ns'].encode();
   cdef char *cnamespace = namespace_bytes;
 
   cdef bytes topic_bytes = topicConf['name'].encode();
@@ -71,7 +71,7 @@ def Subscribe(topicConfigs, topicConfigCount, trig, pyFunc):
   cdef char *cdtype
 
   for i in range(topicConfigCount):
-    namespace_bytes = topicConfigs[i]["namespace"].encode();
+    namespace_bytes = topicConfigs[i]["ns"].encode();
     cnamespace = namespace_bytes;
 
     topic_bytes = topicConfigs[i]["name"].encode();
@@ -80,8 +80,8 @@ def Subscribe(topicConfigs, topicConfigCount, trig, pyFunc):
     dtype_bytes = topicConfigs[i]["dType"].encode();
     cdtype = dtype_bytes;
 
-    cTopicConfig[i].namespace = <char *>malloc(strlen(cnamespace) + 1)
-    strcpy(cTopicConfig[i].namespace, cnamespace)
+    cTopicConfig[i].ns = <char *>malloc(strlen(cnamespace) + 1)
+    strcpy(cTopicConfig[i].ns, cnamespace)
     cTopicConfig[i].name = <char *>malloc(strlen(ctopic) + 1)
     strcpy(cTopicConfig[i].name, ctopic)
     cTopicConfig[i].dType = <char *>malloc(strlen(cdtype) + 1)

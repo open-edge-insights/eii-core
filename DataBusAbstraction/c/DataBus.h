@@ -12,18 +12,43 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 //*************C bindings**********************
+/**ContextCreate function creates the opcua server/client (pub/sub) context based on `ContextConfig`.direction field
+ *
+ * @param contextConfig(struct)      ContextConfig structure for opcua publisher/subscriber
+ *                                   publisher (server) - If all certs/keys are set to empty string in ContextConfig structure,
+ *                                   the opcua server starts in insecure mode. If not, it starts in secure mode.
+ * 
+ *                                   subscriber (client)- If all certs/keys are set to empty string in ContextConfig structure, 
+ *                                   the opcua client tries to establishes insecure connection 
+ *                                   If not, it tries to establish secure connection with the opcua server
+ * @return string "0" for success and other string for failure of the function
+*/
 char*
 ContextCreate(struct ContextConfig contextConfig);
 
+/**Publish function for publishing the data by opcua server process
+ *
+ * @param  topicConfig(struct)       opcua `struct TopicConfig` structure
+ * @param  data(string)              data to be written to opcua variable
+ * @return string "0" for success and other string for failure of the function */
 char*
 Publish(struct TopicConfig topicConfig,
         char *data);
 
+/**Subscribe function makes the subscription to the list of opcua variables (topics) in topicConfig array
+ * @param  topicConfigs(array)       array of `struct TopicConfig` structure instances
+ * @param  topicConfigCount(int)     length of topicConfigs array
+ * @param  trig(string)              opcua trigger ex: START | STOP
+ * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
+ * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback
+ *                                   For c and go callbacks, just pass NULL and nil respectively
+ * @return string "0" for success and other string for failure of the function */
 char*
-Subscribe(struct TopicConfig topicConfig[],
-          int totalTopics,
+Subscribe(struct TopicConfig topicConfigs[],
+          int topicConfigCount,
           char *trig,
           c_callback cb,
           void* pyxFunc);
 
+/**ContextDestroy function destroys the opcua server/client context*/
 void ContextDestroy();

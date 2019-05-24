@@ -4,7 +4,6 @@ DataAgent/
 DataAnalytics/
 DataIngestionLib/
 dist_libs/
-docker_setup/
 FactoryControlApp/
 kapacitor/
 licenses/

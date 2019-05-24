@@ -272,16 +272,6 @@ startServer(void *ptr) {
     return NULL;
 }
 
-/* serverContextCreateSecured function creates the opcua namespace, opcua variable and starts the server
- *
- * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(int)                  opcua port
- * @param  certificateFile(string)    server certificate file in .der format
- * @param  privateKeyFile(string)     server private key file in .der format
- * @param  trustedCerts(string array) list of trusted certs
- * @param  trustedListSize(int)       count of trusted certs
- *
- * @return Return a string "0" for success and other string for failure of the function */
 char*
 serverContextCreateSecured(char *hostname,
                            int port,
@@ -376,13 +366,7 @@ serverContextCreateSecured(char *hostname,
     gServerContext.topicContext = NULL;
     return "0";
 }
-/* serverContextCreate function creates the opcua namespace, opcua variable and starts the server
- * in insecure mode
- *
- * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(int)                  opcua port
- *
- * @return Return a string "0" for success and other string for failure of the function */
+
 char*
 serverContextCreate(char *hostname,
                     int port) {
@@ -431,12 +415,6 @@ serverContextCreate(char *hostname,
     return "0";
 }
 
-/* serverPublish function for publishing the data by opcua server process
- *
- * @param  topicConfig(struct)       opcua `struct TopicConfig` structure
- * @param  data(string)              data to be written to opcua variable
- *
- * @return Return a string "0" for success and other string for failure of the function */
 char*
 serverPublish(struct TopicConfig topicConfig,
               char* data) {
@@ -454,7 +432,7 @@ serverPublish(struct TopicConfig topicConfig,
         gServerContext.topicContext = (char*) malloc(strlen(topicConfig.name) + 1);
     }
 
-    addTopicDataSourceVariable(topicConfig.namespace,
+    addTopicDataSourceVariable(topicConfig.ns,
                                topicConfig.name,
                                &nsIndex);
 
@@ -483,7 +461,6 @@ serverPublish(struct TopicConfig topicConfig,
     return (char *)UA_StatusCode_name(retval);
 }
 
-/* serverContextDestroy function destroys the opcua server context */
 void serverContextDestroy() {
     cleanupServer();
 }
@@ -580,13 +557,13 @@ createSubscription() {
     }
 
     char *topic;
-    char *namespace;
+    char *ns;
     size_t namespaceIndex;
     UA_NodeId nodeId;
     for(int i = 0; i < gClientContext.subArgs->topicCfgItems; i++) {
         topic = gClientContext.subArgs->topicCfgArr[i].name;
-        namespace = gClientContext.subArgs->topicCfgArr[i].namespace;
-        namespaceIndex = getNamespaceIndex(namespace, topic);
+        ns = gClientContext.subArgs->topicCfgArr[i].ns;
+        namespaceIndex = getNamespaceIndex(ns, topic);
         nodeId = UA_NODEID_STRING(namespaceIndex, topic);
 
         gClientContext.items[i] = UA_MonitoredItemCreateRequest_default(nodeId);
@@ -686,16 +663,6 @@ runClient(void *tArgs) {
 
 }
 
-/* clientContextCreate function establishes secure connection with the opcua server
- *
- * @param  hostname(string)           hostname of the system where opcua server is running
- * @param  port(uint)                 opcua port
- * @param  certificateFile(string)    client certificate file in .der format
- * @param  privateKeyFile(string)     client private key file in .der format
- * @param  trustedCerts(string array) list of trusted certs
- * @param  trustedListSize(int)       count of trusted certs
- *
- * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientContextCreateSecured(char *hostname,
                            int port,
@@ -780,12 +747,6 @@ clientContextCreateSecured(char *hostname,
     return "0";
 }
 
-/* clientContextCreate function establishes unsecure connection with the opcua server
- *
- * @param  hostname(string)           hostname of the system where opcua server is running
- * @param  port(int)                  opcua port
- *
- * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientContextCreate(char *hostname,
                     int port) {
@@ -821,16 +782,6 @@ clientContextCreate(char *hostname,
     return "0";
 }
 
-/* clientSubscribe function makes the subscription to the opcua varaible named topic for a given namespace
- *
- * @param  topicConfigs(array)       array of `struct TopicConfig` instances
- * @param  topicConfigCount(int)     length of topicConfigs array
- * @param  topic(string)             opcua variable name
- * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
- * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback.
- *                                   For c and go callbacks, just puss NULL and nil respectively.
- *
- * @return Return a string "0" for success and other string for failure of the function */
 char*
 clientSubscribe(struct TopicConfig topicConfigs[],
                 int topicConfigCount,
@@ -873,7 +824,6 @@ clientSubscribe(struct TopicConfig topicConfigs[],
     return "0";
 }
 
-/* clientContextDestroy function destroys the opcua client context */
 void clientContextDestroy() {
     gClientContext.clientExited = true;
     cleanupClient();

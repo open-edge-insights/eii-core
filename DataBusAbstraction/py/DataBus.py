@@ -27,11 +27,18 @@ from threading import Event
 import logging
 from Util.log import configure_logging, LOG_LEVELS
 
+# type of databus
 busTypes = {"OPCUA": "opcua:"}
 
 
 def worker(qu, ev, fn, log):
-    '''Worker function to fetch data from queue and trigger cb'''
+    '''! Worker function to fetch data from queue and trigger cb
+    @param qu(Queue)    queue to store/get data
+    @param ev(Event)    event to notify the worker thread status
+    @param fn(callback) that sends out the subscribed data back to the caller
+    @param              log logger object
+    '''
+
     logger = log
     while True:
         if ev.is_set():
@@ -52,9 +59,10 @@ def worker(qu, ev, fn, log):
 
 
 class databus:
-    '''Creates an instance of databus'''
 
     def __init__(self, log):
+        """! Creates an instance of databus"""
+
         self.logger = log
         self.busType = None
         self.direction = "NONE"
@@ -64,20 +72,31 @@ class databus:
         self.mutex = Lock()
 
     def ContextCreate(self, contextConfig):
-        '''Create an underlying messagebus context for the databus
-        Arguments:
-            contextConfig<dict>: Messagebus params to create the context
-                <fields>
-                "direction": PUB/SUB/NONE - Mutually exclusive
-                "endpoint": messagebus endpoint address
-                    <format> proto://host:port/, proto://host:port/.../
-                    <examples>
-                    OPCUA -> opcua://0.0.0.0:4840/
-                "certFile"   : server/client certificate file
-                "privateFile": server/client private key file
-                "trustFile"  : ca cert used to sign server/client cert
-        Return/Exception: Will raise Exception in case of errors'''
 
+        '''! ContextCreate function creates the opcua server/client (pub/sub)
+             context based on `ContextConfig`.direction field
+        @param contextConfig(dict)  ContextConfig for opcua pub/sub
+                                    publisher (server) - If all certs/keys are
+                                    set to empty string in ContextConfig,the
+                                    opcua server starts in insecure mode.
+                                    If not, it starts in secure mode.
+
+                                    subscriber (client)- If all certs/keys are
+                                    set to empty string in ContextConfig,the
+                                    opcua client tries to establishes insecure
+                                    connection. If not, it tries to establish
+                                    secure connection with the opcua server
+
+               contextConfig(dict) fields:
+                 - "direction"       : PUB/SUB/NONE - Mutually exclusive
+                 - "endpoint"        : messagebus endpoint address
+                                       ex:OPCUA -> opcua://0.0.0.0:4840/
+                 - "certFile"        : server/client certificate file
+                 - "privateFile"     : server/client private key file
+                 - "trustFile"       : ca cert used to sign server/client cert
+                 - "trustedListSize" : number of trustFiles
+         @return Exception: raise Exception in case of errors
+        '''
         try:
             self.mutex.acquire()
             endpoint = contextConfig["endpoint"]
@@ -104,15 +123,17 @@ class databus:
             self.mutex.release()
 
     def Publish(self, topicConfig, data):
-        '''Publish data on the databus
-        Arguments:
-            topicConfig<dict>: Publish topic parameters
-                <fields>
-                "namespace": Namespace name
-                "name": Topic name
-                "type": Data type associated with the topic
-            data: The message whose type should match the topic data type
-        Return/Exception: Will raise Exception in case of errors'''
+
+        '''! Publish function for publishing the data by opcua server process
+        @param  topicConfig(dict)   opcua `struct TopicConfig` structure
+
+                topicConfig(dict) fields:
+                  - "ns"  : Namespace name
+                  - "name": Topic name
+                  - "type": Data type associated with the topic
+        @param  data(string)        data to be written to opcua variable
+        @return Exception:  raise Exception in case of errors
+        '''
 
         if "opcua" in self.busType:
             try:
@@ -122,19 +143,23 @@ class databus:
                                  self.Publish.__name__))
                 raise
 
-    def Subscribe(self, topicConfigs, topicConfigCount, trig, cb=None):
-        '''Subscribe data from the databus
-        Arguments:
-            topicConfigs<list of dicts>: Subscribe topic parameters
-                <dict_fields>
-                "namespace": Namespace name
-                "name": Topic name
-                "dType": Data type associated with the topic
-            topicConfigCount: length of topicConfigs list
-            trig: START/STOP- Start OR Stop Subscription
-            cb: A callback function with data as argument
-        Return/Exception: Will raise Exception in case of errors'''
-        print("self.busType: ", self.busType)
+    def Subscribe(self, topicConfig, topicConfigCount, trig, cb=None):
+
+        '''! Subscribe function makes the subscription to the list of
+             opcua variables (topics) in topicConfig array
+        @param  topicConfig(array)    array of topicConfig instances
+
+                topicConfig(dict) fields:
+                  - "ns"  : Namespace name
+                  - "name": Topic name
+                  - "type": Data type associated with the topic
+        @param  topicConfigCount(int) length of topicConfig array
+        @param  trig(string)          opcua trigger ex: START | STOP
+        @param  cb(c_callback)        callback that sends out the subscribed
+                                      data back to the caller
+        @return Exception:  raise Exception in case of errors
+        '''
+
         if "opcua" in self.busType:
             try:
                 if (self.direction == "SUB") and (trig == "START") and \
@@ -146,7 +171,7 @@ class databus:
                                 args=(qu, ev, cb, self.logger))
                     th.deamon = True
                     th.start()
-                    self.bus.receive(topicConfigs, topicConfigCount,
+                    self.bus.receive(topicConfig, topicConfigCount,
                                      "START", qu)
             except Exception:
                 self.logger.error("receive {} Failure!!!".format(
@@ -154,8 +179,10 @@ class databus:
                 raise
 
     def ContextDestroy(self):
-        '''Destroys the underlying messagebus context
-        It unsubscribe all the existing subscriptions too'''
+
+        '''! ContextDestroy function destroys the opcua server/client
+             context
+        '''
 
         try:
             if "opcua" in self.busType:
@@ -173,12 +200,3 @@ class databus:
             self.logger.error("{} Failure!!!".format(
                 self.ContextDestroy.__name__))
             raise
-
-    def checkMsgType(self, topicType, msgData):
-        '''Pvt function'''
-
-        if type(msgData) == str:
-            if topicType == "string":
-                return True
-            else:
-                return False
