@@ -33,7 +33,7 @@ build:
 		cd $(PYXPATH) && make && cp open62541W.so .. && cd $(CURDIR) ; \
 	fi
 
-pub: build
+pub:
 	@echo "Starting the opcua secure server and start publishing the data.."
 	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							 -topics $(TOPICS) \
@@ -41,7 +41,7 @@ pub: build
 							 -privateFile $(SERVER_CERTS)/opcua_server_key.der \
 							 -trustFile $(CA_CERTS)/ca_certificate.der
 
-sub: build
+sub:
 	@echo "Establish connection to opcua secure server and start subscribing the data.."
 	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							 -topics $(TOPICS) \
@@ -49,12 +49,12 @@ sub: build
 							 -privateFile $(CLIENT_CERTS)/opcua_client_key.der \
 							 -trustFile $(CA_CERTS)/ca_certificate.der
 
-pub_insecure: build
+pub_insecure:
 	@echo "Starting the opcua insecure server and start publishing the data.."
 	python3.6 DataBusTest.py -direction PUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							 -topics $(TOPICS) -certFile "" -privateFile "" -trustFile ""
 
-sub_insecure: build
+sub_insecure:
 	@echo "Establish connection to opcua insecure server and start subscribing the data.."
 	python3.6 DataBusTest.py -direction SUB -endpoint opcua://$(HOST):$(PORT) -ns StreamManager \
 							 -topics $(TOPICS) -certFile "" -privateFile "" -trustFile ""

@@ -49,6 +49,7 @@ The python example program demonstrates publish and subscription over OPCUA bus 
   ```sh
   make clean
   make build_safestring_lib
+  make build
   ```
 
 ### 2. Testing with security enabled
