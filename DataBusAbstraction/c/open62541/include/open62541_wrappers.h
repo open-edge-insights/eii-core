@@ -28,22 +28,28 @@ strncpy_s (char *dest, unsigned int dmax, const char *src, unsigned int slen);
 #define ENDPOINT_SIZE 100
 #define NAMESPACE_SIZE 100
 #define TOPIC_SIZE 100
-// Setting this value to 60KB since influxdb supports a max size of 64KB
-#define PUBLISH_DATA_SIZE 60*1024
+// Setting this value to 61KB since influxdb supports a max size of 64KB
+#define PUBLISH_DATA_SIZE 61*1024
 #define DBA_STRCPY(dest, src) \
     { \
         unsigned int srcLength = (unsigned int)strlen(src) + 1; \
         unsigned int destSize = (unsigned int)sizeof(dest); \
+        if (srcLength >= PUBLISH_DATA_SIZE) { \
+            destSize =  PUBLISH_DATA_SIZE; \
+        } \
         if (srcLength >= destSize) { \
 	        strcpy_s(dest, destSize - 1, src); \
-	    } else { \
-	        strcpy_s(dest, srcLength, src); \
-	    } \
+        } else { \
+            strcpy_s(dest, srcLength, src); \
+        } \
     }
 
 #define DBA_STRNCPY(dest, src, srclen) \
     { \
         unsigned int destSize = (unsigned int)sizeof(dest); \
+        if (srclen >= PUBLISH_DATA_SIZE) { \
+            destSize =  PUBLISH_DATA_SIZE; \
+        } \
         if (srclen >= destSize) { \
             strncpy_s(dest, destSize, src, destSize - 1); \
         } else { \
