@@ -358,7 +358,7 @@ serverContextCreateSecured(char *hostname,
     }
 
     /* Creation of mutex for server instance */
-    gServerContext.serverLock = malloc(sizeof(pthread_mutex_t));
+    gServerContext.serverLock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
 
     if (!gServerContext.serverLock || pthread_mutex_init(gServerContext.serverLock, NULL) != 0) {
         static char str[] = "server lock mutex init has failed!";
@@ -412,7 +412,7 @@ serverContextCreate(char *hostname,
     }
 
     /* Creation of mutex for server instance */
-    gServerContext.serverLock = malloc(sizeof(pthread_mutex_t));
+    gServerContext.serverLock = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
 
     if (!gServerContext.serverLock || pthread_mutex_init(gServerContext.serverLock, NULL) != 0) {
         static char str[] = "server lock mutex init has failed!";
