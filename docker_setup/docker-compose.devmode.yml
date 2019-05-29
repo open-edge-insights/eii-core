@@ -13,8 +13,8 @@ services:
 
   ia_video_ingestion:
     volumes:
-      - "$PWD/../algos/:/IEI/algos/"
+      - "${IEI_INSTALL_PATH}/algos/:/IEI/algos/"
 
   ia_video_analytics:
     volumes:
-      - "$PWD/../algos/:/IEI/algos/"
+      - "${IEI_INSTALL_PATH}/algos/:/IEI/algos/"

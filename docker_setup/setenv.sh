@@ -18,3 +18,4 @@ ieiDataDir=$ieiRootDir/data
 mkdir -p $ieiLogDir/consolidatedLogs
 
 configDir="config"
+algosDir="../algos"

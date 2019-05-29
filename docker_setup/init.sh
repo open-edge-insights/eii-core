@@ -17,6 +17,9 @@ mkdir -p $ieiLogDir/consolidatedLogs
 # Copy config files
 cp -rf $configDir $ieiRootDir
 
+# Copy algos files
+cp -rf $algosDir $ieiRootDir
+
 # Copy test video files
 if [ -d "./test_videos" ]; then
     echo "test_videos exist..."
