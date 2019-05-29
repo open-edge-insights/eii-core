@@ -24,21 +24,21 @@ Here application is expected to run using OpenVino framework though it is not a 
 
 1. Follow Build & Installation process from [IEI's README](../../docker_setup/README.md)
 
-2) Install OpenVino:
-     Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
+2. Install OpenVino:
+    Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
 
-  > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
-  > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
-  > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones
+    > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
+    > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
+    > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones
 
-   Run the following script:
-   ```
-   cd DataAnalytics/VideoAnalytics/
-   sudo ./install_openvino.sh
-   ```
-     **This step can be skipped if other third party software is intended to be used for developing the custom algorithm.**
+    Run the following script:
+    ```
+    cd DataAnalytics/VideoAnalytics/
+    sudo ./install_openvino.sh
+    ```
+    **This step can be skipped if other third party software is intended to be used for developing the custom algorithm.**
 
-3) Install python dependencies and set environment variable:
+3. Install python dependencies and set environment variable:
     ```
     sudo ./install.sh <systemp_ip>
     source ./setenv.sh <systemp_ip>
@@ -63,7 +63,8 @@ Here application is expected to run using OpenVino framework though it is not a 
     self.img_store = GrpcImageStoreInternalClient(dev_mode=True)
     ```
     User can pass **True** or **False** for the keyword argument ** dev_mode** while creating the client object.
-4) Writting custom Bare-metal APP :
+
+4. Writting custom Bare-metal APP :
 
     This step is a complete user defined step wherein USer writes its Bare metal application using above said libraries of streamSubLib() and ImageStore(). A sample Application is developed to showcase the usage of above said library and parsing of the IEI message format. For e.g. one can execute the following comand to make the sample APP run in Development Mode or non-Development Mode by passing relevant **dev_mode** value.
 
@@ -74,12 +75,21 @@ Here application is expected to run using OpenVino framework though it is not a 
     # For running the app in secured Mode
     python3.6 sample_analytics.py --dev-mode False
     ```
+    
+    > **NOTE**: Pre-requisite when dev mode is set to true, run the following command :
+    ```
+    cp -rf /opt/intel/iei/grpc_int_ssl_secrets /etc/ssl/
+    cp -rf ../../cert-tool/Certificates/ca /etc/ssl/
+    cp -rf ../../cert-tool/Certificates/streamsublib /etc/ssl/
+    ```
+    
+    
 ## Converting Bare-Metal APP to IEI framework based container :
 
-These steps help user to convert Bare Metal APP to a full fledged security based IEI container.  These steps can be executed once the user has tested its algorithm thoroughly.
+    These steps help user to convert Bare Metal APP to a full fledged security based IEI container.  These steps can be executed once the user has tested its algorithm thoroughly.
 
-5) Create a **Dockerfile** for the APP with all relevant packages and file additions based on the custom algo code. The entrypoint can be same bare-metal command which is used in Step-4.
+1. Create a **Dockerfile** for the APP with all relevant packages and file additions based on the custom algo code. The entrypoint can be same bare-metal command which is used in Step-4.
 
-6. Add a service entry in the [docker-compose.yml](../../docker_setup/docker-compose.yml) similar to ia_video_analytics container. The [docker_setup/README](../../docker_setup/README.md) explains it in detail how to add a new custom service. Note user must exclude any entry unrelated to custom algo he/she has written.
+2. Add a service entry in the [docker-compose.yml](../../docker_setup/docker-compose.yml) similar to ia_video_analytics container. The [docker_setup/README](../../docker_setup/README.md) explains it in detail how to add a new custom service. Note user must exclude any entry unrelated to custom algo he/she has written.
 
-7. Restart the IEI service or **"sudo make build run"** to make YML file's chnage to take effect.
+3. Restart the IEI service or **"sudo make build run"** to make YML file's chnage to take effect.
