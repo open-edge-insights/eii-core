@@ -45,6 +45,12 @@ contextConfig = {
                     "trustFile": "/etc/ssl/ca/ca_certificate.der"
                     }
 
+topicConfig = {
+                    "ns": "StreamManager",
+                    "name": "classifier_results",
+                    "dType": "string"
+                    }
+
 
 class TestDBA(unittest.TestCase):
 
@@ -59,22 +65,22 @@ class TestDBA(unittest.TestCase):
         ieidbussub = databus(logger)
         contextConfigsub = {
                     "endpoint": "opcua://localhost:65003",
-                    "name": "StreamManager",
                     "direction": "SUB",
-                    "topic": "classifier_results",
                     "certFile": "/etc/ssl/opcua/opcua_client_certificate.der",
                     "privateFile": "/etc/ssl/opcua/opcua_client_key.der",
                     "trustFile": "/etc/ssl/ca/ca_certificate.der"
                     }
 
         ieidbussub.ContextCreate(contextConfigsub)
-        topicConfig = {"name": contextConfigsub["topic"], "type": "string"}
-        ieidbussub.Subscribe(topicConfig, "START", self.cbFunc)
+        topicConfigs = []
+        topicConfigs.append(topicConfig)
+        ieidbussub.Subscribe(topicConfigs, 1, "START", self.cbFunc)
         while pubStop:
             pass
 
     def test_a_negativeSubTest(self):
         """
+        TODO: This test case is crashing.Need fix.
         Negative test case for subscription.
         Without publishing or without starting a server,
             subscriber or client should not start.
@@ -88,9 +94,9 @@ class TestDBA(unittest.TestCase):
 
         try:
             ieidbusnsub.ContextCreate(contextConfig)
-            topicConfig = {"name": contextConfig["topic"],
-                           "type": "string"}
-            ieidbusnsub.Subscribe(topicConfig, "START", self.cbFunc)
+            topicConfigs = []
+            topicConfigs.append(topicConfig)
+            ieidbusnsub.Subscribe(topicConfigs, 1, "START", self.cbFunc)
             while pubStop:
                 pass
         except Exception as e:
@@ -117,6 +123,7 @@ class TestDBA(unittest.TestCase):
 
     def test_c_pattern(self):
         """
+        TODO: This test cases is failing.Need fix.
         Test case for message pattern and count
         Checks if all the points published are received correctly with
             out missing any of the points.
@@ -129,7 +136,6 @@ class TestDBA(unittest.TestCase):
 
         contextConfig["direction"] = "PUB"
         ieidbuspat.ContextCreate(contextConfig)
-        topicConfig = {"name": contextConfig["topic"], "type": "string"}
         ieidbuspat.Publish(topicConfig, "Hello Init")
         sub_thread = threading.Thread(
             target=self.subscribe)
@@ -173,7 +179,6 @@ class TestDBA(unittest.TestCase):
 
         contextConfig["direction"] = "PUB"
         ieidbussub.ContextCreate(contextConfig)
-        topicConfig = {"name": contextConfig["topic"], "type": "string"}
         ieidbussub.Publish(topicConfig, "Hello Init")
         sub_thread = threading.Thread(
             target=self.subscribe)
@@ -200,7 +205,6 @@ class TestDBA(unittest.TestCase):
 
         contextConfig["direction"] = "PUB"
         ieidbuspub.ContextCreate(contextConfig)
-        topicConfig = {"name": contextConfig["topic"], "type": "string"}
         for i in range(0, 3):
             result = "Hello {}".format(i)
             ieidbuspub.Publish(topicConfig, result)

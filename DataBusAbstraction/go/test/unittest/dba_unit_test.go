@@ -37,11 +37,15 @@ var count = -1
 var contextConfig = map[string]string{
 	"endpoint":    "opcua://localhost:65003",
 	"direction":   "PUB",
-	"name":        "StreamManager",
 	"certFile":    "/etc/ssl/opcua/opcua_server_certificate.der",
 	"privateFile": "/etc/ssl/opcua/opcua_server_key.der",
 	"trustFile":   "/etc/ssl/ca/ca_certificate.der",
-	"topic":       "classifier_results",
+}
+
+var topicConfig = map[string]string{
+        "ns": "StreamManager",
+	"name": "classifier_results",
+        "dType": "string",
 }
 
 func cbFunc(topic string, msg interface{}) {
@@ -73,12 +77,8 @@ func sub() {
 		panic(err)
 	}
 
-	topicConfig := map[string]string{
-		"name": contextConfigsub["topic"],
-		"type": "string",
-	}
-
-	err = ieiDatabsub.Subscribe(topicConfig, "START", cbFunc)
+	topicConfigArray := []map[string]string{topicConfig};
+	err = ieiDatabsub.Subscribe(topicConfigArray, 1, "START", cbFunc)
 	if err != nil {
 		panic(err)
 	}
@@ -89,6 +89,7 @@ func sub() {
 
 }
 
+// TODO:This test case is crashing and need fix
 // Negative test case for subscription.
 // Without publishing or without starting a server, subscriber or client should not start.
 // Expected Result: Error on Subscribing for a topic.
@@ -109,12 +110,8 @@ func TestNegativeSub(t *testing.T) {
 		panic(err)
 	}
 
-	topicConfig := map[string]string{
-		"name": contextConfig["topic"],
-		"type": "string",
-	}
-
-	err = ieiDatabnsub.Subscribe(topicConfig, "START", cbFunc)
+	topicConfigArray := []map[string]string{topicConfig};
+	err = ieiDatabnsub.Subscribe(topicConfigArray, 1, "START", cbFunc)
 	if err == nil {
 		panic(err)
 	}
@@ -137,6 +134,7 @@ func TestNegativeContextDestroy(t *testing.T) {
 	fmt.Println("################## DataBus Negative Context Destroy Test completed ###################")
 }
 
+// ToDO :This test case is failing and need fix
 // Test case for message pattern and count
 // Checks if all the points published are received correctly with out missing any of the points.
 func TestPattern(t *testing.T) {
@@ -157,17 +155,12 @@ func TestPattern(t *testing.T) {
 		panic(err)
 	}
 
-	topicConfigPattern := map[string]string{
-		"name": contextConfig["topic"],
-		"type": "string",
-	}
-
-	ieiDatabsub.Publish(topicConfigPattern, "hello init")
+	ieiDatabsub.Publish(topicConfig, "hello init")
 	go sub()
 	time.Sleep(10 * time.Second)
 	for i := 0; i < 4; i++ {
 		resultPub := fmt.Sprintf("%s %d", "Hello ", i)
-		err = ieiDatabsub.Publish(topicConfigPattern, resultPub)
+		err = ieiDatabsub.Publish(topicConfig, resultPub)
 		if err != nil {
 			panic(err)
 		}
@@ -215,10 +208,6 @@ func TestSub(t *testing.T) {
 	err = ieiDatabpub.ContextCreate(contextConfig)
 	if err != nil {
 		panic(err)
-	}
-	topicConfig := map[string]string{
-		"name": contextConfig["topic"],
-		"type": "string",
 	}
 
 	ieiDatabpub.Publish(topicConfig, "Hello Init")
