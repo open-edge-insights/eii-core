@@ -53,7 +53,7 @@ def Publish(topicConf, data):
   cdef bytes data_bytes = data.encode();
   cdef char *cdata = data_bytes;
 
-  topicConfig.namespace = cnamespace
+  topicConfig.ns = cnamespace
   topicConfig.name =  ctopic
   topicConfig.dType = cdtype
   return copen62541W.Publish(topicConfig, cdata)
