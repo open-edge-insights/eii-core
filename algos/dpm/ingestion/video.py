@@ -35,7 +35,7 @@ try:
 except ImportError:
     dahua_supported = False
 
-MAX_BUFFERS = 100
+MAX_BUFFERS = 10
 
 """Video ingestor
 """

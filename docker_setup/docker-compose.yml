@@ -420,6 +420,7 @@ services:
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
+      GST_DEBUG: ${GST_DEBUG}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
