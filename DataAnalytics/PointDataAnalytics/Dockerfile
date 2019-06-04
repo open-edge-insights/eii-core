@@ -19,7 +19,7 @@ RUN pip2 install protobuf
 RUN mkdir -p /etc/ssl/ca
 
 # Adding kapacitor related files
-COPY kapacitor ${KAPACITOR_REPO}
+COPY external/kapacitor ${KAPACITOR_REPO}
 RUN cd ${KAPACITOR_REPO} && \
     python2.7 build.py --clean -o ${GO_ROOT_BIN} && \
     mkdir -p ${DIR}/kapacitor && \
