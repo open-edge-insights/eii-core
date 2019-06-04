@@ -33,20 +33,20 @@ ContextCreate(struct ContextConfig contextConfig);
  * @return string "0" for success and other string for failure of the function */
 char*
 Publish(struct TopicConfig topicConfig,
-        char *data);
+        const char *data);
 
 /**Subscribe function makes the subscription to the list of opcua variables (topics) in topicConfig array
- * @param  topicConfigs(array)       array of `struct TopicConfig` structure instances
- * @param  topicConfigCount(int)     length of topicConfigs array
- * @param  trig(string)              opcua trigger ex: START | STOP
- * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
- * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback
- *                                   For c and go callbacks, just pass NULL and nil respectively
+ * @param  topicConfigs(array)                array of `struct TopicConfig` structure instances
+ * @param  topicConfigCount(unsigned int)     length of topicConfigs array
+ * @param  trig(string)                       opcua trigger ex: START | STOP
+ * @param  cb(c_callback)                     callback that sends out the subscribed data back to the caller
+ * @param  pyxFunc                            needed to callback pyx callback function to call the original python callback
+ *                                            For c and go callbacks, just pass NULL and nil respectively
  * @return string "0" for success and other string for failure of the function */
 char*
 Subscribe(struct TopicConfig topicConfigs[],
-          int topicConfigCount,
-          char *trig,
+          unsigned int topicConfigCount,
+          const char *trig,
           c_callback cb,
           void* pyxFunc);
 

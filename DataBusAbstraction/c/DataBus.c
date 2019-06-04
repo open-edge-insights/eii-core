@@ -16,7 +16,7 @@ char*
 ContextCreate(struct ContextConfig contextConfig) {
     char *hostname;
     char *errorMsg = "0";
-    int port;
+    unsigned int port;
     bool devmode = false;
     DBA_STRCPY(gDirection, contextConfig.direction);
     char *hostNamePort[3];
@@ -31,7 +31,8 @@ ContextCreate(struct ContextConfig contextConfig) {
         }
         if(hostNamePort[1] != NULL && hostNamePort[2] != NULL) {
             hostname = hostNamePort[1];
-            port = atol(hostNamePort[2]);
+            port = atoi(hostNamePort[2]);
+            port = abs(port);
             if((!strcmp(contextConfig.certFile, "")) && (!strcmp(contextConfig.privateFile, "")) \
             && (!strcmp(contextConfig.trustFile[0], ""))){
                 devmode = true;
@@ -61,12 +62,12 @@ ContextCreate(struct ContextConfig contextConfig) {
 }
 
 char*
-Publish(struct TopicConfig topicConfig, char *data) {
+Publish(struct TopicConfig topicConfig, const char *data) {
     return serverPublish(topicConfig, data);
 }
 
 char*
-Subscribe(struct TopicConfig topicConfigs[], int topicConfigCount, char *trig, c_callback cb, void* pyxFunc) {
+Subscribe(struct TopicConfig topicConfigs[], unsigned int topicConfigCount, const char *trig, c_callback cb, void* pyxFunc) {
     return clientSubscribe(topicConfigs, topicConfigCount, cb, pyxFunc);
 }
 

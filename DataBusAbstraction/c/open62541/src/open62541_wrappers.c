@@ -273,11 +273,11 @@ startServer(void *ptr) {
 }
 
 char*
-serverContextCreateSecured(char *hostname,
-                           int port,
-                           char *certificateFile,
-                           char *privateKeyFile,
-                           char **trustedCerts,
+serverContextCreateSecured(const char *hostname,
+                           unsigned int port,
+                           const char *certificateFile,
+                           const char *privateKeyFile,
+                           const char **trustedCerts,
                            size_t trustedListSize) {
 
     /* Load certificate and private key */
@@ -368,8 +368,8 @@ serverContextCreateSecured(char *hostname,
 }
 
 char*
-serverContextCreate(char *hostname,
-                    int port) {
+serverContextCreate(const char *hostname,
+                    unsigned int port) {
 
     /* Initiate server config */
     gServerContext.serverConfig = UA_ServerConfig_new_minimal(port, NULL);;
@@ -417,7 +417,7 @@ serverContextCreate(char *hostname,
 
 char*
 serverPublish(struct TopicConfig topicConfig,
-              char* data) {
+              const char* data) {
 
     /* check if server is started or not */
     if (gServerContext.server == NULL) {
@@ -664,11 +664,11 @@ runClient(void *tArgs) {
 }
 
 char*
-clientContextCreateSecured(char *hostname,
-                           int port,
-                           char *certificateFile,
-                           char *privateKeyFile,
-                           char **trustedCerts,
+clientContextCreateSecured(const char *hostname,
+                           unsigned int port,
+                           const char *certificateFile,
+                           const char *privateKeyFile,
+                           const char **trustedCerts,
                            size_t trustedListSize) {
 
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
@@ -747,9 +747,9 @@ clientContextCreateSecured(char *hostname,
     return "0";
 }
 
-char*
-clientContextCreate(char *hostname,
-                    int port) {
+const char*
+clientContextCreate(const char *hostname,
+                    unsigned int port) {
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
 
     char portStr[10];
@@ -782,9 +782,9 @@ clientContextCreate(char *hostname,
     return "0";
 }
 
-char*
+const char*
 clientSubscribe(struct TopicConfig topicConfigs[],
-                int topicConfigCount,
+                unsigned int topicConfigCount,
                 c_callback cb,
                 void* pyxFunc) {
 

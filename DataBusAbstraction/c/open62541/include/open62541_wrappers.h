@@ -77,28 +77,28 @@ struct TopicConfig {
 
 //*************open62541 server wrappers**********************/
 /**serverContextCreateSecured function builds the server context and starts the opcua server in secure mode
- * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(int)                  opcua port
- * @param  certificateFile(string)    server certificate file in .der format
- * @param  privateKeyFile(string)     server private key file in .der format
- * @param  trustedCerts(string array) list of trusted certs
- * @param  trustedListSize(int)       count of trusted certs
+ * @param  hostname(string)                   hostname of the system where opcua server should run
+ * @param  port(unsigned int)                 opcua port
+ * @param  certificateFile(string)            server certificate file in .der format
+ * @param  privateKeyFile(string)             server private key file in .der format
+ * @param  trustedCerts(string array)         list of trusted certs
+ * @param  trustedListSize(int)               count of trusted certs
  * @return string "0" for success and other string for failure of the function */
 char*
-serverContextCreateSecured(char *hostname,
-                    int port,
-                    char *certificateFile,
-                    char *privateKeyFile,
-                    char **trustedCerts,
+serverContextCreateSecured(const char *hostname,
+                    unsigned int port,
+                    const char *certificateFile,
+                    const char *privateKeyFile,
+                    const char **trustedCerts,
                     size_t trustedListSize);
 
 /**serverContextCreate function builds the server context and starts the opcua server in insecure mode
- * @param  hostname(string)           hostname of the system where opcua server should run
- * @param  port(int)                  opcua port
+ * @param  hostname(string)                   hostname of the system where opcua server should run
+ * @param  port(unsigned int)                 opcua port
  * @return string "0" for success and other string for failure of the function */
 char*
-serverContextCreate(char *hostname,
-                    int port);
+serverContextCreate(const char *hostname,
+                    unsigned int port);
 
 /**serverPublish creates the namespace if it doesn't exist, adds the opcua variable node (topic) 
  * in that namespace and writes **data** to the node
@@ -107,14 +107,14 @@ serverContextCreate(char *hostname,
  * @return string "0" for success and other string for failure of the function */
 char*
 serverPublish(struct TopicConfig topicConfig,
-              char *data);
+              const char *data);
 
 /** serverContextDestroy function destroys the opcua server context */
 void serverContextDestroy();
 
 //*************open62541 client wrappers**********************
 
-typedef void (*c_callback)(char *topic, char *data, void *pyxFunc);
+typedef void (*c_callback)(const char *topic, const char *data, void *pyxFunc);
 
 /**clientContextCreateSecured function establishes secure connection with the opcua server
  * @param  hostname(string)           hostname of the system where opcua server is running
@@ -125,31 +125,31 @@ typedef void (*c_callback)(char *topic, char *data, void *pyxFunc);
  * @param  trustedListSize(int)       count of trusted certs
  * @return string "0" for success and other string for failure of the function */
 char*
-clientContextCreateSecured(char *hostname,
-                           int port,
-                           char *certificateFile,
-                           char *privateKeyFile,
-                           char **trustedCerts,
+clientContextCreateSecured(const char *hostname,
+                           unsigned int port,
+                           const char *certificateFile,
+                           const char *privateKeyFile,
+                           const char **trustedCerts,
                            size_t trustedListSize);
 
 /**clientContextCreate function establishes unsecure connection with the opcua server
  * @param  hostname(string)           hostname of the system where opcua server is running
  * @param  port(int)                  opcua port
  * @return string "0" for success and other string for failure of the function */
-char*
-clientContextCreate(char *hostname,
-                    int port);
+const char*
+clientContextCreate(const char *hostname,
+                    unsigned int port);
 
 /**clientSubscribe function makes the subscription to the list of opcua variables (topics) in topicConfig array
- * @param  topicConfigs(array)       array of `struct TopicConfig` instances
- * @param  topicConfigCount(int)     length of topicConfigs array
- * @param  cb(c_callback)            callback that sends out the subscribed data back to the caller
- * @param  pyxFunc                   needed to callback pyx callback function to call the original python callback.
- *                                   For c and go callbacks, just puss NULL and nil respectively.
+ * @param  topicConfigs(array)                array of `struct TopicConfig` instances
+ * @param  topicConfigCount(unsigned int)     length of topicConfigs array
+ * @param  cb(c_callback)                     callback that sends out the subscribed data back to the caller
+ * @param  pyxFunc                            needed to callback pyx callback function to call the original python callback.
+ *                                            For c and go callbacks, just puss NULL and nil respectively.
  * @return string "0" for success and other string for failure of the function */
-char*
+const char*
 clientSubscribe(struct TopicConfig topicConfigs[],
-                int topicConfigCount,
+                unsigned int topicConfigCount,
                 c_callback cb,
                 void* pyxFunc);
 

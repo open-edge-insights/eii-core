@@ -12,12 +12,12 @@ cdef extern from "DataBus.h":
         char *name;
         char *dType;
 
-    ctypedef void (*c_callback)(char *topic, char *data, void *pyFunc)
+    ctypedef void (*c_callback)(const char *topic, const char *data, void *pyFunc)
 
     char* ContextCreate(ContextConfig cxtConfig);
 
-    char* Publish(TopicConfig topicCfg, char *data);
+    char* Publish(TopicConfig topicCfg, const char *data);
 
-    char* Subscribe(TopicConfig[] topicCfg, int, char *, c_callback cb, void* pyxFunc);
+    char* Subscribe(TopicConfig[] topicConfigs, unsigned int topicConfigCount, const char *trig, c_callback cb, void* pyxFunc);
 
     void ContextDestroy();
