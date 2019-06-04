@@ -17,7 +17,6 @@ __pycache__/
 *.dylib
 *.test
 
-docker_setup/test_videos
 DataAnalytics/VideoAnalytics/l_openvino*
 cert-tool/Certificates
 cert-tool/client/
