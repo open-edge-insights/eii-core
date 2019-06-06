@@ -1,6 +1,6 @@
 {
     "machine_id": "multi-cam-example",
-    "trigger_threads": 1,
+    "trigger_threads": 10,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
@@ -13,7 +13,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         },
                         "cam_serial2": {
                             "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
@@ -22,7 +22,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         },
                         "cam_serial3": {
                             "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
@@ -31,7 +31,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         },
                         "cam_serial4": {
                             "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
@@ -40,7 +40,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         },
                         "cam_serial5": {
                             "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
@@ -49,7 +49,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         },
                         "cam_serial6": {
                             "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
@@ -58,7 +58,7 @@
                                 "level": 100
                             },
                             "img_store_type": "inmemory_persistent",
-                            "poll_interval": 0.01
+                            "poll_interval": 0.2
                         }
                     }
                 }
@@ -74,7 +74,7 @@
         }
     },
     "classification": {
-        "max_workers": 6,
+        "max_workers": 10,
         "classifiers": {
             "pcbdemo": {
                 "trigger": [
