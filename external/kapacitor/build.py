@@ -519,8 +519,8 @@ def build(version=None,
     """
     logging.info("Starting build for {}/{}...".format(platform, arch))
     logging.info("Using Go version: {}".format(get_go_version()))
-    logging.info("Using git branch: {}".format(get_current_branch()))
-    logging.info("Using git commit: {}".format(get_current_commit()))
+    # logging.info("Using git branch: {}".format(get_current_branch()))
+    # logging.info("Using git commit: {}".format(get_current_commit()))
     if static:
         logging.info("Using statically-compiled output.")
     if race:
@@ -578,24 +578,17 @@ def build(version=None,
             build_command += "-tags {} ".format(','.join(tags))
         if "1.4" in get_go_version():
             if static:
-                build_command += "-ldflags=\"-s -X main.version {} -X main.branch {} -X main.commit {} -X main.platform OSS\" ".format(version,
-                                                                                                                  get_current_branch(),
-                                                                                                                  get_current_commit())
+                build_command += "-ldflags=\"-s -X main.version {} -X main.platform OSS\" ".format(version)
             else:
-                build_command += "-ldflags=\"-X main.version {} -X main.branch {} -X main.commit {} -X main.platform OSS\" ".format(version,
-                                                                                                               get_current_branch(),
-                                                                                                               get_current_commit())
+                build_command += "-ldflags=\"-X main.version {} -X main.platform OSS\" ".format(version)
 
         else:
             # Starting with Go 1.5, the linker flag arguments changed to 'name=value' from 'name value'
             if static:
-                build_command += "-ldflags=\"-s -X main.version={} -X main.branch={} -X main.commit={} -X main.platform=OSS\" ".format(version,
-                                                                                                                  get_current_branch(),
-                                                                                                                  get_current_commit())
+                build_command += "-ldflags=\"-s -X main.version={} -X main.platform=OSS\" ".format(version)
             else:
-                build_command += "-ldflags=\"-X main.version={} -X main.branch={} -X main.commit={} -X main.platform=OSS\" ".format(version,
-                                                                                                               get_current_branch(),
-                                                                                                               get_current_commit())
+                build_command += "-ldflags=\"-X main.version={} -X main.platform=OSS\" ".format(version)
+
         if static:
             build_command += "-a -installsuffix cgo "
         build_command += path
@@ -790,9 +783,9 @@ def main(args):
         args.iteration = 0
 
     # Validate version
-    if not re.match(r'^[-\d\w\.]+', args.version):
-        logging.error("Invalid version {}".format(args.version))
-        return 1
+    # if not re.match(r'^[-\d\w\.]+', args.version):
+    #     logging.error("Invalid version {}".format(args.version))
+    #     return 1
 
     # Pre-build checks
     check_environ()
@@ -803,8 +796,8 @@ def main(args):
     else:
         args.build_tags = args.build_tags.split(',')
 
-    orig_commit = get_current_commit(short=True)
-    orig_branch = get_current_branch()
+    # orig_commit = get_current_commit(short=True)
+    # orig_branch = get_current_branch()
 
     if args.platform not in supported_builds and args.platform != 'all':
         logging.error("Invalid build platform: {}".format(target_platform))
@@ -812,15 +805,15 @@ def main(args):
 
     build_output = {}
 
-    if args.branch != orig_branch and args.commit != orig_commit:
-        logging.error("Can only specify one branch or commit to build from.")
-        return 1
-    elif args.branch != orig_branch:
-        logging.info("Moving to git branch: {}".format(args.branch))
-        run("git checkout {}".format(args.branch))
-    elif args.commit != orig_commit:
-        logging.info("Moving to git commit: {}".format(args.commit))
-        run("git checkout {}".format(args.commit))
+    # if args.branch != orig_branch and args.commit != orig_commit:
+    #     logging.error("Can only specify one branch or commit to build from.")
+    #     return 1
+    # elif args.branch != orig_branch:
+    #     logging.info("Moving to git branch: {}".format(args.branch))
+    #     run("git checkout {}".format(args.branch))
+    # elif args.commit != orig_commit:
+    #     logging.info("Moving to git commit: {}".format(args.commit))
+    #     run("git checkout {}".format(args.commit))
 
     if not args.no_get:
         if not go_get():
@@ -909,9 +902,9 @@ def main(args):
                                               generate_md5_from_file(p)))
 
 
-    if orig_branch != get_current_branch():
-        logging.info("Moving back to original git branch: {}".format(args.branch))
-        run("git checkout {}".format(orig_branch))
+    # if orig_branch != get_current_branch():
+    #     logging.info("Moving back to original git branch: {}".format(args.branch))
+    #     run("git checkout {}".format(orig_branch))
 
     return 0
 
@@ -950,17 +943,17 @@ if __name__ == '__main__':
     parser.add_argument('--branch',
                         metavar='<branch>',
                         type=str,
-                        default=get_current_branch(),
+                        default=None,
                         help='Build from a specific branch')
     parser.add_argument('--commit',
                         metavar='<commit>',
                         type=str,
-                        default=get_current_commit(short=True),
+                        default=None,
                         help='Build from a specific commit')
     parser.add_argument('--version',
                         metavar='<version>',
                         type=str,
-                        default=get_current_version(),
+                        default=None,
                         help='Version information to apply to build output (ex: 0.12.0)')
     parser.add_argument('--iteration',
                         metavar='<package iteration>',

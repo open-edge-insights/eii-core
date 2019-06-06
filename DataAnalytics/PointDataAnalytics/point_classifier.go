@@ -14,7 +14,6 @@ import (
 const min_threshold float64 = 20.00
 const max_threshold float64 = 25.00
 
-
 // Mirrors all points it receives back to Kapacitor
 type mirrorHandler struct {
 	agent *agent.Agent
@@ -68,15 +67,15 @@ func (*mirrorHandler) BeginBatch(begin *agent.BeginBatch) error {
 func (h *mirrorHandler) Point(p *agent.Point) error {
 	// Send back the point we just received
 	glog.V(1).Infof("6. Point Method Called")
-        mapOfFields := p.FieldsDouble
-        temparature := mapOfFields["temperature"]
-        if ((temparature < min_threshold) || (temparature > max_threshold)) {
-	    h.agent.Responses <- &agent.Response{
-		    Message: &agent.Response_Point{
-			    Point: p,
-		    },
-	    }
-        }
+	mapOfFields := p.FieldsDouble
+	temparature := mapOfFields["temperature"]
+	if (temparature < min_threshold) || (temparature > max_threshold) {
+		h.agent.Responses <- &agent.Response{
+			Message: &agent.Response_Point{
+				Point: p,
+			},
+		}
+	}
 	return nil
 }
 
@@ -119,6 +118,9 @@ var socketPath = flag.String("socket", "/tmp/point_classifier", "Where to create
 
 func main() {
 	flag.Parse()
+
+	//Removing the socket file below to address the `bind address already in use` issue
+	os.Remove(*socketPath)
 
 	// Create unix socket
 	addr, err := net.ResolveUnixAddr("unix", *socketPath)
