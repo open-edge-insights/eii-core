@@ -476,9 +476,10 @@ cleanupClient() {
     if (gClientContext.client) {
         UA_Client_delete(gClientContext.client);
     }
-    freeMemory(gClientContext.subArgs);
+    
     freeMemory(gClientContext.subArgs->topicCfgArr);
     freeMemory(gClientContext.subArgs->monitorContext);
+    freeMemory(gClientContext.subArgs);
     freeMemory(gClientContext.items);
     freeMemory(gClientContext.subCallbacks);
     freeMemory(gClientContext.deleteCallbacks);
@@ -566,15 +567,23 @@ createSubscription() {
         namespaceIndex = getNamespaceIndex(ns, topic);
         nodeId = UA_NODEID_STRING(namespaceIndex, topic);
 
-        gClientContext.items[i] = UA_MonitoredItemCreateRequest_default(nodeId);
-        gClientContext.subCallbacks[i] = subscriptionCallback;
+        if(gClientContext.items != NULL) {
+            gClientContext.items[i] = UA_MonitoredItemCreateRequest_default(nodeId);
+        }
+        if(gClientContext.subCallbacks != NULL) {
+            gClientContext.subCallbacks[i] = subscriptionCallback;
+        }
 
         gClientContext.subArgs->monitorContext[i].namespaceIndex = namespaceIndex;
         gClientContext.subArgs->monitorContext[i].topic = topic;
         gClientContext.subArgs->monitorContext[i].userCallback = gClientContext.subArgs->userCallback;
         gClientContext.subArgs->monitorContext[i].userFunc = gClientContext.subArgs->userFunc;
-        gClientContext.contexts[i] = &gClientContext.subArgs->monitorContext[i];
-        gClientContext.deleteCallbacks[i] = NULL;
+        if(gClientContext.contexts != NULL) {
+            gClientContext.contexts[i] = &gClientContext.subArgs->monitorContext[i];
+        }
+        if(gClientContext.deleteCallbacks != NULL) {
+            gClientContext.deleteCallbacks[i] = NULL;
+        }
     }
 
     UA_CreateMonitoredItemsRequest createRequest;
@@ -583,14 +592,16 @@ createSubscription() {
     createRequest.timestampsToReturn = UA_TIMESTAMPSTORETURN_BOTH;
     createRequest.itemsToCreate = gClientContext.items;
     createRequest.itemsToCreateSize = gClientContext.subArgs->topicCfgItems;
-    UA_CreateMonitoredItemsResponse createResponse =
+    if (gClientContext.deleteCallbacks != NULL && gClientContext.contexts != NULL && gClientContext.subCallbacks != NULL) {
+       UA_CreateMonitoredItemsResponse createResponse =
        UA_Client_MonitoredItems_createDataChanges(gClientContext.client, createRequest, gClientContext.contexts,
                                                    gClientContext.subCallbacks, gClientContext.deleteCallbacks);
 
-    for(int i = 0; i < gClientContext.subArgs->topicCfgItems; i++) {
-        if (createResponse.results[0].statusCode == UA_STATUSCODE_GOOD) {
-            UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"MonitorItemId: %d created successfully for topic: %s\n",
-                        createResponse.results[0].monitoredItemId, gClientContext.subArgs->topicCfgArr[i].name);
+        for(int i = 0; i < gClientContext.subArgs->topicCfgItems; i++) {
+            if (createResponse.results[0].statusCode == UA_STATUSCODE_GOOD) {
+                UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"MonitorItemId: %d created successfully for topic: %s\n",
+                            createResponse.results[0].monitoredItemId, gClientContext.subArgs->topicCfgArr[i].name);
+            }
         }
     }
 
@@ -694,7 +705,8 @@ clientContextCreateSecured(const char *hostname,
     gServerContext.remoteCertificate = UA_ByteString_new();
 
     char portStr[10];
-    DBA_STRCPY(gClientContext.endpoint, "opc.tcp://");
+    const char* opcuaProto = "opc.tcp://";
+    strcpy_s(gClientContext.endpoint, strlen(opcuaProto), opcuaProto);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, ":");
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
@@ -753,7 +765,8 @@ clientContextCreate(const char *hostname,
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
 
     char portStr[10];
-    DBA_STRCPY(gClientContext.endpoint, "opc.tcp://");
+    const char* opcuaProto = "opc.tcp://";
+    strcpy_s(gClientContext.endpoint, strlen(opcuaProto), opcuaProto);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, ":");
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
@@ -796,14 +809,17 @@ clientSubscribe(struct TopicConfig topicConfigs[],
     }
 
     gClientContext.subArgs = (subscribe_args_t*) malloc(sizeof(subscribe_args_t));
-    gClientContext.subArgs->userFunc = pyxFunc;
-    gClientContext.subArgs->userCallback = cb;
-    gClientContext.subArgs->topicCfgItems = topicConfigCount;
-    gClientContext.subArgs->topicCfgArr = (struct TopicConfig*) malloc(topicConfigCount * sizeof(struct TopicConfig));
-    gClientContext.subArgs->monitorContext = (monitor_context_t*) malloc(gClientContext.subArgs->topicCfgItems * sizeof(monitor_context_t));
-
-    for(int i = 0; i < topicConfigCount; i++) {
-        gClientContext.subArgs->topicCfgArr[i] = topicConfigs[i];
+    if(gClientContext.subArgs != NULL) {
+        gClientContext.subArgs->userFunc = pyxFunc;
+        gClientContext.subArgs->userCallback = cb;
+        gClientContext.subArgs->topicCfgItems = topicConfigCount;
+        gClientContext.subArgs->topicCfgArr = (struct TopicConfig*) malloc(topicConfigCount * sizeof(struct TopicConfig));
+        gClientContext.subArgs->monitorContext = (monitor_context_t*) malloc(gClientContext.subArgs->topicCfgItems * sizeof(monitor_context_t));
+        for(int i = 0; i < topicConfigCount; i++) {
+            if (gClientContext.subArgs->topicCfgArr != NULL) {
+                gClientContext.subArgs->topicCfgArr[i] = topicConfigs[i];
+            }
+        }
     }
 
     if (createSubscription() == 1) {
