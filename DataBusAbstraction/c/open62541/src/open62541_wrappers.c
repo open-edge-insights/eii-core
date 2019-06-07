@@ -277,7 +277,7 @@ serverContextCreateSecured(const char *hostname,
                            unsigned int port,
                            const char *certificateFile,
                            const char *privateKeyFile,
-                           const char **trustedCerts,
+                           char **trustedCerts,
                            size_t trustedListSize) {
 
     /* Load certificate and private key */
@@ -332,7 +332,7 @@ serverContextCreateSecured(const char *hostname,
         }
     }
 
-    UA_ServerConfig_set_customHostname(gServerContext.serverConfig, UA_STRING(hostname));
+    UA_ServerConfig_set_customHostname(gServerContext.serverConfig, UA_STRING((char *)hostname));
 
     UA_DurationRange range = {5.0, 5.0};
     gServerContext.serverConfig->publishingIntervalLimits = range;
@@ -379,7 +379,7 @@ serverContextCreate(const char *hostname,
             str);
         return str;
     }
-    UA_ServerConfig_set_customHostname(gServerContext.serverConfig, UA_STRING(hostname));
+    UA_ServerConfig_set_customHostname(gServerContext.serverConfig, UA_STRING((char *)hostname));
 
     UA_DurationRange range = {5.0, 10.0};
     gServerContext.serverConfig->publishingIntervalLimits = range;
@@ -439,7 +439,7 @@ serverPublish(struct TopicConfig topicConfig,
     /* writing the data to the opcua variable */
     UA_Variant *val = UA_Variant_new();
     DBA_STRCPY(gClientContext.dataToPublish, data);
-    UA_String str = UA_STRING(data);
+    UA_String str = UA_STRING((char *)data);
     UA_Variant_setScalarCopy(val, &str, &UA_TYPES[UA_TYPES_STRING]);
     UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "nsIndex: %lu, topic:%s\n", nsIndex, topicConfig.name);
 
@@ -677,7 +677,7 @@ clientContextCreateSecured(const char *hostname,
                            unsigned int port,
                            const char *certificateFile,
                            const char *privateKeyFile,
-                           const char **trustedCerts,
+                           char **trustedCerts,
                            size_t trustedListSize) {
 
     UA_StatusCode retval = UA_STATUSCODE_GOOD;

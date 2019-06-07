@@ -39,7 +39,7 @@ static char* printTime() {
     return timeStr;
 }
 
-void cb(char *topic, char* data, void *pyFunc) {
+void cb(const char *topic, const char* data, void *pyFunc) {
     printf("%s %s Data received: topic=%s and data=%s\n", __DATE__, printTime(), topic, data);
 }
 

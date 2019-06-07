@@ -58,7 +58,7 @@ def Publish(topicConf, data):
   topicConfig.dType = cdtype
   return copen62541W.Publish(topicConfig, cdata)
 
-cdef void pyxCallback(char *topic, char *data, void *func) with gil:
+cdef void pyxCallback(const char *topic, const char *data, void *func) with gil:
   (<object>func)(topic, data)
 
 def Subscribe(topicConfigs, topicConfigCount, trig, pyFunc):

@@ -89,7 +89,7 @@ serverContextCreateSecured(const char *hostname,
                     unsigned int port,
                     const char *certificateFile,
                     const char *privateKeyFile,
-                    const char **trustedCerts,
+                    char **trustedCerts,
                     size_t trustedListSize);
 
 /**serverContextCreate function builds the server context and starts the opcua server in insecure mode
@@ -129,7 +129,7 @@ clientContextCreateSecured(const char *hostname,
                            unsigned int port,
                            const char *certificateFile,
                            const char *privateKeyFile,
-                           const char **trustedCerts,
+                           char **trustedCerts,
                            size_t trustedListSize);
 
 /**clientContextCreate function establishes unsecure connection with the opcua server
