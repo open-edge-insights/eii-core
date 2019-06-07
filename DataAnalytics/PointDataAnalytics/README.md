@@ -1,47 +1,67 @@
-# PointDataAnalytics:
+# Point-data (Time-series data) analytics introduction
 
-This module gets the point data from Influxdb via kapacitor's subscription. Telegraf subscribes the simulated temperature sensor data from [mqtt-temp-sensor](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/mqtt-temp-sensor) and stores it in influxdb. Kapacitor gets the data from influxdb and runs the classifier's algorithm to find the temperature which is not in given range. These results are written back to influxdb after the analysis.
+Any integral value that gets generated over the time, we can say it is a point data.
+The examples can be :
+* Temperature at different time in a day.
+* Number of oil barrels processed per minute.
 
-## Running DataAnalytics from $GOPATH/src/IEdgeInsights - present working directory
+By doing the analytics over point data, factory can have anamoly detection mechanism.
+That's where the PointDataAnalytics come into the picture.
 
-**Pre-requisites:**
-1. Configuring ETR agent:
-    * Install OpenCV 3 with Python 3 support by running command `sudo -H pip3.6 install opencv-python`
-2. Install below DataAnalytics dependencies:
-    * python3.6 package by following [this](http://ubuntuhandbook.org/index.php/2017/07/install-python-3-6-1-in-ubuntu-16-04-lts/)
-    * **sudo -H pip3.6 install -r classifier_requirements.txt** - installs all dependencies for classifer program
+IEdgeInsights uses the [TICK stack](https://www.influxdata.com/time-series-platform/)
+to do point data analytics.
 
-**Note**: For more details on the pre-requisites on ETR, please refer: `agent/README.md`
+IEdgeInsights has a temperature anomaly detection example for demonstrating the time-series data analytics flow.
 
-For running the PointDataAnalytics, the kapacitor UDF setup is required. For more details, refer below links:
-* Writing a sample UDF at [anomaly detection](https://docs.influxdata.com/kapacitor/v1.5/guides/anomaly_detection/)
-* UDF and kapacitor interaction [here](https://docs.influxdata.com/kapacitor/v1.5/guides/socket_udf/)
+The high level flow of the data, in the example can be seen as mqtt-temp-sensor-->Telegraf-->Influx-->Kapacitor-->Influx.
 
-The udf is **PointDataAnalytics/point_classifier.go** and the tick script is **PointDataAnalytics/point_classifier.tick**
+mqtt-temp-sensor simulator sends the data to the Telegraf. Telegraf just sends the same data to the
+Influx and Influx sends it to Kapacitor. Kapacitor does anamoly detection and publishes the results back to
+Influx.
 
-Follow below step to start PointDataAnalytics module:
-1. Kapacitor configuration:
-    Use the below config in **docker_setup/config/kapacitor.conf** file for enabling the UDF. Change 
-    ```
-    [udf]
-    [udf.functions]
-        [udf.functions.point_classifier]
-            socket = "/tmp/point_classifier"
-            timeout = "10s"
-    ```
-    > Note:
-    > Pre-requisite for this step: 
-    > 1. Clone the a locally maintained [kapacitor repository](https://github.intel.com/ElephantTrunkArch/kapacitor) inside the `IEdgeInsights` folder by obtaining the command from gerrit/teamforge
-    > 2. Run commands `./build.py --clean -o $GOPATH/bin` from kapacitor directory to get the bins **kapacitor** and **kapacitord** copied to $GOPATH/bin. 
+Here,
+Telegraf is TICK stack component and supporting number of input plug-ins for data ingestion.
+Influx is time series database.
+Kapacitor is an analytics engine where user can write custom analytics plug-ins (TICK scripts).
 
-    ```
+## Starting the example
 
-## To run the point classifier UDF
+1. To start the mqtt-temp-sensor, please refer [tools/mqtt-temp-sensor/README.md](../../tools/mqtt-temp-sensor/README.md) .
 
+2. In case, if SI wants to use the IEdgeInsights only for Point data Analytics,
+   then update the 'IEI_SERVICES' variable in the file [docker_setup/.env](../../docker_setup/.env) to 'services_pointdata.json'
 
-Follow below steps to start Point DataAnalytics module:
-1. Telegraf configuration:
-    Use the below config in **docker_setup/config/telegraf.conf** file for enabling the UDF. Change
+   In case, if SI wants to use the IEdgeInsight for Video and Point data Analytics,
+   then update the 'IEI_SERVICES' variable in the file [docker_setup/.env](../../docker_setup/.env) to 'services_all.json'.
+
+3. Starting the EIS.
+   To start the EIS in production mode, provisioning is required. For more information on provisioning
+   please refer the [README.md](../../README.md#Enable-security-(Production-Mode)).
+   After provisioning, please follow the below commands
+   ```
+   cd docker_setup
+   sudo make build run
+   ```
+
+   To start the EIS in developer mode, please refer the [README.md](../../README.md#Run-EIS-PCB-Demo-in-Developer-Mode).
+
+4. To verify the output please check the output of below command
+   ```
+   docker logs -f ia_data_agent
+   ```
+
+   Below is the snapshot of sample output of the above command.
+   ```
+   I0608 02:25:57.302956       9 StreamManager.go:159] Publishing topic: point_classifier_results
+   I0608 02:25:58.302913       9 StreamManager.go:159] Publishing topic: point_classifier_results
+   I0608 02:25:59.302527       9 StreamManager.go:159] Publishing topic: point_classifier_results
+   ```
+
+## Purpose of Telegraf
+Telegraf is one of the data entry point for IEdgeInsights. It supports many input plugins, which can be used for
+point data ingestion. In the above example the mqtt input plugin of Telegraf is used. And below is configuration
+of the plugin.
+
     ```
     # # Read metrics from MQTT topic(s)
     [[inputs.mqtt_consumer]]
@@ -71,5 +91,41 @@ Follow below steps to start Point DataAnalytics module:
     #   ## username and password to connect MQTT server.
         username = ""
         password = ""
+    ```
 
-2.  Git clone the [mqtt-temp-sensor](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/mqtt-temp-sensor) repository and follow the given steps to run the broker and publisher.
+The production mode Telegraf configuration file is
+[docker_setup/config/telegraf.conf](../../docker_setup/config/telegraf.conf). And in developer mode,
+the configuration file is
+[docker_setup/config/telegraf_devmode.conf](../../docker_setup/config/telegraf_devmode.conf).
+
+For more information on the supported input and output plugins please refer
+[https://docs.influxdata.com/telegraf/v1.10/plugins/](https://docs.influxdata.com/telegraf/v1.10/plugins/)
+
+## Purpose of Kapacitor
+
+  About Kapacitor and UDF
+  * User can write the custom anamoly detection algorithm in PYTHON/GOLANG. And these algorithms will be called as
+    UDF (user defined function). These algorithms has to follow certain API standards, so that the Kapacitor will be able to
+    call these UDFs at run time.
+
+  * IEdgeInsights has come up with the sample UDF written in GOLANG. Kapacitor is subscribed to the InfluxDB, and
+    gets the temperature data. After getting this data, Kapacitor calls these UDF, which detects the anamoly in the temerature
+    and sends back the results to Influx.
+
+  * The sample UDF is at [point_classifier.go](point_classifier.go) and
+    the tick script  is at [point_classifier.tick](point_classifier.tick)
+
+    For more details, on Kapacitor and UDF, please refer below links
+    i)  Writing a sample UDF at [anomaly detection](https://docs.influxdata.com/kapacitor/v1.5/guides/anomaly_detection/)
+    ii) UDF and kapacitor interaction [here](https://docs.influxdata.com/kapacitor/v1.5/guides/socket_udf/)
+
+  * In production mode the Kapacitor config file is
+    [docker_setup/config/kapacitor.conf](../../docker_setup/config/kapacitor.conf)
+    and in developer mode the config file would be
+    [docker_setup/config/kapacitor_devmode.conf](../../docker_setup/config/kapacitor_devmode.conf)
+
+## Pointdata analytics without Kapacitor
+In case, SI don't want to do point data analytics using the Kapacitor, then there is sample App
+avaiable at [DataAnalytics/sample_analytics_app/sample_analytics.py](../sample_analytics_app/sample_analytics.py).
+
+In this case, user can write the python based analytics algorithm using the StreamSubLib and DataIngestionLib API. To know more, please refer  [DataAnalytics/sample_analytics_app/README](../sample_analytics_app/README).
