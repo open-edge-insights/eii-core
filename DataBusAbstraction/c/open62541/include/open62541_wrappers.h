@@ -136,7 +136,7 @@ clientContextCreateSecured(const char *hostname,
  * @param  hostname(string)           hostname of the system where opcua server is running
  * @param  port(int)                  opcua port
  * @return string "0" for success and other string for failure of the function */
-const char*
+char*
 clientContextCreate(const char *hostname,
                     unsigned int port);
 
@@ -147,7 +147,7 @@ clientContextCreate(const char *hostname,
  * @param  pyxFunc                            needed to callback pyx callback function to call the original python callback.
  *                                            For c and go callbacks, just puss NULL and nil respectively.
  * @return string "0" for success and other string for failure of the function */
-const char*
+char*
 clientSubscribe(struct TopicConfig topicConfigs[],
                 unsigned int topicConfigCount,
                 c_callback cb,
