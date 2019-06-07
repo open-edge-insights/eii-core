@@ -661,10 +661,8 @@ runClient(void *tArgs) {
             clientState = UA_Client_getState(gClientContext.client);
             if (clientState == UA_CLIENTSTATE_SESSION) {
                 /* recreating the subscription upon opcua server connect */
-                if (gClientContext.subArgs != NULL) {
-                    if (createSubscription() == 1)
-                        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
-                }
+                if (createSubscription() == 1)
+                    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
             }
         }
 
