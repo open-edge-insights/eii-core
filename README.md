@@ -186,7 +186,7 @@ For running the visualizer follow the [tools/visualizer/README.md](tools/visuali
       E.g. sudo make provision CERT_PATH=../cert-tool/Certificates/
       ```
 
-      This will take the inputs from [docker_setup/provision_config.json](docker_setup/provision_config.json) & read the cert-tool generated Certificates and save it securely by storing it in the Hashicorp Vault.
+      This will take the inputs from [docker_setup/config/provision_config.json](docker_setup/config/provision_config.json) & read the cert-tool generated Certificates and save it securely by storing it in the Hashicorp Vault.
       It is responsibility of the Admin to remove the source directory wherein certificates exist.
 
       ---
