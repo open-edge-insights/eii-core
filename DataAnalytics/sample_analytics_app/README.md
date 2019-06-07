@@ -22,7 +22,7 @@ Here application is expected to run using OpenVino framework though it is not a 
 
 ## Creating & Running APP in Development Mode(Bare Metal)
 
-1. Follow Build & Installation process from [IEI's README](../../docker_setup/README.md)
+1. Follow Build & Installation process from [IEI's README](../../README.md)
 
 2. Install OpenVino:
     Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside IEdgeInsights/DataAnalytics/VideoAnalytics. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
@@ -90,6 +90,6 @@ Here application is expected to run using OpenVino framework though it is not a 
 
 1. Create a **Dockerfile** for the APP with all relevant packages and file additions based on the custom algo code. The entrypoint can be same bare-metal command which is used in Step-4.
 
-2. Add a service entry in the [docker-compose.yml](../../docker_setup/docker-compose.yml) similar to ia_video_analytics container. The [docker_setup/README](../../docker_setup/README.md) explains it in detail how to add a new custom service. Note user must exclude any entry unrelated to custom algo he/she has written.
+2. Add a service entry in the [docker-compose.yml](../../docker_setup/docker-compose.yml) similar to ia_video_analytics container. The [IEI's README.md](../../README.md) explains it in detail how to add a new custom service. Note user must exclude any entry unrelated to custom algo he/she has written.
 
 3. Restart the IEI service or **"sudo make build run"** to make YML file's chnage to take effect.
