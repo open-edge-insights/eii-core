@@ -704,7 +704,7 @@ clientContextCreateSecured(const char *hostname,
 
     char portStr[10];
     const char* opcuaProto = "opc.tcp://";
-    strcpy_s(gClientContext.endpoint, strlen(opcuaProto), opcuaProto);
+    strcpy_s(gClientContext.endpoint, strlen(opcuaProto) + 1, opcuaProto);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, ":");
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
@@ -764,7 +764,7 @@ clientContextCreate(const char *hostname,
 
     char portStr[10];
     const char* opcuaProto = "opc.tcp://";
-    strcpy_s(gClientContext.endpoint, strlen(opcuaProto), opcuaProto);
+    strcpy_s(gClientContext.endpoint, strlen(opcuaProto) + 1, opcuaProto);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, hostname);
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, ":");
     strcat_s(gClientContext.endpoint, ENDPOINT_SIZE, convertToString(portStr, port));
