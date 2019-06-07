@@ -757,7 +757,7 @@ clientContextCreateSecured(const char *hostname,
     return "0";
 }
 
-const char*
+char*
 clientContextCreate(const char *hostname,
                     unsigned int port) {
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
@@ -793,7 +793,7 @@ clientContextCreate(const char *hostname,
     return "0";
 }
 
-const char*
+char*
 clientSubscribe(struct TopicConfig topicConfigs[],
                 unsigned int topicConfigCount,
                 c_callback cb,
