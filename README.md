@@ -285,7 +285,7 @@ Follow below steps:
 
 * In running in Production mode, follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
 
-* Building EIS and dist_libs images and pushing the same to docker registry (`Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
+* Building EIS and dist_libs images and pushing the same to docker registry. (`Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
 
       ```sh
       sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
@@ -293,8 +293,7 @@ Follow below steps:
       Eg: sudo make build push DOCKER_REGISTRY=ip_address:5000
       ```
 
-* Pulling EIS images from configured docker registry and do a run without install.
-Note: To pull and run from a DOCKER REGISTRY, only [docker_setup](../ docker_setup/) folder needs to be copied to target system.
+* Pulling EIS images from configured docker registry and do a run without install. (`Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
 
    In case of DEV_MODE as true in .env file (Developer mode)
 
@@ -309,8 +308,8 @@ Note: To pull and run from a DOCKER REGISTRY, only [docker_setup](../ docker_set
       ```
 
 
-* Pulling EIS images from configured docker registry and install for factory deployment
-   `iei.service`. **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
+* Pulling EIS images from configured docker registry and install for factory deployment. (`Only [docker_setup](docker_setup/) folder and [Certificates](cert-tool/Certificates) folder needs to be copied to target system`)
+    **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
 
       ```sh
       sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL>
