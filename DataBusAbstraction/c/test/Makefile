@@ -11,6 +11,8 @@ CLIENT_CERTS = /etc/ssl/opcua
 CA_CERTS = /etc/ssl/ca
 WRAPPERS_PATH = $(SOURCE_FILE)/open62541_wrappers.c
 TOPICS = cam_serial1_results,cam_serial2_results
+SECURE_CFLAGS=-fstack-protector-strong -fPIE -fPIC -O2 -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security
+SECURE_LDFLAGS=-z noexecstack -z relro -z now -pie
 HOST = localhost
 PORT = 65003
 MAX_SAFESTRING_SIZE = 60
@@ -32,14 +34,14 @@ build_static_lib:
 	if [ -a $(WRAPPERS_PATH) ] ; \
 	then \
 		echo "Building the open62541_wrappers static lib file.." ; \
-		gcc -c $(INCLUDE) $(SOURCE_FILE)/open62541_wrappers.c $(SOURCE_FILE)/open62541.c ; \
+		gcc $(SECURE_CFLAGS) $(SECURE_LDFLAGS) -c $(INCLUDE) $(SOURCE_FILE)/open62541_wrappers.c $(SOURCE_FILE)/open62541.c ; \
 		ar rcs libopen62541_wrappers.a open62541_wrappers.o open62541.o ; \
 		rm -rf *.o ; \
 	fi
 
 build: build_static_lib
 	@echo "Building the DataBus_test.c file.."
-	gcc $(CFLAGS) $(INCLUDE) -I $(CPATH) DataBus_test.c \
+	gcc $(SECURE_CFLAGS) $(SECURE_LDFLAGS) $(CFLAGS) $(INCLUDE) -I $(CPATH) DataBus_test.c \
 	$(CPATH)/DataBus.c -L. -lopen62541_wrappers -lsafestring -lmbedtls -lmbedx509 -lmbedcrypto -pthread \
 	-o DataBus_test && pwd
 
