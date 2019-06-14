@@ -39,9 +39,10 @@ def cbFunc(topic, msg):
     # Here, number 123 and 125 refers to ascii values of "{" and "}"
     # respectively
     if msg[0] == 123 and msg[-1] != 125:
+        lastBraceIndex = msg.rfind(125)
         msgByteArr = bytearray(msg)
         # This is to ignore the 2 additional hex chars eg. \x01\x02
-        msg = bytes(msgByteArr[:-2])
+        msg = bytes(msgByteArr[:lastBraceIndex+1])
     msg = msg.decode("utf-8")
     topic = topic.decode("utf-8")
     gQueue.put({"topic": topic, "data": msg})
