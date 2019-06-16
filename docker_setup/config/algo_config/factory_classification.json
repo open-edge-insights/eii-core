@@ -1,6 +1,7 @@
 {
     "machine_id": "tool_2",
     "trigger_threads": 1,
+    "queue_size" : 10,
     "data_ingestion_manager": {
         "ingestors": {
             "video_file": {

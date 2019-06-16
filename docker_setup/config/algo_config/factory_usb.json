@@ -1,13 +1,14 @@
 {
     "machine_id": "usb-example",
     "trigger_threads": 1,
+    "queue_size" : 10,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
                 "streams": {
                     "capture_streams": {
                         "cam_serial1": {
-                            "video_src": "v4l2src! videoconvert ! appsink",
+                            "video_src": "v4l2src! videoconvert ! appsink drop=TRUE max-buffers=10",
                             "encoding": {
                                 "type": "jpg",
                                 "level": 100

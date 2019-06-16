@@ -55,6 +55,7 @@ class Configuration:
         # ID of the gateway
         self.machine_id = config['machine_id']
         self.trigger_threads = config.get('trigger_threads', None)
+        self.queue_size = config.get('queue_size', None)
         self.log_file_size = config.get('log_file_size', None)
 
         # Reading classifier configuration

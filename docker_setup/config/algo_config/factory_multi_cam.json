@@ -1,6 +1,7 @@
 {
     "machine_id": "multi-cam-example",
     "trigger_threads": 10,
+    "queue_size": 10,
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
