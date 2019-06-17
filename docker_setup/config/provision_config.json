@@ -20,7 +20,7 @@
     "minio": {
         "accessKey": "admin",
         "secretKey": "password",
-        "retentionTime": "1h",
+        "retentionTime": "10m",
         "retentionPollInterval": "60s",
         "ssl": "false"
     },
