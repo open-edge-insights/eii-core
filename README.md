@@ -101,7 +101,7 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 3. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
-4. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [docker_security_recommendation.md](docker_security_recommendation.md)
+4. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [docker_setup/docker_security_recommendation.md](docker_setup/docker_security_recommendation.md)
 
 # EIS Pre-Requisites
 
