@@ -35,6 +35,7 @@ try:
 except ImportError:
     dahua_supported = False
 
+MAX_CAM_FAIL_CNT = 100
 
 """Video ingestor
 """
@@ -165,16 +166,22 @@ class Ingestor:
         self.log.info('Capture thread started')
         camera = self._connect(cam_sn, camConfig)
         self.cameras.append(camera)
+        camFailCnt = 0
         while not self.stop_ev.is_set():
             try:
                 ret, frame = camera.read()
                 if not ret:
+                    camFailCnt = camFailCnt + 1
                     self.log.error(
-                                'Failed to retrieve frame from camera %s',
-                                camera)
+                            'Failed to retrieve frame from camera %s',
+                            camera)
+                    if camFailCnt >= MAX_CAM_FAIL_CNT:
+                        raise Exception("Too many fails. Retry Connection")
                 else:
                     self.on_data('video', (camera.name, frame,
                                  camera.config))
+                    # Reseting the camera recovery counter
+                    camFailCnt = 0
             except Exception as ex:
                 self.log.error('Error while reading from camera: %s, \n%s',
                                camera, tb.format_exc())
