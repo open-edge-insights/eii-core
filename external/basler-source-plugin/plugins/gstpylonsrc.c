@@ -401,6 +401,28 @@ plugin_init (GstPlugin * plugin)
       GST_TYPE_PYLONSRC);
 }
 
+static inline void*
+orc_memcpy_s(void *dst, size_t dst_sz, const void *src, size_t src_sz)
+{
+  /*
+   * Skipped the following checks intentionally
+   *  1. overlapping src and destination pointer
+   *  2. dst_sz and src_sz not greater than RSIZE_MAX
+   */
+
+  // source or Destination pointer shouldn't be NULL
+  if (!src && !dst) {
+    return NULL;
+  }
+
+  // Avoid buffer overflow
+  if (src_sz > dst_sz) {
+    return NULL;
+  }
+
+  return orc_memcpy(dst, src, src_sz);
+}
+
 static void
 gst_pylonsrc_init (GstPylonsrc *pylonsrc)
 {
@@ -2137,8 +2159,15 @@ while(grabResult.Status != Grabbed){
 
   // Copy the image into the buffer that will be passed onto the next GStreamer element
   *buf = gst_buffer_new_and_alloc(pylonsrc->payloadSize);
+  if (buf == NULL) {
+    GST_MESSAGE_OBJECT(pylonsrc, "Couldn't allocate buffer for copy");
+    goto error;
+  }
   gst_buffer_map(*buf, &mapInfo, GST_MAP_WRITE);
-  orc_memcpy(mapInfo.data, grabResult.pBuffer, mapInfo.size);
+  if (orc_memcpy_s(mapInfo.data, mapInfo.size, grabResult.pBuffer, pylonsrc->payloadSize) == NULL) {
+    GST_MESSAGE_OBJECT(pylonsrc, "Secure orc_memcpy failed");
+    goto error;
+  }
   gst_buffer_unmap(*buf, &mapInfo);
 
   // Release frame's memory
