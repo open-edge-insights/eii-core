@@ -13,20 +13,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package streammanger
 
 import (
+	config "IEdgeInsights/DataAgent/config"
+	databus "IEdgeInsights/DataBusAbstraction/go"
+	util "IEdgeInsights/Util"
+	influxDBHelper "IEdgeInsights/Util/influxdb"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"regexp"
+	re "regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	util "IEdgeInsights/Util"
-	influxDBHelper "IEdgeInsights/Util/influxdb"
-
-	config "IEdgeInsights/DataAgent/config"
-	databus "IEdgeInsights/DataBusAbstraction/go"
 
 	"github.com/golang/glog"
 )
@@ -102,38 +100,70 @@ func databPublish(topicConfig map[string]string, data string) error {
 //This convertToJSON handels only the current line protocol which is specific.
 //ToDo: Generic convertToJSON. To Handle all type of stream coming to StreamManager (Example: To handle Tags).
 func convertToJSON(data string) string {
-	var jsonStr string
-	jsonStr = "{\"Measurement\":" //Json string should start from { and
-	//starting with a key "Measurement" for the value "classifier_results"
+	finalData := "Measurement="
+	jbuf := strings.Split(data, " ")
+	tagsValue := strings.Split(jbuf[0], ",")
 
-	jbuf := strings.Split(data, " ") //Split the data based on single white-space
+	//  To handle json if tags are given in the line protocol
+	tagsValue[0] = "\"" + tagsValue[0] + "\""
+	var tagsValueList []string
+	tagsValueList = append(tagsValueList, tagsValue[0])
 
-	jsonStr += "\"" + jbuf[0] + "\"" + "," //Concatenating Measurement and classifier_results
-	// and comma seperated for the next key-value pair.
-
-	for i := 2; i <= len(jbuf)-1; i++ { // since number of white-spaces are there within the values
-		jbuf[1] += " " + jbuf[i] // of key-value pair, concatenating all the split string
-	} //to one string to handle the further steps.
-
-	influxTS := ",influx_ts=" + jbuf[len(jbuf)-1]
-	jbuf[1] = strings.Replace(jbuf[1], jbuf[len(jbuf)-1], influxTS, -1) //adding a key called influx_ts
-	//for the value of influx timestamp
-	jsonStr = jsonStr + " " + jbuf[1] + "}"
-	keyValBuf := strings.Split(jbuf[1], "=")
-
-	quotedKey := "\"" + keyValBuf[0] + "\""
-	jsonStr = strings.Replace(jsonStr, keyValBuf[0], quotedKey, -1) //wrapping "ImgHandle" key within quotes
-
-	for j := 1; j < len(keyValBuf)-1; j++ { //wrapping other keys with in the quotes
-		keyBuf := strings.Split(keyValBuf[j], ",")
-		quotedKey2 := "\"" + keyBuf[len(keyBuf)-1] + "\""
-		jsonStr = strings.Replace(jsonStr, ","+keyBuf[len(keyBuf)-1], ","+quotedKey2, -1)
+	//  To identify the datapoints with the TAGS.
+	matchString, err := re.MatchString(`([a-zA-Z0-9_]+)([,])([a-zA-Z0-9_]*)`, jbuf[0])
+	if err != nil {
+		fmt.Println("Matching regex failed..")
 	}
 
-	jsonStr = strings.Replace(jsonStr, "=", ":", -1)  //As the value of idx is in not in the Json
-	regex := regexp.MustCompile(`([0-9]+i)`)          // acceptable format, hence making it string type
-	jsonStr = regex.ReplaceAllString(jsonStr, `"$1"`) // by adding double quotes around it.
-	return jsonStr
+	// To Replace the values with the quoted values.
+	if matchString {
+		for i := 1; i < len(tagsValue); i++ {
+			tagKeyValue := strings.Split(tagsValue[i], "=")
+			tagValue := "\"" + tagKeyValue[1] + "\""
+			quotedKeyValueTag := tagKeyValue[0] + "=" + tagValue
+			tagsValueList = append(tagsValueList, quotedKeyValueTag)
+		}
+
+		jbuf[0] = strings.Join(tagsValueList, ",")
+		finalData += jbuf[0] + ","
+	} else {
+		finalData += "\"" + jbuf[0] + "\"" + ","
+	}
+
+	for i := 2; i < len(jbuf); i++ {
+		jbuf[1] += " " + jbuf[i]
+	}
+
+	// Add the influx_ts key-value pair
+	influxTS := ",influx_ts=" + jbuf[len(jbuf)-1]
+	jbuf[1] = strings.Replace(jbuf[1], jbuf[len(jbuf)-1], influxTS, -1)
+	finalData = finalData + jbuf[1]
+
+	keyValueBuf := strings.Split(finalData, "=")
+	quotedKey := "\"" + keyValueBuf[0] + "\""
+	finalData = strings.Replace(finalData, keyValueBuf[0], quotedKey, -1)
+
+	// Replacing the Keys field with the quoted Keys.
+	for j := 1; j < (len(keyValueBuf) - 1); j++ {
+		keyBuf := strings.Split(keyValueBuf[j], ",")
+		keyToFind := keyBuf[len(keyBuf)-1] + "="
+		quotedKeyToFind := "\"" + keyBuf[len(keyBuf)-1] + "\"="
+		finalData = strings.Replace(finalData, keyToFind, quotedKeyToFind, -1)
+	}
+
+	// Replacing all = with :
+	finalData = strings.Replace(finalData, "=", ":", -1)
+
+	//  Removal of "i" added by influx,from the integer value
+	rex := re.MustCompile(`[0-9]+i`)
+	variable := rex.FindAllString(finalData, -1)
+	for i := 0; i < len(variable); i++ {
+		strippedI := strings.Trim(variable[i], "i")
+		finalData = strings.Replace(finalData, variable[i], strippedI, -1)
+	}
+
+	finalData = "{" + finalData + "}"
+	return finalData
 }
 
 func (pStrmMgr *StrmMgr) handlePointData() {

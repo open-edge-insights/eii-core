@@ -29,7 +29,6 @@ def lf_to_json_converter(data):
     Argument:
         data: line protocol data.
     '''
-
     final_data = "Measurement="
     jbuf = data.split(" ")
     tagsValue = jbuf[0].split(",")
@@ -66,21 +65,16 @@ def lf_to_json_converter(data):
     # Replacing the Keys field with the quoted Keys.
     for j in range(1, len(key_value_buf)-1):
         key_buf = key_value_buf[j].split(",")
-        quoted_key2 = "\"" + key_buf[len(key_buf)-1] + "\""
-        keys = re.search(r'([^A-Za-z0-9_])({0})([^A-Za-z0-9_]|$)'.format(
-            key_buf[len(key_buf)-1]), final_data)
-
-        quoted_key_group = keys.group()
-        group_keys = quoted_key_group.replace(
-            key_buf[len(key_buf)-1], quoted_key2)
-        final_data = final_data.replace(quoted_key_group, group_keys)
+        key = key_buf[len(key_buf)-1] + "="
+        new_key = "\"" + key_buf[len(key_buf)-1] + "\"="
+        final_data = final_data.replace(key, new_key)
 
     final_data = final_data.replace("=", ":")
 
     # Removal of "i" added by influx,from the integer value
     variable = re.findall(r'[0-9]+i', final_data)
     for intValue in variable:
-            stripped_i = intValue.strip("i")
-            final_data = final_data.replace(intValue, stripped_i)
+        stripped_i = intValue.strip("i")
+        final_data = final_data.replace(intValue, stripped_i)
     final_data = "{" + final_data + "}"
     return final_data
