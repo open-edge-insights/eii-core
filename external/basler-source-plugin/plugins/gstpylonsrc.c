@@ -410,17 +410,17 @@ orc_memcpy_s(void *dst, size_t dst_sz, const void *src, size_t src_sz)
    *  2. dst_sz and src_sz not greater than RSIZE_MAX
    */
 
-  // source or Destination pointer shouldn't be NULL
-  if (!src && !dst) {
-    return NULL;
-  }
-
   // Avoid buffer overflow
   if (src_sz > dst_sz) {
     return NULL;
   }
 
-  return orc_memcpy(dst, src, src_sz);
+  // source or Destination pointer shouldn't be NULL
+  if (src && dst) {
+    return orc_memcpy(dst, src, src_sz);
+  }
+
+  return NULL;
 }
 
 static void
@@ -2158,8 +2158,11 @@ while(grabResult.Status != Grabbed){
   //TODO: See if I can avoid memcopy and record directly into the gst buffer map.
 
   // Copy the image into the buffer that will be passed onto the next GStreamer element
-  *buf = gst_buffer_new_and_alloc(pylonsrc->payloadSize);
   if (buf == NULL) {
+    goto error;
+  }
+  *buf = gst_buffer_new_and_alloc(pylonsrc->payloadSize);
+  if (*buf == NULL) {
     GST_MESSAGE_OBJECT(pylonsrc, "Couldn't allocate buffer for copy");
     goto error;
   }
