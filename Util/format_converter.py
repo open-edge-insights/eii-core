@@ -62,11 +62,14 @@ def lf_to_json_converter(data):
     quoted_key = "\"" + key_value_buf[0] + "\""
     final_data = final_data.replace(key_value_buf[0], quoted_key)
 
+    # Trimming white space
+    final_data = final_data.replace(" ", "")
+    
     # Replacing the Keys field with the quoted Keys.
     for j in range(1, len(key_value_buf)-1):
         key_buf = key_value_buf[j].split(",")
-        key = key_buf[len(key_buf)-1] + "="
-        new_key = "\"" + key_buf[len(key_buf)-1] + "\"="
+        key = "," + key_buf[len(key_buf)-1] + "="
+        new_key = ",\"" + key_buf[len(key_buf)-1] + "\"="
         final_data = final_data.replace(key, new_key)
 
     final_data = final_data.replace("=", ":")

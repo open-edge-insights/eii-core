@@ -143,11 +143,14 @@ func convertToJSON(data string) string {
 	quotedKey := "\"" + keyValueBuf[0] + "\""
 	finalData = strings.Replace(finalData, keyValueBuf[0], quotedKey, -1)
 
+	// Trim white spaces
+	finalData = strings.Replace(finalData, " ", "", -1)
+
 	// Replacing the Keys field with the quoted Keys.
 	for j := 1; j < (len(keyValueBuf) - 1); j++ {
 		keyBuf := strings.Split(keyValueBuf[j], ",")
-		keyToFind := keyBuf[len(keyBuf)-1] + "="
-		quotedKeyToFind := "\"" + keyBuf[len(keyBuf)-1] + "\"="
+		keyToFind := "," + keyBuf[len(keyBuf)-1] + "="
+		quotedKeyToFind := ",\"" + keyBuf[len(keyBuf)-1] + "\"="
 		finalData = strings.Replace(finalData, keyToFind, quotedKeyToFind, -1)
 	}
 
