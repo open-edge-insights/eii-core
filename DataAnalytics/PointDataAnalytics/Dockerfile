@@ -43,6 +43,7 @@ RUN mkdir -p /IEI/go/src/github.com/golang/glog
 COPY --from=base /IEI/go/src/github.com/golang/glog /IEI/go/src/github.com/golang/glog
 
 # Adding classifier program
+COPY Util/ ./Util/
 COPY DataAnalytics/PointDataAnalytics .
 RUN chmod +x ./classifier_start.sh
 

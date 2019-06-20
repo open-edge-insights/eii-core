@@ -28,6 +28,6 @@ RUN pip3.6 install cryptography==2.4.2 && \
     pip3.6 install protobuf==3.6.0 && \
     pip3.6 install influxdb==5.0.0
 ENV PATH ${PATH}:/usr/local/go/bin:/IEI/go/bin
-COPY Util/ ./Util/
+
 HEALTHCHECK NONE
 

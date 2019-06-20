@@ -48,6 +48,7 @@ RUN pip3.6 install -r va_requirements.txt && \
     rm -rf va_requirements.txt
 
 # Adding classifier program
+COPY Util/ ./Util/
 COPY DataAnalytics/VideoAnalytics/ .
 
 #Myriad and HDDL requirements

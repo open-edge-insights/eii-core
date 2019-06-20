@@ -60,6 +60,7 @@ RUN mkdir -p /iei/dist_libs
 ENV DBA_PATH /dist_libs/DataBusAbstraction
 ENV IMGSTORE_PATH /dist_libs/ImageStore
 
+COPY Util/ ./Util/
 ADD Util/log.py ${DBA_PATH}/py/Util/
 # Copying DataBusAbstraction py library/test files.
 RUN cp DataBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/ && \

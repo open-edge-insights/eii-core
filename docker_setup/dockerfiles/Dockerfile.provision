@@ -50,6 +50,7 @@ RUN mkdir -p ${TPM_PATH}/tpm2_tools && \
 
 RUN cd ${TPM_PATH}/tpm2_tools/ && ./bootstrap &&  ./configure && make -j8 && make install
 
+COPY Util/ ./Util/
 COPY DataAgent/provision/provision_iei.go ./
 COPY DataAgent/provision/provision_iei.sh ./
 COPY docker_setup/config/provision_config.json ./config_file.json
