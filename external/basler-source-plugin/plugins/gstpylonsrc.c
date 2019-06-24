@@ -1032,7 +1032,7 @@ gst_pylonsrc_start (GstBaseSrc * src)
         break; 
       }
       else {
-        GST_ERROR_OBJECT(pylonsrc, "Serial No:%s Unavailable", pDi.SerialNumber);
+        GST_DEBUG_OBJECT(pylonsrc, "Serial No:%s not matching or not specified using serial parameter", pDi.SerialNumber);
       }
     }
   } else if ( pylonsrc->cameraId != 9999 && pylonsrc->cameraId > numDevices) {
@@ -2124,11 +2124,11 @@ static GstFlowReturn gst_pylonsrc_create (GstPushSrc *src, GstBuffer **buf)
   GstMapInfo mapInfo;
 
 while(grabResult.Status != Grabbed){
-  // Wait for the buffer to be filled  (up to 500 ms)
-  res = PylonWaitObjectWait(pylonsrc->waitObject, 500, &bufferReady);
+  // Wait for the buffer to be filled  (up to 5000 ms)
+  res = PylonWaitObjectWait(pylonsrc->waitObject, 5000, &bufferReady);
   PYLONC_CHECK_ERROR(pylonsrc, res);
   if(!bufferReady) {
-    GST_MESSAGE_OBJECT(pylonsrc, "Camera couldn't prepare the buffer in time. Probably dead.");
+    GST_MESSAGE_OBJECT(pylonsrc, "Camera couldn't prepare the buffer in time. Increase Inter Packet Delay.");
     goto error;
   }
 
@@ -2349,7 +2349,7 @@ pylonc_print_camera_info(GstPylonsrc* pylonsrc, PYLON_DEVICE_HANDLE deviceHandle
     }
 
     if(pylonsrc->cameraId != deviceId) { // We're listing cameras
-      GST_MESSAGE_OBJECT(pylonsrc, "ID:%i, Name:%s, Serial No:%s, Status: Available.", deviceId, name, pylonsrc->serial);
+      GST_DEBUG_OBJECT(pylonsrc, "ID:%i, Name:%s, Serial No:%s, Status: Available.", deviceId, name, pylonsrc->serial);
     } else { // We've connected to a camera
       GST_MESSAGE_OBJECT(pylonsrc, "Status: Using camera \"%s\" (serial number: %s, id: %i).", name, pylonsrc->serial, deviceId);
     }
