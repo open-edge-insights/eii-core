@@ -15,5 +15,5 @@ else
     # Start the server skip the TLS verifcation unlike what config file imposes.
     vault server -config ./vault/config/vault_config.hcl -tls-skip-verify & 2>&1
 
-    DataAgent -log_dir=${GO_WORK_DIR}/log/DataAgent -stderrthreshold=$1 -v=$2
+    DataAgent -log_dir=${GO_WORK_DIR}/log/data_agent_logs -stderrthreshold=$1 -v=$2
 fi

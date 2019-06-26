@@ -97,7 +97,8 @@ post_build_steps() {
 	chmod -R 760 $IEI_INSTALL_PATH/data
 	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/logs
 	mkdir -p $IEI_INSTALL_PATH/logs/classifier_logs
-	mkdir -p $IEI_INSTALL_PATH/logs/DataAgent
+	mkdir -p $IEI_INSTALL_PATH/logs/data_agent_logs
+	mkdir -p $IEI_INSTALL_PATH/logs/imagestore_logs
 	mkdir -p $IEI_INSTALL_PATH/logs/factoryctrl_app_logs
 	mkdir -p $IEI_INSTALL_PATH/logs/telegraf_logs
 	mkdir -p $IEI_INSTALL_PATH/logs/video_ingestion_logs

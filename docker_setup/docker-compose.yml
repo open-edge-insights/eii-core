@@ -126,7 +126,7 @@ services:
       - "${IEI_INSTALL_PATH}/config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
       - "${IEI_INSTALL_PATH}/secret_store:/vault/file"
       - "${IEI_INSTALL_PATH}/tpm_secret:/IEI/tpm_secret"
-      - "${IEI_INSTALL_PATH}/logs/DataAgent:/IEI/go/src/IEdgeInsights/log/DataAgent"
+      - "${IEI_INSTALL_PATH}/logs/data_agent_logs:/IEI/go/src/IEdgeInsights/log/data_agent_logs"
     command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}", "${DEV_MODE}"]
     ports:
       - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
@@ -220,11 +220,12 @@ services:
       IMAGESTORE_PORT: ${IMAGESTORE_PORT}
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
-    command: ["-stderrthreshold", "${GO_LOG_LEVEL}", "-v", "${GO_VERBOSE}"]
+    command: ["-log_dir", "/IEI/go/src/IEdgeInsights/log/imagestore_logs", "-stderrthreshold", "${GO_LOG_LEVEL}", "-v", "${GO_VERBOSE}"]
     ports:
       - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
       - "${IEI_INSTALL_PATH}/data:/data"
+      - "${IEI_INSTALL_PATH}/logs/imagestore_logs:/IEI/go/src/IEdgeInsights/log/imagestore_logs"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
     logging:
       driver: ${LOGGING_DRIVER}
