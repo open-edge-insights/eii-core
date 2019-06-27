@@ -36,6 +36,7 @@ except ImportError:
     dahua_supported = False
 
 MAX_CAM_FAIL_CNT = 100
+MAX_CAM_CONN_RETRY = 5
 
 """Video ingestor
 """
@@ -174,7 +175,13 @@ class Ingestor:
         """Video stream ingestor run thread.
         """
         self.log.info('Capture thread started')
-        camera = self._connect(cam_sn, camConfig)
+        camera, ret = self._connect(cam_sn, camConfig)
+        if ret is False:
+            self.log.error(
+                "Fail to read camera %s, Not Retrying, \
+                Please Check Camera config",
+                cam_sn)
+            return None
         self.cameras.append(camera)
         camFailCnt = 0
         while not self.stop_ev.is_set():
@@ -203,15 +210,29 @@ class Ingestor:
                 self.log.error('Error while reading from camera: %s, \n%s',
                                camera, tb.format_exc())
                 try:
-                    self.log.info(
-                            'Attempting to reconnect to camera %s', camera)
+                    self.cameras.remove(camera)
                     camera.release()
-                    camera = self._connect(
-                                camera.name, camera.config)
-                    self.cameras = camera
+                    camera_conn_retry = MAX_CAM_CONN_RETRY
+                    while (camera_conn_retry):
+                        self.log.info(
+                            'Attempting to reconnect to camera %s with iteration %s',
+                            camera.name, camera_conn_retry)
+                        camera, ret = self._connect(
+                                    camera.name, camera.config)
+                        if ret is True:
+                            self.log.error("Re-Connected the camera again...")
+                            self.cameras.append(camera)
+                            camera_conn_retry = MAX_CAM_CONN_RETRY
+                            break
+                        camera_conn_retry = camera_conn_retry - 1
+                    else:
+                        raise Exception(
+                            "Maximum connection Retry completed...")
                 except Exception as ex:
                     self.log.error(
-                            'Reconnect failed: \n%s', tb.format_exc())
+                            'Reconnection failed after all retries \n%s'
+                            , tb.format_exc())
+                    break
 
     def _call_ondata(self, cameraName, cameraConfig, ondata_queue):
         while not self.stop_ev.is_set():
@@ -249,8 +270,13 @@ class Ingestor:
         if cam_sn is not None:
             self.log.info('Initializing OpenCV camera: %s', str(cam_sn))
             cam = cv2.VideoCapture(config["video_src"])
+            if cam.isOpened() is False:
+                cam.release()
+                # Adding this for retry logic to work, "cap" member is None.
+                camera = VideoCapture(cam_sn, config, None)
+                return camera, False
             cam_sn = '{}'.format(cam_sn)
         else:
             raise IngestorError('Unknown camera : {}'.format(cam_sn))
 
-        return VideoCapture(cam_sn, config, cam)
+        return VideoCapture(cam_sn, config, cam), True
