@@ -7,15 +7,14 @@ LABEL description="Data Analytics image"
 
 ENV PY_WORK_DIR /IEI
 WORKDIR ${PY_WORK_DIR}
-ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
+ENV PYTHONPATH .
 ENV HOME /IEI
 ENV KAPACITOR_REPO /IEI/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /IEI/go/bin
-ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal
+ENV PYTHONPATH ${PYTHONPATH}
 ARG IEI_UID
 
 # Installing protobuf module needed for UDF function
-RUN pip2 install protobuf
 RUN mkdir -p /etc/ssl/ca
 
 # Adding kapacitor related files
@@ -44,12 +43,13 @@ COPY --from=base /IEI/go/src/github.com/golang/glog /IEI/go/src/github.com/golan
 
 # Adding classifier program
 COPY Util/ ./Util/
+COPY libs/ConfigManager ./libs/ConfigManager
+COPY libs/common ./libs/common
 COPY DataAnalytics/PointDataAnalytics .
 RUN chmod +x ./classifier_start.sh
 
-# Adding project depedency modules
-COPY DataAgent/__init__.py ./DataAgent/__init__.py
-COPY DataAgent/da_grpc ./DataAgent/da_grpc
+RUN mkdir /IEI/classifier_logs && \
+    chown ${IEI_UID} -R /IEI/classifier_logs 
 
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]

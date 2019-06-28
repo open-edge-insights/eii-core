@@ -3,9 +3,9 @@ dist_libs/
 docker_setup/
 FactoryControlApp/
 licenses/
-StreamManager/
 Telegraf/
 test_videos/
+InfluxDBConnector/
 VideoIngestion/
 
 DataAnalytics/PointDataAnalytics/

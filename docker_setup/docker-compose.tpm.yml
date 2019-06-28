@@ -1,6 +1,0 @@
-version: '3'
-services:
-  # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
-  ia_data_agent:
-    devices:
-      - "/dev/tpm0:/dev/tpm0"

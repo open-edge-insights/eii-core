@@ -35,6 +35,51 @@ services:
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
+  # Define influxdb connector service
+  ia_influxdbconnector:
+    build:
+      context: ../
+      dockerfile: $PWD/../InfluxDBConnector/Dockerfile
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia_influxdbconnector:${IEI_VERSION}
+    container_name: ia_influxdbconnector
+    hostname: ia_influxdbconnector
+    network_mode: host
+    environment:
+      AppName: "InfluxDBConnector"     
+      no_proxy: ${NO_PROXY}
+      DEV_MODE: ${DEV_MODE}
+      #SubTopics is mainly for the stream data to subscribe 
+      #and push to InfluxDB
+      SubTopics: "camera1_stream_results"
+      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+      #PubTopics is mainly for point data to publish
+      PubTopics: "point_data,point_classifier_results"
+      point_data_cfg: "zmq_tcp,127.0.0.1:65015"
+      point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
+      #Server is for both point data and stream data 
+      Server: "zmq_tcp,127.0.0.1:8675"
+    volumes:
+      - "${IEI_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "${IEI_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "${IEI_INSTALL_PATH}/config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
+    command: ["-stderrthreshold", "${GO_LOG_LEVEL}"]
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    user: ${IEI_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+
   # Define telegraf service
   ia_telegraf:
     build:
@@ -49,8 +94,7 @@ services:
     image: ia_telegraf:${IEI_VERSION}
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      SHARED_KEY: ${SHARED_KEY}
-      SHARED_NONCE: ${SHARED_NONCE}
+      AppName: "Telegraf"     
       INFLUX_SERVER: ${INFLUX_SERVER}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
       no_proxy: ${NO_PROXY}
@@ -136,19 +180,16 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      SHARED_KEY: ${SHARED_KEY}
-      SHARED_NONCE: ${SHARED_NONCE}
+      AppName: "kapacitor"     
       KAPACITOR_URL: https://${KAPACITOR_SERVER}:${KAPACITOR_PORT}/
       KAPACITOR_UNSAFE_SSL: "false"
       KAPACITOR_INFLUXDB_0_URLS_0: https://${KAPACITOR_SERVER}:${INFLUXDB_PORT}/
       KAPACITOR_SERVER: ${KAPACITOR_SERVER}
-      INFLUX_SERVER: ${INFLUX_SERVER}
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
       IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
       GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
       no_proxy: ${NO_PROXY}
       KAPACITOR_PORT: ${KAPACITOR_PORT}
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
@@ -387,3 +428,4 @@ services:
       AppName: "EtcdUi"
       no_proxy: ${NO_PROXY}
       DEV_MODE: $DEV_MODE
+

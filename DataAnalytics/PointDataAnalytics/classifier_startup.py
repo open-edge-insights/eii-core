@@ -3,13 +3,13 @@ import os.path
 import argparse
 import time
 import stat
+import json
 import socket
 import datetime
+from libs.ConfigManager import ConfigManager
 from Util.log import configure_logging, LOG_LEVELS
 from distutils.util import strtobool
 import os
-from DataAgent.da_grpc.client.py.client_internal.client \
-    import GrpcInternalClient
 from Util.util \
     import (write_certs,
             create_decrypted_pem_files,
@@ -37,9 +37,6 @@ def parse_args():
     """Parse command line arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', dest='config',
-                        default='factory_pcbdemo.json',
-                        help='JSON configuration file')
     parser.add_argument('--log', choices=LOG_LEVELS.keys(), default='DEBUG',
                         help='Logging level (df: DEBUG)')
 
@@ -79,14 +76,21 @@ def start_kapacitor(host_name, dev_mode):
     """Starts the kapacitor Daemon in the background
     """
     try:
-        if dev_mode:
-            client = GrpcInternalClient()
-        else:
-            client = GrpcInternalClient(CLIENT_CERT, CLIENT_KEY, CA_CERT)
+        app_name = os.environ["AppName"]
+        config_key_path = "/config"
+        conf = {
+            "certFile": "",
+            "keyFile": "",
+            "trustFile": ""
+        }
+        cfg_mgr = ConfigManager()
+        mgr = cfg_mgr.get_config_client("etcd", conf)
+        configfile = mgr.GetConfig("/{0}{1}".format(
+                      app_name, config_key_path))
+        config = json.loads(configfile)
+        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["influxdb"]["username"]
+        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["influxdb"]["password"]
 
-        config = client.GetConfigInt("InfluxDBCfg")
-        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["UserName"]
-        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["Password"]
 
         if dev_mode:
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
@@ -194,10 +198,6 @@ if __name__ == '__main__':
                                args.log_dir, __name__)
     args.dev_mode = bool(strtobool(args.dev_mode))
     logger.info("=============== STARTING data_analytics ==============")
-    # Wait for DA to be ready
-    ret = check_port_availability(DAServiceName, DAPort)
-    if ret is False:
-        exit_with_failure_message("DataAgent is not up.So Exiting...")
 
     host_name = os.environ["KAPACITOR_SERVER"]
     if not host_name:

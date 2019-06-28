@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 
 	"github.com/golang/glog"
 )
@@ -83,3 +84,49 @@ func GetTopics(topicType string) []string {
 	}
 	return topics
 }
+
+//GetEndPointMap will convert the env variable into the map 
+//required for the zmq context creation
+func GetEndPointMap(keywordName string, endPointInfo string) (map[string]interface{}, error) {
+	const zmqTypeTCP = "zmq_tcp"
+        const zmqTypeIpc = "zmq_ipc"
+        const socketDir = "socket_dir"
+
+
+	parts := strings.Split(endPointInfo, ",")
+
+	if len(parts) <= 0 {
+		return nil, errors.New("EndPont doesn not have type info")
+	}
+
+	infoEndPoint := make(map[string]interface{})
+	if strings.Compare(parts[0], zmqTypeTCP) != 0 && strings.Compare(parts[0], zmqTypeIpc) != 0 {
+		return nil, errors.New("Invalid type info")
+	}
+
+	typeInfo := strings.TrimSpace(parts[0])
+	infoEndPoint["type"] = typeInfo
+
+	if strings.Compare(typeInfo, zmqTypeTCP) == 0 {
+
+		parts = strings.Split(parts[1], ":")
+		if len(parts) != 2 {
+			return nil, errors.New("Invalid endpoint info")
+		}
+
+		endPointInfo := make(map[string]interface{})
+		endPointInfo["host"] = strings.TrimSpace(parts[0])
+		portNumber, err := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
+		if err != nil {
+			glog.Errorf("Not able to convert the port to Int %s", err)
+		}
+		endPointInfo["port"] = portNumber
+		infoEndPoint[keywordName] = endPointInfo
+
+	} else {
+		infoEndPoint[socketDir] = strings.TrimSpace(parts[1])
+	}
+
+	return infoEndPoint, nil
+}
+

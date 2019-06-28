@@ -93,11 +93,6 @@ RUN cd DataBusAbstraction/py && \
 
 ENV PYTHONPATH .:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/pb_internal/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff:/IEI/go/src/IEdgeInsights/DataBusAbstraction/py/:/IEI/go/src/IEdgeInsights/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/
 
-ADD DataAgent/da_grpc/client ./DataAgent/da_grpc/client
-ADD DataAgent/da_grpc/protobuff ./DataAgent/da_grpc/protobuff
-ADD DataAgent/da_grpc/test ./DataAgent/da_grpc/test
-ADD DataAgent/__init__.py ./DataAgent/__init__.py
-ADD DataAgent/da_grpc/__init__.py ./DataAgent/da_grpc/__init__.py
 ADD ImageStore/client ./ImageStore/client
 ADD ImageStore/protobuff ./ImageStore/protobuff
 ADD ImageStore/test ./ImageStore/test

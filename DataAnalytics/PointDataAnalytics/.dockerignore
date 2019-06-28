@@ -4,7 +4,6 @@ dist_libs/
 docker_setup/
 FactoryControlApp/
 licenses/
-StreamManager/
 StreamSubLib/
 Telegraf/
 test_videos/
@@ -17,7 +16,6 @@ basler-source-plugin/
 **/*.md
 **/*.mp4
 **/*.avi
-**/*.json
 **/*.pyc
 **/*.tar
 **/*.log

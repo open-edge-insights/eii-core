@@ -68,21 +68,6 @@ pre_build_steps() {
 	echo "0.4 Generating shared key and nonce for grpc internal secrets..."
 	source ./set_shared_key_nonce_env_vars.sh
 
-	if [ "$TPM_ENABLE" = "true" ]
-	then
-		if [ "$DEV_MODE" = "true" ]
-		then
-			echo "TPM and Developement mode are mutuallly exclusive. Kindly config accordingly."
-			exit -1
-		fi
-
-		OVERRIDE_COMPOSE_YML="-f docker-compose.yml -f docker-compose.tpm.yml"
-		# Intentionally not chnaging the group of device file to keep the
-		# root group based users unaffected and keep the host machine setting change minimal.
-		# TODO: Revert the changes the after the TPM read is over forever.
-		chown $IEI_USER_NAME /dev/tpm0
-	fi
-
 	echo "0.5 Get docker Host IP address and write it to .env"
 }
 
