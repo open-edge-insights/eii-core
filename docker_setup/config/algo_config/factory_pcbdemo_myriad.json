@@ -11,7 +11,8 @@
                     "level": 100
                 },
                 "img_store_type": "inmemory_persistent",
-                "loop_video": true
+                "loop_video": true,
+                "poll_interval": 0.2
             }
         }
     },

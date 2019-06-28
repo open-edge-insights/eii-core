@@ -5,15 +5,17 @@
     "data_ingestion_manager": {
         "ingestors": {
             "video": {
+                "vi_queue_size":5,
                 "streams": {
                     "capture_streams": {
                         "cam_serial1": {
-                            "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink drop=TRUE max-buffers=10",
+                            "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
                                 "level": 100
                             },
-                            "img_store_type": "inmemory_persistent"
+                            "img_store_type": "inmemory_persistent",
+                            "poll_interval": 0.2
                         }
                     }
                 }

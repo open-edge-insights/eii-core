@@ -27,7 +27,7 @@ import time
 import cv2
 import os
 from . import IngestorError
-
+import queue
 
 try:
     import dahua_video_capture as dvc
@@ -123,19 +123,27 @@ class Ingestor:
         self.log = logging.getLogger(__name__)
         self.stop_ev = stop_ev
         self.on_data = on_data
-        self.poll_interval = config.get('poll_interval', 0.01)
+        self.poll_interval = 0.01  # Default poll_interval
+        self.vi_queue_size = config.get('vi_queue_size', 5)
+        self.log.info("queue_size:{}".format(config['vi_queue_size']))
         self.cameras = []
         self.cam_threads = []
+        self.ondata_threads = []
         streams = config['streams']
-
         self.log.info('Loading OpenCV streams')
         self.cap_streams = streams['capture_streams']
         if isinstance(self.cap_streams, dict):
             for (cam_sn, camConfig) in self.cap_streams.items():
-
+                ondata_queue = queue.Queue(maxsize=self.vi_queue_size)
                 thread_id = threading.Thread(target=self._run,
-                                             args=(cam_sn, camConfig))
+                                             args=(cam_sn, camConfig,
+                                                   ondata_queue))
                 self.cam_threads.append(thread_id)
+                thread = threading.Thread(target=self._call_ondata,
+                                          args=(cam_sn, camConfig,
+                                                ondata_queue))
+                self.ondata_threads.append(thread)
+
         else:
             raise IngestorError('capture_streams is not a json object')
 
@@ -143,6 +151,8 @@ class Ingestor:
         """Start the ingestor.
         """
         for thread in self.cam_threads:
+            thread.start()
+        for thread in self.ondata_threads:
             thread.start()
 
     def join(self):
@@ -160,7 +170,7 @@ class Ingestor:
         except AttributeError:
             pass  # If the video capture does not support release, that is okay
 
-    def _run(self, cam_sn, camConfig):
+    def _run(self, cam_sn, camConfig, ondata_queue):
         """Video stream ingestor run thread.
         """
         self.log.info('Capture thread started')
@@ -178,8 +188,15 @@ class Ingestor:
                     if camFailCnt >= MAX_CAM_FAIL_CNT:
                         raise Exception("Too many fails. Retry Connection")
                 else:
-                    self.on_data('video', (camera.name, frame,
-                                 camera.config))
+                    try:
+                        if ondata_queue.qsize() < self.vi_queue_size:
+                            ondata_queue.put(frame, block=False)
+                        else:
+                            ondata_queue.get()
+                            ondata_queue.put(frame, block=False)
+                    except Exception as ex:
+                        self.log.error('Error while reading frames: \n%s',
+                                       tb.format_exc())
                     # Reseting the camera recovery counter
                     camFailCnt = 0
             except Exception as ex:
@@ -196,11 +213,20 @@ class Ingestor:
                     self.log.error(
                             'Reconnect failed: \n%s', tb.format_exc())
 
+    def _call_ondata(self, cameraName, cameraConfig, ondata_queue):
+        while not self.stop_ev.is_set():
+            try:
+                frame = ondata_queue.get(block=True)
+                self.on_data('video', (cameraName, frame, cameraConfig))
+            except Exception as ex:
+                self.log.error('Error while reading frames from queue: \n%s',
+                               tb.format_exc())
+
             # Sleep for the poll interval.
             # Camera specific poll interval takes priority over the global
             # poll interval.
-            if camera.config.get("poll_interval") is not None:
-                time.sleep(camera.config.get("poll_interval"))
+            if cameraConfig.get("poll_interval") is not None:
+                time.sleep(cameraConfig.get("poll_interval"))
             elif self.poll_interval is not None:
                 time.sleep(self.poll_interval)
 
