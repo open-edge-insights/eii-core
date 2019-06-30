@@ -91,7 +91,6 @@ func databPublish(topicConfig map[string]string, data string) error {
 		glog.Errorf("Publish Error: %v", err)
 		return err
 	}
-
 	glog.V(1).Infof("Published [%s] : '%s'\n", topicConfig, data)
 	return nil
 
@@ -334,6 +333,7 @@ func startServer(pStrmMgr *StrmMgr, devMode bool) {
 			if err != nil {
 				glog.Errorf("Publish Error: %v", err)
 			}
+			glog.V(1).Infof("Published [%s] : '%s'\n", topicConfig, dummyMsg)
 		}
 	}
 

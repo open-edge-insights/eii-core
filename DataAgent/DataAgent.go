@@ -13,6 +13,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
+	stm "IEdgeInsights/StreamManager"
+	util "IEdgeInsights/Util"
+	cpuidutil "IEdgeInsights/Util/cpuid"
+	inflxUtil "IEdgeInsights/Util/influxdb"
 	"errors"
 	"flag"
 	"io/ioutil"
@@ -20,18 +24,15 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/golang/glog"
+
 	config "IEdgeInsights/DataAgent/config"
 	internalserver "IEdgeInsights/DataAgent/da_grpc/server/server_internal"
-	stm "IEdgeInsights/StreamManager"
-	util "IEdgeInsights/Util"
-	cpuidutil "IEdgeInsights/Util/cpuid"
-	inflxUtil "IEdgeInsights/Util/influxdb"
-
-	"github.com/golang/glog"
 )
 
 var strmMgrTCPServHost = os.Getenv("DATA_AGENT_GRPC_SERVER")
 var influxServer = os.Getenv("DATA_AGENT_GRPC_SERVER")
+
 const (
 	strmMgrTCPServPort   = "61971"
 	influxServerCertPath = "/etc/ssl/influxdb/influxdb_server_certificate.pem"
@@ -43,6 +44,7 @@ const (
 
 // daCfg - stores parsed DataAgent config
 var daCfg config.DAConfig
+
 func initializeInfluxDB() error {
 	var cmd *exec.Cmd
 
@@ -229,7 +231,7 @@ func main() {
 	glog.Infof("**************STARTING STREAM MANAGER**************")
 
 	var pStreamManager = new(stm.StrmMgr)
-	
+
 	pStreamManager.ServerHost = strmMgrTCPServHost
 	pStreamManager.ServerPort = strmMgrTCPServPort
 	pStreamManager.InfluxDBHost = influxServer
@@ -249,12 +251,16 @@ func main() {
 	}
 
 	// Fetch the streams from the DA config file
-	for key, val := range daCfg.OutStreams {
+	for _, val := range daCfg.OutStreams {
 		// TODO: Just using the 'key' as both measurement and topic for now.
 		// This will change later
 		for _, topic := range val.Topics {
 			var config = new(stm.OutStreamConfig)
-			config.MsgBusType = key
+			// TODO: Need to remove the hard-coding of "OPCUA"
+			// message bus type below and come up with a data structure
+			// to map the message bus type with the topics going to be
+			// published on it
+			config.MsgBusType = "OPCUA"
 
 			config.Measurement = topic
 			config.Topic = topic

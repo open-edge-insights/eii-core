@@ -98,7 +98,7 @@ convertToString(char str[],
 }
 
 /* Gets the namespace index for the given namespace and topic */
-static UA_Int16
+static UA_UInt16
 getNamespaceIndex(char *ns,
                   char *topic) {
     UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Browsing nodes in objects folder:\n");
@@ -123,9 +123,9 @@ getNamespaceIndex(char *ns,
                        (int)ref->browseName.name.length, ref->browseName.name.data,
                        (int)ref->displayName.text.length, ref->displayName.text.data);
                 DBA_STRNCPY(nodeIdentifier, (char*)ref->nodeId.nodeId.identifier.string.data, len);
-                UA_Int16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
+                UA_UInt16 nodeNs = ref->nodeId.nodeId.namespaceIndex;
                 if (!strcmp(topic, nodeIdentifier)) {
-                    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node Id exists !!!\n");
+                    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Node exists !!!\n");
                     UA_BrowseRequest_deleteMembers(&bReq);
                     UA_BrowseResponse_deleteMembers(&bResp);
                     return nodeNs;
@@ -135,7 +135,7 @@ getNamespaceIndex(char *ns,
     }
     UA_BrowseRequest_deleteMembers(&bReq);
     UA_BrowseResponse_deleteMembers(&bResp);
-    return FAILURE;
+    return 0;
 }
 
 //*************open62541 server wrappers**********************
@@ -181,7 +181,6 @@ addTopicDataSourceVariable(char *namespace,
             return;
         }
     }
-    UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%lu:namespaceIndex created for namespace: %s\n", *namespaceIndex, namespace);
 
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.description = UA_LOCALIZEDTEXT("en-US", topic);
@@ -218,6 +217,8 @@ addTopicDataSourceVariable(char *namespace,
         UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s \
                     for namespace: %s and topic: %s. Error code: %s", str, namespace, topic, UA_StatusCode_name(ret));
         return;
+    } else {
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Successfully added variable node for namespace: %s and topic: %s", namespace, topic);
     }
 }
 
@@ -476,7 +477,7 @@ cleanupClient() {
     if (gClientContext.client) {
         UA_Client_delete(gClientContext.client);
     }
-    
+
     freeMemory(gClientContext.subArgs->topicCfgArr);
     freeMemory(gClientContext.subArgs->monitorContext);
     freeMemory(gClientContext.subArgs);
@@ -532,15 +533,15 @@ createSubscription() {
     UA_CreateSubscriptionRequest request = UA_CreateSubscriptionRequest_default();
     request.requestedPublishingInterval = 0;
 
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "In %s...!", __FUNCTION__);
     UA_CreateSubscriptionResponse response = UA_Client_Subscriptions_create(gClientContext.client, request,
                                                                             NULL, NULL, deleteSubscriptionCallback);
 
-    if(response.responseHeader.serviceResult == UA_STATUSCODE_GOOD) {
-        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription succeeded, id %u", response.subscriptionId);
+    UA_StatusCode retval = response.responseHeader.serviceResult;
+    if(retval == UA_STATUSCODE_GOOD) {
+        UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "UA_Client_Subscriptions_create() succeeded, id %u", response.subscriptionId);
     } else {
-        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Create subscription failed");
-        return 1;
+        UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "UA_Client_Subscriptions_create() failed. Error code: %s", UA_StatusCode_name(retval));
+        return FAILURE;
     }
     int subId = response.subscriptionId;
 
@@ -559,12 +560,16 @@ createSubscription() {
 
     char *topic;
     char *ns;
-    size_t namespaceIndex;
+    UA_UInt16 namespaceIndex;
     UA_NodeId nodeId;
     for(int i = 0; i < gClientContext.subArgs->topicCfgItems; i++) {
         topic = gClientContext.subArgs->topicCfgArr[i].name;
         ns = gClientContext.subArgs->topicCfgArr[i].ns;
+
         namespaceIndex = getNamespaceIndex(ns, topic);
+        if (namespaceIndex == 0) {
+            UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Topic: %s with namespace: %s and namespaceIndex: %u doesn't exist", topic, ns, namespaceIndex);
+        }
         nodeId = UA_NODEID_STRING(namespaceIndex, topic);
 
         if(gClientContext.items != NULL) {
@@ -574,6 +579,7 @@ createSubscription() {
             gClientContext.subCallbacks[i] = subscriptionCallback;
         }
 
+        UA_LOG_DEBUG(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"namespaceIndex: %d, ns: %s, topic: %s", namespaceIndex, ns, topic);
         gClientContext.subArgs->monitorContext[i].namespaceIndex = namespaceIndex;
         gClientContext.subArgs->monitorContext[i].topic = topic;
         gClientContext.subArgs->monitorContext[i].userCallback = gClientContext.subArgs->userCallback;
@@ -592,19 +598,22 @@ createSubscription() {
     createRequest.timestampsToReturn = UA_TIMESTAMPSTORETURN_BOTH;
     createRequest.itemsToCreate = gClientContext.items;
     createRequest.itemsToCreateSize = gClientContext.subArgs->topicCfgItems;
+
     if (gClientContext.deleteCallbacks != NULL && gClientContext.contexts != NULL && gClientContext.subCallbacks != NULL) {
-       UA_CreateMonitoredItemsResponse createResponse =
-       UA_Client_MonitoredItems_createDataChanges(gClientContext.client, createRequest, gClientContext.contexts,
+        UA_CreateMonitoredItemsResponse createResponse =
+        UA_Client_MonitoredItems_createDataChanges(gClientContext.client, createRequest, gClientContext.contexts,
                                                    gClientContext.subCallbacks, gClientContext.deleteCallbacks);
 
-        for(int i = 0; i < gClientContext.subArgs->topicCfgItems; i++) {
-            if (createResponse.results[0].statusCode == UA_STATUSCODE_GOOD) {
+        for(int i = 0; i < createResponse.resultsSize; i++) {
+            UA_StatusCode retval = createResponse.results[i].statusCode;
+            if (retval == UA_STATUSCODE_GOOD) {
                 UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"MonitorItemId: %d created successfully for topic: %s\n",
                             createResponse.results[0].monitoredItemId, gClientContext.subArgs->topicCfgArr[i].name);
+            } else {
+                UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,"CreateDataChanges() failed for topic:%s. Statuscode: %s", gClientContext.subArgs->topicCfgArr[i].name, UA_StatusCode_name(retval));
             }
         }
     }
-
     return 0;
 }
 
@@ -661,8 +670,10 @@ runClient(void *tArgs) {
             clientState = UA_Client_getState(gClientContext.client);
             if (clientState == UA_CLIENTSTATE_SESSION) {
                 /* recreating the subscription upon opcua server connect */
-                if (createSubscription() == 1)
-                    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "Subscription failed!");
+                if (createSubscription() == FAILURE) {
+                    UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "createSubscription() failed");
+                    return NULL;
+                }
             }
         }
 
@@ -819,9 +830,8 @@ clientSubscribe(struct TopicConfig topicConfigs[],
             }
         }
     }
-
-    if (createSubscription() == 1) {
-        static char str[] = "Subscription failed!";
+    if (createSubscription() == FAILURE) {
+        static char str[] = "createSubscription() failed";
         UA_LOG_FATAL(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "%s",
             str);
         return str;
