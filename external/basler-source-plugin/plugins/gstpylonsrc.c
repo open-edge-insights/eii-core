@@ -233,7 +233,7 @@ gst_pylonsrc_class_init (GstPylonsrcClass * klass)
       g_param_spec_string  ("autoexposure", "Automatic exposure setting", "(off, once, continuous) Controls whether or not the camera will try to adjust the exposure settings. Setting this parameter to anything but \"off\" will override the exposure parameter. Running the plugin without specifying this parameter will reset the value stored on the camera to \"off\"", "off",
           (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
   g_object_class_install_property (gobject_class, PROP_EXPOSURE,
-      g_param_spec_double ("exposure", "Exposure", "(Microseconds) Exposure time for the camera in microseconds. Will only have an effect if autoexposure is set to off (default). Higher numbers will cause lower frame rate. Note that the camera will remember this setting, and will use values from the previous runs if you relaunch without specifying this parameter. Reconnect the camera or use the reset parameter to reset.", 0.0, 1000000.0, 0.0,
+      g_param_spec_int ("exposure", "Exposure", "(Microseconds) Exposure time for the camera in microseconds. Will only have an effect if autoexposure is set to off (default). Higher numbers will cause lower frame rate. Note that the camera will remember this setting, and will use values from the previous runs if you relaunch without specifying this parameter. Reconnect the camera or use the reset parameter to reset.", 32, 1000000, 32,
           (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
   g_object_class_install_property (gobject_class, PROP_INTERPACKETDELAY,
       g_param_spec_int ("interpacketdelay", "Inter packet delay", "Setting delay in Milliseconds", 0, 840205, 1500,
@@ -457,7 +457,7 @@ gst_pylonsrc_init (GstPylonsrc *pylonsrc)
   pylonsrc->autoprofile = "default\0";
   pylonsrc->transformationselector = "default\0";
   pylonsrc->fps = 0.0;
-  pylonsrc->exposure = 0.0;
+  pylonsrc->exposure = 32;
   pylonsrc->gain = 0.0;
   pylonsrc->blacklevel = 0.0;
   pylonsrc->gamma = 1.0;
@@ -638,7 +638,7 @@ gst_pylonsrc_set_property (GObject * object, guint property_id,
       pylonsrc->fps = g_value_get_double(value);
       break;
     case PROP_EXPOSURE:
-      pylonsrc->exposure = g_value_get_double(value);
+      pylonsrc->exposure = g_value_get_int(value);
       break;
     case PROP_INTERPACKETDELAY:
       pylonsrc->interpacketdelay = g_value_get_int(value);
@@ -841,7 +841,7 @@ gst_pylonsrc_get_property (GObject * object, guint property_id,
       g_value_set_double(value, pylonsrc->fps);
       break;
     case PROP_EXPOSURE:
-      g_value_set_double(value, pylonsrc->exposure);
+      g_value_set_int(value, pylonsrc->exposure);
       break;
 
     case PROP_INTERPACKETDELAY:
@@ -1852,11 +1852,11 @@ gst_pylonsrc_start (GstBaseSrc * src)
   }
 
   // Configure exposure
-  if(PylonDeviceFeatureIsAvailable(pylonsrc->deviceHandle, "ExposureTime")) {
+  if(PylonDeviceFeatureIsAvailable(pylonsrc->deviceHandle, "ExposureTimeRaw")) {
     if(strcmp(pylonsrc->autoexposure, "off") == 0) {
-      if(pylonsrc->exposure != 0.0) {
-        GST_DEBUG_OBJECT(pylonsrc, "Setting exposure to %0.2lf", pylonsrc->exposure);
-        res = PylonDeviceSetFloatFeature(pylonsrc->deviceHandle, "ExposureTime", pylonsrc->exposure);
+      if(pylonsrc->exposure != 0) {
+        GST_MESSAGE_OBJECT(pylonsrc, "Setting exposure to %ld", pylonsrc->exposure);
+        res = PylonDeviceSetIntegerFeature(pylonsrc->deviceHandle, "ExposureTimeRaw", pylonsrc->exposure);
         PYLONC_CHECK_ERROR(pylonsrc, res);
       } else {
         GST_DEBUG_OBJECT(pylonsrc, "Exposure property not set, using the saved exposure setting.");
