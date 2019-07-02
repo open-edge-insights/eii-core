@@ -101,7 +101,8 @@ enum
   PROP_FPS,
   PROP_LIGHTSOURCE,
   PROP_AUTOEXPOSURE,
-  PROP_EXPOSURE,
+  PROP_EXPOSUREUSB,
+  PROP_EXPOSUREGIGE,
   PROP_INTERPACKETDELAY,
   PROP_AUTOWHITEBALANCE,
   PROP_BALANCERED,
@@ -232,8 +233,11 @@ gst_pylonsrc_class_init (GstPylonsrcClass * klass)
   g_object_class_install_property (gobject_class, PROP_AUTOEXPOSURE,
       g_param_spec_string  ("autoexposure", "Automatic exposure setting", "(off, once, continuous) Controls whether or not the camera will try to adjust the exposure settings. Setting this parameter to anything but \"off\" will override the exposure parameter. Running the plugin without specifying this parameter will reset the value stored on the camera to \"off\"", "off",
           (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
-  g_object_class_install_property (gobject_class, PROP_EXPOSURE,
-      g_param_spec_int ("exposure", "Exposure", "(Microseconds) Exposure time for the camera in microseconds. Will only have an effect if autoexposure is set to off (default). Higher numbers will cause lower frame rate. Note that the camera will remember this setting, and will use values from the previous runs if you relaunch without specifying this parameter. Reconnect the camera or use the reset parameter to reset.", 32, 1000000, 32,
+  g_object_class_install_property (gobject_class, PROP_EXPOSUREGIGE,
+      g_param_spec_int ("exposureGigE", "Exposure", "(Microseconds) Exposure time for the GIGE camera in microseconds. Will only have an effect if autoexposure is set to off (default). Higher numbers will cause lower frame rate. Note that the camera will remember this setting, and will use values from the previous runs if you relaunch without specifying this parameter. Reconnect the camera or use the reset parameter to reset.", 32, 1000000, 32,
+          (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
+          g_object_class_install_property (gobject_class, PROP_EXPOSUREUSB,
+      g_param_spec_double ("exposureUsb", "Exposure", "(Microseconds) Exposure time for the USB camera in microseconds. Will only have an effect if autoexposure is set to off (default). Higher numbers will cause lower frame rate. Note that the camera will remember this setting, and will use values from the previous runs if you relaunch without specifying this parameter. Reconnect the camera or use the reset parameter to reset.", 32.0, 1000000.0, 32.0,
           (GParamFlags) (G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
   g_object_class_install_property (gobject_class, PROP_INTERPACKETDELAY,
       g_param_spec_int ("interpacketdelay", "Inter packet delay", "Setting delay in Milliseconds", 0, 840205, 1500,
@@ -457,7 +461,8 @@ gst_pylonsrc_init (GstPylonsrc *pylonsrc)
   pylonsrc->autoprofile = "default\0";
   pylonsrc->transformationselector = "default\0";
   pylonsrc->fps = 0.0;
-  pylonsrc->exposure = 32;
+  pylonsrc->exposureGigE = 32;
+  pylonsrc->exposureUsb = 32;
   pylonsrc->gain = 0.0;
   pylonsrc->blacklevel = 0.0;
   pylonsrc->gamma = 1.0;
@@ -637,8 +642,11 @@ gst_pylonsrc_set_property (GObject * object, guint property_id,
     case PROP_FPS:
       pylonsrc->fps = g_value_get_double(value);
       break;
-    case PROP_EXPOSURE:
-      pylonsrc->exposure = g_value_get_int(value);
+    case PROP_EXPOSUREGIGE:
+      pylonsrc->exposureGigE = g_value_get_int(value);
+      break;
+    case PROP_EXPOSUREUSB:
+      pylonsrc->exposureUsb = g_value_get_float(value);
       break;
     case PROP_INTERPACKETDELAY:
       pylonsrc->interpacketdelay = g_value_get_int(value);
@@ -840,10 +848,12 @@ gst_pylonsrc_get_property (GObject * object, guint property_id,
     case PROP_FPS:
       g_value_set_double(value, pylonsrc->fps);
       break;
-    case PROP_EXPOSURE:
-      g_value_set_int(value, pylonsrc->exposure);
+    case PROP_EXPOSUREGIGE:
+      g_value_set_int(value, pylonsrc->exposureGigE);
       break;
-
+    case PROP_EXPOSUREUSB:
+      g_value_set_float(value, pylonsrc->exposureUsb);
+      break;
     case PROP_INTERPACKETDELAY:
       g_value_set_int(value, pylonsrc->interpacketdelay);
       break;
@@ -1851,12 +1861,29 @@ gst_pylonsrc_start (GstBaseSrc * src)
     GST_DEBUG_OBJECT(pylonsrc, "This camera doesn't support transforming colours. Skipping...");
   }
 
-  // Configure exposure
+  // Configure exposure for GigE
   if(PylonDeviceFeatureIsAvailable(pylonsrc->deviceHandle, "ExposureTimeRaw")) {
     if(strcmp(pylonsrc->autoexposure, "off") == 0) {
-      if(pylonsrc->exposure != 0) {
-        GST_MESSAGE_OBJECT(pylonsrc, "Setting exposure to %ld", pylonsrc->exposure);
-        res = PylonDeviceSetIntegerFeature(pylonsrc->deviceHandle, "ExposureTimeRaw", pylonsrc->exposure);
+      if(pylonsrc->exposureGigE != 0) {
+        GST_MESSAGE_OBJECT(pylonsrc, "Setting exposureGigE to %ld", pylonsrc->exposureGigE);
+        res = PylonDeviceSetIntegerFeature(pylonsrc->deviceHandle, "ExposureTimeRaw", pylonsrc->exposureGigE);
+        PYLONC_CHECK_ERROR(pylonsrc, res);
+      } else {
+        GST_DEBUG_OBJECT(pylonsrc, "Exposure property not set, using the saved exposure setting.");
+      }
+    } else {
+      GST_WARNING_OBJECT(pylonsrc, "Automatic exposure has been enabled, skipping setting manual exposure times.");
+    }
+  } else {
+    GST_WARNING_OBJECT(pylonsrc, "This camera doesn't support setting manual exposure.");
+  }
+
+  // Configure exposure for Usb
+  if(PylonDeviceFeatureIsAvailable(pylonsrc->deviceHandle, "ExposureTime")) {
+    if(strcmp(pylonsrc->autoexposure, "off") == 0) {
+      if(pylonsrc->exposureUsb != 0.0) {
+        GST_MESSAGE_OBJECT(pylonsrc, "Setting exposureUsb to %ld", pylonsrc->exposureUsb);
+        res = PylonDeviceSetFloatFeature(pylonsrc->deviceHandle, "ExposureTime", pylonsrc->exposureUsb);
         PYLONC_CHECK_ERROR(pylonsrc, res);
       } else {
         GST_DEBUG_OBJECT(pylonsrc, "Exposure property not set, using the saved exposure setting.");

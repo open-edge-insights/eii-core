@@ -9,7 +9,7 @@
                 "streams": {
                     "capture_streams": {
                         "cam_serial1": {
-                            "video_src": "pylonsrc imageformat=yuv422 exposure=3250 interpacketdelay=6000 ! videoconvert ! appsink",
+                            "video_src": "pylonsrc imageformat=yuv422 exposureGigE=3250 interpacketdelay=6000 ! videoconvert ! appsink",
                             "encoding": {
                                 "type": "jpg",
                                 "level": 100
