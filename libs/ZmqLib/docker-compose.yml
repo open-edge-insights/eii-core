@@ -1,0 +1,83 @@
+version: '3.6'
+
+services:
+  ia_gobase:
+    build:
+      context: ./
+      dockerfile: $PWD/../../docker_setup/dockerfiles/Dockerfile.gobase
+      args:
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+    image: ia_gobase:${IEI_VERSION}
+
+  # Define ia_pybase service
+  ia_pybase:
+    build:
+      context: ./
+      dockerfile: $PWD/../../docker_setup/dockerfiles/Dockerfile.pybase
+      args:
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          IEI_VERSION: ${IEI_VERSION}
+    image: ia_pybase:${IEI_VERSION}
+
+  # Define ia_gopybase service
+  ia_gopybase:
+    build:
+      context: ./
+      dockerfile: $PWD/../../docker_setup/dockerfiles/Dockerfile.gopybase
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    depends_on:
+      - ia_gobase
+      - ia_pybase
+    image: ia_gopybase:${IEI_VERSION}
+
+  ia_zmq_pub:
+    build:
+      context: ./
+      dockerfile: $PWD/dockerfiles/Dockerfile.zmqpub
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_zmq_pub:${IEI_VERSION}
+    network_mode: host
+    container_name: ia_zmq_pub
+    hostname: ia_zmq_pub
+    environment:
+      no_proxy: ${NO_PROXY}
+    depends_on:
+      - ia_gopybase
+    secrets:
+      - client.key
+      - client.key_secret
+      - server.key
+      - server.key_secret
+
+  ia_zmq_sub:
+    build:
+      context: ./
+      dockerfile: $PWD/dockerfiles/Dockerfile.zmqsub
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_zmq_sub:${IEI_VERSION}
+    network_mode: host
+    container_name: ia_zmq_sub
+    hostname: ia_zmq_sub
+    environment:
+      no_proxy: ${NO_PROXY}
+    depends_on:
+      - ia_zmq_pub
+    secrets:
+      - client.key
+      - client.key_secret
+      - server.key
+      - server.key_secret
+
+secrets:
+  client.key:
+    file: ./py/test/public_keys/client.key
+  client.key_secret:
+    file: ./py/test/private_keys/client.key_secret
+  server.key:
+    file: ./py/test/public_keys/server.key
+  server.key_secret:
+    file: ./py/test/private_keys/server.key_secret
