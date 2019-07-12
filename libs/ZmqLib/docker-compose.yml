@@ -44,6 +44,8 @@ services:
     hostname: ia_zmq_pub
     environment:
       no_proxy: ${NO_PROXY}
+      pub_topic: "camera1_stream"
+      camera1_stream_config: "ZeroMQ/TCP,*:5563"
     depends_on:
       - ia_gopybase
     secrets:
@@ -64,6 +66,8 @@ services:
     hostname: ia_zmq_sub
     environment:
       no_proxy: ${NO_PROXY}
+      sub_topic: "camera1_stream"
+      camera1_stream_config: "ZeroMQ/TCP,localhost:5563"
     depends_on:
       - ia_zmq_pub
     secrets:

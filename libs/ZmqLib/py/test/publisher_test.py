@@ -13,8 +13,16 @@ def main():
     save_to_disk = bool(strtobool(args.save_to_disk))
     etcd = etcd3.client()
 
+    config_list = os.environ[os.environ['pub_topic'].lower()
+                             + "_config"].split(',')
+    publish_address = ""
+    if "tcp" in config_list[0].lower():
+        publish_address = "tcp://"+config_list[1]
+    elif "ipc" in config_list[0].lower():
+        publish_address = "ipc:///"+config_list[1]
+
     # Initiate the publisher
-    publisher = ZMQ_PUBLISHER("tcp://*:5563",
+    publisher = ZMQ_PUBLISHER(publish_address,
                               public_keys_dir=args.public_keys_dir,
                               secret_keys_dir=args.private_keys_dir)
 
@@ -40,7 +48,7 @@ def main():
             etcd.put('metaData', result)
             etcd_metaData = etcd.get('metaData')
             etcd.delete('metaData')
-            publish_list = ["stream1_results",
+            publish_list = [os.environ['pub_topic'],
                             etcd_metaData[0].decode("utf-8"),
                             frame]
 
