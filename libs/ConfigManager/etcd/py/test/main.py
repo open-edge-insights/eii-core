@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-from etcd_client import EtcdCli
+from libs.ConfigManager.etcd.py.etcd_client import EtcdCli
 import time
 import argparse
 

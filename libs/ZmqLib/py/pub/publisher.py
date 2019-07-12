@@ -44,7 +44,7 @@ class ZMQ_PUBLISHER(object):
             self.auth.configure_curve(domain='*', location=public_keys_dir)
             self.publisher = self.context.socket(zmq.PUB)
             server_secret_file = os.path.join(secret_keys_dir,
-                                              "server.key_secret")
+                                              "zmq_server.key_secret")
             server_public, server_secret = \
                 zmq.auth.load_certificate(server_secret_file)
 

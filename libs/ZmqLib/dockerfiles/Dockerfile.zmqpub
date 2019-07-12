@@ -1,4 +1,4 @@
-# Dockerfile for DataAgent
+# Dockerfile for ZMQ publisher
 ARG IEI_VERSION
 FROM ia_gobase:$IEI_VERSION as base
 
@@ -14,8 +14,10 @@ RUN git clone https://github.com/kragniz/python-etcd3.git && \
     python3.6 setup.py install && \
     cd ..
 
-COPY go/ ./libs/ZmqLib/go
-COPY py/ ./libs/ZmqLib/py
+COPY ZmqLib/go/ ./libs/ZmqLib/go
+COPY ZmqLib/py/ ./libs/ZmqLib/py
+COPY common/ ./libs/common
+COPY ConfigManager/ ./libs/ConfigManager
 WORKDIR /IEI/go/src/IEdgeInsights/libs/ZmqLib/py/test
 ENTRYPOINT ["python3.6", "publisher_test.py", "--public-key", "/IEI/go/src/IEdgeInsights/libs/ZmqLib/py/test/public_keys", "--private-key", "/run/secrets"]
 HEALTHCHECK NONE

@@ -1,4 +1,4 @@
-# Dockerfile for DataAgent
+# Dockerfile for ZMQ subscriber
 ARG IEI_VERSION
 FROM ia_gobase:$IEI_VERSION as base
 

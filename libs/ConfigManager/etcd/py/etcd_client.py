@@ -25,7 +25,7 @@ in etcd distributed key store
 
 import etcd3
 import logging
-from Util.util import check_port_availability
+from libs.common.py.util import check_port_availability
 
 
 class EtcdCli:

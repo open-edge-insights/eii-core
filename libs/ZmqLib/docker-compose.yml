@@ -34,7 +34,7 @@ services:
 
   ia_zmq_pub:
     build:
-      context: ./
+      context: ../
       dockerfile: $PWD/dockerfiles/Dockerfile.zmqpub
       args:
         IEI_VERSION: ${IEI_VERSION}
@@ -49,10 +49,13 @@ services:
     depends_on:
       - ia_gopybase
     secrets:
-      - client.key
-      - client.key_secret
-      - server.key
-      - server.key_secret
+      - zmq_client.key_secret
+      - zmq_server.key_secret
+      - etcd.ca.cert
+      - etcd.client.cert
+      - etcd.client.key
+      - etcd.server.cert
+      - etcd.server.key
 
   ia_zmq_sub:
     build:
@@ -71,17 +74,35 @@ services:
     depends_on:
       - ia_zmq_pub
     secrets:
-      - client.key
-      - client.key_secret
-      - server.key
-      - server.key_secret
+      - zmq_client.key_secret
+      - zmq_server.key_secret
+
+  ia_etcd:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.etcd
+    image: ia_etcd
+    container_name: ia_etcd
+    network_mode: host
+    secrets:
+      - etcd.ca.cert
+      - etcd.client.cert
+      - etcd.client.key
+      - etcd.server.cert
+      - etcd.server.key
 
 secrets:
-  client.key:
-    file: ./py/test/public_keys/client.key
-  client.key_secret:
+  zmq_client.key_secret:
     file: ./py/test/private_keys/client.key_secret
-  server.key:
-    file: ./py/test/public_keys/server.key
-  server.key_secret:
+  zmq_server.key_secret:
     file: ./py/test/private_keys/server.key_secret
+  etcd.ca.cert:
+    file: ./etcd_certs/ca.pem
+  etcd.client.cert:
+    file: ./etcd_certs/etcd-client.pem
+  etcd.client.key:
+    file: ./etcd_certs/etcd-client-key.pem
+  etcd.server.cert:
+    file: ./etcd_certs/etcd-server.pem
+  etcd.server.key:
+    file: ./etcd_certs/etcd-server-key.pem
