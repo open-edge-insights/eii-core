@@ -91,6 +91,49 @@ services:
       - etcd.server.cert
       - etcd.server.key
 
+  ia_zmq_rep:
+    build:
+      context: ../
+      dockerfile: $PWD/dockerfiles/Dockerfile.zmqrep
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_zmq_rep:${IEI_VERSION}
+    network_mode: host
+    container_name: ia_zmq_rep
+    hostname: ia_zmq_rep
+    environment:
+      no_proxy: ${NO_PROXY}
+      connection_config: "ZeroMQ/TCP,*:5563"
+    depends_on:
+      - ia_gopybase
+    secrets:
+      - zmq_client.key_secret
+      - zmq_server.key_secret
+      - etcd.ca.cert
+      - etcd.client.cert
+      - etcd.client.key
+      - etcd.server.cert
+      - etcd.server.key
+
+  ia_zmq_req:
+    build:
+      context: ./
+      dockerfile: $PWD/dockerfiles/Dockerfile.zmqreq
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_zmq_req:${IEI_VERSION}
+    network_mode: host
+    container_name: ia_zmq_req
+    hostname: ia_zmq_req
+    environment:
+      no_proxy: ${NO_PROXY}
+      connection_config: "ZeroMQ/TCP,localhost:5563"
+    depends_on:
+      - ia_zmq_rep
+    secrets:
+      - zmq_client.key_secret
+      - zmq_server.key_secret
+
 secrets:
   zmq_client.key_secret:
     file: ./py/test/private_keys/client.key_secret
