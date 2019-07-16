@@ -1,8 +1,5 @@
 #!/bin/bash
 
-configFile=$1
-logLevel=$2
-
 source /opt/intel/openvino/bin/setupvars.sh
 
 udevadm control --reload-rules
@@ -12,4 +9,4 @@ udevadm trigger
 #$HDDL_INSTALL_DIR/bin/hddldaemon &
 #sleep 20
 
-python3.6 -u VideoAnalytics.py --log-dir /IEI/video_analytics_logs  --config $configFile --log $logLevel
+python3.6 VideoAnalytics/video_analytics.py --log $PY_LOG_LEVEL

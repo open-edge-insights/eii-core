@@ -8,10 +8,7 @@
 source ./setenv.sh
 source /opt/intel/openvino/bin/setupvars.sh
 docker stop ia_video_analytics
-python3.6 VideoAnalytics.py --config \
-                ../../docker_setup/config/algo_config/factory_pcbdemo.json \
-                --log-dir ./ --log-name videoanalytics.log
-
+python3.6 video_analytics.py --log-dir ./ --log INFO
 
 # Usage
 # sudo ./va_baremetal_setup.sh

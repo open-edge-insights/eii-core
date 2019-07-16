@@ -190,9 +190,10 @@ class Classifier:
         # start frame that is used for
         # debugging purposes
         if(index == -1):
+            d_info = []
             defects = []
             self.log.debug('Received trigger frame')
-            return defects
+            return d_info, defects
 
         self.log.debug('Classifying image')
 

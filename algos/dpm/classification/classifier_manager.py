@@ -167,7 +167,7 @@ class ClassifierManager:
                 if res is None:
                     break
 
-                sample_num, user_data, img_handle, (cam_sn, frame) = res
+                sample_num, user_data, (cam_sn, frame) = res
                 ts = time.time()
 
                 try:

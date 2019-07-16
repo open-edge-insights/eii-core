@@ -32,41 +32,26 @@ RUN bash -c 'source /opt/intel/openvino/bin/setupvars.sh && \
 # Remove OpenVINO toolkit after installation
 RUN rm -rf ${HOME}/l_openvino_toolkit*
 
-#Creating dir for certs file
-RUN mkdir -p /etc/ssl/imagestore && \
-    mkdir -p /etc/ssl/streamsublib && \
-    mkdir -p /etc/ssl/grpc_int_ssl_secrets && \
-    mkdir -p /etc/ssl/ca && \
-    chown ${IEI_UID} /IEI && \
-    chown -R ${IEI_UID} /etc/ssl
-
-ENV PYTHONPATH ${PYTHONPATH}:./DataAgent/da_grpc/protobuff/py:./DataAgent/da_grpc/protobuff/py/pb_internal:./ImageStore/protobuff/py/:./algos/dpm/classification/
+# Myriad and HDDL requirements
+RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 \
+    libboost-filesystem1.58.0 libssl1.0.0 libudev1 libjson-c2 udev 
+ADD DataAnalytics/VideoAnalytics/97-myriad-usbboot.rules .    
+RUN echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc && \
+    cp /IEI/97-myriad-usbboot.rules /etc/udev/rules.d/ && \
+    echo "udevadm control --reload-rules" >> ~/.bashrc && \
+    echo "udevadm trigger" >> ~/.bashrc 
 
 # Installing dependent python modules
 COPY DataAnalytics/VideoAnalytics/va_requirements.txt .
 RUN pip3.6 install -r va_requirements.txt && \
     rm -rf va_requirements.txt
 
-# Adding classifier program
-COPY Util/ ./Util/
-COPY DataAnalytics/VideoAnalytics/ .
-
-#Myriad and HDDL requirements
-RUN apt install -y libusb-1.0-0 libboost-program-options1.58.0 libboost-thread1.58.0 \
-    libboost-filesystem1.58.0 libssl1.0.0 libudev1 libjson-c2 udev 
-RUN echo "source /opt/intel/openvino/bin/setupvars.sh" >> ~/.bashrc && \
-    cp /IEI/97-myriad-usbboot.rules /etc/udev/rules.d/ && \
-    echo "udevadm control --reload-rules" >> ~/.bashrc && \
-    echo "udevadm trigger" >> ~/.bashrc 
-
 # Adding project depedency modules
-COPY algos ./algos
-COPY DataAgent/__init__.py ./DataAgent/__init__.py
-COPY DataAgent/da_grpc ./DataAgent/da_grpc
-COPY ImageStore ./ImageStore
-COPY StreamSubLib ./StreamSubLib
-COPY DataIngestionLib ./DataIngestionLib
+COPY libs/ ./libs
+COPY DataAnalytics/VideoAnalytics/ ./VideoAnalytics
 
-ENTRYPOINT ["./va_classifier_start.sh"]
+ENV PYTHONPATH ${PYTHONPATH}:.
+RUN chmod +x ./VideoAnalytics/va_classifier_start.sh
+
+ENTRYPOINT ["./VideoAnalytics/va_classifier_start.sh"]
 HEALTHCHECK NONE
-

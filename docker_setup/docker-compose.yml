@@ -239,25 +239,19 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
-      SHARED_KEY: ${SHARED_KEY}
+      APP_NAME: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
-      SHARED_NONCE: ${SHARED_NONCE}
-      INFLUX_SERVER: ${INFLUX_SERVER}
-      DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
-      IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
-      GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
       no_proxy: ${NO_PROXY}
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
+      SUB_TOPICS: "camera1_stream"      
+      camera1_stream_cfg : "ZeroMQ/TCP,127.0.0.1:65011"
+      PUB_TOPICS: "camera1_stream_results"
+      camera1_stream_results_cfg : "ZeroMQ/TCP,10.223.109.132:65013"
     privileged: true
     volumes:
-      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/streamsublib"
-      - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
-      - "${IEI_INSTALL_PATH}/logs/video_analytics_logs:/IEI/video_analytics_logs"
       - "/dev:/dev"
-    command: ["./algos/algo_config/${CONFIG_FILE}", "${PY_LOG_LEVEL}"]
+    # command: ["${PY_LOG_LEVEL}"]
     devices:
       - "/dev/dri"
     logging:
