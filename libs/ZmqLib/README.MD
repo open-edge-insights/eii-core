@@ -6,16 +6,16 @@
     python3.6 generate_certificates.py
     ```
 
-2. Have etcd running as a service from docker image by running this command in a separate terminal
-
-    ```sh
-    docker run -p 2379:2379 --name etcd quay.io/coreos/etcd:v3.0.16 /usr/local/bin/etcd -advertise-client-urls http://0.0.0.0:2379 -listen-client-urls http://0.0.0.0:2379
-    ```
-
-3. Build both the PUB-SUB & REQ-REP containers using docker-compose
+2. Build the PUB-SUB, REQ-REP & etcd containers using docker-compose
 
     ```sh
     docker-compose build
+    ```
+
+3. Have etcd running as a container by running this command in a separate terminal
+
+    ```sh
+    docker-compose run ia_etcd
     ```
 
 4. Run publisher
