@@ -82,74 +82,8 @@ services:
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
-  # Define DataAgent service - hosts vault daemon, influxdb daemon & DataAgent module
-  ia_data_agent:
-    depends_on:
-      - ia_log_rotate
-    build:
-      context: ../
-      dockerfile: $PWD/../DataAgent/Dockerfile
-      args:
-        IEI_VERSION: ${IEI_VERSION}
-        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
-        IEI_UID: ${IEI_UID}
-    image: ia_data_agent:${IEI_VERSION}
-    container_name: ia_data_agent
-    hostname: ia_data_agent
-    network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      no_proxy: ${NO_PROXY}
-      SHARED_KEY: ${SHARED_KEY}
-      SHARED_NONCE: ${SHARED_NONCE}
-      IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
-      INFLUX_SERVER: ${INFLUX_SERVER}
-      DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
-      GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
-      GRPC_EXTERNAL_PORT: ${GRPC_EXTERNAL_PORT}
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
-      VAULT_PORT: ${VAULT_PORT}
-      OPCUA_PORT: ${OPCUA_PORT}
-      TPM_ENABLE: ${TPM_ENABLE}
-      DEV_MODE: ${DEV_MODE}
-      LD_LIBRARY_PATH: /usr/local/lib
-      INFLUXDB_HTTP_AUTH_ENABLED: ${INFLUX_AUTH_VALUE}
-      GO_LOG_LEVEL: ${GO_LOG_LEVEL}
-      GO_VERBOSE: ${GO_VERBOSE}
-      PROFILING: ${PROFILING}
-      REDIS_PORT: ${REDIS_PORT}
-      MINIO_PORT: ${MINIO_PORT}
-    volumes:
-      - "${IEI_INSTALL_PATH}/data/influxdata:/influxdata"
-      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${IEI_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
-      - "${IEI_INSTALL_PATH}/config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-      - "${IEI_INSTALL_PATH}/secret_store:/vault/file"
-      - "${IEI_INSTALL_PATH}/tpm_secret:/IEI/tpm_secret"
-      - "${IEI_INSTALL_PATH}/logs/data_agent_logs:/IEI/go/src/IEdgeInsights/log/data_agent_logs"
-    command: ["${GO_LOG_LEVEL}", "${GO_VERBOSE}", "${DEV_MODE}"]
-    ports:
-      - "${GRPC_INTERNAL_PORT}:${GRPC_INTERNAL_PORT}"
-      - "${OPCUA_PORT}:${OPCUA_PORT}"
-      - "${INFLUXDB_PORT}:${INFLUXDB_PORT}"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-      test: ["CMD-SHELL", "exit", "0"]
-      interval: ${HEALTHCHECK_DURATION}
-    user: ${IEI_UID}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
-
-
   # Define telegraf service
   ia_telegraf:
-    depends_on:
-      - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/../Telegraf/Dockerfile
@@ -191,8 +125,6 @@ services:
 
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
-    depends_on:
-      - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/../ImageStore/Dockerfile
@@ -242,8 +174,6 @@ services:
 
   # Define DataAnalytics service
   ia_data_analytics:
-    depends_on:
-      - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/../DataAnalytics/PointDataAnalytics/Dockerfile
@@ -297,9 +227,6 @@ services:
 
   # Define VideoAnalytics service
   ia_video_analytics:
-    depends_on:
-      - ia_data_agent
-      - ia_imagestore
     build:
       context: ../
       dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
@@ -348,8 +275,6 @@ services:
 
   # Define FactoryControlApp service
   ia_factoryctrl_app:
-    depends_on:
-       - ia_data_agent
     build:
       context: ../
       dockerfile: $PWD/../FactoryControlApp/Dockerfile
@@ -388,7 +313,6 @@ services:
   # Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
-      - ia_imagestore
       - ia_video_analytics
     build:
       context: ../
@@ -402,13 +326,8 @@ services:
     network_mode: host
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
+      APP_NAME: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
-      SHARED_KEY: ${SHARED_KEY}
-      SHARED_NONCE: ${SHARED_NONCE}
-      INFLUX_SERVER: ${INFLUX_SERVER}
-      IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
-      DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
-      GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
       no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
       DEBIAN_FRONTEND: noninteractive
       MFX_HOME: "/opt/intel/mediasdk/"
@@ -418,16 +337,14 @@ services:
       LD_RUN_PATH: "/usr/lib"
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
-      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
-      PROFILING: ${PROFILING}
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
       GST_DEBUG: ${GST_DEBUG}
+      PROFILING: ${PROFILING}
+      PUB_TOPICS: "camera1_stream"
+      camera1_stream_cfg: "ZeroMQ/TCP,127.0.0.1:65011"
     volumes:
-      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
-      - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
-      - "${IEI_INSTALL_PATH}/logs/video_ingestion_logs:/IEI/video_ingestion_logs"
-    command: ["--config", "./algos/algo_config/${CONFIG_FILE}", "--log", "${PY_LOG_LEVEL}"]
+    command: ["--log-dir", "/IEI/video_ingestion_logs", "--log", "${PY_LOG_LEVEL}"]
     privileged: true
     devices:
       - "/dev/dri"

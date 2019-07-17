@@ -3,12 +3,10 @@ services+=(ia_log_rotate)
 services+=(ia_gobase)
 services+=(ia_pybase)
 services+=(ia_gopybase)
-services+=(ia_data_agent)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
-dockerignores+=(DataAgent/.dockerignore)
 
 # List of Configurable IEI services and respective dockerignores.
 
