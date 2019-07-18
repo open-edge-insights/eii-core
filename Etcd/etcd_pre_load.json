@@ -86,5 +86,8 @@
     },
     "/VideoAnalytics/dummy_classifier": {
         "queue_size": 10
+    },
+    "/Visualizer/config": {
+        "cert_path": ""
     }
 }

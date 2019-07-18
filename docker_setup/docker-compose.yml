@@ -12,7 +12,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_gobase:${IEI_VERSION}
-    
+
   # Define ia_pybase service
   ia_pybase:
     build:
@@ -22,7 +22,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           IEI_VERSION: ${IEI_VERSION}
     image: ia_pybase:${IEI_VERSION}
-    
+
   # Define ia_gopybase service
   ia_gopybase:
     build:
@@ -31,7 +31,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
     image: ia_gopybase:${IEI_VERSION}
-    
+
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
@@ -192,7 +192,7 @@ services:
       no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
-      SubTopics: "camera1_stream"      
+      SubTopics: "camera1_stream"
       camera1_stream_cfg : "ZeroMQ/TCP,127.0.0.1:65011"
       PubTopics: "camera1_stream_results"
       camera1_stream_results_cfg : "ZeroMQ/TCP,127.0.0.1:65013"
@@ -300,6 +300,45 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
+  ia_visualizer:
+    build:
+      context: ../
+      dockerfile: $PWD/../tools/visualizer/Dockerfile
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia_visualizer:${IEI_VERSION}
+    container_name: ia_visualizer
+    hostname: ia_visualizer
+    network_mode: host
+    ipc: host
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      no_proxy: ${NO_PROXY}
+      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
+      DISPLAY: ${DISPLAY}
+      IMAGE_DIR: "${IEI_INSTALL_PATH}/saved_images"
+      SubTopics: "camera1_stream_results"
+      camera1_stream_results_cfg : "ZeroMQ/TCP,127.0.0.1:65013"
+      ENABLE_DISPLAY : "true"
+      PROFILING : "false"
+      DEV_MODE: "false"
+    command: ["-i", "${IMAGE_DIR}", "-d", "${ENABLE_DISPLAY}", "-P", "${PROFILING}", "-D", "${DEV_MODE}"]
+    privileged: true
+    volumes:
+      - "${IMAGE_DIR}:${IMAGE_DIR}"
+      - "/tmp/.X11-unix:/tmp/.X11-unix"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
 
 networks:
   default:
