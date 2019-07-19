@@ -24,8 +24,10 @@ project(eis-messagebus VERSION 1.0.0 LANGUAGES C CXX)
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS "Compile with unit tests" OFF)
-option(WITH_TIMEIT "Compile with timeit functionality enabled" OFF)
 option(WITH_PYTHON "Compile with Python bindings" OFF)
+
+# Set C standard to C11
+set(CMAKE_C_STANDARD 11)
 
 # Set CFLAGS
 set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -pedantic -fstack-protector-strong -D_FORTIFY_SOURCE=2")
@@ -49,11 +51,32 @@ find_package(ZMQ REQUIRED)
 find_package(Threads REQUIRED)
 find_package(cJSON REQUIRED)
 
+# Include Intel safestring library
+configure_file(${CMAKE_MODULE_PATH}/IntelSafeString.txt.in safestring-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+                RESULT_VARIABLE ss_result
+                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
+if(ss_result)
+    message(FATAL_ERROR "CMake step for safestring failed: ${ss_result}")
+endif()
+
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    RESULT_VARIABLE ss_result
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
+if(result)
+    message(FATAL_ERROR "Build step for safestring failed: ${ss_result}")
+endif()
+
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
+                 ${CMAKE_CURRENT_BINARY_DIR}/safestring-build
+                 EXCLUDE_FROM_ALL)
+
 # Include header directories
 include_directories(
     include/
     ${ZMQ_INCLUDE_DIRS}
-    ${CJSON_INCLUDE_DIRS})
+    ${CJSON_INCLUDE_DIRS}
+    ${safestring_SOURCE_DIR}/include)
 
 # Get all source files
 file(GLOB SOURCES "src/*.c")
@@ -61,17 +84,16 @@ set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(eismsgbus SHARED ${SOURCES})
 target_link_libraries(eismsgbus
-    pthread
-    ${ZMQ_LIBRARIES}
-    ${CJSON_LIBRARIES})
+    PUBLIC
+        pthread
+    PRIVATE
+        ${ZMQ_LIBRARIES}
+        ${CJSON_LIBRARIES}
+        safestring_static)
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     target_compile_definitions(eismsgbus PRIVATE DEBUG=1)
-endif()
-
-if(WITH_TIMEIT)
-    target_compile_definitions(eismsgbus PRIVATE WITH_TIMEIT)
 endif()
 
 if(WITH_EXAMPLES)
