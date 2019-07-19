@@ -12,10 +12,6 @@ def main():
     """main method"""
     args = parse_args()
     save_to_disk = bool(strtobool(args.save_to_disk))
-    etcd = etcd3.client(host="localhost", port=2379,
-                        ca_cert="/run/secrets/etcd.ca.cert",
-                        cert_key="/run/secrets/etcd.client.key",
-                        cert_cert="/run/secrets/etcd.client.cert")
 
     config_list = os.environ[os.environ['pub_topic'].lower()
                              + "_config"].split(',')
@@ -25,28 +21,28 @@ def main():
     elif "ipc" in config_list[0].lower():
         publish_address = "ipc:///"+config_list[1]
 
-    with open(args.public_keys_dir+"/client.key", "rb") as client_key:
-        client_key_encoded = client_key.read()
-    with open(args.public_keys_dir+"/server.key", "rb") as server_key:
-        server_key_encoded = server_key.read()
-
-    etcd.put('PublicKeys/VideoIngestion', server_key_encoded)
-    etcd.put('PublicKeys/ImageStore', client_key_encoded)
-
     conf = {"endpoint": "localhost:2379",
             "certFile": "/run/secrets/etcd.client.cert",
             "keyFile": "/run/secrets/etcd.client.key",
             "trustFile": "/run/secrets/etcd.ca.cert"}
     etcdCli = EtcdCli(conf)
-    server_etcd_key = etcdCli.GetConfig('PublicKeys/VideoIngestion')
-    client_etcd_key = etcdCli.GetConfig('PublicKeys/ImageStore')
-    etcd_keys_directory = os.path.join(os.getcwd(), r'etcd_public_keys')
+
+    etcd_keys_directory = os.path.join(os.getcwd(), r'etcd_keys_directory')
     if not os.path.exists(etcd_keys_directory):
         os.makedirs(etcd_keys_directory)
-    with open(etcd_keys_directory+"/server.key", "wb") as server_key_file:
-        server_key_file.write(server_etcd_key.encode('utf-8'))
-    with open(etcd_keys_directory+"/client.key", "wb") as client_key_file:
-        client_key_file.write(client_etcd_key.encode('utf-8'))
+
+    # Fetch required client public keys from etcd
+    subscriber_list = etcdCli.GetConfig("VideoIngestion1/Subscribers"
+                                        ).split(',')
+
+    # Fetching the keys
+    for i in range(len(subscriber_list)):
+        client_etcd_key = etcdCli.GetConfig("PublicKeys/" +
+                                            str(subscriber_list[i]))
+        with open(etcd_keys_directory +
+                  "/client"+str(i) +
+                  ".key", "wb") as client_key_file:
+            client_key_file.write(client_etcd_key.encode('utf-8'))
 
     # Initiate the publisher
     publisher = ZMQ_PUBLISHER(publish_address,
@@ -71,13 +67,8 @@ def main():
                 name="{0}{1}".format('Frame', iterator)
             )
 
-            # Sample etcd tests
-            result = json.dumps(metaData)
-            etcd.put('metaData', result)
-            etcd_metaData = etcd.get('metaData')
-            etcd.delete('metaData')
             publish_list = [os.environ['pub_topic'],
-                            etcd_metaData[0].decode("utf-8"),
+                            metaData,
                             frame]
 
             # Publish the meta-data and numpy frame
@@ -101,10 +92,6 @@ def main():
 def parse_args():
 
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('--public-key', dest='public_keys_dir',
-                        default="",
-                        help='Public keys directory')
 
     parser.add_argument('--private-key', dest='private_keys_dir',
                         default="",

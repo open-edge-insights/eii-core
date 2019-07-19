@@ -19,5 +19,5 @@ COPY ZmqLib/py/ ./libs/ZmqLib/py
 COPY common/ ./libs/common
 COPY ConfigManager/ ./libs/ConfigManager
 WORKDIR /IEI/go/src/IEdgeInsights/libs/ZmqLib/py/test
-ENTRYPOINT ["python3.6", "responder_test.py", "--public-key", "/IEI/go/src/IEdgeInsights/libs/ZmqLib/py/test/public_keys", "--private-key", "/run/secrets"]
+ENTRYPOINT ["./docker_responder.sh"]
 HEALTHCHECK NONE

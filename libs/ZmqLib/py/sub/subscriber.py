@@ -48,7 +48,7 @@ class ZMQ_SUBSCRIBER(object):
             # the server. The client must know the server's public key
             # to make a CURVE connection.
             client_secret_file = os.path.join(secret_keys_dir,
-                                              "zmq_client.key_secret")
+                                              "zmq_client0.key_secret")
             client_public, client_secret =\
                 zmq.auth.load_certificate(client_secret_file)
 

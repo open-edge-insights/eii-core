@@ -49,7 +49,7 @@ services:
     depends_on:
       - ia_gopybase
     secrets:
-      - zmq_client.key_secret
+      - zmq_client0.key_secret
       - zmq_server.key_secret
       - etcd.ca.cert
       - etcd.client.cert
@@ -74,7 +74,7 @@ services:
     depends_on:
       - ia_zmq_pub
     secrets:
-      - zmq_client.key_secret
+      - zmq_client0.key_secret
       - zmq_server.key_secret
 
   ia_etcd:
@@ -103,11 +103,11 @@ services:
     hostname: ia_zmq_rep
     environment:
       no_proxy: ${NO_PROXY}
-      connection_config: "ZeroMQ/TCP,*:5563"
+      connection_config: "ZeroMQ/TCP,*:5564"
     depends_on:
       - ia_gopybase
     secrets:
-      - zmq_client.key_secret
+      - zmq_client0.key_secret
       - zmq_server.key_secret
       - etcd.ca.cert
       - etcd.client.cert
@@ -127,16 +127,22 @@ services:
     hostname: ia_zmq_req
     environment:
       no_proxy: ${NO_PROXY}
-      connection_config: "ZeroMQ/TCP,localhost:5563"
+      connection_config: "ZeroMQ/TCP,localhost:5564"
     depends_on:
       - ia_zmq_rep
     secrets:
-      - zmq_client.key_secret
+      - zmq_client0.key_secret
       - zmq_server.key_secret
 
 secrets:
-  zmq_client.key_secret:
-    file: ./py/test/private_keys/client.key_secret
+  zmq_client0.key_secret:
+    file: ./py/test/private_keys/client0.key_secret
+  zmq_client1.key_secret:
+    file: ./py/test/private_keys/client1.key_secret
+  zmq_client2.key_secret:
+    file: ./py/test/private_keys/client2.key_secret
+  zmq_client3.key_secret:
+    file: ./py/test/private_keys/client3.key_secret
   zmq_server.key_secret:
     file: ./py/test/private_keys/server.key_secret
   etcd.ca.cert:

@@ -17,7 +17,10 @@ def generate_certificates(base_dir):
 
     # create new keys in certificates dir
     zmq.auth.create_certificates(keys_dir, "server")
-    zmq.auth.create_certificates(keys_dir, "client")
+    zmq.auth.create_certificates(keys_dir, "client0")
+    zmq.auth.create_certificates(keys_dir, "client1")
+    zmq.auth.create_certificates(keys_dir, "client2")
+    zmq.auth.create_certificates(keys_dir, "client3")
 
     # move public keys to appropriate directory
     for key_file in os.listdir(keys_dir):

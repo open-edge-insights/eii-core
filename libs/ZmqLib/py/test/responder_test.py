@@ -54,10 +54,6 @@ def callback_a(request):
 def main():
     """main method"""
     args = parse_args()
-    etcd = etcd3.client(host="localhost", port=2379,
-                        ca_cert="/run/secrets/etcd.ca.cert",
-                        cert_key="/run/secrets/etcd.client.key",
-                        cert_cert="/run/secrets/etcd.client.cert")
 
     config_list = os.environ["connection_config"].split(',')
     responder_address = ""
@@ -66,32 +62,32 @@ def main():
     elif "ipc" in config_list[0].lower():
         responder_address = "ipc:///"+config_list[1]
 
-    with open(args.public_keys_dir+"/client.key", "rb") as client_key:
-        client_key_encoded = client_key.read()
-    with open(args.public_keys_dir+"/server.key", "rb") as server_key:
-        server_key_encoded = server_key.read()
-
-    etcd.put('server_key', server_key_encoded)
-    etcd.put('client_key', client_key_encoded)
-
     conf = {"endpoint": "localhost:2379",
             "certFile": "/run/secrets/etcd.client.cert",
             "keyFile": "/run/secrets/etcd.client.key",
             "trustFile": "/run/secrets/etcd.ca.cert"}
     etcdCli = EtcdCli(conf)
-    server_etcd_key = etcdCli.GetConfig('server_key')
-    client_etcd_key = etcdCli.GetConfig('client_key')
-    etcd_keys_directory = os.path.join(os.getcwd(), r'etcd_public_keys')
+
+    etcd_keys_directory = os.path.join(os.getcwd(), r'etcd_keys_directory')
     if not os.path.exists(etcd_keys_directory):
         os.makedirs(etcd_keys_directory)
-    with open(etcd_keys_directory+"/server.key", "wb") as server_key_file:
-        server_key_file.write(server_etcd_key.encode('utf-8'))
-    with open(etcd_keys_directory+"/client.key", "wb") as client_key_file:
-        client_key_file.write(client_etcd_key.encode('utf-8'))
+
+    # Fetch required client public keys from etcd
+    subscriber_list = etcdCli.GetConfig("VideoIngestion1/Subscribers"
+                                        ).split(',')
+
+    # Fetching the keys
+    for i in range(len(subscriber_list)):
+        client_etcd_key = etcdCli.GetConfig("PublicKeys/" +
+                                            str(subscriber_list[i]))
+        with open(etcd_keys_directory +
+                  "/client"+str(i) +
+                  ".key", "wb") as client_key_file:
+            client_key_file.write(client_etcd_key.encode('utf-8'))
 
     # Initiate the responder
     responder = ZMQ_RESPONDER(responder_address,
-                              public_keys_dir=args.public_keys_dir,
+                              public_keys_dir=etcd_keys_directory,
                               secret_keys_dir=args.private_keys_dir)
 
     while True:
@@ -105,10 +101,6 @@ def main():
 def parse_args():
 
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('--public-key', dest='public_keys_dir',
-                        default="",
-                        help='Public keys directory')
 
     parser.add_argument('--private-key', dest='private_keys_dir',
                         default="",
