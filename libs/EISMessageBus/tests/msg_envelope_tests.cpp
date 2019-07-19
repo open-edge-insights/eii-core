@@ -45,36 +45,33 @@
  * Simple initialization and destroy case with no data.
  */
 TEST(msg_envelope_tests, simple_init) {
-    // msg_envelope_t* msg = msgbus_msg_envelope_new(CT_JSON);
-    // msgbus_msg_envelope_destroy(msg);
+    msg_envelope_t* msg = msgbus_msg_envelope_new(CT_JSON);
+    msgbus_msg_envelope_destroy(msg);
 }
 
 /**
  * Test to verify flow of put, get, remove, and get
  */
 TEST(msg_envelope_tests, simple_put_get_remove) {
-    //msg_envelope_t* msg = msgbus_msg_envelope_new(CT_JSON);
-    //msg_envelope_elem_body_t* data = (msg_envelope_elem_body_t*) malloc(
-    //        sizeof(*data));
-    //data->type = MSG_ENV_DT_INT;
-    //data->body.integer = 42;
+    msg_envelope_t* msg = msgbus_msg_envelope_new(CT_JSON);
+    msg_envelope_elem_body_t* data = msgbus_msg_envelope_new_integer(42);
 
-    //msgbus_msg_envelope_put(msg, "testing", data);
+    msgbus_msg_envelope_put(msg, "testing", data);
 
-    //msg_envelope_elem_body_t* data_get;
-    //msgbus_ret_t ret = msgbus_msg_envelope_get(msg, "testing", &data_get);
+    msg_envelope_elem_body_t* data_get;
+    msgbus_ret_t ret = msgbus_msg_envelope_get(msg, "testing", &data_get);
 
-    //ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to retrieve 'testing' from body";
-    //ASSERT_EQ(data_get->type, MSG_ENV_DT_INT) << "Value of data type wrong";
-    //ASSERT_EQ(data_get->body.integer, 42) << "Value of retrieved data wrong";
+    ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to retrieve 'testing' from body";
+    ASSERT_EQ(data_get->type, MSG_ENV_DT_INT) << "Value of data type wrong";
+    ASSERT_EQ(data_get->body.integer, 42) << "Value of retrieved data wrong";
 
-    //ret = msgbus_msg_envelope_remove(msg, "testing");
-    //ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to remove 'testing' from the body";
+    ret = msgbus_msg_envelope_remove(msg, "testing");
+    ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to remove 'testing' from the body";
 
-    //ret = msgbus_msg_envelope_get(msg, "testing", &data_get);
-    //ASSERT_EQ(ret, MSG_ERR_ELEM_NOT_EXIST);
+    ret = msgbus_msg_envelope_get(msg, "testing", &data_get);
+    ASSERT_EQ(ret, MSG_ERR_ELEM_NOT_EXIST);
 
-    //msgbus_msg_envelope_destroy(msg);
+    msgbus_msg_envelope_destroy(msg);
 }
 
 /**
