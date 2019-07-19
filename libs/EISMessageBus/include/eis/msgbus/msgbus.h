@@ -181,6 +181,7 @@ typedef struct {
  */
 typedef struct {
     char* key;
+    size_t key_len;
     bool in_use;
     msg_envelope_elem_body_t* body;
 } msg_envelope_elem_t;

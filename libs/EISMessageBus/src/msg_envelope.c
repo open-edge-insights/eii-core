@@ -25,8 +25,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <cjson/cJSON.h>
+#include <safe_lib.h>
 
 #include "eis/msgbus/msgbus.h"
 #include "eis/msgbus/crc32.h"
@@ -91,15 +93,19 @@ int hash(msg_envelope_t* env, const char* key) {
     curr = hash_int(env, key);
     curr = hash_int(env, key);
 
+    int ind = 0;
+
     // Linear probing
     for(i = 0; i < MAX_CHAIN_LEN; i++) {
         // We have a good index to use
         if(!env->elems[curr].in_use) return curr;
 
+        strcmp_s(env->elems[curr].key, env->elems[curr].key_len, key, &ind);
+
         // For a message envelope only one value at a key can exist, there is
         // no updating currently supported, a new message envelope must be
         // created for each message
-        if(env->elems[curr].in_use && (strcmp(env->elems[curr].key, key) == 0))
+        if(env->elems[curr].in_use && ind == 0)
             return MAP_KEY_EXISTS;
 
         curr = (curr + 1) % env->max_size;
@@ -231,6 +237,7 @@ msgbus_ret_t msg_envelope_put_helper(
 
             // Set data in the envelope
             env->elems[index].key = key;
+            env->elems[index].key_len = strlen(key);
             env->elems[index].in_use = true;
             env->elems[index].body = data;
         }
@@ -256,7 +263,7 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_string(const char* string) {
         free(elem);
         return NULL;
     }
-    memcpy(elem->body.string, string, len);
+    memcpy_s(elem->body.string, len, string, len);
     elem->body.string[len] = '\0';
 
     return elem;
@@ -368,7 +375,7 @@ msgbus_ret_t msgbus_msg_envelope_put(
         size_t len = strlen(key);
         // Copying the key value
         key_cpy = (char*) malloc(sizeof(char) * len + 1);
-        memcpy(key_cpy, key, len);
+        memcpy_s(key_cpy, len, key, len);
         key_cpy[len] = '\0';
     }
 
@@ -386,11 +393,15 @@ msgbus_ret_t msgbus_msg_envelope_remove(msg_envelope_t* env, const char* key) {
 
     // Get intiial hash value
     uint32_t curr = hash_int(env, key);
+    size_t key_len;
+    int ind = 0;
 
     // Linear probing
     for(int i = 0; i < MAX_CHAIN_LEN; i++) {
         if(env->elems[curr].in_use) {
-            if(strcmp(env->elems[curr].key, key) == 0) {
+            key_len = env->elems[curr].key_len;
+            strcmp_s(env->elems[curr].key, key_len, key, &ind);
+            if(ind == 0) {
                 // Found the correct body element
                 free(env->elems[curr].body);
                 free(env->elems[curr].key);
@@ -427,11 +438,15 @@ msgbus_ret_t msgbus_msg_envelope_get(
 
     // Get intiial hash value
     uint32_t curr = hash_int(env, key);
+    size_t key_len;
+    int ind;
 
     // Linear probing
     for(int i = 0; i < MAX_CHAIN_LEN; i++) {
         if(env->elems[curr].in_use) {
-            if(strcmp(env->elems[curr].key, key) == 0) {
+            key_len = env->elems[curr].key_len;
+            strcmp_s(env->elems[curr].key, key_len, key, &ind);
+            if(ind == 0) {
                 *data = env->elems[curr].body;
                 return MSG_SUCCESS;
             }
@@ -586,7 +601,7 @@ int parse_json_object(msg_envelope_t* env, const char* key, cJSON* obj) {
                sizeof(msg_envelope_elem_body_t));
         data->type = MSG_ENV_DT_STRING;
         data->body.string = (char*) malloc(sizeof(char) * len);
-        memcpy(data->body.string, obj->valuestring, len);
+        memcpy_s(data->body.string, len, obj->valuestring, len);
         data->body.string[len - 1] = '\0';
     }
 

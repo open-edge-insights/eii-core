@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <safe_lib.h>
 
 #include "eis/msgbus/msgbus.h"
 #include "eis/msgbus/protocol.h"
@@ -92,7 +93,7 @@ config_value_t* msgbus_config_value_new_string(const char* value) {
 
     cv->type = CVT_STRING;
     cv->body.string = (char*) malloc(sizeof(char) * (len + 1));
-    memcpy(cv->body.string, value, len);
+    memcpy_s(cv->body.string, len, value, len);
     cv->body.string[len] = '\0';
 
     return cv;
@@ -202,8 +203,13 @@ void* msgbus_initialize(config_t* config) {
         goto err;
     }
 
-    if(strcmp(value->body.string, ZMQ_IPC) == 0 ||
-            strcmp(value->body.string, ZMQ_TCP) == 0) {
+    int ind_ipc;
+    int ind_tcp;
+
+    strcmp_s(value->body.string, strlen(ZMQ_IPC), ZMQ_IPC, &ind_ipc);
+    strcmp_s(value->body.string, strlen(ZMQ_TCP), ZMQ_TCP, &ind_tcp);
+
+    if(ind_ipc == 0 ||ind_tcp == 0) {
         proto = proto_zmq_initialize(value->body.string, config);
         if(proto == NULL)
             goto err;

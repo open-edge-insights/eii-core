@@ -29,6 +29,7 @@
 #include <pthread.h>
 
 #include <zmq.h>
+#include <safe_lib.h>
 
 #include "eis/msgbus/zmq.h"
 #include "eis/msgbus/logger.h"
@@ -195,7 +196,7 @@ msgbus_ret_t sock_ctx_new(const char* name, void* socket, zmq_sock_ctx_t** ctx)
         free(*ctx);
         return MSG_ERR_NO_MEMORY;
     }
-    memcpy((*ctx)->name, name, (*ctx)->name_len);
+    memcpy_s((*ctx)->name, (*ctx)->name_len, name, (*ctx)->name_len);
     (*ctx)->name[(*ctx)->name_len - 1] = '\0';
     (*ctx)->socket = socket;
     return MSG_SUCCESS;
@@ -234,6 +235,8 @@ void* zap_run(void* vargs) {
     bool keep_running = true;
     bool accepted = false;
     int rc = 0;
+    int ind = 0;
+    size_t curve_len = strlen(ZAP_CURVE);
     zmq_pollitem_t poll_items[] = {{ zap_ctx->socket, 0, ZMQ_POLLIN, 0 }};
 
     // ZAP fields (All fields have a max size of 255, see ZAP spec)
@@ -288,7 +291,8 @@ void* zap_run(void* vargs) {
             version, request_id, domain, address, identity, mechanism);
 
         // Verify that the mechanism is "CURVE" and not NULL nor PLAIN
-        if(strcmp(mechanism, ZAP_CURVE) != 0) {
+        strcmp_s(mechanism, curve_len, ZAP_CURVE, &ind);
+        if(ind != 0) {
             LOG_WARN("Received ZAP request with non CURVE mechanism: %s",
                        mechanism);
             continue;
@@ -313,7 +317,8 @@ void* zap_run(void* vargs) {
                 msgbus_config_value_destroy(client);
                 break;
             }
-            if(strcmp(encoded_key, client->body.string) == 0) {
+            strcmp_s(encoded_key, strlen(encoded_key), ZAP_CURVE, &ind);
+            if(ind == 0) {
                 accepted = true;
                 msgbus_config_value_destroy(client);
                 break;
@@ -480,7 +485,13 @@ protocol_t* proto_zmq_initialize(const char* type, config_t* config) {
     zmq_proto_ctx->zmq_context = zmq_ctx_new();
     zmq_proto_ctx->config = config;
 
-    if(strcmp(type, ZMQ_IPC) == 0) {
+    int ind_ipc;
+    int ind_tcp;
+
+    strcmp_s(type, strlen(ZMQ_IPC), ZMQ_IPC, &ind_ipc);
+    strcmp_s(type, strlen(ZMQ_TCP), ZMQ_TCP, &ind_tcp);
+
+    if(ind_ipc == 0) {
         LOG_DEBUG_0("Initializing ZeroMQ for IPC communication");
 
         // Set IPC flag
@@ -503,7 +514,7 @@ protocol_t* proto_zmq_initialize(const char* type, config_t* config) {
 
         LOG_DEBUG("ZeroMQ IPC socket directory: %s", value->body.string);
         zmq_proto_ctx->cfg.ipc.socket_dir = value;
-    } else if(strcmp(type, ZMQ_TCP) == 0) {
+    } else if(ind_tcp == 0) {
         LOG_DEBUG_0("Initializing ZeroMQ for TCP communication");
 
         // Set IPC flag
@@ -975,7 +986,8 @@ msgbus_ret_t proto_zmq_subscriber_new(
 
     // Set subscription filter
     char* tmp = (char*) malloc(sizeof(char) * (strlen(topic) + 1));
-    memcpy(tmp, topic, strlen(topic));
+    size_t topic_len = strlen(topic);
+    memcpy_s(tmp, topic_len, topic, topic_len);
     tmp[strlen(topic)] = '\0';
     ret = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, tmp, strlen(topic));
     free(tmp);
