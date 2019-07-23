@@ -54,7 +54,7 @@ class Publisher:
         self.log.info("=======Starting publisher thread=======")
         context = zmq.Context()
         self.socket = context.socket(zmq.PUB)
-        topics = os.environ['PUB_TOPICS'].split(",")
+        topics = os.environ['PubTopics'].split(",")
 
         # Keeping the logic of being able to publish to multiple topics
         # with each publish happening on different/same bind socket

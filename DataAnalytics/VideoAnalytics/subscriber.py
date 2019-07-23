@@ -48,7 +48,7 @@ class Subscriber:
         """
         context = zmq.Context()
         self.socket = context.socket(zmq.SUB)
-        topics = os.environ['SUB_TOPICS'].split(",")
+        topics = os.environ['SubTopics'].split(",")
         self.subscriber_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
             topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
