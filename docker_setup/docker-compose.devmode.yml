@@ -13,8 +13,8 @@ services:
 
   ia_video_ingestion:
     volumes:
-      - "${IEI_INSTALL_PATH}/algos/:/IEI/algos/"
+      - "${IEI_INSTALL_PATH}/filters:/IEI/VideoIngestion/filters"
 
   ia_video_analytics:
     volumes:
-      - "${IEI_INSTALL_PATH}/algos/:/IEI/algos/"
+      - "${IEI_INSTALL_PATH}/classifiers:/IEI/VideoAnalytics/classifiers"

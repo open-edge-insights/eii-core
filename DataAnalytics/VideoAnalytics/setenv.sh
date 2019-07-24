@@ -11,7 +11,7 @@ export DEV_MODE=$DEV_MODE
 export GRPC_INTERNAL_PORT=$GRPC_INTERNAL_PORT
 
 # Set PythonPATH
-export PYTHONPATH="../../:../../ImageStore/protobuff:../../ImageStore/protobuff/py/:../../DataAgent/da_grpc/protobuff/py:../../DataAgent/da_grpc/protobuff/py/pb_internal:../../algos/dpm/classification/:/opt/intel/openvino_2019.1.133/python/python3.6/ubuntu16/:../VideoAnalytics/"
+export PYTHONPATH="../../:..:/opt/intel/openvino_2019.1.133/python/python3.6/ubuntu16/"
 
 if [ $DEV_MODE = "false" ]
 then

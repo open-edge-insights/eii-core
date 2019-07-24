@@ -13,15 +13,16 @@ mkdir -p $ieiConfDir
 # Creating iei log directory
 mkdir -p $ieiLogDir/consolidatedLogs
 
-
 # Copy config files
 cp -rf $configDir $ieiRootDir
 
-# Copy algos files
-cp -rf $algosDir $ieiRootDir
+# Copy filter and classifier algo files
+cp -rf $filtersDir $ieiRootDir
+cp -rf $classifiersDir $ieiRootDir
 
 # Copy test video files
 if [ -d "./test_videos" ]; then
     echo "test_videos exist..."
     cp -rf ./test_videos $ieiRootDir/
 fi
+

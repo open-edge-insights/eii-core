@@ -212,16 +212,15 @@ EIS can work with a TPM hardware where the vault keys can be saved securely in t
 
 # Enable camera based Video Ingestion
 
-EIS supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined trigger / filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
+EIS supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
 
-All the changes related to camera type are made in the factory_*.json files and samples are provided in [docker_setup/config/algo_config/](docker_setup/config/algo_config/) directory.
+All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference. 
 
-For detailed description on configuring different types of cameras and trigger algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
+For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) from factory json files in [algo_config](../algos/algo_config/) folder.
-For running a sample with accelerators, use the factory_pcbdemo_myriad.json or factory_pcbdemo_hddl.json in the .env file. Note that it uses a different set of model files which are FP16 based.
+EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the ingestor configuration in Etcd (sample ingestor configurations available at [VideoIngestion/README.md](VideoIngestion/README.md)). For running a sample with accelerators, use the factory_pcbdemo_myriad.json or factory_pcbdemo_hddl.json in the .env file. Note that it uses a different set of model files which are FP16 based.
 
 > Note:
 > To run on HDDL devices, make sure to uncomment the below section of code in [DataAnalytics/VideoAnalytics/va_classifier_start.sh](../DataAnalytics/VideoAnalytics/va_classifier_start.sh).
@@ -328,7 +327,7 @@ Follow below steps:
 
 # Factory control app
 
-The factory control app is a sample provided to demonstrate the implementation of a closed loop factory control mechanism which can be used for triggering alarm lights / control devices on a factory floor when a defect is detected in the visual inspection.
+The factory control app is a sample provided to demonstrate the implementation of a closed loop factory control mechanism which can be used for  filtering alarm lights / control devices on a factory floor when a defect is detected in the visual inspection.
 Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configuring the sample implementation. For using this app, the services_*.json file need to be updated to include this app in the build and run process.
 
 # Debugging options

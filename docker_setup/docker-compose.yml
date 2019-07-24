@@ -155,8 +155,6 @@ services:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${IEI_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${IEI_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
-      - "${IEI_INSTALL_PATH}/config/algo_config/${CONFIG_FILE}:/IEI/${CONFIG_FILE}"
-      - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
     ports:
       - "${KAPACITOR_PORT}:${KAPACITOR_PORT}"
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}", "${DEV_MODE}"]

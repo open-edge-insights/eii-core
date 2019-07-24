@@ -18,4 +18,7 @@ ieiDataDir=$ieiRootDir/data
 mkdir -p $ieiLogDir/consolidatedLogs
 
 configDir="config"
-algosDir="../algos"
+
+filtersDir="../VideoIngestion/filters"
+classifiersDir="../DataAnalytics/VideoAnalytics/classifiers"
+

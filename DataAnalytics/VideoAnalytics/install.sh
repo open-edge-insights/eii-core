@@ -5,10 +5,6 @@ source ../../docker_setup/.env
 #Install python dependencies
 sudo -H pip3.6 install -r va_requirements.txt
 
-# Create symbolic link
-mkdir -p algos
-ln -sdf ../../../docker_setup/config/algo_config ./algos/algo_config
-
 if [ $DEV_MODE = "false" ]
 then
 	# Set the Permission
