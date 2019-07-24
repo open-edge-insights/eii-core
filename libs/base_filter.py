@@ -43,7 +43,7 @@ def load_filter(filter, filter_config, input_queue, output_queue):
         input queue for filter
     output_queue : Queue
         output queue of filter
-    
+
     Returns
     -------
         Filter object for the specified filter
@@ -84,7 +84,7 @@ class BaseFilter:
 
     def __init__(self, filter_config, input_queue, output_queue):
         """Constructor to initialize filter object
-       
+
         Parameters
         ----------
         filter_config : dict
@@ -93,7 +93,7 @@ class BaseFilter:
             input queue for filter
         output_queue : Queue
             output queue of filter
-        
+
         Returns
         -------
         Filter object for the BaseFilter
@@ -132,16 +132,16 @@ class BaseFilter:
         """Stops the pool of filter threads responsible for filtering frames
         and adding data to the filter output queue
         """
-        self.stop_event.set()        
-        self.filter_threadpool.shutdown()
+        self.stop_event.set()
+        self.filter_threadpool.shutdown(wait=False)
 
     def set_name(self, name):
         """Sets the name of the filter
         """
         self.name = name
-    
+
     def get_name(self):
         """Gets the name of the filter
         """
         return self.name
-    
+
