@@ -24,7 +24,6 @@ package main
 
 import (
 	eismsgbus "EISMessageBus/eismsgbus"
-	types "EISMessageBus/pkg/types"
 	"flag"
 	"fmt"
 	"time"
@@ -64,7 +63,7 @@ func main() {
 	defer publisher.Close()
 
 	fmt.Println("-- Running...")
-	msg := types.NewMsgEnvelope(map[string]interface{}{"hello": "world"}, nil)
+	msg := map[string]interface{}{"hello": "world"}
 	for {
 		err = publisher.Publish(msg)
 		if err != nil {

@@ -74,6 +74,6 @@ func main() {
 			return
 		}
 		fmt.Printf("-- Received request: %v\n", msg)
-		service.Response(msg)
+		service.Response(msg.Data)
 	}
 }

@@ -24,7 +24,6 @@ package main
 
 import (
 	eismsgbus "EISMessageBus/eismsgbus"
-	types "EISMessageBus/pkg/types"
 	"flag"
 	"fmt"
 )
@@ -68,7 +67,7 @@ func main() {
 	defer service.Close()
 
 	fmt.Printf("-- Sending request")
-	req := types.NewMsgEnvelope(map[string]interface{}{"hello": "world"}, nil)
+	req := map[string]interface{}{"hello": "world"}
 	err = service.Request(req)
 	if err != nil {
 		fmt.Printf("-- Error sending request: %v\n", err)
