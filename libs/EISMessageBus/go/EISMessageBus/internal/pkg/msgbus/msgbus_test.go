@@ -23,7 +23,6 @@ SOFTWARE.
 package msgbus
 
 import (
-	types "EISMessageBus/pkg/types"
 	"reflect"
 	"testing"
 	"time"
@@ -74,9 +73,12 @@ func TestPubSub(t *testing.T) {
 	time.Sleep(1000 * time.Millisecond)
 
 	m := map[string]interface{}{"str": "hello", "int": 2.0, "float": 55.5, "bool": true}
-	env := types.NewMsgEnvelope(m, nil)
+	bytes := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09")
+	slice := make([]interface{}, 2)
+	slice[0] = m
+	slice[1] = bytes
 
-	err = ctx.Publish(pubCtx, env)
+	err = ctx.Publish(pubCtx, slice)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -88,9 +90,15 @@ func TestPubSub(t *testing.T) {
 		return
 	}
 
-	eq := reflect.DeepEqual(received, env)
+	eq := reflect.DeepEqual(received.Data, m)
 	if !eq {
-		t.Errorf("Messages not equal:\n\tSENT: %v\n\tRECEIVED: %v\n", env, received)
+		t.Errorf("Messages not equal:\n\tSENT: %v\n\tRECEIVED: %v\n", m, received)
+		return
+	}
+
+	eq = reflect.DeepEqual(received.Blob, bytes)
+	if !eq {
+		t.Errorf("Messages not equal:\n\tSENT: %v\n\tRECEIVED: %v\n", m, received)
 		return
 	}
 }
@@ -162,9 +170,9 @@ func TestRequestResponse(t *testing.T) {
 	defer ctx.DestroyRecvCtx(reqCtx)
 
 	// Send request
-	req := types.NewMsgEnvelope(map[string]interface{}{"hello": "world"}, nil)
+	m := map[string]interface{}{"hello": "world"}
 
-	err = ctx.Request(reqCtx, req)
+	err = ctx.Request(reqCtx, m)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -177,14 +185,14 @@ func TestRequestResponse(t *testing.T) {
 		return
 	}
 
-	eq := reflect.DeepEqual(req, receivedReq)
+	eq := reflect.DeepEqual(m, receivedReq.Data)
 	if !eq {
-		t.Errorf("Received request does not match request:\n\tSENT: %v\n\tRECEIVED: %v", req, receivedReq)
+		t.Errorf("Received request does not match request:\n\tSENT: %v\n\tRECEIVED: %v", m, receivedReq)
 		return
 	}
 
 	// Send response
-	err = ctx.Response(serviceCtx, receivedReq)
+	err = ctx.Response(serviceCtx, receivedReq.Data)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -197,10 +205,10 @@ func TestRequestResponse(t *testing.T) {
 		return
 	}
 
-	eq = reflect.DeepEqual(req, resp)
+	eq = reflect.DeepEqual(m, resp.Data)
 	if !eq {
 		t.Errorf("Received response does not match original request:\n\tSENT: %v\n\tRECEIVED: %v",
-			req, receivedReq)
+			m, receivedReq)
 		return
 	}
 }

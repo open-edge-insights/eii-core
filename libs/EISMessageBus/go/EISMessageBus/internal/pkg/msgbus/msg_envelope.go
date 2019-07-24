@@ -70,77 +70,100 @@ import (
 	"unsafe"
 )
 
+// Global for checking if slice is a []byte slice
+var typeOfBytes = reflect.TypeOf([]byte(nil))
+
 // Convert Go message envelope representation to C message envelope representation
-func GoToMsgEnvelope(env *types.MsgEnvelope) (unsafe.Pointer, error) {
-	if env.Data != nil {
-		msg := C.msgbus_msg_envelope_new(C.CT_JSON)
-		if msg == nil {
-			return nil, errors.New("Failed to initialize message envelope")
-		}
+func GoToMsgEnvelope(env interface{}) (unsafe.Pointer, error) {
+	var msg unsafe.Pointer
+	envValue := reflect.ValueOf(env)
+	envKind := envValue.Kind()
 
-		var ret C.msgbus_ret_t
-		for key, value := range env.Data {
-			switch v := reflect.ValueOf(value); v.Kind() {
-			case reflect.String:
-				body := C.msgbus_msg_envelope_new_string(C.CString(value.(string)))
-				ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
-				if ret != C.MSG_SUCCESS {
-					C.msgbus_msg_envelope_elem_destroy(body)
-					C.msgbus_msg_envelope_destroy(msg)
-					return nil, errors.New("Error adding msg envelope element")
-				}
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-				body := C.msgbus_msg_envelope_new_integer(C.long(value.(int)))
-				ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
-				if ret != C.MSG_SUCCESS {
-					C.msgbus_msg_envelope_elem_destroy(body)
-					C.msgbus_msg_envelope_destroy(msg)
-					return nil, errors.New("Error adding msg envelope element")
-				}
-			case reflect.Float32, reflect.Float64:
-				body := C.msgbus_msg_envelope_new_floating(C.double(value.(float64)))
-				ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
-				if ret != C.MSG_SUCCESS {
-					C.msgbus_msg_envelope_elem_destroy(body)
-					C.msgbus_msg_envelope_destroy(msg)
-					return nil, errors.New("Error adding msg envelope element")
-				}
-			case reflect.Bool:
-				body := C.msgbus_msg_envelope_new_bool(C.bool(value.(bool)))
-				ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
-				if ret != C.MSG_SUCCESS {
-					C.msgbus_msg_envelope_elem_destroy(body)
-					C.msgbus_msg_envelope_destroy(msg)
-					return nil, errors.New("Error adding msg envelope element")
-				}
-			default:
-				C.msgbus_msg_envelope_destroy(msg)
-				return nil, errors.New("Unknown type in data map")
-			}
-		}
-
-		if env.Blob != nil {
-			err := addBytesToMsgEnvelope(env.Blob, unsafe.Pointer(msg))
-			if err != nil {
-				C.msgbus_msg_envelope_destroy(msg)
-				return nil, errors.New("Failed to add blob to JSON message")
-			}
-		}
-		return unsafe.Pointer(msg), nil
-	} else {
-		msg := C.msgbus_msg_envelope_new(C.CT_BLOB)
-		if msg == nil {
-			return nil, errors.New("Failed to initialize message envelope")
-		}
-
-		err := addBytesToMsgEnvelope(env.Blob, unsafe.Pointer(msg))
+	if envKind == reflect.Map {
+		jsonMsg := C.msgbus_msg_envelope_new(C.CT_JSON)
+		msg = unsafe.Pointer(jsonMsg)
+		err := addMapToMsgEnvelope(msg, env.(map[string]interface{}))
 		if err != nil {
-			C.msgbus_msg_envelope_destroy(msg)
+			C.msgbus_msg_envelope_destroy(jsonMsg)
 			return nil, err
 		}
+	} else if envKind == reflect.Slice {
+		if envValue.Type() == typeOfBytes {
+			blobMsg := C.msgbus_msg_envelope_new(C.CT_BLOB)
+			msg = unsafe.Pointer(blobMsg)
+			err := addBytesToMsgEnvelope(msg, env.([]byte))
+			if err != nil {
+				C.msgbus_msg_envelope_destroy(blobMsg)
+				return nil, err
+			}
+		} else {
+			slice := env.([]interface{})
+			if len(slice) != 2 {
+				return nil, errors.New("Slice can only contain 2 elements")
+			}
 
-		return unsafe.Pointer(msg), nil
+			first := slice[0]
+			firstValue := reflect.ValueOf(first)
+			firstKind := firstValue.Kind()
+
+			second := slice[1]
+			secondValue := reflect.ValueOf(second)
+			secondKind := secondValue.Kind()
+
+			if firstKind == secondKind {
+				return nil, errors.New("Elements must have only one map[string]interface{} and one []byte")
+			}
+
+			multiMsg := C.msgbus_msg_envelope_new(C.CT_JSON)
+			msg = unsafe.Pointer(multiMsg)
+
+			if firstKind == reflect.Map {
+				err := addMapToMsgEnvelope(msg, first.(map[string]interface{}))
+				if err != nil {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, err
+				}
+			} else if firstKind == reflect.Slice {
+				if firstValue.Type() != typeOfBytes {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, errors.New("Slice must be []byte")
+				}
+
+				err := addBytesToMsgEnvelope(msg, first.([]byte))
+				if err != nil {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, err
+				}
+			} else {
+				C.msgbus_msg_envelope_destroy(multiMsg)
+				return nil, errors.New("Unknown data type, must be map[string]interface{} or []byte")
+			}
+
+			if secondKind == reflect.Map {
+				err := addMapToMsgEnvelope(msg, second.(map[string]interface{}))
+				if err != nil {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, err
+				}
+			} else if secondKind == reflect.Slice {
+				if secondValue.Type() != typeOfBytes {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, errors.New("Slice must be []byte")
+				}
+
+				err := addBytesToMsgEnvelope(msg, second.([]byte))
+				if err != nil {
+					C.msgbus_msg_envelope_destroy(multiMsg)
+					return nil, err
+				}
+			} else {
+				C.msgbus_msg_envelope_destroy(multiMsg)
+				return nil, errors.New("Unknown data type, must be map[string]interface{} or []byte")
+			}
+		}
 	}
+
+	return msg, nil
 }
 
 func MsgEnvelopeDestroy(msg unsafe.Pointer) {
@@ -149,7 +172,49 @@ func MsgEnvelopeDestroy(msg unsafe.Pointer) {
 	}
 }
 
-func addBytesToMsgEnvelope(data []byte, msg unsafe.Pointer) error {
+func addMapToMsgEnvelope(env unsafe.Pointer, data map[string]interface{}) error {
+	msg := (*C.msg_envelope_t)(env)
+
+	var ret C.msgbus_ret_t
+	for key, value := range data {
+		switch v := reflect.ValueOf(value); v.Kind() {
+		case reflect.String:
+			body := C.msgbus_msg_envelope_new_string(C.CString(value.(string)))
+			ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
+			if ret != C.MSG_SUCCESS {
+				C.msgbus_msg_envelope_elem_destroy(body)
+				return errors.New("Error adding msg envelope element")
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			body := C.msgbus_msg_envelope_new_integer(C.long(value.(int)))
+			ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
+			if ret != C.MSG_SUCCESS {
+				C.msgbus_msg_envelope_elem_destroy(body)
+				return errors.New("Error adding msg envelope element")
+			}
+		case reflect.Float32, reflect.Float64:
+			body := C.msgbus_msg_envelope_new_floating(C.double(value.(float64)))
+			ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
+			if ret != C.MSG_SUCCESS {
+				C.msgbus_msg_envelope_elem_destroy(body)
+				return errors.New("Error adding msg envelope element")
+			}
+		case reflect.Bool:
+			body := C.msgbus_msg_envelope_new_bool(C.bool(value.(bool)))
+			ret = C.msgbus_msg_envelope_put(msg, C.CString(key), body)
+			if ret != C.MSG_SUCCESS {
+				C.msgbus_msg_envelope_elem_destroy(body)
+				return errors.New("Error adding msg envelope element")
+			}
+		default:
+			return errors.New("Unknown type in data map")
+		}
+	}
+
+	return nil
+}
+
+func addBytesToMsgEnvelope(msg unsafe.Pointer, data []byte) error {
 	env := (*C.msg_envelope_t)(msg)
 
 	elem := C.msgbus_msg_envelope_new_blob(C.CString(string(data)), C.size_t(len(data)))

@@ -77,7 +77,7 @@ func (service *ServiceRequester) ReceiveResponse(timeout int) (*types.MsgEnvelop
 }
 
 // Send a request to the service.
-func (service *ServiceRequester) Request(request *types.MsgEnvelope) error {
+func (service *ServiceRequester) Request(request interface{}) error {
 	if service.client.IsClosed() {
 		return errors.New("Message bus context has been destroyed")
 	}

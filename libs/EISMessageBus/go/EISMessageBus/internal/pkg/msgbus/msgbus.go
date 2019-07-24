@@ -359,7 +359,7 @@ func (ctx *MsgbusContext) NewPublisher(topic string) (*PublisherContext, error) 
 }
 
 // Publish the given message on the publisher context.
-func (ctx *MsgbusContext) Publish(pubCtx *PublisherContext, msg *types.MsgEnvelope) error {
+func (ctx *MsgbusContext) Publish(pubCtx *PublisherContext, msg interface{}) error {
 	if pubCtx.pubCtx == nil {
 		return errors.New("Publisher context has already been destroyed")
 	}
@@ -502,7 +502,7 @@ func (ctx *MsgbusContext) GetService(serviceName string) (*ReceiveContext, error
 }
 
 // Send a request to a service.
-func (ctx *MsgbusContext) Request(serviceCtx *ReceiveContext, request *types.MsgEnvelope) error {
+func (ctx *MsgbusContext) Request(serviceCtx *ReceiveContext, request interface{}) error {
 	if serviceCtx.recvCtx == nil {
 		return errors.New("Service context already destroyed")
 	}
@@ -523,7 +523,7 @@ func (ctx *MsgbusContext) Request(serviceCtx *ReceiveContext, request *types.Msg
 }
 
 // Send response to a request
-func (ctx *MsgbusContext) Response(serviceCtx *ReceiveContext, response *types.MsgEnvelope) error {
+func (ctx *MsgbusContext) Response(serviceCtx *ReceiveContext, response interface{}) error {
 	if serviceCtx.recvCtx == nil {
 		return errors.New("Service context already destroyed")
 	}

@@ -24,7 +24,6 @@ package eismsgbus
 
 import (
 	msgbus "EISMessageBus/internal/pkg/msgbus"
-	types "EISMessageBus/pkg/types"
 	"errors"
 )
 
@@ -40,7 +39,7 @@ func newPublisher(msgbusClient *MsgbusClient, pubCtx *msgbus.PublisherContext) *
 	return pub
 }
 
-func (pub *Publisher) Publish(msg *types.MsgEnvelope) error {
+func (pub *Publisher) Publish(msg interface{}) error {
 	if pub.client.IsClosed() {
 		return errors.New("Message bus context has been destroyed")
 	}

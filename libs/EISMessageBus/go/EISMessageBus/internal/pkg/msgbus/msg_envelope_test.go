@@ -23,16 +23,15 @@ SOFTWARE.
 package msgbus
 
 import (
-	types "EISMessageBus/pkg/types"
+	// types "EISMessageBus/pkg/types"
 	"reflect"
 	"testing"
 )
 
 func TestMapToMsgEnvelope(t *testing.T) {
 	m := map[string]interface{}{"str": "hello", "int": 2.0, "float": 55.5, "bool": true}
-	env := types.NewMsgEnvelope(m, nil)
 
-	msg, err := GoToMsgEnvelope(env)
+	msg, err := GoToMsgEnvelope(m)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -54,9 +53,8 @@ func TestMapToMsgEnvelope(t *testing.T) {
 
 func TestBytesToMsgEnvelope(t *testing.T) {
 	bytes := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09")
-	env := types.NewMsgEnvelope(nil, bytes)
 
-	msg, err := GoToMsgEnvelope(env)
+	msg, err := GoToMsgEnvelope(bytes)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
@@ -79,9 +77,11 @@ func TestBytesToMsgEnvelope(t *testing.T) {
 func TestMapBytesToMsgEnvelope(t *testing.T) {
 	m := map[string]interface{}{"str": "hello", "int": 2.0, "float": 55.5, "bool": true}
 	bytes := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09")
-	env := types.NewMsgEnvelope(m, bytes)
+	slice := make([]interface{}, 2)
+	slice[0] = m
+	slice[1] = bytes
 
-	msg, err := GoToMsgEnvelope(env)
+	msg, err := GoToMsgEnvelope(slice)
 	if err != nil {
 		t.Errorf("%v", err)
 		return
