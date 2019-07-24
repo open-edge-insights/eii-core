@@ -317,7 +317,8 @@ void* zap_run(void* vargs) {
                 msgbus_config_value_destroy(client);
                 break;
             }
-            strcmp_s(encoded_key, strlen(encoded_key), ZAP_CURVE, &ind);
+            strcmp_s(encoded_key, strlen(encoded_key), client->body.string,
+                     &ind);
             if(ind == 0) {
                 accepted = true;
                 msgbus_config_value_destroy(client);
