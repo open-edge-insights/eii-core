@@ -1,9 +1,7 @@
 # List of core IEI services and respective dockerignores.
-services+=(ia_log_rotate)
 services+=(ia_gobase)
 services+=(ia_pybase)
 services+=(ia_gopybase)
-dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)
 dockerignores+=(docker_setup/dockerignores/.dockerignore.common)

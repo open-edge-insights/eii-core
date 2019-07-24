@@ -2,47 +2,6 @@ version: '3'
 
 services:
 
-  #---- Start: IEI Dependency Services----
-  # Define a log_rotate service
-  ia_log_rotate:
-    build:
-      context: ../
-      dockerfile: $PWD/dockerfiles/Dockerfile.logrotate
-      args:
-        LOG_ROTATE_VERSION: ${LOG_ROTATE_VERSION}
-        IEI_UID: ${IEI_UID}
-    container_name: ia_log_rotate
-    hostname: ia_log_rotate
-    image: ia_log_rotate:${IEI_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      LOGS_DIRECTORIES: ${IEI_INSTALL_PATH}/logs
-
-      # Logrotate can rotate logfile according to the following intervals:
-      # hourly
-      # daily
-      # weekly
-      # monthly
-      # yearly
-      # For more details, refer the following link
-      # https://hub.docker.com/r/blacklabelops/logrotate/
-      LOGROTATE_INTERVAL: "daily"
-      LOGROTATE_COPIES: ${LOGROTATE_COPIES}
-      LOGROTATE_DATEFORMAT: "%Y%m%d_%H:%M:%S"
-      TZ: ${HOST_TIME_ZONE}
-    volumes:
-      - "${IEI_INSTALL_PATH}/logs:${IEI_INSTALL_PATH}/logs"
-    healthcheck:
-       test: ["CMD-SHELL", "exit", "0"]
-       interval: ${HEALTHCHECK_DURATION}
-    user: ${IEI_UID}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
-
-
-  #---- End: IEI Dependency Services----
-
   #----Start: IEI Base Images----
   # Define ia_gobase service
   ia_gobase:
@@ -53,9 +12,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ia_gobase:${IEI_VERSION}
-    depends_on:
-      - ia_log_rotate
-
+    
   # Define ia_pybase service
   ia_pybase:
     build:
@@ -65,9 +22,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           IEI_VERSION: ${IEI_VERSION}
     image: ia_pybase:${IEI_VERSION}
-    depends_on:
-      - ia_log_rotate
-
+    
   # Define ia_gopybase service
   ia_gopybase:
     build:
@@ -76,9 +31,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
     image: ia_gopybase:${IEI_VERSION}
-    depends_on:
-      - ia_log_rotate
- 
+    
   #----End: IEI Base Images----
 
   #----Start: IEI Containers ----
@@ -106,7 +59,6 @@ services:
       DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${IEI_INSTALL_PATH}/logs/telegraf_logs:/IEI/telegraf_logs"
       - "${IEI_INSTALL_PATH}/config/telegraf.conf:/etc/Telegraf/telegraf.conf"
       - "${IEI_INSTALL_PATH}/config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
     logging:
@@ -157,7 +109,6 @@ services:
       - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
       - "${IEI_INSTALL_PATH}/data:/data"
-      - "${IEI_INSTALL_PATH}/logs/imagestore_logs:/IEI/go/src/IEdgeInsights/log/imagestore_logs"
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
     logging:
       driver: ${LOGGING_DRIVER}
@@ -206,7 +157,6 @@ services:
       - "${IEI_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
       - "${IEI_INSTALL_PATH}/config/algo_config/${CONFIG_FILE}:/IEI/${CONFIG_FILE}"
       - "${IEI_INSTALL_PATH}/config/algo_config:/IEI/algos/algo_config"
-      - "${IEI_INSTALL_PATH}/logs/classifier_logs:/IEI/classifier_logs"
     ports:
       - "${KAPACITOR_PORT}:${KAPACITOR_PORT}"
     command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}", "${DEV_MODE}"]
@@ -289,7 +239,6 @@ services:
       no_proxy: ${NO_PROXY}
     volumes:
       - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${IEI_INSTALL_PATH}/logs/factoryctrl_app_logs:/IEI/factoryctrl_app_logs"
     command: ["--log", "${PY_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
@@ -306,8 +255,6 @@ services:
 
   # Define VideoIngestion service
   ia_video_ingestion:
-    depends_on:
-      - ia_video_analytics
     build:
       context: ../
       dockerfile: $PWD/../VideoIngestion/Dockerfile
