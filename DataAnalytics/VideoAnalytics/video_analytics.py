@@ -28,16 +28,16 @@ import etcd3
 import logging
 import zmq
 import threading
-from subscriber import Subscriber
-from publisher import Publisher
+
 from distutils.util import strtobool
 from libs.base_classifier import load_classifier
 from libs.ConfigManager.etcd.py.etcd_client import EtcdCli
 from libs.log import configure_logging, LOG_LEVELS
+from publisher import Publisher
+from subscriber import Subscriber
 
 # Etcd paths
-CLASSIFIER_KEY_PATH = "/classifier"
-CLASSIFIER_NAME_PATH = CLASSIFIER_KEY_PATH + "/classifier_name"
+CLASSIFIER_NAME_PATH = "/classifier_name"
 
 
 class VideoAnalytics:
@@ -65,8 +65,8 @@ class VideoAnalytics:
         self.etcd_cli = EtcdCli(conf)
         self.classifier_name = self.etcd_cli.GetConfig("/{0}{1}".format(
             self.app_name, CLASSIFIER_NAME_PATH))
-        self.classifier_config = self.etcd_cli.GetConfig("/{0}{1}/{2}".format(
-            self.app_name, CLASSIFIER_KEY_PATH, self.classifier_name))
+        self.classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
+            self.app_name, self.classifier_name))
 
         self.log.debug('classifier_name: {}, classifier_config: {}'.format(
             self.classifier_name, self.classifier_config))
@@ -80,11 +80,12 @@ class VideoAnalytics:
         """ Start the Video Analytics.
         """
         self.log.info('=======Starting {}======='.format(self.app_name))
+        queue_size = self.classifier_config["queue_size"]
         self.classifier_input_queue = \
-            queue.Queue(maxsize=self.classifier_config["input_queue_size"])
+            queue.Queue(maxsize=queue_size)
 
         self.classifier_output_queue = \
-            queue.Queue(maxsize=self.classifier_config["output_queue_size"])
+            queue.Queue(maxsize=queue_size)
 
         self.publisher = Publisher(self.classifier_output_queue)
         self.publisher.start()
@@ -119,10 +120,6 @@ class VideoAnalytics:
         # TODO: To be added:
         # 1. Add logic to control restart of filter/ingestor or publisher
         #    alone based on the config change instead of restarting all threads.
-        # 2. Fix the issue of thread pool not shutting down properly
-        # 3. Socket close in publisher isn't working, so the publish after
-        #    config change isn't working (see address bind issue but publish is 
-        #    happening and subscriber doesn't receive stuck)
         try:
             if "_classifier" in value:
                 classifier_config = self.etcd_cli.GetConfig("/{0}{1}/{2}".format(
@@ -130,7 +127,7 @@ class VideoAnalytics:
                 self.classifier_name = value
                 self.classifier_config = json.loads(classifier_config)
             elif "_classifier" in key:
-                self.classifier_name = key
+                self.classifier_name = key.split("/")[2]
                 self.classifier_config = json.loads(value)
         except:
             pass

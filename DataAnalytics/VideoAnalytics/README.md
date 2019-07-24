@@ -31,8 +31,7 @@ Sample configuration for classifiers used:
 1. PCB classifier (has to be used with `PCB Filter`)
    ```
    {
-        "input_queue_size": 10,
-        "output_queue_size": 10,
+        "queue_size": 10,
         "max_workers": 5,
         "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
         "ref_config_roi": "./VideoAnalytics/classifiers/ref_pcbdemo/roi_2.json",
@@ -44,7 +43,7 @@ Sample configuration for classifiers used:
 2. Classification sample classifier (has to be used with `bypass Filter`)
    ```
     {
-        "input_queue_size": 10,
+        "queue_size": 10,
         "output_queue_size": 10,
         "max_workers": 5,
         "model_xml": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.xml",
@@ -56,7 +55,7 @@ Sample configuration for classifiers used:
 3. Dummy classifier (to be used when no classification needs to be done)
    ```
     {
-        "input_queue_size": 10,
+        "queue_size": 10,
         "output_queue_size": 10
     }
    ```    

@@ -23,6 +23,7 @@ import threading
 import logging
 import os
 import json
+from concurrent.futures import ThreadPoolExecutor
 
 class Publisher:
 
@@ -41,49 +42,67 @@ class Publisher:
 
     def start(self):
         """
-        Starts the publisher thread
+        Starts the publisher thread(s)
         """
-        self.thread = threading.Thread(target=self.publish)
-        self.thread.setDaemon(True)
-        self.thread.start()
-
-    def publish(self):
-        """
-        Send the data to the publish topic
-        """
-        self.log.info("=======Starting publisher thread=======")
         context = zmq.Context()
-        self.socket = context.socket(zmq.PUB)
+        socket = context.socket(zmq.PUB)
         topics = os.environ['PubTopics'].split(",")
-
-        # Keeping the logic of being able to publish to multiple topics
-        # with each publish happening on different/same bind socket
-        # address as per the ENV configuration
+        self.sockets = []
+        self.publisher_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
             topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
-            mode = topic_cfg[0].lower()
+            self.publisher_threadpool.submit(self.publish, socket, topic,
+                                              topic_cfg)
+
+    def publish(self, socket, topic, topic_cfg):
+        """
+        Send the data to the publish topic
+        Parameters:
+        ----------
+        socket: ZMQ socket
+            socket instance
+        topic: str
+            topic name
+        topic_cfg: str
+            topic config
+        """
+        thread_id = threading.get_ident()
+        self.log.info("Publisher thread ID: {} started" +  \
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                      topic, topic_cfg))
+
+        mode = topic_cfg[0].lower()
+        try:
             if "tcp" in mode:
-                self.socket.bind("tcp://{}".format(topic_cfg[1]))
+                socket.bind("tcp://{}".format(topic_cfg[1]))
             elif "ipc" in mode:
-                self.socket.bind("ipc://{}".format(topic_cfg[1]))
-                
+                socket.bind("ipc://{}".format(topic_cfg[1]))
+            self.sockets.append(socket)
+        except Exception as ex:
+            self.log.exception(ex)
+
+        self.log.info("Publishing to topic: {}...".format(topic))
+        
         while not self.stop_ev.is_set():
             result = self.classifier_output_queue.get()
-            topic = result[0].encode()
-            metadata = json.dumps(result[1]).encode()
-            self.socket.send_multipart([topic, metadata, result[2]], copy=False)
-            self.log.debug("Published data...")
-        self.log.info("=====Stopped publisher thread======")                     
+            try:
+                result[0] = topic.encode()
+                result[1] = json.dumps(result[1]).encode()                
+                socket.send_multipart(result, copy=False)
+                self.log.debug("Published data : {}...".format(result[0:2]))
+            except Exception as ex:
+                self.log.exception('Error while publishing data: {}'.format(ex))
+        self.log.info("Publisher thread ID: {} stopped" +  \
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                      topic, topic_cfg))
 
     def stop(self):
         """
         Stops the Subscriber thread
         """
-        self.socket.close()
+        for socket in self.sockets:
+            socket.close()
+            if socket._closed == "False":
+                self.log.error("Unable to close socket connection")
         self.stop_ev.set()
-
-    def join(self):
-        """
-        Blocks until the publisher thread stops running
-        """
-        self.thread.join()
+        self.publisher_threadpool.shutdown(wait=False)

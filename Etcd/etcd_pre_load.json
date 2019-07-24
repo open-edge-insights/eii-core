@@ -51,8 +51,7 @@
     },
     "/VideoIngestion/filter/filter_name": "pcb_filter",
     "/VideoIngestion/filter/pcb_filter": {
-        "input_queue_size": 10,
-        "output_queue_size": 10,
+        "queue_size": 10,
         "max_workers": 5,
         "training_mode": "false",
         "n_total_px": 300000,
@@ -60,14 +59,14 @@
         "n_right_px": 1000
     },
     "/VideoIngestion/filter/bypass_filter": {
-        "input_queue_size": 10,
+        "queue_size": 10,
         "output_queue_size": 10,
         "max_workers": 5,
         "training_mode": "false"
     },
-    "/VideoAnalytics/classifier/classifier_name": "pcb_classifier",
-    "/VideoAnalytics/classifier/pcb_classifier": {
-        "input_queue_size": 10,
+    "/VideoAnalytics/classifier_name": "pcb_classifier",
+    "/VideoAnalytics/pcb_classifier": {
+        "queue_size": 10,
         "output_queue_size": 10,
         "max_workers": 5,
         "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
@@ -76,8 +75,8 @@
         "model_bin": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.bin",
         "device": "CPU"
     },
-    "/VideoAnalytics/classifier/classification_classifier": {
-        "input_queue_size": 10,
+    "/VideoAnalytics/classification_classifier": {
+        "queue_size": 10,
         "output_queue_size": 10,
         "max_workers": 5,
         "model_xml": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.xml",
@@ -85,8 +84,7 @@
         "labels": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1.labels",
         "device": "CPU"
     },
-    "/VideoAnalytics/classifier/dummy_classifier": {
-        "input_queue_size": 10,
-        "output_queue_size": 10
+    "/VideoAnalytics/dummy_classifier": {
+        "queue_size": 10
     }
 }

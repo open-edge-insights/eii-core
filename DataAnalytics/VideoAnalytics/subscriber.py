@@ -47,64 +47,62 @@ class Subscriber:
         Starts the subscriber thread
         """
         context = zmq.Context()
-        self.socket = context.socket(zmq.SUB)
+        socket = context.socket(zmq.SUB)
         topics = os.environ['SubTopics'].split(",")
+        self.sockets = []
         self.subscriber_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
             topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
-            self.subscriber_threadpool.submit(self.subscribe, topic,
+            self.subscriber_threadpool.submit(self.subscribe, socket, topic,
                                               topic_cfg)
 
-    def subscribe(self, topic, topic_cfg):
+    def subscribe(self, socket, topic, topic_cfg):
         """
         Receives the data for the subscribed topic
         Parameters:
         ----------
+        socket: ZMQ socket
+            socket instance
         topic: str
             topic name
         topic_cfg: str
             topic config
         """
         thread_id = threading.get_ident()
-        self.log.info("Subscriber thread ID: {} started...".format(thread_id))
+        self.log.info("Subscriber thread ID: {} started" +  \
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                      topic, topic_cfg))
 
         mode = topic_cfg[0].lower()
         try:
             if "tcp" in mode:
-                self.socket.connect("tcp://{}".format(topic_cfg[1]))
+                socket.connect("tcp://{}".format(topic_cfg[1]))
             elif "ipc" in mode:
-                self.socket.connect("ipc://{}".format(topic_cfg[1]))
+                socket.connect("ipc://{}".format(topic_cfg[1]))
+            self.sockets.append(socket)
         except Exception as ex:
             self.log.exception(ex)
 
-        self.log.info("Subscribing to topic:{}...".format(topic))
-        self.socket.setsockopt_string(zmq.SUBSCRIBE, topic)
+        self.log.info("Subscribing to topic: {}...".format(topic))
+        socket.setsockopt_string(zmq.SUBSCRIBE, topic)
         while not self.stop_ev.is_set():
-            data = self.socket.recv_multipart()
-            topic = data[0].decode()
-            metadata = json.loads(data[1].decode())
-            frame = data[2]
-
-            # Convert the buffer into np array.
-            Frame = np.frombuffer(frame, dtype=np.uint8)
-            encoding = metadata["encoding"]
-            if encoding is not None:
-                reshape_frame = np.reshape(Frame, (Frame.shape))
-                reshape_frame = cv2.imdecode(reshape_frame, 1)
-            else:
-                reshape_frame = np.reshape(Frame, (int(metadata["height"]),
-                                                int(metadata["width"]),
-                                                int(metadata["channel"])))
-
-            data = [topic, metadata, reshape_frame]
+            data = socket.recv_multipart()
+            data[0] = data[0].decode()
+            data[1] = json.loads(data[1].decode())
+            
             self.log.debug("Added data to subscriber queue: {}".format(data[:2]))
             self.subscriber_queue.put(data)
-        self.log.info("Subscriber thread ID: {} stopped...".format(thread_id))   
+        self.log.info("Subscriber thread ID: {} started" +  \
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                      topic, topic_cfg))
 
     def stop(self):
         """
         Stops the Subscriber thread
         """
+        for socket in self.sockets:
+            socket.close()
+            if socket._closed == "False":
+                self.log.error("Unable to close socket connection")
         self.stop_ev.set()
-        self.socket.close()
-        self.subscriber_threadpool.shutdown()
+        self.subscriber_threadpool.shutdown(wait=False)

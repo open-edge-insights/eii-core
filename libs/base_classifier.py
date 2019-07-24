@@ -124,7 +124,7 @@ class BaseClassifier:
         and adding data to the classifier output queue
         """
         self.stop_event.set()
-        self.classifier_threadpool.shutdown()
+        self.classifier_threadpool.shutdown(wait=False)
 
     def set_name(self, name):
         """Sets the name of the classifier

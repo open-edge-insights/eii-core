@@ -190,7 +190,17 @@ class Classifier(BaseClassifier):
             data = self.input_queue.get()
             self.log.debug("classify data: {}".format(data[:2]))
             metadata = data[1]
-            org_frame = data[2]
+
+            # Convert the buffer into np array.
+            np_buffer = np.frombuffer(data[2], dtype=np.uint8)
+            encoding = metadata["encoding"]
+            if encoding is not None:
+                reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
+                reshape_frame = cv2.imdecode(reshape_frame, 1)
+            else:
+                reshape_frame = np.reshape(np_buffer, (int(metadata["height"]),
+                                                int(metadata["width"]),
+                                                int(metadata["channel"])))
 
             index = metadata.get("user_data", None) # Angle information of frame
 
@@ -204,10 +214,10 @@ class Classifier(BaseClassifier):
             # Read correct reference image to
             # perform keypoint detection and overlay
             ref_img = self.ref_img.copy()
-            img_orig = org_frame.copy()
+            img_orig = reshape_frame.copy()
 
             # Calculate homography info between frame and corresponding ref image
-            M, mask, score = self._calculate_homography(frame=org_frame)
+            M, mask, score = self._calculate_homography(frame=reshape_frame)
 
             if score is None:
                 self.log.debug("Low homography score. Skipping frame")
