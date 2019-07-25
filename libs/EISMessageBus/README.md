@@ -37,6 +37,9 @@ build.
 
 ### Go Binding
 
+> **IMPORTANT NOTE** It is assumed that you have compiled the C library for
+> the EIS Message Bus prior to attempting these steps.
+
 Since Go does not link to compiled libraries or use pre-installed built packages,
 you must add the EIS Message Bus Go binding to your `$GOPATH`. To do this execute
 the following command:
@@ -44,26 +47,25 @@ the following command:
 ```sh
 $ ln -s go/EISMessageBus/ $GOPATH/src
 ```
-> **NOTE:** The command above assumes that you are currently in the EISMessageBus root directory.
+> **NOTE:** The command above assumes that you are currently in the
+> EISMessageBus root directory.
 
-Before you build any Go binaries which use the EIS Message Bus you must make
-sure that three environmental variables are set:
+If you have installed the EIS Message Bus library using the `sudo make install`
+command, then Go will not have any issues linking to the installed version of
+the EIS Message Bus C library.
 
-1. `CGO_CFLAGS` - Must be set to the EIS Message Bus C include directory
-2. `CGO_LDFLAGS` - Must be set to specify the location of the `libeismsgbus.so` and the link flag for the library
-3. `LD_LIBRARY_PATH` - Must be set to include the location of the `libeismsgbus.so`
-
-For example, if the directory with of the EIS Message Bus root source code directory is
-set to the variable `$MSGBUS_DIR`, then the following would be the correct
-values to set for the environmental variables specified above.
+However, if you are developing a new feature for the message bus and do not
+want to install the EIS Message Bus on your system, then you can export the
+following two environmental variables to get around installing the library.
 
 ```sh
-$ export CGO_CFLAGS="-I$MSGBUS_DIR/include"
-$ export CGO_LDFLAGS="-L$MSGBUS_DIR/build -leismsgbus"
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MSGBUS_DIR/build/
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MSGBUS_DIR/build
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MSGBUS_DIR/build
 ```
-> **IMPORTANT NOTE** It is assumed that you have compiled the C library for the EIS
-> Message Bus prior to attempting these steps.
+
+Note that in the `export` commands above the `$MSGBUS_DIR` variable represents
+the absolute path to the `libs/EISMessageBus` directory. It is very important
+that this is the absolute path.
 
 Once you have exported these variables, the publisher example could be executed
 as follows:

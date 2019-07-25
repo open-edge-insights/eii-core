@@ -22,8 +22,10 @@ SOFTWARE.
 
 package msgbus
 
-// #cgo CFLAGS: -g -Wall
 /*
+#cgo CFLAGS: -g -Wall
+#cgo pkg-config: libeismsgbus
+
 #include <stdlib.h>
 #include <eis/msgbus/msgbus.h>
 #include <eis/msgbus/logger.h>

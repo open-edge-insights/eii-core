@@ -107,6 +107,16 @@ if(WITH_TESTS)
 endif()
 
 ##
+## Configure pkg-config file to be installed for the EIS Message Bus
+##
+set(PKG_CONFIG_IN  "${CMAKE_MODULE_PATH}/libeismsgbus.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeismsgbus.pc")
+set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
+set(PRIVATE_LIBS   "-lzmq -lcjson")
+
+configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
+
+##
 ## Add CMake configuration for installing the library including files for other
 ## projects finding the library using CMake
 ##
@@ -121,6 +131,14 @@ install(TARGETS eismsgbus
 
 set_target_properties(eismsgbus PROPERTIES EXPORT_NAME EISMessageBus)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# Install pkg-config libeismsgbus.pc file
+install(
+    FILES
+        ${PKG_CONFIG_OUT}
+    DESTINATION
+        ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+)
 
 # Export targets to a script
 install(EXPORT eismsgbus-targets
