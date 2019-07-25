@@ -1,5 +1,5 @@
 {
-    "/VideoIngestion/ingestor/ingestor_name": "pcb_basler_cam_ingestor",
+    "/VideoIngestion/ingestor/ingestor_name": "pcb_video_file_ingestor",
     "/VideoIngestion/ingestor/pcb_video_file_ingestor": {
         "video_src": "./test_videos/pcb_d2000.avi",
         "encoding": {
@@ -40,7 +40,7 @@
         },
         "poll_interval": 0.2
     },
-    "/VideoIngestion/ingestor/classification_video_file_ingestor": {
+    "/VideoIngestion/ingestor/sample_classification_video_file_ingestor": {
         "video_src": "./test_videos/classification_vid.avi",
         "encoding": {
             "type": "jpg",
@@ -60,14 +60,12 @@
     },
     "/VideoIngestion/filter/bypass_filter": {
         "queue_size": 10,
-        "output_queue_size": 10,
         "max_workers": 5,
         "training_mode": "false"
     },
     "/VideoAnalytics/classifier_name": "pcb_classifier",
     "/VideoAnalytics/pcb_classifier": {
         "queue_size": 10,
-        "output_queue_size": 10,
         "max_workers": 5,
         "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
         "ref_config_roi": "./VideoAnalytics/classifiers/ref_pcbdemo/roi_2.json",
@@ -75,9 +73,8 @@
         "model_bin": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.bin",
         "device": "CPU"
     },
-    "/VideoAnalytics/classification_classifier": {
+    "/VideoAnalytics/sample_classification_classifier": {
         "queue_size": 10,
-        "output_queue_size": 10,
         "max_workers": 5,
         "model_xml": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.xml",
         "model_bin": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.bin",
@@ -85,7 +82,8 @@
         "device": "CPU"
     },
     "/VideoAnalytics/dummy_classifier": {
-        "queue_size": 10
+        "queue_size": 10,
+        "max_workers": 5
     },
     "/Visualizer/config": {
         "display": "true",

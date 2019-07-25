@@ -24,6 +24,7 @@ import cv2
 import numpy as np
 import json
 from time import time
+import threading
 
 from VideoAnalytics.classifiers.defect import Defect
 from VideoAnalytics.classifiers.display_info import DisplayInfo
@@ -55,7 +56,7 @@ class Classifier(BaseClassifier):
             Classification object
         """
         super().__init__(classifier_config, input_queue, output_queue)
-        self.log = logging.getLogger('CLASSIFICATION SAMPLE')
+        self.log = logging.getLogger('SAMPLE CLASSIFICATION')
         labels = classifier_config["labels"]
         model_xml = classifier_config["model_xml"]
         model_bin = classifier_config["model_bin"]
@@ -108,22 +109,36 @@ class Classifier(BaseClassifier):
         with this classifier is "bypass_filter" or "no_filter" which selects 
         each input image for classification.
         """
-        self.log.debug('Classifying image')
+        thread_id = threading.get_ident()
+        self.log.info("Classifier thread ID: {} started...".format(thread_id))
         
         while True:
             data = self.input_queue.get()
-            img = data[2]
+            self.log.debug("classify data: {}".format(data[:2]))
+            metadata = data[1]
+
+             # Convert the buffer into np array.
+            np_buffer = np.frombuffer(data[2], dtype=np.uint8)
+            encoding = metadata["encoding"]
+            if encoding is not None:
+                reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
+                reshape_frame = cv2.imdecode(reshape_frame, 1)
+            else:
+                reshape_frame = np.reshape(np_buffer, (int(metadata["height"]),
+                                                int(metadata["width"]),
+                                                int(metadata["channel"])))
+
             # Read and preprocess input images
             n, c, h, w = self.net.inputs[self.input_blob].shape
             images = np.ndarray(shape=(n, c, h, w))
             for i in range(n):
-                if img.shape[:-1] != (h, w):
+                if reshape_frame.shape[:-1] != (h, w):
                     self.log.debug('Image is resized from {} to {}'.format(
-                                img.shape[:-1], (w, h)))
-                    img = cv2.resize(img, (w, h))
+                                reshape_frame.shape[:-1], (w, h)))
+                    reshape_frame = cv2.resize(reshape_frame, (w, h))
                 # Change layout from HWC to CHW
-                img = img.transpose((2, 0, 1))
-                images[i] = img
+                reshape_frame = reshape_frame.transpose((2, 0, 1))
+                images[i] = reshape_frame
             self.log.debug('Batch size is {}'.format(n))
 
             # Start sync inference
@@ -158,4 +173,11 @@ class Classifier(BaseClassifier):
                                             '.format(probs[id], det_label), 0)
                     d_info.append(disp_info)
 
-            return d_info, defects
+
+            defects_dict = {
+                "defects": defects,
+                "display_info": d_info
+            }
+            self.send_data(data, defects_dict)
+
+        self.log.info("Classifier thread ID: {} stopped...".format(thread_id))

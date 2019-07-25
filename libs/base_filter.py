@@ -100,7 +100,6 @@ class BaseFilter:
         """
         self.log = logging.getLogger(__name__)
         self.name = None
-        self.stop_event = threading.Event()
         self.input_queue = input_queue
         self.output_queue = output_queue
         self.filter_config = filter_config
@@ -115,9 +114,8 @@ class BaseFilter:
         data : Object
             data to be added to the filter output queue
         """
-        if not self.stop_event.is_set():
-            self.log.debug("Data added to filter output queue...")
-            self.output_queue.put(data)
+        self.log.debug("Data added to filter output queue...")
+        self.output_queue.put(data)
 
     def start(self):
         """Starts `max_workers` pool of threads to feed on the filter input queue, run through
@@ -132,7 +130,6 @@ class BaseFilter:
         """Stops the pool of filter threads responsible for filtering frames
         and adding data to the filter output queue
         """
-        self.stop_event.set()
         self.filter_threadpool.shutdown(wait=False)
 
     def set_name(self, name):

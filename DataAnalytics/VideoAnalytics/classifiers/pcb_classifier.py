@@ -60,7 +60,7 @@ class Classifier(BaseClassifier):
             Classification object
         """
         super().__init__(classifier_config, input_queue, output_queue)
-        self.log = logging.getLogger('DEFECT_DETECTION')
+        self.log = logging.getLogger('PCB_DEFECT_DETECTION')
         self.ref_img = classifier_config["ref_img"]
         self.ref_config_roi = classifier_config["ref_config_roi"]
         self.model_xml = classifier_config["model_xml"]
@@ -186,7 +186,7 @@ class Classifier(BaseClassifier):
         thread_id = threading.get_ident()
         self.log.info("Classifier thread ID: {} started...".format(thread_id))
 
-        while not self.stop_event.is_set():
+        while True:
             data = self.input_queue.get()
             self.log.debug("classify data: {}".format(data[:2]))
             metadata = data[1]
@@ -318,31 +318,12 @@ class Classifier(BaseClassifier):
             # probabilistic nature of Flann matcher. This might need to be changed.
             cv2.setRNGSeed(0)
 
-            defects_dict = {}
-            defect_res = []
-            for d in defects:
-                if d.defect_class in defects:
-                    defects_dict[d.defect_class] += 1
-                else:
-                    defects_dict[d.defect_class] = 1
-                defect_res.append({
-                    'type': d.defect_class,
-                    'tl': d.tl,
-                    'br': d.br
-                })
+            defects_dict = {
+                "defects": defects,
+                "display_info": d_info
+            }
 
-            display_info = []
-            for d in d_info:
-                display_info.append({
-                    'info': d.info,
-                    'priority': d.priority
-                })         
-
-            metadata["defects"] = defect_res
-            metadata["display_info"] = display_info
-            data[1] = metadata
-            self.output_queue.put(data)
-            self.log.debug("Data: {} added to classifier output queue".format(self.output_queue))
+            self.send_data(data, defects_dict)
 
         self.log.info("Classifier thread ID: {} stopped...".format(thread_id))
     

@@ -122,8 +122,8 @@ class VideoAnalytics:
         #    alone based on the config change instead of restarting all threads.
         try:
             if "_classifier" in value:
-                classifier_config = self.etcd_cli.GetConfig("/{0}{1}/{2}".format(
-                    self.app_name, CLASSIFIER_KEY_PATH, value))
+                classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
+                    self.app_name, value))
                 self.classifier_name = value
                 self.classifier_config = json.loads(classifier_config)
             elif "_classifier" in key:

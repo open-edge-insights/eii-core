@@ -20,6 +20,7 @@
 
 
 import logging
+import threading
 from libs.base_classifier import BaseClassifier
 
 class Classifier(BaseClassifier):
@@ -49,13 +50,16 @@ class Classifier(BaseClassifier):
     def classify(self):
         """Classify the given image.
         """
-        self.log.info('Classify')
+        thread_id = threading.get_ident()
+        self.log.info("Classifier thread ID: {} started...".format(thread_id))
         
-        while not self.stop_event.is_set():
+        while True:
             data = self.input_queue.get()
-            metadata = data[1]
-            metadata["defects"] = []
-            metadata["display_info"] = []
-            data[1] = metadata
-            self.output_queue.put(data)
+            defects_dict = {
+                "defects": [],
+                "display_info": []
+            }
+            self.send_data(data, defects_dict)        
+
+        self.log.info("Classifier thread ID: {} stopped...".format(thread_id))
 

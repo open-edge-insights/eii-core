@@ -40,14 +40,13 @@ class Subscriber:
         """
         self.log = logging.getLogger(__name__)
         self.subscriber_queue = subscriber_queue
-        self.stop_ev = threading.Event()
 
     def start(self):
         """
         Starts the subscriber thread
         """
-        context = zmq.Context()
-        socket = context.socket(zmq.SUB)
+        self.context = zmq.Context()
+        socket = self.context.socket(zmq.SUB)
         topics = os.environ['SubTopics'].split(",")
         self.sockets = []
         self.subscriber_threadpool = ThreadPoolExecutor(max_workers=len(topics))
@@ -69,7 +68,7 @@ class Subscriber:
             topic config
         """
         thread_id = threading.get_ident()
-        self.log.info("Subscriber thread ID: {} started" +  \
+        self.log.info("Subscriber thread ID started" +  \
                       " with topic: {} and topic_cfg: {}...".format(thread_id,
                       topic, topic_cfg))
 
@@ -85,14 +84,15 @@ class Subscriber:
 
         self.log.info("Subscribing to topic: {}...".format(topic))
         socket.setsockopt_string(zmq.SUBSCRIBE, topic)
-        while not self.stop_ev.is_set():
+
+        while True:
             data = socket.recv_multipart()
             data[0] = data[0].decode()
             data[1] = json.loads(data[1].decode())
             
             self.log.debug("Added data to subscriber queue: {}".format(data[:2]))
             self.subscriber_queue.put(data)
-        self.log.info("Subscriber thread ID: {} started" +  \
+        self.log.info("Subscriber thread ID started" +  \
                       " with topic: {} and topic_cfg: {}...".format(thread_id,
                       topic, topic_cfg))
 
@@ -100,9 +100,12 @@ class Subscriber:
         """
         Stops the Subscriber thread
         """
-        for socket in self.sockets:
-            socket.close()
-            if socket._closed == "False":
-                self.log.error("Unable to close socket connection")
-        self.stop_ev.set()
-        self.subscriber_threadpool.shutdown(wait=False)
+        try:
+            self.subscriber_threadpool.shutdown(wait=False)
+            for socket in self.sockets:
+                socket.close()
+                if socket._closed == "False":
+                    self.log.error("Unable to close socket connection")
+            self.context.term()        
+        except Exception as ex:
+            self.log.exception(ex)
