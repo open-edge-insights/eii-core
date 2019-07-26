@@ -26,6 +26,7 @@ option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 option(WITH_PYTHON   "Compile with Python bindings" OFF)
 option(WITH_GO       "Install Go bindings with the message bus installation" OFF)
+option(WITH_DOCS     "Generate message bus documentation" OFF)
 
 # Set C standard to C11
 set(CMAKE_C_STANDARD 11)
@@ -194,3 +195,53 @@ export(EXPORT eismsgbus-targets
 
 # Register package in user's package registry
 export(PACKAGE EISMessageBus)
+
+##
+## Documentation generation
+##
+if(WITH_DOCS)
+    set(DOCS_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
+    set(PDFS_DIR "${DOCS_DIR}/pdfs")
+
+    # Create doxygen directory
+    file(MAKE_DIRECTORY ${DOCS_DIR})
+    file(MAKE_DIRECTORY ${PDFS_DIR})
+
+    # Doxygen documentation generation
+    find_package(Doxygen REQUIRED)
+    find_program(PDFLATEX NAMES pdflatex)
+
+    # Make C documentation directory
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/docs/c")
+
+    set(DOXYFILE_IN  "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in")
+    set(DOXYFILE_OUT "${CMAKE_CURRENT_BINARY_DIR}/Doxyfile")
+
+    configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
+
+    # Add target for generating doxygen documentation
+    add_custom_target(doxygen-docs
+        COMMENT "Generating C API Doxygen documentation"
+        COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYFILE_OUT}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        VERBATIM)
+
+    # Add target for generating PDF of C doxygen documentation
+    add_custom_target(doxygen-docs-pdf
+        COMMENT "Generating C API PDF"
+        DEPENDS doxygen-docs
+        COMMAND ${CMAKE_COMMAND} -E remove "${PDFS_DIR}/c-refman.pdf"
+        COMMAND ${PDFLATEX} -interaction=nonstopmode -output-directory ${PDFS_DIR} refman.tex
+        WORKING_DIRECTORY ${DOCS_DIR}/c/latex/
+        VERBATIM)
+
+    # List of docs dependency targets
+    set(DOCS_TARGETS doxygen-docs doxygen-docs-pdf)
+
+    # Final target for compiling all EIS Message Bus documentation with make docs
+    add_custom_target(docs
+        COMMENT "Generating EIS Message Bus documentation"
+        DEPENDS ${DOCS_TARGETS}
+        VERBATIM)
+
+endif()
