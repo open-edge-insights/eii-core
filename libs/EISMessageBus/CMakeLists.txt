@@ -200,6 +200,8 @@ export(PACKAGE EISMessageBus)
 ## Documentation generation
 ##
 if(WITH_DOCS)
+    message("-- Configuring documentation generation")
+
     set(DOCS_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
     set(PDFS_DIR "${DOCS_DIR}/pdfs")
 
@@ -208,6 +210,7 @@ if(WITH_DOCS)
     file(MAKE_DIRECTORY ${PDFS_DIR})
 
     # Doxygen documentation generation
+    message("       Configuring C API documentation")
     find_package(Doxygen REQUIRED)
     find_program(PDFLATEX NAMES pdflatex)
 
@@ -243,5 +246,4 @@ if(WITH_DOCS)
         COMMENT "Generating EIS Message Bus documentation"
         DEPENDS ${DOCS_TARGETS}
         VERBATIM)
-
 endif()
