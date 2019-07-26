@@ -7,8 +7,7 @@ build:
 	go build main.go
 
 etcdclient: build
-	./main -endpoint $(HOST):$(PORT) \
-	-certFile $(CLIENT_CERTS)/etcd-client.pem \
+	./main -certFile $(CLIENT_CERTS)/etcd-client.pem \
 	-privateFile $(CLIENT_CERTS)/etcd-client-key.pem \
 	-trustFile $(CA_CERTS)/ca.pem \
 	-key $(key) \
@@ -16,7 +15,6 @@ etcdclient: build
 
 
 etcdclient_insecure: build
-	./main -endpoint $(HOST):$(PORT) \
-	-certFile "" -privateFile "" -trustFile "" \
+	./main -certFile "" -privateFile "" -trustFile "" \
 	-key $(key) \
 	-action $(action)

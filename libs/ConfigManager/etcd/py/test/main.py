@@ -32,7 +32,6 @@ def callback(key, value):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-endpoint', help="Provide the endpoint Eg:localhost:2379")
     p.add_argument('-certFile', help="provide client certificate")
     p.add_argument('-privateFile', help="provide client private key file")
     p.add_argument('-trustFile', help="provide ca cert file")
@@ -41,7 +40,7 @@ def main():
                     on etcd key Eg: get|watchkey|watchdir")
     args = p.parse_args()
 
-    conf = {"endpoint": args.endpoint, "certFile": args.certFile,
+    conf = {"certFile": args.certFile,
             "keyFile": args.privateFile, "trustFile": args.trustFile}
     etcd = EtcdCli(conf)
 

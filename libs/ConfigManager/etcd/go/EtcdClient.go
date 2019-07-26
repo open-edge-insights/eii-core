@@ -15,7 +15,6 @@ import (
 	util "IEdgeInsights/Util"
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/golang/glog"
 
@@ -64,9 +63,10 @@ func RegisterWatchOnKey(rch clientv3.WatchChan, onChangeCallback OnChangeCallbac
 func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 
 	var cfg clientv3.Config
-	endpoint := strings.Split(conf.Endpoint[0], ":")
-
-	portUp := util.CheckPortAvailability(endpoint[0], endpoint[1])
+	hostname := "localhost"
+	port := "2379"
+	endpoint := []string{hostname + ":" + port}
+	portUp := util.CheckPortAvailability(hostname, port)
 	if !portUp {
 		glog.Error("etcd service port not up")
 		return nil, errors.New("etcd service port not up")
@@ -79,7 +79,7 @@ func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 
 	if devmode {
 		cfg = clientv3.Config{
-			Endpoints: conf.Endpoint,
+			Endpoints: endpoint,
 		}
 	} else {
 		tlsInfo := transport.TLSInfo{
@@ -94,7 +94,7 @@ func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 		}
 
 		cfg = clientv3.Config{
-			Endpoints: conf.Endpoint,
+			Endpoints: endpoint,
 			TLS:       tlsConfig,
 		}
 	}

@@ -35,9 +35,8 @@ class EtcdCli:
         the etcd service port availability """
 
         self.logger = logging.getLogger(__name__)
-        endpoint = config["endpoint"].split(":")
-        hostname = endpoint[0]
-        port = endpoint[1]
+        hostname = "localhost"
+        port = 2379
 
         if not check_port_availability(hostname, port):
             raise Exception("etcd service port {} is not up!".format(port))

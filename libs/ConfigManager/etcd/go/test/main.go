@@ -25,7 +25,6 @@ func callback(key string, value string) {
 
 func main() {
 
-	endPointArg := flag.String("endpoint", "", "Provide the endpoint Eg:localhost:2379")
 	certFile := flag.String("certFile", "", "provide client certificate file")
 	privateFile := flag.String("privateFile", "", "provide client private key file")
 	trustFile := flag.String("trustFile", "", "provide ca cert file")
@@ -33,9 +32,7 @@ func main() {
 	action := flag.String("action", "", "provide the action to be performed on etcd key Eg: get|watchkey|watchdir")
 	flag.Parse()
 
-	endPoint := []string{*endPointArg}
-
-	config := etcdclient.Config{Endpoint: endPoint, CertFile: *certFile, KeyFile: *privateFile, TrustFile: *trustFile}
+	config := etcdclient.Config{CertFile: *certFile, KeyFile: *privateFile, TrustFile: *trustFile}
 
 	etcd, err := etcdclient.NewEtcdCli(config)
 	if err != nil {
