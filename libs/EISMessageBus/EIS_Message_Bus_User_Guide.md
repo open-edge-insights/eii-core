@@ -35,7 +35,8 @@ message bus.
 
 |      Flag       |                    Description                 |
 | :-------------: | ---------------------------------------------- |
-| `WITH_PYTHON`   | Compile the Python binding with the C binding. |
+| `WITH_PYTHON`   | Compile the Python binding with the C library. |
+| `WITH_GO`       | Install the GO binding with the C library.     |
 | `WITH_EXAMPLES` | Compile the C examples.                        |
 | `WITH_TESTS`    | Compile the C unit tests.                      |
 
@@ -290,15 +291,121 @@ finally:
 > **NOTE:** This code is provided in `python/examples/publisher.py` in the EIS
 > Message Bus source code.
 
+Now that the publisher script is finished, we will create the subscriber script
+called `subscriber.py`. The script will essentially be the same as the publiser
+script, except that instead of calling `new_publisher()` we will call
+`new_subscriber()`.
+
+```python
+import time
+import json
+import argparse
+import eis.msgbus as mb
+
+# Argument parsing
+ap = argparse.ArgumentParser()
+ap.add_argument('config', help='JSON configuration')
+ap.add_argument('-t', '--topic', default='publish_test', help='Topic')
+args = ap.parse_args()
+
+msgbus = None
+subscriber = None
+
+with open(args.config, 'r') as f:
+    config = json.load(f)
+
+try:
+    print('[INFO] Initializing message bus context')
+    msgbus = mb.MsgbusContext(config)
+
+    print(f'[INFO] Initializing subscriber for topic \'{args.topic}\'')
+    subscriber = msgbus.new_subscriber(args.topic)
+
+    print('[INFO] Running...')
+    while True:
+        msg = subscriber.recv()
+        if msg is not None:
+            print(f'[INFO] RECEIVED: {msg}')
+        else:
+            print('[INFO] Receive interrupted')
+except KeyboardInterrupt:
+    print('[INFO] Quitting...')
+finally:
+    if subscriber is not None:
+        subscriber.close()
+```
+
+> **NOTE:** This code is provided in `python/examples/subscriber.py` in the EIS
+> Message Bus source code.
+
+As can be seen in the code above, the `msgbus.new_publisher()` call has now
+been replace with: `msgbus.new_subscriber()`. This call connects to the given
+topic to receive publications. Depending on the underlying protocol that the
+message bus is configured to use different values will be retrieved from the
+configuration to accomplish the creation of the subscriber.
+
+For instance, if you are using the ZeroMQ TCP protocol, then it will be
+required that the configuration contains a key for the topic given to the
+`msgbus.new_subscriber()` function call. For the purposes of this tutorial,
+if the topic is the default topic (`publish_test`), then the configuration
+must contain a JSON object similar to the following:
+
+```json
+{
+    "publish_test": {
+        "host": "127.0.0.1",
+        "port": 3000
+        }
+    }
+}
+```
+
+The other major difference between the `publisher.py` and `subscriber.py`
+scripts is in the while loop at the end. In the `subscriber.py` script you'll
+see that there is a call to `subscriber.recv()`. This method waits to receive
+an incoming publication on the subscriber's topic. The `recv()` method has
+three ways of being called.
+
+1. `recv()`/`recv(-1)` - Blocks indefinitley until a new message is received.
+2. `recv(0)` - Returns immediates if not message has been received.
+3. `recv(timeout)` - Waits for the specified timeout to receive a message. `timeout`
+    is assumed to be an integer that represents the time to wait in milliseconds.
+
+To put this all together we need to first define the configuration we are going
+to load for the publisher and subscriber. We will use the configuration below
+saved to the file `ipc_config.json`.
+
+```json
+{
+    "type": "zmq_ipc",
+    "socket_dir": "/tmp"
+}
+```
+
+Using this configuration will configure the message bus to use the ZeroMQ IPC
+protocol and to save the Unix socket files into the `/tmp` directory on your
+system.
+
+Once this configuration is saved to the file `ipc_config.json`, start the
+publisher in one Terminal window with the following command:
+
+```sh
+$ python3 publisher.py ipc_config.json
+```
+
+Next, start the subscriber in a different Terminal window with the command
+shown below.
+
+```sh
+$ python3 subscriber.py ipc_config.json
+```
+
+At this point you should see the messages being published by the publisher
+being printed to the console by the subscriber.
+
 #### Request/Response
 
 ### Go Tutorial
-
-#### Publish/Subscribe
-
-#### Request/Response
-
-### C Tutorial
 
 #### Publish/Subscribe
 
