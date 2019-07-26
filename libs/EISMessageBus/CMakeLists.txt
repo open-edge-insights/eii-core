@@ -23,8 +23,9 @@ project(eis-messagebus VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" OFF)
-option(WITH_TESTS "Compile with unit tests" OFF)
-option(WITH_PYTHON "Compile with Python bindings" OFF)
+option(WITH_TESTS    "Compile with unit tests" OFF)
+option(WITH_PYTHON   "Compile with Python bindings" OFF)
+option(WITH_GO       "Install Go bindings with the message bus installation" OFF)
 
 # Set C standard to C11
 set(CMAKE_C_STANDARD 11)
@@ -139,6 +140,25 @@ install(
     DESTINATION
         ${CMAKE_INSTALL_LIBDIR}/pkgconfig
 )
+
+# Install Go package if specified to
+if(WITH_GO)
+    message("-- Configuring Go package installation")
+
+    # Verify the $GOPATH environmental variable exists
+    if("$ENV{GOPATH}" STREQUAL "")
+        message(FATAL_ERROR "-- $GOPATH envronmental variable is not set")
+    endif()
+
+    # Configure install command to copy the Go EIS Message Bus library to the
+    # user's $GOPATH
+    install(
+        DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/go/EISMessageBus
+        DESTINATION
+            $ENV{GOPATH}/src/
+    )
+endif()
 
 # Export targets to a script
 install(EXPORT eismsgbus-targets

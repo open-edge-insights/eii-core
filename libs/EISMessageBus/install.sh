@@ -67,10 +67,12 @@ fi
 cd deps
 check_error "Failed to change to dependencies directory"
 
-# Installing Python dependencies
-log_info "Installing Cython for Python bindings"
-pip3 install cython
-check_error "Failed to install Cython"
+if [ "$1" == "--cython" ] ; then
+    # Installing Python dependencies
+    log_info "Installing Cython for Python bindings"
+    pip3 install cython
+    check_error "Failed to install Cython"
+fi
 
 # Installing ZeroMQ dependency
 if [ ! -f "zeromq.tar.gz" ] ; then

@@ -1,6 +1,6 @@
 # EIS Message Bus
-Message bus used between containers inside of EIS. Currently only used between
-Video Ingestion and Video Analytics.
+
+Message bus used between containers inside of EIS.
 
 ## Dependency Installation
 
@@ -10,70 +10,77 @@ To install the dependencies for the message bus execute the following command:
 $ sudo -E ./install.sh
 ```
 
+If you wish to compile the Python binding as well, then run the `install.sh`
+script with the `--cython` flag (as shown below).
+
+```sh
+$ sudo -E ./install --cython
+```
+
 ## Compilation
 
-To compile the EIS Message Bus library execute the following commands:
+The EIS Message Bus utilizes CMake as the build tool for compiling the library.
+The simplest sequence of commands for building the library are shown below.
 
 ```sh
 $ mkdir build
 $ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=ON -DWITH_EXAMPLES=ON -DWITH_PYTHON=ON ..
+$ cmake ..
 $ make
 ```
 
-> **NOTE:** If CMake raises an error for finding the incorrect Python version,
-> then add the following flag to the CMake command:
-> `-DPYTHON_EXECUTABLE=/usr/bin/python3`
-
-> **NOTE:** If a change is made to the Python binding and make has already
-> been previously ran, then you must run `make clean` before running make
-> again to compile the changes in the Python binding. This will need to be
-> fixed later.
-
-The `cmake` command above tells the build system to compile in Debug mode with
-the unit tests, examples, and the Python binding. All of these flags are
-optional and by default none of the extra options above will be included in the
-build.
-
-### Go Binding
-
-> **IMPORTANT NOTE** It is assumed that you have compiled the C library for
-> the EIS Message Bus prior to attempting these steps.
-
-Since Go does not link to compiled libraries or use pre-installed built packages,
-you must add the EIS Message Bus Go binding to your `$GOPATH`. To do this execute
-the following command:
+This will compile only the C library for the EIS Message Bus. If you wish to
+build with the Python binding, then specify the `WITH_PYTHON` flag when
+executing the `cmake ` command (as shown below).
 
 ```sh
-$ ln -s go/EISMessageBus/ $GOPATH/src
+$ cmake -DWITH_PYTHON=ON ..
 ```
-> **NOTE:** The command above assumes that you are currently in the
-> EISMessageBus root directory.
 
-If you have installed the EIS Message Bus library using the `sudo make install`
-command, then Go will not have any issues linking to the installed version of
-the EIS Message Bus C library.
-
-However, if you are developing a new feature for the message bus and do not
-want to install the EIS Message Bus on your system, then you can export the
-following two environmental variables to get around installing the library.
+If you wish to include installation of the Go binding with the installation of
+the EIS library, then specify the `WITH_GO` flag when executing the `cmake`
+command (as shown below).
 
 ```sh
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MSGBUS_DIR/build
-$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MSGBUS_DIR/build
+$ cmake -DWITH_GO=ON ..
 ```
 
-Note that in the `export` commands above the `$MSGBUS_DIR` variable represents
-the absolute path to the `libs/EISMessageBus` directory. It is very important
-that this is the absolute path.
+Note that this only copies the Go binding library to your system's `$GOPATH`.
+If you do not have your `$GOPATH` specified in your system's environmental
+variables then an error will occur while executing the `cmake` command.
 
-Once you have exported these variables, the publisher example could be executed
-as follows:
+In addition to the `WITH_PYTHON` and `WITH_GO` flags, the EIS Message Bus
+CMake files add flags for building the C examples and the unit tests associated
+with the library. The table below specifies all of the available flags that can
+be given to CMake for building the EIS Message Bus.
+
+|       Flag      | Default |                                       Description                                    |
+| :-------------: | :-----: | ------------------------------------------------------------------------------------ |
+| `WITH_PYTHON`   | `OFF`   | If set to `ON`, specifies to build with the Python binding                           |
+| `WITH_GO`       | `OFF`   | If set to `ON`, then CMake will install the Go binding during the installation phase |
+| `WITH_TESTS`    | `OFF`   | If set to `ON`, builds the C unit tests with the EIS Message Bus compilation         |
+| `WITH_EXAMPLES` | `OFF`   | If set to `ON`, then CMake will compile the C examples in addition to the library    |
+
+> **NOTE:** These flags are in addition to any and all flags that are available
+> for the `cmake` command. See the CMake documentation for additional flags.
+
+If you wish to compile the EIS Message Bus in debug mode, then you can set the
+the `CMAKE_BUILD_TYPE` to `Debug` when executing the `cmake` command (as shown
+below).
 
 ```sh
-$ cd go/EISMessageBus/publisher/
-$ go run main.go -configFile ../../../../examples/tcp_example_config.json -topic publish_test
+$ cmake -DCMAKE_BUILD_TYPE=Debug ..
 ```
+
+### Potential Compilation Issues
+
+- **CMake Python Version Issue:** If CMake raises an error for finding the
+    incorrect Python version, then add the following flag to the CMake
+    command: `-DPYTHON_EXECUTABLE=/usr/bin/python3`
+- **Python Binding Changes Not Compiling:** If a change is made to the Python
+    binding and make has already been previously ran, then you must run
+    `make clean` before running make again to compile the changes in the
+    Python binding. This will need to be fixed later.
 
 ## Installation
 
@@ -278,7 +285,65 @@ script, i.e. `python3 <python-script>.py <json-config-file>.json`.
 
 ### Go Examples
 
-**TODO:** Document the execution of the Go binding examples
+> **IMPORANT NOTE:** It is assumed that when compiling the C library prior to
+> running the examples that the `WITH_GO=ON` flag was specified when executing
+> the `cmake` command. It is also assume that, `sudo make install` has been
+> ran. If it has not and you do not wish to install the library, see the
+> "Running Go Examples without Installing" section below.
+
+When the `sudo make install` command is executed on your system, the Go binding
+will be copied to your system's `$GOPATH`. To execute the examples provided
+with the EIS Message Bus Go binding go to the `$GOPATH/src/EISMessageBus/examples`
+directory on your system in a terminal window.
+
+Once you are in this directory choose an example (i.e. publisher, subscriber,
+etc.) and `cd` into that directory. Then, to run the example execute the
+following command:
+
+```sh
+$ go run main.go -configFile <CONFIG-FILE>.json -topic publish_test
+```
+
+The example command above will run either the subscriber or publisher examples.
+For the echo-client and echo-server examples the `-topic` flag should be
+`-serviceName`.
+
+Additionally, there are example configurations provided in the
+`build/examples/configs/` directory after building the EIS Message Bus library.
+
+### Running Go Examples without Installing
+
+If you wish to run the Go binding examples with out installing the EIS Message
+Bus library, then this can be accomplished by either copying or creating a
+soft-link to the `go/EISMessageBus` directory in your `$GOPATH`. This can be
+accomplished with one of the commands shown below.
+
+```sh
+$ cp -r go/EISMessageBus/ $GOPATH/src
+
+# OR
+
+$ ln -s go/EISMessageBus/ $GOPATH/src
+```
+
+> **NOTE:** The command above assumes that you are currently in the
+> EISMessageBus source root directory.
+
+Since it is assumed you have not ran the `sudo make install` command to install
+the EIS Message Bus library, you must set the environmental variables specified
+below prior to running the examples.
+
+```sh
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$MSGBUS_DIR/build
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:$MSGBUS_DIR/build
+```
+
+Note that in the `export` commands above the `$MSGBUS_DIR` variable represents
+the absolute path to the `libs/EISMessageBus` directory. It is very important
+that this is the absolute path.
+
+Once you have exported these variables, once you have done these steps, you can
+run any of the Go examples as specified in the previous section.
 
 ## Security
 
