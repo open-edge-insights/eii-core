@@ -109,45 +109,6 @@ class BaseClassifier:
         self.log.debug('classifier_config: {}'.format(classifier_config))
         self.max_workers = classifier_config["max_workers"]
 
-    def send_data(self, data, defects_dict):
-        """
-        Adds data to classifier output queue
-        Parameters:
-        ----------
-        data: list
-            data added to queue
-        defects_dict: dict
-            defects and display info dict coming in from subclasses
-        """
-        d_info = defects_dict["display_info"]
-        defects = defects_dict["defects"]
-        defects_dict = {}
-        defect_res = []
-        for d in defects:
-            if d.defect_class in defects:
-                defects_dict[d.defect_class] += 1
-            else:
-                defects_dict[d.defect_class] = 1
-            defect_res.append({
-                'type': d.defect_class,
-                'tl': d.tl,
-                'br': d.br
-            })
-
-        display_info = []
-        for d in d_info:
-            display_info.append({
-                'info': d.info,
-                'priority': d.priority
-            })         
-        metadata = data[1]
-        metadata["defects"] = defect_res
-        metadata["display_info"] = display_info
-        data[1] = metadata
-        self.output_queue.put(data)
-        self.log.debug("Data: {} added to classifier output queue".format(
-            data[0:2]))
-
     def start(self):
         """Starts `max_workers` pool of threads to feed on the classifier input queue, run through
         each frame from the queue with classifier logic and add only key frames for further processing

@@ -27,7 +27,6 @@ import logging
 import importlib
 import inspect
 import queue
-import threading
 from concurrent.futures import ThreadPoolExecutor
 
 def load_filter(filter, filter_config, input_queue, output_queue):

@@ -56,7 +56,6 @@ class VideoAnalytics:
         self.dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
         self.app_name = os.environ["AppName"]
         conf = {
-            "endpoint": "localhost:2379",
             "certFile": "",
             "keyFile": "",
             "trustFile": ""
@@ -68,7 +67,7 @@ class VideoAnalytics:
         self.classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
             self.app_name, self.classifier_name))
 
-        self.log.debug('classifier_name: {}, classifier_config: {}'.format(
+        self.log.info('classifier name: {}, classifier config: {}'.format(
             self.classifier_name, self.classifier_config))
 
         self.classifier_config = json.loads(self.classifier_config)

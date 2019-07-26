@@ -33,8 +33,7 @@ class Publisher:
         Parameters
         -----------
         classifier_output_queue : Queue
-            Input queue for publisher (has [topic, classifier_metadata, 
-            keyframe] data entries)
+            Input queue for publisher (has (metadata,frame) tuple data entries)
         """
         self.log = logging.getLogger(__name__)
         self.classifier_output_queue = classifier_output_queue
@@ -66,9 +65,8 @@ class Publisher:
             topic config
         """
         thread_id = threading.get_ident()
-        self.log.info("Publisher thread ID started" +  \
-                      " with topic: {} and topic_cfg: {}...".format(thread_id,
-                      topic, topic_cfg))
+        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+        self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
 
         mode = topic_cfg[0].lower()
         try:
@@ -83,17 +81,18 @@ class Publisher:
         self.log.info("Publishing to topic: {}...".format(topic))
         
         while True:
-            result = self.classifier_output_queue.get()
+            metadata, frame = self.classifier_output_queue.get()
             try:
-                result[0] = topic.encode()
-                result[1] = json.dumps(result[1]).encode()                
-                socket.send_multipart(result, copy=False)
-                self.log.debug("Published data : {}...".format(result[0:2]))
+                metadata_encoded = json.dumps(metadata).encode()
+                socket.send_multipart([topic.encode(), metadata_encoded, frame],
+                                      copy=False)
+                self.log.debug("Published data: metadata:{}".format(metadata))
+                self.log.info("Published data...")
             except Exception as ex:
                 self.log.exception('Error while publishing data: {}'.format(ex))
-        self.log.info("Publisher thread ID stopped" +  \
-                      " with topic: {} and topic_cfg: {}...".format(thread_id,
-                      topic, topic_cfg))
+        
+        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
     def stop(self):
         """

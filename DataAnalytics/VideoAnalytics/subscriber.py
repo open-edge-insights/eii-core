@@ -35,8 +35,7 @@ class Subscriber:
         Parameters
         -----------
         subscriber_queue: Queue
-            subscriber's output queue (has [topic, metadata, 
-            keyframe] data entries)
+            subscriber's output queue (has (metadata,frame) tuple data entries)
         """
         self.log = logging.getLogger(__name__)
         self.subscriber_queue = subscriber_queue
@@ -68,9 +67,8 @@ class Subscriber:
             topic config
         """
         thread_id = threading.get_ident()
-        self.log.info("Subscriber thread ID started" +  \
-                      " with topic: {} and topic_cfg: {}...".format(thread_id,
-                      topic, topic_cfg))
+        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+        self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
 
         mode = topic_cfg[0].lower()
         try:
@@ -86,15 +84,17 @@ class Subscriber:
         socket.setsockopt_string(zmq.SUBSCRIBE, topic)
 
         while True:
-            data = socket.recv_multipart()
-            data[0] = data[0].decode()
-            data[1] = json.loads(data[1].decode())
+            msg = socket.recv_multipart()
             
-            self.log.debug("Added data to subscriber queue: {}".format(data[:2]))
-            self.subscriber_queue.put(data)
-        self.log.info("Subscriber thread ID started" +  \
-                      " with topic: {} and topic_cfg: {}...".format(thread_id,
-                      topic, topic_cfg))
+            topic = msg[0].decode()
+            metadata = json.loads(msg[1].decode())
+            frame = msg[2]
+
+            self.subscriber_queue.put((metadata, frame))
+            self.log.debug("Added metadata:{} to subscriber queue".format(
+                metadata))
+        
+        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
     def stop(self):
         """

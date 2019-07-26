@@ -24,7 +24,6 @@ import cv2
 import numpy as np
 import json
 from time import time
-import threading
 
 from VideoAnalytics.classifiers.defect import Defect
 from VideoAnalytics.classifiers.display_info import DisplayInfo
@@ -108,17 +107,13 @@ class Classifier(BaseClassifier):
         information in generated. The trigger algorithm associated with
         with this classifier is "bypass_filter" or "no_filter" which selects 
         each input image for classification.
-        """
-        thread_id = threading.get_ident()
-        self.log.info("Classifier thread ID: {} started...".format(thread_id))
-        
+        """        
         while True:
-            data = self.input_queue.get()
-            self.log.debug("classify data: {}".format(data[:2]))
-            metadata = data[1]
-
-             # Convert the buffer into np array.
-            np_buffer = np.frombuffer(data[2], dtype=np.uint8)
+            metadata, frame = self.input_queue.get()
+            self.log.debug("classify data: metadata:{}".format(metadata))
+            
+            # Convert the buffer into np array.
+            np_buffer = np.frombuffer(frame, dtype=np.uint8)
             encoding = metadata["encoding"]
             if encoding is not None:
                 reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
@@ -173,11 +168,29 @@ class Classifier(BaseClassifier):
                                             '.format(probs[id], det_label), 0)
                     d_info.append(disp_info)
 
+            defects_dict = {}
+            defect_res = []
+            for d in defects:
+                if d.defect_class in defects:
+                    defects_dict[d.defect_class] += 1
+                else:
+                    defects_dict[d.defect_class] = 1
+                defect_res.append({
+                    'type': d.defect_class,
+                    'tl': d.tl,
+                    'br': d.br
+                })
 
-            defects_dict = {
-                "defects": defects,
-                "display_info": d_info
-            }
-            self.send_data(data, defects_dict)
+            display_info = []
+            for d in d_info:
+                display_info.append({
+                    'info': d.info,
+                    'priority': d.priority
+                })         
+            metadata["defects"] = defect_res
+            metadata["display_info"] = display_info
+            
+            self.output_queue.put((metadata, frame))
+            self.log.debug("metadata: {} added to classifier output queue".format(
+                metadata))
 
-        self.log.info("Classifier thread ID: {} stopped...".format(thread_id))

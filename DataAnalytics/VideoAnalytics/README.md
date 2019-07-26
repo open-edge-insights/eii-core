@@ -2,10 +2,8 @@
 
 The high level logical flow of VideoAnalytics pipeline is as below:
 
-1. VideoAnalytics will start the zmq publisher thread, classifier(
-   single or multiple threads per classifier configuration) and
-   zmq subscriber thread based on classifier configuration.
-   Added base_classifier.py and moved classifiers inside VideoAnalytics
+1. VideoAnalytics will start the zmq publisher thread, single/multiple classifier
+   threads and zmq subscriber thread based on classifier configuration.
 2. zmq subscriber thread connects to the PUB socket of zmq bus on which
    the data is published by VideoIngestion and adds it to classifier
    input queue
@@ -14,7 +12,7 @@ The high level logical flow of VideoAnalytics pipeline is as below:
    add defects/display_info to metadata and add's the updated data to
    classifier output queue
 4. zmq publisher thread reads from the classifier output queue and
-   publishes it to the ZMQ bus
+   publishes it over the ZMQ bus
     
 ## Configuration
 
@@ -40,7 +38,7 @@ Sample configuration for classifiers used:
         "device": "CPU"
     }      
     ```
-2. Classification sample classifier (has to be used with `bypass Filter`)
+2. Classification sample classifier (has to be used with `Bypass Filter`)
    ```
     {
         "queue_size": 10,
@@ -78,7 +76,18 @@ Sample configuration for classifiers used:
         $ ln -sf DataAnalytics/VideoAnalytics/.dockerignore ../.dockerignore
         $ docker-compose up --build ia_video_analytics
         ```
-    2. Update EIS VideoAnalytics keys(classifier) in `etcd` and see 
-       if it picks it up automatically without any container restarts
-
+    2. Update EIS VideoAnalytics keys(classifier) in `etcd` using UI's
+       like `EtcdKeeper` or programmatically and see if it picks it up 
+       automatically without any container restarts. The important keys here
+       would be `classifier_name` which would allow one to
+       choose the available classifier configs. So whenever the values
+       of above keys or the values of the ones that are pointed by them change, 
+       the VA pipeline restarts automatically.
+       Eg: <br>
+       
+       **Sample Etcd config:**
+       ```
+       "/../classifier_name" : "pcb_classifier"
+       "/../pcb_classfier": {...}
+       ```
 

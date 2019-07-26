@@ -192,10 +192,10 @@ services:
       no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
-      SubTopics: "camera1_stream"
-      camera1_stream_cfg : "ZeroMQ/TCP,127.0.0.1:65011"
+      SubTopics: "camera1_stream"      
+      camera1_stream_cfg: "ZeroMQ/TCP,127.0.0.1:65011"
       PubTopics: "camera1_stream_results"
-      camera1_stream_results_cfg : "ZeroMQ/TCP,127.0.0.1:65013"
+      camera1_stream_results_cfg: "ZeroMQ/TCP,127.0.0.1:65013"
     privileged: true
     volumes:
       - "/dev:/dev"
