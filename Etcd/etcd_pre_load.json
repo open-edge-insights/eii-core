@@ -88,6 +88,9 @@
         "queue_size": 10
     },
     "/Visualizer/config": {
+        "display": "true",
+        "dev_mode": "true",
+        "profiling": "false",
         "cert_path": ""
     }
 }
