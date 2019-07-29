@@ -44,7 +44,7 @@ COPY libs/EISMessageBus/ ./libs/EISMessageBus
 
 RUN cd ./libs/EISMessageBus && \
     ./install.sh --cython && \
-    rm -rf build deps
+    rm -rf build deps && \
     mkdir build && \
     cd build && \
     cmake -DWITH_PYTHON=ON .. && \
