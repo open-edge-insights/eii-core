@@ -29,4 +29,3 @@ cdef class ServiceRequester(ReceiveContext):
     """
     @staticmethod
     cdef create(void* msgbus_ctx, recv_ctx_t* recv_ctx)
-    cpdef object request(self, object request)

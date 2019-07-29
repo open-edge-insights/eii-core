@@ -23,5 +23,5 @@
 from .libeismsgbus cimport msg_envelope_t
 
 
-cdef msg_envelope_t* python_to_msg_envelope(data)
+cdef msg_envelope_t* python_to_msg_envelope(data) except *
 cdef object msg_envelope_to_python(msg_envelope_t* msg)

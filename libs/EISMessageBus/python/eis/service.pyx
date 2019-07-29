@@ -42,7 +42,7 @@ cdef class Service(ReceiveContext):
         r.recv_ctx = recv_ctx
         return r
 
-    cpdef object response(self, object response):
+    def response(self, response):
         """Issue a response over the message bus.
 
         :param resp: Response data
@@ -50,6 +50,12 @@ cdef class Service(ReceiveContext):
         """
         cdef msgbus_ret_t ret
         cdef msg_envelope_t* msg = python_to_msg_envelope(response)
+
+        # Check if the message envelope was successfully converted from its
+        # Python representation and raise the exception that was raised in the
+        # python_to_msg_envelope() function
+        if msg == NULL:
+            raise
 
         ret = msgbus_response(self.msgbus_ctx, self.recv_ctx, msg)
         if ret != msgbus_ret_t.MSG_SUCCESS:

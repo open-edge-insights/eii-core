@@ -30,7 +30,7 @@ from .libeismsgbus cimport *
 from cpython cimport bool
 
 
-cdef void put_bytes_helper(msg_envelope_t* env, data):
+cdef void put_bytes_helper(msg_envelope_t* env, data) except *:
     """Helper function to serialize a Python bytes object to a blob object.
     """
     cdef msgbus_ret_t ret
@@ -52,7 +52,7 @@ cdef void put_bytes_helper(msg_envelope_t* env, data):
     env.blob.body.blob.shared.owned = <bint> False
 
 
-cdef msg_envelope_t* python_to_msg_envelope(data):
+cdef msg_envelope_t* python_to_msg_envelope(data) except *:
     """Helper function to create a msg_envelope_t from a Python bytes or
     dictionary object.
 

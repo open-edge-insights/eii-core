@@ -30,4 +30,3 @@ cdef class Service(ReceiveContext):
     """
     @staticmethod
     cdef create(void* msgbus_ctx, recv_ctx_t* recv_ctx)
-    cpdef object response(self, object response)

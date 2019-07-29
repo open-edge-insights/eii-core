@@ -77,6 +77,12 @@ cdef class Publisher:
         cdef msgbus_ret_t ret
         cdef msg_envelope_t* env = python_to_msg_envelope(message)
 
+        # Check if the message envelope was successfully converted from its
+        # Python representation and raise the exception that was raised in the
+        # python_to_msg_envelope() function
+        if env == NULL:
+            raise
+
         # Attempt to publish the message
         ret = msgbus_publisher_publish(self.msgbus_ctx, self.pub_ctx, env)
         # Destroy the published message
