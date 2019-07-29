@@ -334,8 +334,9 @@ services:
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       DISPLAY: ${DISPLAY}
       SubTopics: "camera1_stream_results"
-      camera1_stream_results_cfg : "ZeroMQ/TCP,127.0.0.1:65013"
+      camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
     privileged: true
+    command: ["--image_dir", "${IEI_INSTALL_PATH}/saved_images"]
     volumes:
       - "${IEI_INSTALL_PATH}/saved_images:${IEI_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
