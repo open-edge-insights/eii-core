@@ -79,13 +79,14 @@ class Subscriber:
             self.sockets.append(socket)
         except Exception as ex:
             self.log.exception(ex)
+            raise ex
 
         self.log.info("Subscribing to topic: {}...".format(topic))
         socket.setsockopt_string(zmq.SUBSCRIBE, topic)
 
         while True:
             msg = socket.recv_multipart()
-            
+
             topic = msg[0].decode()
             metadata = json.loads(msg[1].decode())
             frame = msg[2]
@@ -93,7 +94,7 @@ class Subscriber:
             self.subscriber_queue.put((metadata, frame))
             self.log.debug("Added metadata:{} to subscriber queue".format(
                 metadata))
-        
+
         self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
     def stop(self):
@@ -106,6 +107,6 @@ class Subscriber:
                 socket.close()
                 if socket._closed == "False":
                     self.log.error("Unable to close socket connection")
-            self.context.term()        
+            self.context.term()
         except Exception as ex:
             self.log.exception(ex)

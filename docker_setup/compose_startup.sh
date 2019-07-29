@@ -87,7 +87,6 @@ pre_build_steps() {
 }
 
 post_build_steps() {
-
 	mkdir -p $IEI_INSTALL_PATH/grpc_int_ssl_secrets
 	chown -R $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/grpc_int_ssl_secrets
 	mkdir -p $IEI_INSTALL_PATH/data
@@ -104,6 +103,8 @@ post_build_steps() {
 	mkdir -p $IEI_INSTALL_PATH/logs/video_ingestion_logs
 	mkdir -p $IEI_INSTALL_PATH/logs/video_analytics_logs
 	chmod -R 777 $IEI_INSTALL_PATH/logs
+	mkdir -p $IEI_INSTALL_PATH/sockets
+	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/sockets
 }
 
 build_iei() {

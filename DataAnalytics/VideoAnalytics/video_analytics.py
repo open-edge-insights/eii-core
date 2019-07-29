@@ -67,45 +67,53 @@ class VideoAnalytics:
         self.classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
             self.app_name, self.classifier_name))
 
-        self.log.info('classifier name: {}, classifier config: {}'.format(
-            self.classifier_name, self.classifier_config))
-
         self.classifier_config = json.loads(self.classifier_config)
 
         self.etcd_cli.RegisterDirWatch("/{0}/".format(self.app_name)
-            , self.onChangeConfigCB)
+            , self._on_change_config_callback)
+
+    def _print_config(self):
+        self.log.info('classifier name: {}, classifier config: {}'.format(
+            self.classifier_name, self.classifier_config))
 
     def start(self):
         """ Start the Video Analytics.
         """
-        self.log.info('=======Starting {}======='.format(self.app_name))
+        log_msg = "======={} {}======="
+        self.log.info(log_msg.format("Starting", self.app_name))
+
+        self._print_config()
+
         queue_size = self.classifier_config["queue_size"]
-        self.classifier_input_queue = \
+        classifier_input_queue = \
             queue.Queue(maxsize=queue_size)
 
-        self.classifier_output_queue = \
+        classifier_output_queue = \
             queue.Queue(maxsize=queue_size)
 
-        self.publisher = Publisher(self.classifier_output_queue)
+        self.publisher = Publisher(classifier_output_queue)
         self.publisher.start()
 
         self.classifier = load_classifier(self.classifier_name,
                                      self.classifier_config,
-                                     self.classifier_input_queue,
-                                     self.classifier_output_queue)
+                                     classifier_input_queue,
+                                     classifier_output_queue)
         self.classifier.start()
 
-        self.subscriber = Subscriber(self.classifier_input_queue)
+        self.subscriber = Subscriber(classifier_input_queue)
         self.subscriber.start()
+        self.log.info(log_msg.format("Started", self.app_name))
 
     def stop(self):
         """ Stop the Video Analytics."""
-        self.log.info('=======Stopping {}======='.format(self.app_name))
+        log_msg = "======={} {}======="
+        self.log.info(log_msg.format("Stopping", self.app_name))
         self.subscriber.stop()
         self.classifier.stop()
         self.publisher.stop()
+        self.log.info(log_msg.format("Stopped", self.app_name))
 
-    def onChangeConfigCB(self, key, value):
+    def _on_change_config_callback(self, key, value):
         """
         Callback method to be called by etcd
 
@@ -116,9 +124,6 @@ class VideoAnalytics:
         value: str
             etcd value
         """
-        # TODO: To be added:
-        # 1. Add logic to control restart of filter/ingestor or publisher
-        #    alone based on the config change instead of restarting all threads.
         try:
             if "_classifier" in value:
                 classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
@@ -130,7 +135,7 @@ class VideoAnalytics:
                 self.classifier_config = json.loads(value)
         except:
             pass
-        
+
         self.stop()
         self.start()
 
@@ -148,7 +153,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():    
+def main():
     """Main method
     """
     # Parse command line arguments

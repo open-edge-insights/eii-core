@@ -74,7 +74,6 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
-
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
     build:
@@ -173,47 +172,6 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
-  # Define VideoAnalytics service
-  ia_video_analytics:
-    build:
-      context: ../
-      dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
-      args:
-        IEI_VERSION: ${IEI_VERSION}
-        IEI_UID: ${IEI_UID}
-    image: ia_video_analytics:${IEI_VERSION}
-    container_name: ia_video_analytics
-    hostname: ia_video_analytics
-    network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
-    environment:
-      AppName: "VideoAnalytics"
-      DEV_MODE: ${DEV_MODE}
-      no_proxy: ${NO_PROXY}
-      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
-      PROFILING: ${PROFILING}
-      SubTopics: "camera1_stream"      
-      camera1_stream_cfg: "ZeroMQ/TCP,127.0.0.1:65011"
-      PubTopics: "camera1_stream_results"
-      camera1_stream_results_cfg: "ZeroMQ/TCP,127.0.0.1:65013"
-    privileged: true
-    volumes:
-      - "/dev:/dev"
-    devices:
-      - "/dev/dri"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-      test: ["CMD-SHELL", "exit", "0"]
-      interval: ${HEALTHCHECK_DURATION}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
-
-
   # Define FactoryControlApp service
   ia_factoryctrl_app:
     build:
@@ -278,10 +236,18 @@ services:
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
       GST_DEBUG: ${GST_DEBUG}
       PROFILING: ${PROFILING}
+      SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
-      camera1_stream_cfg: "ZeroMQ/TCP,127.0.0.1:65011"
+      # Use IPC mode (ZeroMQ/IPC) when VideoIngestion and VideoAnalytics based
+      # containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: ZeroMQ/IPC, <absolute_socket_file_path_inside_container>
+      # TPC: ZeroMQ/TCP, <publisher_host>:<publisher_port>
+      camera1_stream_cfg: "ZeroMQ/IPC,${SOCKET_DIR}/camera1_stream.sock"
     volumes:
-      - "${IEI_INSTALL_PATH}/test_videos:/IEI/test_videos"
+      - "$PWD/test_videos:/IEI/test_videos"
+      - "${IEI_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     command: ["--log-dir", "/IEI/video_ingestion_logs", "--log", "${PY_LOG_LEVEL}"]
     privileged: true
     devices:
@@ -300,6 +266,56 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
+  # Define VideoAnalytics service
+  ia_video_analytics:
+    build:
+      context: ../
+      dockerfile: $PWD/../DataAnalytics/VideoAnalytics/Dockerfile
+      args:
+        IEI_VERSION: ${IEI_VERSION}
+        IEI_UID: ${IEI_UID}
+    image: ia_video_analytics:${IEI_VERSION}
+    container_name: ia_video_analytics
+    hostname: ia_video_analytics
+    network_mode: host
+    restart: on-failure:${FAILURE_ATTEMPTS}
+    environment:
+      AppName: "VideoAnalytics"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${NO_PROXY}
+      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
+      PROFILING: ${PROFILING}
+      SubTopics: "camera1_stream"
+      SOCKET_DIR: ${SOCKET_DIR}
+      # Use IPC mode (ZeroMQ/IPC) when VideoIngestion and VideoAnalytics based
+      # containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: ZeroMQ/IPC, <absolute_socket_file_path_inside_container>
+      # TPC: ZeroMQ/TCP, <publisher_host>:<publisher_port>
+      camera1_stream_cfg: "ZeroMQ/IPC,${SOCKET_DIR}/camera1_stream.sock"
+      PubTopics: "camera1_stream_results"
+      camera1_stream_results_cfg: "ZeroMQ/TCP,127.0.0.1:65013"
+    privileged: true
+    volumes:
+      - "/dev:/dev"
+      - "$PWD/test_videos:/IEI/test_videos"
+      - "${IEI_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+    devices:
+      - "/dev/dri"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+
+  # Define Visualizer service
   ia_visualizer:
     build:
       context: ../
@@ -335,9 +351,9 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
+#----End: IEI Containers ----
+
 networks:
   default:
     external:
       name: ${COMPOSE_PROJECT_NAME}
-
-  #----End: IEI Containers ----

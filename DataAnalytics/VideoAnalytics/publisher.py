@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -24,6 +24,7 @@ import logging
 import os
 import json
 from concurrent.futures import ThreadPoolExecutor
+
 
 class Publisher:
 
@@ -77,20 +78,22 @@ class Publisher:
             self.sockets.append(socket)
         except Exception as ex:
             self.log.exception(ex)
+            raise ex
 
         self.log.info("Publishing to topic: {}...".format(topic))
-        
+
         while True:
             metadata, frame = self.classifier_output_queue.get()
             try:
                 metadata_encoded = json.dumps(metadata).encode()
-                socket.send_multipart([topic.encode(), metadata_encoded, frame],
-                                      copy=False)
-                self.log.debug("Published data: metadata:{}".format(metadata))
-                self.log.info("Published data...")
+                socket.send_multipart([topic.encode(), metadata_encoded,
+                                      frame], copy=False)
+                self.log.debug("Published data on topic:{} metadata:{}".format(
+                    topic, metadata))
+                self.log.info("Published data on topic: {}...".format(topic))
             except Exception as ex:
                 self.log.exception('Error while publishing data: {}'.format(ex))
-        
+
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
         self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
@@ -104,6 +107,6 @@ class Publisher:
                 socket.close()
                 if socket._closed == "False":
                     self.log.error("Unable to close socket connection")
-            self.context.term()        
+            self.context.term()
         except Exception as ex:
             self.log.exception(ex)
