@@ -150,6 +150,16 @@ cdef msg_envelope_t* python_to_msg_envelope(data) except *:
     return env
 
 
+cdef object char_to_bytes(const char* data, int length):
+    """Helper function to convert char* to byte array without stopping on a
+    NULL termination.
+
+    NOTE: This is workaround for Cython's built-in way of doing this which will
+    automatically stop when it hits a NULL byte.
+    """
+    return <bytes> data[:length]
+
+
 cdef object msg_envelope_to_python(msg_envelope_t* msg):
     """Convert msg_envelope_t to Python dictionary or bytes object.
 
@@ -169,11 +179,11 @@ cdef object msg_envelope_to_python(msg_envelope_t* msg):
         data = None
 
         if msg.content_type == content_type_t.CT_JSON:
-            data = json.loads(<bytes> parts[0].bytes)
+            data = json.loads(char_to_bytes(parts[0].bytes, parts[0].len))
             if num_parts > 1:
-                data = (data, <bytes> parts[1].bytes)
+                data = (data, char_to_bytes(parts[1].bytes, parts[1].len),)
         elif msg.content_type == content_type_t.CT_BLOB:
-            data = <bytes> parts[0].bytes
+            data = char_to_bytes(parts[0].bytes, parts[0].len)
         else:
             raise MessageBusError('Unknown content type')
 
