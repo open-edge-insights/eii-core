@@ -65,11 +65,39 @@ class Publisher:
         topic_cfg: str
             topic config
         """
-        thread_id = threading.get_ident()
-        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
+        try:
+            thread_id = threading.get_ident()
+            log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+            self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
 
-        mode = topic_cfg[0].lower()
+            mode = topic_cfg[0].lower()
+            self._bind_to_socket(mode, socket, topic_cfg)
+
+            self.log.info("Publishing to topic: {}...".format(topic))
+
+            while True:
+                metadata, frame = self.classifier_output_queue.get()
+                try:
+                    metadata_encoded = json.dumps(metadata).encode()
+                    socket.send_multipart([topic.encode(), metadata_encoded,
+                                        frame], copy=False)
+                    self.log.debug("Published data on topic:{} metadata:{}".format(
+                        topic, metadata))
+                    self.log.info("Published data on topic: {}...".format(topic))
+                except Exception as ex:
+                    self.log.exception('Error while publishing data: {}'.format(ex))
+
+            log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+            self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
+        except Exception as ex:
+            self.log.exception('Error while publishing data:{}'.format(ex))
+            self.sockets.pop(len(self.sockets) - 1)
+            self.log.info("Rebinding to socket...")
+            # Below re-bind logic is to get aroud with "Socket opertion
+            # on non-socket" issue
+            self._bind_to_socket(mode, socket, topic_cfg)
+
+    def _bind_to_socket(self, mode, socket, topic_cfg):
         try:
             if "tcp" in mode:
                 socket.bind("tcp://{}".format(topic_cfg[1]))
@@ -77,25 +105,7 @@ class Publisher:
                 socket.bind("ipc://{}".format(topic_cfg[1]))
             self.sockets.append(socket)
         except Exception as ex:
-            self.log.exception(ex)
             raise ex
-
-        self.log.info("Publishing to topic: {}...".format(topic))
-
-        while True:
-            metadata, frame = self.classifier_output_queue.get()
-            try:
-                metadata_encoded = json.dumps(metadata).encode()
-                socket.send_multipart([topic.encode(), metadata_encoded,
-                                      frame], copy=False)
-                self.log.debug("Published data on topic:{} metadata:{}".format(
-                    topic, metadata))
-                self.log.info("Published data on topic: {}...".format(topic))
-            except Exception as ex:
-                self.log.exception('Error while publishing data: {}'.format(ex))
-
-        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
     def stop(self):
         """
