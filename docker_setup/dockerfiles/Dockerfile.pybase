@@ -43,8 +43,8 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v3.15.0/cmake-3.15.0
 COPY libs/EISMessageBus/ ./libs/EISMessageBus
 
 RUN cd ./libs/EISMessageBus && \
+    rm -rf build deps && \ 
     ./install.sh --cython && \
-    rm -rf build deps && \
     mkdir build && \
     cd build && \
     cmake -DWITH_PYTHON=ON .. && \
