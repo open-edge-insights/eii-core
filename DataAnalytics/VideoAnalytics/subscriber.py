@@ -26,6 +26,7 @@ import os
 import numpy as np
 import cv2
 from concurrent.futures import ThreadPoolExecutor
+import eis.msgbus as mb
 
 class Subscriber:
 
@@ -39,6 +40,7 @@ class Subscriber:
         """
         self.log = logging.getLogger(__name__)
         self.subscriber_queue = subscriber_queue
+        self.stop_ev = threading.Event()
 
     def start(self):
         """
@@ -66,36 +68,37 @@ class Subscriber:
         topic_cfg: str
             topic config
         """
+
+        if "zmq_ipc" == topic_cfg[0]:
+            addr = topic_cfg[1]
+            config= {
+                        "type": topic_cfg[0],
+                        "socket_dir": addr
+                    }
+
+        elif "zmq_tcp" == topic_cfg[0]:
+            addr = topic_cfg[1].split(":")
+            host, port = addr
+            config = {
+                            "type": topic_cfg[0],
+                            topic: {
+                                "host": host,
+                                "port": int(port)
+                            }
+                        }
+
+        self.msgbus = mb.MsgbusContext(config)
+        self.subscriber = self.msgbus.new_subscriber(topic)
         thread_id = threading.get_ident()
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
         self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
-
-        mode = topic_cfg[0].lower()
-        try:
-            if "tcp" in mode:
-                socket.connect("tcp://{}".format(topic_cfg[1]))
-            elif "ipc" in mode:
-                socket.connect("ipc://{}".format(topic_cfg[1]))
-            self.sockets.append(socket)
-        except Exception as ex:
-            self.log.exception(ex)
-            raise ex
-
         self.log.info("Subscribing to topic: {}...".format(topic))
-        socket.setsockopt_string(zmq.SUBSCRIBE, topic)
-
-        while True:
-            msg = socket.recv_multipart()
-
-            topic = msg[0].decode()
-            metadata = json.loads(msg[1].decode())
-            frame = msg[2]
-
-            self.subscriber_queue.put((metadata, frame))
-            self.log.debug("Added metadata:{} to subscriber queue".format(
-                metadata))
-
-        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
+        while not self.stop_ev.is_set():
+            data = self.subscriber.recv()
+            self.subscriber_queue.put(data)
+        self.log.info("Subscriber thread ID: {} started" +  \
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                      topic, topic_cfg))
 
     def stop(self):
         """
