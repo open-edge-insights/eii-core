@@ -1,0 +1,11 @@
+ARG EIS_VERSION
+FROM ia_etcd:${EIS_VERSION}
+ADD dep/requirements.txt .
+RUN pip3 install -r requirements.txt && \
+    rm -rf requirements.txt
+ADD dep/etcd_provision.py .
+ADD dep/etcd_create_user.sh .
+ADD dep/etcd_enable_auth.sh .
+RUN chmod +x etcd_create_user.sh && \
+    chmod +x etcd_enable_auth.sh
+ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]

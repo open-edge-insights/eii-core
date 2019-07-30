@@ -223,6 +223,7 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       AppName: "VideoIngestion"
+      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
       DEBIAN_FRONTEND: noninteractive
@@ -281,6 +282,7 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       AppName: "VideoAnalytics"
+      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
@@ -369,8 +371,19 @@ services:
       OpcuaExportCfg: "opcua,localhost:65003"
       SubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-
-networks:
-  default:
-    external:
-      name: ${COMPOSE_PROJECT_NAME}
+  
+  ia_etcd_ui:
+    build:
+      context: ../
+      dockerfile: $PWD/../EtcdUI/Dockerfile
+      args:
+        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
+        IEI_VERSION: ${IEI_VERSION}
+    image: ia_etcd_ui:${IEI_VERSION}
+    network_mode: host
+    container_name: ia_etcd_ui
+    hostname: ia_etcd_ui
+    environment:
+      AppName: "EtcdUi"
+      no_proxy: ${NO_PROXY}
+      DEV_MODE: $DEV_MODE

@@ -115,6 +115,14 @@ The section assumes the EIS software is already downloaded from the release pack
    > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones.
 
 
+# Provision EIS Cluster 
+
+* Please follow below readme to Provision EIS cluster.
+
+    [docker_setup/provision/README.md](docker_setup/provision/README.md)
+
+   > **NOTE**: Provision EIS cluster is needed for both Dev and Production mode.
+
 # Run EIS PCB Demo in Developer Mode
 
    A simple way to start EIS and see it in actiion is to enable the developer mode which disables all security and the provisioning steps.
@@ -167,48 +175,6 @@ For visualizing the results of the video analytics, the  [tools/visualizer](tool
 For running the visualizer follow the [tools/visualizer/README.md](tools/visualizer/README.md).
 
 > Note: Use the developer mode option in Visualizer to run without security if the EIS is started in Dev mode.
-
-# Enable security (Production Mode)
-
-* Follow below steps to generate certificates, provision and build/start IEI.
-
-   1. Certificates generation:
-
-      Follow [cert-tool/README.md](cert-tool/README.md) to generate the required certificates/keys.
-
-   2. Provision the secrets to Vault (**present working dir - `<IEdgeInsights>/docker_setup/`**)
-
-      Run the script:
-
-      ```sh
-      sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-
-      E.g. sudo make provision CERT_PATH=../cert-tool/Certificates/
-      ```
-
-      This will take the inputs from [docker_setup/config/provision_config.json](docker_setup/config/provision_config.json) & read the cert-tool generated Certificates and save it securely by storing it in the Hashicorp Vault.
-      It is responsibility of the Admin to remove the source directory wherein certificates exist.
-
-      ---
-      **Note**:
-      If the admin wants to update the secrets in the vault, a re-provisioning step needs to be done like below:
-
-      ```sh
-      <Take back up of image store, influx or any other data if it is needed in future because provisioning steps deletes all of it>
-
-      <Update the new values into provision_config.json & custom certificates directory if necessary>
-
-      sudo make provision CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee provision_startup.txt
-      ```
-
-      ---
-
-EIS can work with a TPM hardware where the vault keys can be saved securely in the TPM. For using this mode, provide the right value for TPM_ENABLE in [.env](.env) file. This configuration should be used when the EIS is expected to leverage TPM for storing vault specific secret credentials. If one sets it to false, certain credentials are stored in file system.
-    1. `true` -  for enabling the tpm to store credentials
-    2. `false` - for disabling the tpm
-
-    **NOTE**: Please use `TPM_ENABLE=true` only on systems where TPM hardware is present OR TPM is enabled using PTT Firmware in the BIOS.
-
 
 # Enable camera based Video Ingestion
 

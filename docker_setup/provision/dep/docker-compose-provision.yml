@@ -1,0 +1,37 @@
+version: '3.6'
+services:
+  ia_etcd:
+    build:
+      context: ../
+      dockerfile: ./dep/Dockerfile
+      args:
+       ETCD_VERSION: $ETCD_VERSION
+    image: ia_etcd:$EIS_VERSION
+    restart: always
+    environment:
+      ETCDCTL_API: 3
+      DEV_MODE: $DEV_MODE
+      ETCD_DATA_DIR: $ETCD_DATA_DIR
+    volumes:
+      - "$EIS_INSTALL_PATH/data/etcd:$ETCD_DATA_DIR"
+    network_mode: host
+    user: $EIS_UID
+
+  ia_etcd_provision:
+    build:
+       context: ../
+       dockerfile: ./dep/Dockerfile.provision
+       args:
+        EIS_VERSION: ${EIS_VERSION}
+    depends_on:
+       - ia_etcd
+    image: ia_etcd_provision:$EIS_VERSION
+    volumes:
+      - "../config:/EIS/etcd/config/"
+      - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+    environment:
+      ETCDCTL_API: 3
+      DEV_MODE: $DEV_MODE
+      ETCD_ROOT_PASSWORD: eis123
+    network_mode: host
+    user: $EIS_UID
