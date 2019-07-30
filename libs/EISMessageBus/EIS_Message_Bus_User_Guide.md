@@ -547,4 +547,155 @@ being printed to the console by the subscriber.
 
 ## EIS Message Bus Development
 
+This section covers various instructions and tutorials for developing new
+features for the EIS Message Bus library. It does not cover how to use the
+message bus or its APIs, that is covered in previous sections.
+
 ### Developing Protocols
+
+#### Overview
+
+Protocols are at the bottom most layer of the EIS Message Bus stack. They
+provide the implementation for the messaging primitives supported by the
+EIS Message Bus. The main tasks expected of a protocol are as follows:
+
+1. Initialize the state of the underlying message library (i.e. ZeroMQ, DDS, etc.)
+2. Implement methods for initializing contexts for publishers, subscribers,
+    services, and service requesters
+3. Implement base methods for sending messages from publishers, services, and
+    service requesters
+4. Implement base methods for receiving messages as blocking, non-blocking, and
+    time out base function calls
+5. Provide the translation between the underlying messaging library's messsage
+    structure to the EIS Message Bus's `msg_envelope_t` structure
+
+All protocols must have a unique protocol name which the EIS Message Bus can
+use to load the protocol based on the `type` configuration value it is provided.
+For example, the ZeroMQ TCP protocol uses the identifier `zmq_tcp`. Using this
+type name, the EIS Message Bus knows how to load the protocol in the
+`msgbus_initialize()` method.
+
+Currently, the addition and loading of new protocols must be added directly
+to the source code for the EIS Message Bus. In the future, the message bus will
+include a feature for dynamically loading protocol plugins. All protocols are
+expected to have an initialize method which follows the prototype:
+`protocol_t* proto_<type>_initialize(const char* type, config_t* config)`. This
+method is expected to initialize the underlying messaging library using the
+given `config` parameter and then return a pointer to a `protocol_t` structure
+which has pointers for all of the various messaging functions. This method
+must then be added manually to the `msgbus_initialize()` function in
+`src/msgbus.c`.
+
+The `protocol_t` structure is defined below.
+
+```c
+typedef struct {
+    void* proto_ctx;
+    config_t* config;
+
+    void (*destroy)(void* ctx);
+    msgbus_ret_t (*publisher_new)(
+            void* ctx, const char* topic, void** pub_ctx);
+    msgbus_ret_t (*publisher_publish)(
+            void* ctx, void* pub_ctx, msg_envelope_t* msg);
+    void (*publisher_destroy)(void* ctx, void* pub_ctx);
+    msgbus_ret_t (*subscriber_new)(
+            void* ctx, const char* topic, void** subscriber);
+    void (*recv_ctx_destroy)(void* ctx, void* recv_ctx);
+    msgbus_ret_t (*request)(
+            void* ctx, void* service_ctx, msg_envelope_t* message);
+    msgbus_ret_t (*response)(
+            void* ctx, void* service_ctx, msg_envelope_t* message);
+    msgbus_ret_t (*service_new)(
+            void* ctx, const char* service_name, void** service_ctx);
+    msgbus_ret_t (*service_get)(
+            void* ctx, const char* service_name, void** service_ctx);
+    msgbus_ret_t (*recv_wait)(
+            void* ctx, void* recv_ctx, msg_envelope_t** message);
+    msgbus_ret_t (*recv_timedwait)(
+            void* ctx, void* recv_ctx, int timeout, msg_envelope_t** message);
+    msgbus_ret_t (*recv_nowait)(
+            void* ctx, void* recv_ctx, msg_envelope_t** message);
+} protocol_t;
+```
+
+It is expected that this structure is fully populated by a protocol's
+initialization method. The `proto_ctx` value should be a pointer to an internal
+structure representing the state of the protocol which the various functions
+can use to perform the required tasks. Additionally, the `config` value should
+be set to the `config` variable passed to the initialization function. It is
+important to note that the returned `protocol_t` structure is not responsible
+for freeing the memory assiciated with the `config` variable. This is managed
+by the message bus context object.
+
+For each of the functions in the structure the first `ctx` parameter will
+always be the value of the `proto_ctx` variable.
+
+#### Adding a New Protocol
+
+This section will cover how to add an example dummy protcol to the EIS
+Message Bus.
+
+#### `protocol_t` Function Definition
+
+The following describes the purpose of each of the function pointers above.
+
+##### `destroy()`
+
+Responsible for destroying the `proto_ctx` variable and freeing any memory
+used by the context.
+
+##### `publisher_new()`
+
+Initializes a new publisher context for the given `topic`.
+
+##### `publisher_publish()`
+
+Publishes the given message value using the publisher context.
+
+##### `publisher_destroy()`
+
+Destroys a context for a publisher freeing any sockets, memory, etc. used by
+the publisher.
+
+##### `subscriber_new()`
+
+Subscribe to the given topic and output a `recv_ctx_t` to use with the `recv_*`
+methods to receive the publications for the topic.
+
+##### `service_new()`
+
+Create a new `recv_ctx_t` structure which can be used to received requests
+from clients and send responses to received requests using the `response()`
+method.
+
+##### `service_get()`
+
+Create a new `recv_ctx_t` structure which can be used to issue requests to and
+received responses from the specified service.
+
+##### `recv_ctx_destroy()`
+
+Destroy a `recv_ctx_t` structure.
+
+##### `request()`
+
+Issue a request to the service using the given `recv_ctx_t`.
+
+##### `response()`
+
+Send a response to a requesting client using the given `recv_ctx_t` structure.
+
+##### `recv_wait()`
+
+Blocking function for receiving a message from a `recv_ctx_t` context structure.
+
+##### `recv_timedwait()`
+
+Function for receiving messages from a `recv_ctx_t` context structure which
+times out after the given timeout. The timeout shall always be milliseconds.
+
+##### `recv_nowait()`
+
+Receive a message from a `recv_ctx_t` context structure if a message is available,
+otherwise return immediately.
