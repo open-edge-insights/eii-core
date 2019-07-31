@@ -56,7 +56,7 @@ The following points will be especially looked at during the review.
 The following are the minimal requirements that every MR should meet.
 
 - **Pass Continuous Integration (pre-merge build)**: Every MR has to pass
-  our CI. Below are the scripts in [CITests repo]() that would be invoked
+  our CI. Below are the scripts in [CITests repo](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests?nav_source=navbar) that would be invoked
   by the pre-merge build:
   1. `pre_recieve_hook.sh` - does linting for changed go and python files
       w.r.t latest master
@@ -75,28 +75,30 @@ branch when the two diverge.
 
 Below are some additional stuff that developers should adhere to:
 
-* Since there is no batch feature available in the currently deployed IT gitlab
-  version, let’s not bloat the reviewers inboxes with “done” messages. If one is
-  done addressing comments and pushing the changes, he/she can leave a comment
-  saying that all the above review comments have been addressed. Only for those
-  comments, where in we need extra clarifications, we can have discussion on
-  them.
+* Please batch all your comments by adding to `review` by clicking on `Start a
+  review` to start and add all further comments by clicking on `Add to review`.
+  Once done adding all the review comments, click on `Finish review` and
+  subsequently on `Submit review` buttons to submit all of your review comments.
+  This way all the reviewers involved will get notified only once through an email
+  notification.
 
-* It’s been noticed when we merge the merge-request with squash and merge
-  feature especially when there are multiple commits for the same change, gitlab
-  only picks up the merge-request title and doesn’t pick up the description
-  added in the merge-request description and doesn’t give a preview of how the
-  commit message would look like at the time of merging
-  (More details at https://gitlab.com/gitlab-org/gitlab-ce/issues/49803) which
-  is very bad as we developers add useful definition there which will not make
-  it to commit history.
+* In a merge request (i.e., on a feature/bugfix branch) one can have as many
+  commits as possible. If all the commits are related to a single feature (eg:
+  one has addressed review comments or fixed something etc.,), just ensure the
+  `Title` and `Description` of the merge-request is up-to-date with respect to
+  what is been added/modified/removed etc., This way, the maintainer
+  during merging your merge request will squash all your commits into one and
+  modify the squashed commit message to have both the `Title` and `Description`
+  of the merge request.
 
-  To circumvent this, all of us can maintain just a single commit with all the
-  additional details in our commit description. Luckily unlike github, you can
-  compare the force pushed changes with the previous version in gitlab which
-  will be very helpful for reviewers.
+  If merge-request has a single commit, then automatically it gets picked up in
+  your merge-request description.
 
-*	Whenever one sees any failure in the pre-merge build, just check if “rebasing”
-  your merge-request in the gitlab UI can solve the issue (there will be rebase
-  button). If not, please apply access to CI environment to see the reason
-  behind failure.
+  If one wants to just keep ammending the single commit, he/she can do so as
+  well as gitlab allows to compare the force pushed changes with the previous
+  version which will be very helpful for reviewers.
+
+* Whenever one sees any failure in the pre-merge build, just check if “rebasing”
+  your merge-request branch with latest master and re-push can fix the issue.
+  If not, please apply access to CI environment(check [CITests repo README.md](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests/blob/master/README.md))
+  to see the reason behind failure.
