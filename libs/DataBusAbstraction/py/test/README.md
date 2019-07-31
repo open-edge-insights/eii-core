@@ -22,7 +22,7 @@ The python example program demonstrates publish and subscription over OPCUA bus 
   * If executing from IEI repo path, set it as below:
 
     ```sh
-    export PYTHONPATH=..:../../../
+    export PYTHONPATH=..:../../../../
     ```
 
   * If executing from IEI dist libs path (/opt/intel/iei/dist_libs). set it as below:

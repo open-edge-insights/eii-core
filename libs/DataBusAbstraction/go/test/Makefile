@@ -19,7 +19,6 @@ define build_dependencies
 	@echo "Building the open62541 wrapper library libopen62541W.a.."
 	cd $(CPATH) && gcc $(CFLAGS) $(INCLUDE) -c ../../DataBus.c open62541_wrappers.c && gcc $(CFLAGS) $(INCLUDE) -c open62541.c && \
 	ar crU libopen62541W.a DataBus.o open62541_wrappers.o open62541.o && ar crU libsafestring.a DataBus.o open62541_wrappers.o open62541.o && \
-	cp -rf libsafestring.a ../../../../Util/cpuid/ && \
 	rm -rf DataBus.o open62541_wrappers.o open62541.o && \
 	pwd
 endef

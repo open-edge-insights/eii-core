@@ -60,6 +60,7 @@ func errHandler(errMsg string, err *error) {
 	}
 }
 
+// NewDataBus function to create an instance for DataBus
 func NewDataBus() (db *dataBus, err error) {
 	defer errHandler("Couldnt create new databus!!!", &err)
 	db = &dataBus{}
@@ -112,7 +113,7 @@ func (dbus *dataBus) Publish(topicConfig map[string]string, msgData interface{})
 	return
 }
 
-//TODO
+// CbType interface to the user callback function
 type CbType func(topic string, msg interface{})
 
 func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
