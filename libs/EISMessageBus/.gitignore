@@ -6,5 +6,9 @@
 **/doc
 **/__pycache__
 **/*.so
-python/eis/*.c
 compile_commands.json
+python/eis/*.c
+
+# Automatically generated during documenation generation
+python/docs/eis.rst
+python/docs/modules.rst
