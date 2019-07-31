@@ -19,6 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
+ * @file
  * @brief Logging primitives
  * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
