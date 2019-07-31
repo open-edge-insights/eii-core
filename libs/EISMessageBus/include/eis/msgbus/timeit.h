@@ -19,6 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
+ * @file
  * @brief Simple C macro utility for timing the execution time of a block of
  *        code.
  * @author Kevin Midkiff (kevin.midkiff@intel.com)
