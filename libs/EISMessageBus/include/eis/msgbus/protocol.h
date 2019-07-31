@@ -19,6 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
+ * @file
  * @brief Messaging protocol interface
  * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */

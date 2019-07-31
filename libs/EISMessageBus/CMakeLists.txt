@@ -233,8 +233,8 @@ if(WITH_DOCS)
     add_custom_target(doxygen-docs-pdf
         COMMENT "Generating C API PDF"
         DEPENDS doxygen-docs
-        COMMAND ${CMAKE_COMMAND} -E remove "${PDFS_DIR}/c-refman.pdf"
-        COMMAND ${PDFLATEX} -interaction=nonstopmode -output-directory ${PDFS_DIR} refman.tex
+        COMMAND ${CMAKE_COMMAND} -E remove "${PDFS_DIR}/EIS_MsgBus_C_Reference_${PROJECT_VERSION}.pdf"
+        COMMAND ${PDFLATEX} -interaction=nonstopmode -output-directory ${PDFS_DIR} -jobname=EIS_MsgBus_C_Reference_${PROJECT_VERSION} refman.tex
         WORKING_DIRECTORY ${DOCS_DIR}/c/latex/
         VERBATIM)
 
