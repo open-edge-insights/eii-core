@@ -234,12 +234,72 @@ if(WITH_DOCS)
         COMMENT "Generating C API PDF"
         DEPENDS doxygen-docs
         COMMAND ${CMAKE_COMMAND} -E remove "${PDFS_DIR}/EIS_MsgBus_C_Reference_${PROJECT_VERSION}.pdf"
-        COMMAND ${PDFLATEX} -interaction=nonstopmode -output-directory ${PDFS_DIR} -jobname=EIS_MsgBus_C_Reference_${PROJECT_VERSION} refman.tex
+        COMMAND ${PDFLATEX}
+            -interaction=nonstopmode
+            -output-directory ${PDFS_DIR}
+            -jobname=EIS_MsgBus_C_Reference_${PROJECT_VERSION}
+            refman.tex
         WORKING_DIRECTORY ${DOCS_DIR}/c/latex/
         VERBATIM)
 
     # List of docs dependency targets
     set(DOCS_TARGETS doxygen-docs doxygen-docs-pdf)
+
+    if(WITH_PYTHON)
+        message("       Configuring Python API documentation")
+
+        # Find Sphinx commands
+        find_package(Sphinx REQUIRED)
+
+        set(PY_DOCS_DIR "${DOCS_DIR}/python")
+        set(CONF_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/python/docs/conf.py.in")
+        set(CONF_PY_OUT "${PY_DOCS_DIR}/conf.py")
+
+        # Create documentation directories
+        file(MAKE_DIRECTORY "${PY_DOCS_DIR}")
+        file(MAKE_DIRECTORY "${PY_DOCS_DIR}/_cache")
+
+        # Configure conf.py file
+        configure_file(${CONF_PY_IN} ${CONF_PY_OUT} @ONLY)
+
+        # Generate API documentation
+        add_custom_target(python-gen-api-docs
+            COMMENT "Generating Python API documentation"
+            COMMAND ${SPHINX_APIDOC_BIN}
+                -f -o ${CMAKE_CURRENT_SOURCE_DIR}/python/docs
+                ${CMAKE_CURRENT_SOURCE_DIR}/python/eis/
+            VERBATIM)
+
+        # Generate API latex
+        add_custom_target(python-gen-latex
+            COMMENT "Generating Python API latex"
+            DEPENDS py-eis-msgbus python-gen-api-docs
+            COMMAND ${CMAKE_COMMAND}
+                -E env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/build/lib.linux-x86_64-3.6
+                ${SPHINX_BUILD_BIN}
+                    -q -b latex
+                    -c "${PY_DOCS_DIR}"
+                    -d "${PY_DOCS_DIR}/_cache"
+                    ${CMAKE_CURRENT_SOURCE_DIR}/python/docs/
+                    ${PY_DOCS_DIR}/latex
+            VERBATIM)
+
+        # Generate PDF
+        add_custom_target(python-docs-pdf
+            COMMENT "Generating Python API PDF"
+            DEPENDS doxygen-docs
+            COMMAND ${CMAKE_COMMAND} -E remove "${PDFS_DIR}/EIS_MsgBus_Python_Reference_${PROJECT_VERSION}.pdf"
+            COMMAND ${PDFLATEX}
+                -interaction=nonstopmode
+                -output-directory ${PDFS_DIR}
+                EIS_MsgBus_Python_Reference_${PROJECT_VERSION}.tex
+            WORKING_DIRECTORY ${DOCS_DIR}/python/latex/
+            VERBATIM)
+
+        # Append new target dependencies
+        list(APPEND DOCS_TARGETS py-eis-msgbus python-gen-api-docs
+                python-gen-latex python-docs-pdf)
+    endif()
 
     # Final target for compiling all EIS Message Bus documentation with make docs
     add_custom_target(docs
