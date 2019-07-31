@@ -1,4 +1,4 @@
-t ## Publish/Subscribe Tutorial
+## Publish/Subscribe Tutorial
 
 The following tutorial will cover how to do publish/subscribe messaging using
 the EIS Message Bus. The outcome of this tutorial will be two Python scripts,
