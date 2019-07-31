@@ -24,6 +24,8 @@ import logging
 import os
 import json
 from concurrent.futures import ThreadPoolExecutor
+from libs.common.py.util import get_topics_from_env,\
+                                get_messagebus_config_from_env
 import eis.msgbus as mb
 
 
@@ -47,16 +49,15 @@ class Publisher:
         """
         self.context = zmq.Context()
         socket = self.context.socket(zmq.PUB)
-        topics = os.environ['PubTopics'].split(",")
+        topics = get_topics_from_env("pub")
         self.sockets = []
         self.publisher_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
-            topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
+            topic_cfg = get_messagebus_config_from_env(topic, "pub")
             self.publisher_threadpool.submit(self.publish, socket, topic,
-                                              topic_cfg)
+                                             topic_cfg)
 
-
-    def publish(self, socket, topic, topic_cfg):
+    def publish(self, socket, topic, config):
         """
         Send the data to the publish topic
         Parameters:
@@ -65,52 +66,35 @@ class Publisher:
             socket instance
         topic: str
             topic name
-        topic_cfg: str
+        config: str
             topic config
         """
-
-        if "zmq_ipc" == topic_cfg[0]:
-            addr = topic_cfg[1]
-            config= {
-                        "type": topic_cfg[0],
-                        "socket_dir": addr
-                    }
-
-        elif "zmq_tcp" == topic_cfg[0]:
-            addr = topic_cfg[1].split(":")
-            host, port = addr
-            config = {
-                            "type": topic_cfg[0],
-                            "zmq_tcp_publish": {
-                                "host": host,
-                                "port": int(port)
-                            }
-                        }
 
         self.log.info("config:{}".format(config))
         self.msgbus = mb.MsgbusContext(config)
         self.publisher = self.msgbus.new_publisher(topic)
-
-
         thread_id = threading.get_ident()
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
+        self.log.info(log_msg.format(thread_id, "started", topic, config))
         self.log.info("Publishing to topic: {}...".format(topic))
 
         while not self.stop_ev.is_set():
             metadata, frame = self.classifier_output_queue.get()
             try:
                 if 'defects' in metadata:
-                    metadata['defects'] = json.dumps(metadata['defects'])
+                    metadata['defects'] = \
+                        json.dumps(metadata['defects'])
                 if 'display_info' in metadata:
-                    metadata['display_info'] = json.dumps(metadata['display_info'])
+                    metadata['display_info'] = \
+                        json.dumps(metadata['display_info'])
                 self.publisher.publish((metadata, frame))
                 self.log.debug("Published data : {}...".format(metadata))
             except Exception as ex:
-                self.log.exception('Error while publishing data: {}'.format(ex))
+                self.log.exception('Error while publishing data:\
+                                   {}'.format(ex))
 
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
+        self.log.info(log_msg.format(thread_id, "stopped", topic, config))
 
     def stop(self):
         """
