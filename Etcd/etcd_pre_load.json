@@ -1,70 +1,26 @@
 {
-    "/VideoIngestion/ingestor/ingestor_name": "pcb_video_file_ingestor",
-    "/VideoIngestion/ingestor/pcb_video_file_ingestor": {
-        "video_src": "./test_videos/pcb_d2000.avi",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
+    "/VideoIngestion/config": {
+        "ingestor": {
+            "video_src": "./test_videos/pcb_d2000.avi",
+            "encoding": {
+                "type": "jpg",
+                "level": 100
+            },
+            "loop_video": "true"
         },
-        "loop_video": "true"
+        "filter": {
+            "name": "pcb_filter",
+            "queue_size": 10,
+            "max_workers": 5,
+            "training_mode": "false",
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
+        }
+
     },
-    "/VideoIngestion/ingestor/pcb_basler_cam_ingestor": {
-        "video_src": "pylonsrc serial=22573662 imageformat=yuv422 exposureGigE=3251 interpacketdelay=6000 ! videoconvert ! appsink",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
-        },
-        "poll_interval": 0.2
-    },
-    "/VideoIngestion/ingestor/pcb_rtsp_cam_ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://admin:intel123@<RTSP CAMERA IP>:554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
-        },
-        "poll_interval": 0.2
-    },
-    "/VideoIngestion/ingestor/pcb_usb_cam_ingestor": {
-        "video_src": "v4l2src! videoconvert ! appsink",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
-        },
-        "poll_interval": 0.2
-    },
-    "/VideoIngestion/ingestor/pcb_rtsp_cvlc_ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! mfxdecode ! videoconvert ! appsink",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
-        },
-        "poll_interval": 0.2
-    },
-    "/VideoIngestion/ingestor/sample_classification_video_file_ingestor": {
-        "video_src": "./test_videos/classification_vid.avi",
-        "encoding": {
-            "type": "jpg",
-            "level": 100
-        },
-        "poll_interval": 0.2,
-        "loop_video": "true"
-    },
-    "/VideoIngestion/filter/filter_name": "pcb_filter",
-    "/VideoIngestion/filter/pcb_filter": {
-        "queue_size": 10,
-        "max_workers": 5,
-        "training_mode": "false",
-        "n_total_px": 300000,
-        "n_left_px": 1000,
-        "n_right_px": 1000
-    },
-    "/VideoIngestion/filter/bypass_filter": {
-        "queue_size": 10,
-        "max_workers": 5,
-        "training_mode": "false"
-    },
-    "/VideoAnalytics/classifier_name": "pcb_classifier",
-    "/VideoAnalytics/pcb_classifier": {
+    "/VideoAnalytics/config": {
+        "name": "pcb_classifier",
         "queue_size": 10,
         "max_workers": 5,
         "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
@@ -72,18 +28,6 @@
         "model_xml": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.xml",
         "model_bin": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.bin",
         "device": "CPU"
-    },
-    "/VideoAnalytics/sample_classification_classifier": {
-        "queue_size": 10,
-        "max_workers": 5,
-        "model_xml": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.xml",
-        "model_bin": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1_FP32.bin",
-        "labels": "./VideoAnalytics/classifiers/ref_classification/squeezenet1.1.labels",
-        "device": "CPU"
-    },
-    "/VideoAnalytics/dummy_classifier": {
-        "queue_size": 10,
-        "max_workers": 5
     },
     "/Visualizer/config": {
         "display": "true",

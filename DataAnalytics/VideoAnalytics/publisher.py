@@ -101,6 +101,7 @@ class Publisher:
         Stops the pubscriber thread
         """
         try:
+            self.stop_ev.set()
             self.publisher_threadpool.shutdown(wait=False)
             for socket in self.sockets:
                 socket.close()

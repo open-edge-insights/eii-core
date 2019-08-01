@@ -82,16 +82,15 @@ class Subscriber:
         while not self.stop_ev.is_set():
             data = self.subscriber.recv()
             self.subscriber_queue.put(data)
-        self.log.info("Subscriber thread ID: {} started" +
-                      " with topic: {} and topic_cfg: {}...".format(thread_id,
-                                                                    topic,
-                                                                    config))
+            self.log.info("Added to subscriber queue")
+        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
 
     def stop(self):
         """
         Stops the Subscriber thread
         """
         try:
+            self.stop_ev.set()
             self.subscriber_threadpool.shutdown(wait=False)
             for socket in self.sockets:
                 socket.close()

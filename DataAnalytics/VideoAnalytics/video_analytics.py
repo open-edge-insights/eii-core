@@ -37,7 +37,7 @@ from publisher import Publisher
 from subscriber import Subscriber
 
 # Etcd paths
-CLASSIFIER_NAME_PATH = "/classifier_name"
+CONFIG_KEY_PATH = "/config"
 
 
 class VideoAnalytics:
@@ -62,19 +62,18 @@ class VideoAnalytics:
         }
 
         self.etcd_cli = EtcdCli(conf)
-        self.classifier_name = self.etcd_cli.GetConfig("/{0}{1}".format(
-            self.app_name, CLASSIFIER_NAME_PATH))
-        self.classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
-            self.app_name, self.classifier_name))
-
-        self.classifier_config = json.loads(self.classifier_config)
-
+        self._read_classifier_config()
         self.etcd_cli.RegisterDirWatch("/{0}/".format(self.app_name)
             , self._on_change_config_callback)
 
+    def _read_classifier_config(self):
+        config = self.etcd_cli.GetConfig("/{0}{1}".format(
+            self.app_name, CONFIG_KEY_PATH))
+
+        self.classifier_config = json.loads(config)
+
     def _print_config(self):
-        self.log.info('classifier name: {}, classifier config: {}'.format(
-            self.classifier_name, self.classifier_config))
+        self.log.info('classifier config: {}'.format(self.classifier_config))
 
     def start(self):
         """ Start the Video Analytics.
@@ -94,7 +93,7 @@ class VideoAnalytics:
         self.publisher = Publisher(classifier_output_queue)
         self.publisher.start()
 
-        self.classifier = load_classifier(self.classifier_name,
+        self.classifier = load_classifier(self.classifier_config["name"],
                                      self.classifier_config,
                                      classifier_input_queue,
                                      classifier_output_queue)
@@ -125,19 +124,11 @@ class VideoAnalytics:
             etcd value
         """
         try:
-            if "_classifier" in value:
-                classifier_config = self.etcd_cli.GetConfig("/{0}/{1}".format(
-                    self.app_name, value))
-                self.classifier_name = value
-                self.classifier_config = json.loads(classifier_config)
-            elif "_classifier" in key:
-                self.classifier_name = key.split("/")[2]
-                self.classifier_config = json.loads(value)
-        except:
-            pass
-
-        self.stop()
-        self.start()
+            self._read_classifier_config()
+            self.stop()
+            self.start()
+        except Exception as ex:
+            self.log.exception(ex)
 
 
 def parse_args():

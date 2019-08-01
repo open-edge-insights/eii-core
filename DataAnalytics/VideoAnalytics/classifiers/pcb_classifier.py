@@ -189,8 +189,6 @@ class Classifier(BaseClassifier):
             # Convert the buffer into np array.
             np_buffer = np.frombuffer(frame, dtype=np.uint8)
             if 'encoding_type' and 'encoding_level' in metadata:
-                encoding = {"type" : metadata['encoding_type'],
-                            "level" : metadata['encoding_level']}
                 reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
                 reshape_frame = cv2.imdecode(reshape_frame, 1)
             else:

@@ -40,7 +40,7 @@ class Classifier(BaseClassifier):
 
     def __init__(self, classifier_config, input_queue, output_queue):
         """Constructor
-        
+
         Parameters
         ----------
         classifier_config : dict
@@ -49,7 +49,7 @@ class Classifier(BaseClassifier):
             input queue for classifier
         output_queue : Queue
             output queue of classifier
-       
+
         Returns
         -------
             Classification object
@@ -105,17 +105,17 @@ class Classifier(BaseClassifier):
 
         This sample algorithm classifies input images, hence no defect
         information in generated. The trigger algorithm associated with
-        with this classifier is "bypass_filter" or "no_filter" which selects 
+        with this classifier is "bypass_filter" or "no_filter" which selects
         each input image for classification.
-        """        
+        """
+
         while True:
             metadata, frame = self.input_queue.get()
             self.log.debug("classify data: metadata:{}".format(metadata))
-            
+
             # Convert the buffer into np array.
             np_buffer = np.frombuffer(frame, dtype=np.uint8)
-            encoding = metadata["encoding"]
-            if encoding is not None:
+            if 'encoding_type' and 'encoding_level' in metadata:
                 reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
                 reshape_frame = cv2.imdecode(reshape_frame, 1)
             else:
@@ -143,9 +143,6 @@ class Classifier(BaseClassifier):
             infer_time.append((time() - t0)*1000)
             self.log.info('Average running time of one iteration: {} ms'.format(
                           np.average(np.asarray(infer_time))))
-
-            # No defects in classification algorithm
-            defects = []
 
             # Display information for visualizer
             d_info = []
