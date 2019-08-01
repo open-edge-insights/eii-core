@@ -295,6 +295,7 @@ services:
       # IPC: zmq_ipc, <absolut_socket_directory_path>
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Subscribers: "VideoAnalytics"
     volumes:
       - "$PWD/test_videos:/IEI/test_videos"
       - "${IEI_INSTALL_PATH}/sockets:${SOCKET_DIR}"
@@ -337,7 +338,7 @@ services:
       no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
-      SubTopics: "camera1_stream"
+      SubTopics: "VideoIngestion/camera1_stream"
       SOCKET_DIR: ${SOCKET_DIR}
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -348,6 +349,7 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+      Subscribers : "Visualizer,FactoryControlApp,OpcuaExport"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -388,8 +390,10 @@ services:
       no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       DISPLAY: ${DISPLAY}
-      SubTopics: "camera1_stream_results"
+      SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
+      PROFILING: ${PROFILING}
+      DEV_MODE: ${DEV_MODE}
     privileged: true
     command: ["--image_dir", "${IEI_INSTALL_PATH}/saved_images"]
     volumes:

@@ -31,8 +31,6 @@
     },
     "/Visualizer/config": {
         "display": "true",
-        "dev_mode": "true",
-        "profiling": "false",
         "cert_path": ""
     },
      "/InfluxDBConnector/config": {

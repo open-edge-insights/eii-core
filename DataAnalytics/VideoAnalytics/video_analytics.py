@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -60,13 +60,13 @@ class VideoAnalytics:
         }
 
         cfg_mgr = ConfigManager()
-        self.etcd_cli = cfg_mgr.get_config_client("etcd", conf)
+        self.config_client = cfg_mgr.get_config_client("etcd", conf)
         self._read_classifier_config()
-        self.etcd_cli.RegisterDirWatch("/{0}/".format(self.app_name)
-            , self._on_change_config_callback)
+        self.config_client.RegisterDirWatch("/{0}/".format(self.app_name),
+                                            self._on_change_config_callback)
 
     def _read_classifier_config(self):
-        config = self.etcd_cli.GetConfig("/{0}{1}".format(
+        config = self.config_client.GetConfig("/{0}{1}".format(
             self.app_name, CONFIG_KEY_PATH))
 
         self.classifier_config = json.loads(config)
@@ -89,16 +89,18 @@ class VideoAnalytics:
         classifier_output_queue = \
             queue.Queue(maxsize=queue_size)
 
-        self.publisher = Publisher(classifier_output_queue)
+        self.publisher = Publisher(classifier_output_queue,
+                                   self.config_client, self.dev_mode)
         self.publisher.start()
 
         self.classifier = load_classifier(self.classifier_config["name"],
-                                     self.classifier_config,
-                                     classifier_input_queue,
-                                     classifier_output_queue)
+                                          self.classifier_config,
+                                          classifier_input_queue,
+                                          classifier_output_queue)
         self.classifier.start()
 
-        self.subscriber = Subscriber(classifier_input_queue)
+        self.subscriber = Subscriber(classifier_input_queue,
+                                     self.config_client, self.dev_mode)
         self.subscriber.start()
         self.log.info(log_msg.format("Started", self.app_name))
 
@@ -178,5 +180,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

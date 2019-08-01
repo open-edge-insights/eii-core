@@ -25,7 +25,7 @@ in etcd distributed key store
 
 import etcd3
 import logging
-from libs.common.py.util import check_port_availability
+from libs.common.py.util import Util
 
 
 class EtcdCli:
@@ -38,7 +38,7 @@ class EtcdCli:
         hostname = "localhost"
         port = 2379
 
-        if not check_port_availability(hostname, port):
+        if not Util.check_port_availability(hostname, port):
             raise Exception("etcd service port {} is not up!".format(port))
 
         try:
