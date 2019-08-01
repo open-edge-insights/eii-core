@@ -18,7 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import zmq
 import threading
 import logging
 import os
@@ -47,53 +46,53 @@ class Publisher:
         """
         Starts the publisher thread(s)
         """
-        self.context = zmq.Context()
-        socket = self.context.socket(zmq.PUB)
         topics = get_topics_from_env("pub")
-        self.sockets = []
         self.publisher_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
             topic_cfg = get_messagebus_config_from_env(topic, "pub")
-            self.publisher_threadpool.submit(self.publish, socket, topic,
+            self.publisher_threadpool.submit(self.publish, topic,
                                              topic_cfg)
 
-    def publish(self, socket, topic, config):
+    def publish(self, topic, config):
         """
         Send the data to the publish topic
         Parameters:
         ----------
-        socket: ZMQ socket
-            socket instance
         topic: str
             topic name
         config: str
             topic config
         """
 
-        self.log.info("config:{}".format(config))
-        self.msgbus = mb.MsgbusContext(config)
-        self.publisher = self.msgbus.new_publisher(topic)
+        self.log.info("MsgBus config:{}".format(config))
+        # TODO: Need to have same msgbus context when multiple topics are
+        # being published from same endpoint
+        msgbus = mb.MsgbusContext(config)
+        publisher = msgbus.new_publisher(topic)
         thread_id = threading.get_ident()
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
         self.log.info(log_msg.format(thread_id, "started", topic, config))
         self.log.info("Publishing to topic: {}...".format(topic))
 
-        while not self.stop_ev.is_set():
-            metadata, frame = self.classifier_output_queue.get()
-            try:
+        try:
+            while not self.stop_ev.is_set():
+                metadata, frame = self.classifier_output_queue.get()
                 if 'defects' in metadata:
                     metadata['defects'] = \
                         json.dumps(metadata['defects'])
                 if 'display_info' in metadata:
                     metadata['display_info'] = \
                         json.dumps(metadata['display_info'])
-                self.publisher.publish((metadata, frame))
-                self.log.debug("Published data : {}...".format(metadata))
-            except Exception as ex:
-                self.log.exception('Error while publishing data:\
-                                   {}'.format(ex))
-
-        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+                publisher.publish((metadata, frame))
+                self.log.debug("Published data: {} on topic: {} with config: {}\
+                               ...".format(metadata, topic, config))
+                self.log.info("Published data on topic: {} with config: {}\
+                              ...".format(topic, config))
+        except Exception as ex:
+            self.log.exception('Error while publishing data:\
+                            {}'.format(ex))
+        finally:
+            publisher.close()
         self.log.info(log_msg.format(thread_id, "stopped", topic, config))
 
     def stop(self):
@@ -103,10 +102,5 @@ class Publisher:
         try:
             self.stop_ev.set()
             self.publisher_threadpool.shutdown(wait=False)
-            for socket in self.sockets:
-                socket.close()
-                if socket._closed == "False":
-                    self.log.error("Unable to close socket connection")
-            self.context.term()
         except Exception as ex:
             self.log.exception(ex)

@@ -24,9 +24,7 @@ import queue
 import signal
 import argparse
 import json
-import etcd3
 import logging
-import zmq
 import threading
 
 from distutils.util import strtobool

@@ -1,3 +1,2 @@
 numpy==1.14.5
 opencv-python==4.1.0.25
-pyzmq==18.0.2
