@@ -168,28 +168,13 @@ class Classifier(BaseClassifier):
                                             '.format(probs[id], det_label), 0)
                     d_info.append(disp_info)
 
-            defects_dict = {}
-            defect_res = []
-            for d in defects:
-                if d.defect_class in defects:
-                    defects_dict[d.defect_class] += 1
-                else:
-                    defects_dict[d.defect_class] = 1
-                defect_res.append({
-                    'type': d.defect_class,
-                    'tl': d.tl,
-                    'br': d.br
-                })
-
             display_info = []
             for d in d_info:
                 display_info.append({
                     'info': d.info,
                     'priority': d.priority
-                })         
-            metadata["defects"] = defect_res
+                })
             metadata["display_info"] = display_info
-            
             self.output_queue.put((metadata, frame))
             self.log.debug("metadata: {} added to classifier output queue".format(
                 metadata))

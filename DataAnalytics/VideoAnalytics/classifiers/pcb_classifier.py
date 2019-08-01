@@ -44,7 +44,7 @@ class Classifier(BaseClassifier):
 
     def __init__(self, classifier_config, input_queue, output_queue):
         """Constructor
-        
+
         Parameters
         ----------
         classifier_config : dict
@@ -53,7 +53,7 @@ class Classifier(BaseClassifier):
             input queue for classifier
         output_queue : Queue
             output queue of classifier
-        
+
         Returns
         -------
             Classification object
@@ -111,11 +111,11 @@ class Classifier(BaseClassifier):
     def _calculate_homography(self, frame):
         """ Calculate keypoint matches and homography score between
             selected frame and ref image
-        
+
         Parameters
         ----------
         frame     : Selected frame to compare against ref image
-        
+
         Returns
         ------
         Homography between frame and ref image
@@ -179,7 +179,7 @@ class Classifier(BaseClassifier):
 
     # Main classification algorithm
     def classify(self):
-        """Reads the image frame from input queue for classifier 
+        """Reads the image frame from input queue for classifier
         and classifies against the specified reference image.
         """
         while True:
@@ -188,8 +188,9 @@ class Classifier(BaseClassifier):
 
             # Convert the buffer into np array.
             np_buffer = np.frombuffer(frame, dtype=np.uint8)
-            encoding = metadata["encoding"]
-            if encoding is not None:
+            if 'encoding_type' and 'encoding_level' in metadata:
+                encoding = {"type" : metadata['encoding_type'],
+                            "level" : metadata['encoding_level']}
                 reshape_frame = np.reshape(np_buffer, (np_buffer.shape))
                 reshape_frame = cv2.imdecode(reshape_frame, 1)
             else:
@@ -205,7 +206,7 @@ class Classifier(BaseClassifier):
                 defects = []
                 self.log.info("user_data: {} received...".format(index))
                 return d_info, defects
-            
+
             # Read correct reference image to
             # perform keypoint detection and overlay
             ref_img = self.ref_img.copy()
@@ -304,7 +305,7 @@ class Classifier(BaseClassifier):
                     # (x,y) -> top left bounding box coordinates
                     # (x1,y1) -> bottom right bounding box coordinates
                     defects.append(Defect(D_SHORT, (x, y), (x1, y1)))
-            
+
             # If defects exists display HIGH [priority: 2] alert string
             if len(defects) > 0:
                 d_info.append(DisplayInfo('DEFECT DETECTED', 2))
@@ -326,17 +327,9 @@ class Classifier(BaseClassifier):
                     'br': d.br
                 })
 
-            display_info = []
-            for d in d_info:
-                display_info.append({
-                    'info': d.info,
-                    'priority': d.priority
-                })         
             metadata["defects"] = defect_res
-            metadata["display_info"] = display_info
-            
+
             self.output_queue.put((metadata, frame))
             self.log.debug("metadata: {} added to classifier output queue".format(
                 metadata))
 
-    

@@ -51,8 +51,6 @@ class Classifier(BaseClassifier):
         """
         while True:
             metadata, frame = self.input_queue.get()
-            metadata["defects"] = []
-            metadata["display_info"] = []
             self.output_queue.put((metadata, frame))
             self.log.debug("metadata: {} added to classifier output queue".format(
                 metadata))

@@ -24,6 +24,9 @@ import logging
 import os
 import json
 from concurrent.futures import ThreadPoolExecutor
+from libs.common.py.util import get_topics_from_env,\
+                                get_messagebus_config_from_env
+import eis.msgbus as mb
 
 
 class Publisher:
@@ -38,6 +41,7 @@ class Publisher:
         """
         self.log = logging.getLogger(__name__)
         self.classifier_output_queue = classifier_output_queue
+        self.stop_ev = threading.Event()
 
     def start(self):
         """
@@ -45,15 +49,15 @@ class Publisher:
         """
         self.context = zmq.Context()
         socket = self.context.socket(zmq.PUB)
-        topics = os.environ['PubTopics'].split(",")
+        topics = get_topics_from_env("pub")
         self.sockets = []
         self.publisher_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
-            topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
+            topic_cfg = get_messagebus_config_from_env(topic, "pub")
             self.publisher_threadpool.submit(self.publish, socket, topic,
-                                              topic_cfg)
+                                             topic_cfg)
 
-    def publish(self, socket, topic, topic_cfg):
+    def publish(self, socket, topic, config):
         """
         Send the data to the publish topic
         Parameters:
@@ -62,50 +66,35 @@ class Publisher:
             socket instance
         topic: str
             topic name
-        topic_cfg: str
+        config: str
             topic config
         """
-        try:
-            thread_id = threading.get_ident()
-            log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-            self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
 
-            mode = topic_cfg[0].lower()
-            self._bind_to_socket(mode, socket, topic_cfg)
+        self.log.info("config:{}".format(config))
+        self.msgbus = mb.MsgbusContext(config)
+        self.publisher = self.msgbus.new_publisher(topic)
+        thread_id = threading.get_ident()
+        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+        self.log.info(log_msg.format(thread_id, "started", topic, config))
+        self.log.info("Publishing to topic: {}...".format(topic))
 
-            self.log.info("Publishing to topic: {}...".format(topic))
+        while not self.stop_ev.is_set():
+            metadata, frame = self.classifier_output_queue.get()
+            try:
+                if 'defects' in metadata:
+                    metadata['defects'] = \
+                        json.dumps(metadata['defects'])
+                if 'display_info' in metadata:
+                    metadata['display_info'] = \
+                        json.dumps(metadata['display_info'])
+                self.publisher.publish((metadata, frame))
+                self.log.debug("Published data : {}...".format(metadata))
+            except Exception as ex:
+                self.log.exception('Error while publishing data:\
+                                   {}'.format(ex))
 
-            while True:
-                metadata, frame = self.classifier_output_queue.get()
-                try:
-                    metadata_encoded = json.dumps(metadata).encode()
-                    socket.send_multipart([topic.encode(), metadata_encoded,
-                                        frame], copy=False)
-                    self.log.debug("Published data on topic:{} metadata:{}".format(
-                        topic, metadata))
-                    self.log.info("Published data on topic: {}...".format(topic))
-                except Exception as ex:
-                    self.log.exception('Error while publishing data: {}'.format(ex))
-
-            log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-            self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
-        except Exception as ex:
-            self.log.exception('Error while publishing data:{}'.format(ex))
-            self.sockets.pop(len(self.sockets) - 1)
-            self.log.info("Rebinding to socket...")
-            # Below re-bind logic is to get aroud with "Socket opertion
-            # on non-socket" issue
-            self._bind_to_socket(mode, socket, topic_cfg)
-
-    def _bind_to_socket(self, mode, socket, topic_cfg):
-        try:
-            if "tcp" in mode:
-                socket.bind("tcp://{}".format(topic_cfg[1]))
-            elif "ipc" in mode:
-                socket.bind("ipc://{}".format(topic_cfg[1]))
-            self.sockets.append(socket)
-        except Exception as ex:
-            raise ex
+        log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
+        self.log.info(log_msg.format(thread_id, "stopped", topic, config))
 
     def stop(self):
         """

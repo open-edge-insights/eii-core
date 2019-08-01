@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+#  all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,6 +26,10 @@ import os
 import numpy as np
 import cv2
 from concurrent.futures import ThreadPoolExecutor
+from libs.common.py.util import get_topics_from_env,\
+                                get_messagebus_config_from_env
+import eis.msgbus as mb
+
 
 class Subscriber:
 
@@ -39,6 +43,7 @@ class Subscriber:
         """
         self.log = logging.getLogger(__name__)
         self.subscriber_queue = subscriber_queue
+        self.stop_ev = threading.Event()
 
     def start(self):
         """
@@ -46,15 +51,16 @@ class Subscriber:
         """
         self.context = zmq.Context()
         socket = self.context.socket(zmq.SUB)
-        topics = os.environ['SubTopics'].split(",")
+        topics = get_topics_from_env("sub")
         self.sockets = []
-        self.subscriber_threadpool = ThreadPoolExecutor(max_workers=len(topics))
+        self.subscriber_threadpool = \
+            ThreadPoolExecutor(max_workers=len(topics))
         for topic in topics:
-            topic_cfg = os.environ["{}_cfg".format(topic)].split(",")
+            topic_cfg = get_messagebus_config_from_env(topic, "sub")
             self.subscriber_threadpool.submit(self.subscribe, socket, topic,
                                               topic_cfg)
 
-    def subscribe(self, socket, topic, topic_cfg):
+    def subscribe(self, socket, topic, config):
         """
         Receives the data for the subscribed topic
         Parameters:
@@ -63,39 +69,23 @@ class Subscriber:
             socket instance
         topic: str
             topic name
-        topic_cfg: str
+        config: str
             topic config
         """
+
+        self.msgbus = mb.MsgbusContext(config)
+        self.subscriber = self.msgbus.new_subscriber(topic)
         thread_id = threading.get_ident()
         log_msg = "Thread ID: {} {} with topic:{} and topic_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "started", topic, topic_cfg))
-
-        mode = topic_cfg[0].lower()
-        try:
-            if "tcp" in mode:
-                socket.connect("tcp://{}".format(topic_cfg[1]))
-            elif "ipc" in mode:
-                socket.connect("ipc://{}".format(topic_cfg[1]))
-            self.sockets.append(socket)
-        except Exception as ex:
-            self.log.exception(ex)
-            raise ex
-
+        self.log.info(log_msg.format(thread_id, "started", topic, config))
         self.log.info("Subscribing to topic: {}...".format(topic))
-        socket.setsockopt_string(zmq.SUBSCRIBE, topic)
-
-        while True:
-            msg = socket.recv_multipart()
-
-            topic = msg[0].decode()
-            metadata = json.loads(msg[1].decode())
-            frame = msg[2]
-
-            self.subscriber_queue.put((metadata, frame))
-            self.log.debug("Added metadata:{} to subscriber queue".format(
-                metadata))
-
-        self.log.info(log_msg.format(thread_id, "stopped", topic, topic_cfg))
+        while not self.stop_ev.is_set():
+            data = self.subscriber.recv()
+            self.subscriber_queue.put(data)
+        self.log.info("Subscriber thread ID: {} started" +
+                      " with topic: {} and topic_cfg: {}...".format(thread_id,
+                                                                    topic,
+                                                                    config))
 
     def stop(self):
         """
