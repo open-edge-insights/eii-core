@@ -1,13 +1,10 @@
 cert-tool/
 DataAnalytics/
-DataIngestionLib/
 dist_libs/
 docker_setup/deploy/*.tar.gz
 FactoryControlApp/
 kapacitor/
 licenses/
-StreamManager/
-StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/

@@ -26,8 +26,7 @@ import open62541W
 
 # TODO: This brings in a limitation of multiple different contexts
 # if one wants to receive the callbacks registered for different
-# streams from a single process. Need to implement this similar to
-# StreamSubLib
+# streams from a single process. Need to implement this better
 func = None
 gQueue = None
 

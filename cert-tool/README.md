@@ -58,8 +58,6 @@ standard certificates for the server and client. Root Certificate Authority cert
     - kapacitor/      --> consists of the server certificate/key consumed by `ia_data_analytics` container to bring up kapacitor daemon
     - streammanager/  --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module which is one of the influxdb 
                           subscribers
-    - streamsublib/   --> consists of the server certificate/key consumed by `ia_factoryctrl_app` stream subscriber module which is one of the influxdb
-                          subscribers
     - opcua/          --> consists of the server certificate/key consumed by `ia_data_agent` stream manager module to bring up the opcua server                          and the client certificate is consumed by opcua clients like `iei-simple-visualizer`
 
 ### CommandLine Options for Cert-Tool    

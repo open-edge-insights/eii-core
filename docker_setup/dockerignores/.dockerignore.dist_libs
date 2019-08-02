@@ -1,13 +1,10 @@
 cert-tool/
 DataAgent/
 DataAnalytics/
-DataIngestionLib/
 dist_libs/
 FactoryControlApp/
 kapacitor/
 licenses/
-StreamManager/
-StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/

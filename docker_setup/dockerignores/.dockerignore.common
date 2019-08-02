@@ -9,7 +9,6 @@ ImageStore/
 kapacitor/
 licenses/
 StreamManager/
-StreamSubLib/
 Telegraf/
 test_videos/
 VideoIngestion/

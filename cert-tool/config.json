@@ -41,11 +41,6 @@
       }
     },
     {
-      "streamsublib": {
-        "server_alt_name": ["ia_factoryctrl_app", "ia_video_analytics"]
-      }
-    },
-    {
       "opcua": {
         "server_alt_name": "opcua",
         "client_alt_name": [
