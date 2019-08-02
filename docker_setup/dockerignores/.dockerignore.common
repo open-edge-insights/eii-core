@@ -2,7 +2,6 @@ cert-tool/
 DataAgent/
 DataAnalytics/
 DataBusAbstraction/
-DataIngestionLib/
 dist_libs/
 docker_setup/
 FactoryControlApp/
