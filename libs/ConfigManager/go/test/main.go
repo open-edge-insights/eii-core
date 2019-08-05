@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
-	etcdclient "IEdgeInsights/libs/ConfigManager/etcd/go"
+	configmgr "IEdgeInsights/libs/ConfigManager"
 	"flag"
 	"fmt"
 	"log"
@@ -32,13 +32,12 @@ func main() {
 	action := flag.String("action", "", "provide the action to be performed on etcd key Eg: get|watchkey|watchdir")
 	flag.Parse()
 
-	config := etcdclient.Config{CertFile: *certFile, KeyFile: *privateFile, TrustFile: *trustFile}
-
-	etcd, err := etcdclient.NewEtcdCli(config)
-	if err != nil {
-		panic(err)
+	config := map[string]string{
+		"certFile":  *certFile,
+		"keyFile":   *privateFile,
+		"trustFile": *trustFile,
 	}
-
+	etcd := configmgr.Init("etcd", config)
 	if *action == "get" {
 		value, err := etcd.GetConfig(*key)
 		fmt.Printf("value is %s", value)

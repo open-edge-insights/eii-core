@@ -19,9 +19,10 @@
 # SOFTWARE.
 
 
-from libs.ConfigManager.etcd.py.etcd_client import EtcdCli
+from libs.ConfigManager import ConfigManager
 import time
 import argparse
+import sys
 
 
 def callback(key, value):
@@ -42,26 +43,28 @@ def main():
 
     conf = {"certFile": args.certFile,
             "keyFile": args.privateFile, "trustFile": args.trustFile}
-    etcd = EtcdCli(conf)
+    cfg_mgr = ConfigManager()
+    client = cfg_mgr.get_config_client("etcd", conf)
 
     if args.action == "get":
         try:
-            value = etcd.GetConfig(args.key)
+            value = client.GetConfig(args.key)
             print("GetConfig is called and the value is", value)
         except Exception as e:
             print("GetConfig failure {}".format(e))
         return
     elif args.action == "watchkey":
         try:
-            etcd.RegisterKeyWatch(args.key, callback)
+            client.RegisterKeyWatch(args.key, callback)
             print("Watching on the key", args.key)
         except Exception as e:
             print("WatchKey failure {}".format(e))
     elif args.action == "watchdir":
         try:
-            etcd.RegisterDirWatch(args.key, callback)
+            client.RegisterDirWatch(args.key, callback)
         except Exception as e:
             print("WatchDir failure {}".format(e))
+            sys.exit(1)
     else:
         print("Provided action is not supported")
         return

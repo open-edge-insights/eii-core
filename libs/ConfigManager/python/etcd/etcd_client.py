@@ -41,15 +41,17 @@ class EtcdCli:
         if not check_port_availability(hostname, port):
             raise Exception("etcd service port {} is not up!".format(port))
 
-        if config["trustFile"] == "" and config["keyFile"] == "" \
-           and config["certFile"] == "":
-            self.etcd = etcd3.client(host=hostname, port=port)
-        else:
-            self.etcd = etcd3.client(host=hostname, port=port,
-                                     ca_cert=config["trustFile"],
-                                     cert_key=config["keyFile"],
-                                     cert_cert=config["certFile"])
-
+        try:
+            if config["trustFile"] == "" and config["keyFile"] == "" \
+            and config["certFile"] == "":
+                self.etcd = etcd3.client(host=hostname, port=port)
+            else:
+                self.etcd = etcd3.client(host=hostname, port=port,
+                                         ca_cert=config["trustFile"],
+                                         cert_key=config["keyFile"],
+                                         cert_cert=config["certFile"])
+        except Exception as e:
+            raise e
         self.callback = None
 
     def GetConfig(self, key):

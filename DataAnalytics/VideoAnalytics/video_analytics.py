@@ -29,7 +29,7 @@ import threading
 
 from distutils.util import strtobool
 from libs.base_classifier import load_classifier
-from libs.ConfigManager.etcd.py.etcd_client import EtcdCli
+from libs.ConfigManager import ConfigManager
 from libs.log import configure_logging, LOG_LEVELS
 from publisher import Publisher
 from subscriber import Subscriber
@@ -59,7 +59,8 @@ class VideoAnalytics:
             "trustFile": ""
         }
 
-        self.etcd_cli = EtcdCli(conf)
+        cfg_mgr = ConfigManager()
+        self.etcd_cli = cfg_mgr.get_config_client("etcd", conf)
         self._read_classifier_config()
         self.etcd_cli.RegisterDirWatch("/{0}/".format(self.app_name)
             , self._on_change_config_callback)

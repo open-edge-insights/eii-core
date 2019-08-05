@@ -8,8 +8,8 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// Package etcdclient is a etc wrapper to read any keys and watch on a directory in etcd distributed key store
-package etcdclient
+// Package configmanager is a configmanager wrapper to read any keys and watch on a directory in etcd distributed key store
+package configmanager
 
 import (
 	util "IEdgeInsights/Util"
@@ -22,28 +22,7 @@ import (
 	"go.etcd.io/etcd/pkg/transport"
 )
 
-// Config struct
-type Config struct {
-	Endpoint  []string
-	CertFile  string
-	KeyFile   string
-	TrustFile string
-}
-
-// EtcdClient interface lets your Get/Set from Etcd
-type EtcdClient interface {
-	GetConfig(key string) (string, error)
-
-	RegisterDirWatch(key string, onChangeCallback OnChangeCallback)
-
-	RegisterKeyWatch(key string, onChangeCallback OnChangeCallback)
-}
-
-// OnChangeCallback is used for passing callbacks to
-// RegisterDirWatch and RegisterKeyWatch go routines
-type OnChangeCallback func(key string, newValue string)
-
-// EtcdCli implements EtcdClient
+// EtcdCli implements ConfigMgr
 type EtcdCli struct {
 	etcd *clientv3.Client
 }
@@ -59,8 +38,8 @@ func RegisterWatchOnKey(rch clientv3.WatchChan, onChangeCallback OnChangeCallbac
 
 }
 
-// NewEtcdCli constructs a new EtcdClient and checks etcd port's availability
-func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
+// NewEtcdClient constructs a new EtcdClient and checks etcd port's availability
+func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 
 	var cfg clientv3.Config
 	hostname := "localhost"
@@ -73,7 +52,7 @@ func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 	}
 
 	devmode := false
-	if conf.CertFile == "" && conf.KeyFile == "" && conf.TrustFile == "" {
+	if conf.certFile == "" && conf.keyFile == "" && conf.trustFile == "" {
 		devmode = true
 	}
 
@@ -83,9 +62,9 @@ func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 		}
 	} else {
 		tlsInfo := transport.TLSInfo{
-			CertFile:      conf.CertFile,
-			KeyFile:       conf.KeyFile,
-			TrustedCAFile: conf.TrustFile,
+			CertFile:      conf.certFile,
+			KeyFile:       conf.keyFile,
+			TrustedCAFile: conf.trustFile,
 		}
 
 		tlsConfig, err := tlsInfo.ClientConfig()
@@ -108,7 +87,7 @@ func NewEtcdCli(conf Config) (etcdCli *EtcdCli, err error) {
 }
 
 // GetConfig gets the value of a key from Etcd
-func (etcdClient *EtcdCli) GetConfig(key string) (string, error) {
+func (etcdClient EtcdCli) GetConfig(key string) (string, error) {
 
 	response, err := etcdClient.etcd.Get(context.TODO(), key)
 	if err != nil {
@@ -119,6 +98,7 @@ func (etcdClient *EtcdCli) GetConfig(key string) (string, error) {
 		responseString = convertUIntArrToString(ev.Value)
 	}
 	return responseString, err
+
 }
 
 // RegisterDirWatch registers to a callback and keeps a watch on the prefix of a specified key

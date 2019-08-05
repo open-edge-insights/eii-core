@@ -18,3 +18,6 @@ etcdclient_insecure: build
 	./main -certFile "" -privateFile "" -trustFile "" \
 	-key $(key) \
 	-action $(action)
+
+clean:
+	rm -rf main

@@ -20,7 +20,7 @@ The py example program demonstrates 3 basic functionalities :
   * If executing from ConfigManager/etcd/py/test, set it as below:
     
     ```sh
-    export PYTHONPATH=..:../../../../..
+    export PYTHONPATH=../../../../..
     ```
 
 ## How to Test from present working directory
