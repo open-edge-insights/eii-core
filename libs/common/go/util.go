@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/golang/glog"
 )
 
@@ -37,7 +36,7 @@ func CheckPortAvailability(hostname, port string) bool {
 // message bus type(tcp/ipc) and dev/prod mode
 func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrConfig map[string]string) map[string]interface{}{
 	var subTopics []string
-        var topicConfigList []string
+	var topicConfigList []string
 	appName := os.Getenv("AppName")
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
 	if strings.ToLower(topicType) == "sub"{

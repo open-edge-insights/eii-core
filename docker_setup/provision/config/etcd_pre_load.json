@@ -63,5 +63,14 @@
         "io_module_port": 502,
         "red_bit_register": 20,
         "green_bit_register": 19
+    },
+    "/ImageStore/config": {
+        "minio":{  
+           "accessKey":"admin",
+           "secretKey":"password",
+           "retentionTime":"1h",
+           "retentionPollInterval":"60s",
+           "ssl":"false"
+        }
     }
 }

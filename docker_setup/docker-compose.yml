@@ -127,7 +127,6 @@ services:
       dockerfile: $PWD/../ImageStore/Dockerfile
       args:
         IEI_VERSION: ${IEI_VERSION}
-        REDIS_VERSION: ${REDIS_VERSION}
         MINIO_VERSION: ${MINIO_VERSION}
         IEI_UID: ${IEI_UID}
     container_name: ia_imagestore
@@ -136,27 +135,18 @@ services:
     image: ia_imagestore:${IEI_VERSION}
     restart: unless-stopped
     environment:
-      AppName: "Imagestore"
-      CertType: "zmq"
+      AppName: "ImageStore"
+      CertType: "zmq"  
       no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
-      SHARED_KEY: ${SHARED_KEY}
-      SHARED_NONCE: ${SHARED_NONCE}
-      REDIS_PORT: ${REDIS_PORT}
-      MINIO_PORT: ${MINIO_PORT}
-      DATA_AGENT_GRPC_SERVER: ${DATA_AGENT_GRPC_SERVER}
-      INFLUX_SERVER: ${INFLUX_SERVER}
-      IMAGESTORE_GRPC_SERVER: ${IMAGESTORE_GRPC_SERVER}
-      GRPC_INTERNAL_PORT: ${GRPC_INTERNAL_PORT}
-      IMAGESTORE_PORT: ${IMAGESTORE_PORT}
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
+      Server: "zmq_tcp,127.0.0.1:5669"
+      SubTopics: "VideoAnalytics/camera1_stream_results"
+      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
     command: ["-log_dir", "/IEI/go/src/IEdgeInsights/log/imagestore_logs", "-stderrthreshold", "${GO_LOG_LEVEL}", "-v", "${GO_VERBOSE}"]
-    ports:
-      - "${IMAGESTORE_PORT}:${IMAGESTORE_PORT}"
     volumes:
       - "${IEI_INSTALL_PATH}/data:/data"
-      - "${IEI_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -295,7 +285,7 @@ services:
     restart: unless-stopped
     environment:
       AppName: "VideoAnalytics"
-      Clients : "Visualizer,FactoryControlApp,OpcuaExport"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${NO_PROXY}

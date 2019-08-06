@@ -13,7 +13,7 @@ WORKDIR ${GO_WORK_DIR}
 
 #Installing Go and dep package manager tool for Go
 RUN apt-get update && \
-    apt-get install -y wget git build-essential pkg-config iputils-ping cmake g++ && \
+    apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
     wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
     go get -u github.com/golang/dep/cmd/dep
@@ -31,23 +31,14 @@ RUN mkdir -p ${GLOG_GO_PATH} && \
     cd ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 
-RUN go get go.etcd.io/etcd/clientv3
+RUN go get go.etcd.io/etcd/client
 
-# Installation steps for EISMessageBus
-COPY libs/EISMessageBus/ ./libs/EISMessageBus/
-RUN cd /IEI/go/src/IEdgeInsights/libs/EISMessageBus && \
-    rm -rf build deps && ./install.sh && \
-    wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
-    tar --strip-components=1 -xz -C /usr/local && \
-    mkdir -p build && cd build && \
-    cmake -DWITH_GO=ON .. && \
-    make && \
-    make install
+COPY libs/EISMessageBus/install.sh ./libs/EISMessageBus/install.sh
 
-ENV MSGBUS_DIR $GO_WORK_DIR/libs/EISMessageBus
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MSGBUS_DIR/build/:/usr/local/lib
-ENV PKG_CONFIG_PATH $PKG_CONFIG_PATH:$MSGBUS_DIR/build/
-ENV CGO_CFLAGS -I$MSGBUS_DIR/include/
-ENV CGO_LDFLAGS -L$MSGBUS_DIR/build -leismsgbus
+RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
+    tar --strip-components=1 -xz -C /usr/local
+
+RUN /IEI/go/src/IEdgeInsights/libs/EISMessageBus/install.sh
+
 HEALTHCHECK NONE
 

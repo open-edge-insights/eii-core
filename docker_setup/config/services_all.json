@@ -30,12 +30,14 @@
             "name": "ia_influxdbconnector",
             "dockerignore": "InfluxDBConnector/.dockerignore"
         },
+        {
+            "name": "ia_imagestore",
+            "dockerignore": "ImageStore/.dockerignore"
+        },
 	{
             "name": "ia_etcd_ui",
             "dockerignore": "tools/EtcdUI/.dockerignore"
         }
-
+        
     ]
-    
 }
-
