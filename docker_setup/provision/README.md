@@ -1,9 +1,9 @@
 #  EIS Provisioning
 
 
-Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up. 
+Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 Following actions will be performed as part of Provisioning
- 
+
  * Loading inital ETCD values from json file.
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
@@ -12,7 +12,7 @@ Following actions will be performed as part of Provisioning
     ```
     $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
-    eq. $ sudo .provision_eis.sh ../docker-compose.yml
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
     ```
 

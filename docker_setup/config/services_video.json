@@ -7,10 +7,6 @@
             "dockerignore": "VideoIngestion/.dockerignore"
         },
         {
-            "name": "ia_imagestore",
-            "dockerignore": "ImageStore/.dockerignore"
-        },
-        {
             "name": "ia_video_analytics",
             "dockerignore": "DataAnalytics/VideoAnalytics/.dockerignore"
         },

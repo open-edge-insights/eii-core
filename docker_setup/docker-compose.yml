@@ -197,7 +197,7 @@ services:
       - "${IEI_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
     ports:
       - "${KAPACITOR_PORT}:${KAPACITOR_PORT}"
-    command: ["${CONFIG_FILE}", "${PY_LOG_LEVEL}", "${DEV_MODE}"]
+    command: ["${PY_LOG_LEVEL}", "${DEV_MODE}"]
     devices:
       - "/dev/dri"
     logging:
@@ -257,6 +257,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
+        IEI_USER_NAME: ${IEI_USER_NAME}
     image: ia_video_ingestion:${IEI_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
@@ -316,6 +317,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
+        IEI_USER_NAME: ${IEI_USER_NAME}
     image: ia_video_analytics:${IEI_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
@@ -366,6 +368,7 @@ services:
       args:
         IEI_VERSION: ${IEI_VERSION}
         IEI_UID: ${IEI_UID}
+        IEI_USER_NAME: ${IEI_USER_NAME}
     image: ia_visualizer:${IEI_VERSION}
     container_name: ia_visualizer
     hostname: ia_visualizer
@@ -412,7 +415,7 @@ services:
       OpcuaExportCfg: "opcua,localhost:65003"
       SubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-  
+
   ia_etcd_ui:
     build:
       context: ../

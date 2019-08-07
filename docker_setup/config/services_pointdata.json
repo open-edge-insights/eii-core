@@ -1,16 +1,20 @@
 {
-    
+
     "iei_services": [
-       
+
         {
-            "name": "ia_telegraf", 
+            "name": "ia_telegraf",
             "dockerignore": "Telegraf/.dockerignore"
         },
         {
-            "name": "ia_data_analytics", 
+            "name": "ia_data_analytics",
             "dockerignore": "DataAnalytics/PointDataAnalytics/.dockerignore"
+        },
+        {
+            "name": "ia_influxdbconnector",
+            "dockerignore": "InfluxDBConnector/.dockerignore"
         }
 
     ]
-    
+
 }

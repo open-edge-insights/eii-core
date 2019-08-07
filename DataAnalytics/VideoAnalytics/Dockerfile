@@ -4,7 +4,8 @@ FROM ia_pybase:$IEI_VERSION
 LABEL description="VideoAnalytics image"
 
 ARG IEI_UID
-RUN useradd -r -u ${IEI_UID} -G video ieiuser
+ARG IEI_USER_NAME
+RUN useradd -r -u ${IEI_UID} -G video ${IEI_USER_NAME}
 
 ENV HOME /IEI
 
