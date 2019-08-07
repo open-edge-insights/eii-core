@@ -427,7 +427,7 @@ services:
       no_proxy: ${NO_PROXY}
       PubTopics: "cam_serial1_results,cam_serial2_results"
       OpcuaExportCfg: "opcua,localhost:65003"
-      SubTopics: "camera1_stream_results"
+      SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
 
   ia_etcd_ui:
