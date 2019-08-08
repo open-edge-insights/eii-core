@@ -71,15 +71,15 @@ class Publisher:
         :param msgbus_cfg: Topic msgbus_cfg
         :type msgbus_cfg: str
         """
-        self.log.info("config:{}".format(msgbus_cfg))
-        msgbus = mb.MsgbusContext(msgbus_cfg)
-        publisher = msgbus.new_publisher(topic)
-        thread_id = threading.get_ident()
-        log_msg = "Thread ID: {} {} with topic:{} and msgbus_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "started", topic, msgbus_cfg))
-        self.log.info("Publishing to topic: {}...".format(topic))
-
+        publisher = None
         try:
+            self.log.info("config:{}".format(msgbus_cfg))
+            msgbus = mb.MsgbusContext(msgbus_cfg)
+            publisher = msgbus.new_publisher(topic)
+            thread_id = threading.get_ident()
+            log_msg = "Thread ID: {} {} with topic:{} and msgbus_cfg:{}"
+            self.log.info(log_msg.format(thread_id, "started", topic, msgbus_cfg))
+            self.log.info("Publishing to topic: {}...".format(topic))
             while not self.stop_ev.is_set():
                 metadata, frame = self.classifier_output_queue.get()
                 if 'defects' in metadata:
@@ -89,7 +89,7 @@ class Publisher:
                     metadata['display_info'] = \
                         json.dumps(metadata['display_info'])
                 publisher.publish((metadata, frame))
-                self.log.debug("Published data: {} on topic: {} with " +
+                self.log.debug("Published data: {} on topic: {} with "+
                                "config: {}...".format(metadata,
                                                       topic, msgbus_cfg))
                 self.log.info("Published data on topic: {} with config: {}".
@@ -98,7 +98,8 @@ class Publisher:
             self.log.exception('Error while publishing data:\
                             {}'.format(ex))
         finally:
-            publisher.close()
+            if publisher is not None:
+                publisher.close()
         self.log.info(log_msg.format(thread_id, "stopped", topic, msgbus_cfg))
 
     def stop(self):

@@ -74,14 +74,14 @@ class Subscriber:
         :param msgbus_cfg: Topic msgbus_cfg
         :type msgbus_cfg: str
         """
-        msgbus = mb.MsgbusContext(msgbus_cfg)
-        subscriber = msgbus.new_subscriber(topic)
-        thread_id = threading.get_ident()
-        log_msg = "Thread ID: {} {} with topic:{} and msgbus_cfg:{}"
-        self.log.info(log_msg.format(thread_id, "started", topic, msgbus_cfg))
-        self.log.info("Subscribing to topic: {}...".format(topic))
-
+        subscriber = None
         try:
+            msgbus = mb.MsgbusContext(msgbus_cfg)
+            subscriber = msgbus.new_subscriber(topic)
+            thread_id = threading.get_ident()
+            log_msg = "Thread ID: {} {} with topic:{} and msgbus_cfg:{}"
+            self.log.info(log_msg.format(thread_id, "started", topic, msgbus_cfg))
+            self.log.info("Subscribing to topic: {}...".format(topic))
             while not self.stop_ev.is_set():
                 data = subscriber.recv()
                 self.subscriber_queue.put(data)
@@ -92,7 +92,8 @@ class Subscriber:
             self.log.exception('Error while subscribing data:\
                             {}'.format(ex))
         finally:
-            subscriber.close()
+            if subscriber is not None:
+                subscriber.close()
 
         self.log.info(log_msg.format(thread_id, "stopped", topic, msgbus_cfg))
 
