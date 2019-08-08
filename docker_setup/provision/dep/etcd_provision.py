@@ -67,7 +67,7 @@ def put_zmqkeys(appname):
     public_key = ''
     public_key, secret_key = zmq.curve_keypair()
     try:
-        subprocess.run(["./etcdctl", "put", "/PublicKeys/" + appname, public_key])
+        subprocess.run(["./etcdctl", "put", "/Publickeys/" + appname, public_key])
     except Exception:
         logging.error("Error putting Etcd public key for" + appname)
     try:

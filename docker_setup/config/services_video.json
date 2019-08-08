@@ -25,7 +25,10 @@
         {
             "name": "ia_influxdbconnector",
             "dockerignore": "InfluxDBConnector/.dockerignore"
+        },
+        {
+            "name": "ia_factoryctrl_app",
+            "dockerignore": "FactoryControlApp/.dockerignore"
         }
     ]
-
 }

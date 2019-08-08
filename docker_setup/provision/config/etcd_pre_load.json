@@ -34,29 +34,34 @@
         "save_image": "false",
         "cert_path": ""
     },
-     "/InfluxDBConnector/config": {
+    "/InfluxDBConnector/config": {
         "influxdb": {
-	    "retention": "1h30m5s",
-	    "username": "admin",
-	    "password": "admin123",
-	    "dbname": "datain",
-	    "ssl": "True",
-	    "verifySsl": "False",
-	    "port": "8086"
+            "retention": "1h30m5s",
+            "username": "admin",
+            "password": "admin123",
+            "dbname": "datain",
+            "ssl": "True",
+            "verifySsl": "False",
+            "port": "8086"
         }
     },
     "/Telegraf/config": {
         "influxdb": {
-	    "username": "admin",
-	    "password": "admin123",
-	    "dbname": "datain"
+            "username": "admin",
+            "password": "admin123",
+            "dbname": "datain"
         }
     },
     "/Kapacitor/config": {
         "influxdb": {
-	    "username": "admin",
-	    "password": "admin123"
+            "username": "admin",
+            "password": "admin123"
         }
+    },
+    "/FactoryControlApp/config": {
+        "io_module_ip": "localhost",
+        "io_module_port": 502,
+        "red_bit_register": 20,
+        "green_bit_register": 19
     }
 }
-

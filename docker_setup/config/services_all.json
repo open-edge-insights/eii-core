@@ -3,27 +3,27 @@
     "iei_services": [
        
         {
-            "name": "ia_video_ingestion", 
+            "name": "ia_video_ingestion",
             "dockerignore": "VideoIngestion/.dockerignore"
         },
         {
-            "name": "ia_imagestore", 
+            "name": "ia_imagestore",
             "dockerignore": "ImageStore/.dockerignore"
         },
         {
-            "name": "ia_video_analytics", 
+            "name": "ia_video_analytics",
             "dockerignore": "DataAnalytics/VideoAnalytics/.dockerignore"
         },
         {
-            "name": "ia_telegraf", 
+            "name": "ia_telegraf",
             "dockerignore": "Telegraf/.dockerignore"
         },
         {
-            "name": "ia_data_analytics", 
+            "name": "ia_data_analytics",
             "dockerignore": "DataAnalytics/PointDataAnalytics/.dockerignore"
         },
         {
-            "name": "ia_factoryctrl_app", 
+            "name": "ia_factoryctrl_app",
             "dockerignore": "FactoryControlApp/.dockerignore"
         },
 	{

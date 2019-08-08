@@ -89,7 +89,7 @@ post_build_steps() {
 	mkdir -p $IEI_INSTALL_PATH/logs/video_analytics_logs
 	chmod -R 777 $IEI_INSTALL_PATH/logs
 	mkdir -p $IEI_INSTALL_PATH/sockets
-	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/sockets
+	chown $IEI_USER_NAME:$IEI_USER_NAME $IEI_INSTALL_PATH/sockets	
 }
 
 build_iei() {
