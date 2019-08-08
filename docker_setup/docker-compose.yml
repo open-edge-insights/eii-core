@@ -429,6 +429,7 @@ services:
       OpcuaExportCfg: "opcua,localhost:65003"
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+      DEV_MODE: ${DEV_MODE}
 
   ia_etcd_ui:
     build:
