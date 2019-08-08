@@ -272,6 +272,10 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       AppName: "VideoIngestion"
+      # Setting Visualizer as a subscriber here since FpsCalculator uses
+      # the same keys as visualizer to subscribe over both VideoIngestion
+      # and VideoAnalytics
+      Clients: "VideoAnalytics,Visualizer"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
@@ -295,7 +299,6 @@ services:
       # IPC: zmq_ipc, <absolut_socket_directory_path>
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
-      Subscribers: "VideoAnalytics"
     volumes:
       - "$PWD/test_videos:/IEI/test_videos"
       - "${IEI_INSTALL_PATH}/sockets:${SOCKET_DIR}"
@@ -333,6 +336,7 @@ services:
     restart: on-failure:${FAILURE_ATTEMPTS}
     environment:
       AppName: "VideoAnalytics"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${NO_PROXY}
@@ -349,7 +353,6 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-      Subscribers : "Visualizer,FactoryControlApp,OpcuaExport"
     privileged: true
     volumes:
       - "/dev:/dev"
