@@ -82,7 +82,7 @@ class Util:
                     allowed_clients = []
                     for subscriber in zmq_clients:
                         allowed_clients_keys = config_client.GetConfig(
-                                        "/PublicKeys/{0}".format(subscriber))
+                                        "/Publickeys/{0}".format(subscriber))
 
                         allowed_clients.append(allowed_clients_keys)
 
@@ -95,11 +95,11 @@ class Util:
                 config[topic] = host_port_details
                 if not dev_mode:
                     config[topic]["server_public_key"] = \
-                        config_client.GetConfig("/PublicKeys/{0}".
+                        config_client.GetConfig("/Publickeys/{0}".
                                                 format(zmq_clients))
 
                     config[topic]["client_public_key"] = \
-                        config_client.GetConfig("/PublicKeys/" + app_name)
+                        config_client.GetConfig("/Publickeys/" + app_name)
 
                     config[topic]["client_secret_key"] = \
                         config_client.GetConfig("/" + app_name +

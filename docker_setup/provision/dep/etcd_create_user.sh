@@ -3,5 +3,5 @@
 ./etcdctl role add $1
 ./etcdctl user grant-role $1 $1
 ./etcdctl role grant-permission $1 read /$1
-./etcdctl role grant-permission $1 read /PublicKeys
+./etcdctl role grant-permission $1 read /Publickeys
 ./etcdctl role grant-permission $1 read /Global
