@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -19,8 +19,7 @@
 # SOFTWARE.
 
 
-"""
-   Module forms the base for classifying the frames
+"""Module forms the base for classifying the frames
    based on the classifier logic in the subclass of BaseClassifier
 """
 
@@ -34,25 +33,20 @@ from concurrent.futures import ThreadPoolExecutor
 def load_classifier(classifier, classifier_config, input_queue, output_queue):
     """Load the specified classifier.
 
-    Parameters
-    ----------
-    classifier : str
-        Name of the classifier to attempt to load
-    classifier_config : dict
-        Configuration object for the classifier
-    input_queue : Queue
-        input queue for classifier
-    output_queue : Queue
-        output queue of classifier
-
-    Returns
-    -------
-    Classifier object for the specified classifier
-
-    Exceptions
-    ----------
-    If an issue arises while loading the Python module for the classifier
-    If the configuration for the classifier is incorrect
+    :param classifier: Name of the classifier to attempt to load
+    :type classifier: str
+    :param classifier_config: Configuration object for the classifier
+    :type classifier_config: dict
+    :param input_queue: input queue for classifier
+    :type input_queue: queue
+    :param output_queue: output queue of classifier]
+    :type output_queue: queue
+    :raises Exception: If an issue arises while loading the Python module for
+                       the classifier
+    :raises Exception: If the configuration for the classifier is incorrect
+    :raises Exception: If Classifier config key is missing
+    :return: Classifier object for the specified classifier
+    :rtype: Object
     """
     try:
         lib = importlib.import_module(
@@ -80,26 +74,20 @@ def load_classifier(classifier, classifier_config, input_queue, output_queue):
         raise Exception(
                 'Classifier config missing key: {}'.format(e))
 
+
 class BaseClassifier:
-    """
-    Base class for all classifier classes
+    """Base class for all classifier classes
     """
 
     def __init__(self, classifier_config, input_queue, output_queue):
         """Constructor to initialize classifier object
 
-        Parameters
-        ----------
-        classifier_config : dict
-            Configuration object for the classifier
-        input_queue : Queue
-            input queue for classifier
-        output_queue : Queue
-            output queue of classifier
-       
-        Returns
-        -------
-            Classification object
+        :param classifier_config: Configuration object for the classifier
+        :type classifier_config: dict
+        :param input_queue: input queue for classifier
+        :type input_queue: queue
+        :param output_queue: output queue of classifier
+        :type output_queue: queue
         """
         self.log = logging.getLogger(__name__)
         self.name = None
@@ -110,27 +98,34 @@ class BaseClassifier:
         self.max_workers = classifier_config["max_workers"]
 
     def start(self):
-        """Starts `max_workers` pool of threads to feed on the classifier input queue, run through
-        each frame from the queue with classifier logic and add only key frames for further processing
-        in the classifier output queue
+        """Starts `max_workers` pool of threads to feed on the classifier
+        input queue, run through each frame from the queue with classifier
+        logic and add only key frames for further processing in the classifier
+        output queue
         """
-        self.classifier_threadpool = ThreadPoolExecutor(max_workers=self.max_workers)
+        self.classifier_threadpool = \
+            ThreadPoolExecutor(max_workers=self.max_workers)
         for _ in range(self.max_workers):
             self.classifier_threadpool.submit(self.classify)
 
     def stop(self):
-        """Stops the pool of classifier threads responsible for classiflying frames
-        and adding data to the classifier output queue
+        """Stops the pool of classifier threads responsible for classiflying
+        frames and adding data to the classifier output queue
         """
         self.classifier_threadpool.shutdown(wait=False)
 
     def set_name(self, name):
         """Sets the name of the classifier
+
+        :param name: Name of the classifier
+        :type name: str
         """
         self.name = name
-    
+
     def get_name(self):
         """Gets the name of the classifier
+
+        :return: Name of the classifier
+        :rtype: str
         """
         return self.name
-    

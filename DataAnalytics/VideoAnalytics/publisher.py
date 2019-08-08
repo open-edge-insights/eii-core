@@ -30,17 +30,17 @@ import eis.msgbus as mb
 class Publisher:
 
     def __init__(self, classifier_output_queue, config_client, dev_mode):
-        """Constructor
+        """Publisher will get the classified data from the classified queue and
+           send it to EIS Message Bus
 
-        Parameters
-        -----------
-        classifier_output_queue : Queue
-            Input queue for publisher (has (metadata,frame) tuple data entries)
-        config_client : Class Object
-            Used to get keys value from ETCD.
-        dev_mode : Boolean
-            To check whether it is running in production mode or development
-            mode
+        :param classifier_output_queue: Input queue for publisher (has
+                                        (metadata,frame) tuple data entries)
+        :type classifier_output_queue: queue
+        :param config_client: Used to get keys value from ETCD.
+        :type config_client: Class Object
+        :param dev_mode: To check whether it is running in production mode
+                         or development
+        :type dev_mode: Boolean
         """
         self.log = logging.getLogger(__name__)
         self.classifier_output_queue = classifier_output_queue
@@ -49,14 +49,13 @@ class Publisher:
         self.dev_mode = dev_mode
 
     def start(self):
-        """
-        Starts the publisher thread(s)
+        """Starts the publisher thread(s)
         """
         topics = Util.get_topics_from_env("pub")
         self.publisher_threadpool = ThreadPoolExecutor(max_workers=len(topics))
         subscribers = os.environ['Clients'].split(",")
         for topic in topics:
-            msgbus_cfg = Util.get_messagebus_config(topic, "pub", 
+            msgbus_cfg = Util.get_messagebus_config(topic, "pub",
                                                     subscribers,
                                                     self.config_client,
                                                     self.dev_mode)
@@ -65,14 +64,12 @@ class Publisher:
                                              msgbus_cfg)
 
     def publish(self, topic, msgbus_cfg):
-        """
-        Send the data to the publish topic
-        Parameters:
-        ----------
-        topic: str
-            topic name
-        msgbus_cfg: str
-            topic msgbus_cfg
+        """Send the data to the publish topic
+
+        :param topic: Publishers's topic name
+        :type topic: str
+        :param msgbus_cfg: Topic msgbus_cfg
+        :type msgbus_cfg: str
         """
         self.log.info("config:{}".format(msgbus_cfg))
         msgbus = mb.MsgbusContext(msgbus_cfg)
@@ -92,8 +89,8 @@ class Publisher:
                     metadata['display_info'] = \
                         json.dumps(metadata['display_info'])
                 publisher.publish((metadata, frame))
-                self.log.debug("Published data: {} on topic: {} with "+
-                               "config: {}...".format(metadata, 
+                self.log.debug("Published data: {} on topic: {} with " +
+                               "config: {}...".format(metadata,
                                                       topic, msgbus_cfg))
                 self.log.info("Published data on topic: {} with config: {}".
                               format(topic, msgbus_cfg))
@@ -105,8 +102,7 @@ class Publisher:
         self.log.info(log_msg.format(thread_id, "stopped", topic, msgbus_cfg))
 
     def stop(self):
-        """
-        Stops the pubscriber thread
+        """Stops the pubscriber thread
         """
         try:
             self.stop_ev.set()

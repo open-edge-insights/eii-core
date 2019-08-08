@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -17,7 +17,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
 
 import os
 import logging
@@ -43,21 +42,20 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
 
     This function should only ever be called once in a the Python runtime.
 
-    Paramters
-    ---------
-    log_level : str
-        Logging level to use, must be one of the following: DEBUG, INFO, ERROR,
-        or WARN
-    log_dir : str
-        Directory to save rotating log files
-    base_log_file : str
-        Base log file name to use for the rotating log files
-
-    Exceptions
-    ----------
-    ConfigError
-        If the given log level is unknown, or if max_bytes and file_count are
-        both 0, or if the log file directory does not exist.
+    :param log_level: Logging level to use, must be one of the following:
+           DEBUG, INFO, ERROR or WARN
+    :type log_level: str
+    :param base_log_file: Base log file name to use for the rotating log files
+    :type base_log_file: str
+    :param log_dir:  Directory to save rotating log files
+    :type log_dir: str
+    :param module_name: Module running logging
+    :type module_name: str
+    :raises Exception: If the given log level is unknown, or if max_bytes
+                       and file_count are both 0, or if the log file directory
+                       does not exist.
+    :return: Logging object
+    :rtype: Object
     """
     if log_level not in LOG_LEVELS:
         raise Exception('Unknown log level: {}'.format(log_level))

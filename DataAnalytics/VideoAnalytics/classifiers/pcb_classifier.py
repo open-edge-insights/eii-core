@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -43,20 +43,16 @@ class Classifier(BaseClassifier):
     """
 
     def __init__(self, classifier_config, input_queue, output_queue):
-        """Constructor
+        """Constructor of Classifier class
 
-        Parameters
-        ----------
-        classifier_config : dict
-            Configuration object for the classifier
-        input_queue : Queue
-            input queue for classifier
-        output_queue : Queue
-            output queue of classifier
-
-        Returns
-        -------
-            Classification object
+        :param classifier_config: Configuration object for the classifier
+        :type classifier_config: dict
+        :param input_queue: input queue for classifier
+        :type input_queue: queue
+        :param output_queue: output queue of classifier
+        :type output_queue: queue
+        :return: Classification object
+        :rtype: Object
         """
         super().__init__(classifier_config, input_queue, output_queue)
         self.log = logging.getLogger('PCB_DEFECT_DETECTION')
@@ -86,7 +82,8 @@ class Classifier(BaseClassifier):
 
         # Load OpenVINO model
         self.plugin = IEPlugin(device=self.device.upper(), plugin_dirs="")
-        self.net = IENetwork.from_ir(model=self.model_xml, weights=self.model_bin)
+        self.net = IENetwork.from_ir(model=self.model_xml,
+                                     weights=self.model_bin)
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))
         self.net.batch_size = 1  # change to enable batch loading
@@ -109,16 +106,13 @@ class Classifier(BaseClassifier):
         self.ref_kp, self.ref_des = self.brisk.compute(ref_gray, self.ref_kp)
 
     def _calculate_homography(self, frame):
-        """ Calculate keypoint matches and homography score between
+        """Calculate keypoint matches and homography score between
             selected frame and ref image
 
-        Parameters
-        ----------
-        frame     : Selected frame to compare against ref image
-
-        Returns
-        ------
-        Homography between frame and ref image
+        :param frame: Selected frame to compare against ref image
+        :type frame: np_array
+        :return: Homography between frame and ref image
+        :rtype: tuple
         """
 
         ref_kp = self.ref_kp
@@ -193,10 +187,12 @@ class Classifier(BaseClassifier):
                 reshape_frame = cv2.imdecode(reshape_frame, 1)
             else:
                 reshape_frame = np.reshape(np_buffer, (int(metadata["height"]),
-                                                int(metadata["width"]),
-                                                int(metadata["channel"])))
+                                                       int(metadata["width"]),
+                                                       int(metadata["channel"])
+                                                       ))
 
-            index = metadata.get("user_data", None) # Angle information of frame
+            # Angle information of frame
+            index = metadata.get("user_data", None)
 
             # used for debugging purposes
             if(index == -1):
@@ -210,7 +206,8 @@ class Classifier(BaseClassifier):
             ref_img = self.ref_img.copy()
             img_orig = reshape_frame.copy()
 
-            # Calculate homography info between frame and corresponding ref image
+            # Calculate homography info between frame and corresponding
+            # ref image
             M, mask, score = self._calculate_homography(frame=reshape_frame)
 
             if score is None:
@@ -247,7 +244,8 @@ class Classifier(BaseClassifier):
                 [maxWidth - 1, maxHeight - 1],
                 [0, maxHeight - 1]], dtype="float32")
             mat = cv2.getPerspectiveTransform(rect, destination)
-            img_warp = cv2.warpPerspective(img_orig, mat, (maxWidth, maxHeight))
+            img_warp = cv2.warpPerspective(img_orig, mat, (maxWidth,
+                                                           maxHeight))
 
             src = ref_img.copy()
             overlay = img_warp.copy()
@@ -276,7 +274,7 @@ class Classifier(BaseClassifier):
                     # Convert coordinates to correspond to un-warped image
                     coord = np.asarray([[[x, y], [x1, y1]]], dtype="float32")
                     new_coord = cv2.perspectiveTransform(coord,
-                                                        np.linalg.inv(mat))[0]
+                                                         np.linalg.inv(mat))[0]
                     x = new_coord[0][0]
                     y = new_coord[0][1]
                     x1 = new_coord[1][0]
@@ -288,13 +286,14 @@ class Classifier(BaseClassifier):
             # Short defect classification
             short_bndbx = []
             if len(short_ROI) > 0:
-                short_bndbx = self._det_mobilenet(short_ROI, src, overlay, D_SHORT)
+                short_bndbx = self._det_mobilenet(short_ROI, src,
+                                                  overlay, D_SHORT)
                 for count in range(0, len(short_bndbx)):
                     [x, y, x1, y1] = short_bndbx[count]
                     # Convert coordinates to correspond to un-warped image
                     coord = np.asarray([[[x, y], [x1, y1]]], dtype="float32")
                     new_coord = cv2.perspectiveTransform(coord,
-                                                        np.linalg.inv(mat))[0]
+                                                         np.linalg.inv(mat))[0]
                     x = new_coord[0][0]
                     y = new_coord[0][1]
                     x1 = new_coord[1][0]
@@ -308,8 +307,9 @@ class Classifier(BaseClassifier):
             if len(defects) > 0:
                 d_info.append(DisplayInfo('DEFECT DETECTED', 2))
 
-            # Set state of random number generator after every frame to overcome
-            # probabilistic nature of Flann matcher. This might need to be changed.
+            # Set state of random number generator after every frame to
+            # overcome probabilistic nature of Flann matcher. This might
+            # need to be changed.
             cv2.setRNGSeed(0)
 
             defects_dict = {}
@@ -328,6 +328,5 @@ class Classifier(BaseClassifier):
             metadata["defects"] = defect_res
 
             self.output_queue.put((metadata, frame))
-            self.log.debug("metadata: {} added to classifier output queue".format(
-                metadata))
-
+            self.log.debug("metadata: {} added to classifier output queue".
+                           format(metadata))

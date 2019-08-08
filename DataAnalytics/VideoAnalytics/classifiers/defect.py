@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -18,16 +18,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+
 class Defect:
     """Defect class
     """
     def __init__(self, defect_class, tl, br):
-        """Constructor
+        """Constructor for defects class which identifies the defect.
 
-        Arguments:
-            defect_class - String representation of the defect
-            tl           - Top left (x, y) tuple for bounding box
-            br           - Bottom right (x, y) tuple for bounding box
+        :param defect_class: String representation of the defect
+        :type defect_class: str
+        :param tl: Top left (x, y) tuple for bounding box
+        :type tl: tuple
+        :param br: Bottom right (x, y) tuple for bounding box
+        :type br: tuple
         """
 
         self.defect_class = int(defect_class)
@@ -39,12 +42,18 @@ class Defect:
     @property
     def tl(self):
         """Helper property for top left (x, y) tuple of the bounding box
+
+        :return: Top left (x, y) tuple for bounding box
+        :rtype: tuple
         """
         return (self.tl_x, self.tl_y)
 
     @property
     def br(self):
         """Helper property for bottom right (x, y) tuple of the bounding box
+
+        :return: Bottom right (x, y) tuple for bounding box
+        :rtype: tuple
         """
         return (self.br_x, self.br_y)
 

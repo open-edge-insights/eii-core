@@ -1,3 +1,23 @@
+# Copyright (c) 2019 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import socket
 import logging as log
 import time
@@ -8,13 +28,14 @@ class Util:
 
     @staticmethod
     def check_port_availability(hostname, port):
-        """
-            Verifies port availability on hostname for accepting connection
-            Arguments:
-            hostname(str) - hostname of the machine
-            port(str)     - port
-            Returns:
-            portUp(bool)  - Boolean whether port is up
+        """Verifies port availability on hostname for accepting connection
+
+        :param hostname: hostname of the machine
+        :type hostname: str
+        :param port: port
+        :type port: str
+        :return: portUp (whether port is up or not)
+        :rtype: Boolean
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         log.debug("Attempting to connect to {}:{}".format(hostname, port))
@@ -32,13 +53,13 @@ class Util:
 
     @staticmethod
     def get_topics_from_env(topic_type):
-        """
-            Returns a list of all topics the module needs to subscribe
-            or publish
-            Arguments:
-            topic_type(str)  - type of the topic(pub/sub)
-            Returns:
-            topicsList(list) - list of topics in PubTopics
+        """Returns a list of all topics the module needs to subscribe
+        or publish
+
+        :param topic_type: type of the topic(pub/sub)
+        :type topic_type: str
+        :return: list of topics in PubTopics
+        :rtype: list
         """
         if topic_type == "pub":
             topicsList = os.environ["PubTopics"].split(",")
@@ -50,17 +71,23 @@ class Util:
     @staticmethod
     def get_messagebus_config(topic, topic_type,
                               zmq_clients, config_client, dev_mode):
-        """
-            Returns the config associated with the corresponding topic
-            Arguments:
-            topic(str)      - name of the topic
-            topic_type(str) - type of the topic(pub/sub)
-            zmq_clients - List of subscribers when used by publisher
-                                    or publisher string when used by subscriber
-            dev_mode(bool) - check if dev mode or prod mode
-            config_client(Class Object) - Used to get keys value from ETCD.
-            Returns:
-            config(dict)    - config dict of corresponding topic
+        """Returns the config associated with the corresponding topic
+
+        :param topic: name of the topic
+        :type topic: str
+        :param topic_type: type of the topic(pub/sub)
+        :type topic_type: str
+        :param zmq_clients: List of subscribers when used by publisher
+                            or publisher string when used by subscriber
+        :type zmq_clients: list(publisher) or string(subscriber)
+        :param config_client: Used to get keys value from ETCD.
+        :type config_client: Class Object
+        :param dev_mode: check if dev mode or prod mode
+        :type dev_mode: Boolean
+        :raises ValueError: Raise value error if topic_type is not valid
+        :raises ValueError: Raise value error if mode is not valid
+        :return: config dict of corresponding topic
+        :rtype: dict
         """
         app_name = os.environ["AppName"]
         mode, address = os.environ[topic + "_cfg"].split(",")

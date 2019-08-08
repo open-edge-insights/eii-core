@@ -32,17 +32,17 @@ import eis.msgbus as mb
 class Subscriber:
 
     def __init__(self, subscriber_queue, config_client, dev_mode):
-        """Constructor
+        """Subscriber subscribes to the EISMessageBus on which VideoIngestion
+           is publishing
 
-        Parameters
-        -----------
-        subscriber_queue: Queue
-            subscriber's output queue (has (metadata,frame) tuple data entries)
-        config_client : Class Object
-            Used to get keys value from ETCD.
-        dev_mode : Boolean
-            To check whether it is running in production mode or development
-            mode
+        :param subscriber_queue: subscriber's output queue (has
+                                 (metadata,frame) tuple data entries)
+        :type subscriber_queue: queue
+        :param config_client: Used to get keys value from ETCD.
+        :type config_client: Class Object
+        :param dev_mode: To check whether it is running in production mode
+                         or development
+        :type dev_mode: Boolean
         """
         self.log = logging.getLogger(__name__)
         self.subscriber_queue = subscriber_queue
@@ -51,8 +51,7 @@ class Subscriber:
         self.dev_mode = dev_mode
 
     def start(self):
-        """
-        Starts the subscriber thread
+        """Starts the subscriber thread
         """
         topics = Util.get_topics_from_env("sub")
         self.subscriber_threadpool = \
@@ -68,14 +67,12 @@ class Subscriber:
                                               msgbus_cfg)
 
     def subscribe(self, topic, msgbus_cfg):
-        """
-        Receives the data for the subscribed topic
-        Parameters:
-        ----------
-        topic: str
-            topic name
-        msgbus_cfg: str
-            topic msgbus_cfg
+        """Receives the data for the subscribed topic
+
+        :param topic: Subscribing to topic name
+        :type topic: str
+        :param msgbus_cfg: Topic msgbus_cfg
+        :type msgbus_cfg: str
         """
         msgbus = mb.MsgbusContext(msgbus_cfg)
         subscriber = msgbus.new_subscriber(topic)
@@ -89,7 +86,8 @@ class Subscriber:
                 data = subscriber.recv()
                 self.subscriber_queue.put(data)
                 self.log.debug("Subscribed data: {} on topic: {} with " +
-                        "config: {}...".format(data[0], topic, msgbus_cfg))
+                               "config: {}...".format(data[0], topic,
+                                                      msgbus_cfg))
         except Exception as ex:
             self.log.exception('Error while subscribing data:\
                             {}'.format(ex))
@@ -99,8 +97,7 @@ class Subscriber:
         self.log.info(log_msg.format(thread_id, "stopped", topic, msgbus_cfg))
 
     def stop(self):
-        """
-        Stops the Subscriber thread
+        """Stops the Subscriber thread
         """
         try:
             self.stop_ev.set()

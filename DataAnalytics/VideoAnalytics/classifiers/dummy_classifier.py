@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
 import logging
 from libs.base_classifier import BaseClassifier
+
 
 class Classifier(BaseClassifier):
     """Dummy classifier which never returns any defects. This is meant to aid
@@ -30,18 +30,16 @@ class Classifier(BaseClassifier):
     def __init__(self, classifier_config, input_queue, output_queue):
         """Constructor to initialize classifier object
 
-        Parameters
-        ----------
-        classifier_config : dict
-            Configuration object for the classifier
-        input_queue : Queue
-            input queue for classifier
-        output_queue : Queue
-            output queue of classifier
-       
-        Returns
-        -------
-            Classification object
+        :param BaseClassifier: Base class for all classifier classes
+        :type BaseClassifier: Class
+        :param classifier_config: Configuration object for the classifier
+        :type classifier_config: dict
+        :param input_queue: input queue for classifier
+        :type input_queue: queue
+        :param output_queue: output queue of classifier
+        :type output_queue: queue
+        :return: Classification object
+        :rtype: Object
         """
         super().__init__(classifier_config, input_queue, output_queue)
         self.log = logging.getLogger('DUMMY_CLASSIFIER')
@@ -52,5 +50,5 @@ class Classifier(BaseClassifier):
         while True:
             metadata, frame = self.input_queue.get()
             self.output_queue.put((metadata, frame))
-            self.log.debug("metadata: {} added to classifier output queue".format(
-                metadata))
+            self.log.debug("metadata: {} added to classifier output queue".
+                           format(metadata))

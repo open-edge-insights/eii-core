@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -30,29 +30,20 @@ from VideoAnalytics.classifiers.display_info import DisplayInfo
 from libs.base_classifier import BaseClassifier
 from openvino.inference_engine import IENetwork, IEPlugin
 
-"""Sample classification algorithm
-"""
-
 
 class Classifier(BaseClassifier):
     """Classifier object
     """
 
     def __init__(self, classifier_config, input_queue, output_queue):
-        """Constructor
+        """Constructor of Sample classification algorithm
 
-        Parameters
-        ----------
-        classifier_config : dict
-            Configuration object for the classifier
-        input_queue : Queue
-            input queue for classifier
-        output_queue : Queue
-            output queue of classifier
-
-        Returns
-        -------
-            Classification object
+        :param classifier_config: Configuration object for the classifier
+        :type classifier_config: dict
+        :param input_queue: input queue for classifier
+        :type input_queue: queue
+        :param output_queue: output queue of classifier
+        :type output_queue: queue
         """
         super().__init__(classifier_config, input_queue, output_queue)
         self.log = logging.getLogger('SAMPLE CLASSIFICATION')
@@ -102,7 +93,6 @@ class Classifier(BaseClassifier):
     # Main classification algorithm
     def classify(self):
         """Sample classification algorithm to classify input images.
-
         This sample algorithm classifies input images, hence no defect
         information in generated. The trigger algorithm associated with
         with this classifier is "bypass_filter" or "no_filter" which selects
@@ -120,8 +110,9 @@ class Classifier(BaseClassifier):
                 reshape_frame = cv2.imdecode(reshape_frame, 1)
             else:
                 reshape_frame = np.reshape(np_buffer, (int(metadata["height"]),
-                                                int(metadata["width"]),
-                                                int(metadata["channel"])))
+                                                       int(metadata["width"]),
+                                                       int(metadata["channel"])
+                                                       ))
 
             # Read and preprocess input images
             n, c, h, w = self.net.inputs[self.input_blob].shape
@@ -141,8 +132,8 @@ class Classifier(BaseClassifier):
             t0 = time()
             res = self.exec_net.infer(inputs={self.input_blob: images})
             infer_time.append((time() - t0)*1000)
-            self.log.info('Average running time of one iteration: {} ms'.format(
-                          np.average(np.asarray(infer_time))))
+            self.log.info('Average running time of one iteration: {} ms'.
+                          format(np.average(np.asarray(infer_time))))
 
             # Display information for visualizer
             d_info = []
@@ -159,8 +150,9 @@ class Classifier(BaseClassifier):
                     det_label = self.labels_map[id] \
                             if self.labels_map else '#{}'.format(id)
                     self.log.info('prob: {:.7f}, label: {}'.format(probs[id],
-                                                               det_label))
-                    # LOW priority information string to be displayed with frame
+                                                                   det_label))
+                    # LOW priority information string to be displayed with
+                    # frame
                     disp_info = DisplayInfo('prob: {:.7f}, label: {} \
                                             '.format(probs[id], det_label), 0)
                     d_info.append(disp_info)
@@ -173,6 +165,5 @@ class Classifier(BaseClassifier):
                 })
             metadata["display_info"] = display_info
             self.output_queue.put((metadata, frame))
-            self.log.debug("metadata: {} added to classifier output queue".format(
-                metadata))
-
+            self.log.debug("metadata: {} added to classifier output queue".
+                           format(metadata))

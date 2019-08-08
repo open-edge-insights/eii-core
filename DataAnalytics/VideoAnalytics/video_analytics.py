@@ -39,15 +39,10 @@ CONFIG_KEY_PATH = "/config"
 
 
 class VideoAnalytics:
-    """Get the video frames from messagebus, classify and add the results
-    back to the messagebus"""
 
     def __init__(self):
-        """Constructor
-
-        Returns
-        -------
-            VideoAnalytics object
+        """Get the video frames from messagebus, classify and add the results
+        back to the messagebus
         """
         self.log = logging.getLogger(__name__)
         self.profiling = bool(strtobool(os.environ['PROFILING']))
@@ -66,12 +61,16 @@ class VideoAnalytics:
                                             self._on_change_config_callback)
 
     def _read_classifier_config(self):
+        """Read Classifier's config data from ETCD.
+        """
         config = self.config_client.GetConfig("/{0}{1}".format(
             self.app_name, CONFIG_KEY_PATH))
 
         self.classifier_config = json.loads(config)
 
     def _print_config(self):
+        """Prints the config data of Classifier.
+        """
         self.log.info('classifier config: {}'.format(self.classifier_config))
 
     def start(self):
@@ -105,7 +104,8 @@ class VideoAnalytics:
         self.log.info(log_msg.format("Started", self.app_name))
 
     def stop(self):
-        """ Stop the Video Analytics."""
+        """ Stop the Video Analytics.
+        """
         log_msg = "======={} {}======="
         self.log.info(log_msg.format("Stopping", self.app_name))
         self.subscriber.stop()
@@ -114,15 +114,12 @@ class VideoAnalytics:
         self.log.info(log_msg.format("Stopped", self.app_name))
 
     def _on_change_config_callback(self, key, value):
-        """
-        Callback method to be called by etcd
+        """Callback method to be called by etcd
 
-        Parameters:
-        ----------
-        key: str
-            etcd key
-        value: str
-            etcd value
+        :param key: Etcd key
+        :type key: str
+        :param value: Etcd value
+        :type value: str
         """
         try:
             self._read_classifier_config()
@@ -134,6 +131,9 @@ class VideoAnalytics:
 
 def parse_args():
     """Parse command line arguments
+
+    :return: Object of Argument Parser
+    :rtype: object
     """
     parser = argparse.ArgumentParser()
 

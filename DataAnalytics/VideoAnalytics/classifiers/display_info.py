@@ -7,8 +7,8 @@
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
 
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,14 +23,14 @@ class DisplayInfo:
     """DisplayInfo class
     """
     def __init__(self, info, priority):
-        """Constructor
+        """DisplayInfo class
 
-        Arguments:
-            info         - Information string to be displayed with the frame
-            priority     - Priority of the information [0: low, 1: medium,
-                           2: high]
+        :param info: Information string to be displayed with the frame
+        :type info: str
+        :param priority: Priority of the information [0: low, 1: medium,
+                         2: high]
+        :type priority: int
         """
-
         self.info = info
         self.priority = priority
 
