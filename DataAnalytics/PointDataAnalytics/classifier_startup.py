@@ -29,10 +29,6 @@ CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
-DAServiceName = os.environ["DATA_AGENT_GRPC_SERVER"]
-DAPort = os.environ["GRPC_INTERNAL_PORT"]
-
-
 def parse_args():
     """Parse command line arguments
     """
@@ -96,14 +92,6 @@ def start_kapacitor(host_name, dev_mode):
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
         else:
             # Populate the certificates for kapacitor server
-            cert_data = client.GetConfigInt("KapacitorServerCert")
-            file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
-                         "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
-            write_certs(file_list, cert_data)
-
-            srcFiles = [CA_CERT]
-            filesToDecrypt = ["/etc/ssl/ca/ca_certificate.pem"]
-            create_decrypted_pem_files(srcFiles, filesToDecrypt)
             kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
 
         subprocess.call("kapacitord -hostname " + host_name +

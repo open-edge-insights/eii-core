@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"errors"
 
 	"github.com/golang/glog"
 )
@@ -38,13 +37,19 @@ func CheckPortAvailability(hostname, port string) bool {
 // message bus type(tcp/ipc) and dev/prod mode
 func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrConfig map[string]string) map[string]interface{}{
 	var subTopics []string
+        var topicConfigList []string
 	appName := os.Getenv("AppName")
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
 	if strings.ToLower(topicType) == "sub"{
 		subTopics = strings.Split(topic, "/")
                 topic = subTopics[1]
 	}
-	topicConfigList := strings.Split(os.Getenv(topic+"_cfg"), ",")
+
+	if topicType == "server"{
+		topicConfigList = strings.Split(os.Getenv("Server"), ",")
+	}else{
+		topicConfigList = strings.Split(os.Getenv(topic+"_cfg"), ",")
+	}
 	var messageBusConfig map[string]interface{}
 
 	if topicConfigList[0] == "zmq_tcp" {
@@ -68,7 +73,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 
 			if !devMode {
 				var allowedClients []string
-				subscribers := strings.Split(os.Getenv("Subscribers"), ",")
+				subscribers := strings.Split(os.Getenv("Clients"), ",")
 				for _, subscriber := range subscribers {
 					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subscriber)
 					if err != nil {
@@ -109,6 +114,29 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				hostConfig["client_secret_key"] = clientSecretKey
 				hostConfig["client_public_key"] = clientPublicKey
 			}
+		} else if strings.ToLower(topicType) == "server" {
+			messageBusConfig = map[string]interface{}{
+				"type":       "zmq_tcp",
+				topic: hostConfig,
+			}
+			if !devMode {
+				var allowedClients []string
+				clients := strings.Split(os.Getenv("Clients"), ",")
+				for _, client := range clients {
+					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + client)
+					if err != nil {
+						glog.Errorf("Etcd GetConfig Error %v", err)
+						os.Exit(1)
+					}
+					allowedClients = append(allowedClients, clientPublicKey)
+				}
+				serverSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
+				if err != nil {
+					log.Fatal(err)
+				}
+				messageBusConfig["allowed_clients"] = allowedClients
+				hostConfig["server_secret_key"] = serverSecretKey
+			}
 		} else {
 			panic("Unsupported Topic Type!!!")
 		}
@@ -133,50 +161,3 @@ func GetTopics(topicType string) []string {
 	}
 	return topics
 }
-
-//GetEndPointMap will convert the env variable into the map 
-//required for the zmq context creation
-func GetEndPointMap(keywordName string, endPointInfo string) (map[string]interface{}, error) {
-	const zmqTypeTCP = "zmq_tcp"
-        const zmqTypeIpc = "zmq_ipc"
-        const socketDir = "socket_dir"
-
-
-	parts := strings.Split(endPointInfo, ",")
-
-	if len(parts) <= 0 {
-		return nil, errors.New("EndPont doesn not have type info")
-	}
-
-	infoEndPoint := make(map[string]interface{})
-	if strings.Compare(parts[0], zmqTypeTCP) != 0 && strings.Compare(parts[0], zmqTypeIpc) != 0 {
-		return nil, errors.New("Invalid type info")
-	}
-
-	typeInfo := strings.TrimSpace(parts[0])
-	infoEndPoint["type"] = typeInfo
-
-	if strings.Compare(typeInfo, zmqTypeTCP) == 0 {
-
-		parts = strings.Split(parts[1], ":")
-		if len(parts) != 2 {
-			return nil, errors.New("Invalid endpoint info")
-		}
-
-		endPointInfo := make(map[string]interface{})
-		endPointInfo["host"] = strings.TrimSpace(parts[0])
-		portNumber, err := strconv.ParseInt(strings.TrimSpace(parts[1]), 10, 64)
-		if err != nil {
-			glog.Errorf("Not able to convert the port to Int %s", err)
-			os.Exit(1)
-		}
-		endPointInfo["port"] = portNumber
-		infoEndPoint[keywordName] = endPointInfo
-
-	} else {
-		infoEndPoint[socketDir] = strings.TrimSpace(parts[1])
-	}
-
-	return infoEndPoint, nil
-}
-

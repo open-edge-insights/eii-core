@@ -13,6 +13,14 @@
         {
             "name": "ia_influxdbconnector",
             "dockerignore": "InfluxDBConnector/.dockerignore"
+        },
+	{
+            "name": "ia_visualizer",
+            "dockerignore": "tools/visualizer/.dockerignore"
+        },
+	{
+            "name": "ia_etcd_ui",
+            "dockerignore": "tools/EtcdUI/.dockerignore"
         }
 
     ]

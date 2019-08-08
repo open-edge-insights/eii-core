@@ -25,10 +25,17 @@
         {
             "name": "ia_factoryctrl_app", 
             "dockerignore": "FactoryControlApp/.dockerignore"
+        },
+	{
+            "name": "ia_influxdbconnector",
+            "dockerignore": "InfluxDBConnector/.dockerignore"
+        },
+	{
+            "name": "ia_etcd_ui",
+            "dockerignore": "tools/EtcdUI/.dockerignore"
         }
-
-        
 
     ]
     
 }
+

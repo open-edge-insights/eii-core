@@ -22,5 +22,4 @@ cert-tool/Certificates
 cert-tool/client/
 cert-tool/rootca/
 cert-tool/server/
-.dockerignore
 .vscode
