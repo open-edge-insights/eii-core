@@ -28,6 +28,8 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 13. [Debugging options](#debugging-options)
 
+14. [EIS Deployment Via TurtleCreek](#deploy)
+
 
 # Minimum System Requirements
 
@@ -363,4 +365,10 @@ Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configu
 5. Run these commands to build & start the client tests container:
    `sudo ./client_tests_startup.sh`
    `docker-compose -f client-tests-compose.yml run --entrypoint /bin/bash ia_client_tests`
+---
+# Deploy
+
+To Deploy EIS Software via TurtleCreek and Telit.Please follow the steps
+* Goto **IEdgeInsigts/docker_setup/deploy**
+    * Please Follow the Readme.
 ---
