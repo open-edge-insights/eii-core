@@ -68,7 +68,7 @@ Sample configuration for classifiers used:
         "device": "CPU"
     }
    ```
-3. Dummy classifier (to be used when no classification needs to be done)
+3. **Dummy classifier** (to be used when no classification needs to be done)
    ```
     {
         "name": "dummy_classifier",
@@ -102,8 +102,7 @@ Sample configuration for classifiers used:
 
 ## `Installation`
 
-* Follow [Etcd/README.md](../Etcd/README.md) to have EIS pre-loaded data in
-  etcd
+* Follow [provision/README.md](../docker_setup/provision/README.md) for EIS provisioning
 
 * Run VideoAnalytics
 
@@ -118,3 +117,5 @@ Sample configuration for classifiers used:
     2. Update EIS VideoAnalytics keys(classifier) in `etcd` using UI's
        like `EtcdKeeper` or programmatically and see if it picks it up
        automatically without any container restarts.
+
+       **NOTE**: The dynamic config update is still WIP.
