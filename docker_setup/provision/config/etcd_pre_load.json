@@ -31,7 +31,7 @@
     },
     "/Visualizer/config": {
         "display": "true",
-        "save_image": "true",
+        "save_image": "false",
         "cert_path": ""
     },
      "/InfluxDBConnector/config": {
