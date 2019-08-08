@@ -24,16 +24,17 @@ import subprocess
 from distutils.util import strtobool
 
 if __name__ == "__main__":
-    
+
     try:
-       devMode = bool(strtobool(os.environ['DEV_MODE']))
+        devMode = bool(strtobool(os.environ['DEV_MODE']))
     except KeyError:
         devMode = 1
-    
-    if devMode: 
+
+    if devMode:
         subprocess.run(["./etcdkeeper/etcdkeeper"])
     else:
-        subprocess.run(["./etcdkeeper/etcdkeeper","-h","127.0.0.1","-auth"])
-        #TODO enable X509 Cert Security
-        #subprocess.run(["etcdkeeper/etcdkeeper","-usetls","-cacert","ca.pem","-key","etcd-client-key.pem","-cert","etcd-client.pem","-auth"])
-    
+        # "-auth"]) Disabling auth in prod mode temporarily
+        # for team to check curvzmq security
+        subprocess.run(["./etcdkeeper/etcdkeeper", "-h", "127.0.0.1"])
+        # TODO enable X509 Cert Security
+        # subprocess.run(["etcdkeeper/etcdkeeper","-usetls","-cacert","ca.pem","-key","etcd-client-key.pem","-cert","etcd-client.pem","-auth"])

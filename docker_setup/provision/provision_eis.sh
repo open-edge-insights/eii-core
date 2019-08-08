@@ -1,6 +1,32 @@
 #!/bin/bash
 source dep/.env
-echo "1. create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
+
+check_ETCD_port() {
+	echo "Checking if IEI published ports are already up..."
+	ports=($ETCD_CLIENT_PORT)
+	for port in "${ports[@]}"
+	do
+		set +e
+		fuser $port/tcp
+		if [ $? -eq 0 ]; then
+			echo "$port is already being used, so please kill that process and re-run the script."
+			exit -1
+		fi
+		set -e
+	done
+}
+
+
+
+echo "1 Bringing down existing ETCD container"
+docker-compose -f dep/docker-compose-provision.yml down 
+
+echo "1.2 Checking ETCD port"
+
+check_ETCD_port
+
+
+echo "2. Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 
 # EIS containers will be executed as eisuser
 if ! id $EIS_USER_NAME >/dev/null 2>&1; then
@@ -14,7 +40,7 @@ else
 fi
 
 
-echo "2. Creating Required Directories"
+echo "3. Creating Required Directories"
 
 if $ETCD_RESET = "true"; then
     rm -r $EIS_INSTALL_PATH/data/etcd
@@ -26,12 +52,21 @@ chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
 
 
 
-echo "2. Copying docker compose yaml file which is provided as argument."
+echo "4. Copying docker compose yaml file which is provided as argument."
 # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
 
 cp $1 ./docker-compose.yml
 
-echo "3. Starting and provisioning ETCD ..."
+echo "5. Starting and provisioning ETCD ..."
+
+if $DEV_MODE = "true"; then
+	export ETCD_LISTEN_CLIENT_URL="http://127.0.0.1:$ETCD_CLIENT_PORT"
+else
+	# TODO change to https once ETCD Security is in place
+	export ETCD_LISTEN_CLIENT_URL="http://127.0.0.1:$ETCD_CLIENT_PORT"
+fi
+
+
 
 docker-compose -f dep/docker-compose-provision.yml up --build -d
 

@@ -4,7 +4,7 @@
 Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 Following actions will be performed as part of Provisioning
 
- * Loading inital ETCD values from json file.
+ * Loading inital ETCD values from json file located at [config/etcd_pre_load.json](config/etcd_pre_load.json).
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
 
@@ -17,6 +17,8 @@ Following actions will be performed as part of Provisioning
     ```
 
 * By default EIS is provisioned in Developer mode. Please update DEV_MODE=false in [dep/.env](dep/.env) to provision EIS in Secure mode.
+
+* For now since X509 cert integration is under development, ETCD authentication not enabled for Secure mode. Secure mode provisioning only generates curve zmq public/private keys for all apps.
 
 * By default EIS is provisioned for Single node deployment. Please uncommment and place proper values for section ' ETCD optinal Configuration required to run ETCD in cluster mode.'  in [dep/.env](dep/.env) for provisioning ETCD for multiple nodes.'.
 
