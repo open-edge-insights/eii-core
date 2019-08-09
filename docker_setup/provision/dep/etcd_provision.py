@@ -20,7 +20,6 @@
 # SOFTWARE.
 
 import yaml
-import etcd3
 import zmq
 import zmq.auth
 import sys
@@ -68,11 +67,11 @@ def put_zmqkeys(appname):
     public_key = ''
     public_key, secret_key = zmq.curve_keypair()
     try:
-        etcd.put("/Publickeys/" + appname, public_key)
+        subprocess.run(["./etcdctl", "put", "/PublicKeys/" + appname, public_key])
     except Exception:
         logging.error("Error putting Etcd public key for" + appname)
     try:
-        etcd.put("/" + appname + "/private_key", secret_key)
+        subprocess.run(["./etcdctl", "put", "/" + appname + "/private_key", secret_key])
     except Exception:
         logging.error("Error putting Etcd private key for" + appname)
 
@@ -89,20 +88,19 @@ def load_data_etcd(file):
     :param file: Full path of json file having etcd initial data
     :type file: String
     """
-    etcd = etcd3.client()
     with open(file, 'r') as f:
         config = json.load(f)
     logging.info("=======Adding key/values to etcd========")
     for key, value in config.items():
         if isinstance(value, str):
-            etcd.put(key, bytes(value.encode()))
+            subprocess.run(["./etcdctl", "put", key, bytes(value.encode())])
         elif isinstance(value, dict):
-            etcd.put(key, bytes(json.dumps(value, indent=4).encode()))
+            subprocess.run(["./etcdctl", "put", key, bytes(json.dumps(value, indent=4).encode())])
 
     logging.info("=======Reading key/values to etcd========")
     for key in config.keys():
-        value = etcd.get(key)
-        logging.info(key, '->', value[0].decode())
+        value = subprocess.run(["./etcdctl", "get", key])
+        logging.info(key, '->', value)
 
 
 def create_etcd_users(appname):
@@ -127,7 +125,6 @@ def pw_gen():
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
-    etcd = etcd3.client()
     apps = get_appname(str(sys.argv[1]))
     for key, value in apps.items():
         try:

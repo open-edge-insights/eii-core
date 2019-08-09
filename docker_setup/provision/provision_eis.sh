@@ -43,7 +43,7 @@ fi
 echo "3. Creating Required Directories"
 
 if $ETCD_RESET = "true"; then
-    rm -r $EIS_INSTALL_PATH/data/etcd
+    rm -rf $EIS_INSTALL_PATH/data/etcd
 fi
 
 mkdir -p $IEI_INSTALL_PATH/data/influxdata

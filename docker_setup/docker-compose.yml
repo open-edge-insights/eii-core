@@ -93,7 +93,7 @@ services:
     hostname: ia_telegraf
     network_mode: host
     image: ia_telegraf:${IEI_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "Telegraf"
       CertType: "zmq"  
@@ -134,7 +134,7 @@ services:
     hostname: ia_imagestore
     network_mode: host
     image: ia_imagestore:${IEI_VERSION}
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "Imagestore"
       CertType: "zmq"  
@@ -182,7 +182,7 @@ services:
     container_name: ia_data_analytics
     hostname: ia_data_analytics
     network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "Kapacitor"
       CertType: "zmq"   
@@ -230,7 +230,7 @@ services:
     container_name: ia_factoryctrl_app
     hostname: ia_factoryctrl_app
     network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "FactoryControlApp"
       CertType: "zmq"
@@ -269,7 +269,7 @@ services:
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "VideoIngestion"
       # Setting Visualizer as a subscriber here since FpsCalculator uses
@@ -333,7 +333,7 @@ services:
     container_name: ia_video_analytics
     hostname: ia_video_analytics
     network_mode: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "VideoAnalytics"
       Clients : "Visualizer,FactoryControlApp,OpcuaExport"
@@ -386,7 +386,7 @@ services:
     hostname: ia_visualizer
     network_mode: host
     ipc: host
-    restart: on-failure:${FAILURE_ATTEMPTS}
+    restart: unless-stopped
     environment:
       AppName: "Visualizer"
       CertType: "zmq"
@@ -422,6 +422,7 @@ services:
         IEI_VERSION: ${IEI_VERSION}
     image: ia_opcua_export:${IEI_VERSION}
     network_mode: host
+    restart: unless-stopped
     container_name: ia_opcua_export
     hostname: ia_opcua_export
     environment:
@@ -443,6 +444,7 @@ services:
         IEI_VERSION: ${IEI_VERSION}
     image: ia_etcd_ui:${IEI_VERSION}
     network_mode: host
+    restart: unless-stopped
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
     environment:
