@@ -33,8 +33,4 @@ if __name__ == "__main__":
     if devMode:
         subprocess.run(["./etcdkeeper/etcdkeeper"])
     else:
-        # "-auth"]) Disabling auth in prod mode temporarily
-        # for team to check curvzmq security
-        subprocess.run(["./etcdkeeper/etcdkeeper", "-h", "127.0.0.1"])
-        # TODO enable X509 Cert Security
-        # subprocess.run(["etcdkeeper/etcdkeeper","-usetls","-cacert","ca.pem","-key","etcd-client-key.pem","-cert","etcd-client.pem","-auth"])
+        subprocess.run(["etcdkeeper/etcdkeeper", "-h", "127.0.0.1" ,"-usetls","-cacert","/run/secrets/ca_cert","-key","/run/secrets/etcd_root_key","-cert","/run/secrets/etcd_root_cert","-auth"])

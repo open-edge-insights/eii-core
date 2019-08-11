@@ -8,4 +8,6 @@ RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etc
     tar -xvf /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EIS/etcd --strip 1 && \
     rm -f /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
 WORKDIR /EIS/etcd/
-ENTRYPOINT ["./etcd"]
+ADD dep/start_etcd.sh .
+RUN chmod +x start_etcd.sh
+ENTRYPOINT ["./start_etcd.sh"]

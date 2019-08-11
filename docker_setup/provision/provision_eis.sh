@@ -60,14 +60,6 @@ cp $1 ./docker-compose.yml
 
 echo "5. Starting and provisioning ETCD ..."
 
-if $DEV_MODE = "true"; then
-	export ETCD_LISTEN_CLIENT_URL="http://127.0.0.1:$ETCD_CLIENT_PORT"
-else
-	# TODO change to https once ETCD Security is in place
-	export ETCD_LISTEN_CLIENT_URL="http://127.0.0.1:$ETCD_CLIENT_PORT"
-fi
-
-
 
 docker-compose -f dep/docker-compose-provision.yml up --build -d
 

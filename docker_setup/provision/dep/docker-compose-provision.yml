@@ -13,6 +13,7 @@ services:
       ETCDCTL_API: 3
       DEV_MODE: $DEV_MODE
       ETCD_DATA_DIR: $ETCD_DATA_DIR
+      ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
       no_proxy: $no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
@@ -20,6 +21,10 @@ services:
       - "$EIS_INSTALL_PATH/data/etcd:$ETCD_DATA_DIR"
     network_mode: host
     user: $EIS_UID
+    secrets:
+        - ca_cert
+        - etcd_server_cert
+        - etcd_server_key
 
   ia_etcd_provision:
     build:
@@ -34,6 +39,7 @@ services:
     volumes:
       - "../config:/EIS/etcd/config/"
       - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+      - "../Certificates:/EIS/etcd/Certificates"
     environment:
       ETCDCTL_API: 3
       DEV_MODE: $DEV_MODE
@@ -43,3 +49,19 @@ services:
       https_proxy: $https_proxy
     network_mode: host
     user: $EIS_UID
+    secrets:
+        - ca_cert
+        - etcd_root_cert
+        - etcd_root_key
+secrets:
+  ca_cert:
+    file: ../Certificates/ca/ca_certificate.pem
+  etcd_server_cert:
+    file: ../Certificates/etcdserver/etcdserver_server_certificate.pem
+  etcd_server_key:
+    file: ../Certificates/etcdserver/etcdserver_server_key.pem
+  etcd_root_cert:
+    file: ../Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file: ../Certificates/root/root_client_key.pem
+

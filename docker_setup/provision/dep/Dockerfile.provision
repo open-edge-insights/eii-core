@@ -6,6 +6,8 @@ RUN pip3 install -r requirements.txt && \
 ADD dep/etcd_provision.py .
 ADD dep/etcd_create_user.sh .
 ADD dep/etcd_enable_auth.sh .
+ADD dep/put_x509_certs.sh .
 RUN chmod +x etcd_create_user.sh && \
-    chmod +x etcd_enable_auth.sh
+    chmod +x etcd_enable_auth.sh && \
+    chmod +x put_x509_certs.sh
 ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]

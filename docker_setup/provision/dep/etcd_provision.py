@@ -122,9 +122,21 @@ def pw_gen():
     chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choice(chars) for _ in range(size))
 
+def put_x509_certs():
+    """Put required X509 certs to ETCD
+    :TODO put proper code in place to put them runtime, currenly to enable 
+    overall security integration they are hardcoded in script.
+    """
+    subprocess.run("./put_x509_certs.sh")
+
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
+    if not devMode:
+        os.environ["ETCDCTL_CACERT"] = "/run/secrets/ca_cert"
+        os.environ["ETCDCTL_CERT"] = "/run/secrets/etcd_root_cert"
+        os.environ["ETCDCTL_KEY"] = "/run/secrets/etcd_root_key"
+    
     apps = get_appname(str(sys.argv[1]))
     for key, value in apps.items():
         try:
@@ -138,4 +150,6 @@ if __name__ == "__main__":
     load_data_etcd("./config/etcd_pre_load.json")
 
     if not devMode:
+        put_x509_certs()
         enable_etcd_auth()
+        

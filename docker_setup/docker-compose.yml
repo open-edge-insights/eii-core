@@ -1,4 +1,4 @@
-version: '3'
+version: '3.6'
 
 services:
 
@@ -443,4 +443,47 @@ services:
       AppName: "EtcdUi"
       no_proxy: ${NO_PROXY}
       DEV_MODE: $DEV_MODE
+    secrets:
+        - ca_cert
+        - etcd_root_cert
+        - etcd_root_key
 
+secrets:
+  ca_cert:
+    file: Certificates/ca/ca_certificate.pem
+  etcd_FactoryControlApp_cert:
+    file: Certificates/FactoryControlApp/FactoryControlApp_client_certificate.pem
+  etcd_FactoryControlApp_key:
+    file: Certificates/FactoryControlApp/FactoryControlApp_client_key.pem
+  etcd_ImageStore_cert:
+    file: Certificates/ImageStore/ImageStore_client_certificate.pem
+  etcd_ImageStore_key:
+    file: Certificates/root/ImageStore_client_key.pem
+  etcd_InfluxDBConnector_cert:
+    file: Certificates/InfluxDBConnector/InfluxDBConnector_client_certificate.pem
+  etcd_InfluxDBConnector_key:
+    file: Certificates/InfluxDBConnector/InfluxDBConnector_client_key.pem
+  etcd_Kapacitor_cert:
+    file: Certificates/Kapacitor/Kapacitor_client_certificate.pem
+  etcd_Kapacitor_key:
+    file: Certificates/Kapacitor/Kapacitor_client_key.pem
+  etcd_OpcuaExport_cert:
+    file: Certificates/OpcuaExport/OpcuaExport_client_certificate.pem
+  etcd_OpcuaExport_key:
+    file: Certificates/OpcuaExport/OpcuaExport_client_key.pem
+  etcd_VideoAnalytics_cert:
+    file: Certificates/VideoAnalytics/VideoAnalytics_client_certificate.pem
+  etcd_VideoAnalytics_key:
+    file: Certificates/VideoAnalytics/VideoAnalytics_client_key.pem
+  etcd_VideoIngestion_cert:
+    file: Certificates/VideoIngestion/VideoIngestion_client_certificate.pem
+  etcd_VideoIngestion_key:
+    file: Certificates/VideoIngestion/VideoIngestion_client_key.pem
+  etcd_Visualizer_cert:
+    file: Certificates/Visualizer/Visualizer_client_certificate.pem
+  etcd_root_key:
+    file: Certificates/Visualizer/Visualizer_client_key.pem
+  etcd_root_cert:
+    file: Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file: Certificates/root/root_client_key.pem
