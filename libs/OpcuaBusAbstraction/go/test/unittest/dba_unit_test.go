@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
-	databus "IEdgeInsights/DataBusAbstraction/go"
+	databus "IEdgeInsights/OpcuaBusAbstraction/go"
 	"fmt"
 	"os"
 	"reflect"
@@ -43,9 +43,9 @@ var contextConfig = map[string]string{
 }
 
 var topicConfig = map[string]string{
-        "ns": "StreamManager",
-	"name": "classifier_results",
-        "dType": "string",
+	"ns":    "StreamManager",
+	"name":  "classifier_results",
+	"dType": "string",
 }
 
 func cbFunc(topic string, msg interface{}) {
@@ -77,7 +77,7 @@ func sub() {
 		panic(err)
 	}
 
-	topicConfigArray := []map[string]string{topicConfig};
+	topicConfigArray := []map[string]string{topicConfig}
 	err = ieiDatabsub.Subscribe(topicConfigArray, 1, "START", cbFunc)
 	if err != nil {
 		panic(err)
@@ -110,7 +110,7 @@ func TestNegativeSub(t *testing.T) {
 		panic(err)
 	}
 
-	topicConfigArray := []map[string]string{topicConfig};
+	topicConfigArray := []map[string]string{topicConfig}
 	err = ieiDatabnsub.Subscribe(topicConfigArray, 1, "START", cbFunc)
 	if err == nil {
 		panic(err)

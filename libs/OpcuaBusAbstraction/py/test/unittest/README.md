@@ -1,7 +1,7 @@
 # Steps for running unit tests for py DBA stack
 
 ```sh
-    cd <repo>/DataBusAbstraction/py/test/unittest
+    cd <repo>/OpcuaBusAbstraction/py/test/unittest
     make check
 ```
 

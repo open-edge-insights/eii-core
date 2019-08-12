@@ -1,6 +1,6 @@
-# DataBusAbstraction
+# OpcuaBusAbstraction
 
-DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
+OpcuaBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
 The C example program demonstrates publish and subscription over OPCUA bus only (`OPCUA is the only messagebus supported for now`)
 
 ## How to Test from present working directory
@@ -55,5 +55,5 @@ make clean
 ### 5. To view the documentation navigate to the below link
 
 ```sh
-/opt/intel/iei/dist_libs/DataBusAbstraction/c/doc/html/index.html
+/opt/intel/iei/dist_libs/OpcuaBusAbstraction/c/doc/html/index.html
 ```

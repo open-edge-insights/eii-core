@@ -38,18 +38,18 @@ RUN git clone https://github.com/intel/safestringlib.git && \
     cp -rf libsafestring.a /iei
 
 # Build the open62541W.so file
-ADD DataBusAbstraction/py/databus_requirements.txt DataBusAbstraction/py/databus_requirements.txt
-RUN cd /iei/DataBusAbstraction/py/ && \
+ADD libs/OpcuaBusAbstraction/py/databus_requirements.txt libs/OpcuaBusAbstraction/py/databus_requirements.txt
+RUN cd /iei/libs/OpcuaBusAbstraction/py/ && \
     pip3.6 install -r databus_requirements.txt
 
-ADD DataBusAbstraction/c DataBusAbstraction/c/
+ADD libs/OpcuaBusAbstraction/c libs/OpcuaBusAbstraction/c/
 # Build c open62541 static libraries
-RUN cd /iei/DataBusAbstraction/c/test && \
+RUN cd /iei/libs/OpcuaBusAbstraction/c/test && \
     make clean && \
     make build_static_lib
 
-ADD DataBusAbstraction/py DataBusAbstraction/py/
-RUN cd /iei/DataBusAbstraction/py/test && \
+ADD libs/OpcuaBusAbstraction/py libs/OpcuaBusAbstraction/py/
+RUN cd /iei/libs/OpcuaBusAbstraction/py/test && \
     make clean && \
     cp -rf /iei/libsafestring.a ../open62541 && \
     make build && \
@@ -57,33 +57,33 @@ RUN cd /iei/DataBusAbstraction/py/test && \
 
 RUN mkdir -p /iei/dist_libs
 
-ENV DBA_PATH /dist_libs/DataBusAbstraction
+ENV DBA_PATH /dist_libs/OpcuaBusAbstraction
 ENV IMGSTORE_PATH /dist_libs/ImageStore
 
 COPY Util/ ./Util/
 ADD Util/log.py ${DBA_PATH}/py/Util/
-# Copying DataBusAbstraction py library/test files.
-RUN cp DataBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/ && \
-    cp DataBusAbstraction/py/DataBus*.py ${DBA_PATH}/py/ && \
-    cp DataBusAbstraction/py/open62541W.so ${DBA_PATH}/py/ && \
+# Copying OpcuaBusAbstraction py library/test files.
+RUN cp libs/OpcuaBusAbstraction/py/databus_requirements.txt ${DBA_PATH}/py/ && \
+    cp libs/OpcuaBusAbstraction/py/DataBus*.py ${DBA_PATH}/py/ && \
+    cp libs/OpcuaBusAbstraction/py/open62541W.so ${DBA_PATH}/py/ && \
     mkdir -p ${DBA_PATH}/py/test && \
-    cp DataBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/ && \
-    cp DataBusAbstraction/py/test/Makefile ${DBA_PATH}/py/test/ && \
-    cp DataBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/ && \
-    rm -rf DataBusAbstraction/py
+    cp libs/OpcuaBusAbstraction/py/test/DataBusTest.py ${DBA_PATH}/py/test/ && \
+    cp libs/OpcuaBusAbstraction/py/test/Makefile ${DBA_PATH}/py/test/ && \
+    cp libs/OpcuaBusAbstraction/py/test/README.md ${DBA_PATH}/py/test/ && \
+    rm -rf libs/OpcuaBusAbstraction/py
 
-# Copying DataBusAbstraction c library/test files.
+# Copying OpcuaBusAbstraction c library/test files.
 RUN mkdir -p ${DBA_PATH}/c/
 RUN mkdir -p ${DBA_PATH}/c/test/
-ADD DataBusAbstraction/c/test/ ${DBA_PATH}/c/test/
-RUN cp DataBusAbstraction/c/DataBus.c ${DBA_PATH}/c/ && \
-    cp DataBusAbstraction/c/DataBus.h ${DBA_PATH}/c/ && \
-    cp DataBusAbstraction/c/open62541/include/common.h ${DBA_PATH}/c/ && \
-    cp DataBusAbstraction/c/open62541/include/open62541.h ${DBA_PATH}/c/ && \
-    cp DataBusAbstraction/c/open62541/include/open62541_wrappers.h ${DBA_PATH}/c/ && \
-    cp DataBusAbstraction/c/test/libopen62541_wrappers.a ${DBA_PATH}/c/test/ && \
+ADD libs/OpcuaBusAbstraction/c/test/ ${DBA_PATH}/c/test/
+RUN cp libs/OpcuaBusAbstraction/c/DataBus.c ${DBA_PATH}/c/ && \
+    cp libs/OpcuaBusAbstraction/c/DataBus.h ${DBA_PATH}/c/ && \
+    cp libs/OpcuaBusAbstraction/c/open62541/include/common.h ${DBA_PATH}/c/ && \
+    cp libs/OpcuaBusAbstraction/c/open62541/include/open62541.h ${DBA_PATH}/c/ && \
+    cp libs/OpcuaBusAbstraction/c/open62541/include/open62541_wrappers.h ${DBA_PATH}/c/ && \
+    cp libs/OpcuaBusAbstraction/c/test/libopen62541_wrappers.a ${DBA_PATH}/c/test/ && \
     cp /iei/libsafestring.a ${DBA_PATH}/c/test/ && \
-    rm -rf DataBusAbstraction/c
+    rm -rf libs/OpcuaBusAbstraction/c
 
 # Copying ImageStore py library/test files.
 ADD ImageStore/__init__.py ${IMGSTORE_PATH}/

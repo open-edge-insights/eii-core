@@ -1,4 +1,4 @@
-# Compilation steps (current directory: <repo>/DataBusAbstraction/py/open62541/):
+# Compilation steps (current directory: <repo>/OpcuaBusAbstraction/py/open62541/):
 
 ## For building the open62541 wrapper library `open62541W.so` and generating `open62541W.c`:
 

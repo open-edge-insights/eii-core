@@ -5,10 +5,10 @@ DIR="/dist_libs"
 apt-get install -y doxygen
 doxygen -g Doxyfile
 
-# Generating documentation for DataBusAbstraction c modules
-PROJECT_NAME="DataBusAbstraction"
+# Generating documentation for OpcuaBusAbstraction c modules
+PROJECT_NAME="OpcuaBusAbstraction"
 
-INPUT=$DIR"/DataBusAbstraction/c"
+INPUT=$DIR"/OpcuaBusAbstraction/c"
 mkdir -p $INPUT/"doc"
 OUTPUT=$INPUT/"doc"
 
@@ -18,8 +18,8 @@ echo "RECURSIVE = YES"; echo "EXCLUDE = "$INPUT"/open62541.h"; \
 echo "EXCLUDE += "$INPUT"/common.h"; echo "EXCLUDE_PATTERNS = */test/*"; \
 echo "GENERATE_LATEX = NO"; echo "HAVE_DOT = NO") | doxygen -
 
-# Generating documentation for DataBusAbstraction py modules
-INPUT=$DIR"/DataBusAbstraction/py"
+# Generating documentation for OpcuaBusAbstraction py modules
+INPUT=$DIR"/OpcuaBusAbstraction/py"
 mkdir -p $INPUT/"doc"
 OUTPUT=$INPUT/"doc"
 

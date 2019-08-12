@@ -1,6 +1,6 @@
-# DataBusAbstraction
+# OpcuaBusAbstraction
 
-DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
+OpcuaBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
 
 The python example program demonstrates publish and subscription over OPCUA bus only (`OPCUA is the only messagebus supported for now`)
 
@@ -14,10 +14,10 @@ The python example program demonstrates publish and subscription over OPCUA bus 
   sudo apt-get install -y libmbedtls-dev python3.6-dev
   ```
 
-  > **NOTE**: If `DataBusAbstraction` module is referred from dist_libs path, make sure that the `sub` client is also run on Ubuntu > 18.04 as the dist libs package is been created by a container with ubuntu 18.04 as the base image. If working from IEI repo,
+  > **NOTE**: If `OpcuaBusAbstraction` module is referred from dist_libs path, make sure that the `sub` client is also run on Ubuntu > 18.04 as the dist libs package is been created by a container with ubuntu 18.04 as the base image. If working from IEI repo,
   > one shouldn't be bothered about this
 
-* Set `PYTHONPATH` env variable to DataBusAbstraction/py folder path
+* Set `PYTHONPATH` env variable to OpcuaBusAbstraction/py folder path
 
   * If executing from IEI repo path, set it as below:
 
@@ -89,5 +89,5 @@ make clean
 ### 5. To view the documentation navigate to the below link
 
 ```sh
-/opt/intel/iei/dist_libs/DataBusAbstraction/py/doc/html/index.html
+/opt/intel/iei/dist_libs/OpcuaBusAbstraction/py/doc/html/index.html
 ```

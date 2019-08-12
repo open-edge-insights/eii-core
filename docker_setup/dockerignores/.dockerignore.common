@@ -1,7 +1,7 @@
 cert-tool/
 DataAgent/
 DataAnalytics/
-DataBusAbstraction/
+OpcuaBusAbstraction/
 dist_libs/
 docker_setup/
 FactoryControlApp/

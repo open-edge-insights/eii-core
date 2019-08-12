@@ -78,7 +78,7 @@ RUN chmod +x minio
 # tls, crypto library needs to open62541
 RUN apt-get install -y libmbedtls-dev
 
-ADD DataBusAbstraction/ DataBusAbstraction/
+ADD libs/OpcuaBusAbstraction/ libs/OpcuaBusAbstraction/
 ENV TERM xterm
 
 # These flags are needed for security for compiling and linking with open62541
@@ -86,12 +86,12 @@ ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fsta
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
 # Build the opent62541W.so file
-RUN cd DataBusAbstraction/py && \
+RUN cd libs/OpcuaBusAbstraction/py && \
     pip3.6 install -r databus_requirements.txt && \
     cd test && \
     make build
 
-ENV PYTHONPATH .:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/pb_internal/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff:/IEI/go/src/IEdgeInsights/DataBusAbstraction/py/:/IEI/go/src/IEdgeInsights/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/
+ENV PYTHONPATH .:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/pb_internal/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff:/IEI/go/src/IEdgeInsights/libs/OpcuaBusAbstraction/py/:/IEI/go/src/IEdgeInsights/:/IEI/go/src/IEdgeInsights/DataAgent/da_grpc/protobuff/py/
 
 ADD ImageStore/client ./ImageStore/client
 ADD ImageStore/protobuff ./ImageStore/protobuff

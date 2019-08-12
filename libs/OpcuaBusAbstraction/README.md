@@ -1,6 +1,6 @@
-# DataBusAbstraction
+# OpcuaBusAbstraction
 
-DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs.
+OpcuaBusAbstraction abstracts underlying messagebus to provide a common set of APIs.
 Available in C, python & golang
 
 Currently supported messagebus: **OPCUA**

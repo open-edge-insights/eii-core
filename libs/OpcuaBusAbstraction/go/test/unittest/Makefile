@@ -1,4 +1,4 @@
-UNIT_TEST_PATH = IEdgeInsights/DataBusAbstraction/go/test/unittest
+UNIT_TEST_PATH = IEdgeInsights/OpcuaBusAbstraction/go/test/unittest
 CURDIR = $(shell pwd)
 
 build_dependencies:

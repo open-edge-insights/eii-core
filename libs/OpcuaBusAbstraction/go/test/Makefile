@@ -2,7 +2,7 @@ SHELL := /bin/bash
 CURDIR = $(shell pwd)
 SAFESTRING_DIR = safestringlib
 SAFESTRING_VER = 77b772849eda2321fb0dca56a321e3939930d7b9
-DBA_PATH = ../../../DataBusAbstraction
+DBA_PATH = ../../../OpcuaBusAbstraction
 CERT_DIR_PATH = $(DBA_PATH)/cert-tool/Certificates
 CPATH = ../../c/open62541/src
 CFLAGS = -std=c99 -g

@@ -1,6 +1,6 @@
-# DataBusAbstraction
+# OpcuaBusAbstraction
 
-DataBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
+OpcuaBusAbstraction abstracts underlying messagebus to provide a common set of APIs needed for publish and subscribe.
 The go example program demonstrates publish and subscription over OPCUA bus only (`OPCUA is the only messagebus supported for now`)
 
 ## How to test from present working directory

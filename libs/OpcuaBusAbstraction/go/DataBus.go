@@ -27,6 +27,7 @@ type dataBusContext interface {
 	destroyContext() error
 }
 
+// DataBus interface
 type DataBus interface {
 	ContextCreate(map[string]string) error
 	Publish(map[string]string, interface{}) error
@@ -40,7 +41,8 @@ type topicMeta struct {
 	ev        chan string
 }
 
-type dataBus struct {
+// BusCfg struct with databus configurations
+type BusCfg struct {
 	busType   string
 	direction string
 	pubTopics map[string]*topicMeta
@@ -61,16 +63,17 @@ func errHandler(errMsg string, err *error) {
 }
 
 // NewDataBus function to create an instance for DataBus
-func NewDataBus() (db *dataBus, err error) {
+func NewDataBus() (db *BusCfg, err error) {
 	defer errHandler("Couldnt create new databus!!!", &err)
-	db = &dataBus{}
+	db = &BusCfg{}
 	db.pubTopics = map[string]*topicMeta{}
 	db.subTopics = map[string]*topicMeta{}
 	db.mutex = &sync.Mutex{}
 	return
 }
 
-func (dbus *dataBus) ContextCreate(contextConfig map[string]string) (err error) {
+// ContextCreate - creates the opcua server/client based on `contextConfig`.direction field
+func (dbus *BusCfg) ContextCreate(contextConfig map[string]string) (err error) {
 	defer errHandler("DataBus Context Creation Failed!!!", &err)
 	dbus.mutex.Lock()
 	defer dbus.mutex.Unlock()
@@ -102,7 +105,8 @@ func (dbus *dataBus) ContextCreate(contextConfig map[string]string) (err error) 
 	return
 }
 
-func (dbus *dataBus) Publish(topicConfig map[string]string, msgData interface{}) (err error) {
+// Publish - for publishing the data by opcua server process
+func (dbus *BusCfg) Publish(topicConfig map[string]string, msgData interface{}) (err error) {
 	defer errHandler("DataBus Publish Failed!!!", &err)
 	if strings.Contains(dbus.busType, "opcua") {
 		err = dbus.bus.send(topicConfig, msgData)
@@ -129,7 +133,8 @@ func worker(topic string, dch chan interface{}, ech chan string, cb CbType) {
 	}
 }
 
-func (dbus *dataBus) Subscribe(topicConfigs []map[string]string, totalConfigs int, trig string, cb CbType) (err error) {
+// Subscribe - makes the subscription to the list of opcua variables (topics) in topicConfig array
+func (dbus *BusCfg) Subscribe(topicConfigs []map[string]string, totalConfigs int, trig string, cb CbType) (err error) {
 	defer errHandler("DataBus Subscription Failed!!!", &err)
 
 	//TODO: Fix the opcua subscriber logic
@@ -147,7 +152,8 @@ func (dbus *dataBus) Subscribe(topicConfigs []map[string]string, totalConfigs in
 	return
 }
 
-func (dbus *dataBus) ContextDestroy() (err error) {
+// ContextDestroy function destroys the opcua server/client
+func (dbus *BusCfg) ContextDestroy() (err error) {
 	defer errHandler("DataBus Context Termination Failed!!!", &err)
 	dbus.bus.destroyContext()
 	dbus.direction = ""
@@ -155,7 +161,7 @@ func (dbus *dataBus) ContextDestroy() (err error) {
 	return
 }
 
-func (dbus *dataBus) checkMsgType(topicType string, msg interface{}) (ret bool) {
+func (dbus *BusCfg) checkMsgType(topicType string, msg interface{}) (ret bool) {
 	switch msg.(type) {
 	case string:
 		if topicType == "string" {

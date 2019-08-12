@@ -172,7 +172,7 @@ The section assumes the EIS software is already downloaded from the release pack
 
 # Visualize the results
 
-For visualizing the results of the video analytics, the  [tools/visualizer](tools/visualizer) app is available in the repository. This is a sample app which uses the OPC-UA client for receiving the analytics results and the GRPC client for receiving the image frames and do a simple visualization. This demonstrates the usage of the `DataBusAbstraction` and `ImageStore` client libraries.
+For visualizing the results of the video analytics, the  [tools/visualizer](tools/visualizer) app is available in the repository. This is a sample app which uses the OPC-UA client for receiving the analytics results and the GRPC client for receiving the image frames and do a simple visualization. This demonstrates the usage of the `OpcuaBusAbstraction` and `ImageStore` client libraries.
 
 For running the visualizer follow the [tools/visualizer/README.md](tools/visualizer/README.md).
 
@@ -336,7 +336,7 @@ Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configu
         * `DataAgentClient` -
             * cpp - consists of gRPC cpp client wrappers, protobuff files and test programs
             * py - consists of gRPC py client wrappers, protobuff files and test programs
-        * `DataBusAbstraction` -
+        * `OpcuaBusAbstraction` -
             * c - consists of opcua C client wrappers and test programs
             * py - consists of opcua py client wrappers and test programs
      * `secret_store/` - This is the vault's persistent storage wherein IEI secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
