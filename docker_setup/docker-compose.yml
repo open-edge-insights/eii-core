@@ -297,12 +297,12 @@ services:
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
       # Eg: Stream cfg for
-      # IPC: zmq_ipc, <absolut_socket_directory_path>
+      # IPC: zmq_ipc, <absolute_socket_directory_path>
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-      #camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -345,13 +345,21 @@ services:
       DISPLAY: ${DISPLAY}
       IMAGE_DIR: ${IEI_INSTALL_PATH}/saved_images
       SubTopics: "VideoAnalytics/camera1_stream_results"
+      # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
+      # based containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: zmq_ipc, <absolute_socket_directory_path>
+      # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
+      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PROFILING: ${PROFILING}
       DEV_MODE: ${DEV_MODE}
     privileged: true
     volumes:
       - "${IEI_INSTALL_PATH}/saved_images:${IEI_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
+      - "${IEI_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
