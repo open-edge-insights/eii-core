@@ -1,0 +1,93 @@
+# EIS Base Dockerfile for Go modules
+
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
+LABEL description="EIS Go Base Image"
+
+ARG HOST_TIME_ZONE=""
+
+ENV GO_WORK_DIR /EIS/go/src/IEdgeInsights
+ENV PATH ${PATH}:/usr/local/go/bin:/EIS/go/bin
+ENV GOPATH="/EIS/go"
+WORKDIR ${GO_WORK_DIR}
+
+#Installing Go and dep package manager tool for Go
+RUN apt-get update && \
+    apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
+    wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
+    go get -u github.com/golang/dep/cmd/dep
+
+# Setting timezone inside the container
+RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
+    cat /etc/timezone && \
+    apt-get install -y tzdata && \ 
+    ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
+
+ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
+RUN mkdir -p ${GLOG_GO_PATH} && \
+    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
+    cd ${GLOG_GO_PATH} && \
+    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+
+RUN go get go.etcd.io/etcd/client
+
+
+COPY libs/EISMessageBus/install.sh ./libs/EISMessageBus/install.sh
+
+
+RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
+    tar --strip-components=1 -xz -C /usr/local
+
+RUN /EIS/go/src/IEdgeInsights/libs/EISMessageBus/install.sh
+
+COPY libs/EISMessageBus ./libs/EISMessageBus
+RUN cd /EIS/go/src/IEdgeInsights/libs/EISMessageBus && \
+    rm -rf build deps && mkdir -p build && cd build && \
+    cmake -DWITH_GO=ON .. && \
+    make && \
+    make install
+
+ENV MSGBUS_DIR $GO_WORK_DIR/libs/EISMessageBus
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MSGBUS_DIR/build/
+ENV PKG_CONFIG_PATH $PKG_CONFIG_PATH:$MSGBUS_DIR/build/
+ENV CGO_CFLAGS -I$MSGBUS_DIR/include/
+ENV CGO_LDFLAGS -L$MSGBUS_DIR/build -leismsgbus
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib
+
+RUN ln -s /EIS/go/src/IEdgeInsights/libs/EISMessageBus/go/EISMessageBus/ $GOPATH/src/EISMessageBus
+
+
+# Building safestringlib
+ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
+ENV MAX_SAFESTRING_SIZE 60
+RUN git clone https://github.com/intel/safestringlib.git && \
+    cd safestringlib && \
+    git checkout ${SAFESTRING_VER} && \
+    cd include && \
+    sed -i "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( ${MAX_SAFESTRING_SIZE}UL << 10 )      /* ${MAX_SAFESTRING_SIZE}KB */" "safe_str_lib.h" && \
+    cd .. && \
+    make -j8
+
+COPY Util/ ./Util/
+
+# These flags are needed for enabling security while compiling and linking with cpuidcheck in golang
+ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
+ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
+# Copying safestringlib to Util
+RUN cd safestringlib && \
+    cp -rf libsafestring.a ${GO_WORK_DIR}/Util/cpuid
+
+RUN cd Util/cpuid && \
+    make -j8
+    
+COPY libs ./libs/
+
+
+
+
+
+
+HEALTHCHECK NONE
+

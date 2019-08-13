@@ -205,8 +205,7 @@ def generate_certificate_and_key_pair(key, peer, opts,
 
     cert_path = paths.leaf_certificate_path(peer)
     req_pem_path = paths.relative_path(peer, "req.pem")
-    CN = opts[peer+"_alt_name"]
-    opts["common_name"] = key + "_" + (CN[0] if isinstance(CN, list) else CN)
+    opts["common_name"] = key
 
     openssl_req(opts,
                 "-new",

@@ -1,43 +1,66 @@
 {
-  "server_list_candidates":["imagestore","opcua"],
+  "server_list_candidates": [
+    "opcua"
+  ],
   "certificates": [
+    {
+      "etcdserver": {
+        "server_alt_name": "etcdserver"
+      }
+    },
+    {
+      "root": {
+        "client_alt_name": "127.0.0.1"
+      }
+    },
+    {
+      "InfluxDBConnector": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "ImageStore": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "Kapacitor": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "VideoIngestion": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "VideoAnalytics": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "Visualizer": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "FactoryControlApp": {
+        "client_alt_name": "etcdclient"
+      }
+    },
+    {
+      "OpcuaExport": {
+        "client_alt_name": "etcdclient"
+      }
+    },
     {
       "influxdb": {
         "server_alt_name": "ia_influxdb"
       }
     },
     {
-      "imagestore": {
-        "server_alt_name": "ia_imagestore",
-        "client_alt_name": [
-          "ia_data_analytics", "ia_video_ingestion"
-        ]
-      }
-    },
-    {
-      "grpc_external": {
-        "server_alt_name": "grpc_external",
-        "client_alt_name": [
-          "grpc_external"
-        ]
-      }
-    },
-    {
-      "grpc_internal": {
-        "server_alt_name": "ia_data_agent",
-        "client_alt_name": [
-          "ia_imagestore", "ia_telegraf", "ia_factoryctrl_app", "ia_data_analytics", "ia_video_ingestion"
-        ]
-      }
-    },
-    {
-      "kapacitor": {
+      "kapacitor_cert": {
         "server_alt_name": "ia_data_analytics"
-      }
-    },
-    {
-      "streammanager": {
-        "server_alt_name": "ia_data_agent"
       }
     },
     {
