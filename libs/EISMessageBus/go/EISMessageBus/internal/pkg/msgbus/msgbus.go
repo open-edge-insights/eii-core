@@ -34,6 +34,20 @@ typedef struct {
 	int ref_id;
 } go_config_t;
 
+
+// Wrapper structure for receiving a message
+typedef struct {
+	msg_envelope_t* msg;
+	msgbus_ret_t recv_ret;
+} recv_wrapper_t;
+
+// Wrapper for returning a void* with the msgbus_ret_t value for the underlying
+// message bus call.
+typedef struct {
+	void* ret;
+	msgbus_ret_t rc;
+} void_wrapper_t;
+
 // Extern method in Go to get the configuration value
 extern void* go_get_config_value(int ref_id, char* key);
 
@@ -42,6 +56,22 @@ extern void go_free_config(int ref_id);
 
 // Extern method in Go to get configuration array value
 extern void* go_get_array_idx(int ref_id, int idx);
+
+// Create a new void_wrapper_t
+static inline void_wrapper_t* new_void_wrapper(void* ret, msgbus_ret_t rc) {
+	void_wrapper_t* wrap = (void_wrapper_t*) malloc(sizeof(void_wrapper_t));
+	if(wrap == NULL) {
+		return NULL;
+	}
+	wrap->ret = ret;
+	wrap->rc = rc;
+	return wrap;
+}
+
+// Free a void_wrapper_t
+static inline void destroy_void_wrapper(void_wrapper_t* wrap) {
+	free(wrap);
+}
 
 // Get configuration value method wrapper to strip constness because does not have const
 static inline config_value_t* get_config_value(const void* obj, const char* key) {
@@ -102,50 +132,68 @@ static inline config_value_t* new_config_value_array(int ref_id, int len) {
 }
 
 // Wrapper for creating a new publisher
-static inline publisher_ctx_t* new_publisher(void* ctx, char* topic) {
+static inline void_wrapper_t* new_publisher(void* ctx, char* topic) {
 	publisher_ctx_t* pub_ctx = NULL;
 	msgbus_ret_t ret = msgbus_publisher_new(ctx, topic, &pub_ctx);
 	if(ret != MSG_SUCCESS) {
+		void_wrapper_t* wrap = new_void_wrapper(NULL, ret);
+		return wrap;
+	}
+	void_wrapper_t* wrap = new_void_wrapper((void*) pub_ctx, ret);
+	if(wrap == NULL) {
+		msgbus_publisher_destroy(ctx, pub_ctx);
 		return NULL;
 	}
-	return pub_ctx;
+	return wrap;
 }
 
 // Wrapper for creating a new subscriber
-static inline recv_ctx_t* new_subscriber(void* ctx, char* topic) {
+static inline void_wrapper_t* new_subscriber(void* ctx, char* topic) {
 	recv_ctx_t* sub_ctx = NULL;
 	msgbus_ret_t ret = msgbus_subscriber_new(ctx, topic, NULL, &sub_ctx);
 	if(ret != MSG_SUCCESS) {
+		void_wrapper_t* wrap = new_void_wrapper(NULL, ret);
+		return wrap;
+	}
+	void_wrapper_t* wrap = new_void_wrapper((void*) sub_ctx, ret);
+	if(wrap == NULL) {
+		msgbus_recv_ctx_destroy(ctx, sub_ctx);
 		return NULL;
 	}
-	return sub_ctx;
+	return wrap;
 }
 
 // Wrapper for creating a new service
-static inline recv_ctx_t* new_service(void* ctx, char* service_name) {
+static inline void_wrapper_t* new_service(void* ctx, char* service_name) {
 	recv_ctx_t* service_ctx = NULL;
 	msgbus_ret_t ret = msgbus_service_new(ctx, service_name, NULL, &service_ctx);
 	if(ret != MSG_SUCCESS) {
+		void_wrapper_t* wrap = new_void_wrapper(NULL, ret);
+		return wrap;
+	}
+	void_wrapper_t* wrap = new_void_wrapper((void*) service_ctx, ret);
+	if(wrap == NULL) {
+		msgbus_recv_ctx_destroy(ctx, service_ctx);
 		return NULL;
 	}
-	return service_ctx;
+	return wrap;
 }
 
 // Wrapper for getting a service to issue requests to
-static inline recv_ctx_t* get_service(void* ctx, char* service_name) {
+static inline void_wrapper_t* get_service(void* ctx, char* service_name) {
 	recv_ctx_t* service_ctx = NULL;
 	msgbus_ret_t ret = msgbus_service_get(ctx, service_name, NULL, &service_ctx);
 	if(ret != MSG_SUCCESS) {
+		void_wrapper_t* wrap = new_void_wrapper(NULL, ret);
+		return wrap;
+	}
+	void_wrapper_t* wrap = new_void_wrapper((void*) service_ctx, ret);
+	if(wrap == NULL) {
+		msgbus_recv_ctx_destroy(ctx, service_ctx);
 		return NULL;
 	}
-	return service_ctx;
+	return wrap;
 }
-
-// Wrapper structure for receiving a message
-typedef struct {
-	msg_envelope_t* msg;
-	msgbus_ret_t recv_ret;
-} recv_wrapper_t;
 
 // msgbus_recv_wait() wrapper
 static inline recv_wrapper_t recv_wait(void* ctx, recv_ctx_t* recv_ctx) {
@@ -351,12 +399,13 @@ func (ctx *MsgbusContext) Destroy() {
 
 // Create a new publisher context on the message bus context for the given topic.
 func (ctx *MsgbusContext) NewPublisher(topic string) (*PublisherContext, error) {
-	ptr := unsafe.Pointer(C.new_publisher(ctx.msgbusCtx, C.CString(topic)))
-	if ptr == nil {
+	wrap := C.new_publisher(ctx.msgbusCtx, C.CString(topic))
+	defer C.destroy_void_wrapper(wrap)
+	if wrap.rc != C.MSG_SUCCESS {
 		return nil, errors.New("Failed to initialize publisher")
 	}
 	pubCtx := new(PublisherContext)
-	pubCtx.pubCtx = ptr
+	pubCtx.pubCtx = wrap.ret
 	return pubCtx, nil
 }
 
@@ -391,13 +440,17 @@ func (ctx *MsgbusContext) DestroyPublisher(pubCtx *PublisherContext) {
 
 // Subscribe to the given topic.
 func (ctx *MsgbusContext) NewSubscriber(topic string) (*ReceiveContext, error) {
-	msgbusRecvCtx := C.new_subscriber(ctx.msgbusCtx, C.CString(topic))
-	if msgbusRecvCtx == nil {
-		return nil, errors.New("Failed to subscribe to topic")
+	wrap := C.new_subscriber(ctx.msgbusCtx, C.CString(topic))
+	defer C.destroy_void_wrapper(wrap)
+	if wrap.rc != C.MSG_SUCCESS {
+		if wrap.rc == C.MSG_ERR_AUTH_FAILED {
+			return nil, errors.New("Authentication failed")
+		}
+		return nil, errors.New("Subscription failed")
 	}
 
 	recvCtx := new(ReceiveContext)
-	recvCtx.recvCtx = unsafe.Pointer(msgbusRecvCtx)
+	recvCtx.recvCtx = wrap.ret
 
 	return recvCtx, nil
 }
@@ -417,6 +470,9 @@ func (ctx *MsgbusContext) ReceiveWait(recvCtx *ReceiveContext) (*types.MsgEnvelo
 	if recvRet.recv_ret != C.MSG_SUCCESS {
 		if recvRet.recv_ret == C.MSG_ERR_EINTR {
 			return nil, errors.New("Receive interrupted")
+		}
+		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
+			return nil, errors.New("Disconnected")
 		}
 		return nil, errors.New("Failed to receive message")
 	}
@@ -441,6 +497,9 @@ func (ctx *MsgbusContext) ReceiveNoWait(recvCtx *ReceiveContext) (*types.MsgEnve
 		if recvRet.recv_ret == C.MSG_ERR_EINTR {
 			return nil, errors.New("Receive interrupted")
 		}
+		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
+			return nil, errors.New("Disconnected")
+		}
 		return nil, errors.New("Failed to receive message")
 	}
 
@@ -464,6 +523,9 @@ func (ctx *MsgbusContext) ReceiveTimedWait(recvCtx *ReceiveContext, timeout int)
 		if recvRet.recv_ret == C.MSG_ERR_EINTR {
 			return nil, errors.New("Receive interrupted")
 		}
+		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
+			return nil, errors.New("Disconnected")
+		}
 		return nil, errors.New("Failed to receive message")
 	}
 
@@ -479,26 +541,31 @@ func (ctx *MsgbusContext) ReceiveTimedWait(recvCtx *ReceiveContext, timeout int)
 
 // Create a new service to receive requests and send responses over.
 func (ctx *MsgbusContext) NewService(serviceName string) (*ReceiveContext, error) {
-	msgbusRecvCtx := C.new_service(ctx.msgbusCtx, C.CString(serviceName))
-	if msgbusRecvCtx == nil {
+	wrap := C.new_service(ctx.msgbusCtx, C.CString(serviceName))
+	defer C.destroy_void_wrapper(wrap)
+	if wrap.rc != C.MSG_SUCCESS {
 		return nil, errors.New("Failed to initialize a new service")
 	}
 
 	recvCtx := new(ReceiveContext)
-	recvCtx.recvCtx = unsafe.Pointer(msgbusRecvCtx)
+	recvCtx.recvCtx = wrap.ret
 
 	return recvCtx, nil
 }
 
 // Get the context of a service to issue requests to and receive responses from.
 func (ctx *MsgbusContext) GetService(serviceName string) (*ReceiveContext, error) {
-	msgbusRecvCtx := C.get_service(ctx.msgbusCtx, C.CString(serviceName))
-	if msgbusRecvCtx == nil {
+	wrap := C.get_service(ctx.msgbusCtx, C.CString(serviceName))
+	defer C.destroy_void_wrapper(wrap)
+	if wrap.rc != C.MSG_SUCCESS {
+		if wrap.rc == C.MSG_ERR_AUTH_FAILED {
+			return nil, errors.New("Authentication failed")
+		}
 		return nil, errors.New("Failed to get service")
 	}
 
 	recvCtx := new(ReceiveContext)
-	recvCtx.recvCtx = unsafe.Pointer(msgbusRecvCtx)
+	recvCtx.recvCtx = wrap.ret
 
 	return recvCtx, nil
 }

@@ -32,3 +32,9 @@ class MessageBusError(Exception):
     """Generic exception used when an issue occurs in a message bus method
     """
     pass
+
+
+class Disconnected(Exception):
+    """Error raised when a receive context has been disconnected.
+    """
+    pass

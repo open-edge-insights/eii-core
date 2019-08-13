@@ -60,6 +60,8 @@ typedef enum {
     MSG_ERR_REQ_FAILED = 18,
     MSG_ERR_EINTR = 19,
     MSG_ERR_MSG_SEND_FAILED = 20,
+    MSG_ERR_DISCONNECTED = 21,
+    MSG_ERR_AUTH_FAILED = 22,
     MSG_ERR_UNKNOWN = 255,
 } msgbus_ret_t;
 
@@ -480,7 +482,7 @@ msgbus_ret_t msgbus_recv_wait(
  * @param[in]  ctx      - Message bus context
  * @param[in]  recv_ctx - Receive context
  * @param[in]  timeout  - Timeout for waiting to receive a message in
- *                        milliseconds
+ *                        microseconds
  * @param[out] message  - Received message, NULL if timedout
  * @return msgbus_ret_t, MSG_RECV_NO_MESSAGE if no message received
  */

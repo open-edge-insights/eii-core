@@ -293,9 +293,14 @@ TEST(msgbus_test, msgbus_publish_blob_timedwait_timeout) {
         FAIL() << "Init failed";
     }
 
+    // Creating publisher (need something that binds)
+    publisher_ctx_t* pub_ctx = NULL;
+    msgbus_ret_t ret = msgbus_publisher_new(ctx, PUB_SUB_TOPIC, &pub_ctx);
+    ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to create publisher";
+
     // Creating subscriber
     recv_ctx_t* sub_ctx = NULL;
-    msgbus_ret_t ret = msgbus_subscriber_new(
+    ret = msgbus_subscriber_new(
             ctx, PUB_SUB_TOPIC, NULL, &sub_ctx);
     ASSERT_EQ(ret, MSG_SUCCESS) << "Failed to create subscriber";
 
@@ -304,6 +309,7 @@ TEST(msgbus_test, msgbus_publish_blob_timedwait_timeout) {
     ASSERT_EQ(ret, MSG_RECV_NO_MESSAGE) << "Should not have received msg";
 
     // Clean up
+    msgbus_publisher_destroy(ctx, pub_ctx);
     msgbus_recv_ctx_destroy(ctx, sub_ctx);
     msgbus_destroy(ctx);
 }

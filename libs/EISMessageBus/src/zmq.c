@@ -40,7 +40,8 @@
 #define ZAP_URI     "inproc://zeromq.zap.01"
 #define ZAP_CURVE   "CURVE"
 
-#define LOG_ZMQ_ERROR(msg) LOG_ERROR(msg ": [%d] %s", zmq_errno(), zmq_strerror(zmq_errno()));
+#define LOG_ZMQ_ERROR(msg) \
+    LOG_ERROR(msg ": [%d] %s", zmq_errno(), zmq_strerror(zmq_errno()));
 
 /**
  * Internal context object for the ZAP authentication thread.
@@ -57,9 +58,18 @@ typedef struct {
  * Internal ZeroMQ send context for publications and services.
  */
 typedef struct {
+    // Underlying ZeroMQ socket object
     void* socket;
+
+    // inproc socket monitor ZeroMQ socket object
+    void* monitor;
+
+    // Name of the socket context (i.e. topic, service name, etc.)
     char* name;
     size_t name_len;
+
+    // Disconnected
+    bool disconnected;
 } zmq_sock_ctx_t;
 
 /**
@@ -102,6 +112,26 @@ typedef struct {
     recv_type_t type;
     zmq_sock_ctx_t* sock_ctx;
 } zmq_recv_ctx_t;
+
+// Helper method to generate a random string of the given size (only using
+// caps in this case).
+char* generate_random_str(int len) {
+    static const char ucase[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    char* str = (char*) malloc(sizeof(char) * (len + 1));
+    if(str == NULL) {
+        LOG_ERROR_0("Out of memory generating random string");
+        return NULL;
+    }
+
+    for(int i = 0; i < len; i++) {
+        str[i] = ucase[rand() % 26];
+    }
+
+    str[len - 1] = '\0';
+
+    return str;
+}
 
 /**
  * Helper function for creating ZeroMQ URI for binding/connecting a given
@@ -149,7 +179,8 @@ char* create_uri(zmq_proto_ctx_t* ctx, const char* name, bool is_publisher) {
                 return NULL;
             }
 
-            host = ctx->config->get_config_value(conf->body.object->object, HOST);
+            host = ctx->config->get_config_value(
+                    conf->body.object->object, HOST);
             if(host == NULL) {
                 LOG_ERROR("Configuration for '%s' missing '%s'", name, HOST);
                 msgbus_config_value_destroy(port);
@@ -185,21 +216,145 @@ char* create_uri(zmq_proto_ctx_t* ctx, const char* name, bool is_publisher) {
     return uri;
 }
 
-msgbus_ret_t sock_ctx_new(const char* name, void* socket, zmq_sock_ctx_t** ctx)
-{
-    *ctx = (zmq_sock_ctx_t*) malloc(sizeof(zmq_sock_ctx_t));
-    if(*ctx == NULL)
-        return MSG_ERR_NO_MEMORY;
-    (*ctx)->name_len = strlen(name) + 1;
-    (*ctx)->name = (char*) malloc(sizeof(char) * (*ctx)->name_len);
-    if((*ctx)->name == NULL) {
-        free(*ctx);
-        return MSG_ERR_NO_MEMORY;
+// ZeroMQ helper function to close a socket with no linger for currently
+// sending messages
+void close_zero_linger(void* socket) {
+    int linger = 0;
+    zmq_setsockopt(socket, ZMQ_LINGER, &linger, sizeof(linger));
+    zmq_close(socket);
+}
+
+// Helper method to see if any events occured on a given socket
+int get_monitor_event(void* monitor, bool block) {
+    zmq_msg_t msg;
+    zmq_msg_init(&msg);
+
+    int flag = ZMQ_DONTWAIT;
+    if(block)
+        flag = 0;
+
+    if(zmq_msg_recv(&msg, monitor, flag) == -1) {
+        zmq_msg_close(&msg);
+        if(zmq_errno() == EAGAIN && !block) {
+            return 0;
+        }
+        return -1;
     }
-    memcpy_s((*ctx)->name, (*ctx)->name_len, name, (*ctx)->name_len);
-    (*ctx)->name[(*ctx)->name_len - 1] = '\0';
-    (*ctx)->socket = socket;
+
+    // Get the event which occurred
+    uint16_t event = *(uint16_t*)((uint8_t*) zmq_msg_data(&msg));
+    zmq_msg_close(&msg);
+
+    LOG_DEBUG("Got the event: %d", event);
+
+    // Retrieve second frame
+    zmq_msg_init(&msg);
+    // Ignore any errors since we do not care about the contents of the message
+    zmq_msg_recv(&msg, monitor, 0);
+    zmq_msg_close(&msg);
+
+    return event;
+}
+
+// Helper function to wait until a socket is connected
+msgbus_ret_t wait_client_connected(void* monitor) {
+    LOG_DEBUG_0("Waiting for successful connection");
+    int event = get_monitor_event(monitor, true);
+
+    if(event == ZMQ_EVENT_CONNECT_DELAYED) {
+        LOG_DEBUG_0("Connection delayed.. Still waiting");
+        event = get_monitor_event(monitor, true);
+    }
+
+    if(event != ZMQ_EVENT_CONNECTED) {
+        LOG_ERROR_0("Socket failed to connect");
+        return MSG_ERR_UNKNOWN;
+    }
+
+    event = get_monitor_event(monitor, true);
+    if(event != ZMQ_EVENT_HANDSHAKE_SUCCEEDED) {
+        LOG_ERROR_0("ZeroMQ handshake failed");
+        return MSG_ERR_AUTH_FAILED;
+    }
+
     return MSG_SUCCESS;
+}
+
+msgbus_ret_t sock_ctx_new(
+        void* zmq_ctx, const char* name, void* socket,
+        zmq_sock_ctx_t** sock_ctx)
+{
+    LOG_DEBUG("Creating socket context for %s", name);
+    char* monitor_uri = NULL;
+    zmq_sock_ctx_t* ctx = (zmq_sock_ctx_t*) malloc(sizeof(zmq_sock_ctx_t));
+    if(ctx == NULL)
+        return MSG_ERR_NO_MEMORY;
+
+    // Assign the name of the socket context
+    ctx->disconnected = false;
+    ctx->name_len = strlen(name) + 1;
+    ctx->name = (char*) malloc(sizeof(char) * ctx->name_len);
+    if(ctx->name == NULL)
+        goto err;
+    memcpy_s(ctx->name, ctx->name_len, name, ctx->name_len);
+    ctx->name[ctx->name_len - 1] = '\0';
+
+    // Assign the socket
+    ctx->socket = socket;
+
+    // Create URI for socket monitor
+    // Generating random part of string in case there are multiple services
+    // or publishers with the same name. There can only be one monitor socket
+    // per monitor URI
+    char* rand_str = generate_random_str(5);
+    monitor_uri = (char*) malloc(sizeof(char) * (15 + ctx->name_len));
+    sprintf(monitor_uri, "inproc://%1s-%2s", name, rand_str);
+    free(rand_str);
+
+    LOG_DEBUG("Creating socket monitor for %s", monitor_uri);
+    int rc = zmq_socket_monitor(socket, monitor_uri, ZMQ_EVENT_ALL);
+    if(rc == -1) {
+        // Only an error if the socket has not been bound already, if it has
+        // then it is okay
+        if(zmq_errno() != EADDRINUSE) {
+            LOG_ZMQ_ERROR("Failed creating socket monitor");
+            free(monitor_uri);
+            goto err;
+        }
+    }
+
+    // Create monitor socket
+    ctx->monitor = zmq_socket(zmq_ctx, ZMQ_PAIR);
+    if(ctx->monitor == NULL) {
+        LOG_ZMQ_ERROR("Failed to create ZMQ_PAIR monitor socket");
+        goto err;
+    }
+
+    // Connect monitor socket
+    LOG_DEBUG_0("Connecting monitor ZMQ socket");
+    rc = zmq_connect(ctx->monitor, monitor_uri);
+    if(rc == -1) {
+        LOG_ZMQ_ERROR("Failed to connect to monitor URI");
+        goto err;
+    }
+
+    *sock_ctx = ctx;
+    free(monitor_uri);
+
+    return MSG_SUCCESS;
+
+err:
+    sock_ctx = NULL;
+    if(ctx != NULL) {
+        if(ctx->name != NULL)
+            free(ctx->name);
+        if(ctx->monitor != NULL)
+            close_zero_linger(ctx->monitor);
+        free(ctx);
+    }
+    if(monitor_uri != NULL)
+        free(monitor_uri);
+    return MSG_ERR_UNKNOWN;
 }
 
 void sock_ctx_destroy(zmq_sock_ctx_t* ctx, bool close_socket) {
@@ -207,7 +362,9 @@ void sock_ctx_destroy(zmq_sock_ctx_t* ctx, bool close_socket) {
         if(ctx->name != NULL)
             free(ctx->name);
         if(ctx->socket != NULL && close_socket)
-            zmq_close(ctx->socket);
+            close_zero_linger(ctx->socket);
+        if(ctx->monitor != NULL)
+            close_zero_linger(ctx->monitor);
         free(ctx);
     }
 }
@@ -651,7 +808,8 @@ void proto_zmq_destroy(void* ctx) {
     }
 
     LOG_DEBUG_0("Destroying zeromq context");
-    zmq_ctx_destroy(zmq_ctx->zmq_context);
+    // zmq_ctx_destroy(zmq_ctx->zmq_context);
+    zmq_ctx_term(zmq_ctx->zmq_context);
 
     // Last free for the zmq protocol structure
     free(zmq_ctx);
@@ -742,13 +900,15 @@ err:
  * IMPORTANT NOTE: This method MUST be called prior to the zmq_connect() for
  * the socket.
  *
- * @param socket   - ZeroMQ socket
+ * @param sock_ctx - Internal socket context structure
  * @param conf     - Configuration context
  * @param conf_obj - Configuration object for the TCP socket
  * @return msgbus_ret_t
  */
 msgbus_ret_t init_curve_client_socket(
-        void* socket, config_t* conf, config_value_t* conf_obj) {
+        zmq_sock_ctx_t* sock_ctx, config_t* conf, config_value_t* conf_obj) {
+    void* socket = sock_ctx->socket;
+
     // Get configuration values
     config_value_t* server_pub_cv = conf->get_config_value(
             conf_obj->body.object->object, ZMQ_CFG_SERVER_PUBLIC_KEY);
@@ -895,7 +1055,8 @@ msgbus_ret_t proto_zmq_publisher_new(
         sleep_time.tv_nsec = 250000000L;
         nanosleep(&sleep_time, NULL);
 
-        msgbus_ret_t rc = sock_ctx_new(topic, socket, &sock_ctx);
+        msgbus_ret_t rc = sock_ctx_new(
+                zmq_ctx->zmq_context, topic, socket, &sock_ctx);
         if(rc != MSG_SUCCESS) {
             LOG_ERROR_0("Failed to initailize socket context");
             goto err;
@@ -906,7 +1067,8 @@ msgbus_ret_t proto_zmq_publisher_new(
         }
     } else {
         msgbus_ret_t rc = sock_ctx_new(
-                topic, zmq_ctx->cfg.tcp.pub_socket, &sock_ctx);
+                zmq_ctx->zmq_context, topic, zmq_ctx->cfg.tcp.pub_socket,
+                &sock_ctx);
         if(rc != MSG_SUCCESS) {
             LOG_ERROR_0("Failed to initailize socket context");
             goto err;
@@ -963,6 +1125,7 @@ msgbus_ret_t proto_zmq_subscriber_new(
     // Cast context to proper structure
     zmq_proto_ctx_t* zmq_ctx = (zmq_proto_ctx_t*) ctx;
     zmq_recv_ctx_t* zmq_recv_ctx = NULL;
+    msgbus_ret_t rc = MSG_ERR_SUB_FAILED;
 
     char* topic_uri = create_uri(zmq_ctx, topic, false);
     if(topic_uri == NULL) {
@@ -986,14 +1149,27 @@ msgbus_ret_t proto_zmq_subscriber_new(
     }
 
     // Set subscription filter
-    char* tmp = (char*) malloc(sizeof(char) * (strlen(topic) + 1));
     size_t topic_len = strlen(topic);
+    char* tmp = (char*) malloc(sizeof(char) * (topic_len + 1));
     memcpy_s(tmp, topic_len, topic, topic_len);
     tmp[strlen(topic)] = '\0';
-    ret = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, tmp, strlen(topic));
+    ret = zmq_setsockopt(socket, ZMQ_SUBSCRIBE, tmp, topic_len);
     free(tmp);
     if(ret != 0) {
         LOG_ZMQ_ERROR("Failed to set socket opts");
+        goto err;
+    }
+
+    // Initialize subscriber receive context
+    zmq_recv_ctx = (zmq_recv_ctx_t*) malloc(sizeof(zmq_recv_ctx_t));
+    zmq_recv_ctx->type = RECV_SUBSCRIBER;
+    zmq_recv_ctx->sock_ctx = NULL;
+
+    // Create socket context
+    rc = sock_ctx_new(
+            zmq_ctx->zmq_context, topic, socket, &zmq_recv_ctx->sock_ctx);
+    if(rc != MSG_SUCCESS) {
+        LOG_ERROR_0("Failed to initialize socket context");
         goto err;
     }
 
@@ -1003,7 +1179,8 @@ msgbus_ret_t proto_zmq_subscriber_new(
         // would already have been validated
         config_value_t* cv = zmq_ctx->config->get_config_value(
                 zmq_ctx->config->cfg, topic);
-        msgbus_ret_t rc = init_curve_client_socket(socket, zmq_ctx->config, cv);
+        rc = init_curve_client_socket(
+                zmq_recv_ctx->sock_ctx, zmq_ctx->config, cv);
         msgbus_config_value_destroy(cv);
         if(rc != MSG_SUCCESS)
             goto err;
@@ -1013,16 +1190,14 @@ msgbus_ret_t proto_zmq_subscriber_new(
     ret = zmq_connect(socket, topic_uri);
     if(ret != 0) {
         LOG_ZMQ_ERROR("Failed to bind socket");
+        rc = MSG_ERR_SUB_FAILED;
         goto err;
     }
 
-    // Initialize subscriber receive context
-    zmq_recv_ctx = (zmq_recv_ctx_t*) malloc(sizeof(zmq_recv_ctx_t));
-    zmq_recv_ctx->type = RECV_SUBSCRIBER;
-
-    msgbus_ret_t rc = sock_ctx_new(topic, socket, &zmq_recv_ctx->sock_ctx);
+    rc = wait_client_connected(zmq_recv_ctx->sock_ctx->monitor);
     if(rc != MSG_SUCCESS) {
-        LOG_ERROR_0("Failed to initialize socket context");
+        if(rc == MSG_ERR_UNKNOWN)
+            rc = MSG_ERR_SUB_FAILED;
         goto err;
     }
 
@@ -1035,10 +1210,13 @@ msgbus_ret_t proto_zmq_subscriber_new(
 err:
     if(socket)
         zmq_close(socket);
-    if(zmq_recv_ctx)
+    if(zmq_recv_ctx) {
+        if(zmq_recv_ctx->sock_ctx != NULL)
+            sock_ctx_destroy(zmq_recv_ctx->sock_ctx, false);
         free(zmq_recv_ctx);
+    }
     free(topic_uri);
-    return MSG_ERR_SUB_FAILED;
+    return rc;
 }
 
 void msg_envelope_destroy_wrapper(void* data) {
@@ -1058,14 +1236,68 @@ void free_zmq_msg(void* ptr) {
     free(msg);
 }
 
-msgbus_ret_t base_recv(void* socket, bool blocking, msg_envelope_t** env) {
-    int block = 0;
-    if(!blocking)  block = ZMQ_DONTWAIT;
+msgbus_ret_t base_recv(
+        recv_type_t type, zmq_sock_ctx_t* ctx, int timeout,
+        msg_envelope_t** env)
+{
+    int rc = 0;
+    void* socket = ctx->socket;
+
+    zmq_pollitem_t poll_items[1];
+    poll_items[0].socket = socket;
+    poll_items[0].events = ZMQ_POLLIN;
+
+    if(timeout < 0) {
+        // Poll indefinitley
+        while(true) {
+            rc = zmq_poll(poll_items, 1, 1000);
+            if(rc < 0) {
+                if(zmq_errno() == EINTR) {
+                    LOG_DEBUG_0("Receive interrupted");
+                    return MSG_ERR_EINTR;
+                }
+                LOG_ZMQ_ERROR("Error while polling indefinitley");
+                return MSG_ERR_RECV_FAILED;
+            } else if(rc > 0) {
+                // Got message!
+                break;
+            }
+
+            // Check if disconnected
+            if(type != RECV_SERVICE && (ctx->disconnected
+                        || get_monitor_event(ctx->monitor, false)
+                            == ZMQ_EVENT_DISCONNECTED)) {
+                LOG_ERROR_0("Socket has been disconnected");
+                ctx->disconnected = true;
+                return MSG_ERR_DISCONNECTED;
+            }
+        }
+    } else {
+        // Get microseconds for the timeout
+        rc = zmq_poll(poll_items, 1, timeout);
+        LOG_DEBUG("Done polling: %d", rc);
+        if(rc == 0) {
+            return MSG_RECV_NO_MESSAGE;
+        } else if(rc < 0) {
+            LOG_ZMQ_ERROR("recv failed");
+            return MSG_ERR_RECV_FAILED;
+        }
+
+        // Check if disconnected
+        if(get_monitor_event(ctx->monitor, false) == ZMQ_EVENT_DISCONNECTED ||
+                ctx->disconnected) {
+            LOG_ERROR_0("Socket has been disconnected");
+            ctx->disconnected = true;
+            return MSG_ERR_DISCONNECTED;
+        }
+    }
+
+    LOG_DEBUG_0("Receiving all of the message");
 
     // Receive message prefix (i.e. topic or service name)
     zmq_msg_t prefix;
-    int rc = zmq_msg_init(&prefix);
-    rc = zmq_msg_recv(&prefix, socket, block);
+    rc = zmq_msg_init(&prefix);
+    rc = zmq_msg_recv(&prefix, socket, 0);
     if(rc == -1) {
         if(zmq_errno() == EAGAIN) {
             LOG_DEBUG_0("ZMQ received EAGAIN");
@@ -1100,7 +1332,7 @@ msgbus_ret_t base_recv(void* socket, bool blocking, msg_envelope_t** env) {
 
     // Receive expected number of parts
     uint8_t parts_buf[1];
-    rc = zmq_recv(socket, (void*) parts_buf, buf_size, block);
+    rc = zmq_recv(socket, (void*) parts_buf, buf_size, 0);
     if(rc == -1) {
         if(zmq_errno() == EAGAIN) {
             LOG_DEBUG_0("ZMQ received EAGAIN");
@@ -1179,45 +1411,20 @@ msgbus_ret_t base_recv(void* socket, bool blocking, msg_envelope_t** env) {
 msgbus_ret_t proto_zmq_recv_wait(
         void* ctx, void* recv_ctx, msg_envelope_t** message) {
     zmq_recv_ctx_t* zmq_recv_ctx = (zmq_recv_ctx_t*) recv_ctx;
-    return base_recv(zmq_recv_ctx->sock_ctx->socket, true, message);
+    return base_recv(zmq_recv_ctx->type, zmq_recv_ctx->sock_ctx, -1, message);
 }
 
 msgbus_ret_t proto_zmq_recv_timedwait(
         void* ctx, void* recv_ctx, int timeout, msg_envelope_t** message) {
     zmq_recv_ctx_t* zmq_recv_ctx = (zmq_recv_ctx_t*) recv_ctx;
-
-    // NOTE: This is kind of inefficient, there may be a better way to do this
-    // in the future
-
-    // Set receive timeout on socket
-    int ret = zmq_setsockopt(
-            zmq_recv_ctx->sock_ctx->socket, ZMQ_RCVTIMEO, &timeout,
-            sizeof(timeout));
-    if(ret != 0) {
-        LOG_ERROR("Failed setting ZMQ_RCVTIMEO: %s", zmq_strerror(ret));
-        return MSG_ERR_RECV_FAILED;
-    }
-
-    msgbus_ret_t recv_ret = base_recv(
-            zmq_recv_ctx->sock_ctx->socket, true, message);
-
-    // Reset to no timeout on socket
-    timeout = -1;
-    ret = zmq_setsockopt(
-            zmq_recv_ctx->sock_ctx->socket, ZMQ_RCVTIMEO, &timeout,
-            sizeof(timeout));
-    if(ret != 0) {
-        LOG_ERROR("Failed setting ZMQ_RCVTIMEO: %s", zmq_strerror(ret));
-        return MSG_ERR_RECV_FAILED;
-    }
-
-    return recv_ret;
+    return base_recv(
+            zmq_recv_ctx->type, zmq_recv_ctx->sock_ctx, timeout, message);
 }
 
 msgbus_ret_t proto_zmq_recv_nowait(
         void* ctx, void* recv_ctx, msg_envelope_t** message) {
     zmq_recv_ctx_t* zmq_recv_ctx = (zmq_recv_ctx_t*) recv_ctx;
-    return base_recv(zmq_recv_ctx->sock_ctx->socket, false, message);
+    return base_recv(zmq_recv_ctx->type, zmq_recv_ctx->sock_ctx, 0, message);
 }
 
 msgbus_ret_t proto_zmq_service_get(
@@ -1244,13 +1451,31 @@ msgbus_ret_t proto_zmq_service_get(
         goto err;
     }
 
+    // Initialize context object
+    zmq_recv_ctx = (zmq_recv_ctx_t*) malloc(sizeof(zmq_recv_ctx_t));
+    if(zmq_recv_ctx == NULL) {
+        LOG_ERROR_0("Ran out of memory allocating ZMQ recv ctx");
+        ret = MSG_ERR_NO_MEMORY;
+        goto err;
+    }
+
+    zmq_recv_ctx->type = RECV_SERVICE_REQ;
+    ret = sock_ctx_new(
+            zmq_ctx->zmq_context, service_name, socket,
+            &zmq_recv_ctx->sock_ctx);
+    if(ret != MSG_SUCCESS) {
+        LOG_ERROR_0("Failed to malloc socket context name");
+        goto err;
+    }
+
     // Initialize socket with Curve authentication if the socket is a TCP
     // socket and the correct values are set in the configuration for the
     // socket
     if(!zmq_ctx->is_ipc) {
         config_value_t* cv = zmq_ctx->config->get_config_value(
                 zmq_ctx->config->cfg, service_name);
-        msgbus_ret_t rc = init_curve_client_socket(socket, zmq_ctx->config, cv);
+        msgbus_ret_t rc = init_curve_client_socket(
+                zmq_recv_ctx->sock_ctx, zmq_ctx->config, cv);
         msgbus_config_value_destroy(cv);
         if(rc != MSG_SUCCESS)
             goto err;
@@ -1265,18 +1490,10 @@ msgbus_ret_t proto_zmq_service_get(
         goto err;
     }
 
-    // Initialize context object
-    zmq_recv_ctx = (zmq_recv_ctx_t*) malloc(sizeof(zmq_recv_ctx_t));
-    if(zmq_recv_ctx == NULL) {
-        LOG_ERROR_0("Ran out of memory allocating ZMQ recv ctx");
-        ret = MSG_ERR_NO_MEMORY;
-        goto err;
-    }
-
-    zmq_recv_ctx->type = RECV_SERVICE_REQ;
-    ret = sock_ctx_new(service_name, socket, &zmq_recv_ctx->sock_ctx);
+    ret = wait_client_connected(zmq_recv_ctx->sock_ctx->monitor);
     if(ret != MSG_SUCCESS) {
-        LOG_ERROR_0("Failed to malloc socket context name");
+        if(ret == MSG_ERR_UNKNOWN)
+            ret = MSG_ERR_SERVICE_INIT_FAILED;
         goto err;
     }
 
@@ -1347,8 +1564,11 @@ msgbus_ret_t proto_zmq_service_new(
         goto err;
     }
 
+    zmq_recv_ctx->sock_ctx = NULL;
     zmq_recv_ctx->type = RECV_SERVICE;
-    ret = sock_ctx_new(service_name, socket, &zmq_recv_ctx->sock_ctx);
+    ret = sock_ctx_new(
+            zmq_ctx->zmq_context, service_name, socket,
+            &zmq_recv_ctx->sock_ctx);
     if(ret != MSG_SUCCESS) {
         LOG_ERROR_0("Failed to malloc socket context name");
         goto err;

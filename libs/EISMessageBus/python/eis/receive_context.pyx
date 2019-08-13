@@ -21,7 +21,7 @@
 """
 
 # Python imports
-from .exc import MessageBusError, ReceiveTimeout
+from .exc import *
 
 # Cython imports
 from .libeismsgbus cimport *
@@ -93,6 +93,8 @@ cdef class ReceiveContext:
 
         if ret == msgbus_ret_t.MSG_ERR_EINTR:
             return None
+        if ret == msgbus_ret_t.MSG_ERR_DISCONNECTED:
+            raise Disconnected('Receive context has been disconnected')
         if ret != msgbus_ret_t.MSG_SUCCESS:
             raise MessageBusError('Receive failed')
 

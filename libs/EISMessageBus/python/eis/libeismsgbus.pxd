@@ -48,6 +48,8 @@ cdef extern from "eis/msgbus/msgbus.h":
         MSG_ERR_REQ_FAILED = 18
         MSG_ERR_EINTR = 19
         MSG_ERR_MSG_SEND_FAILED = 20
+        MSG_ERR_DISCONNECTED = 21
+        MSG_ERR_AUTH_FAILED = 22
         MSG_ERR_UNKNOWN = 255
 
     ctypedef struct owned_blob_t:

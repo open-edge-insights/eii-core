@@ -152,6 +152,8 @@ cdef class MsgbusContext:
 
         btopic = bytes(topic, 'utf-8')
         ret = msgbus_subscriber_new(self.context, btopic, NULL, &sub_ctx)
+        if ret == msgbus_ret_t.MSG_ERR_AUTH_FAILED:
+            raise MessageBusError('Authentication failed')
         if ret != msgbus_ret_t.MSG_SUCCESS:
             raise MessageBusError('Failed to subscribe to topic')
 
@@ -196,6 +198,8 @@ cdef class MsgbusContext:
 
         bservice_name = bytes(service_name, 'utf-8')
         ret = msgbus_service_get(self.context, bservice_name, NULL, &serv_ctx)
+        if ret == msgbus_ret_t.MSG_ERR_AUTH_FAILED:
+            raise MessageBusError('Authentication failed')
         if ret != msgbus_ret_t.MSG_SUCCESS:
             raise MessageBusError('Failed to subscribe to topic')
 
