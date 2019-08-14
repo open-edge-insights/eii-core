@@ -22,15 +22,24 @@
 import os
 import subprocess
 from distutils.util import strtobool
+import logging
 
 if __name__ == "__main__":
-
+    logger = logging.getLogger(__name__)
     try:
         devMode = bool(strtobool(os.environ['DEV_MODE']))
     except KeyError:
         devMode = 1
-
-    if devMode:
-        subprocess.run(["./etcdkeeper/etcdkeeper"])
-    else:
-        subprocess.run(["etcdkeeper/etcdkeeper", "-h", "127.0.0.1" ,"-usetls","-cacert","/run/secrets/ca_cert","-key","/run/secrets/etcd_root_key","-cert","/run/secrets/etcd_root_cert","-auth"])
+    try:
+        if devMode:
+            subprocess.run(["./etcdkeeper/etcdkeeper"])
+        else:
+            subprocess.run(["etcdkeeper/etcdkeeper",
+                            "-h", "127.0.0.1",
+                            "-usetls",
+                            "-cacert", "/run/secrets/ca_etcd",
+                            "-key", "/run/secrets/etcd_root_key",
+                            "-cert", "/run/secrets/etcd_root_cert",
+                            "-auth"])
+    except Exception as e:
+        logger.exception("etcdkeeper start exception:{}".format(e))

@@ -51,7 +51,6 @@ services:
     environment:
       AppName: "InfluxDBConnector"
       CertType: "zmq"
-      no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
       #SubTopics is mainly for the stream data to subscribe
       #and push to InfluxDB
@@ -100,7 +99,6 @@ services:
       CertType: "zmq"
       INFLUX_SERVER: ${INFLUX_SERVER}
       INFLUXDB_PORT: ${INFLUXDB_PORT}
-      no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
       HOST_IP: ${HOST_IP}
     volumes:
@@ -137,7 +135,6 @@ services:
     environment:
       AppName: "ImageStore"
       CertType: "zmq"  
-      no_proxy: ${NO_PROXY}
       DEV_MODE: ${DEV_MODE}
       GO_LOG_LEVEL: ${GO_LOG_LEVEL}
       GO_VERBOSE: ${GO_VERBOSE}
@@ -159,6 +156,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_ImageStore_cert
+        - etcd_ImageStore_key
 
   # Define DataAnalytics service
   ia_data_analytics:
@@ -180,7 +181,6 @@ services:
       KAPACITOR_UNSAFE_SSL: "false"
       KAPACITOR_INFLUXDB_0_URLS_0: https://${KAPACITOR_SERVER}:${INFLUXDB_PORT}/
       KAPACITOR_SERVER: ${KAPACITOR_SERVER}
-      no_proxy: ${NO_PROXY}
       KAPACITOR_PORT: ${KAPACITOR_PORT}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
     volumes:
@@ -204,7 +204,11 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-
+    secrets:
+        - ca_etcd
+        - etcd_Kapacitor_cert
+        - etcd_Kapacitor_key
+  
   # Define VideoIngestion service
   ia_video_ingestion:
     build:
@@ -268,6 +272,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_VideoIngestion_cert
+        - etcd_VideoIngestion_key
 
   # Define VideoAnalytics service
   ia_video_analytics:
@@ -288,7 +296,6 @@ services:
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       PROFILING: ${PROFILING}
       SubTopics: "VideoIngestion/camera1_stream"
@@ -321,6 +328,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_VideoAnalytics_cert
+        - etcd_VideoAnalytics_key
 
   # Define Visualizer service
   ia_visualizer:
@@ -340,7 +351,6 @@ services:
     environment:
       AppName: "Visualizer"
       CertType: "zmq"
-      no_proxy: ${NO_PROXY}
       PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       DISPLAY: ${DISPLAY}
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
@@ -371,6 +381,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_Visualizer_cert
+        - etcd_Visualizer_key
 
   # Define FactoryControlApp service
   ia_factoryctrl_app:
@@ -390,7 +404,6 @@ services:
       AppName: "FactoryControlApp"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${NO_PROXY}
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
       # Uncomment this & replace <topic> with actual topic name if IPC is needed
@@ -411,6 +424,11 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_FactoryControlApp_cert
+        - etcd_FactoryControlApp_key
+
 
   # Define OpcuaExport service
   ia_opcua_export:
@@ -427,12 +445,15 @@ services:
     environment:
       AppName: "OpcuaExport"
       CertType: "zmq"
-      no_proxy: ${NO_PROXY}
       PubTopics: "cam_serial1_results,cam_serial2_results"
       OpcuaExportCfg: "opcua,localhost:65003"
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
       DEV_MODE: ${DEV_MODE}
+    secrets:
+        - ca_etcd
+        - etcd_OpcuaExport_cert
+        - etcd_OpcuaExport_key
 
   # Define ETCD UI service
   ia_etcd_ui:
@@ -449,49 +470,51 @@ services:
     hostname: ia_etcd_ui
     environment:
       AppName: "EtcdUi"
-      no_proxy: ${NO_PROXY}
       DEV_MODE: $DEV_MODE
     secrets:
-        - ca_cert
+        - ca_etcd
         - etcd_root_cert
         - etcd_root_key
 
 secrets:
   ca_cert:
-    file: Certificates/ca/ca_certificate.pem
+    file: Certificates/ca/ca_certificate.der
+  ca_etcd:
+    file: Certificates/ca_etcd/ca.pem
   etcd_FactoryControlApp_cert:
-    file: Certificates/FactoryControlApp/FactoryControlApp_client_certificate.pem
+    file: Certificates/FactoryControlApp/FactoryControlApp.pem
   etcd_FactoryControlApp_key:
-    file: Certificates/FactoryControlApp/FactoryControlApp_client_key.pem
+    file: Certificates/FactoryControlApp/FactoryControlApp-key.pem
   etcd_ImageStore_cert:
-    file: Certificates/ImageStore/ImageStore_client_certificate.pem
+    file: Certificates/ImageStore/ImageStore.pem
   etcd_ImageStore_key:
-    file: Certificates/root/ImageStore_client_key.pem
+    file: Certificates/ImageStore/ImageStore-key.pem
   etcd_InfluxDBConnector_cert:
-    file: Certificates/InfluxDBConnector/InfluxDBConnector_client_certificate.pem
+    file: Certificates/InfluxDBConnector/InfluxDBConnector.pem
   etcd_InfluxDBConnector_key:
-    file: Certificates/InfluxDBConnector/InfluxDBConnector_client_key.pem
+    file: Certificates/InfluxDBConnector/InfluxDBConnector-key.pem
   etcd_Kapacitor_cert:
-    file: Certificates/Kapacitor/Kapacitor_client_certificate.pem
+    file: Certificates/Kapacitor/Kapacitor.pem
   etcd_Kapacitor_key:
-    file: Certificates/Kapacitor/Kapacitor_client_key.pem
+    file: Certificates/Kapacitor/Kapacitor-key.pem
   etcd_OpcuaExport_cert:
-    file: Certificates/OpcuaExport/OpcuaExport_client_certificate.pem
+    file: Certificates/OpcuaExport/OpcuaExport.pem
   etcd_OpcuaExport_key:
-    file: Certificates/OpcuaExport/OpcuaExport_client_key.pem
+    file: Certificates/OpcuaExport/OpcuaExport-key.pem
   etcd_VideoAnalytics_cert:
-    file: Certificates/VideoAnalytics/VideoAnalytics_client_certificate.pem
+    file: Certificates/VideoAnalytics/VideoAnalytics.pem
   etcd_VideoAnalytics_key:
-    file: Certificates/VideoAnalytics/VideoAnalytics_client_key.pem
+    file: Certificates/VideoAnalytics/VideoAnalytics-key.pem
   etcd_VideoIngestion_cert:
-    file: Certificates/VideoIngestion/VideoIngestion_client_certificate.pem
+    file: Certificates/VideoIngestion/VideoIngestion.pem
   etcd_VideoIngestion_key:
-    file: Certificates/VideoIngestion/VideoIngestion_client_key.pem
+    file: Certificates/VideoIngestion/VideoIngestion-key.pem
   etcd_Visualizer_cert:
-    file: Certificates/Visualizer/Visualizer_client_certificate.pem
-  etcd_root_key:
-    file: Certificates/Visualizer/Visualizer_client_key.pem
+    file: Certificates/Visualizer/Visualizer.pem
+  etcd_Visualizer_key:
+    file: Certificates/Visualizer/Visualizer-key.pem
   etcd_root_cert:
-    file: Certificates/root/root_client_certificate.pem
+    file: Certificates/root/root.pem
   etcd_root_key:
-    file: Certificates/root/root_client_key.pem
+    file: Certificates/root/root-key.pem
+

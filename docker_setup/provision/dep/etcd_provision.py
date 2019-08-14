@@ -67,11 +67,13 @@ def put_zmqkeys(appname):
     public_key = ''
     public_key, secret_key = zmq.curve_keypair()
     try:
-        subprocess.run(["./etcdctl", "put", "/Publickeys/" + appname, public_key])
+        subprocess.run(["./etcdctl", "put",
+                        "/Publickeys/" + appname, public_key])
     except Exception:
         logging.error("Error putting Etcd public key for" + appname)
     try:
-        subprocess.run(["./etcdctl", "put", "/" + appname + "/private_key", secret_key])
+        subprocess.run(["./etcdctl", "put",
+                        "/" + appname + "/private_key", secret_key])
     except Exception:
         logging.error("Error putting Etcd private key for" + appname)
 
@@ -95,7 +97,8 @@ def load_data_etcd(file):
         if isinstance(value, str):
             subprocess.run(["./etcdctl", "put", key, bytes(value.encode())])
         elif isinstance(value, dict):
-            subprocess.run(["./etcdctl", "put", key, bytes(json.dumps(value, indent=4).encode())])
+            subprocess.run(["./etcdctl", "put",
+                            key, bytes(json.dumps(value, indent=4).encode())])
 
     logging.info("=======Reading key/values to etcd========")
     for key in config.keys():
@@ -122,34 +125,35 @@ def pw_gen():
     chars = string.ascii_letters + string.digits + string.punctuation
     return ''.join(random.choice(chars) for _ in range(size))
 
+
 def put_x509_certs():
     """Put required X509 certs to ETCD
-    :TODO put proper code in place to put them runtime, currenly to enable 
-    overall security integration they are hardcoded in script.
     """
+    # TODO: put proper code in place to put them runtime, currenly to enable
+    # overall security integration they are hardcoded in script.
+
     subprocess.run("./put_x509_certs.sh")
 
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
     if not devMode:
-        os.environ["ETCDCTL_CACERT"] = "/run/secrets/ca_cert"
+        os.environ["ETCDCTL_CACERT"] = "/run/secrets/ca_etcd"
         os.environ["ETCDCTL_CERT"] = "/run/secrets/etcd_root_cert"
         os.environ["ETCDCTL_KEY"] = "/run/secrets/etcd_root_key"
-    
+
     apps = get_appname(str(sys.argv[1]))
+    load_data_etcd("./config/etcd_pre_load.json")
     for key, value in apps.items():
         try:
             if not devMode:
-                create_etcd_users(key)
                 if value.index('zmq') >= 0:
                     put_zmqkeys(key)
+                create_etcd_users(key)
             # TODO: Generate keys for X509 certs and put it in etcd
         except ValueError:
             pass
-    load_data_etcd("./config/etcd_pre_load.json")
 
     if not devMode:
         put_x509_certs()
         enable_etcd_auth()
-        
