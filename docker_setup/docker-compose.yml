@@ -42,8 +42,8 @@ services:
       dockerfile: $PWD/../InfluxDBConnector/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
-        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
         EIS_UID: ${EIS_UID}
+        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
     image: ia_influxdbconnector:${EIS_VERSION}
     container_name: ia_influxdbconnector
     hostname: ia_influxdbconnector
@@ -67,7 +67,6 @@ services:
       - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
       - "${EIS_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "${EIS_INSTALL_PATH}/config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-    command: ["-stderrthreshold", "${GO_LOG_LEVEL}"]
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -97,10 +96,7 @@ services:
     environment:
       AppName: "Telegraf"
       CertType: "zmq"
-      INFLUX_SERVER: ${INFLUX_SERVER}
-      INFLUXDB_PORT: ${INFLUXDB_PORT}
       DEV_MODE: ${DEV_MODE}
-      HOST_IP: ${HOST_IP}
     volumes:
       - "${EIS_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${EIS_INSTALL_PATH}/config/telegraf.conf:/etc/Telegraf/telegraf.conf"
@@ -136,12 +132,10 @@ services:
       AppName: "ImageStore"
       CertType: "zmq"  
       DEV_MODE: ${DEV_MODE}
-      GO_LOG_LEVEL: ${GO_LOG_LEVEL}
-      GO_VERBOSE: ${GO_VERBOSE}
       Server: "zmq_tcp,127.0.0.1:5669"
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-    command: ["-log_dir", "/EIS/go/src/IEdgeInsights/log/imagestore_logs", "-stderrthreshold", "${GO_LOG_LEVEL}", "-v", "${GO_VERBOSE}"]
+    command: ["-log_dir", "/EIS/go/src/IEdgeInsights/log/imagestore_logs"]
     volumes:
       - "${EIS_INSTALL_PATH}/data:/data"
     logging:
@@ -177,19 +171,11 @@ services:
     environment:
       AppName: "Kapacitor"
       CertType: "zmq"
-      KAPACITOR_URL: https://${KAPACITOR_SERVER}:${KAPACITOR_PORT}/
-      KAPACITOR_UNSAFE_SSL: "false"
-      KAPACITOR_INFLUXDB_0_URLS_0: https://${KAPACITOR_SERVER}:${INFLUXDB_PORT}/
-      KAPACITOR_SERVER: ${KAPACITOR_SERVER}
-      KAPACITOR_PORT: ${KAPACITOR_PORT}
-      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
+      DEV_MODE: ${DEV_MODE}
     volumes:
       - "${EIS_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
       - "${EIS_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "${EIS_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
-    ports:
-      - "${KAPACITOR_PORT}:${KAPACITOR_PORT}"
-    command: ["${PY_LOG_LEVEL}", "${DEV_MODE}"]
     devices:
       - "/dev/dri"
     logging:
@@ -231,7 +217,6 @@ services:
       Clients: "VideoAnalytics,Visualizer"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
       DEBIAN_FRONTEND: noninteractive
       MFX_HOME: "/opt/intel/mediasdk/"
       PKG_CONFIG_PATH: "/opt/intel/mediasdk"
@@ -241,8 +226,7 @@ services:
       LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
       TERM: "xterm"
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
-      GST_DEBUG: ${GST_DEBUG}
-      PROFILING: ${PROFILING}
+      GST_DEBUG: "1"
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -255,7 +239,7 @@ services:
     volumes:
       - "$PWD/test_videos:/EIS/test_videos"
       - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
-    command: ["--log-dir", "/EIS/video_ingestion_logs", "--log", "${PY_LOG_LEVEL}"]
+    command: ["--log-dir", "/EIS/video_ingestion_logs"]
     privileged: true
     devices:
       - "/dev/dri"
@@ -296,8 +280,6 @@ services:
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
-      PROFILING: ${PROFILING}
       SubTopics: "VideoIngestion/camera1_stream"
       SOCKET_DIR: ${SOCKET_DIR}
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -351,7 +333,6 @@ services:
     environment:
       AppName: "Visualizer"
       CertType: "zmq"
-      PY_LOG_LEVEL: ${PY_LOG_LEVEL}
       DISPLAY: ${DISPLAY}
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       SubTopics: "VideoAnalytics/camera1_stream_results"
@@ -363,7 +344,6 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
       # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
-      PROFILING: ${PROFILING}
       DEV_MODE: ${DEV_MODE}
     privileged: true
     volumes:
@@ -414,7 +394,6 @@ services:
       options:
         max-size: ${LOGROTATE_SIZE_FOR_CONT}
         max-file: ${LOGROTATE_COPIES}
-    command: ["--log", "${PY_LOG_LEVEL}"]
     volumes:
       - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     healthcheck:

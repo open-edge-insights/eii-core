@@ -25,6 +25,8 @@ in etcd distributed key store
 
 import etcd3
 import logging
+import json
+import os
 from libs.common.py.util import Util
 
 
@@ -43,7 +45,7 @@ class EtcdCli:
 
         try:
             if config["trustFile"] == "" and config["keyFile"] == "" \
-            and config["certFile"] == "":
+               and config["certFile"] == "":
                 self.etcd = etcd3.client(host=hostname, port=port)
             else:
                 self.etcd = etcd3.client(host=hostname, port=port,
@@ -53,6 +55,14 @@ class EtcdCli:
         except Exception as e:
             raise e
         self.callback = None
+        self._setEnv()
+
+    def _setEnv(self):
+        """ _setEnv is a local function to set global env """
+        value = self.etcd.get("/GlobalEnv")
+        jsonConfig = json.loads(value[0].decode('utf-8'))
+        for key in jsonConfig.keys():
+            os.environ[key] = jsonConfig[key]
 
     def GetConfig(self, key):
         """ GetConfig gets the value of a key from Etcd """

@@ -1,5 +1,8 @@
-#!/bin/bash
-source dep/.env
+#!/bin/bash 
+set -a
+source ../.env
+source dep/.cluster.env
+set +a
 
 check_ETCD_port() {
 	echo "Checking if IEI published ports are already up..."

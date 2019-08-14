@@ -32,10 +32,11 @@ if __name__ == "__main__":
         devMode = 1
     try:
         if devMode:
-            subprocess.run(["./etcdkeeper/etcdkeeper"])
+            subprocess.run(["./etcdkeeper/etcdkeeper", "-p", "7070"])
         else:
             subprocess.run(["etcdkeeper/etcdkeeper",
                             "-h", "127.0.0.1",
+                            "-p", "7070",
                             "-usetls",
                             "-cacert", "/run/secrets/ca_etcd",
                             "-key", "/run/secrets/etcd_root_key",

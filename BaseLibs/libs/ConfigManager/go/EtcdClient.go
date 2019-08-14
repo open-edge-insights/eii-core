@@ -14,7 +14,10 @@ package configmanager
 import (
 	util "IEdgeInsights/Util"
 	"context"
+	"encoding/json"
 	"errors"
+
+	"os"
 
 	"github.com/golang/glog"
 
@@ -82,8 +85,28 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	if err != nil {
 		return nil, err
 	}
-
+	_setEnv(etcdcli)
 	return &EtcdCli{etcd: etcdcli}, err
+}
+
+// _setEnv is a local function to set global env
+func _setEnv(etcd *clientv3.Client) {
+	response, err := etcd.Get(context.TODO(), "/GlobalEnv")
+	if err != nil {
+		return
+	}
+
+	responseString := ""
+	for _, ev := range response.Kvs {
+		responseString = convertUIntArrToString(ev.Value)
+	}
+
+	// Setting env variables
+	jsonMap := make(map[string]interface{})
+	json.Unmarshal([]byte(responseString), &jsonMap)
+	for key, value := range jsonMap {
+		os.Setenv(key, value.(string))
+	}
 }
 
 // GetConfig gets the value of a key from Etcd
@@ -98,7 +121,6 @@ func (etcdClient EtcdCli) GetConfig(key string) (string, error) {
 		responseString = convertUIntArrToString(ev.Value)
 	}
 	return responseString, err
-
 }
 
 // RegisterDirWatch registers to a callback and keeps a watch on the prefix of a specified key

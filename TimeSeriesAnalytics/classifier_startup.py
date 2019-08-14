@@ -29,19 +29,14 @@ CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
 CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
 CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
+
 def parse_args():
     """Parse command line arguments
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('--log', choices=LOG_LEVELS.keys(), default='DEBUG',
-                        help='Logging level (df: DEBUG)')
-
     parser.add_argument('--log-name', help='Logfile name')
-
     parser.add_argument('--log-dir', dest='log_dir', default='logs',
                         help='Directory to for log files')
-    parser.add_argument('--dev-mode', dest='dev_mode', default=False,
-                        help='Mode of run (Developement/ Production)')
     return parser.parse_args()
 
 
@@ -84,9 +79,10 @@ def start_kapacitor(host_name, dev_mode):
         configfile = mgr.GetConfig("/{0}{1}".format(
                       app_name, config_key_path))
         config = json.loads(configfile)
-        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["influxdb"]["username"]
-        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["influxdb"]["password"]
-
+        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] =\
+            config["influxdb"]["username"]
+        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] =\
+            config["influxdb"]["password"]
 
         if dev_mode:
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
@@ -177,14 +173,28 @@ def enable_classifier_task(host_name):
 if __name__ == '__main__':
 
     args = parse_args()
+    dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
+    # Initializing Etcd to set env variables
+    conf = {
+            "certFile": "",
+            "keyFile": "",
+            "trustFile": ""
+        }
+    if not dev_mode:
+        conf = {
+            "certFile": "/run/secrets/etcd_FactoryControlApp_cert",
+            "keyFile": "/run/secrets/etcd_FactoryControlApp_key",
+            "trustFile": "/run/secrets/ca_etcd"
+        }
+    cfg_mgr = ConfigManager()
+    config_client = cfg_mgr.get_config_client("etcd", conf)
     currentDateTime = str(datetime.datetime.now())
     listDateTime = currentDateTime.split(" ")
     currentDateTime = "_".join(listDateTime)
     logFileName = 'dataAnalytics_' + currentDateTime + '.log'
 
-    logger = configure_logging(args.log.upper(), logFileName,
+    logger = configure_logging(os.environ['PY_LOG_LEVEL'].upper(), logFileName,
                                args.log_dir, __name__)
-    args.dev_mode = bool(strtobool(args.dev_mode))
     logger.info("=============== STARTING data_analytics ==============")
 
     host_name = os.environ["KAPACITOR_SERVER"]
@@ -193,7 +203,7 @@ if __name__ == '__main__':
          container.So exiting..')
     if (start_classifier(logFileName) is True):
         grant_permission_socket(POINT_SOCKET_FILE)
-        if(start_kapacitor(host_name, args.dev_mode) is True):
+        if(start_kapacitor(host_name, dev_mode) is True):
             enable_classifier_task(host_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")

@@ -96,6 +96,12 @@ def load_data_etcd(file):
     for key, value in config.items():
         if isinstance(value, str):
             subprocess.run(["./etcdctl", "put", key, bytes(value.encode())])
+        elif isinstance(value, dict) and key == '/GlobalEnv':
+            # Adding DEV_MODE from env
+            value['DEV_MODE'] = os.environ['DEV_MODE']
+            subprocess.run(["./etcdctl", "put",
+                           key,
+                           bytes(json.dumps(value, indent=4).encode())])
         elif isinstance(value, dict):
             subprocess.run(["./etcdctl", "put",
                             key, bytes(json.dumps(value, indent=4).encode())])

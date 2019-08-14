@@ -21,6 +21,7 @@
 import os
 import logging
 import logging.handlers
+import sys
 
 LOG_LEVELS = {
     'DEBUG': logging.DEBUG,
@@ -64,16 +65,24 @@ def configure_logging(log_level, base_log_file, log_dir, module_name):
 
     fmt_str = ('%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
                '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+
     log_lvl = LOG_LEVELS[log_level]
     base_log = os.path.join(log_dir, base_log_file)
+    logging.basicConfig(format=fmt_str, level=log_lvl)
+    logger = logging.getLogger(module_name)
+    logger.setLevel(log_lvl)
 
     # Do basic configuration of logging (just for stdout config)
-    logging.basicConfig(format=fmt_str, level=log_lvl)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(log_lvl)
+    formatter = logging.Formatter(fmt_str)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
-    root = logging.getLogger(module_name)
-    h = logging.FileHandler(base_log)
-    f = logging.Formatter(fmt_str)
-    h.setFormatter(f)
-    root.addHandler(h)
+    fh = logging.FileHandler(base_log)
+    fh.setLevel(log_lvl)
+    formatter = logging.Formatter(fmt_str)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
-    return root
+    return logger
