@@ -11,10 +11,17 @@ from Util.log import configure_logging, LOG_LEVELS
 from distutils.util import strtobool
 import os
 from Util.util \
-    import (write_certs,
-            create_decrypted_pem_files,
-            check_port_availability,
-            delete_certs)
+import (write_certs,
+        create_decrypted_pem_files,
+        check_port_availability,
+        delete_certs)
+
+ETCD_CLIENT_CERT = "/run/secrets/etcd_Kapacitor_cert"
+ETCD_CLIENT_KEY = "/run/secrets/etcd_Kapacitor_key"
+ETCD_CA_CERT = "/run/secrets/ca_etcd"
+KAPACITOR_CERT = "/etc/ssl/kapacitor/kapacitor_server_certificate.pem"
+KAPACITOR_KEY = "/etc/ssl/kapacitor/kapacitor_server_key.pem"
+KAPACITOR_CA = "/etc/ssl/ca/ca_certificate.pem"
 
 SUCCESS = 0
 FAILURE = -1
@@ -23,11 +30,6 @@ KAPACITOR_NAME = 'kapacitord'
 logger = None
 args = None
 POINT_SOCKET_FILE = "/tmp/point_classifier"
-
-CERTS_PATH = "/etc/ssl/grpc_int_ssl_secrets"
-CLIENT_CERT = CERTS_PATH + "/grpc_internal_client_certificate.pem"
-CLIENT_KEY = CERTS_PATH + "/grpc_internal_client_key.pem"
-CA_CERT = CERTS_PATH + "/ca_certificate.pem"
 
 
 def parse_args():
@@ -63,33 +65,66 @@ def grant_permission_socket(socket_path):
     logger.info("Permission Granted for Socket files")
 
 
-def start_kapacitor(host_name, dev_mode):
-    """Starts the kapacitor Daemon in the background
+def write_cert(file_name, cert):
+    """Write certificate to given file path
     """
     try:
-        app_name = os.environ["AppName"]
-        config_key_path = "/config"
-        conf = {
-            "certFile": "",
-            "keyFile": "",
-            "trustFile": ""
-        }
-        cfg_mgr = ConfigManager()
-        mgr = cfg_mgr.get_config_client("etcd", conf)
-        configfile = mgr.GetConfig("/{0}{1}".format(
-                      app_name, config_key_path))
-        config = json.loads(configfile)
-        os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] =\
-            config["influxdb"]["username"]
-        os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] =\
-            config["influxdb"]["password"]
+        with open(file_name, 'wb+') as fd:
+            fd.write(cert.encode())
+    except Exception as e:
+        logger.debug("Failed creating file: {}, Error: {} ".format(file_name,
+                                                                    e))
 
+def read_config(client, dev_mode):
+    """Read the configuration from etcd
+    """
+    app_name = os.environ["AppName"]
+    config_key_path = "/config"
+    configfile = client.GetConfig("/{0}{1}".format(
+                 app_name, config_key_path))
+    config = json.loads(configfile)
+    os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["influxdb"]["username"]
+    os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["influxdb"]["password"]
+
+    if not dev_mode:
+        cert = client.GetConfig("/{0}{1}".format(
+               app_name, "/server_cert"))
+        write_cert(KAPACITOR_CERT, cert)
+        key = client.GetConfig("/{0}{1}".format(
+               app_name, "/server_key"))
+        write_cert(KAPACITOR_KEY, key)
+        ca = client.GetConfig("/{0}{1}".format(
+               app_name, "/ca_cert"))
+        write_cert(KAPACITOR_CA, ca)
+
+
+
+def start_kapacitor(client, host_name, dev_mode):
+    """Starts the kapacitor Daemon in the background
+    """
+    HTTP_SCHEME = "http://"
+    HTTPS_SCHEME = "https://"
+    KAPACITOR_HOSTNAME_PORT = os.environ["KAPACITOR_URL"].split("://")[1]
+    INFLUXDB_HOSTNAME_PORT = os.environ["KAPACITOR_INFLUXDB_0_URLS_0"].split(
+        "://")[1]
+    try:
         if dev_mode:
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
+            os.environ["KAPACITOR_URL"] = "{}{}".format(HTTP_SCHEME,
+                                                        KAPACITOR_HOSTNAME_PORT)
+            os.environ["KAPACITOR_UNSAFE_SSL"] = "false"
+            os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
+                HTTP_SCHEME, INFLUXDB_HOSTNAME_PORT)
         else:
             # Populate the certificates for kapacitor server
             kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
+            os.environ["KAPACITOR_URL"] = "{}{}".format(HTTPS_SCHEME,
+                                                        KAPACITOR_HOSTNAME_PORT)
+            os.environ["KAPACITOR_UNSAFE_SSL"] = "true"
+            os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
+                HTTPS_SCHEME, INFLUXDB_HOSTNAME_PORT)
 
+        read_config(client, dev_mode)
         subprocess.call("kapacitord -hostname " + host_name +
                         " -config " + kapacitor_conf + " &", shell=True)
 
@@ -176,15 +211,15 @@ if __name__ == '__main__':
     dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
     # Initializing Etcd to set env variables
     conf = {
-            "certFile": "",
-            "keyFile": "",
-            "trustFile": ""
-        }
+        "certFile": "",
+        "keyFile": "",
+        "trustFile": ""
+    }
     if not dev_mode:
         conf = {
-            "certFile": "/run/secrets/etcd_FactoryControlApp_cert",
-            "keyFile": "/run/secrets/etcd_FactoryControlApp_key",
-            "trustFile": "/run/secrets/ca_etcd"
+            "certFile": ETCD_CLIENT_CERT,
+            "keyFile": ETCD_CLIENT_KEY,
+            "trustFile": ETCD_CA_CERT
         }
     cfg_mgr = ConfigManager()
     config_client = cfg_mgr.get_config_client("etcd", conf)
@@ -203,7 +238,7 @@ if __name__ == '__main__':
          container.So exiting..')
     if (start_classifier(logFileName) is True):
         grant_permission_socket(POINT_SOCKET_FILE)
-        if(start_kapacitor(host_name, dev_mode) is True):
+        if(start_kapacitor(config_client, host_name, dev_mode) is True):
             enable_classifier_task(host_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")

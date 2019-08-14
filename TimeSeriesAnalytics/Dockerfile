@@ -13,9 +13,9 @@ ENV KAPACITOR_REPO /EIS/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /EIS/go/bin
 ENV PYTHONPATH ${PYTHONPATH}
 ARG EIS_UID
-ENV KAPACITOR_URL https://localhost:9092/
-ENV KAPACITOR_UNSAFE_SSL false
-ENV KAPACITOR_INFLUXDB_0_URLS_0 https://localhost:8086/
+ENV KAPACITOR_URL http://localhost:9092/
+ENV KAPACITOR_UNSAFE_SSL true
+ENV KAPACITOR_INFLUXDB_0_URLS_0 http://localhost:8086/
 
 # Installing protobuf module needed for UDF function
 RUN mkdir -p /etc/ssl/ca

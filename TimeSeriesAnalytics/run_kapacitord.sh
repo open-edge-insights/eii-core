@@ -12,4 +12,5 @@ if [-z $DEV_MODE]
 then
     kapacitord -config /etc/kapacitor/kapacitor.conf -hostname ${KAPACITOR_SERVER}
 else
-    kapacitord -config /etc/kapacitor/kapacitor_devmode.conf -hostname ${KAPACITOR_SERVER} 
+    kapacitord -config /etc/kapacitor/kapacitor_devmode.conf -hostname ${KAPACITOR_SERVER}
+fi

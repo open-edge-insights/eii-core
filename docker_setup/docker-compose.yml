@@ -65,8 +65,8 @@ services:
       Clients: "Visualizer"
     volumes:
       - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
-      - "${EIS_INSTALL_PATH}/config/influxdb.conf:/etc/influxdb/influxdb.conf"
-      - "${EIS_INSTALL_PATH}/config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
+      - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -79,6 +79,11 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_InfluxDBConnector_cert
+        - etcd_InfluxDBConnector_key
+
 
   # Define telegraf service
   ia_telegraf:
@@ -98,9 +103,8 @@ services:
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
     volumes:
-      - "${EIS_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${EIS_INSTALL_PATH}/config/telegraf.conf:/etc/Telegraf/telegraf.conf"
-      - "${EIS_INSTALL_PATH}/config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
+      - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
+      - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -113,6 +117,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_root_cert
+        - etcd_root_key
 
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
@@ -173,9 +181,8 @@ services:
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
     volumes:
-      - "${EIS_INSTALL_PATH}/grpc_int_ssl_secrets:/etc/ssl/grpc_int_ssl_secrets"
-      - "${EIS_INSTALL_PATH}/config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
-      - "${EIS_INSTALL_PATH}/config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
+      - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
+      - "./config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
     devices:
       - "/dev/dri"
     logging:
