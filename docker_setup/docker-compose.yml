@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
 
-  #----Start: EIS Base Images----
+  #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   # Define ia_gobase service
   ia_gobase:
     build:
@@ -11,7 +11,7 @@ services:
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
-    image: ia_gobase:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_gobase:${EIS_VERSION}
 
   # Define ia_pybase service
   ia_pybase:
@@ -21,131 +21,30 @@ services:
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
-    image: ia_pybase:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_pybase:${EIS_VERSION}
 
-  # Define ia_gopybase service
-  ia_gopybase:
+  #----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+
+  # Define ETCD UI service - must be included to view ETCD data over web UI
+  ia_etcd_ui:
     build:
-      context: $PWD/../BaseLibs
-      dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.gopybase
+      context: $PWD/../EtcdUI
+      dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
+        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
         EIS_VERSION: ${EIS_VERSION}
-    image: ia_gopybase:${EIS_VERSION}
-
-  #----End: EIS Base Images----
-
-  #----Start: EIS Containers ----
-  # Define influxdb connector service
-  ia_influxdbconnector:
-    build:
-      context: $PWD/../InfluxDBConnector
-      dockerfile: $PWD/../InfluxDBConnector/Dockerfile
-      args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: ${EIS_UID}
-        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
-    image: ia_influxdbconnector:${EIS_VERSION}
-    container_name: ia_influxdbconnector
-    hostname: ia_influxdbconnector
+    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     network_mode: host
-    environment:
-      AppName: "InfluxDBConnector"
-      CertType: "zmq"
-      DEV_MODE: ${DEV_MODE}
-      #SubTopics is mainly for the stream data to subscribe
-      #and push to InfluxDB
-      SubTopics: "VideoAnalytics/camera1_stream_results"
-      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-      #PubTopics is mainly for point data to publish
-      PubTopics: "point_data,point_classifier_results"
-      point_data_cfg: "zmq_tcp,127.0.0.1:65015"
-      point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
-      #Server is for both point data and stream data
-      Server: "zmq_tcp,127.0.0.1:8675"
-      Clients: "Visualizer"
-    volumes:
-      - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
-      - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
-      - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-      test: ["CMD-SHELL", "exit", "0"]
-      interval: ${HEALTHCHECK_DURATION}
-    user: ${EIS_UID}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
-    secrets:
-        - ca_etcd
-        - etcd_InfluxDBConnector_cert
-        - etcd_InfluxDBConnector_key
-
-
-  # Define telegraf service
-  ia_telegraf:
-    build:
-      context: $PWD/../Telegraf
-      dockerfile: $PWD/../Telegraf/Dockerfile
-      args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: ${EIS_UID}
-    container_name: ia_telegraf
-    hostname: ia_telegraf
-    network_mode: host
-    image: ia_telegraf:${EIS_VERSION}
     restart: unless-stopped
+    container_name: ia_etcd_ui
+    hostname: ia_etcd_ui
     environment:
-      AppName: "Telegraf"
-      CertType: "zmq"
-      DEV_MODE: ${DEV_MODE}
-    volumes:
-      - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
-      - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-       test: ["CMD-SHELL", "exit", "0"]
-       interval: ${HEALTHCHECK_DURATION}
-    user: ${EIS_UID}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
+      AppName: "EtcdUi"
+      DEV_MODE: $DEV_MODE
     secrets:
         - ca_etcd
         - etcd_root_cert
         - etcd_root_key
-
-  # Define Imagestore service which hosts redis and minio dbs
-  ia_imagestore:
-    build:
-      context: $PWD/../ImageStore
-      dockerfile: $PWD/../ImageStore/Dockerfile
-      args:
-        EIS_VERSION: ${EIS_VERSION}
-        MINIO_VERSION: ${MINIO_VERSION}
-        EIS_UID: ${EIS_UID}
-    container_name: ia_imagestore
-    hostname: ia_imagestore
-    network_mode: host
-    image: ia_imagestore:${EIS_VERSION}
-    restart: unless-stopped
-    environment:
-      AppName: "ImageStore"
-      CertType: "zmq"  
-      DEV_MODE: ${DEV_MODE}
-      Server: "zmq_tcp,127.0.0.1:5669"
-      SubTopics: "VideoAnalytics/camera1_stream_results"
-      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-    command: ["-log_dir", "/EIS/go/src/IEdgeInsights/log/imagestore_logs"]
-    volumes:
-      - "${EIS_INSTALL_PATH}/data:/data"
     logging:
       driver: ${LOGGING_DRIVER}
       options:
@@ -158,51 +57,10 @@ services:
     security_opt:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
-    secrets:
-        - ca_etcd
-        - etcd_ImageStore_cert
-        - etcd_ImageStore_key
 
-  # Define DataAnalytics service
-  ia_data_analytics:
-    build:
-      context: $PWD/../TimeSeriesAnalytics/
-      dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
-      args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: ${EIS_UID}
-    image: ia_data_analytics:${EIS_VERSION}
-    container_name: ia_data_analytics
-    hostname: ia_data_analytics
-    network_mode: host
-    restart: unless-stopped
-    environment:
-      AppName: "Kapacitor"
-      CertType: "zmq"
-      DEV_MODE: ${DEV_MODE}
-    volumes:
-      - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
-      - "./config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
-    devices:
-      - "/dev/dri"
-    logging:
-      driver: ${LOGGING_DRIVER}
-      options:
-        max-size: ${LOGROTATE_SIZE_FOR_CONT}
-        max-file: ${LOGROTATE_COPIES}
-    healthcheck:
-      test: ["CMD-SHELL", "exit", "0"]
-      interval: ${HEALTHCHECK_DURATION}
-    user: ${EIS_UID}
-    security_opt:
-      - seccomp:$PWD/config/seccomp_default.json
-      - no-new-privileges
-    secrets:
-        - ca_etcd
-        - etcd_Kapacitor_cert
-        - etcd_Kapacitor_key
-  
-  # Define VideoIngestion service
+
+  #----Start: EIS Containers ----
+# Define VideoIngestion service
   ia_video_ingestion:
     build:
       context: ../VideoIngestion
@@ -211,7 +69,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    image: ia_video_ingestion:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
@@ -277,7 +135,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    image: ia_video_analytics:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
     network_mode: host
@@ -331,7 +189,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    image: ia_visualizer:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_visualizer:${EIS_VERSION}
     container_name: ia_visualizer
     hostname: ia_visualizer
     network_mode: host
@@ -373,6 +231,187 @@ services:
         - etcd_Visualizer_cert
         - etcd_Visualizer_key
 
+
+  # Define influxdb connector service
+  ia_influxdbconnector:
+    build:
+      context: $PWD/../InfluxDBConnector
+      dockerfile: $PWD/../InfluxDBConnector/Dockerfile
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+        INFLUXDB_VERSION: ${INFLUXDB_VERSION}
+    image: ${DOCKER_REGISTRY}ia_influxdbconnector:${EIS_VERSION}
+    container_name: ia_influxdbconnector
+    hostname: ia_influxdbconnector
+    network_mode: host
+    environment:
+      AppName: "InfluxDBConnector"
+      CertType: "zmq"
+      DEV_MODE: ${DEV_MODE}
+      #SubTopics is mainly for the stream data to subscribe
+      #and push to InfluxDB
+      SubTopics: "VideoAnalytics/camera1_stream_results"
+      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+      #PubTopics is mainly for point data to publish
+      PubTopics: "point_data,point_classifier_results"
+      point_data_cfg: "zmq_tcp,127.0.0.1:65015"
+      point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
+      #Server is for both point data and stream data
+      Server: "zmq_tcp,127.0.0.1:8675"
+      Clients: "Visualizer"
+    volumes:
+      - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    user: ${EIS_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_InfluxDBConnector_cert
+        - etcd_InfluxDBConnector_key
+
+
+  # Define telegraf service
+  ia_telegraf:
+    build:
+      context: $PWD/../Telegraf
+      dockerfile: $PWD/../Telegraf/Dockerfile
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+    container_name: ia_telegraf
+    hostname: ia_telegraf
+    network_mode: host
+    image: ${DOCKER_REGISTRY}ia_telegraf:${EIS_VERSION}
+    restart: unless-stopped
+    environment:
+      AppName: "Telegraf"
+      CertType: "zmq"
+      DEV_MODE: ${DEV_MODE}
+    volumes:
+      - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
+      - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+       test: ["CMD-SHELL", "exit", "0"]
+       interval: ${HEALTHCHECK_DURATION}
+    user: ${EIS_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_root_cert
+        - etcd_root_key
+
+  # Define ia_gopybase service - This base images is required to build ia_data_analytics
+  ia_gopybase:
+    build:
+      context: $PWD/../BaseLibs
+      dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.gopybase
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_gopybase:${EIS_VERSION}
+  # End ia_gopybase service - This base images is required to build ia_data_analytics
+  
+  # Define DataAnalytics service
+  ia_data_analytics:
+    build:
+      context: $PWD/../TimeSeriesAnalytics/
+      dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+    image: ${DOCKER_REGISTRY}ia_data_analytics:${EIS_VERSION}
+    container_name: ia_data_analytics
+    hostname: ia_data_analytics
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      AppName: "Kapacitor"
+      CertType: "zmq"
+      DEV_MODE: ${DEV_MODE}
+    volumes:
+      - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
+      - "./config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
+    devices:
+      - "/dev/dri"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    user: ${EIS_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_Kapacitor_cert
+        - etcd_Kapacitor_key
+  
+  
+  
+  # Define Imagestore service which hosts redis and minio dbs
+  ia_imagestore:
+    build:
+      context: $PWD/../ImageStore
+      dockerfile: $PWD/../ImageStore/Dockerfile
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        MINIO_VERSION: ${MINIO_VERSION}
+        EIS_UID: ${EIS_UID}
+    container_name: ia_imagestore
+    hostname: ia_imagestore
+    network_mode: host
+    image: ${DOCKER_REGISTRY}ia_imagestore:${EIS_VERSION}
+    restart: unless-stopped
+    environment:
+      AppName: "ImageStore"
+      CertType: "zmq"  
+      DEV_MODE: ${DEV_MODE}
+      Server: "zmq_tcp,127.0.0.1:5669"
+      SubTopics: "VideoAnalytics/camera1_stream_results"
+      camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+    command: ["-log_dir", "/EIS/go/src/IEdgeInsights/log/imagestore_logs"]
+    volumes:
+      - "${EIS_INSTALL_PATH}/data:/data"
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    user: ${EIS_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
+    secrets:
+        - ca_etcd
+        - etcd_ImageStore_cert
+        - etcd_ImageStore_key
+  
+  
   # Define FactoryControlApp service
   ia_factoryctrl_app:
     build:
@@ -382,7 +421,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    image: ia_factoryctrl_app:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_factoryctrl_app:${EIS_VERSION}
     container_name: ia_factoryctrl_app
     hostname: ia_factoryctrl_app
     network_mode: host
@@ -423,7 +462,7 @@ services:
       dockerfile: $PWD/../OpcuaExport/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
-    image: ia_opcua_export:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_opcua_export:${EIS_VERSION}
     network_mode: host
     restart: unless-stopped
     container_name: ia_opcua_export
@@ -440,27 +479,20 @@ services:
         - ca_etcd
         - etcd_OpcuaExport_cert
         - etcd_OpcuaExport_key
+    logging:
+      driver: ${LOGGING_DRIVER}
+      options:
+        max-size: ${LOGROTATE_SIZE_FOR_CONT}
+        max-file: ${LOGROTATE_COPIES}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: ${HEALTHCHECK_DURATION}
+    user: ${EIS_UID}
+    security_opt:
+      - seccomp:$PWD/config/seccomp_default.json
+      - no-new-privileges
 
-  # Define ETCD UI service
-  ia_etcd_ui:
-    build:
-      context: $PWD/../EtcdUI
-      dockerfile: $PWD/../EtcdUI/Dockerfile
-      args:
-        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
-        EIS_VERSION: ${EIS_VERSION}
-    image: ia_etcd_ui:${EIS_VERSION}
-    network_mode: host
-    restart: unless-stopped
-    container_name: ia_etcd_ui
-    hostname: ia_etcd_ui
-    environment:
-      AppName: "EtcdUi"
-      DEV_MODE: $DEV_MODE
-    secrets:
-        - ca_etcd
-        - etcd_root_cert
-        - etcd_root_key
+  
 
 secrets:
   ca_cert:

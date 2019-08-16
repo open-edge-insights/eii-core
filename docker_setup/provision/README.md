@@ -1,5 +1,6 @@
 #  EIS Provisioning
 
+* By default EIS is provisioned in Production mode. Please update DEV_MODE=true in [docker_setup/.env](../.env) to provision EIS in Developer mode. Developer mode will have all security disabled.
 
 Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 Following actions will be performed as part of Provisioning
@@ -15,11 +16,6 @@ Following actions will be performed as part of Provisioning
     eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
     ```
+* By default EIS is provisioned for Single node deployment. Please uncommment and place proper values for section ' ETCD optinal Configuration required to run ETCD in cluster mode.'  in [dep/.cluster.env](dep/.cluster.env) for provisioning ETCD for multiple nodes.'.
 
-* By default EIS is provisioned in Developer mode. Please update DEV_MODE=false in [dep/.env](dep/.env) to provision EIS in Secure mode.
-
-* For now since X509 cert integration is under development, ETCD authentication not enabled for Secure mode. Secure mode provisioning only generates curve zmq public/private keys for all apps.
-
-* By default EIS is provisioned for Single node deployment. Please uncommment and place proper values for section ' ETCD optinal Configuration required to run ETCD in cluster mode.'  in [dep/.env](dep/.env) for provisioning ETCD for multiple nodes.'.
-
-* By Default, EIS is provisioned with initial values, for any additonal provisioning, please change ETCD_RESET to false in [dep/.env](dep/.env), if initial values are already set for cluster.
+* By Default, EIS is provisioned with initial values, for any additonal provisioning, please change ETCD_RESET to false in [dep/.cluster.env](dep/.cluster.env), if initial values are already set for cluster.

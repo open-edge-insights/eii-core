@@ -5,7 +5,7 @@ source dep/.cluster.env
 set +a
 
 check_ETCD_port() {
-	echo "Checking if IEI published ports are already up..."
+	echo "Checking if ETCD ports are already up..."
 	ports=($ETCD_CLIENT_PORT)
 	for port in "${ports[@]}"
 	do

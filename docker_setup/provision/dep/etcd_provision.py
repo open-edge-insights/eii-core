@@ -65,7 +65,13 @@ def put_zmqkeys(appname):
     """
     secret_key = ''
     public_key = ''
+    
+    
     public_key, secret_key = zmq.curve_keypair()
+    while public_key[0] is not "-" and secret_key[0] is not "-":
+        logging.info("Re-generating ZMQ keys") 
+        public_key, secret_key = zmq.curve_keypair()
+        
     try:
         subprocess.run(["./etcdctl", "put",
                         "/Publickeys/" + appname, public_key])

@@ -8,27 +8,21 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 3. [EIS Pre-requisites](#eis-pre-requisites)
 
-4. [Run EIS PCB Demo in Developer Mode](#run-eis-pcb-demo-in-developer-mode)
+4. [Provision EIS Cluster](#provision-eis-cluster)
 
-5. [Visualize the results](#visualize-the-results)
+5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Enable security (Production Mode)](#enable-security-production-mode)
+6. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+7. [Using video accelerators](#using-video-accelerators)
 
-8. [Using video accelerators](#using-video-accelerators)
+8. [Time-series Analytics](#time-series-analytics)
 
-9. [Time-series Analytics](#time-series-analytics)
+9. [Usage of Docker Registry](#usage-of-docker-registry)
 
-10. [Install the EIS software to the production machine](#install-the-eis-software-to-the-production-machine)
+10. [Debugging options](#debugging-options)
 
-11. [Usage of Docker Registry](#usage-of-docker-registry)
-
-12. [Factory control app](#factory-control-app)
-
-13. [Debugging options](#debugging-options)
-
-14. [EIS Deployment Via TurtleCreek](#deploy)
+11. [EIS Deployment Via TurtleCreek](#deploy)
 
 
 # Minimum System Requirements
@@ -123,58 +117,45 @@ The section assumes the EIS software is already downloaded from the release pack
 
     [docker_setup/provision/README.md](docker_setup/provision/README.md)
 
-   > **NOTE**: Provision EIS cluster is needed for both Dev and Production mode.
+   > **NOTE**: During provisioning you can set up cluster and security mode.  
 
-# Run EIS PCB Demo in Developer Mode
+# Build and Run EIS PCB Demo Example
 
-   A simple way to start EIS and see it in actiion is to enable the developer mode which disables all security and the provisioning steps.
+ Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for PCB Demo example
 
-   The master configuration for EIS is availalbe in the file [docker_setup/.env](docker_setup/.env).
+* For streaming use case only:
 
-   To enable Development mode, **DEV_MODE** variable in .env need to be set to true.
-   
+    > ia_video_ingestion, ia_video_analytics, ia_visualizer
+
+* For historical use case only:
+
+    > ia_video_ingestion, ia_video_analytics, ia_imagestore, ia_influxdbconnector
+
+* For streaming and historical use case
+
+    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
+
+> Note: All EIS build and run commands are to be executed from the IEdgeInsights/docker_setup/ directory.
+
    ```sh
-   # DEV_MODE if set `true` allows one to run IEI in non-secure mode and provides additional UX/DX etc.,
-   DEV_MODE=true
-   ```
-
-   Next step is to build and run the EIS stack, which is achieved by the below command which does the build and run:
-
-   > Note: All EIS build and run commands are to be executed from the IEdgeInsights/docker_setup/ directory.
-
-   ```sh
-   sudo make build run | tee build_run.txt
+   docker-compose up --build -d
    ```
 
    The build and run steps can be split into two as well like below:
    ```sh
-   sudo make build
-   sudo make run
+   docker-compose build
+   docker-compose up -d
+   ```
+   If any of the services fails during build, it can be built using below command
+   ```sh
+   docker-compose build --no-cache <service name>
+   
    ```
 
    Please note that the first time build of EIS containers take ~70 minutes.
 
-   Once EIS starts executing, the logs can be seen by the below command:
-   ```sh
-   tail -f /opt/intel/iei/logs/consolidatedLogs/iei.log
-   ```
-
-   A successful run will give logs like below:
-   ```sh
-   Publishing topic: stream1_results
-   Publishing topic: stream1_results
-   Publishing topic: stream1_results
-   Publishing topic: stream1_results
-   .....
-   ```
-
-   We now have the analytics results published over OPC-UA and the corresponding image frames stored in the ImageStore.
-
-# Visualize the results
-
-For visualizing the results of the video analytics, the  [tools/visualizer](tools/visualizer) app is available in the repository. This is a sample app which uses the OPC-UA client for receiving the analytics results and the GRPC client for receiving the image frames and do a simple visualization. This demonstrates the usage of the `OpcuaBusAbstraction` and `ImageStore` client libraries.
-
-For running the visualizer follow the [tools/visualizer/README.md](tools/visualizer/README.md).
+   A successful run will open Visualizer UI with results of video analytics.
+   
 
 > Note: Use the developer mode option in Visualizer to run without security if the EIS is started in Dev mode.
 
@@ -191,7 +172,7 @@ For detailed description on configuring different types of cameras and  filter a
 EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the ingestor configuration in Etcd (sample ingestor configurations available at [VideoIngestion/README.md](VideoIngestion/README.md)). For running a sample with accelerators, use the factory_pcbdemo_myriad.json or factory_pcbdemo_hddl.json in the .env file. Note that it uses a different set of model files which are FP16 based.
 
 > Note:
-> To run on HDDL devices, make sure to uncomment the below section of code in [DataAnalytics/VideoAnalytics/va_classifier_start.sh](../DataAnalytics/VideoAnalytics/va_classifier_start.sh).
+> To run on HDDL devices, make sure to uncomment the below section of code in [VideoAnalytics/va_classifier_start.sh](/VideoAnalytics/va_classifier_start.sh).
 
     ```sh
     #Uncomment these lines if you are using HDDL
@@ -203,28 +184,37 @@ EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices as w
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-For enabling this, different set of containers need to be built in EIS and it can be selected by modifying the `IEI_SERVICES` field of .env file to services_pointdata.json. This will enable building of Telegraf and the Kapacitor based analytics containers.
-More details on enabling this mode can be referred from [DataAnalytics/PointDataAnalytics/README.md](DataAnalytics/PointDataAnalytics/README.md)
+For enabling this, different set of containers need to be built in EIS and it can be selected by modifying the docker-compose file.
+
+Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
+
+    
+> ia_telegraf, ia_influxdbconnector, ia_data_analytics, ia_visualizer
+
+
+This will enable building of Telegraf and the Kapacitor based analytics containers.
+More details on enabling this mode can be referred from [TimeSeriesAnalytics/README.md](TimeSeriesAnalytics/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
 
-# Install the EIS software to the production machine
+# List of All EIS Services
 
-For factory deployments, the EIS software is installed as a systemd service so that it comes up automatically on machine boot and starts the analytics process. For doing this, we would be installing `EIS` containers from `iei.service`. **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
+EIS stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
 
-      ```sh
-      sudo make install CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> | tee make_install.txt
+1. [VideoIngestion/README.md](VideoIngestion/README.md)
+2. [VideoAnalytics/README.md](VideoAnalytics/README.md)
+3. [Visualizer](Visualizer/README.md)
+4. [ImageStore/README.md](ImageStore/README.md)
+5. [InfluxDBConnector/README.md](InfluxDBConnector/README.md)
+6. [OpcuaExport/README.md](OpcuaExport/README.md)
+7. [FactoryControlApp](FactoryControlApp/README.md)
+8. [Telegraf](Telegraf/README.md)
+9. [TimeSeriesAnalytics](TimeSeriesAnalytics/README.md)
+10. [EtcdUI](EtcdUI/README.md)
 
-      E.g. sudo make install CERT_PATH=../cert-tool/Certificates/
-      ```
 
-Post installation, IEI can be started / stopped using commands:
 
-      ```sh
-      sudo systemctl stop iei
-      sudo systemctl start iei
-      ```
 # Usage of Docker Registry
 
 This is an `optional` step where in IEI user wants to build and run EIS images using a DOCKER REGISTRY. This is very helpful
@@ -232,71 +222,23 @@ when one wants to pull and deploy docker images directly from a docker registry 
 
 Follow below steps:
 
-* Configuring private docker registry
+* Please update docker registry url in DOCKER_REGISTRY variable in [docker_setup/.env](docker_setup/.env). Please use full registry URL with a traliling /
 
-   Please refer to [official docker documentation](https://docs.docker.com/registry/deploying/) for setting up Docker Registry.
-
-      **NOTE**:
-      To access docker registry from the host system where docker push/pull operations are performed, please follow below commands:
-
-         ```sh
-         <Add docker registry system ip address to NO_PROXY in http-proxy.conf and https-proxy.conf files at `/etc/systemd/system/docker.service.d`>
-
-         <If using insecure http registry, please follow the steps called out in the section `Deploy a plain HTTP registry` at [Insecure registry access](https://docs.docker.com/registry/insecure/)>
-
-         sudo systemctl daemon-reload
-         sudo systemctl restart docker
-
-         ```
-
-
-* In running in Production mode, follow [cert-tool/README.md](../cert-tool/README.md) to generate the required certificates/keys first before installing from registry.
-
-* Building EIS and dist_libs images and pushing the same to docker registry. (`Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
+* Building EIS images and pushing the same to docker registry. 
 
       ```sh
-      sudo make build push DOCKER_REGISTRY=<IP ADDRESS or URL>
+      docker-compose push
 
-      Eg: sudo make build push DOCKER_REGISTRY=ip_address:5000
       ```
 
-* Pulling EIS images from configured docker registry and do a run without install. (`Entire IEdgeInsights folder needs to be present on the system from where images are pushed to registry`)
+* Pulling EIS images from configured docker registry and do a run. 
 
-   In case of DEV_MODE as true in .env file (Developer mode)
+
 
       ```sh
-      sudo make pull run  DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
+            docker-compose pull
+            docker-compose up -d
       ```
-
-   In case of DEV_MODE as false in .env file (Secure mode)
-
-      ```sh
-      sudo make pull provision run CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY> DOCKER_REGISTRY=<IP ADDRESS or URL> | tee compose_startup.txt
-      ```
-
-
-* Pulling EIS images from configured docker registry and install for factory deployment. (`Only [docker_setup](docker_setup/) folder and [Certificates](cert-tool/Certificates) folder needs to be copied to target system`)
-    **The command below will unsinstall any previous version of `iei.service` (systemd service in ubuntu) and installs new one. This step does not need a provisioning step to be executed first.**
-
-      ```sh
-      sudo make install-registry CERT_PATH=<PATH_TO_CERTIFICATES_DIRECTORY>  DOCKER_REGISTRY=<IP ADDRESS or URL>
-
-      Eg: sudo make install-registry CERT_PATH=../cert-tool/Certificates  DOCKER_REGISTRY=ip_address:5000
-      ```
-
-* Pulling `ia_dist_libs` image from docker registry and setup `/opt/intel/iei/dist_libs` client external libs distribution package
-
-      ```sh
-      sudo make distlibs-registry DOCKER_REGISTRY=<IP ADDRESS or URL>
-
-      Eg: sudo make distlibs-registry DOCKER_REGISTRY=ip_address:5000
-      ```
-
-
-# Factory control app
-
-The factory control app is a sample provided to demonstrate the implementation of a closed loop factory control mechanism which can be used for  filtering alarm lights / control devices on a factory floor when a defect is detected in the visual inspection.
-Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configuring the sample implementation. For using this app, the services_*.json file need to be updated to include this app in the build and run process.
 
 # Debugging options
 
@@ -308,38 +250,11 @@ Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configu
     ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. `docker ps` should list the below containers in IEI stack:
+2. `docker ps` should list all the containers which are included in docker-compose.yml
+   
+3. To verify if the data pipeline withing IEI is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_video_analytics` container using cmd: `docker logs -f ia_video_analytics`. One should see, publish messages like `Publishing topic: [topic_name]`
 
-   In Video analytics mode:
-   - ia_video_ingestion
-   - ia_imagestore
-   - ia_video_analytics
-   - ia_data_agent
-   - ia_logrotate
-
-   In time series data analytics mode:
-   - ia_telegraf
-   - ia_data_analytics
-   - ia_data_agent
-   - ia_logrotate
-
-    **Note**: If any of the above containers are not listed, always use cmd: `sudo tail -f /opt/intel/iei/logs/consolidatedLogs/iei.log` to find out the reason for container failure
-
-3. To verify if the data pipeline withing IEI is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_data_agent` container using cmd: `docker logs -f ia_data_agent`. One should see, publish messages like `Publishing topic: [topic_name]`
-
-4. To verify the E2E data flow working between IEI running on ECN (Edge Compute Node) and `iei-simple-visualizer` app running on the same node or on a diff node, check if the classified images and their respective metadata is been received in the `iei-simple-visualizer` container. 
-
-5. `/opt/intel/iei` root directory gets created - This is the installation path for IEI:
-     * `config/` - all the IEI configs reside here.
-     * `logs/` - all the IEI logs reside here.
-     * `dist_libs/` - is the client external libs distribution package
-        * `DataAgentClient` -
-            * cpp - consists of gRPC cpp client wrappers, protobuff files and test programs
-            * py - consists of gRPC py client wrappers, protobuff files and test programs
-        * `OpcuaBusAbstraction` -
-            * c - consists of opcua C client wrappers and test programs
-            * py - consists of opcua py client wrappers and test programs
-     * `secret_store/` - This is the vault's persistent storage wherein IEI secrets are stored in encrypted fashion. This directory is recreated                       on every provision step.
+5. `/opt/intel/eis` root directory gets created - This is the installation path for IEI:
      * `data/` - stores the backup data for persistent imagestore and influxdb
 
 ---
@@ -362,10 +277,7 @@ Follow [FactoryControlApp/README.md](../FactoryControlApp/README.md) for configu
 3. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is     where the `tee` command comes to rescue.
 4. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
    `docker-compose logs -f`
-5. Run these commands to build & start the client tests container:
-   `sudo ./client_tests_startup.sh`
-   `docker-compose -f client-tests-compose.yml run --entrypoint /bin/bash ia_client_tests`
----
+
 # Deploy
 
 To Deploy EIS Software via TurtleCreek and Telit.Please follow the steps
