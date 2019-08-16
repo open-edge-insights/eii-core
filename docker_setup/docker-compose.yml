@@ -214,7 +214,7 @@ services:
       # Setting Visualizer as a subscriber here since FpsCalculator uses
       # the same keys as visualizer to subscribe over both VideoIngestion
       # and VideoAnalytics
-      Clients: "VideoAnalytics,Visualizer"
+      Clients: "VideoAnalytics"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       DEBIAN_FRONTEND: noninteractive
@@ -227,6 +227,8 @@ services:
       TERM: "xterm"
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
       GST_DEBUG: "1"
+      PY_LOG_LEVEL: "INFO"
+      PROFILING: "false"
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -277,11 +279,13 @@ services:
     restart: unless-stopped
     environment:
       AppName: "VideoAnalytics"
-      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       SubTopics: "VideoIngestion/camera1_stream"
       SOCKET_DIR: ${SOCKET_DIR}
+      PY_LOG_LEVEL: "INFO"
+      PROFILING: "false"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.

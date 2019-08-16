@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
 	"github.com/golang/glog"
 )
 
@@ -34,19 +35,19 @@ func CheckPortAvailability(hostname, port string) bool {
 
 // GetMessageBusConfig - constrcuts config object based on topic type(pub/sub),
 // message bus type(tcp/ipc) and dev/prod mode
-func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrConfig map[string]string) map[string]interface{}{
+func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrConfig map[string]string) map[string]interface{} {
 	var subTopics []string
 	var topicConfigList []string
 	appName := os.Getenv("AppName")
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
-	if strings.ToLower(topicType) == "sub"{
+	if strings.ToLower(topicType) == "sub" {
 		subTopics = strings.Split(topic, "/")
-                topic = subTopics[1]
+		topic = subTopics[1]
 	}
 
-	if topicType == "server"{
+	if topicType == "server" || topicType == "client" {
 		topicConfigList = strings.Split(os.Getenv("Server"), ",")
-	}else{
+	} else {
 		topicConfigList = strings.Split(os.Getenv(topic+"_cfg"), ",")
 	}
 	var messageBusConfig map[string]interface{}
@@ -63,7 +64,6 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			"host": hostname,
 			"port": port,
 		}
-
 		if strings.ToLower(topicType) == "pub" {
 			messageBusConfig = map[string]interface{}{
 				"type":            "zmq_tcp",
@@ -90,8 +90,8 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			}
 		} else if strings.ToLower(topicType) == "sub" {
 			messageBusConfig = map[string]interface{}{
-				"type":       "zmq_tcp",
-				topic: hostConfig,
+				"type": "zmq_tcp",
+				topic:  hostConfig,
 			}
 			if !devMode {
 				serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subTopics[0])
@@ -115,8 +115,8 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			}
 		} else if strings.ToLower(topicType) == "server" {
 			messageBusConfig = map[string]interface{}{
-				"type":       "zmq_tcp",
-				topic: hostConfig,
+				"type": "zmq_tcp",
+				topic:  hostConfig,
 			}
 			if !devMode {
 				var allowedClients []string
@@ -135,6 +135,33 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				}
 				messageBusConfig["allowed_clients"] = allowedClients
 				hostConfig["server_secret_key"] = serverSecretKey
+			}
+		} else if strings.ToLower(topicType) == "client" {
+			messageBusConfig = map[string]interface{}{
+				"type": "zmq_tcp",
+				topic:  hostConfig,
+			}
+			if !devMode {
+				clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
+				if err != nil {
+					glog.Errorf("Etcd GetConfig Error %v", err)
+					os.Exit(1)
+				}
+
+				clientSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + topic)
+				if err != nil {
+					glog.Errorf("Etcd GetConfig Error %v", err)
+					os.Exit(1)
+				}
+
+				hostConfig["server_public_key"] = serverPublicKey
+				hostConfig["client_secret_key"] = clientSecretKey
+				hostConfig["client_public_key"] = clientPublicKey
 			}
 		} else {
 			panic("Unsupported Topic Type!!!")
