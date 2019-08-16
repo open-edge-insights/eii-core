@@ -109,15 +109,15 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 The section assumes the EIS software is already downloaded from the release package or from git.
 
-* Download the full package for OpenVINO toolkit for Linux version "2019 R1.0.1" from the official website
-(https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside `IEdgeInsights/DataAnalytics/VideoAnalytics`. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
+* Download the full package for OpenVINO toolkit for Linux version "2019 R2" from the official website
+(https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside `IEdgeInsights/VideoAnalytics`. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
 
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/DataAnalytics/
-   > VideoAnalytics folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
-   > build failure of VideoAnalytics container if there are multiple openvino sdk's in there especially the old ones.
+   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/VideoAnalytics
+   > folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
+   > build failure of VideoAnalytics container if there are multiple openvino sdk's in there (especially the old ones)
 
 
-# Provision EIS Cluster 
+# Provision EIS Cluster
 
 * Please follow below readme to Provision EIS cluster.
 
