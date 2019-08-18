@@ -30,18 +30,10 @@ RUN git clone https://github.com/kragniz/python-etcd3 && \
     cd .. && \
     rm -rf python-etcd3
 
-RUN wget https://github.com/Kitware/CMake/releases/download/v3.15.0/cmake-3.15.0.tar.gz && \
-    tar xzf cmake-3.15.0.tar.gz && \
-    cd cmake-3.15.0 && \
-    cmake . && \
-    make && \
-    make install && \
-    cd .. && \
-    rm -rf cmake-3.15.0.tar.gz && \
-    rm -rf cmake-3.15.0
+RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
+    tar --strip-components=1 -xz -C /usr/local
 
-COPY libs/ ./libs/
-
+COPY libs/EISMessageBus ./libs/EISMessageBus
 RUN cd ./libs/EISMessageBus && \
     rm -rf build deps && \
     ./install.sh --cython && \
@@ -50,6 +42,8 @@ RUN cd ./libs/EISMessageBus && \
     cmake -DWITH_PYTHON=ON .. && \
     make && \
     make install
+
+COPY libs/ ./libs/
 
 ENV LD_LIBRARY_PATH "/usr/local/lib"
 COPY Util/ ./Util/

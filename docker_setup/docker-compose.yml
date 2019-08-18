@@ -227,8 +227,6 @@ services:
       TERM: "xterm"
       GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
       GST_DEBUG: "1"
-      PY_LOG_LEVEL: "INFO"
-      PROFILING: "false"
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -284,8 +282,6 @@ services:
       DEV_MODE: ${DEV_MODE}
       SubTopics: "VideoIngestion/camera1_stream"
       SOCKET_DIR: ${SOCKET_DIR}
-      PY_LOG_LEVEL: "INFO"
-      PROFILING: "false"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.

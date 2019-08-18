@@ -83,11 +83,4 @@ RUN cd Util/cpuid && \
     make -j8
     
 COPY libs ./libs/
-
-
-
-
-
-
 HEALTHCHECK NONE
-
