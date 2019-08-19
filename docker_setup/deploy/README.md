@@ -19,7 +19,7 @@ EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via 
 
       ```
         { 
-            "docker_compose_file_version": <docker_compose_file_version which is compose file version supported by deploying docker engine>,
+            "docker_compose_file_version": "<docker_compose_file_version which is compose file version supported by deploying docker engine>",
             
             "exclude_services": [list of services which you want exclude for your deployement],
 	        
