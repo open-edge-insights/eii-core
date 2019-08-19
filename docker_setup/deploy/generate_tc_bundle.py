@@ -54,6 +54,7 @@ class TurtleCreekBundleGenerator:
         cmdlist.append("cp -rf ../config ./eis_installer/")
         cmdlist.append("cp ../.env ./eis_installer/")
         cmdlist.append("cp -rf ../test_videos/ ./eis_installer")
+        cmdlist.append("cp -rf ../Certificates/ ./eis_installer")
         cmdlist.append("tar -czvf eis_installer.tar.gz ./eis_installer")
         cmdlist.append("rm -rf eis_installer/")
         try:
