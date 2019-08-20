@@ -15,6 +15,8 @@ services:
 
   # Define ia_pybase service
   ia_pybase:
+    depends_on:
+      - ia_gobase
     build:
       context: $PWD/../BaseLibs
       dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.pybase
@@ -62,6 +64,8 @@ services:
   #----Start: EIS Containers ----
 # Define VideoIngestion service
   ia_video_ingestion:
+    depends_on:
+      - ia_pybase
     build:
       context: ../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
@@ -128,6 +132,8 @@ services:
 
   # Define VideoAnalytics service
   ia_video_analytics:
+    depends_on:
+      - ia_pybase
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -182,6 +188,8 @@ services:
 
   # Define Visualizer service
   ia_visualizer:
+    depends_on:
+      - ia_pybase
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -234,6 +242,8 @@ services:
 
   # Define influxdb connector service
   ia_influxdbconnector:
+    depends_on:
+      - ia_gobase
     build:
       context: $PWD/../InfluxDBConnector
       dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -284,6 +294,8 @@ services:
 
   # Define telegraf service
   ia_telegraf:
+    depends_on:
+      - ia_pybase
     build:
       context: $PWD/../Telegraf
       dockerfile: $PWD/../Telegraf/Dockerfile
@@ -321,6 +333,8 @@ services:
 
   # Define ia_gopybase service - This base images is required to build ia_data_analytics
   ia_gopybase:
+    depends_on:
+      - ia_pybase
     build:
       context: $PWD/../BaseLibs
       dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.gopybase
@@ -331,6 +345,8 @@ services:
   
   # Define DataAnalytics service
   ia_data_analytics:
+    depends_on:
+      - ia_gopybase
     build:
       context: $PWD/../TimeSeriesAnalytics/
       dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
@@ -372,6 +388,8 @@ services:
   
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
+    depends_on:
+      - ia_gobase
     build:
       context: $PWD/../ImageStore
       dockerfile: $PWD/../ImageStore/Dockerfile
@@ -414,6 +432,8 @@ services:
   
   # Define FactoryControlApp service
   ia_factoryctrl_app:
+    depends_on:
+      - ia_pybase
     build:
       context: $PWD/../FactoryControlApp
       dockerfile: $PWD/../FactoryControlApp/Dockerfile
@@ -457,6 +477,8 @@ services:
 
   # Define OpcuaExport service
   ia_opcua_export:
+    depends_on:
+      - ia_gobase
     build:
       context: $PWD/../OpcuaExport
       dockerfile: $PWD/../OpcuaExport/Dockerfile
