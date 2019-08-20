@@ -1,6 +1,7 @@
 import yaml
 import subprocess
 import json
+import os
 
 
 class TurtleCreekBundleGenerator:
@@ -14,7 +15,27 @@ class TurtleCreekBundleGenerator:
             self.docker_compose_file_version = \
                 config['docker_compose_file_version']
             self.exclude_services = config['exclude_services']
-            self.docker_registry = config['docker_registry']
+            self.env = self.get_env_dict()
+            if self.env['DOCKER_REGISTRY'] is '' or \
+                    "/" not in self.env['DOCKER_REGISTRY']:
+                print("Please Check the Docker Regsitry Address in \
+                'DOCKER_REGISTRY' env of docker_setup\\.env file")
+                os._exit(1)
+
+    def get_env_dict(self):
+        '''
+            This method reads the .env file and returns as
+            dict values
+        '''
+        with open("../.env") as f:
+            envList = f.readlines()
+
+        envDict = {}
+        for env in envList:
+            if env.strip() and '#' not in env.strip()[0]:
+                envVal = env.split('=')
+                envDict[envVal[0]] = envVal[1].rstrip()
+        return envDict
 
     def generate_docker_composeyml(self):
         '''
@@ -30,12 +51,13 @@ class TurtleCreekBundleGenerator:
             # Remove Unwanted Services for Build
             for service in self.exclude_services:
                 del self.config['services'][service]
-            # Remove Build Option & Append docker_registry Name
+            # Remove Build Option & depends_on Option from docker-compose
             for service in self.config['services'].keys():
-                self.config['services'][service]['image'] =\
-                    self.docker_registry + '/' +\
-                    self.config['services'][service]['image']
-                del self.config['services'][service]['build']
+                if 'build' in self.config['services'][service].keys():
+                    del self.config['services'][service]['build']
+                if 'depends_on' in self.config['services'][service].keys():
+                    del self.config['services'][service]['depends_on']
+
             # Write the Docker Compose File to System
             with open("docker-compose.yml", 'w') as tcconf:
                 yaml.dump(self.config, tcconf, default_flow_style=False)

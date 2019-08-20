@@ -1,5 +1,4 @@
 {
 	"docker_compose_file_version": "3.6",
-	"exclude_services": ["ia_gobase", "ia_pybase", "ia_gopybase"],
-	"docker_registry": "localhost"
+	"exclude_services": ["ia_gobase", "ia_pybase", "ia_gopybase"]
 }

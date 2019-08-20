@@ -21,13 +21,12 @@ EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via 
         { 
             "docker_compose_file_version": "<docker_compose_file_version which is compose file version supported by deploying docker engine>",
             
-            "exclude_services": [list of services which you want exclude for your deployement],
-	        
-            "docker_registry": "<docker registry where deployement machine pulls built image"
+            "exclude_services": [list of services which you want exclude for your deployement]
 
         }        
       ```
     ***Note***: Please validate the json.
+    Also Please ensure that you have updated the DOCKER_REGISTRY in [docker_setup/.env](../.env) file
 
 3. Follow the below commands for Telit bundle Generation.
     ```
