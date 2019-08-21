@@ -25,12 +25,16 @@ Influx is time series database.
 Kapacitor is an analytics engine where user can write custom analytics plug-ins (TICK scripts).
 
 ## Starting the example
-
+l
 1. To start the mqtt-temp-sensor, please refer [tools/mqtt-temp-sensor/README.md](../../tools/mqtt-temp-sensor/README.md) .
 
 2. In case, if SI wants to use the IEdgeInsights only for Point data Analytics,
+<<<<<<< HEAD
    then open the docker-compose.yml file in [docker_setup/docker-compose.yml](../../docker_setup/docker-compose.yml) and
    use only ia_telegraf, ia_influxdbconnector, ia_data_analytics and ia_visualizer services.
+=======
+   then comment all Video use case containers in ../docker_setup/docker-compose.yml
+>>>>>>> EIS: Cleanup of stale code & replace IEI with EIS
 
 3. Starting the EIS.
    To start the EIS in production mode, provisioning is required. For more information on provisioning

@@ -73,7 +73,6 @@
         "RTSP_CAMERA_IP":"localhost",
         "EIS_USER_NAME":"eisuser",
         "EIS_UID":"5319",
-        "EIS_SERVICES":"services_video.json",
         "EIS_INSTALL_PATH":"/opt/intel/eis",
         "PROFILING":"false",
         "PY_LOG_LEVEL":"INFO",

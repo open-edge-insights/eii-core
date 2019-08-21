@@ -1,6 +1,5 @@
 cert-tool/
 DataIngestionLib/
-dist_libs/
 docker_setup/
 FactoryControlApp/
 licenses/

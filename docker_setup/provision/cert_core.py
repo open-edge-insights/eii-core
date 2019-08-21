@@ -171,7 +171,7 @@ def generate_root_ca(opts):
                 "-keyout",  paths.root_ca_key_path(),
                 "-out",     paths.root_ca_cert_path(),
                 "-outform", "PEM",
-                "-subj",    "/CN=IEICertToolSelfSignedtRootCA/L=$$$$/",
+                "-subj",    "/CN=EISCertToolSelfSignedtRootCA/L=$$$$/",
                 "-nodes")
     openssl_x509("-in",      paths.root_ca_cert_path(),
                  "-out",     paths.root_ca_certificate_cer_path(),

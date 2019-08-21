@@ -217,7 +217,7 @@ EIS stack comes with following services, which can be included/excluded in docke
 
 # Usage of Docker Registry
 
-This is an `optional` step where in IEI user wants to build and run EIS images using a DOCKER REGISTRY. This is very helpful
+This is an `optional` step where in EIS user wants to build and run EIS images using a DOCKER REGISTRY. This is very helpful
 when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
 
 Follow below steps:
@@ -242,8 +242,8 @@ Follow below steps:
 
 # Debugging options
 
-1. To check if all the IEI images are built successfully, use cmd: `docker images|grep ia` and
-   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and IEI containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building IEI images:
+1. To check if all the EIS images are built successfully, use cmd: `docker images|grep ia` and
+   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EIS containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building EIS images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911
@@ -252,9 +252,9 @@ Follow below steps:
 
 2. `docker ps` should list all the containers which are included in docker-compose.yml
    
-3. To verify if the data pipeline withing IEI is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_video_analytics` container using cmd: `docker logs -f ia_video_analytics`. One should see, publish messages like `Publishing topic: [topic_name]`
+3. To verify if the data pipeline withing EIS is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_video_analytics` container using cmd: `docker logs -f ia_video_analytics`. One should see, publish messages like `Publishing topic: [topic_name]`
 
-5. `/opt/intel/eis` root directory gets created - This is the installation path for IEI:
+5. `/opt/intel/eis` root directory gets created - This is the installation path for EIS:
      * `data/` - stores the backup data for persistent imagestore and influxdb
 
 ---
