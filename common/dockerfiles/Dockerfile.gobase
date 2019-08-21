@@ -31,33 +31,8 @@ RUN mkdir -p ${GLOG_GO_PATH} && \
     cd ${GLOG_GO_PATH} && \
     git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 
-RUN go get go.etcd.io/etcd/client
-
-
-COPY libs/EISMessageBus/install.sh ./libs/EISMessageBus/install.sh
-
-
 RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
     tar --strip-components=1 -xz -C /usr/local
-
-RUN /EIS/go/src/IEdgeInsights/libs/EISMessageBus/install.sh
-
-COPY libs/EISMessageBus ./libs/EISMessageBus
-RUN cd /EIS/go/src/IEdgeInsights/libs/EISMessageBus && \
-    rm -rf build deps && mkdir -p build && cd build && \
-    cmake -DWITH_GO=ON .. && \
-    make && \
-    make install
-
-ENV MSGBUS_DIR $GO_WORK_DIR/libs/EISMessageBus
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:$MSGBUS_DIR/build/
-ENV PKG_CONFIG_PATH $PKG_CONFIG_PATH:$MSGBUS_DIR/build/
-ENV CGO_CFLAGS -I$MSGBUS_DIR/include/
-ENV CGO_LDFLAGS -L$MSGBUS_DIR/build -leismsgbus
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib
-
-RUN ln -s /EIS/go/src/IEdgeInsights/libs/EISMessageBus/go/EISMessageBus/ $GOPATH/src/EISMessageBus
-
 
 # Building safestringlib
 ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
@@ -70,17 +45,14 @@ RUN git clone https://github.com/intel/safestringlib.git && \
     cd .. && \
     make -j8
 
-COPY Util/ ./Util/
-
 # These flags are needed for enabling security while compiling and linking with cpuidcheck in golang
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
-# Copying safestringlib to Util
-RUN cd safestringlib && \
-    cp -rf libsafestring.a ${GO_WORK_DIR}/Util/cpuid
 
-RUN cd Util/cpuid && \
-    make -j8
-    
-COPY libs ./libs/
+RUN go get go.etcd.io/etcd/client
+
+COPY libs/EISMessageBus/install.sh ./install.sh
+
+RUN ./install.sh
+
 HEALTHCHECK NONE

@@ -2,7 +2,7 @@
 ARG EIS_VERSION
 FROM ia_gobase:$EIS_VERSION as base
 
-FROM ia_gopybase:$EIS_VERSION
+FROM ia_gopybase:$EIS_VERSION as gopybase
 LABEL description="Data Analytics image"
 
 ENV PY_WORK_DIR /EIS
@@ -41,18 +41,26 @@ COPY classifier_requirements.txt .
 RUN pip3.6 install -r classifier_requirements.txt && \
     rm -rf classifier_requirements.txt
 
-RUN mkdir -p /EIS/go/src/github.com/golang/glog
-COPY --from=base /EIS/go/src/github.com/golang/glog /EIS/go/src/github.com/golang/glog
+RUN mkdir -p ${PY_WORK_DIR}/go/src/github.com/golang/glog
+COPY --from=base ${PY_WORK_DIR}/go/src/github.com/golang/glog ${PY_WORK_DIR}/go/src/github.com/golang/glog
+
+RUN mkdir ${PY_WORK_DIR}/classifier_logs && \
+    chown ${EIS_UID} -R ${PY_WORK_DIR}/classifier_logs 
+
+ENV KAPACITOR_SERVER localhost
+ENV KAPACITOR_PORT 9092
+
+FROM ia_common:$EIS_VERSION as common
+
+FROM gopybase
+
+COPY --from=common /libs ${PY_WORK_DIR}/libs
+COPY --from=common /Util ${PY_WORK_DIR}/Util
 
 # Adding classifier program
 COPY . ./
 RUN chmod +x ./classifier_start.sh
 
-RUN mkdir /EIS/classifier_logs && \
-    chown ${EIS_UID} -R /EIS/classifier_logs 
-
-ENV KAPACITOR_SERVER localhost
-ENV KAPACITOR_PORT 9092
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]
 HEALTHCHECK NONE

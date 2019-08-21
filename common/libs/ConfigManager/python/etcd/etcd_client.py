@@ -66,7 +66,6 @@ class EtcdCli:
 
     def GetConfig(self, key):
         """ GetConfig gets the value of a key from Etcd """
-
         try:
             value = self.etcd.get(key)
         except Exception as e:

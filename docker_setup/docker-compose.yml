@@ -6,8 +6,8 @@ services:
   # Define ia_gobase service
   ia_gobase:
     build:
-      context: $PWD/../BaseLibs
-      dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.gobase
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.gobase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
@@ -17,13 +17,23 @@ services:
   ia_pybase:
     depends_on:
       - ia_gobase
+      - ia_common
     build:
-      context: $PWD/../BaseLibs
-      dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.pybase
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.pybase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_pybase:${EIS_VERSION}
+
+  ia_common:
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
+      args:
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          EIS_VERSION: ${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
   #----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
@@ -86,16 +96,6 @@ services:
       Clients: "VideoAnalytics"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      DEBIAN_FRONTEND: noninteractive
-      MFX_HOME: "/opt/intel/mediasdk/"
-      PKG_CONFIG_PATH: "/opt/intel/mediasdk"
-      LIBVA_DRIVERS_PATH: "/usr/lib/x86_64-linux-gnu/dri/"
-      LIBVA_DRIVER_NAME: "iHD"
-      LD_RUN_PATH: "/usr/lib"
-      LD_LIBRARY_PATH: "/opt/intel/mediasdk/lib/:/opt/intel/mediasdk/share/mfx/samples"
-      TERM: "xterm"
-      GST_PLUGIN_PATH: "/usr/local/lib/gstreamer-1.0"
-      GST_DEBUG: "1"
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -336,8 +336,8 @@ services:
     depends_on:
       - ia_pybase
     build:
-      context: $PWD/../BaseLibs
-      dockerfile: $PWD/../BaseLibs/dockerfiles/Dockerfile.gopybase
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.gopybase
       args:
         EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_gopybase:${EIS_VERSION}
@@ -514,7 +514,6 @@ services:
       - seccomp:$PWD/config/seccomp_default.json
       - no-new-privileges
 
-  
 
 secrets:
   ca_cert:
