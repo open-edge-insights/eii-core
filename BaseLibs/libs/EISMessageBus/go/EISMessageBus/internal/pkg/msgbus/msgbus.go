@@ -352,7 +352,7 @@ func goToConfigValue(value interface{}) (unsafe.Pointer, error) {
 			if configValue == nil {
 				unregister(refId)
 			}
-		case reflect.Array:
+		case reflect.Slice:
 			arr := value.([]interface{})
 			config := newConfigContext(nil, arr)
 			refId := register(config)

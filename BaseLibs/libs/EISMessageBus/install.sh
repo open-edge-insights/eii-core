@@ -97,7 +97,7 @@ log_info "Configuring libzmq for building"
 check_error "Configuring libzmq build failed"
 
 log_info "Compiling libzmq library"
-make -j$(ncores)
+make -j${ncores}
 check_error "Failed to compile libzmq"
 
 log_info "Installing libzmq"
@@ -137,7 +137,7 @@ cmake ..
 check_error "Failed to configure cJSON"
 
 log_info "Compiling cJSON library"
-make -j$(ncores)
+make -j${ncores}
 check_error "Failed to compile cJSON library"
 
 log_info "Installing cJSON library"

@@ -271,11 +271,17 @@ msgbus_ret_t wait_client_connected(void* monitor) {
         return MSG_ERR_UNKNOWN;
     }
 
+    LOG_DEBUG_0("Waiting for handshake");
+
     event = get_monitor_event(monitor, true);
     if(event != ZMQ_EVENT_HANDSHAKE_SUCCEEDED) {
         LOG_ERROR_0("ZeroMQ handshake failed");
         return MSG_ERR_AUTH_FAILED;
     }
+
+    LOG_DEBUG_0("ZeroMQ handshake successful");
+
+    LOG_DEBUG_0("Socket connected successfully");
 
     return MSG_SUCCESS;
 }
