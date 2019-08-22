@@ -224,6 +224,30 @@ void close_zero_linger(void* socket) {
     zmq_close(socket);
 }
 
+static const char* get_event_str(int event) {
+    switch(event) {
+        case ZMQ_EVENT_CONNECTED:       return "ZMQ_EVENT_CONNECTED";
+        case ZMQ_EVENT_CONNECT_DELAYED: return "ZMQ_EVENT_CONNECT_DELAYED";
+        case ZMQ_EVENT_CONNECT_RETRIED: return "ZMQ_EVENT_CONNECT_RETRIED";
+        case ZMQ_EVENT_LISTENING:       return "ZMQ_EVENT_LISTENING";
+        case ZMQ_EVENT_BIND_FAILED:     return "ZMQ_EVENT_BIND_FAILED";
+        case ZMQ_EVENT_ACCEPTED:        return "ZMQ_EVENT_ACCEPTED";
+        case ZMQ_EVENT_CLOSED:          return "ZMQ_EVENT_CLOSED";
+        case ZMQ_EVENT_CLOSE_FAILED:    return "ZMQ_EVENT_CLOSE_FAILED";
+        case ZMQ_EVENT_DISCONNECTED:    return "ZMQ_EVENT_DISCONNECTED";
+        case ZMQ_EVENT_MONITOR_STOPPED: return "ZMQ_EVENT_MONITOR_STOPPED";
+        case ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL:
+            return "ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL";
+        case ZMQ_EVENT_HANDSHAKE_SUCCEEDED:
+            return "ZMQ_EVENT_HANDSHAKE_SUCCEEDED";
+        case ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL:
+            return "ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL";
+        case ZMQ_EVENT_HANDSHAKE_FAILED_AUTH:
+            return "ZMQ_EVENT_HANDSHAKE_FAILED_AUTH";
+        default: return "";
+    }
+}
+
 // Helper method to see if any events occured on a given socket
 int get_monitor_event(void* monitor, bool block) {
     zmq_msg_t msg;
@@ -245,7 +269,7 @@ int get_monitor_event(void* monitor, bool block) {
     uint16_t event = *(uint16_t*)((uint8_t*) zmq_msg_data(&msg));
     zmq_msg_close(&msg);
 
-    LOG_DEBUG("Got the event: %d", event);
+    LOG_DEBUG("ZeroMQ socket event: %s", get_event_str(event));
 
     // Retrieve second frame
     zmq_msg_init(&msg);
@@ -256,35 +280,34 @@ int get_monitor_event(void* monitor, bool block) {
     return event;
 }
 
+// ----------
+// NOTE: Commented out for now, this method may be required in the future,
+// keeping it for now
+//
 // Helper function to wait until a socket is connected
-msgbus_ret_t wait_client_connected(void* monitor) {
-    LOG_DEBUG_0("Waiting for successful connection");
-    int event = get_monitor_event(monitor, true);
-
-    if(event == ZMQ_EVENT_CONNECT_DELAYED) {
-        LOG_DEBUG_0("Connection delayed.. Still waiting");
-        event = get_monitor_event(monitor, true);
-    }
-
-    if(event != ZMQ_EVENT_CONNECTED) {
-        LOG_ERROR_0("Socket failed to connect");
-        return MSG_ERR_UNKNOWN;
-    }
-
-    LOG_DEBUG_0("Waiting for handshake");
-
-    event = get_monitor_event(monitor, true);
-    if(event != ZMQ_EVENT_HANDSHAKE_SUCCEEDED) {
-        LOG_ERROR_0("ZeroMQ handshake failed");
-        return MSG_ERR_AUTH_FAILED;
-    }
-
-    LOG_DEBUG_0("ZeroMQ handshake successful");
-
-    LOG_DEBUG_0("Socket connected successfully");
-
-    return MSG_SUCCESS;
-}
+// msgbus_ret_t wait_client_connected(void* monitor) {
+//     LOG_DEBUG_0("Waiting for successful connection");
+//     int event = get_monitor_event(monitor, true);
+//
+//     if(event == ZMQ_EVENT_CONNECT_DELAYED) {
+//         LOG_DEBUG_0("Connection delayed.. Still waiting");
+//         event = get_monitor_event(monitor, true);
+//     }
+//
+//     if(event != ZMQ_EVENT_CONNECTED) {
+//         LOG_ERROR_0("Socket failed to connect");
+//         return MSG_ERR_UNKNOWN;
+//     }
+//
+//     event = get_monitor_event(monitor, true);
+//     if(event != ZMQ_EVENT_HANDSHAKE_SUCCEEDED) {
+//         LOG_ERROR_0("ZeroMQ handshake failed");
+//         return MSG_ERR_AUTH_FAILED;
+//     }
+//
+//     return MSG_SUCCESS;
+// }
+// ----------
 
 msgbus_ret_t sock_ctx_new(
         void* zmq_ctx, const char* name, void* socket,
@@ -1128,6 +1151,7 @@ msgbus_ret_t proto_zmq_subscriber_new(
     void* ctx, const char* topic, void** subscriber)
 {
     LOG_DEBUG("ZeroMQ subscribing to %s", topic);
+
     // Cast context to proper structure
     zmq_proto_ctx_t* zmq_ctx = (zmq_proto_ctx_t*) ctx;
     zmq_recv_ctx_t* zmq_recv_ctx = NULL;
@@ -1200,13 +1224,6 @@ msgbus_ret_t proto_zmq_subscriber_new(
         goto err;
     }
 
-    rc = wait_client_connected(zmq_recv_ctx->sock_ctx->monitor);
-    if(rc != MSG_SUCCESS) {
-        if(rc == MSG_ERR_UNKNOWN)
-            rc = MSG_ERR_SUB_FAILED;
-        goto err;
-    }
-
     *subscriber = (void*) zmq_recv_ctx;
 
     LOG_DEBUG_0("ZeroMQ subscription finished");
@@ -1242,6 +1259,43 @@ void free_zmq_msg(void* ptr) {
     free(msg);
 }
 
+/**
+ * Helper function to check for events occuring for a given client socket
+ * (i.e. a subscriber or service client).
+ *
+ * Returns MSG_SUCCESS if no event occurred or if events occured but are not
+ * critical errors.
+ *
+ * @param monitor - ZeroMQ monitor socket
+ * @return MSG_SUCCESS
+ */
+msgbus_ret_t check_client_events(void* monitor) {
+    switch(get_monitor_event(monitor, false)) {
+        case ZMQ_EVENT_HANDSHAKE_SUCCEEDED:
+            LOG_DEBUG_0("Handshake for the socket succeeded");
+            break;
+        case ZMQ_EVENT_CONNECT_DELAYED:
+            LOG_DEBUG_0("ZeroMQ connection delayed");
+            break;
+        case ZMQ_EVENT_CONNECTED:
+            LOG_DEBUG_0("ZeroMQ socket connected");
+            break;
+        case ZMQ_EVENT_DISCONNECTED:
+            LOG_WARN_0("ZeroMQ socket disconnected");
+            break;
+        // All possible handshake failure events
+        case ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL:
+        case ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL:
+        case ZMQ_EVENT_HANDSHAKE_FAILED_AUTH:
+            LOG_ERROR_0("ZeroMQ handshake failed");
+            return MSG_ERR_AUTH_FAILED;
+        default:
+            // No event received...
+            break;
+    }
+    return MSG_SUCCESS;
+}
+
 msgbus_ret_t base_recv(
         recv_type_t type, zmq_sock_ctx_t* ctx, int timeout,
         msg_envelope_t** env)
@@ -1254,6 +1308,7 @@ msgbus_ret_t base_recv(
     poll_items[0].events = ZMQ_POLLIN;
 
     if(timeout < 0) {
+        msgbus_ret_t event_ret;
         // Poll indefinitley
         while(true) {
             rc = zmq_poll(poll_items, 1, 1000);
@@ -1269,14 +1324,9 @@ msgbus_ret_t base_recv(
                 break;
             }
 
-            // Check if disconnected
-            if(type != RECV_SERVICE && (ctx->disconnected
-                        || get_monitor_event(ctx->monitor, false)
-                            == ZMQ_EVENT_DISCONNECTED)) {
-                LOG_ERROR_0("Socket has been disconnected");
-                ctx->disconnected = true;
-                return MSG_ERR_DISCONNECTED;
-            }
+            event_ret = check_client_events(ctx->monitor);
+            if(event_ret != MSG_SUCCESS)
+                return event_ret;
         }
     } else {
         // Get microseconds for the timeout
@@ -1289,13 +1339,9 @@ msgbus_ret_t base_recv(
             return MSG_ERR_RECV_FAILED;
         }
 
-        // Check if disconnected
-        if(get_monitor_event(ctx->monitor, false) == ZMQ_EVENT_DISCONNECTED ||
-                ctx->disconnected) {
-            LOG_ERROR_0("Socket has been disconnected");
-            ctx->disconnected = true;
-            return MSG_ERR_DISCONNECTED;
-        }
+        msgbus_ret_t event_ret = check_client_events(ctx->monitor);
+        if(event_ret != MSG_SUCCESS)
+            return event_ret;
     }
 
     LOG_DEBUG_0("Receiving all of the message");
@@ -1493,13 +1539,6 @@ msgbus_ret_t proto_zmq_service_get(
     if(rc != 0) {
         ret = MSG_ERR_SERVICE_INIT_FAILED;
         LOG_ZMQ_ERROR("Failed to connect socket");
-        goto err;
-    }
-
-    ret = wait_client_connected(zmq_recv_ctx->sock_ctx->monitor);
-    if(ret != MSG_SUCCESS) {
-        if(ret == MSG_ERR_UNKNOWN)
-            ret = MSG_ERR_SERVICE_INIT_FAILED;
         goto err;
     }
 

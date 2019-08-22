@@ -38,3 +38,10 @@ class Disconnected(Exception):
     """Error raised when a receive context has been disconnected.
     """
     pass
+
+
+class MessageBusAuthenticationFailed(Exception):
+    """Error raised when the message bus authentication for a receive context
+    fails.
+    """
+    pass

@@ -474,6 +474,9 @@ func (ctx *MsgbusContext) ReceiveWait(recvCtx *ReceiveContext) (*types.MsgEnvelo
 		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
 			return nil, errors.New("Disconnected")
 		}
+		if recvRet.recv_ret == C.MSG_ERR_AUTH_FAILED {
+			return nil, errors.New("Authentication Failed")
+		}
 		return nil, errors.New("Failed to receive message")
 	}
 
@@ -500,6 +503,9 @@ func (ctx *MsgbusContext) ReceiveNoWait(recvCtx *ReceiveContext) (*types.MsgEnve
 		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
 			return nil, errors.New("Disconnected")
 		}
+		if recvRet.recv_ret == C.MSG_ERR_AUTH_FAILED {
+			return nil, errors.New("Authentication Failed")
+		}
 		return nil, errors.New("Failed to receive message")
 	}
 
@@ -525,6 +531,9 @@ func (ctx *MsgbusContext) ReceiveTimedWait(recvCtx *ReceiveContext, timeout int)
 		}
 		if recvRet.recv_ret == C.MSG_ERR_DISCONNECTED {
 			return nil, errors.New("Disconnected")
+		}
+		if recvRet.recv_ret == C.MSG_ERR_AUTH_FAILED {
+			return nil, errors.New("Authentication Failed")
 		}
 		return nil, errors.New("Failed to receive message")
 	}

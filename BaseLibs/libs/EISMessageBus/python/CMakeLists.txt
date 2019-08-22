@@ -34,6 +34,7 @@ configure_file(${SETUP_PY_IN} ${SETUP_PY})
 
 # Add custom build command
 add_custom_command(
+    DEPENDS eismsgbus
     OUTPUT ${OUTPUT}
     COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} build
     COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}

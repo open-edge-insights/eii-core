@@ -95,6 +95,8 @@ cdef class ReceiveContext:
             return None
         if ret == msgbus_ret_t.MSG_ERR_DISCONNECTED:
             raise Disconnected('Receive context has been disconnected')
+        if ret == msgbus_ret_t.MSG_ERR_AUTH_FAILED:
+            raise MessageBusAuthenticationFailed('Authentication Failed')
         if ret != msgbus_ret_t.MSG_SUCCESS:
             raise MessageBusError('Receive failed')
 
