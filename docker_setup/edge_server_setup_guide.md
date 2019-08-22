@@ -75,7 +75,7 @@ $ pip3.6 install numpy
     mkdir build
     cd build
     cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON3_EXECUTABLE=`which python3.6` -DPYTHON_DEFAULT_EXECUTABLE=`which python3.6` -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_CXX_FLAGS=-std=c++11 ..
-    make -j4
+    make -j$(nproc)
     make install
     ln -s /usr/local/lib/python3.6/site-packages/cv2.cpython-36m-x86_64-linux-gnu.so /usr/lib/python3.6/site-packages
     ```

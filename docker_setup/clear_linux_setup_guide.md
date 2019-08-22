@@ -152,7 +152,7 @@ of Clear Linux.
     $ mkdir build
     $ cd build
     $ PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/ cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON3_EXECUTABLE=`which python3` -DPYTHON_DEFAULT_EXECUTABLE=`which python3` -DENABLE_PRECOMPILED_HEADERS=OFF -DCMAKE_CXX_FLAGS=-std=c++11 ..
-    $ export LD_LIBRARY_PATH=/usr/local/lib; make -j8
+    $ export LD_LIBRARY_PATH=/usr/local/lib; make -j$(nproc)
     $ sudo make install
     ```
 

@@ -3,5 +3,10 @@ ARG EIS_VERSION
 
 FROM ubuntu:$UBUNTU_IMAGE_VERSION
 
+# Setting ENV for pybase containers
+ENV PY_WORK_DIR /EIS
+
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
+
 COPY libs ./libs
 COPY Util/ ./Util

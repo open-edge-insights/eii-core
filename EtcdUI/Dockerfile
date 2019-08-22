@@ -6,5 +6,5 @@ RUN curl -L https://github.com/evildecay/etcdkeeper/releases/download/${ETCD_KEE
     unzip etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip
 RUN rm -rf etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip
 RUN chmod +x etcdkeeper/etcdkeeper
-ADD start_etcdkeeper.py ./
+COPY start_etcdkeeper.py ./
 ENTRYPOINT ["python3", "start_etcdkeeper.py"]
