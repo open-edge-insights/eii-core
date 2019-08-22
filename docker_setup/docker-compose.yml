@@ -308,8 +308,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_telegraf:${EIS_VERSION}
     restart: unless-stopped
     environment:
-      AppName: "Telegraf"
-      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
     volumes:
       - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
@@ -328,8 +326,8 @@ services:
       - no-new-privileges
     secrets:
         - ca_etcd
-        - etcd_root_cert
-        - etcd_root_key
+        - etcd_InfluxDBConnector_cert
+        - etcd_InfluxDBConnector_key
 
   # Define ia_gopybase service - This base images is required to build ia_data_analytics
   ia_gopybase:
@@ -556,4 +554,3 @@ secrets:
     file: Certificates/root/root.pem
   etcd_root_key:
     file: Certificates/root/root-key.pem
-

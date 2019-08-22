@@ -45,13 +45,6 @@
             "port": "8086"
         }
     },
-    "/Telegraf/config": {
-        "influxdb": {
-            "username": "admin",
-            "password": "admin123",
-            "dbname": "datain"
-        }
-    },
     "/Kapacitor/config": {
         "influxdb": {
             "username": "admin",

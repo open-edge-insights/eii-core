@@ -79,22 +79,22 @@ def read_config(client, dev_mode):
     """Read the configuration from etcd
     """
     app_name = os.environ["AppName"]
-    config_key_path = "/config"
-    configfile = client.GetConfig("/{0}{1}".format(
+    config_key_path = "config"
+    configfile = client.GetConfig("/{0}/{1}".format(
                  app_name, config_key_path))
     config = json.loads(configfile)
     os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["influxdb"]["username"]
     os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["influxdb"]["password"]
 
     if not dev_mode:
-        cert = client.GetConfig("/{0}{1}".format(
-               app_name, "/server_cert"))
+        cert = client.GetConfig("/{0}/{1}".format(
+               app_name, "server_cert"))
         write_cert(KAPACITOR_CERT, cert)
-        key = client.GetConfig("/{0}{1}".format(
-               app_name, "/server_key"))
+        key = client.GetConfig("/{0}/{1}".format(
+               app_name, "server_key"))
         write_cert(KAPACITOR_KEY, key)
-        ca = client.GetConfig("/{0}{1}".format(
-               app_name, "/ca_cert"))
+        ca = client.GetConfig("/{0}/{1}".format(
+               app_name, "ca_cert"))
         write_cert(KAPACITOR_CA, ca)
 
 
@@ -112,7 +112,7 @@ def start_kapacitor(client, host_name, dev_mode):
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
             os.environ["KAPACITOR_URL"] = "{}{}".format(HTTP_SCHEME,
                                                         KAPACITOR_HOSTNAME_PORT)
-            os.environ["KAPACITOR_UNSAFE_SSL"] = "false"
+            os.environ["KAPACITOR_UNSAFE_SSL"] = "true"
             os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
                 HTTP_SCHEME, INFLUXDB_HOSTNAME_PORT)
         else:
@@ -120,7 +120,7 @@ def start_kapacitor(client, host_name, dev_mode):
             kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
             os.environ["KAPACITOR_URL"] = "{}{}".format(HTTPS_SCHEME,
                                                         KAPACITOR_HOSTNAME_PORT)
-            os.environ["KAPACITOR_UNSAFE_SSL"] = "true"
+            os.environ["KAPACITOR_UNSAFE_SSL"] = "false"
             os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
                 HTTPS_SCHEME, INFLUXDB_HOSTNAME_PORT)
 
