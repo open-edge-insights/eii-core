@@ -144,13 +144,10 @@ def pw_gen():
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-def put_x509_certs():
+def put_x509_certs(appname,certtype):
     """Put required X509 certs to ETCD
     """
-    # TODO: put proper code in place to put them runtime, currenly to enable
-    # overall security integration they are hardcoded in script.
-
-    subprocess.run("./put_x509_certs.sh")
+    subprocess.run(["./put_x509_certs.sh", appname, certtype])
 
 
 if __name__ == "__main__":
@@ -165,13 +162,16 @@ if __name__ == "__main__":
     for key, value in apps.items():
         try:
             if not devMode:
-                if value.index('zmq') >= 0:
+                if 'zmq' in value:
                     put_zmqkeys(key)
+                if 'pem' in value:
+                    put_x509_certs(key,'pem')
+                if 'der' in value:
+                    put_x509_certs(key,'der')
                 create_etcd_users(key)
-            # TODO: Generate keys for X509 certs and put it in etcd
+          
         except ValueError:
             pass
 
     if not devMode:
-        put_x509_certs()
         enable_etcd_auth()

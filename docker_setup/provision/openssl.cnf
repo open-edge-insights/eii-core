@@ -1,4 +1,4 @@
-SAN = "IP:127.0.0.1"
+SAN = "IP:127.0.0.1,DNS:localhost"
 common_name = @COMMON_NAME@
 
 [ ca ]

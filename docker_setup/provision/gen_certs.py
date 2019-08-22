@@ -29,40 +29,49 @@ import cert_core
 import paths
 import argparse
 import subprocess
+import yaml
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Tool Used for Generating\
                                      SSL Certificates")
-    parser.add_argument('--dns', dest='dns',
-                        help='Domain Names for the Server Certificates')
     parser.add_argument('--clean', action='store_true',
                         help='Clear All the Generated Certificates')
-    parser.add_argument('--capath', dest='rootca_path',
-                        help='RootCA certificate Path, if given,cert-tool\
-                        will re-use the existing rootCA certificate')
+    parser.add_argument('--f', dest='compose_file_path',
+                        help='docker-compose.yml file path')
     return parser.parse_args()
 
 
-def parse_json():
+def parse_yml(filepath):
+    #print(filepath)
     with open("config.json") as f:
         data = json.load(f)
+           
+    
+    with open(filepath) as f:
+        docs = yaml.load_all(f, Loader=yaml.FullLoader)
+        for doc in docs:
+            for key, value in doc.items():
+                if key == "services":
+                    for key, value in value.items():
+                        for key, value in value.items():
+                            if key == "environment":
+                                if 'AppName' in value.keys():
+                                    cert_name= value['AppName']
+                                    cert_details={'client_alt_name':''}                                   
+                                    data["certificates"].append({cert_name:cert_details})
+                                if 'CertType' in value.keys():
+                                    if 'pem' in value["CertType"]:
+                                        cert_name= value['AppName'] + "_Server"
+                                        cert_details={'server_alt_name':''}                                   
+                                        data["certificates"].append({cert_name:cert_details})
+                                    if 'der' in value["CertType"]:
+                                        cert_name= value['AppName'] + "_Server"
+                                        cert_details={'server_alt_name':'', 'output_format':'DER'}                                   
+                                        data["certificates"].append({cert_name:cert_details})
+                                
     return data
-
-
-def add_server_entries(data, server):
-    server_list_candidates = data["server_list_candidates"]
-    for cert in data["certificates"]:
-
-        for component, cert_opts in cert.items():
-            if component in server_list_candidates:
-                if "server_alt_name" in cert_opts:
-                    cert_opts.update(
-                        {"server_alt_name": [cert_opts["server_alt_name"],
-                                             server]})
-                else:
-                    return None
-    return data
+    
 
 
 def copy_certificates_to_results_folder():
@@ -111,43 +120,18 @@ def clean():
             pass
 
 
-def process_config(server=None, root_ca_needed=True):
-    data = parse_json()
-    if server:
-        data = add_server_entries(data, server)
-        if not data:
-            print("Error:: sever_alt_name is missing,Cannot Add DNS,\
-Hence Exiting. Please modify config.json and try again")
-    if data:
-        generate(data, root_ca_needed)
-
-
 if __name__ == '__main__':
     try:
         args = parse_args()
-        
-        output = subprocess.check_output(["hostname", "-I"])
-        output = output.decode('utf-8')
-        
-        hostIp = output.split(" ")[0]
-        print("**HostIp to be added to imagestore and opcua server certs**: ", 
-          hostIp)
-
-        if args.dns is None:
-            args.dns = hostIp
-
         if args.clean is True:
             clean()
             exit(1)
-        elif args.dns and args.rootca_path:
-            root_ca_dir = args.rootca_path
-            paths.root_ca_dir_name = root_ca_dir
-            process_config(args.dns, False)   # root CA not needed
-        elif args.dns and not args.rootca_path:
-            process_config(args.dns)
-        elif not args.dns and args.rootca_path:
-            process_config(args.dns)
-        else:
-            process_config()
+        # if not args.compose_file_path:
+        #     print("Please provide compose file path for cert generation")
+        #     exit(1)
+        
+        
+        data = parse_yml(args.compose_file_path)
+        generate(data)
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))

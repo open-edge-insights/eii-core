@@ -19,17 +19,23 @@ check_ETCD_port() {
 	done
 }
 
+echo "1 Generating required certificates"
 
+ if $DEV_MODE = "true"; then
+ 	echo "EIS is not running in Secure mode. Generating certificates is not required.. "
+ else
+ 	python3 gen_certs.py --f $1
+ fi
 
-echo "1 Bringing down existing ETCD container"
+echo "2 Bringing down existing ETCD container"
 docker-compose -f dep/docker-compose-provision.yml down 
 
-echo "1.2 Checking ETCD port"
+echo "2.2 Checking ETCD port"
 
 check_ETCD_port
 
 
-echo "2. Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
+echo "3. Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 
 # EIS containers will be executed as eisuser
 if ! id $EIS_USER_NAME >/dev/null 2>&1; then
@@ -43,7 +49,7 @@ else
 fi
 
 
-echo "3. Creating Required Directories"
+echo "4. Creating Required Directories"
 
 if $ETCD_RESET = "true"; then
     rm -rf $EIS_INSTALL_PATH/data/etcd
@@ -53,10 +59,10 @@ mkdir -p $IEI_INSTALL_PATH/data/influxdata
 mkdir -p $EIS_INSTALL_PATH/data/etcd
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
+chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
 
 
-
-echo "4. Copying docker compose yaml file which is provided as argument."
+echo "5. Copying docker compose yaml file which is provided as argument."
 # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
 
 cp $1 ./docker-compose.yml

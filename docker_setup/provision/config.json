@@ -1,0 +1,16 @@
+{
+  
+  "certificates": [
+     {
+       "etcdserver": {
+         "server_alt_name": ""
+       }
+     },
+     {
+       "root": {
+         "client_alt_name": ""
+       }
+     }
+   ]
+ }
+ 

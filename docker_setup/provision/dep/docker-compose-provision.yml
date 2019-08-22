@@ -56,16 +56,14 @@ services:
         - etcd_root_cert
         - etcd_root_key
 secrets:
-  ca_cert:
-    file: ../Certificates/ca/ca_certificate.pem
   ca_etcd:
-    file: ../Certificates/ca_etcd/ca.pem
+    file: ../Certificates/ca/ca_certificate.pem
   etcd_server_cert:
-    file: ../Certificates/etcdserver/etcdserver.pem
+    file:  ../Certificates/etcdserver/etcdserver_server_certificate.pem
   etcd_server_key:
-    file: ../Certificates/etcdserver/etcdserver-key.pem
+    file:  ../Certificates/etcdserver/etcdserver_server_key.pem
   etcd_root_cert:
-    file: ../Certificates/root/root.pem
+    file:  ../Certificates/root/root_client_certificate.pem
   etcd_root_key:
-    file: ../Certificates/root/root-key.pem
+    file:  ../Certificates/root/root_client_key.pem
 
