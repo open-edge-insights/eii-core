@@ -40,6 +40,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 	var topicConfigList []string
 	appName := os.Getenv("AppName")
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
+	topic = strings.TrimSpace(topic)
 	if strings.ToLower(topicType) == "sub" {
 		subTopics = strings.Split(topic, "/")
 		topic = subTopics[1]
@@ -51,7 +52,8 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 		topicConfigList = strings.Split(os.Getenv(topic+"_cfg"), ",")
 	}
 	var messageBusConfig map[string]interface{}
-
+	topicConfigList[0] = strings.TrimSpace(topicConfigList[0])
+	topicConfigList[1] = strings.TrimSpace(topicConfigList[1])
 	if topicConfigList[0] == "zmq_tcp" {
 		address := strings.Split(topicConfigList[1], ":")
 		hostname := address[0]
@@ -74,6 +76,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				var allowedClients []string
 				subscribers := strings.Split(os.Getenv("Clients"), ",")
 				for _, subscriber := range subscribers {
+					subscriber = strings.TrimSpace(subscriber)
 					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subscriber)
 					if err != nil {
 						glog.Errorf("Etcd GetConfig Error %v", err)
@@ -94,6 +97,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				topic:  hostConfig,
 			}
 			if !devMode {
+				subTopics[0] = strings.TrimSpace(subTopics[0])
 				serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subTopics[0])
 				if err != nil {
 					glog.Errorf("Etcd GetConfig Error %v", err)
@@ -122,6 +126,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				var allowedClients []string
 				clients := strings.Split(os.Getenv("Clients"), ",")
 				for _, client := range clients {
+					client = strings.TrimSpace(client)
 					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + client)
 					if err != nil {
 						glog.Errorf("Etcd GetConfig Error %v", err)

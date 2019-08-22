@@ -90,8 +90,10 @@ class Util:
         :rtype: dict
         """
         app_name = os.environ["AppName"]
+        topic = topic.strip()
         mode, address = os.environ[topic + "_cfg"].split(",")
-
+        mode = mode.strip()
+        address = address.strip()
         if mode == "zmq_tcp":
             host, port = address.split(":")
             config = {
@@ -108,6 +110,7 @@ class Util:
                 if not dev_mode:
                     allowed_clients = []
                     for subscriber in zmq_clients:
+                        subscriber = subscriber.strip()
                         allowed_clients_keys = config_client.GetConfig(
                                         "/Publickeys/{0}".format(subscriber))
 
@@ -121,6 +124,7 @@ class Util:
             elif topic_type == "sub":
                 config[topic] = host_port_details
                 if not dev_mode:
+                    zmq_clients = zmq_clients.strip()
                     config[topic]["server_public_key"] = \
                         config_client.GetConfig("/Publickeys/{0}".
                                                 format(zmq_clients))
