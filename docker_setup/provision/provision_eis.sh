@@ -27,9 +27,11 @@ echo "1 Generating required certificates"
  	python3 gen_certs.py --f $1
  fi
 
-echo "2 Bringing down existing ETCD container"
+echo "2 Bringing down existing EIS containers"
 docker-compose -f dep/docker-compose-provision.yml down 
-
+cd ..
+docker-compose down 
+cd provision
 echo "2.2 Checking ETCD port"
 
 check_ETCD_port
@@ -59,8 +61,10 @@ mkdir -p $EIS_INSTALL_PATH/data/influxdata
 mkdir -p $EIS_INSTALL_PATH/data/etcd
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
-chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
 
+if $DEV_MODE = "false"; then
+	chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
+fi
 
 echo "5. Copying docker compose yaml file which is provided as argument."
 # This file will be volume mounted inside the provisioning container and deleted once privisioning it done

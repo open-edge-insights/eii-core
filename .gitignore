@@ -18,8 +18,8 @@ __pycache__/
 *.test
 
 VideoAnalytics/l_openvino*
-cert-tool/Certificates
-cert-tool/client/
-cert-tool/rootca/
-cert-tool/server/
+docker_setup/provision/Certificates
+docker_setup/provision/client/
+docker_setup/provision/rootca/
+docker_setup/provision/server/
 .vscode

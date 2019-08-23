@@ -255,6 +255,7 @@ services:
     container_name: ia_influxdbconnector
     hostname: ia_influxdbconnector
     network_mode: host
+    restart: unless-stopped
     environment:
       AppName: "InfluxDBConnector"
       CertType: "zmq,pem"
