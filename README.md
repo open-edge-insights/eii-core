@@ -157,8 +157,6 @@ The section assumes the EIS software is already downloaded from the release pack
    A successful run will open Visualizer UI with results of video analytics.
    
 
-> Note: Use the developer mode option in Visualizer to run without security if the EIS is started in Dev mode.
-
 # Enable camera based Video Ingestion
 
 EIS supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.

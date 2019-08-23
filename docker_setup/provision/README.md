@@ -1,6 +1,9 @@
 #  EIS Provisioning
 
-* By default EIS is provisioned in Production mode. Please update DEV_MODE=true in [docker_setup/.env](../.env) to provision EIS in Developer mode. Developer mode will have all security disabled.
+* By default EIS is provisioned in Production mode. 
+* Please update DEV_MODE=true in [docker_setup/.env](../.env) to provision EIS in Developer mode. 
+* <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
+* Developer mode will have all security disabled. 
 
 Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 Following actions will be performed as part of Provisioning

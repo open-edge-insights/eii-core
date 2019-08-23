@@ -21,14 +21,15 @@ check_ETCD_port() {
 
 echo "1 Generating required certificates"
 
- if $DEV_MODE = "true"; then
+ if $DEV_MODE; then
  	echo "EIS is not running in Secure mode. Generating certificates is not required.. "
  else
  	python3 gen_certs.py --f $1
  fi
 
 echo "2 Bringing down existing EIS containers"
-docker-compose -f dep/docker-compose-provision.yml down 
+docker-compose -f dep/docker-compose-provision.yml down
+docker-compose -f dep/docker-compose-provision-dev.yml down
 cd ..
 docker-compose down 
 cd provision
@@ -53,7 +54,7 @@ fi
 
 echo "4. Creating Required Directories"
 
-if $ETCD_RESET = "true"; then
+if $ETCD_RESET; then
     rm -rf $EIS_INSTALL_PATH/data/etcd
 fi
 
@@ -62,7 +63,7 @@ mkdir -p $EIS_INSTALL_PATH/data/etcd
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
 
-if $DEV_MODE = "false"; then
+if ! $DEV_MODE; then
 	chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
 fi
 
@@ -73,7 +74,10 @@ cp $1 ./docker-compose.yml
 
 echo "5. Starting and provisioning ETCD ..."
 
-
-docker-compose -f dep/docker-compose-provision.yml up --build -d
+if $DEV_MODE; then
+	docker-compose -f dep/docker-compose-provision-dev.yml up --build -d
+else
+	docker-compose -f dep/docker-compose-provision.yml up --build -d
+fi
 
 rm ./docker-compose.yml
