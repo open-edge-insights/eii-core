@@ -257,7 +257,7 @@ services:
     network_mode: host
     environment:
       AppName: "InfluxDBConnector"
-      CertType: "zmq"
+      CertType: "zmq,pem"
       DEV_MODE: ${DEV_MODE}
       #SubTopics is mainly for the stream data to subscribe
       #and push to InfluxDB
@@ -308,6 +308,8 @@ services:
     image: ${DOCKER_REGISTRY}ia_telegraf:${EIS_VERSION}
     restart: unless-stopped
     environment:
+      AppName: "Telegraf"
+      CertType: ""
       DEV_MODE: ${DEV_MODE}
     volumes:
       - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
@@ -358,7 +360,7 @@ services:
     restart: unless-stopped
     environment:
       AppName: "Kapacitor"
-      CertType: "zmq"
+      CertType: "pem"
       DEV_MODE: ${DEV_MODE}
     volumes:
       - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
@@ -489,7 +491,7 @@ services:
     hostname: ia_opcua_export
     environment:
       AppName: "OpcuaExport"
-      CertType: "zmq"
+      CertType: "zmq,der"
       PubTopics: "cam_serial1_results,cam_serial2_results"
       OpcuaExportCfg: "opcua,localhost:65003"
       SubTopics: "VideoAnalytics/camera1_stream_results"
@@ -514,43 +516,41 @@ services:
 
 
 secrets:
-  ca_cert:
-    file: Certificates/ca/ca_certificate.der
   ca_etcd:
-    file: Certificates/ca_etcd/ca.pem
+    file: provision/Certificates/ca/ca_certificate.pem
   etcd_FactoryControlApp_cert:
-    file: Certificates/FactoryControlApp/FactoryControlApp.pem
+    file: provision/Certificates/FactoryControlApp/FactoryControlApp_client_certificate.pem
   etcd_FactoryControlApp_key:
-    file: Certificates/FactoryControlApp/FactoryControlApp-key.pem
+    file: provision/Certificates/FactoryControlApp/FactoryControlApp_client_key.pem
   etcd_ImageStore_cert:
-    file: Certificates/ImageStore/ImageStore.pem
+    file: provision/Certificates/ImageStore/ImageStore_client_certificate.pem
   etcd_ImageStore_key:
-    file: Certificates/ImageStore/ImageStore-key.pem
+    file: provision/Certificates/ImageStore/ImageStore_client_key.pem
   etcd_InfluxDBConnector_cert:
-    file: Certificates/InfluxDBConnector/InfluxDBConnector.pem
+    file: provision/Certificates/InfluxDBConnector/InfluxDBConnector_client_certificate.pem
   etcd_InfluxDBConnector_key:
-    file: Certificates/InfluxDBConnector/InfluxDBConnector-key.pem
+    file: provision/Certificates/InfluxDBConnector/InfluxDBConnector_client_key.pem
   etcd_Kapacitor_cert:
-    file: Certificates/Kapacitor/Kapacitor.pem
+    file: provision/Certificates/Kapacitor/Kapacitor_client_certificate.pem
   etcd_Kapacitor_key:
-    file: Certificates/Kapacitor/Kapacitor-key.pem
+    file: provision/Certificates/Kapacitor/Kapacitor_client_key.pem
   etcd_OpcuaExport_cert:
-    file: Certificates/OpcuaExport/OpcuaExport.pem
+    file: provision/Certificates/OpcuaExport/OpcuaExport_client_certificate.pem
   etcd_OpcuaExport_key:
-    file: Certificates/OpcuaExport/OpcuaExport-key.pem
+    file: provision/Certificates/OpcuaExport/OpcuaExport_client_key.pem
   etcd_VideoAnalytics_cert:
-    file: Certificates/VideoAnalytics/VideoAnalytics.pem
+    file: provision/Certificates/VideoAnalytics/VideoAnalytics_client_certificate.pem
   etcd_VideoAnalytics_key:
-    file: Certificates/VideoAnalytics/VideoAnalytics-key.pem
+    file: provision/Certificates/VideoAnalytics/VideoAnalytics_client_key.pem
   etcd_VideoIngestion_cert:
-    file: Certificates/VideoIngestion/VideoIngestion.pem
+    file: provision/Certificates/VideoIngestion/VideoIngestion_client_certificate.pem
   etcd_VideoIngestion_key:
-    file: Certificates/VideoIngestion/VideoIngestion-key.pem
+    file: provision/Certificates/VideoIngestion/VideoIngestion_client_key.pem
   etcd_Visualizer_cert:
-    file: Certificates/Visualizer/Visualizer.pem
+    file: provision/Certificates/Visualizer/Visualizer_client_certificate.pem
   etcd_Visualizer_key:
-    file: Certificates/Visualizer/Visualizer-key.pem
+    file: provision/Certificates/Visualizer/Visualizer_client_key.pem
   etcd_root_cert:
-    file: Certificates/root/root.pem
+    file: provision/Certificates/root/root_client_certificate.pem
   etcd_root_key:
-    file: Certificates/root/root-key.pem
+    file: provision/Certificates/root/root_client_key.pem
