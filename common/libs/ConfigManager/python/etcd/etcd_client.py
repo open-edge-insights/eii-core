@@ -70,7 +70,9 @@ class EtcdCli:
             value = self.etcd.get(key)
         except Exception as e:
             raise e
-        return value[0].decode('utf-8')
+        if value[0] is not None:
+            return value[0].decode('utf-8')
+        return value[0]
 
     def onChangeCallback(self, event):
         key = event.events[0].key
