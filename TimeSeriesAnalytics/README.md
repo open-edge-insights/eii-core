@@ -54,11 +54,19 @@ l
    docker logs -f ia_visualizer
    ```
 
-   Below is the snapshot of sample output of the above command.
+   Below is the snapshot of sample output of the ia_influxdbconnector command.
    ```
    I0822 09:03:01.705940       1 pubManager.go:111] Published message: map[data:point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=19.29358085726703,ts=1566464581.6201317 1566464581621377117] 
    I0822 09:03:01.927094       1 pubManager.go:111] Published message: map[data:point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=19.29358085726703,ts=1566464581.6201317 1566464581621377117]
    I0822 09:03:02.704000       1 pubManager.go:111] Published message: map[data:point_data,host=ia_telegraf,topic=temperature/simulated/0 ts=1566464582.6218634,temperature=27.353740759929877 1566464582622771952]
+   ```
+
+   Below is the snapshot of sample output of the ia_visualizer command.
+   ```
+   2019-08-26 10:38:13,869 : INFO : root : [visualize.py] :zmqSubscriber : in line : [402] : Classifier results: {'data': 'point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=18.624896449633443,ts=1566815892.9866698 1566815892987649482\n'}
+   2019-08-26 10:38:15,154 : INFO : root : [visualize.py] :zmqSubscriber : in line : [402] : Classifier results: {'data': 'point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=10.84324034762356,ts=1566815893.9882996 1566815893989408936\n'}
+   2019-08-26 10:38:15,154 : INFO : root : [visualize.py] :zmqSubscriber : in line : [402] : Classifier results: {'data': 'point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=10.052214661918322,ts=1566815894.990011 1566815894991129870\n'}
+   2019-08-26 10:38:16,776 : INFO : root : [visualize.py] :zmqSubscriber : in line : [402] : Classifier results: {'data': 'point_classifier_results,host=ia_telegraf,topic=temperature/simulated/0 temperature=12.555421975490562,ts=1566815895.9918363 1566815895993111771\n'}
    ```
 
 ## Purpose of Telegraf
