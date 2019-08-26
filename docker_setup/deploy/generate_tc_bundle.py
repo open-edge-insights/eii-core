@@ -50,7 +50,8 @@ class TurtleCreekBundleGenerator:
             self.config['version'] = self.docker_compose_file_version
             # Remove Unwanted Services for Build
             for service in self.exclude_services:
-                del self.config['services'][service]
+                if service in self.config['services']:
+                    del self.config['services'][service]
             # Remove Build Option & depends_on Option from docker-compose
             for service in self.config['services'].keys():
                 if 'build' in self.config['services'][service].keys():
@@ -76,7 +77,10 @@ class TurtleCreekBundleGenerator:
         cmdlist.append("cp -rf ../config ./eis_installer/")
         cmdlist.append("cp ../.env ./eis_installer/")
         cmdlist.append("cp -rf ../test_videos/ ./eis_installer")
-        cmdlist.append("cp -rf ../Certificates/ ./eis_installer")
+        if self.env["DEV_MODE"] == "false":
+            cmdlist.append("mkdir -p eis_installer/provision")
+            cmdlist.append("cp -rf ../provision/Certificates/\
+             ./eis_installer/provision")
         cmdlist.append("tar -czvf eis_installer.tar.gz ./eis_installer")
         cmdlist.append("rm -rf eis_installer/")
         try:
