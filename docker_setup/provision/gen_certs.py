@@ -43,7 +43,6 @@ def parse_args():
 
 
 def parse_yml(filepath):
-    #print(filepath)
     with open("config.json") as f:
         data = json.load(f)
            
@@ -57,9 +56,17 @@ def parse_yml(filepath):
                         for key, value in value.items():
                             if key == "environment":
                                 if 'AppName' in value.keys():
-                                    cert_name= value['AppName']
-                                    cert_details={'client_alt_name':''}                                   
-                                    data["certificates"].append({cert_name:cert_details})
+                                    existingCert = False
+                                    for keyValue in data["certificates"]:
+                                        if value['AppName']  in keyValue.keys():
+                                            existingCert = True
+
+                                    if not existingCert:
+                                         cert_name= value['AppName']
+                                         cert_details={'client_alt_name':''} 
+                                         data["certificates"].append({cert_name:cert_details})
+
+
                                 if 'CertType' in value.keys():
                                     if 'pem' in value["CertType"]:
                                         cert_name= value['AppName'] + "_Server"
