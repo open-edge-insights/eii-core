@@ -24,7 +24,8 @@ echo "1 Generating required certificates"
  if $DEV_MODE; then
  	echo "EIS is not running in Secure mode. Generating certificates is not required.. "
  else
- 	python3 gen_certs.py --f $1
+ 	 pip3 install -r cert_requirements.txt
+	 python3 gen_certs.py --f $1
  fi
 
 echo "2 Bringing down existing EIS containers"
