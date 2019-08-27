@@ -31,18 +31,7 @@ logger = None
 args = None
 POINT_SOCKET_FILE = "/tmp/point_classifier"
 
-
-def parse_args():
-    """Parse command line arguments
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--log-name', help='Logfile name')
-    parser.add_argument('--log-dir', dest='log_dir', default='logs',
-                        help='Directory to for log files')
-    return parser.parse_args()
-
-
-def start_classifier(logFileName):
+def start_classifier():
     """Starts the classifier module
     """
     try:
@@ -207,7 +196,6 @@ def enable_classifier_task(host_name):
 
 if __name__ == '__main__':
 
-    args = parse_args()
     dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
     # Initializing Etcd to set env variables
     conf = {
@@ -223,20 +211,16 @@ if __name__ == '__main__':
         }
     cfg_mgr = ConfigManager()
     config_client = cfg_mgr.get_config_client("etcd", conf)
-    currentDateTime = str(datetime.datetime.now())
-    listDateTime = currentDateTime.split(" ")
-    currentDateTime = "_".join(listDateTime)
-    logFileName = 'dataAnalytics_' + currentDateTime + '.log'
 
-    logger = configure_logging(os.environ['PY_LOG_LEVEL'].upper(), logFileName,
-                               args.log_dir, __name__)
+    logger = configure_logging(os.environ['PY_LOG_LEVEL'].upper(),
+                               __name__)
     logger.info("=============== STARTING data_analytics ==============")
 
     host_name = os.environ["KAPACITOR_SERVER"]
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
-    if (start_classifier(logFileName) is True):
+    if (start_classifier() is True):
         grant_permission_socket(POINT_SOCKET_FILE)
         if(start_kapacitor(config_client, host_name, dev_mode) is True):
             enable_classifier_task(host_name)
