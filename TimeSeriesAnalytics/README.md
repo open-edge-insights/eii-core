@@ -29,12 +29,19 @@ l
 1. To start the mqtt-temp-sensor, please refer [tools/mqtt-temp-sensor/README.md](../../tools/mqtt-temp-sensor/README.md) .
 
 2. In case, if SI wants to use the IEdgeInsights only for Point data Analytics,
-<<<<<<< HEAD
-   then open the docker-compose.yml file in [docker_setup/docker-compose.yml](../../docker_setup/docker-compose.yml) and
-   use only ia_telegraf, ia_influxdbconnector, ia_data_analytics and ia_visualizer services.
-=======
-   then comment all Video use case containers in ../docker_setup/docker-compose.yml
->>>>>>> EIS: Cleanup of stale code & replace IEI with EIS
+   then comment Video use case containers ia_video_ingestion and ia_video_analytics in [docker_setup/docker-compose.yml](../docker_setup/docker-compose.yml)
+
+   In ia_visualizer service, uncomment the following lines:
+   ```
+   SubTopics: "InfluxDBConnector/point_classifier_results"
+   point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
+   ```
+   and comment the following lines:
+   ```
+   SubTopics: "VideoAnalytics/camera1_stream_results"
+   camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
+   ```
+
 
 3. Starting the EIS.
    To start the EIS in production mode, provisioning is required. For more information on provisioning

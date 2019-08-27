@@ -209,6 +209,9 @@ services:
       DISPLAY: ${DISPLAY}
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       SubTopics: "VideoAnalytics/camera1_stream_results"
+      # Uncomment the following line for running Time Series use case only
+      # SubTopics: "InfluxDBConnector/point_classifier_results"
+      # Uncomment the following line for running Video and Time Series together
       # SubTopics: "VideoAnalytics/camera1_stream_results,InfluxDBConnector/point_classifier_results"
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
       # based containers are running on the same host. If they are running on diff
