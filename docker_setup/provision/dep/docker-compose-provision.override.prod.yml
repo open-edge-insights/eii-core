@@ -1,0 +1,30 @@
+version: '3.6'
+services:
+  ia_etcd:
+    secrets:
+        - ca_etcd
+        - etcd_server_cert
+        - etcd_server_key
+        - etcd_root_cert
+        - etcd_root_key
+
+  ia_etcd_provision:
+    secrets:
+        - ca_etcd
+        - etcd_root_cert
+        - etcd_root_key
+    environment:
+      ETCD_ROOT_PASSWORD: eis123
+
+secrets:
+  ca_etcd:
+    file: ../Certificates/ca/ca_certificate.pem
+  etcd_server_cert:
+    file:  ../Certificates/etcdserver/etcdserver_server_certificate.pem
+  etcd_server_key:
+    file:  ../Certificates/etcdserver/etcdserver_server_key.pem
+  etcd_root_cert:
+    file:  ../Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file:  ../Certificates/root/root_client_key.pem
+

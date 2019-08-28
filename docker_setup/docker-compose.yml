@@ -96,7 +96,7 @@ services:
       Clients: "VideoAnalytics"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${NO_PROXY},${RTSP_CAMERA_IP}
+      no_proxy: ${no_proxy},${RTSP_CAMERA_IP}
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based

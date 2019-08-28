@@ -11,22 +11,24 @@ services:
     restart: unless-stopped
     container_name: ia_etcd
     environment:
+      HOST_IP: $HOST_IP
       ETCDCTL_API: 3
       DEV_MODE: $DEV_MODE
       ETCD_DATA_DIR: $ETCD_DATA_DIR
       ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
+      ETCD_PEER_PORT: $ETCD_PEER_PORT
+      ETCD_NAME: $ETCD_NAME
+      ETCD_INITIAL_CLUSTER_STATE: $ETCD_INITIAL_CLUSTER_STATE
+      ETCD_INITIAL_CLUSTER: $ETCD_INITIAL_CLUSTER
       no_proxy: $no_proxy
+      NO_PROXY: $no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
     volumes:
       - "$EIS_INSTALL_PATH/data/etcd:$ETCD_DATA_DIR"
     network_mode: host
     user: $EIS_UID
-    secrets:
-        - ca_etcd
-        - etcd_server_cert
-        - etcd_server_key
-
+    
   ia_etcd_provision:
     build:
        context: ../
@@ -47,23 +49,9 @@ services:
       DEV_MODE: ${DEV_MODE}
       ETCD_ROOT_PASSWORD: eis123
       no_proxy: $no_proxy
+      NO_PROXY: $no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
     network_mode: host
     user: $EIS_UID
-    secrets:
-        - ca_etcd
-        - etcd_root_cert
-        - etcd_root_key
-secrets:
-  ca_etcd:
-    file: ../Certificates/ca/ca_certificate.pem
-  etcd_server_cert:
-    file:  ../Certificates/etcdserver/etcdserver_server_certificate.pem
-  etcd_server_key:
-    file:  ../Certificates/etcdserver/etcdserver_server_key.pem
-  etcd_root_cert:
-    file:  ../Certificates/root/root_client_certificate.pem
-  etcd_root_key:
-    file:  ../Certificates/root/root_client_key.pem
-
+   

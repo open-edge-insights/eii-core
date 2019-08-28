@@ -8,7 +8,7 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 3. [EIS Pre-requisites](#eis-pre-requisites)
 
-4. [Provision EIS Cluster](#provision-eis-cluster)
+4. [Provision EIS](#provision-eis)
 
 5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
@@ -111,13 +111,32 @@ The section assumes the EIS software is already downloaded from the release pack
    > build failure of VideoAnalytics container if there are multiple openvino sdk's in there (especially the old ones)
 
 
-# Provision EIS Cluster
+# Provision EIS
 
-* Please follow below readme to Provision EIS cluster.
+Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 
-    [docker_setup/provision/README.md](docker_setup/provision/README.md)
+By default EIS is provisioned in Secure mode. Please follow below steps to provision EIS in Devleoper mode. Developer mode will have all security disabled. 
 
-   > **NOTE**: During provisioning you can set up cluster and security mode.  
+* Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode. 
+* <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
+ 
+
+Following actions will be performed as part of Provisioning
+
+ * Loading inital ETCD values from json file located at [docker_setup/provision/config/etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json).
+ * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
+ * Generating required X509 certs and putting them in etcd.
+
+    Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
+    ```
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+
+    ```
+* By default EIS is provisioned with Single node cluster. 
+* In order to join nodes to EIS cluster. Please follow steps mentioned in [docker_setup/provision/EISCluster.md](docker_setup/provision/EISCluster.md) to provision EIS to new nodes in same cluster
+
 
 # Build and Run EIS PCB Demo Example
 
@@ -226,6 +245,7 @@ Follow below steps:
 * Building EIS images and pushing the same to docker registry. 
 
       ```sh
+      docker-compose build
       docker-compose push
 
       ```

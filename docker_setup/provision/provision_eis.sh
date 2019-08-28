@@ -1,8 +1,28 @@
-#!/bin/bash 
+#!/bin/bash -e
+# Provision EIS
+# Usage: sudo ./provision_eis <path-of-docker-compose-file>
+
+hostIP=`hostname -I | awk '{print $1}'`
+export HOST_IP=$hostIP
+echo 'System IP Address is:' $HOST_IP
+
 set -a
 source ../.env
-source dep/.cluster.env
 set +a
+
+if [ $ETCD_NAME = 'node1' ]; then
+	export ETCD_INITIAL_CLUSTER_STATE=new
+else
+    	if [ -f dep/$ETCD_NAME.env ]; then
+		set -a
+    		source dep/$ETCD_NAME.env
+    		set +a
+		else
+			echo "Required file dep/$ETCD_NAME.env does not exits, can not join ETCD cluster."
+			exit -1
+		fi
+fi
+
 
 check_ETCD_port() {
 	echo "Checking if ETCD ports are already up..."
@@ -21,16 +41,17 @@ check_ETCD_port() {
 
 echo "1 Generating required certificates"
 
- if $DEV_MODE; then
+ if [ $DEV_MODE = 'true' ]; then
  	echo "EIS is not running in Secure mode. Generating certificates is not required.. "
  else
  	 pip3 install -r cert_requirements.txt
+	 rm -rf Certificates
 	 python3 gen_certs.py --f $1
  fi
 
 echo "2 Bringing down existing EIS containers"
 docker-compose -f dep/docker-compose-provision.yml down
-docker-compose -f dep/docker-compose-provision-dev.yml down
+
 cd ..
 docker-compose down 
 cd provision
@@ -55,7 +76,8 @@ fi
 
 echo "4. Creating Required Directories"
 
-if $ETCD_RESET; then
+
+if [ $ETCD_RESET = 'true' ]; then
     rm -rf $EIS_INSTALL_PATH/data/etcd
 fi
 
@@ -64,9 +86,13 @@ mkdir -p $EIS_INSTALL_PATH/data/etcd
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
 
-if ! $DEV_MODE; then
+if [ $DEV_MODE = 'false' ]; then
 	chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
+	chmod -R 760 $EIS_INSTALL_PATH/data/
+else
+	chmod -R 777 $EIS_INSTALL_PATH/data/
 fi
+
 
 echo "5. Copying docker compose yaml file which is provided as argument."
 # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
@@ -74,11 +100,12 @@ echo "5. Copying docker compose yaml file which is provided as argument."
 cp $1 ./docker-compose.yml
 
 echo "5. Starting and provisioning ETCD ..."
+# ia_etcd_provision will run only for first node on the cluster. Not required for any other node joining
 
-if $DEV_MODE; then
-	docker-compose -f dep/docker-compose-provision-dev.yml up --build -d
+if [ $DEV_MODE = 'true' ]; then
+		docker-compose -f dep/docker-compose-provision.yml up --build -d
 else
-	docker-compose -f dep/docker-compose-provision.yml up --build -d
+		docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
 fi
 
 rm ./docker-compose.yml

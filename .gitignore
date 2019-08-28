@@ -22,4 +22,5 @@ docker_setup/provision/Certificates
 docker_setup/provision/client/
 docker_setup/provision/rootca/
 docker_setup/provision/server/
+docker_setup/provision/dep/node*.env
 .vscode
