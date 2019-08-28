@@ -43,7 +43,9 @@
             "ssl": "True",
             "verifySsl": "False",
             "port": "8086"
-        }
+        },
+        "pub_workers" : "5",
+        "sub_workers" : "5"
     },
     "/Kapacitor/config": {
         "influxdb": {
