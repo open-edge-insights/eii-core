@@ -69,8 +69,6 @@
     "/GlobalEnv": {
         "COMPOSE_HTTP_TIMEOUT":"200",
         "COMPOSE_PROJECT_NAME":"EIS_docker_network",
-        "NO_PROXY":"localhost,127.0.0.1",
-        "RTSP_CAMERA_IP":"localhost",
         "EIS_USER_NAME":"eisuser",
         "EIS_UID":"5319",
         "EIS_INSTALL_PATH":"/opt/intel/eis",
