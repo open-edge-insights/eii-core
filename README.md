@@ -210,6 +210,7 @@ EIS stack comes with following services, which can be included/excluded in docke
 8. [Telegraf](Telegraf/README.md)
 9. [TimeSeriesAnalytics](TimeSeriesAnalytics/README.md)
 10. [EtcdUI](EtcdUI/README.md)
+11. [DiscoveryCreek](DiscoveryCreek/README.md)
 
 
 
