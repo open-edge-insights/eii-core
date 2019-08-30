@@ -13,7 +13,7 @@ RUN apt-get update && \
     apt-get install -y software-properties-common pkg-config python python-pip && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y cmake g++ git build-essential python3.6 python3.6-dev wget iputils-ping && \
+    apt-get install -y cmake g++ git build-essential python3.6 python3.6-dev wget iputils-ping python3-distutils && \
     wget https://bootstrap.pypa.io/get-pip.py && \
     python3.6 get-pip.py && \
     apt-get install -y libsm6 libxext6 libfontconfig1 libxrender1

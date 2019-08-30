@@ -18,6 +18,7 @@ RUN apt-get update && \
     tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
     go get -u github.com/golang/dep/cmd/dep
 
+ARG DEBIAN_FRONTEND=noninteractive
 # Setting timezone inside the container
 RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
     cat /etc/timezone && \
