@@ -65,19 +65,14 @@ def put_zmqkeys(appname):
     """
     secret_key = ''
     public_key = ''
-    
-    
     public_key, secret_key = zmq.curve_keypair()
-    
     str_public_key = public_key.decode()
     str_secret_key = secret_key.decode()
-    
     while str_public_key[0] is "-" or str_secret_key[0] is "-":
-        logging.info("Re-generating ZMQ keys") 
+        logging.info("Re-generating ZMQ keys")
         public_key, secret_key = zmq.curve_keypair()
         str_public_key = public_key.decode()
         str_secret_key = secret_key.decode()
-        
     try:
         subprocess.run(["./etcdctl", "put",
                         "/Publickeys/" + appname, public_key])
@@ -130,21 +125,11 @@ def create_etcd_users(appname):
 
     :param appname: App Name
     :type appname: String
-    :Note it used random password generation for now as stable version of etcd
-    binary(v3.3.13) does not support --no-password option for user creation.
-    Once it is availiable with stable release, this random password generation
-    should be replaced with --no-password.
     """
-    subprocess.run(["./etcd_create_user.sh", appname, pw_gen()])
+    subprocess.run(["./etcd_create_user.sh", appname])
 
 
-def pw_gen():
-    size = 8
-    chars = string.ascii_letters + string.digits + string.punctuation
-    return ''.join(random.choice(chars) for _ in range(size))
-
-
-def put_x509_certs(appname,certtype):
+def put_x509_certs(appname, certtype):
     """Put required X509 certs to ETCD
     """
     subprocess.run(["./put_x509_certs.sh", appname, certtype])
@@ -165,11 +150,10 @@ if __name__ == "__main__":
                 if 'zmq' in value:
                     put_zmqkeys(key)
                 if 'pem' in value:
-                    put_x509_certs(key,'pem')
+                    put_x509_certs(key, 'pem')
                 if 'der' in value:
-                    put_x509_certs(key,'der')
+                    put_x509_certs(key, 'der')
                 create_etcd_users(key)
-          
         except ValueError:
             pass
 

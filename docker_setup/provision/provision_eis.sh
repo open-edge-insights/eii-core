@@ -10,6 +10,8 @@ set -a
 source ../.env
 set +a
 
+export no_proxy=$no_proxy,$HOST_IP
+
 if [ $ETCD_NAME = 'node1' ]; then
 	export ETCD_INITIAL_CLUSTER_STATE=new
 else
