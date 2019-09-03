@@ -29,7 +29,7 @@ domainComponent = optional
 
 
 [ req ]
-default_bits       = 4096
+default_bits       = ${ENV::SSL_KEY_LENGTH}
 default_md         = sha256
 prompt             = yes
 distinguished_name = root_ca_distinguished_name

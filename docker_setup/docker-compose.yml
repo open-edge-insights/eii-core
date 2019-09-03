@@ -278,6 +278,7 @@ services:
   #     #Server is for both point data and stream data
   #     Server: "zmq_tcp,127.0.0.1:8675"
   #     Clients: "Visualizer,DiscoveryCreek"
+  #     INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
   #   volumes:
   #     - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
   #     - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"

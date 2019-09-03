@@ -163,11 +163,10 @@ def prepare_ca_directory(dir_name):
 
 def generate_root_ca(opts):
     prepare_ca_directory(paths.root_ca_path())
-
     openssl_req(opts,
                 "-x509",
                 "-days",    str(3650),
-                "-newkey",  "rsa:{}".format(4096),
+                "-newkey",  "rsa:{}".format(os.getenv('SSL_KEY_LENGTH')),
                 "-keyout",  paths.root_ca_key_path(),
                 "-out",     paths.root_ca_cert_path(),
                 "-outform", "PEM",
@@ -180,22 +179,22 @@ def generate_root_ca(opts):
 
 def generate_server_certificate_and_key_pair(key, opts):
     try:
-        generate_certificate_and_key_pair(key, "server", opts)
+        generate_cert_and_key_pair(key, "server", opts)
     except Exception as err:
         raise err
 
 
 def generate_client_certificate_and_key_pair(key, opts):
     try:
-        generate_certificate_and_key_pair(key, "client", opts)
+        generate_cert_and_key_pair(key, "client", opts)
     except Exception as err:
         raise err
 
 
-def generate_certificate_and_key_pair(key, peer, opts,
-                                      pa_cert_path=paths.root_ca_cert_path(),
-                                      pa_key_path=paths.root_ca_key_path(),
-                                      pa_certs_path=paths.root_ca_certs_path()):
+def generate_cert_and_key_pair(key, peer, opts,
+                               pa_cert_path=paths.root_ca_cert_path(),
+                               pa_key_path=paths.root_ca_key_path(),
+                               pa_certs_path=paths.root_ca_certs_path()):
 
     os.makedirs(paths.relative_path(peer), exist_ok=True)
     if 'output_format' in opts:
@@ -209,7 +208,7 @@ def generate_certificate_and_key_pair(key, peer, opts,
 
     openssl_req(opts,
                 "-new",
-                "-newkey", "rsa:{}".format(4096),
+                "-newkey",  "rsa:{}".format(os.getenv('SSL_KEY_LENGTH')),
                 "-keyout",  privkey_path,
                 "-out",     req_pem_path,
                 "-days",    str(3650),
