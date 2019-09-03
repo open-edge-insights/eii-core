@@ -96,6 +96,7 @@ services:
       Clients: "VideoAnalytics"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
+      PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${no_proxy},${RTSP_CAMERA_IP}
       SOCKET_DIR: ${SOCKET_DIR}
       PubTopics: "camera1_stream"
@@ -151,6 +152,7 @@ services:
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
+      PROFILING_MODE: ${PROFILING_MODE}
       SubTopics: "VideoIngestion/camera1_stream"
       SOCKET_DIR: ${SOCKET_DIR}
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
@@ -225,6 +227,7 @@ services:
       # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${no_proxy}
+      PROFILING_MODE: ${PROFILING_MODE}
     privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
@@ -266,6 +269,7 @@ services:
   #     AppName: "InfluxDBConnector"
   #     CertType: "zmq,pem"
   #     DEV_MODE: ${DEV_MODE}
+  #     PROFILING_MODE: ${PROFILING_MODE}
   #     #SubTopics is mainly for the stream data to subscribe
   #     #and push to InfluxDB
   #     SubTopics: "VideoAnalytics/camera1_stream_results,DiscoveryCreek/dc_point_data_results"
