@@ -11,10 +11,10 @@ from Util.log import configure_logging, LOG_LEVELS
 from distutils.util import strtobool
 import os
 from Util.util \
-import (write_certs,
-        create_decrypted_pem_files,
-        check_port_availability,
-        delete_certs)
+     import (write_certs,
+             create_decrypted_pem_files,
+             check_port_availability,
+             delete_certs)
 
 ETCD_CLIENT_CERT = "/run/secrets/etcd_Kapacitor_cert"
 ETCD_CLIENT_KEY = "/run/secrets/etcd_Kapacitor_key"
@@ -30,6 +30,7 @@ KAPACITOR_NAME = 'kapacitord'
 logger = None
 args = None
 POINT_SOCKET_FILE = "/tmp/point_classifier"
+
 
 def start_classifier():
     """Starts the classifier module
@@ -62,7 +63,8 @@ def write_cert(file_name, cert):
             fd.write(cert.encode())
     except Exception as e:
         logger.debug("Failed creating file: {}, Error: {} ".format(file_name,
-                                                                    e))
+                                                                   e))
+
 
 def read_config(client, dev_mode):
     """Read the configuration from etcd
@@ -72,8 +74,10 @@ def read_config(client, dev_mode):
     configfile = client.GetConfig("/{0}/{1}".format(
                  app_name, config_key_path))
     config = json.loads(configfile)
-    os.environ["KAPACITOR_INFLUXDB_0_USERNAME"] = config["influxdb"]["username"]
-    os.environ["KAPACITOR_INFLUXDB_0_PASSWORD"] = config["influxdb"]["password"]
+    os.environ['KAPACITOR_INFLUXDB_0_USERNAME'] = config['influxdb'
+                                                         ]['username']
+    os.environ['KAPACITOR_INFLUXDB_0_PASSWORD'] = config['influxdb'
+                                                         ]['password']
 
     if not dev_mode:
         cert = client.GetConfig("/{0}/{1}".format(
@@ -87,7 +91,6 @@ def read_config(client, dev_mode):
         write_cert(KAPACITOR_CA, ca)
 
 
-
 def start_kapacitor(client, host_name, dev_mode):
     """Starts the kapacitor Daemon in the background
     """
@@ -99,16 +102,18 @@ def start_kapacitor(client, host_name, dev_mode):
     try:
         if dev_mode:
             kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
-            os.environ["KAPACITOR_URL"] = "{}{}".format(HTTP_SCHEME,
-                                                        KAPACITOR_HOSTNAME_PORT)
+            os.environ["KAPACITOR_URL"] = "{}{}".format(
+                                                HTTP_SCHEME,
+                                                KAPACITOR_HOSTNAME_PORT)
             os.environ["KAPACITOR_UNSAFE_SSL"] = "true"
             os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
                 HTTP_SCHEME, INFLUXDB_HOSTNAME_PORT)
         else:
             # Populate the certificates for kapacitor server
             kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
-            os.environ["KAPACITOR_URL"] = "{}{}".format(HTTPS_SCHEME,
-                                                        KAPACITOR_HOSTNAME_PORT)
+            os.environ["KAPACITOR_URL"] = "{}{}".format(
+                                                HTTPS_SCHEME,
+                                                KAPACITOR_HOSTNAME_PORT)
             os.environ["KAPACITOR_UNSAFE_SSL"] = "false"
             os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
                 HTTPS_SCHEME, INFLUXDB_HOSTNAME_PORT)
@@ -158,7 +163,7 @@ def exit_with_failure_message(message):
     exit(FAILURE)
 
 
-def enable_classifier_task(host_name):
+def enable_classifier_task(host_name, dev_mode):
     """Enable the classifier TICK Script using the kapacitor CLI
     """
     retry_count = 5
@@ -186,12 +191,13 @@ def enable_classifier_task(host_name):
         time.sleep(0.0001)
         retry = retry + 1
 
-    try:
-        file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
-                     "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
-        delete_certs(file_list)
-    except Exception as e:
-        logger.error("Exception Occured while removing kapacitor certs")
+    if not (dev_mode):
+        try:
+            file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
+                         "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
+            delete_certs(file_list)
+        except Exception:
+            logger.error("Exception Occured while removing kapacitor certs")
 
 
 if __name__ == '__main__':
@@ -223,7 +229,7 @@ if __name__ == '__main__':
     if (start_classifier() is True):
         grant_permission_socket(POINT_SOCKET_FILE)
         if(start_kapacitor(config_client, host_name, dev_mode) is True):
-            enable_classifier_task(host_name)
+            enable_classifier_task(host_name, dev_mode)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")
             exit(FAILURE)
