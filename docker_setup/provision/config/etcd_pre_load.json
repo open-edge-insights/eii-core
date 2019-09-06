@@ -6,12 +6,13 @@
                 "type": "jpg",
                 "level": 100
             },
-            "loop_video": "true"
+            "loop_video": "true",
+            "poll_interval": 0.2
         },
         "filter": {
             "name": "pcb_filter",
             "queue_size": 10,
-            "max_workers": 5,
+            "max_workers": 1,
             "training_mode": "false",
             "n_total_px": 300000,
             "n_left_px": 1000,
@@ -22,7 +23,7 @@
     "/VideoAnalytics/config": {
         "name": "pcb_classifier",
         "queue_size": 10,
-        "max_workers": 5,
+        "max_workers": 1,
         "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
         "ref_config_roi": "./VideoAnalytics/classifiers/ref_pcbdemo/roi_2.json",
         "model_xml": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.xml",
@@ -60,7 +61,7 @@
         "green_bit_register": 19
     },
     "/ImageStore/config": {
-        "minio":{  
+        "minio":{
            "accessKey":"admin",
            "secretKey":"password",
            "retentionTime":"1h",
