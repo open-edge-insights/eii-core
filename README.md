@@ -214,6 +214,16 @@ More details on enabling this mode can be referred from [TimeSeriesAnalytics/REA
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
+# DiscoveryCreek
+
+DiscoveryCreek is a machine learning based anomaly detection engine.
+
+For enabling DiscoveryCreek, please include the foloowing services in the [docker-compose.yml](docker_setup/docker-compose.yml) file.
+
+>ia_telegraf, ia_influxdbconnector, ia_dc, ia_visualizer
+
+This will enable building of Telegraf, Kapacitor and DiscoveryCreek based analytics containers.
+More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
 
 # List of All EIS Services
 
