@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package configmanager
 
 import (
-	util "IEdgeInsights/Util"
+	util "IEdgeInsights/util"
 	"context"
 	"encoding/json"
 	"errors"

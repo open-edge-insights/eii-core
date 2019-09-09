@@ -21,35 +21,11 @@
 import socket
 import logging as log
 import time
+import base64
 import os
 
 
-class Util:
-
-    @staticmethod
-    def check_port_availability(hostname, port):
-        """Verifies port availability on hostname for accepting connection
-
-        :param hostname: hostname of the machine
-        :type hostname: str
-        :param port: port
-        :type port: str
-        :return: portUp (whether port is up or not)
-        :rtype: Boolean
-        """
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        log.debug("Attempting to connect to {}:{}".format(hostname, port))
-        numRetries = 1000
-        retryCount = 0
-        portUp = False
-        while(retryCount < numRetries):
-            if(sock.connect_ex((hostname, int(port)))):
-                log.debug("{} port is up on {}".format(port, hostname))
-                portUp = True
-                break
-            retryCount += 1
-            time.sleep(0.1)
-        return portUp
+class MsgBusUtil:
 
     @staticmethod
     def get_topics_from_env(topic_type):

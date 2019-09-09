@@ -3,35 +3,12 @@ package util
 import (
 	configmgr "IEdgeInsights/libs/ConfigManager"
 	"log"
-	"net"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/golang/glog"
 )
-
-// CheckPortAvailability - checks for port availability on hostname
-func CheckPortAvailability(hostname, port string) bool {
-	maxRetries := 1000
-	retryCount := 0
-
-	portUp := false
-	glog.Infof("Waiting for Port: %s on hostname: %s ", port, hostname)
-	for retryCount < maxRetries {
-		conn, _ := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
-		if conn != nil {
-			glog.Infof("Port: %s on hostname: %s is up.", port, hostname)
-			conn.Close()
-			portUp = true
-			break
-		}
-		time.Sleep(100 * time.Millisecond)
-		retryCount++
-	}
-	return portUp
-}
 
 // GetMessageBusConfig - constrcuts config object based on topic type(pub/sub),
 // message bus type(tcp/ipc) and dev/prod mode
@@ -81,7 +58,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 						glog.Errorf("ConfigManager couldn't get Subscriber's Public Key %v", err)
 					}
 
-					if clientPublicKey != ""{
+					if clientPublicKey != "" {
 						allowedClients = append(allowedClients, clientPublicKey)
 					}
 				}
@@ -129,7 +106,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 					if err != nil {
 						glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
 					}
-					if clientPublicKey != ""{
+					if clientPublicKey != "" {
 						allowedClients = append(allowedClients, clientPublicKey)
 					}
 				}

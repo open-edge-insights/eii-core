@@ -15,7 +15,7 @@ import (
 
 	"github.com/golang/glog"
 
-	util "IEdgeInsights/Util/influxdb"
+	util "IEdgeInsights/common/util/influxdb"
 )
 
 const (

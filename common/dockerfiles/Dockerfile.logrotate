@@ -1,6 +1,0 @@
-# Logrotate Dockerfile
-ARG LOG_ROTATE_VERSION
-FROM blacklabelops/logrotate:${LOG_ROTATE_VERSION}
-ARG EIS_UID
-RUN chown ${EIS_UID} /usr/bin/logrotate.d
-HEALTHCHECK NONE

@@ -24,7 +24,6 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 11. [EIS Deployment Via TurtleCreek](#deploy)
 
-
 # Minimum System Requirements
 
 EIS software will run on the below mentioned Intel platforms:
@@ -110,6 +109,47 @@ The section assumes the EIS software is already downloaded from the release pack
    > folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
    > build failure of VideoAnalytics container if there are multiple openvino sdk's in there (especially the old ones)
 
+5. **To enable log rotation for docker containers:**
+
+    There are two ways to configure logging driver for docker containers
+
+    1. Set logging driver as part of docker daemon:
+
+        * Configure `json-file` driver as default logging driver by following [https://docs.docker.com/config/containers/logging/json-file/](https://docs.docker.com/config/containers/logging/json-file/). Sample json-driver config which can be copied to `/etc/docker/daemon.json` is provided below.
+
+        ```
+        {
+            "log-driver": "json-file",
+            "log-opts": {
+            "max-size": "10m",
+            "max-file": "5"
+            }
+        }
+        ```
+
+        * Reload the docker daemon
+        ```
+        sudo systemctl daemon-reload
+        ```
+        * Restart docker
+        ```
+        sudo systemctl restart docker
+        ```
+
+    2. Set logging driver as part of docker compose which is conatiner specific and which always overwrites 1st option (i.e /etc/docker/daemon.json)
+
+        Example to enanble logging driver only for video_ingestion service:
+
+        ```
+        ia_video_ingestion:
+            ...
+            ...
+            logging:
+            driver: json-file
+            options:
+                max-size: 10m
+                max-file: 5
+        ```
 
 # Provision EIS
 
@@ -313,3 +353,4 @@ To Deploy EIS Software via TurtleCreek and Telit.Please follow the steps
 * Goto **IEdgeInsigts/docker_setup/deploy**
     * Please Follow the Readme.
 ---
+

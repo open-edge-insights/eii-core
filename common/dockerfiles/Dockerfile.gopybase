@@ -5,9 +5,6 @@ FROM ia_gobase:$EIS_VERSION as base
 FROM ia_pybase:$EIS_VERSION
 LABEL description="EIS Go/Py Base Image"
 
-# Python envs
-ENV PYTHONPATH .:./DataAgent/da_grpc/protobuff
-
 ENV GO_WORK_DIR /EIS/go/src/IEdgeInsights
 ENV GOPATH="/EIS/go"
 ENV PATH ${PATH}:/usr/local/go/bin:/EIS/go/bin

@@ -27,8 +27,7 @@ import etcd3
 import logging
 import json
 import os
-from libs.common.py.util import Util
-
+from util.util import Util
 
 class EtcdCli:
 

@@ -7,14 +7,10 @@ import json
 import socket
 import datetime
 from libs.ConfigManager import ConfigManager
-from Util.log import configure_logging, LOG_LEVELS
+from util.log import configure_logging, LOG_LEVELS
 from distutils.util import strtobool
 import os
-from Util.util \
-     import (write_certs,
-             create_decrypted_pem_files,
-             check_port_availability,
-             delete_certs)
+from util.util import Util
 
 ETCD_CLIENT_CERT = "/run/secrets/etcd_Kapacitor_cert"
 ETCD_CLIENT_KEY = "/run/secrets/etcd_Kapacitor_key"
@@ -195,7 +191,7 @@ def enable_classifier_task(host_name, dev_mode):
         try:
             file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
                          "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
-            delete_certs(file_list)
+            Util.delete_certs(file_list)
         except Exception:
             logger.error("Exception Occured while removing kapacitor certs")
 

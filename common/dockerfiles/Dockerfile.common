@@ -9,4 +9,4 @@ ENV PY_WORK_DIR /EIS
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
 
 COPY libs ./libs
-COPY Util/ ./Util
+COPY util/ ./util

@@ -35,11 +35,6 @@ RUN mkdir -p /etc/ssl/kapacitor && \
     chown ${EIS_UID} /etc/kapacitor && \
     mkdir -p /etc/ssl/ca && \
     chown ${EIS_UID} /etc/ssl/ca
-    
-# Installing dependent python modules
-COPY classifier_requirements.txt .
-RUN pip3.6 install -r classifier_requirements.txt && \
-    rm -rf classifier_requirements.txt
 
 RUN mkdir -p ${PY_WORK_DIR}/go/src/github.com/golang/glog
 COPY --from=base ${PY_WORK_DIR}/go/src/github.com/golang/glog ${PY_WORK_DIR}/go/src/github.com/golang/glog
@@ -55,7 +50,7 @@ FROM ia_common:$EIS_VERSION as common
 FROM gopybase
 
 COPY --from=common /libs ${PY_WORK_DIR}/libs
-COPY --from=common /Util ${PY_WORK_DIR}/Util
+COPY --from=common /util ${PY_WORK_DIR}/util
 
 # Adding classifier program
 COPY . ./
@@ -63,4 +58,3 @@ RUN chmod +x ./classifier_start.sh
 
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]
-HEALTHCHECK NONE
