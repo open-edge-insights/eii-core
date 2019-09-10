@@ -1,8 +1,6 @@
 # Dockerfile for Point Data Analytics
 ARG EIS_VERSION
-FROM ia_gobase:$EIS_VERSION as base
-
-FROM ia_gopybase:$EIS_VERSION as gopybase
+FROM ia_eisbase:$EIS_VERSION as eisbase
 LABEL description="Data Analytics image"
 
 ENV PY_WORK_DIR /EIS
@@ -36,9 +34,6 @@ RUN mkdir -p /etc/ssl/kapacitor && \
     mkdir -p /etc/ssl/ca && \
     chown ${EIS_UID} /etc/ssl/ca
 
-RUN mkdir -p ${PY_WORK_DIR}/go/src/github.com/golang/glog
-COPY --from=base ${PY_WORK_DIR}/go/src/github.com/golang/glog ${PY_WORK_DIR}/go/src/github.com/golang/glog
-
 RUN mkdir ${PY_WORK_DIR}/classifier_logs && \
     chown ${EIS_UID} -R ${PY_WORK_DIR}/classifier_logs 
 
@@ -47,7 +42,7 @@ ENV KAPACITOR_PORT 9092
 
 FROM ia_common:$EIS_VERSION as common
 
-FROM gopybase
+FROM eisbase
 
 COPY --from=common /libs ${PY_WORK_DIR}/libs
 COPY --from=common /util ${PY_WORK_DIR}/util

@@ -104,12 +104,11 @@ The section assumes the EIS software is already downloaded from the release pack
 
 * Download the full package for OpenVINO toolkit for Linux version "2019 R2" from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
-  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/VideoAnalytics` and `[repo]/VideoIngestion`.
+  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/common/openvino`.
 
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/VideoAnalytics
-   > and [repo]/VideoIngestion folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
-   > build failure of VideoAnalytics and VideoIngestion container if there are multiple openvino sdk's in there
-   > (especially the old ones)
+   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/common/openvino folder as 
+   > we are adding `l_openvino_toolkit_*` into Dockerfile which could result in  build failure of 
+   > openvino base container if there are multiple openvino sdk's in there (especially the old ones)
 
 5. **To enable log rotation for docker containers:**
 
