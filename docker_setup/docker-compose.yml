@@ -162,6 +162,7 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+      no_proxy: ${no_proxy}
       # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
@@ -223,6 +224,7 @@ services:
       # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
       # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
       DEV_MODE: ${DEV_MODE}
+      no_proxy: ${no_proxy}
     privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
@@ -278,6 +280,7 @@ services:
   #     Server: "zmq_tcp,127.0.0.1:8675"
   #     Clients: "Visualizer,DiscoveryCreek"
   #     INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
+  #     no_proxy: ${no_proxy}
   #   volumes:
   #     - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
   #     - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
@@ -319,6 +322,7 @@ services:
   #     AppName: "Telegraf"
   #     CertType: ""
   #     DEV_MODE: ${DEV_MODE}
+  #     no_proxy: ${no_proxy}
   #   volumes:
   #     - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
   #     - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
@@ -375,6 +379,7 @@ services:
   #     PubTopics: "dc_point_data_results"
   #     ##dc_point_data_results_cfg: "zmq_ipc,{SOCKET_DIR}/"
   #     dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
+  #     no_proxy: ${no_proxy}
   #   volumes:
   #     - "/dev:/dev"
   #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
@@ -432,6 +437,7 @@ services:
   #     AppName: "Kapacitor"
   #     CertType: "pem"
   #     DEV_MODE: ${DEV_MODE}
+  #     no_proxy: ${no_proxy}
   #   volumes:
   #     - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
   #     - "./config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
@@ -479,6 +485,7 @@ services:
   #     Server: "zmq_tcp,127.0.0.1:5669"
   #     SubTopics: "VideoAnalytics/camera1_stream_results"
   #     camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
+  #     no_proxy: ${no_proxy}
   #   volumes:
   #     - "${EIS_INSTALL_PATH}/data:/data"
   #   logging:
@@ -524,6 +531,7 @@ services:
   #     # Uncomment this & replace <topic> with actual topic name if IPC is needed
   #     #<<topic>_cfg: "zmq_ipc,${SOCKET_DIR}/"
   #     SOCKET_DIR: ${SOCKET_DIR}
+  #     no_proxy: ${no_proxy}
   #   logging:
   #     driver: ${LOGGING_DRIVER}
   #     options:
@@ -566,6 +574,7 @@ services:
   #     SubTopics: "VideoAnalytics/camera1_stream_results"
   #     camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
   #     DEV_MODE: ${DEV_MODE}
+  #     no_proxy: ${no_proxy}
   #   secrets:
   #       - ca_etcd
   #       - etcd_OpcuaExport_cert
