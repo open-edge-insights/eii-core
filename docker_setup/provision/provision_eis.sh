@@ -2,6 +2,20 @@
 # Provision EIS
 # Usage: sudo ./provision_eis <path-of-docker-compose-file>
 
+
+if [ $# -eq 0 ]
+  then
+    echo 'Required arguments not supplied. Please supply path to docker compose file.'
+    echo 'Usage: $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>'
+    exit 1 
+else
+	if ! [ -f $1 ]; then
+		echo "Supplied docker compose file '$1' does not exists"
+		echo 'Usage: $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>'
+    	exit 1
+	fi
+fi
+
 hostIP=`hostname -I | awk '{print $1}'`
 export HOST_IP=$hostIP
 echo 'System IP Address is:' $HOST_IP
@@ -21,7 +35,7 @@ else
     		set +a
 		else
 			echo "Required file dep/$ETCD_NAME.env does not exits, can not join ETCD cluster."
-			exit -1
+			exit 1
 		fi
 fi
 
@@ -35,7 +49,7 @@ check_ETCD_port() {
 		fuser $port/tcp
 		if [ $? -eq 0 ]; then
 			echo "$port is already being used, so please kill that process and re-run the script."
-			exit -1
+			exit 1
 		fi
 		set -e
 	done
