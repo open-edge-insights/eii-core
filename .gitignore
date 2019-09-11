@@ -18,6 +18,7 @@ __pycache__/
 *.test
 
 VideoAnalytics/l_openvino*
+VideoIngestion/l_openvino*
 docker_setup/provision/Certificates
 docker_setup/provision/client/
 docker_setup/provision/rootca/

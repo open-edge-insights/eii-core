@@ -103,11 +103,13 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 The section assumes the EIS software is already downloaded from the release package or from git.
 
 * Download the full package for OpenVINO toolkit for Linux version "2019 R2" from the official website
-(https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux) and extract it inside `IEdgeInsights/VideoAnalytics`. Post this step a directory named `l_openvino_toolkit_xxxxx/` will be present inside VideoAnalytics directory.
+  (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
+  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/VideoAnalytics` and `[repo]/VideoIngestion`.
 
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/VideoAnalytics
-   > folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
-   > build failure of VideoAnalytics container if there are multiple openvino sdk's in there (especially the old ones)
+   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/VideoAnalytics
+   > and [repo]/VideoIngestion folder as we are adding `l_openvino_toolkit_*` into Dockerfile which could result in
+   > build failure of VideoAnalytics and VideoIngestion container if there are multiple openvino sdk's in there
+   > (especially the old ones)
 
 5. **To enable log rotation for docker containers:**
 
@@ -155,11 +157,11 @@ The section assumes the EIS software is already downloaded from the release pack
 
 Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 
-By default EIS is provisioned in Secure mode. Please follow below steps to provision EIS in Devleoper mode. Developer mode will have all security disabled. 
+By default EIS is provisioned in Secure mode. Please follow below steps to provision EIS in Devleoper mode. Developer mode will have all security disabled.
 
-* Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode. 
+* Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode.
 * <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
- 
+
 
 Following actions will be performed as part of Provisioning
 
@@ -174,7 +176,7 @@ Following actions will be performed as part of Provisioning
     eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
     ```
-* By default EIS is provisioned with Single node cluster. 
+* By default EIS is provisioned with Single node cluster.
 * In order to join nodes to EIS cluster. Please follow steps mentioned in [docker_setup/provision/EISCluster.md](docker_setup/provision/EISCluster.md) to provision EIS to new nodes in same cluster
 
 
@@ -194,7 +196,7 @@ Following actions will be performed as part of Provisioning
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
-> Note: All EIS build and run commands are to be executed from the IEdgeInsights/docker_setup/ directory.
+> Note: All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
 
    ```sh
    docker-compose up --build -d
@@ -208,19 +210,19 @@ Following actions will be performed as part of Provisioning
    If any of the services fails during build, it can be built using below command
    ```sh
    docker-compose build --no-cache <service name>
-   
+
    ```
 
    Please note that the first time build of EIS containers take ~70 minutes.
 
    A successful run will open Visualizer UI with results of video analytics.
-   
+
 
 # Enable camera based Video Ingestion
 
 EIS supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
 
-All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference. 
+All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference.
 
 For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
 
@@ -245,7 +247,7 @@ For enabling this, different set of containers need to be built in EIS and it ca
 
 Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
 
-    
+
 > ia_telegraf, ia_influxdbconnector, ia_data_analytics, ia_visualizer
 
 
@@ -292,7 +294,7 @@ Follow below steps:
 
 * Please update docker registry url in DOCKER_REGISTRY variable in [docker_setup/.env](docker_setup/.env). Please use full registry URL with a traliling /
 
-* Building EIS images and pushing the same to docker registry. 
+* Building EIS images and pushing the same to docker registry.
 
       ```sh
       docker-compose build
@@ -300,7 +302,7 @@ Follow below steps:
 
       ```
 
-* Pulling EIS images from configured docker registry and do a run. 
+* Pulling EIS images from configured docker registry and do a run.
 
 
 
@@ -320,7 +322,7 @@ Follow below steps:
     ```
 
 2. `docker ps` should list all the containers which are included in docker-compose.yml
-   
+
 3. To verify if the data pipeline withing EIS is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_video_analytics` container using cmd: `docker logs -f ia_video_analytics`. One should see, publish messages like `Publishing topic: [topic_name]`
 
 5. `/opt/intel/eis` root directory gets created - This is the installation path for EIS:
