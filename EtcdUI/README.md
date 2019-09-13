@@ -5,4 +5,15 @@
 * Right click on the tree node to add or delete.
 * For secure mode, authentication is required. User name and password needs to be entered in the dialogue box.
 * Username is 'root' and default password is located at ETCD_ROOT_PASSWORD key under environment section in [docker_setup/provision/dep/docker-compose-provision.override.prod.yml](../docker_setup/provision/dep/docker-compose-provision.override.prod.yml).
-> **NOTE** if ETCD_ROOT_PASSWORD is changed, EIS must to be provisioned again.
+
+---
+**NOTE**:
+1. If ETCD_ROOT_PASSWORD is changed, EIS must to be provisioned again.
+2. Only VideoIngestion and VideoAnalytics based services will have watch for any changes. Any changes done to those keys will be reflected at runtime in EIS.
+3. For changes done to any other keys, EIS stack needs to be restarted for it to take effect. Please execute below command in working directory docker_setup/ to restart EIS.
+    ```
+    $ docker-compose down
+    $ docker-compose up
+    
+    ```
+---
