@@ -17,8 +17,7 @@ __pycache__/
 *.dylib
 *.test
 
-VideoAnalytics/l_openvino*
-VideoIngestion/l_openvino*
+common/openvino/l_openvino*
 docker_setup/provision/Certificates
 docker_setup/provision/client/
 docker_setup/provision/rootca/
