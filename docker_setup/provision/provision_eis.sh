@@ -65,14 +65,10 @@ echo "1 Generating required certificates"
 	 python3 gen_certs.py --f $1
  fi
 
-echo "2 Bringing down existing EIS containers"
+echo "2 Bringing down existing ETCD container"
 docker-compose -f dep/docker-compose-provision.yml down
 
-cd ..
-docker-compose down 
-cd provision
 echo "2.2 Checking ETCD port"
-
 check_ETCD_port
 
 

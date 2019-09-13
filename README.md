@@ -160,7 +160,7 @@ By default EIS is provisioned in Secure mode. Please follow below steps to provi
 
 * Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode.
 * <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
-
+* <b>Existing EIS containers must be stopped and removed before re-provisioning EIS on same node.</b>
 
 Following actions will be performed as part of Provisioning
 
