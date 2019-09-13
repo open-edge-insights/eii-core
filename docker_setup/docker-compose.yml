@@ -4,15 +4,6 @@ services:
 
   #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   # Define ia_eisbase service
-  ia_eisbase:
-    build:
-      context: $PWD/../common
-      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
-      args:
-          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          EIS_VERSION: ${EIS_VERSION}
-    image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
-
   ia_common:
     build:
       context: $PWD/../common
@@ -21,14 +12,28 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+  
+  ia_eisbase:
+    depends_on:
+      - ia_common
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
+      args:
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          EIS_VERSION: ${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
   ia_openvino_base:
+    depends_on:
+      - ia_eisbase
     build:
       context: $PWD/../common/openvino
       dockerfile: $PWD/../common/openvino/Dockerfile.openvino
       args:
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
+    
 
   #----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
@@ -299,6 +304,8 @@ services:
 
   # # Define Discovery Creek service
   # ia_dc:
+  #   depends_on:
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../DiscoveryCreek/
   #     dockerfile: $PWD/../DiscoveryCreek/Dockerfile
@@ -341,8 +348,6 @@ services:
   #     - "/dev/dri"
   #     - "/dev/:/dev/"
   #   user: ${EIS_UID}
-  #   depends_on:
-  #     - ia_eisbase
   #   secrets:
   #     - ca_etcd
   #     - etcd_DiscoveryCreek_cert
