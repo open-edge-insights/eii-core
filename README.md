@@ -12,17 +12,21 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+6. [Etcd and MessageBus Endpoint Configuration](#etcd-and-msgbus-configuration)
 
-7. [Using video accelerators](#using-video-accelerators)
+7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-8. [Time-series Analytics](#time-series-analytics)
+8. [Using video accelerators](#using-video-accelerators)
 
-9. [Usage of Docker Registry](#usage-of-docker-registry)
+9. [Time-series Analytics](#time-series-analytics)
 
-10. [Debugging options](#debugging-options)
+10. [DiscoveryCreek](#DiscoveryCreek)
 
-11. [EIS Deployment Via TurtleCreek](#deploy)
+10.  [Usage of Docker Registry](#usage-of-docker-registry)
+
+11. [Debugging options](#debugging-options)
+
+12. [EIS Deployment Via TurtleCreek](#deploy)
 
 # Minimum System Requirements
 
@@ -191,12 +195,16 @@ Following actions will be performed as part of Provisioning
 
     > ia_video_ingestion, ia_video_analytics, ia_imagestore, ia_influxdbconnector
 
+  > **NOTE**: Use [DiscoverHistory](tools/DiscoverHistory/README.md) to view the historical data from ia_imagestore
+  > and ia_influxdbconnector.
+
 * For streaming and historical use case
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
 > Note: All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
 
+   To build and run EIS in one command:
    ```sh
    docker-compose up --build -d
    ```
@@ -216,6 +224,17 @@ Following actions will be performed as part of Provisioning
 
    A successful run will open Visualizer UI with results of video analytics.
 
+# Etcd and MessageBus Endpoint Configuration
+
+Etcd and MessageBus endpoint configurations are done to establish the data path
+and configuration of various EIS containers.
+
+Every service in [docker_setup/docker-compose.yml](docker_setup/docker-compose.yml)
+is a
+* messagebus client if it needs to send or receive data over EISMessageBus
+* etcd client if it needs to get data from etcd distributed key store
+
+For more details, visit [Etcd_and_MsgBus_Endpoint_Configuration](./Etcd_and_MsgBus_Endpoint_Configuration].md)
 
 # Enable camera based Video Ingestion
 
@@ -259,30 +278,28 @@ The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor
 
 DiscoveryCreek is a machine learning based anomaly detection engine.
 
-For enabling DiscoveryCreek, please include the foloowing services in the [docker-compose.yml](docker_setup/docker-compose.yml) file.
+For enabling DiscoveryCreek, please include the following services in the [docker-compose.yml](docker_setup/docker-compose.yml) file:
 
->ia_telegraf, ia_influxdbconnector, ia_dc, ia_visualizer
+> ia_telegraf, ia_influxdbconnector, ia_dc, ia_visualizer
 
-This will enable building of Telegraf, Kapacitor and DiscoveryCreek based analytics containers.
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
 
 # List of All EIS Services
 
 EIS stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
 
-1. [VideoIngestion/README.md](VideoIngestion/README.md)
-2. [VideoAnalytics/README.md](VideoAnalytics/README.md)
+1. [VideoIngestion](VideoIngestion/README.md)
+2. [VideoAnalytics](VideoAnalytics/README.md)
 3. [Visualizer](Visualizer/README.md)
-4. [ImageStore/README.md](ImageStore/README.md)
-5. [InfluxDBConnector/README.md](InfluxDBConnector/README.md)
-6. [OpcuaExport/README.md](OpcuaExport/README.md)
-7. [FactoryControlApp](FactoryControlApp/README.md)
+4. [ImageStore](ImageStore/README.md)
+5. [InfluxDBConnector](InfluxDBConnector/README.md)
+6. [OpcuaExport](OpcuaExport/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua    clients
+7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants
+   to control the light based on defective/non-defective data
 8. [Telegraf](Telegraf/README.md)
 9. [TimeSeriesAnalytics](TimeSeriesAnalytics/README.md)
 10. [EtcdUI](EtcdUI/README.md)
 11. [DiscoveryCreek](DiscoveryCreek/README.md)
-
-
 
 # Usage of Docker Registry
 

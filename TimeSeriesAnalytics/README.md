@@ -142,9 +142,3 @@ For more information on the supported input and output plugins please refer
     [docker_setup/config/kapacitor.conf](../../docker_setup/config/kapacitor.conf)
     and in developer mode the config file would be
     [docker_setup/config/kapacitor_devmode.conf](../../docker_setup/config/kapacitor_devmode.conf)
-
-## Pointdata analytics without Kapacitor
-In case, SI don't want to do point data analytics using the Kapacitor, then there is sample App
-avaiable at [DataAnalytics/sample_analytics_app/sample_analytics.py](../sample_analytics_app/sample_analytics.py).
-
-In this case, user can write the python based analytics algorithm using the StreamSubLib and DataIngestionLib API. To know more, please refer  [DataAnalytics/sample_analytics_app/README](../sample_analytics_app/README).
