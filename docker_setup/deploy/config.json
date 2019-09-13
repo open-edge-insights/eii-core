@@ -1,4 +1,4 @@
 {
 	"docker_compose_file_version": "3.6",
-	"exclude_services": ["ia_gobase", "ia_pybase", "ia_common", "ia_gopybase"]
+	"exclude_services": ["ia_eisbase", "ia_openvino_base", "ia_common"]
 }
