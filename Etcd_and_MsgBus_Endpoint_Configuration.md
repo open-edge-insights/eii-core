@@ -3,7 +3,7 @@
 ## `Etcd Configuration`
 
 The below are the ENV's that should be present in the environment section
-of every service in [docker-compose.yml](docker-compose.yml):
+of every service in [docker-compose.yml](docker_setup/docker-compose.yml):
 
 ```
   [service_name]:
@@ -22,7 +22,7 @@ of every service in [docker-compose.yml](docker-compose.yml):
 ```
 
 All the etcd secrets for every service should be mentioned in the `secrets`
-section in [docker-compose.yml](docker-compose.yml):
+section in [docker-compose.yml](docker_setup/docker-compose.yml):
 ```
  secrets:
    etcd_ca_certificate:
@@ -36,7 +36,7 @@ section in [docker-compose.yml](docker-compose.yml):
 ## `Messagebus Endpoints Configuration`
 
 The below are the ENV's that should be present in the environment section
-of every service in [docker-compose.yml](docker-compose.yml). All services needs
+of every service in [docker-compose.yml](docker_setup/docker-compose.yml). All services needs
 to have all or section of the below ENV's based on if the service is a
 publisher/subscriber/server/client type.
 

@@ -158,9 +158,11 @@ The section assumes the EIS software is already downloaded from the release pack
 
 # Provision EIS
 
+<b>`By default EIS is provisioned in Secure mode`</b>.
+
 Follow below steps to provision EIS. Porvisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
 
-By default EIS is provisioned in Secure mode. Please follow below steps to provision EIS in Devleoper mode. Developer mode will have all security disabled.
+Please follow below steps to provision EIS in Developer mode. Developer mode will have all security disabled.
 
 * Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode.
 * <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
@@ -172,13 +174,13 @@ Following actions will be performed as part of Provisioning
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
 
-    Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
-    ```
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
+```
+$ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
-    ```
+```
 * By default EIS is provisioned with Single node cluster.
 * In order to join nodes to EIS cluster. Please follow steps mentioned in [docker_setup/provision/EISCluster.md](docker_setup/provision/EISCluster.md) to provision EIS to new nodes in same cluster
 
@@ -234,7 +236,7 @@ is a
 * messagebus client if it needs to send or receive data over EISMessageBus
 * etcd client if it needs to get data from etcd distributed key store
 
-For more details, visit [Etcd_and_MsgBus_Endpoint_Configuration](./Etcd_and_MsgBus_Endpoint_Configuration].md)
+For more details, visit [Etcd_and_MsgBus_Endpoint_Configuration](./Etcd_and_MsgBus_Endpoint_Configuration.md)
 
 # Enable camera based Video Ingestion
 
