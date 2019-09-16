@@ -65,14 +65,17 @@ echo "1 Generating required certificates"
 	 python3 gen_certs.py --f $1
  fi
 
-echo "2 Bringing down existing ETCD container"
+echo "2.1 Bringing down existing ETCD container"
 docker-compose -f dep/docker-compose-provision.yml down
 
-echo "2.2 Checking ETCD port"
+echo "2.2 Bringing down existing EIS containers"
+python3 stop_and_remove_existing_eis.py --f $1
+
+echo "3 Checking ETCD port"
 check_ETCD_port
 
 
-echo "3. Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
+echo "4. Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 
 # EIS containers will be executed as eisuser
 if ! id $EIS_USER_NAME >/dev/null 2>&1; then
