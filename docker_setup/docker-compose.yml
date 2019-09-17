@@ -409,6 +409,8 @@ services:
   #     no_proxy: ${no_proxy}
 
   #     # MessageBus Endpoint Configuration
+  #     # Uncomment the following line if using Discover history tool in PROD mode
+  #     # Clients: "Visualizer"
   #     CertType: "zmq"
   #     Server: "zmq_tcp,127.0.0.1:5669"
   #     SOCKET_DIR: ${SOCKET_DIR}
