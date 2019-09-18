@@ -247,10 +247,10 @@ For detailed description on configuring different types of cameras and  filter a
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices as well by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the ingestor configuration in Etcd (sample ingestor configurations available at [VideoIngestion/README.md](VideoIngestion/README.md)). For running a sample with accelerators, use the factory_pcbdemo_myriad.json or factory_pcbdemo_hddl.json in the .env file. Note that it uses a different set of model files which are FP16 based.
+EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [VideoAnalytics/README.md#classifier-config](VideoAnalytics/README.md#classifier-config)
 
 > Note:
-> To run on HDDL devices, make sure to uncomment the below section of code in [VideoAnalytics/va_classifier_start.sh](/VideoAnalytics/va_classifier_start.sh).
+> To run on HDDL devices, make sure to uncomment the below section of code in [VideoAnalytics/va_classifier_start.sh](VideoAnalytics/va_classifier_start.sh).
 
     ```sh
     #Uncomment these lines if you are using HDDL
