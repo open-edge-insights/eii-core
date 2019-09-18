@@ -22,11 +22,11 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 10. [DiscoveryCreek](#DiscoveryCreek)
 
-10.  [Usage of Docker Registry](#usage-of-docker-registry)
+11. [Usage of Docker Registry](#usage-of-docker-registry)
 
-11. [Debugging options](#debugging-options)
+12. [Debugging options](#debugging-options)
 
-12. [EIS Deployment Via TurtleCreek](#deploy)
+13. [EIS Deployment Via TurtleCreek](#deploy)
 
 # Minimum System Requirements
 
@@ -321,6 +321,8 @@ Follow below steps:
 
 * Pulling EIS images from configured docker registry and do a run.
 
+> **NOTE**: Please copy only docker_setup folder on node on which EIS is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
+> **NOTE**: Above commenting/removing build dependencies is not required if entire EIS repo is present on the node on which EIS is being launched through registry.
 
 
       ```sh
