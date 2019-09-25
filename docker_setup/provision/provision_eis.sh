@@ -20,6 +20,11 @@ hostIP=`hostname -I | awk '{print $1}'`
 export HOST_IP=$hostIP
 echo 'System IP Address is:' $HOST_IP
 
+echo "Installing dependencies.."
+pip3 install -r cert_requirements.txt
+echo "Clearing existing Certificates.."
+rm -rf Certificates
+
 set -a
 source ../.env
 set +a
@@ -60,9 +65,7 @@ echo "1 Generating required certificates"
  if [ $DEV_MODE = 'true' ]; then
  	echo "EIS is not running in Secure mode. Generating certificates is not required.. "
  else
- 	 pip3 install -r cert_requirements.txt
-	 rm -rf Certificates
-	 python3 gen_certs.py --f $1
+ 	 python3 gen_certs.py --f $1
  fi
 
 echo "2.1 Bringing down existing ETCD container"
