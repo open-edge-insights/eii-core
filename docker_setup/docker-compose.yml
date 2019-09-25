@@ -2,8 +2,8 @@ version: '3.6'
 
 services:
 
-  #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
-  # Define ia_eisbase service
+  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
+  ## Define ia_eisbase service
   ia_common:
     build:
       context: $PWD/../common
@@ -35,9 +35,9 @@ services:
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
     
 
-  #----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+  ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
-  # Define ETCD UI service - must be included to view ETCD data over web UI
+  ## Define ETCD UI service - must be included to view ETCD data over web UI
   ia_etcd_ui:
     build:
       context: $PWD/../EtcdUI
@@ -59,8 +59,8 @@ services:
       - etcd_root_cert
       - etcd_root_key
 
-  #----Start: EIS Containers ----
-  # Define VideoIngestion service
+  ##----Start: EIS Containers ----
+  ## Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
       - ia_openvino_base
@@ -109,7 +109,7 @@ services:
       - etcd_VideoIngestion_cert
       - etcd_VideoIngestion_key
 
-  # Define VideoAnalytics service
+  ## Define VideoAnalytics service
   ia_video_analytics:
     depends_on:
       - ia_openvino_base
@@ -159,7 +159,7 @@ services:
       - etcd_VideoAnalytics_cert
       - etcd_VideoAnalytics_key
 
-  # Define Visualizer service
+  ## Define Visualizer service
   ia_visualizer:
     depends_on:
       - ia_eisbase
