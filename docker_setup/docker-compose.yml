@@ -290,6 +290,7 @@ services:
   #   restart: unless-stopped
   #   environment:
   #     AppName: "Telegraf"
+  #     InfluxDbAppName: "InfluxDBConnector"
   #     CertType: ""
   #     DEV_MODE: ${DEV_MODE}
   #     no_proxy: ${no_proxy}

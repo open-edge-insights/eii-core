@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -66,4 +67,23 @@ func DeleteCertFile(fileList []string) error {
 		}
 	}
 	return nil
+}
+
+func GetCryptoMap(appName string) map[string]string {
+
+	conf := map[string]string{
+		"certFile":  "",
+		"keyFile":   "",
+		"trustFile": "",
+	}
+
+	devMode, _ := strconv.ParseBool(os.Getenv("DEV_MODE"))
+
+	if devMode != true {
+		conf["certFile"] = "/run/secrets/etcd_" + appName + "_cert"
+		conf["keyFile"] = "/run/secrets/etcd_" + appName + "_key"
+		conf["trustFile"] = "/run/secrets/ca_etcd"
+	}
+
+	return conf
 }

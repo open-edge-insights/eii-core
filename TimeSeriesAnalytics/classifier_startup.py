@@ -12,9 +12,6 @@ from distutils.util import strtobool
 import os
 from util.util import Util
 
-ETCD_CLIENT_CERT = "/run/secrets/etcd_Kapacitor_cert"
-ETCD_CLIENT_KEY = "/run/secrets/etcd_Kapacitor_key"
-ETCD_CA_CERT = "/run/secrets/ca_etcd"
 KAPACITOR_CERT = "/etc/ssl/kapacitor/kapacitor_server_certificate.pem"
 KAPACITOR_KEY = "/etc/ssl/kapacitor/kapacitor_server_key.pem"
 KAPACITOR_CA = "/etc/ssl/ca/ca_certificate.pem"
@@ -200,17 +197,9 @@ if __name__ == '__main__':
 
     dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
     # Initializing Etcd to set env variables
-    conf = {
-        "certFile": "",
-        "keyFile": "",
-        "trustFile": ""
-    }
-    if not dev_mode:
-        conf = {
-            "certFile": ETCD_CLIENT_CERT,
-            "keyFile": ETCD_CLIENT_KEY,
-            "trustFile": ETCD_CA_CERT
-        }
+    app_name = os.environ["AppName"]
+    conf = Util.get_crypto_dict(app_name)
+        
     cfg_mgr = ConfigManager()
     config_client = cfg_mgr.get_config_client("etcd", conf)
 

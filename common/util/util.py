@@ -23,7 +23,7 @@ import logging as log
 import time
 import base64
 import os
-
+from distutils.util import strtobool
 
 class Util:
 
@@ -74,3 +74,20 @@ class Util:
             except Exception as e:
                 log.debug("Failed creating file: {}, Error: {} ".format(file_name,
                                                                         e))
+
+    @staticmethod
+    def get_crypto_dict(app_name):
+        conf = {
+            "certFile": "",
+            "keyFile": "",
+            "trustFile": ""
+        }
+
+        dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
+
+        if not dev_mode :
+            conf["certFile"] = "/run/secrets/etcd_" + app_name + "_cert" 
+            conf["keyFile"] = "/run/secrets/etcd_" + app_name + "_key"
+            conf["trustFile"] = "/run/secrets/ca_etcd"
+        
+        return conf
