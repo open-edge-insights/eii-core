@@ -75,7 +75,6 @@
         "EIS_USER_NAME":"eisuser",
         "EIS_UID":"5319",
         "EIS_INSTALL_PATH":"/opt/intel/eis",
-        "PROFILING":"false",
         "PY_LOG_LEVEL":"INFO",
         "GO_LOG_LEVEL":"INFO",
         "GO_VERBOSE":"0",
