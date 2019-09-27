@@ -37,7 +37,16 @@ EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via 
 5. Follow the TurtleCreek Repo on How to deploy this bundle with Telit Portal
 
 **Note** :
+    While deploying EIS Software Stack via Telit-TurtleCreek. Visualizer UI will not pop up because of display not attached to docker container of Visualizer.
 
-***TBD***
+    To Overcome. goto IEdgeInsights/docker_setup 
+    -->  Stop the running ia_visualizer container with it's name or container id using "docker ps" command.
+         ```sh
+         docker rm -f ia_visualizer
+         ```
 
-    Currently this patch is an intialVersion to achieve the functionality, More optimization on Arguments Parsing and Log Handling will be pushed in future patch.
+    -->  Start the ia_visualizer again. 
+        ```sh
+        docker-compose up ia_visualizer
+        ```
+        
