@@ -205,7 +205,7 @@ services:
 
       # Uncomment the below three lines for running Video and Time Series together
       # SubTopics: "VideoAnalytics/camera1_stream_results,InfluxDBConnector/point_classifier_results"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
       # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
 
       # Uncomment the below two lines for running DiscoveryCreek usecase alone
