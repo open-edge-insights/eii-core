@@ -69,7 +69,7 @@
            "ssl":"false"
         }
     },
-    "/GlobalEnv": {
+    "/GlobalEnv/": {
         "COMPOSE_HTTP_TIMEOUT":"200",
         "COMPOSE_PROJECT_NAME":"EIS_docker_network",
         "EIS_USER_NAME":"eisuser",

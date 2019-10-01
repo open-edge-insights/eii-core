@@ -58,7 +58,7 @@ class EtcdCli:
 
     def _setEnv(self):
         """ _setEnv is a local function to set global env """
-        value = self.etcd.get("/GlobalEnv")
+        value = self.etcd.get("/GlobalEnv/")
         jsonConfig = json.loads(value[0].decode('utf-8'))
         for key in jsonConfig.keys():
             os.environ[key] = jsonConfig[key]
