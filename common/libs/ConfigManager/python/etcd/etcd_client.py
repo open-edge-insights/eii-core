@@ -29,11 +29,14 @@ import json
 import os
 from util.util import Util
 
+
 class EtcdCli:
 
     def __init__(self, config):
         """ constructor which creates an EtcdCli instance, checks for
-        the etcd service port availability """
+        the etcd service port availability
+        :param config: config of type Dict with certFile, keyFile
+        and trustFile"""
 
         self.logger = logging.getLogger(__name__)
         hostname = "localhost"
@@ -64,7 +67,11 @@ class EtcdCli:
             os.environ[key] = jsonConfig[key]
 
     def GetConfig(self, key):
-        """ GetConfig gets the value of a key from Etcd """
+        """ GetConfig gets the value of a key from Etcd
+        :param key: key to be queried on, form etcd
+        :type: string
+        :return: values returned from etcd based on key
+        :rtype: string"""
         try:
             value = self.etcd.get(key)
         except Exception as e:
@@ -80,7 +87,11 @@ class EtcdCli:
 
     def RegisterDirWatch(self, key, callback):
         """ RegisterDirWatch registers to a callback and keeps a watch on the
-        prefix of a specified key """
+        prefix of a specified key
+        :param key: prefix of a key to keep a watch on, in etcd
+        :type string
+        :callback : callback function
+        :return None"""
 
         self.callback = callback
         try:
@@ -90,7 +101,11 @@ class EtcdCli:
 
     def RegisterKeyWatch(self, key, callback):
         """ RegisterKeyWatch registers to a callback and keeps a watch
-        on a specified key """
+        on a specified key
+        :param key: key to keep a watch on, in etcd
+        :type string
+        :callback : callback function
+        :return None"""
 
         self.callback = callback
         try:

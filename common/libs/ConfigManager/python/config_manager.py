@@ -29,6 +29,11 @@ from libs.ConfigManager.python.etcd.etcd_client import EtcdCli
 
 class ConfigManager:
     def get_config_client(self, storage_type, config):
+        """ Returns config manager client based on storage_type
+        :param storage_type: Type of key-value storage, Eg. etcd
+        :param config: config of type Dict with certFile, keyFile
+        and trustFile
+        """
         if storage_type.lower() == "etcd":
             return EtcdCli(config)
         raise ValueError(storage_type)
