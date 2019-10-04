@@ -274,6 +274,7 @@ services:
   #     # MessageBus Endpoint Configuration
   #     Clients: "Visualizer,DiscoveryCreek"
   #     Server: "zmq_tcp,127.0.0.1:8675"
+  #     # Server: "zmq_ipc,${SOCKET_DIR}/"
   #     INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
@@ -409,7 +410,7 @@ services:
   #     # Clients: "Visualizer"
   #     CertType: "zmq"
   #     Server: "zmq_tcp,127.0.0.1:5669"
-
+  #     # Server: "zmq_ipc,${SOCKET_DIR}/"
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
   #     # host, please use TCP mode for communication.
