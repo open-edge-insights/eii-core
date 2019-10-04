@@ -1,6 +1,6 @@
-# `EIS Etcd and MsgBus Endpoints Configuration`
+# `EIS Etcd Secrets and MsgBus Endpoints Configuration`
 
-## `Etcd Configuration`
+## `Etcd Secrets Configuration`
 
 The below are the ENV's that should be present in the environment section
 of every service in [docker-compose.yml](docker_setup/docker-compose.yml):
@@ -10,28 +10,56 @@ of every service in [docker-compose.yml](docker_setup/docker-compose.yml):
     ...
     environment:
         AppName: "app_name" # required if a unique first level key `/[AppName]` is needed in etcd
-        CertType: "[cert_type]" # Only required in PROD mode, ignored in DEV mode
-                                # list of certs to be created: "zmq,der,pem".
-                                # zmq is required to generate zmq public keys
-                                # der is required for apps like OpcuaExport which needs pub/pri cert in binary format
-                                # pem is required for apps like InfluxDBConnector, DataAnalytics, Telegraf etc.,
     secrets:  # This section needs to be commented out when run in DEV mode. Only needed for PROD mode
         - etcd_ca_certificate
         - app_public_certificate_for_etcd
         - app_private_key_for_etcd
 ```
 
-All the etcd secrets for every service should be mentioned in the `secrets`
-section in [docker-compose.yml](docker_setup/docker-compose.yml):
-```
- secrets:
-   etcd_ca_certificate:
-     file: [path_to_pem_file]
-   app_public_certificate_for_etcd:
-     file: [path_to_pem_file]
-   app_private_key_for_etcd:
-     file: [path_to_pem_file]
-```
+Etcd secrets(certs) for all the services of docker compose file will be generated automatically during provisioning.
+Post provisioning this secrets should be mentioned in following two places for each service.
+
+1) in the `secrets` section at the bottom of [docker-compose.yml](docker_setup/docker-compose.yml):
+    ```
+    secrets:
+      etcd_ca_certificate:
+        file: [path_to_pem_file]
+      app_public_certificate_for_etcd:
+        file: [path_to_pem_file]
+      app_private_key_for_etcd:
+        file: [path_to_pem_file]
+    ```
+2) In the `secrets` section in for each service.
+
+> **NOTE**: The secret name must follow proper naming convention and file path as below
+   ```
+
+    etcd_<AppName>_cert:
+      file: provision/Certificates/<AppName>/<AppName>_client_certificate.pem
+    etcd_<AppName>_key:
+      file: provision/Certificates/<AppName>/<AppName>_client_key.pem
+   
+   ```
+  For example, if the AppName is `VideoIngestion1`, secrets must be mentioned as below
+
+  ```
+  etcd_VideoIngestion1_cert:
+    file: provision/Certificates/VideoIngestion1/VideoIngestion1_client_certificate.pem
+  etcd_VideoIngestion1_key:
+    file: provision/Certificates/VideoIngestion1/VideoIngestion1_client_key.pem
+
+  ```
+
+  ---
+  **NOTE**:
+  * `Telegraf` service must use `InfluxDBConnector` secrets as it needs access to InfluxDBConnector certs and configs. To enable this please mention InfluxDBConnector AppName as `InfluxDBAppName` in environment section of Telegraf app. Also use secrets of InfluxDBConnector app for Telegraf Service. A seperate certificates for Telegraf app is also generated during provisioning and can be used if needed for storing Telegraf service related configurations.
+
+  * `socket_dir_name` where unix socket files are created. If `<protocol>` is
+    `zmq/tcp`, then `<endpoint>` has to be the combination of `<hostname>:<port>`.
+  
+  ---
+
+
 
 ## `Messagebus Endpoints Configuration`
 
@@ -49,7 +77,10 @@ publisher/subscriber/server/client type.
       # This enables access control and only these clients will be able to subscribe
       # to streams published by this app
       Clients: "AppName1,AppName2,..."
-
+      
+      # Only required in PROD mode, ignored in DEV mode. zmq is required to generate zmq public keys
+      CertType: "zmq"
+      
       # Needed if the app/service acts as a publisher that creates messagebus PUB socket
       # Single or list of comma separated streams based on app/service capability
       PubTopics: "pub_stream"
@@ -75,4 +106,17 @@ publisher/subscriber/server/client type.
 > `socket_dir_name` where unix socket files are created. If `<protocol>` is
 > `zmq/tcp`, then `<endpoint>` has to be the combination of `<hostname>:<port>`.
 
+
+## `Other X509 Certificates`
+If any of the Services needs to generate other X509 Certificates(pem or der format), please use below option and provisioining will generate certificates and put them in ETCD key for the App.
+
+```
+  [service_name]:
+    ...
+    environment:
+      
+      # Only required in PROD mode
+      CertType: "pem" or "der"
+  
+  ```
 

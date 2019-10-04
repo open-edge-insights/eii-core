@@ -12,7 +12,7 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Etcd and MessageBus Endpoint Configuration](#etcd-and-msgbus-configuration)
+6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
 
 7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
@@ -225,9 +225,9 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
    A successful run will open Visualizer UI with results of video analytics.
 
-# Etcd and MessageBus Endpoint Configuration
+# Etcd Secrets and MessageBus Endpoint Configuration
 
-Etcd and MessageBus endpoint configurations are done to establish the data path
+Etcd Secrets and MessageBus endpoint configurations are done to establish the data path
 and configuration of various EIS containers.
 
 Every service in [docker_setup/docker-compose.yml](docker_setup/docker-compose.yml)
@@ -235,7 +235,7 @@ is a
 * messagebus client if it needs to send or receive data over EISMessageBus
 * etcd client if it needs to get data from etcd distributed key store
 
-For more details, visit [Etcd_and_MsgBus_Endpoint_Configuration](./Etcd_and_MsgBus_Endpoint_Configuration.md)
+For more details, visit [Etcd_Secrets_and_MsgBus_Endpoint_Configuration](./Etcd_Secrets_and_MsgBus_Endpoint_Configuration.md)
 
 # Enable camera based Video Ingestion
 
