@@ -12,7 +12,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
-  
+
   ia_eisbase:
     depends_on:
       - ia_common
@@ -33,7 +33,7 @@ services:
       args:
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
-    
+
 
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
@@ -133,7 +133,7 @@ services:
       # MessageBus Endpoint Configuration
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector"
       CertType: "zmq"
-      
+
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -218,7 +218,37 @@ services:
       - etcd_Visualizer_cert
       - etcd_Visualizer_key
 
-  # # Define influxdb connector service
+  # ## Define telegraf service
+  # ia_telegraf:
+  #   depends_on:
+  #     - ia_eisbase
+  #   build:
+  #     context: $PWD/../Telegraf
+  #     dockerfile: $PWD/../Telegraf/Dockerfile
+  #     args:
+  #       EIS_VERSION: ${EIS_VERSION}
+  #       EIS_UID: ${EIS_UID}
+  #   container_name: ia_telegraf
+  #   hostname: ia_telegraf
+  #   network_mode: host
+  #   image: ${DOCKER_REGISTRY}ia_telegraf:${EIS_VERSION}
+  #   restart: unless-stopped
+  #   environment:
+  #     AppName: "Telegraf"
+  #     InfluxDbAppName: "InfluxDBConnector"
+  #     CertType: ""
+  #     DEV_MODE: ${DEV_MODE}
+  #     no_proxy: ${no_proxy}
+  #   volumes:
+  #     - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
+  #     - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
+  #   user: ${EIS_UID}
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_InfluxDBConnector_cert
+  #     - etcd_InfluxDBConnector_key
+
+  # ## Define influxdb connector service
   # ia_influxdbconnector:
   #   depends_on:
   #     - ia_eisbase
@@ -270,37 +300,7 @@ services:
   #     - etcd_InfluxDBConnector_key
 
 
-  # # Define telegraf service
-  # ia_telegraf:
-  #   depends_on:
-  #     - ia_eisbase
-  #   build:
-  #     context: $PWD/../Telegraf
-  #     dockerfile: $PWD/../Telegraf/Dockerfile
-  #     args:
-  #       EIS_VERSION: ${EIS_VERSION}
-  #       EIS_UID: ${EIS_UID}
-  #   container_name: ia_telegraf
-  #   hostname: ia_telegraf
-  #   network_mode: host
-  #   image: ${DOCKER_REGISTRY}ia_telegraf:${EIS_VERSION}
-  #   restart: unless-stopped
-  #   environment:
-  #     AppName: "Telegraf"
-  #     InfluxDbAppName: "InfluxDBConnector"
-  #     CertType: ""
-  #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy}
-  #   volumes:
-  #     - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
-  #     - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
-  #   user: ${EIS_UID}
-  #   secrets:
-  #     - ca_etcd
-  #     - etcd_InfluxDBConnector_cert
-  #     - etcd_InfluxDBConnector_key
-
-  # # Define Discovery Creek service
+  # ## Define Discovery Creek service
   # ia_dc:
   #   depends_on:
   #     - ia_eisbase
@@ -323,7 +323,7 @@ services:
   #     no_proxy: ${no_proxy}
 
   #     # MessageBus Endpoint Configuration
-  #     Clients : "InfluxDBConnector"
+  #     Clients : "InfluxDBConnector,Visualizer"
   #     CertType: "zmq"
 
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
@@ -350,7 +350,7 @@ services:
   #     - etcd_DiscoveryCreek_cert
   #     - etcd_DiscoveryCreek_key
 
-  # # Define DataAnalytics service
+  # ## Define DataAnalytics service
   # ia_data_analytics:
   #   depends_on:
   #     - ia_eisbase
@@ -383,8 +383,7 @@ services:
   #     - etcd_Kapacitor_key
 
 
-
-  # # Define Imagestore service which hosts redis and minio dbs
+  # ## Define Imagestore service which hosts minio dbs
   # ia_imagestore:
   #   depends_on:
   #     - ia_eisbase
@@ -410,7 +409,7 @@ services:
   #     # Clients: "Visualizer"
   #     CertType: "zmq"
   #     Server: "zmq_tcp,127.0.0.1:5669"
-  
+
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
   #     # host, please use TCP mode for communication.
@@ -423,13 +422,13 @@ services:
   #     - "${EIS_INSTALL_PATH}/data:/data"
   #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   secrets:
-  #       - ca_etcd
-  #       - etcd_ImageStore_cert
-  #       - etcd_ImageStore_key
+  #   # secrets:
+  #   #     - ca_etcd
+  #   #     - etcd_ImageStore_cert
+  #   #     - etcd_ImageStore_key
 
 
-  # # Define FactoryControlApp service
+  # ## Define FactoryControlApp service
   # ia_factoryctrl_app:
   #   depends_on:
   #     - ia_eisbase
@@ -451,7 +450,7 @@ services:
 
   #     # MessageBus Endpoint Configuration
   #     CertType: "zmq"
-  
+
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
   #     # host, please use TCP mode for communication.
@@ -468,7 +467,7 @@ services:
   #       - etcd_FactoryControlApp_cert
   #       - etcd_FactoryControlApp_key
 
-  # # Define OpcuaExport service
+  # ## Define OpcuaExport service
   # ia_opcua_export:
   #   depends_on:
   #     - ia_eisbase
@@ -489,7 +488,7 @@ services:
 
   #     # MessageBus Endpoint Configuration
   #     CertType: "zmq,der"
-  
+
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
   #     # host, please use TCP mode for communication.
