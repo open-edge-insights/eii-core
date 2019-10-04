@@ -6,7 +6,7 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 2. [Docker pre-requisites](#docker-pre-requisities)
 
-3. [EIS Deployment Via TurtleCreek](#deploy)
+3. [EIS Deployment Via TurtleCreek](#eis-deployment-via-turtlecreek)
 
 4. [EIS Pre-requisites](#eis-pre-requisites)
 
@@ -102,6 +102,11 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 3. Install `docker-compose` tool by following this [https://docs.docker.com/compose/install/#install-compose](https://docs.docker.com/compose/install/#install-compose)
 
 4. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [docker_setup/docker_security_recommendation.md](docker_setup/docker_security_recommendation.md)
+
+
+# EIS Deployment Via TurtleCreek
+
+To Deploy EIS Software via TurtleCreek and Telit. Please follow [docker_setup/deploy/README.md](docker_setup/deploy/README.md)
 
 # EIS Pre-Requisites
 
@@ -369,10 +374,5 @@ Follow below steps:
 4. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
    `docker-compose logs -f`
 
-# Deploy
-
-To Deploy EIS Software via TurtleCreek and Telit.Please follow the steps
-* Goto **IEdgeInsigts/docker_setup/deploy**
-    * Please Follow the Readme.
 ---
 
