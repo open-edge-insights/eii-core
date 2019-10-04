@@ -6,27 +6,28 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 2. [Docker pre-requisites](#docker-pre-requisities)
 
-3. [EIS Pre-requisites](#eis-pre-requisites)
+3. [EIS Deployment Via TurtleCreek](#deploy)
 
-4. [Provision EIS](#provision-eis)
+4. [EIS Pre-requisites](#eis-pre-requisites)
 
-5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
+5. [Provision EIS](#provision-eis)
 
-6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
+6. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+7. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
 
-8. [Using video accelerators](#using-video-accelerators)
+8. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-9. [Time-series Analytics](#time-series-analytics)
+9. [Using video accelerators](#using-video-accelerators)
 
-10. [DiscoveryCreek](#DiscoveryCreek)
+10. [Time-series Analytics](#time-series-analytics)
 
-11. [Usage of Docker Registry](#usage-of-docker-registry)
+11. [DiscoveryCreek](#DiscoveryCreek)
 
-12. [Debugging options](#debugging-options)
+12. [Usage of Docker Registry](#usage-of-docker-registry)
 
-13. [EIS Deployment Via TurtleCreek](#deploy)
+13. [Debugging options](#debugging-options)
+
 
 # Minimum System Requirements
 
