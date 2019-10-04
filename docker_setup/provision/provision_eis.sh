@@ -104,6 +104,11 @@ mkdir -p $EIS_INSTALL_PATH/data/etcd
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
 
+if [ -d $TC_DISPATCHER_PATH ]; then
+	chown -R $EIS_USER_NAME:$EIS_USER_NAME $TC_DISPATCHER_PATH
+	chmod -R 760 $TC_DISPATCHER_PATH
+fi
+
 if [ $DEV_MODE = 'false' ]; then
 	chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates 
 	chmod -R 760 $EIS_INSTALL_PATH/data/
