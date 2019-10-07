@@ -80,6 +80,11 @@ def parse_yml(filepath):
                                                              cert_details})
     return data
 
+def parse_json():
+    with open("config/x509_cert_config.json") as f:
+        data = json.load(f)
+    return data
+
 
 def copy_certificates_to_results_folder():
     os.makedirs(paths.relative_path("Certificates"), exist_ok=True)
@@ -133,7 +138,10 @@ if __name__ == '__main__':
         if args.clean is True:
             clean()
             exit(1)
-        data = parse_yml(args.compose_file_path)
+        if not args.compose_file_path:
+            data = parse_json()
+        else:
+            data = parse_yml(args.compose_file_path)
         generate(data)
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))

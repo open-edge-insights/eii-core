@@ -187,6 +187,7 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
 ```
 * By default EIS is provisioned with Single node cluster.
+* If docker compose file is not provided to the provisioning script, it will just start ETCD for the node.
 * In order to join nodes to EIS cluster. Please follow steps mentioned in [docker_setup/provision/EISCluster.md](docker_setup/provision/EISCluster.md) to provision EIS to new nodes in same cluster
 
 

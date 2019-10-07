@@ -30,9 +30,29 @@ if grep -q 'Error: etcdserver: Peer URLs already exists' $1.env; then
     exit 1
 fi
 
+# Creating provision bundle for new node
+OUTPUT_DIR="$1_provision"
+mkdir -p $OUTPUT_DIR/provision/Certificates
+
+cp -r Certificates/ca $OUTPUT_DIR/provision/Certificates/
+cp -r Certificates/etcdserver $OUTPUT_DIR/provision/Certificates/
+cp -r Certificates/root $OUTPUT_DIR/provision/Certificates/
+
+mkdir $OUTPUT_DIR/provision/dep
+cp -r dep $OUTPUT_DIR/provision/
+
 cat $1.env
-tr -d '\r' < $1.env > dep/$1tmp.env
-sed '1d' dep/$1tmp.env > dep/$1.env
-rm $1.env dep/$1tmp.env
+tr -d '\r' < $1.env > $OUTPUT_DIR/provision/dep/$1tmp.env
+sed '1d' $OUTPUT_DIR/provision/dep/$1tmp.env > $OUTPUT_DIR/provision/dep/$1.env
+rm $1.env $OUTPUT_DIR/provision/dep/$1tmp.env
+cp ../.env $OUTPUT_DIR/
+sed -i "s/ETCD_NAME=.*/ETCD_NAME=$1/g"  $OUTPUT_DIR/.env
+
+
+cp provision_eis.sh $OUTPUT_DIR/provision/
+
+tar -czvf $OUTPUT_DIR.tar.gz $OUTPUT_DIR/
+rm -rf $OUTPUT_DIR/
+
 
 

@@ -2,17 +2,30 @@
 
 EIS uses ETCD for clustering. When EIS is deployed on a cluster having multiple node, ETCD will make sure all EIS services configurations and secrets are distributed across all nodes of the cluster.
 
-By default EIS starts with single node cluster. New nodes can be added to EIS cluster using following 2 step process.
+By default EIS starts with single node cluster. 
 
-> **NOTE**: 
-> * Steps 1 to be executed on 'existing node' running EIS cluster.
+For running EIS in multi node cluster mode, we have to indetify one master node. For a master node, ETCD_NAME in [docker_setup/.env](../.env) must be set to `master`. 
+
+> **NOTE**: Master node is the primary administative node, which is used for following 
+> * Generating Required Certificates and Secrets.
+> * Loading Initial ETCD values.
+> * Adding new node to ETCD Cluster.
+> * Building and Pushing Docker images to registry.
+> * Generating bundles to provision new nodes.
+> * Generating bundles to deploy EIS services on new nodes.
+> * Master node should have the entire repo present.
+
+## Please execute Step 1 and Step 2 below to Add New Node to EIS Cluster.
+
+> **NOTE**:  
+> * Steps 1 to be executed on `master` node'.
 > * Step 2 to be executed on 'new node' which will join EIS cluster.
 > * Please execute below commands in directory [repo]/docker_setup/provision.
-> * For environment under proxy, please make sure IP addresses or IP range for all nodes in a cluster are appended to no_proxy in [docker_setup/.env](../.env) for all nodes of cluster.
+> * For environment under proxy, please make sure IP addresses or IP range for all nodes in a cluster are appended to no_proxy in [docker_setup/.env](../.env) for `master` node.
 
 
 
-### Step 1). To be performed on Existing node:
+### Step 1). To be performed on Master node:
 
 > **NOTE**: if EIS provisioning is not done on this node, please perform EIS provisioning first using below command. If EIS is already provisioned and running, then below step is not required.
 
@@ -35,13 +48,13 @@ By default EIS starts with single node cluster. New nodes can be added to EIS cl
 > **NOTE**: Please note that `< NodeName >` and `< IP Address of the New Node >` above, must not be part of existing node list of the cluster. (Please use command `./etcd_cluster_info.sh` to see existing node list of the cluster.)
 
 * Once the above command is executed successfully, a message should come that node is added to cluster. 
-* Also it will create a `<NodeName>.env` file in docker_setup/provision/dep folder. This file needs to be copied to docker_setup/provision/dep folder of the New Node.
+* Also it will create a `<NodeName>_provision.tar.gz` file in docker_setup/provision/ folder. This file needs to be copied to docker_setup/provision/ folder of the New Node.
 
 ```
 
-  ./scp <NodeNAme>.env user@<IP Address of New Node>:<EIS repo Path>/docker_setup/provision/dep
+  ./scp <NodeName>_provision.tar.gz user@<IP Address of New Node>:<EIS repo Path>/docker_setup/provision/
   
-  e.q. scp ./dep/node2.env user@10.223.109.170:~/IEdgeInsights/docker_setup/provision/dep
+  e.q. scp ./node2_provision.tar.gz user@10.223.109.170:~/IEdgeInsights/docker_setup/provision/
 
 ```
 
@@ -50,19 +63,20 @@ By default EIS starts with single node cluster. New nodes can be added to EIS cl
 
 > **NOTE** EIS should not be running or provisioned on new node.  Before provisioning, below steps needs to be performed.
 
- * `<NodeName>.env` is copied to docker_setup/provision/dep folder as per step 1 above from Existing Node.
- * Update ETCD_NAME in docker_setup/.env with `NodeName` used in command in step 1 on Existing Node.
- * Make sure to update [docker_setup/docker-compose.yml](../docker-compose.yml) with only the required services to be deployed on new node.
- * Make sure to update [docker_setup/provision/config/etcd_pre_load.json](config/etcd_pre_load.json) on new node with only the required keys for 
-services deployed on new node.
-
-
- * Once above steps are performed, Provision EIS using below command and it will join new node to existing cluster and do EIS provisioning on new node.
-
+ * ` <NodeName>_provision.tar.gz` is copied to docker_setup/provision/dep folder as per step 1 above from Existing Node.
+ 
+ * Once above file is copied, Provision EIS using below command and it will join new node to existing cluster.
+ 
 ```
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+    $ sudo tar -xvf <NodeName>_provision.tar.gz
+    $ cd <NodeName>_provision/provision
+    $ sudo ./provision_eis.sh
 
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    eq. 
+    
+    $ sudo tar -xvf node2_provision.tar.gz
+    $ cd node2_provision/provision
+    $ sudo ./provision_eis.sh
 
 ```
 * Once provisioning is done, please verify that New Node is added to cluster by below command.
