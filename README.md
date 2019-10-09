@@ -103,6 +103,48 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 4. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [docker_setup/docker_security_recommendation.md](docker_setup/docker_security_recommendation.md)
 
+5. **Optional:** If one wishes to enable log rotation for docker containers
+
+    There are two ways to configure logging driver for docker containers
+
+    * Set logging driver as part of docker daemon (**applies to all docker containers by default**):
+
+        * Configure `json-file` driver as default logging driver by following [https://docs.docker.com/config/containers/logging/json-file/](https://docs.docker.com/config/containers/logging/json-file/). Sample json-driver config which can be copied to `/etc/docker/daemon.json` is provided below.
+
+            ```
+            {
+                "log-driver": "json-file",
+                "log-opts": {
+                "max-size": "10m",
+                "max-file": "5"
+                }
+            }
+            ```
+
+        * Reload the docker daemon
+            ```
+            sudo systemctl daemon-reload
+            ```
+        * Restart docker
+            ```
+            sudo systemctl restart docker
+            ```
+
+    * Set logging driver as part of docker compose which is conatiner specific and which always overwrites 1st option (i.e /etc/docker/daemon.json)
+
+        Example to enable logging driver only for video_ingestion service:
+
+        ```
+        ia_video_ingestion:
+            ...
+            ...
+            logging:
+             driver: json-file
+             options:
+              max-size: 10m
+              max-file: 5
+        ```
+
 
 # EIS Deployment Via TurtleCreek
 
@@ -119,48 +161,6 @@ The section assumes the EIS software is already downloaded from the release pack
    > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/common/openvino folder as 
    > we are adding `l_openvino_toolkit_*` into Dockerfile which could result in  build failure of 
    > openvino base container if there are multiple openvino sdk's in there (especially the old ones)
-
-5. **To enable log rotation for docker containers:**
-
-    There are two ways to configure logging driver for docker containers
-
-    1. Set logging driver as part of docker daemon:
-
-        * Configure `json-file` driver as default logging driver by following [https://docs.docker.com/config/containers/logging/json-file/](https://docs.docker.com/config/containers/logging/json-file/). Sample json-driver config which can be copied to `/etc/docker/daemon.json` is provided below.
-
-        ```
-        {
-            "log-driver": "json-file",
-            "log-opts": {
-            "max-size": "10m",
-            "max-file": "5"
-            }
-        }
-        ```
-
-        * Reload the docker daemon
-        ```
-        sudo systemctl daemon-reload
-        ```
-        * Restart docker
-        ```
-        sudo systemctl restart docker
-        ```
-
-    2. Set logging driver as part of docker compose which is conatiner specific and which always overwrites 1st option (i.e /etc/docker/daemon.json)
-
-        Example to enanble logging driver only for video_ingestion service:
-
-        ```
-        ia_video_ingestion:
-            ...
-            ...
-            logging:
-            driver: json-file
-            options:
-                max-size: 10m
-                max-file: 5
-        ```
 
 # Provision EIS
 
