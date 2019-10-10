@@ -176,7 +176,7 @@ services:
     restart: unless-stopped
     environment:
       AppName: "Visualizer"
-      DISPLAY: ${DISPLAY}
+      DISPLAY: ":0"
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
