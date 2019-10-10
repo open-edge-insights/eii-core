@@ -73,3 +73,8 @@ add_test(NAME thp-tests COMMAND thp-tests)
 add_executable(frame-tests "frame_tests.cpp")
 target_link_libraries(frame-tests eisutils gtest_main)
 add_test(NAME frame-tests COMMAND frame-tests)
+
+# have this file as a unit test file instead of test program
+add_executable(msgbus-util-tests msgbus_util_tests.cpp)
+target_link_libraries(msgbus-util-tests eisutils gtest_main)
+add_test(NAME msgbus-util-tests COMMAND msgbus-util-tests)
