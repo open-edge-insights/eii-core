@@ -1,0 +1,54 @@
+# # config file version
+apiVersion: 1
+
+# # list of datasources that should be deleted from the database
+#deleteDatasources:
+#   - name: Graphite
+#     orgId: 1
+
+ # list of datasources to insert/update depending
+ # on what's available in the database
+datasources:
+   # <string, required> name of the datasource. Required
+ - name: InfluxDB
+   # <string, required> datasource type. Required
+   type: influxdb
+   # <string, required> access mode. direct or proxy. Required
+   access: proxy
+   # <int> org id. will default to orgId 1 if not specified
+   orgId: 1
+   # <string> url
+   url: https://localhost:8086
+   # <string> database password, if used
+   password: admin123
+   # <string> database user, if used
+   user: admin
+   # <string> database name, if used
+   database: datain
+   # <bool> enable/disable basic auth
+   basicAuth: true
+   # <string> basic auth username
+   basicAuthUser: admin
+   # <string> basic auth password
+   basicAuthPassword: admin123
+   # <bool> enable/disable with credentials headers
+   withCredentials: false
+   # <bool> mark as default datasource. Max one per org
+   isDefault: true
+   # <map> fields that will be converted to json and stored in json_data
+   jsonData:
+      graphiteVersion: "1.1"
+      tlsAuth: true
+      tlsAuthWithCACert: true
+      #httpHeaderName1: "Authorization"
+   # <string> json object of data that will be encrypted.
+   secureJsonData:
+     tlsCACert: "-----BEGIN CERTIFICATE-----\nMIIENjCCAp6gAwIBAgIUTvQ3pAWf1A/HqqKGjwgExgMcYV8wDQYJKoZIhvcNAQEL\nBQAwNjElMCMGA1UEAwwcRUlTQ2VydFRvb2xTZWxmU2lnbmVkdFJvb3RDQTENMAsG\nA1UEBwwEJCQkJDAeFw0xOTEwMjQxMTMwNTdaFw0yOTEwMjExMTMwNTdaMDYxJTAj\nBgNVBAMMHEVJU0NlcnRUb29sU2VsZlNpZ25lZHRSb290Q0ExDTALBgNVBAcMBCQk\nJCQwggGiMA0GCSqGSIb3DQEBAQUAA4IBjwAwggGKAoIBgQDdXGsHy7gBrq3siAVO\nl649qEz/hrwOHN98tjLqMsc35TyJraiKXSWAo8rJWN5aZ4X7V60/0XVeNU061sE7\nhB7aBdGQ73fQkwFepAPAld879k1/sm4U3ybW3yCsmW3yFfMEE+nMIY4/LkNyY4On\niTBwtwM36+HtsAVNW2lc0SoSECZkehc56e9OGi4umkhKCmM3QCCbRL7QeCyPxJAe\nDgcetF0q9mzUai2WI8qj+0umKUHmfoxDjcobs71REA3ajSrAgEFRb8wDwrvak+A7\n+tegV0uO0aUfTVVKPpfiRsnK243ysKAeM8FbvkZrRrnc6ZB8x4AkxbXoaPb06lki\nAo5m7K+aYLTzoiuhCi0C+Rm/RXhT6asd4hmJvtA+ZsApCU6Ys9RV6pC5OTFCTEYm\nD6L2QT0LQ1L2A+q+EkUfu+vgYnV2qefHPENf67GIWYCqRq44PqTJbAUFzN0OsGfX\nllrrQZzhbvlgbqqnch/okqAI0KZpeXj2rfT0Nijjjb350rkCAwEAAaM8MDowDAYD\nVR0TBAUwAwEB/zALBgNVHQ8EBAMCAQYwHQYDVR0OBBYEFMFJAFWV2GYywbJ4hu5e\njgEibaOiMA0GCSqGSIb3DQEBCwUAA4IBgQBjWDJsv4UAJBKpzV29ucCowvd0qMFH\nz38GDRHi4fYrP/VuNdtFrkPlm5EQyxtHFC/08PTXGeDFJ6vvfRFBr4xI4pXotjUW\nSbnTmEduo7OdWe1kQMXSOwUp5ry3BHKXs4Yer6FFaE3+wwZJzONW0x6Mq/kBhEmr\nKjUuZPLhSbtStfCxdekIPaXQbv8RRqjdctWXHB3nQflwyDLO18N1eRGKg+6WMcss\nnMffh2GBXc52M4E28k0gWA/I1wyEajcU2b76Hqsi1WzvroM5c6lRuaTy8NN9mp/y\nr4uAaMvmfVF4WItD0poYIXYuOdX89//wJGxHHvuJqfCvu/78EfgGofzGF31fj9tF\nh78AqdvSXj9ipMozlmMVs8/LW1tEKU/qD41IbqU9hHCjXNBm68rDhx1HAXYbqCby\nLCzDjqu5Vmpb//xSz9Oj9wO/MH6DHGZK5pR3rChobP/xKQOMcjDPoT1R8XYnuM82\n0y+6ksiRRXdaXSIzjQvDBx25or6QfQST2xU=\n-----END CERTIFICATE-----"
+     tlsClientCert: "-----BEGIN CERTIFICATE-----\nMIIEPTCCAqWgAwIBAgIBAzANBgkqhkiG9w0BAQsFADA2MSUwIwYDVQQDDBxFSVND\nZXJ0VG9vbFNlbGZTaWduZWR0Um9vdENBMQ0wCwYDVQQHDAQkJCQkMB4XDTE5MTAy\nNDExMzA1OFoXDTI5MTAyMTExMzA1OFowIzEQMA4GA1UEAwwHR3JhZmFuYTEPMA0G\nA1UECgwGY2xpZW50MIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA3FQ0\nQz7Tzp159wf1lEbi+EQFRva2pp+0BP/bASDAfEq/iWdQfq6jph/BT8S2qJCD/tfj\nTiTi2ZgFH2dETPxGynaXmsersL85aIHeiN8ouDEo/vsq55XwRUcB85gU44NpM+xu\n8TsBWdprE32Fr9WHW/pFFh/tApI2NpJAqYU8hCebmnbG9jL02kTeP+VuxKD6SSj7\n2x+aI/BVm8wPSLgn4amQHV5PSRrXCef/wzdwUgfsl2hUcyzq87fSU0Q0Ro0ze2qe\ncVDUFLOqiklpo+w1K3AMkOIwoIrTtsw8tsnOV6eSWpIAcnXXv8cCsbWxNiLEj4lW\nthPKm8KeVsZpY6BHO9ruahaPCTzdf2OOeIdmGr6ecz9xyWMxDzpFWLIK2aw6ACla\ngouAEAagmfwkFqPQwySGmqCU5BLa3wSRA2C8yZsVTfRS9fzFNP9UhLuygAR004lk\nyFM0951SpIyITZHFkS/2QZDnyiH2soktRfyR46sxPL9GU1VEXtJZsspDr0HjAgMB\nAAGjaTBnMAkGA1UdEwQCMAAwEwYDVR0lBAwwCgYIKwYBBQUHAwIwCwYDVR0PBAQD\nAgWgMDgGA1UdEQQxMC+HBH8AAAGCCWxvY2FsaG9zdIYcdXJuOnVuY29uZmlndXJl\nZDphcHBsaWNhdGlvbjANBgkqhkiG9w0BAQsFAAOCAYEAuPfzMbBMwJVtSvVrUDcY\nV0KxSilrciYrSYOkHd1nFeVxY57ckHZxLk79Z5EIm8fj4dS1zUaOZWA0WfJpYg4T\nt73LhwJjODrsacKv+AltPuAn5yC1J+oRC57d4JBuCUvmhqgkW5LVxwvFRgyWTlEr\nW+gwGYcYEsgQU7AEMlCN9b+h8ivVHP1d/OxyjWYdIml0a14H5EQ0gKDdDMdn3SGE\nbHmg0ZL3iCGMqUpfC4+pJt9UJH1uSrk+XRYN6K4VJqCcDFZV9zYdd+gnIp2L0Irj\nR1BK5cykXoepWlhr8p38hvCt6dOqYsZyytnldipDJRKYyFOlOEKQ9ZcszLv2qfHa\n0Dj73oNoqXHcCzToI4ni2vhekMjFEtNvXyDR9AsFp3NkyZjADqxKw05ZUOAbIRXV\nYD6Krsiz3a0KysnaA5AJmz3110TVOsjOErv3qlUonbQ/5Mr7h2x7VVsm376hIYE8\nzJpoqLoqbeWlc63brJmDsH/4ZLunD9XZ1XTseaFoI7Fs\n-----END CERTIFICATE-----"
+     tlsClientKey: "-----BEGIN PRIVATE KEY-----\n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\nCsFqogukY2cO4nbJL9/gsQeS\n-----END PRIVATE KEY-----"
+     # <openshift\kubernetes token example>
+     #  httpHeaderValue1: "Bearer xf5yhfkpsnmgo"
+   version: 1
+   # <bool> allow users to edit datasources from the UI.
+   editable: false
+

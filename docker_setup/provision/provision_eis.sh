@@ -125,6 +125,8 @@ else
  	 		if [ $ETCD_NAME = 'master' ]; then
 				python3 gen_certs.py --f $1
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
+				echo "5. If grafana enabled, create grafana configuration."
+                                python3.6 ../grafana/modify_grafana_files.py
 			fi
 			
  		fi
@@ -154,15 +156,4 @@ else
 	fi
 
 fi
-
-
-
-
-
-
-
-
-
-
-
 
