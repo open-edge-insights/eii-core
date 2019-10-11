@@ -1,4 +1,5 @@
 {
 	"docker_compose_file_version": "3.6",
-	"exclude_services": ["ia_eisbase", "ia_openvino_base", "ia_common"]
+	"exclude_services": ["ia_eisbase", "ia_openvino_base", "ia_common"],
+	"include_services": ["ia_video_ingestion","ia_video_analytics","ia_visualizer"]
 }
