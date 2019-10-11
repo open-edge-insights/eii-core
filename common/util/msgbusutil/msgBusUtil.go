@@ -10,6 +10,11 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	maxClients     = 200
+	maxSubscribers = 200
+)
+
 // GetMessageBusConfig - constrcuts config object based on topic type(pub/sub),
 // message bus type(tcp/ipc) and dev/prod mode
 func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrConfig map[string]string) map[string]interface{} {
@@ -51,15 +56,19 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			if !devMode {
 				var allowedClients []interface{}
 				subscribers := strings.Split(os.Getenv("Clients"), ",")
-				for _, subscriber := range subscribers {
-					subscriber = strings.TrimSpace(subscriber)
-					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subscriber)
-					if err != nil {
-						glog.Errorf("ConfigManager couldn't get Subscriber's Public Key %v", err)
-					}
+				if len(subscribers) > maxSubscribers {
+					glog.Infof("Exceeded Max Subscribers ", len(subscribers))
+				} else {
+					for _, subscriber := range subscribers {
+						subscriber = strings.TrimSpace(subscriber)
+						clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + subscriber)
+						if err != nil {
+							glog.Errorf("ConfigManager couldn't get Subscriber's Public Key %v", err)
+						}
 
-					if clientPublicKey != "" {
-						allowedClients = append(allowedClients, clientPublicKey)
+						if clientPublicKey != "" {
+							allowedClients = append(allowedClients, clientPublicKey)
+						}
 					}
 				}
 				serverSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
@@ -100,14 +109,18 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			if !devMode {
 				var allowedClients []interface{}
 				clients := strings.Split(os.Getenv("Clients"), ",")
-				for _, client := range clients {
-					client = strings.TrimSpace(client)
-					clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + client)
-					if err != nil {
-						glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
-					}
-					if clientPublicKey != "" {
-						allowedClients = append(allowedClients, clientPublicKey)
+				if len(clients) > maxClients {
+					glog.Infof("Exceeded Max Clients ", len(clients))
+				} else {
+					for _, client := range clients {
+						client = strings.TrimSpace(client)
+						clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + client)
+						if err != nil {
+							glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
+						}
+						if clientPublicKey != "" {
+							allowedClients = append(allowedClients, clientPublicKey)
+						}
 					}
 				}
 				serverSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
