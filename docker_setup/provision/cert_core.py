@@ -87,7 +87,7 @@ def copy_root_ca_certificate_and_key_pair(target="ca"):
         (paths.result_dir_name+"/ca", "ca_key.pem"))
 
 
-def copy_leaf_certificate_and_key_pair(source, target, outform=None):
+def copy_leaf_cert_and_key_pair(source, target, outform=None):
     create_target_folder(target)
     if outform:
         paths.copy_tuple_path((source, "cert.der"),
@@ -184,7 +184,7 @@ def generate_server_certificate_and_key_pair(key, opts):
         raise err
 
 
-def generate_client_certificate_and_key_pair(key, opts):
+def generate_client_cert_and_key_pair(key, opts):
     try:
         generate_cert_and_key_pair(key, "client", opts)
     except Exception as err:

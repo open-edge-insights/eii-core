@@ -1,6 +1,6 @@
 {
   
-  "certificates": [
+  "certs": [
      {
        "etcdserver": {
          "server_alt_name": ""

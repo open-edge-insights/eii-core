@@ -43,10 +43,8 @@ def parse_args():
 
 
 def parse_yml(filepath):
-    with open("config.json") as f:
+    with open("config/x509_cert_config.json") as f:
         data = json.load(f)
-           
-    
     with open(filepath) as f:
         docs = yaml.load_all(f, Loader=yaml.FullLoader)
         for doc in docs:
@@ -57,28 +55,30 @@ def parse_yml(filepath):
                             if key == "environment":
                                 if 'AppName' in value.keys():
                                     existingCert = False
-                                    for keyValue in data["certificates"]:
-                                        if value['AppName']  in keyValue.keys():
+                                    for keyValue in data["certs"]:
+                                        if value['AppName'] in keyValue.keys():
                                             existingCert = True
 
                                     if not existingCert:
-                                         cert_name= value['AppName']
-                                         cert_details={'client_alt_name':''} 
-                                         data["certificates"].append({cert_name:cert_details})
-
-
+                                        cert_name = value['AppName']
+                                        cert_details = {'client_alt_name': ''}
+                                        data["certs"].append({cert_name:
+                                                             cert_details})
                                 if 'CertType' in value.keys():
                                     if 'pem' in value["CertType"]:
-                                        cert_name= value['AppName'] + "_Server"
-                                        cert_details={'server_alt_name':''}                                   
-                                        data["certificates"].append({cert_name:cert_details})
+                                        cert_name = value['AppName'] \
+                                            + "_Server"
+                                        cert_details = {'server_alt_name': ''}
+                                        data["certs"].append({cert_name:
+                                                             cert_details})
                                     if 'der' in value["CertType"]:
-                                        cert_name= value['AppName'] + "_Server"
-                                        cert_details={'server_alt_name':'', 'output_format':'DER'}                                   
-                                        data["certificates"].append({cert_name:cert_details})
-                                
+                                        cert_name = value['AppName'] \
+                                            + "_Server"
+                                        cert_details = {'server_alt_name': '',
+                                                        'output_format': 'DER'}
+                                        data["certs"].append({cert_name:
+                                                             cert_details})
     return data
-    
 
 
 def copy_certificates_to_results_folder():
@@ -97,7 +97,7 @@ def generate(opts, root_ca_needed=True):
     if root_ca_needed:
         generate_root_ca()
     copy_certificates_to_results_folder()
-    for cert in opts["certificates"]:
+    for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
@@ -107,13 +107,13 @@ def generate(opts, root_ca_needed=True):
             if "server_alt_name" in cert_opts:
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
-                cert_core.copy_leaf_certificate_and_key_pair("server",
-                                                             component, outform)
+                cert_core.copy_leaf_cert_and_key_pair("server",
+                                                      component, outform)
             if "client_alt_name" in cert_opts:
-                cert_core.generate_client_certificate_and_key_pair(component,
-                                                                   cert_opts)
-                cert_core.copy_leaf_certificate_and_key_pair("client",
-                                                             component, outform)
+                cert_core.generate_client_cert_and_key_pair(component,
+                                                            cert_opts)
+                cert_core.copy_leaf_cert_and_key_pair("client",
+                                                      component, outform)
 
 
 def clean():
@@ -133,11 +133,6 @@ if __name__ == '__main__':
         if args.clean is True:
             clean()
             exit(1)
-        # if not args.compose_file_path:
-        #     print("Please provide compose file path for cert generation")
-        #     exit(1)
-        
-        
         data = parse_yml(args.compose_file_path)
         generate(data)
     except Exception as err:

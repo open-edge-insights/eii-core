@@ -56,7 +56,7 @@ subjectKeyIdentifier=hash
 basicConstraints       = CA:FALSE
 extendedKeyUsage       = clientAuth
 keyUsage               = digitalSignature, keyEncipherment
-
+subjectAltName 	= ${ENV::SAN}
 
 
 

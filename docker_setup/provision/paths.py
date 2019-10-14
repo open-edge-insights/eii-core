@@ -45,7 +45,7 @@ def copy_tuple_path(from_tuple, to_tuple):
 
 
 def openssl_cnf_path():
-    return relative_path("openssl.cnf")
+    return relative_path("config/openssl.cnf")
 
 
 def container_name():
