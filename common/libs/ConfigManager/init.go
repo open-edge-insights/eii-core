@@ -17,6 +17,11 @@ import (
 	"github.com/golang/glog"
 )
 
+// ConfigManager interface
+type ConfigManager interface {
+	configmgr.ConfigMgr
+}
+
 //Init function to initialize config manager
 func Init(storageType string, config map[string]string) configmgr.ConfigMgr {
 	glog.Infof("initializing configuration manager...")
