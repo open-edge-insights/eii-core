@@ -11,6 +11,7 @@ services:
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
   ia_eisbase:
@@ -32,6 +33,7 @@ services:
       dockerfile: $PWD/../common/openvino/Dockerfile.openvino
       args:
           EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
 
 
@@ -45,6 +47,7 @@ services:
       args:
         ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
         EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
@@ -71,6 +74,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
@@ -119,6 +123,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
@@ -167,6 +172,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_visualizer:${EIS_VERSION}
     container_name: ia_visualizer
     hostname: ia_visualizer
@@ -207,7 +213,6 @@ services:
       # Uncomment the below two lines for running DiscoveryCreek usecase alone
       # SubTopics: "DiscoveryCreek/dc_point_data_results"
       # dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
-    privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
@@ -315,7 +320,7 @@ services:
   #   container_name: ia_dc
   #   hostname: ia_dc
   #   network_mode: host
-  #   restart: on-failure:5
+  #   restart: unless-stopped
   #   read_only: true
   #   tmpfs: /tmp
   #   environment:
@@ -418,10 +423,10 @@ services:
   #     - "${EIS_INSTALL_PATH}/data:/data"
   #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #     - ca_etcd
-  #   #     - etcd_ImageStore_cert
-  #   #     - etcd_ImageStore_key
+  #   secrets:
+  #       - ca_etcd
+  #       - etcd_ImageStore_cert
+  #       - etcd_ImageStore_key
 
 
   # ## Define FactoryControlApp service
@@ -435,6 +440,7 @@ services:
   #       EIS_VERSION: ${EIS_VERSION}
   #       EIS_UID: ${EIS_UID}
   #       EIS_USER_NAME: ${EIS_USER_NAME}
+  #   read_only: true
   #   image: ${DOCKER_REGISTRY}ia_factoryctrl_app:${EIS_VERSION}
   #   container_name: ia_factoryctrl_app
   #   hostname: ia_factoryctrl_app

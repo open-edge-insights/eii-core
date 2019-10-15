@@ -11,6 +11,7 @@ services:
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
   
   ia_eisbase:
@@ -32,6 +33,7 @@ services:
       dockerfile: $PWD/../common/openvino/Dockerfile.openvino
       args:
           EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
     
 
@@ -45,6 +47,7 @@ services:
       args:
         ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
         EIS_VERSION: ${EIS_VERSION}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
@@ -70,6 +73,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+    read_only: true
     image: ${DOCKER_REGISTRY}ia_visualizer:${EIS_VERSION}
     container_name: ia_visualizer
     hostname: ia_visualizer
@@ -191,6 +195,7 @@ services:
     restart: unless-stopped
     environment:
       AppName: "Telegraf"
+      InfluxDbAppName: "InfluxDBConnector"
       CertType: ""
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${no_proxy}

@@ -1,6 +1,7 @@
 version: '3.6'
 services:
   ia_etcd:
+    read_only: true
     secrets:
         - ca_etcd
         - etcd_server_cert
@@ -10,6 +11,7 @@ services:
     environment:
       ETCD_CIPHER_SUITES: $TLS_CIPHERS
   ia_etcd_provision:
+    read_only: true
     secrets:
         - ca_etcd
         - etcd_root_cert
