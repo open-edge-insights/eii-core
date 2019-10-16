@@ -32,11 +32,15 @@ fi
 
 # Creating provision bundle for new node
 OUTPUT_DIR="$1_provision"
-mkdir -p $OUTPUT_DIR/provision/Certificates
+mkdir -p $OUTPUT_DIR/provision
 
-cp -r Certificates/ca $OUTPUT_DIR/provision/Certificates/
-cp -r Certificates/etcdserver $OUTPUT_DIR/provision/Certificates/
-cp -r Certificates/root $OUTPUT_DIR/provision/Certificates/
+if [ $DEV_MODE = 'false' ]; then
+
+	mkdir $OUTPUT_DIR/provision/Certificates
+	cp -r Certificates/ca $OUTPUT_DIR/provision/Certificates/
+	cp -r Certificates/etcdserver $OUTPUT_DIR/provision/Certificates/
+	cp -r Certificates/root $OUTPUT_DIR/provision/Certificates/
+fi
 
 mkdir $OUTPUT_DIR/provision/dep
 cp -r dep $OUTPUT_DIR/provision/
