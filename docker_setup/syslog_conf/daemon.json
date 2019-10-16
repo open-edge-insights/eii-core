@@ -1,0 +1,10 @@
+{
+
+ "dns":["10.248.2.1","8.8.8.8"],
+  "log-driver": "syslog",
+  "log-opts": {
+    "syslog-address": "udp://127.0.0.1:514",
+    "tag": "{{.Name}}/{{.ID}}"
+  }
+}
+
