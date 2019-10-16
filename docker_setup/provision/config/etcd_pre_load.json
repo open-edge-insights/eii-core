@@ -69,6 +69,11 @@
            "ssl":"false"
         }
     },
+    "/RestDataExport/config": {
+        "camera1_stream_results": "http://localhost:8082",
+        "camera1_stream": "http://localhost:8082",
+        "http_server_ca": "/opt/intel/eis/cert.pem"
+    },
     "/GlobalEnv/": {
         "COMPOSE_HTTP_TIMEOUT":"200",
         "COMPOSE_PROJECT_NAME":"EIS_docker_network",
