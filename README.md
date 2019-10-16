@@ -6,27 +6,26 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 2. [Docker pre-requisites](#docker-pre-requisities)
 
-3. [EIS Deployment Via TurtleCreek](#eis-deployment-via-turtlecreek)
+3. [EIS Pre-requisites](#eis-pre-requisites)
 
-4. [EIS Pre-requisites](#eis-pre-requisites)
+4. [Provision EIS](#provision-eis)
 
-5. [Provision EIS](#provision-eis)
+5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
+6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
 
-7. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
+7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-8. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+8. [Using video accelerators](#using-video-accelerators)
 
-9. [Using video accelerators](#using-video-accelerators)
+9. [Time-series Analytics](#time-series-analytics)
 
-10. [Time-series Analytics](#time-series-analytics)
+10. [DiscoveryCreek](#DiscoveryCreek)
 
-11. [DiscoveryCreek](#DiscoveryCreek)
+11. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
 
-12. [Usage of Docker Registry](#usage-of-docker-registry)
+12. [Debugging options](#debugging-options)
 
-13. [Debugging options](#debugging-options)
 
 
 # Minimum System Requirements
@@ -146,10 +145,6 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
         ```
 
 
-# EIS Deployment Via TurtleCreek
-
-To Deploy EIS Software via TurtleCreek and Telit. Please follow [docker_setup/deploy/README.md](docker_setup/deploy/README.md)
-
 # EIS Pre-Requisites
 
 The section assumes the EIS software is already downloaded from the release package or from git.
@@ -186,9 +181,6 @@ $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
 ```
-* By default EIS is provisioned with Single node cluster.
-* If docker compose file is not provided to the provisioning script, it will just start ETCD for the node.
-* In order to join nodes to EIS cluster. Please follow steps mentioned in [docker_setup/provision/EISCluster.md](docker_setup/provision/EISCluster.md) to provision EIS to new nodes in same cluster
 
 
 # Build and Run EIS PCB Demo Example
@@ -309,33 +301,12 @@ EIS stack comes with following services, which can be included/excluded in docke
 10. [EtcdUI](EtcdUI/README.md)
 11. [DiscoveryCreek](DiscoveryCreek/README.md)
 
-# Usage of Docker Registry
 
-This is an `optional` step where in EIS user wants to build and run EIS images using a DOCKER REGISTRY. This is very helpful
-when one wants to pull and deploy docker images directly from a docker registry instead of building in every system.
+# EIS multi node cluster provision and deployment using Turtlecreek
 
-Follow below steps:
+By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and 
+remote managibility using turtlecreek, please follow [docker_setup/deploy/README.md](docker_setup/deploy/README.md)
 
-* Please update docker registry url in DOCKER_REGISTRY variable in [docker_setup/.env](docker_setup/.env). Please use full registry URL with a traliling /
-
-* Building EIS images and pushing the same to docker registry.
-
-      ```sh
-      docker-compose build
-      docker-compose push
-
-      ```
-
-* Pulling EIS images from configured docker registry and do a run.
-
-> **NOTE**: Please copy only docker_setup folder on node on which EIS is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
-> **NOTE**: Above commenting/removing build dependencies is not required if entire EIS repo is present on the node on which EIS is being launched through registry.
-
-
-      ```sh
-            docker-compose pull
-            docker-compose up -d
-      ```
 
 # Debugging options
 
