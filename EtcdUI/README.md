@@ -8,7 +8,14 @@
 
 ---
 **NOTE**:
-1. If ETCD_ROOT_PASSWORD is changed, EIS must to be provisioned again.
+1. If ETCD_ROOT_PASSWORD is changed, EIS must to be provisioned again. Please follow below command in < EIS Repo >/docker_setup/provision folder to reprovision EIS.
+
+        ```
+        $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+        eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+
+        ```
 2. Only VideoIngestion and VideoAnalytics based services will have watch for any changes. Any changes done to those keys will be reflected at runtime in EIS.
 3. For changes done to any other keys, EIS stack needs to be restarted for it to take effect. Please execute below command in working directory docker_setup/ to restart EIS.
     ```

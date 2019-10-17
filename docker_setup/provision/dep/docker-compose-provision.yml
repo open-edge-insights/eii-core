@@ -49,7 +49,6 @@ services:
     environment:
       ETCDCTL_API: 3
       DEV_MODE: ${DEV_MODE}
-      ETCD_ROOT_PASSWORD: eis123
       no_proxy: $no_proxy
       NO_PROXY: $no_proxy
       http_proxy: $http_proxy
