@@ -175,7 +175,7 @@ config_value_t* config_value_new_object(
 }
 
 config_value_t* config_value_new_array(
-        void* array, size_t length, config_value_t* (get)(const void*,int),
+        void* array, size_t length, config_value_t* (*get)(const void*,int),
         void (*free_fn)(void*))
 {
     config_value_t* cv = (config_value_t*) malloc(sizeof(config_value_t));

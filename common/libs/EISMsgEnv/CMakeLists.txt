@@ -18,21 +18,28 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-cmake_minimum_required(VERSION 3.12)
-project(eis-utils VERSION 1.0.0 LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.11)
+project(eis-msgenv VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_TESTS    "Compile with unit tests" OFF)
+option(WITH_DOCS     "Generate message bus documentation" OFF)
 
+# Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
-# Include directory for CMake modules
+# Set C standard to C11
+set(CMAKE_C_STANDARD 11)
+
+# Set CFLAGS
+set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -pedantic -fstack-protector-strong -D_FORTIFY_SOURCE=2")
+
+# Set LDFLAGS
+set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
+
+# Add cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
-# Find packages
-find_package(cJSON REQUIRED)
-
-# Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -41,10 +48,11 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     )
 endif()
 
+# Finding libraries
+find_package(cJSON REQUIRED)
+
 # Include Intel safestring library
-configure_file(
-    "${EIS_COMMON_CMAKE}/IntelSafeString.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/safestring-download/CMakeLists.txt")
+configure_file(${EIS_COMMON_CMAKE}/IntelSafeString.txt.in safestring-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
                 RESULT_VARIABLE ss_result
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
@@ -66,34 +74,33 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
 # Include header directories
 include_directories(
     include/
-    ${CJSON_LIBRARIES}/
+    ${CJSON_INCLUDE_DIRS}
     ${safestring_SOURCE_DIR}/include)
 
 # Get all source files
-file(GLOB SOURCES "src/*.c" "src/*.cpp")
+file(GLOB SOURCES "src/*.c")
+set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
-# Add target
-add_library(eisutils SHARED ${SOURCES})
-target_link_libraries(eisutils
+add_library(eismsgenv SHARED ${SOURCES})
+target_link_libraries(eismsgenv
     PRIVATE
         ${CJSON_LIBRARIES}
         safestring_static)
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(eisutils PRIVATE DEBUG=1)
+    target_compile_definitions(eismsgenv PRIVATE DEBUG=1)
 endif()
 
-# Add unit tests if the option was selected
 if(WITH_TESTS)
     add_subdirectory(tests/)
 endif()
 
 ##
-## Configure pkg-config file to be installed for the EIS Message Bus
+## Configure pkg-config file to be installed for the EIS Message Envelope lib
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisutils.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisutils.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeismsgenv.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeismsgenv.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lcjson")
 
@@ -105,14 +112,14 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISUtils)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISMessageBus)
 
-install(TARGETS eisutils
-    EXPORT eisutils-targets
+install(TARGETS eismsgenv
+    EXPORT eismsgenv-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisutils PROPERTIES EXPORT_NAME EISUtils)
+set_target_properties(eismsgenv PROPERTIES EXPORT_NAME EISMsgEnv)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config libeismsgbus.pc file
@@ -124,9 +131,9 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisutils-targets
+install(EXPORT eismsgenv-targets
     FILE
-        EISUtilsTargets.cmake
+        EISMsgEnvTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -134,26 +141,34 @@ install(EXPORT eisutils-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISMsgEnvConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISUtilsConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISMsgEnvConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISMsgEnvConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISMsgEnvConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISMsgEnvConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisutils-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsTargets.cmake)
+export(EXPORT eismsgenv-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISMsgEnvTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISUtils)
+export(PACKAGE EISMsgEnv)
+
+##
+## Documentation generation
+##
+if(WITH_DOCS)
+    # TODO: Add documentation generation
+    message(FATAL_ERROR "Documentation generation not supported currently")
+endif()

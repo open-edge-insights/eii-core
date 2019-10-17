@@ -20,55 +20,49 @@
 
 /**
  * @file
- * @brief Logging primitives
+ * @brief Messaging return codes
  * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
-#ifndef _EIS_MESSAGE_BUS_LOG_H
-#define _EIS_MESSAGE_BUS_LOG_H
-
-#include <time.h>
-#include <stdio.h>
+#ifndef _EIS_MESSAGE_BUS_MSGRET_H
+#define _EIS_MESSAGE_BUS_MSGRET_H
 
 #ifdef __cplusplus
 extern "C" {
-
 #endif
 
-#define LOG(lvl, fmt, ...) { \
-    time_t ltime; \
-    ltime = time(NULL); \
-    char* t = asctime(localtime(&ltime)); \
-    t[24] = '\0'; \
-    fprintf(stderr, "[%s] %5s:%s:%d: " fmt "\n", t, \
-            lvl, __func__, __LINE__, ##__VA_ARGS__); \
-}
-#define LOG_0(lvl, msg) { \
-    time_t ltime; \
-    ltime = time(NULL); \
-    char* t = asctime(localtime(&ltime)); \
-    t[24] = '\0'; \
-    fprintf(stderr, "[%s] %5s:%s:%d: " msg "\n", t, \
-            lvl, __func__, __LINE__); \
-}
-
-#ifdef DEBUG
-#define LOG_DEBUG(fmt, ...) LOG("DEBUG", fmt, ##__VA_ARGS__)
-#define LOG_DEBUG_0(msg) LOG_0("DEBUG", msg)
-#else
-#define LOG_DEBUG(fmt, ...)
-#define LOG_DEBUG_0(msg)
-#endif
-
-#define LOG_INFO(fmt, ...) LOG("INFO", fmt, ##__VA_ARGS__)
-#define LOG_INFO_0(msg) LOG_0("INFO", msg)
-#define LOG_WARN(fmt, ...) LOG("WARN", fmt, ##__VA_ARGS__)
-#define LOG_WARN_0(msg) LOG_0("WARN", msg)
-#define LOG_ERROR(fmt, ...) LOG("ERROR", fmt, ##__VA_ARGS__)
-#define LOG_ERROR_0(msg) LOG_0("ERROR", msg)
+/**
+ * Return type for messaging actions.
+ */
+typedef enum {
+    MSG_SUCCESS = 0,
+    MSG_ERR_PUB_FAILED = 1,
+    MSG_ERR_SUB_FAILED = 2,
+    MSG_ERR_RESP_FAILED = 3,
+    MSG_ERR_RECV_FAILED = 4,
+    MSG_ERR_RECV_EMPTY = 5,
+    MSG_ERR_ALREADY_RECEIVED = 6,
+    MSG_ERR_NO_SUCH_SERVICE = 7,
+    MSG_ERR_SERVICE_ALREADY_EXIST = 8,
+    MSG_ERR_BUS_CONTEXT_DESTROYED = 9,
+    MSG_ERR_INIT_FAILED = 10,
+    MSG_ERR_NO_MEMORY = 11,
+    MSG_ERR_ELEM_NOT_EXIST = 12,
+    MSG_ERR_ELEM_ALREADY_EXISTS = 13,
+    MSG_ERR_ELEM_BLOB_ALREADY_SET = 14,
+    MSG_ERR_ELEM_BLOB_MALFORMED = 15,
+    MSG_RECV_NO_MESSAGE = 16,
+    MSG_ERR_SERVICE_INIT_FAILED = 17,
+    MSG_ERR_REQ_FAILED = 18,
+    MSG_ERR_EINTR = 19,
+    MSG_ERR_MSG_SEND_FAILED = 20,
+    MSG_ERR_DISCONNECTED = 21,
+    MSG_ERR_AUTH_FAILED = 22,
+    MSG_ERR_UNKNOWN = 255,
+} msgbus_ret_t;
 
 #ifdef __cplusplus
-}
+} // extern "C"
 #endif
 
-#endif // _EIS_MESSAGE_BUS_LOG_H
+#endif // _EIS_MESSAGE_BUS_MSGRET_H

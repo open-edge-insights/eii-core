@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
+
 set(CMAKE_CXX_STANDARD 11)
 configure_file(${EIS_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
@@ -51,17 +52,10 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(msgbus-tests "msgbus_tests.cpp")
-target_link_libraries(msgbus-tests eismsgbus gtest_main)
-add_test(NAME msgbus-tests COMMAND msgbus-tests)
+add_executable(msg-envelope-tests "msg_envelope_tests.cpp")
+target_link_libraries(msg-envelope-tests eismsgenv gtest_main)
+add_test(NAME msg-envelope-tests COMMAND msg-envelope-tests)
 
-# Configure and copy over IPC configuration file
-set(IPC_CONFIG_IN "${CMAKE_CURRENT_SOURCE_DIR}/ipc_unittest_config.json.in")
-set(IPC_CONFIG    "${CMAKE_CURRENT_BINARY_DIR}/ipc_unittest_config.json")
-
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/.socks")
-configure_file(${IPC_CONFIG_IN} ${IPC_CONFIG})
-
-# Copy JSON configuration for msgbus-tests
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/tcp_unittest_config.json"
-     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+add_executable(crc32-tests "crc32_tests.cpp")
+target_link_libraries(crc32-tests eismsgenv gtest_main)
+add_test(NAME crc32-tests COMMAND crc32-tests)

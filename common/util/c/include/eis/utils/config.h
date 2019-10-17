@@ -217,7 +217,7 @@ config_value_t* config_value_new_object(
  * @return config_value_t*
  */
 config_value_t* config_value_new_array(
-        void* array, size_t length, config_value_t* (get)(const void*,int),
+        void* array, size_t length, config_value_t* (*get)(const void*,int),
         void (*free_fn)(void*));
 
 /**

@@ -30,9 +30,8 @@
 #include <cjson/cJSON.h>
 #include <safe_lib.h>
 
-#include "eis/msgbus/msgbus.h"
+#include "eis/msgbus/msg_envelope.h"
 #include "eis/msgbus/crc32.h"
-#include "eis/msgbus/logger.h"
 
 #define INITIAL_SIZE  256
 #define MAX_CHAIN_LEN 8
@@ -125,10 +124,6 @@ int hash(msg_envelope_t* env, const char* key) {
  * @return MAP_SUCESS if successfull, otherwise a different MAP_* value
  */
 int rehash(msg_envelope_t* env) {
-    // Issuing warning since this is not ideal, and that is a massive message
-    LOG_WARN("Rehashing message envelope (using more that %d keys)",
-             env->max_size);
-
     int i;
     msgbus_ret_t status;
     int old_size;
@@ -250,7 +245,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_string(const char* string) {
     msg_envelope_elem_body_t* elem = (msg_envelope_elem_body_t*) malloc(
             sizeof(msg_envelope_elem_body_t));
     if(elem == NULL) {
-        LOG_ERROR_0("Out of memory allocating the msg element body");
         return NULL;
     }
 
@@ -259,7 +253,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_string(const char* string) {
     elem->type = MSG_ENV_DT_STRING;
     elem->body.string = (char*) malloc(sizeof(char) * (len + 1));
     if(elem->body.string == NULL) {
-        LOG_ERROR_0("Out of memory allocating string");
         free(elem);
         return NULL;
     }
@@ -273,7 +266,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_integer(int64_t integer) {
     msg_envelope_elem_body_t* elem = (msg_envelope_elem_body_t*) malloc(
             sizeof(msg_envelope_elem_body_t));
     if(elem == NULL) {
-        LOG_ERROR_0("Out of memory allocating the msg element body");
         return NULL;
     }
 
@@ -287,7 +279,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_floating(double floating) {
     msg_envelope_elem_body_t* elem = (msg_envelope_elem_body_t*) malloc(
             sizeof(msg_envelope_elem_body_t));
     if(elem == NULL) {
-        LOG_ERROR_0("Out of memory allocating the msg element body");
         return NULL;
     }
 
@@ -301,7 +292,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_bool(bool boolean) {
     msg_envelope_elem_body_t* elem = (msg_envelope_elem_body_t*) malloc(
             sizeof(msg_envelope_elem_body_t));
     if(elem == NULL) {
-        LOG_ERROR_0("Out of memory allocating the msg element body");
         return NULL;
     }
 
@@ -318,13 +308,11 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_blob(char* data, size_t len)
 
     owned_blob_t* shared = owned_blob_new((void*) data, free, data, len);
     if(shared == NULL) {
-        LOG_ERROR_0("Out of memory allocating shared element");
         goto err;
     }
 
     blob = (msg_envelope_blob_t*) malloc(sizeof(msg_envelope_blob_t));
     if(blob == NULL) {
-        LOG_ERROR_0("Out of memory allocating blob element");
         goto err;
     }
     blob->shared = shared;
@@ -334,7 +322,6 @@ msg_envelope_elem_body_t* msgbus_msg_envelope_new_blob(char* data, size_t len)
     elem = (msg_envelope_elem_body_t*) malloc(
             sizeof(msg_envelope_elem_body_t));
     if(elem == NULL) {
-        LOG_ERROR_0("Out of memory allocating the msg element body");
         goto err;
     }
 
@@ -433,7 +420,6 @@ msgbus_ret_t msgbus_msg_envelope_get(
     }
 
     if(env->content_type == CT_BLOB) {
-        LOG_ERROR_0("Message envelope given key for blob retrieval");
         return MSG_ERR_ELEM_NOT_EXIST;
     }
 
@@ -505,7 +491,6 @@ int msgbus_msg_envelope_serialize(
                 subobj = cJSON_CreateBool(elem->body->body.boolean);
             } else {
                 // This should NEVER happen, type has to have been set
-                LOG_ERROR_0("This should never have happened...");
             }
 
             // Add the item to the JSON
@@ -562,7 +547,6 @@ int parse_json_object(msg_envelope_t* env, const char* key, cJSON* obj) {
     msg_envelope_elem_body_t* data = NULL;
 
     if(cJSON_IsArray(obj)) {
-        LOG_ERROR_0("Message envelope does not support JSON arrays");
         return -1;
     } else if(cJSON_IsObject(obj)) {
         int elems = cJSON_GetArraySize(obj);
@@ -604,13 +588,11 @@ int parse_json_object(msg_envelope_t* env, const char* key, cJSON* obj) {
         memcpy_s(data->body.string, len, obj->valuestring, len);
         data->body.string[len - 1] = '\0';
     } else {
-        LOG_ERROR_0("Unknown JSON type");
         return -1;
     }
 
     // Verify that the key given to the method is not NULL
     if(key == NULL) {
-        LOG_ERROR_0("Key should not be NULL");
         if(data != NULL) {
             msgbus_msg_envelope_elem_destroy(data);
         }
@@ -619,7 +601,6 @@ int parse_json_object(msg_envelope_t* env, const char* key, cJSON* obj) {
 
     msgbus_ret_t ret = msgbus_msg_envelope_put(env, key, data);
     if(ret != MSG_SUCCESS) {
-        LOG_ERROR("Failed to put deserialized JSON: %s (errno: %d)", key, ret);
         msgbus_msg_envelope_elem_destroy(data);
         return -1;
     }
@@ -634,7 +615,6 @@ int parse_json_object(msg_envelope_t* env, const char* key, cJSON* obj) {
 msgbus_ret_t deserialize_blob(
         msg_envelope_t* msg, msg_envelope_serialized_part_t* part)
 {
-    LOG_DEBUG_0("Deserializing BLOB");
 
     // Intiailize blob element
     size_t len = part->len;
@@ -687,7 +667,6 @@ msgbus_ret_t msgbus_msg_envelope_deserialize(
 
     if(ct == CT_BLOB) {
         if(num_parts > 1) {
-            LOG_ERROR_0("CT_BLOB should only have one serialized part");
             msgbus_msg_envelope_destroy(msg);
             return MSG_ERR_UNKNOWN;
         }
@@ -695,15 +674,12 @@ msgbus_ret_t msgbus_msg_envelope_deserialize(
         ret = deserialize_blob(msg, &parts[0]);
     } else if(ct == CT_JSON) {
         if(num_parts > 2) {
-            LOG_ERROR_0("CT_JSON can only have up to 2 serialized parts");
             msgbus_msg_envelope_destroy(msg);
             return MSG_ERR_UNKNOWN;
         }
 
-        LOG_DEBUG_0("Deserializing JSON");
         cJSON* json = cJSON_Parse(parts[0].bytes);
         if(json == NULL) {
-            LOG_ERROR("Failed to parse JSON: %s", cJSON_GetErrorPtr());
             msgbus_msg_envelope_destroy(msg);
             return MSG_ERR_UNKNOWN;
         }
@@ -735,7 +711,6 @@ msgbus_ret_t msgbus_msg_envelope_serialize_parts_new(
         (msg_envelope_serialized_part_t*) malloc(
                 sizeof(msg_envelope_serialized_part_t) * num_parts);
     if(tmp_parts == NULL) {
-        LOG_ERROR_0("Failed to initialize serialized parts");
         return MSG_ERR_NO_MEMORY;
     }
 
@@ -775,4 +750,42 @@ void msgbus_msg_envelope_destroy(msg_envelope_t* env) {
 
     free(env->elems);
     free(env);
+}
+
+owned_blob_t* owned_blob_new(
+        void* ptr, void (*free_fn)(void*), const char* data, size_t len)
+{
+    owned_blob_t* shared = (owned_blob_t*) malloc(sizeof(owned_blob_t));
+    if(shared == NULL) {
+        return NULL;
+    }
+
+    shared->ptr = ptr;
+    shared->free = free_fn;
+    shared->owned = true;
+    shared->len = len;
+    shared->bytes = data;
+
+    return shared;
+}
+
+owned_blob_t* owned_blob_copy(owned_blob_t* to_copy) {
+    owned_blob_t* shared = (owned_blob_t*) malloc(sizeof(owned_blob_t));
+    if(shared == NULL) {
+        return NULL;
+    }
+
+    shared->ptr = to_copy->ptr;
+    shared->free = to_copy->free;
+    shared->len = to_copy->len;
+    shared->bytes = to_copy->bytes;
+    shared->owned = false;  // This is important to note!
+
+    return shared;
+}
+
+void owned_blob_destroy(owned_blob_t* shared) {
+    if(shared->owned)
+        shared->free(shared->ptr);
+    free(shared);
 }

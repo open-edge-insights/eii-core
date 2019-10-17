@@ -29,9 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <gtest/gtest.h>
-#include "eis/msgbus/msgbus.h"
-#include "eis/msgbus/logger.h"
-#include "eis/msgbus/timeit.h"
+#include "eis/msgbus/msg_envelope.h"
 
 #define EXPECTED_JSON_LEN 60
 #define EXPECTED_JSON "{"\
