@@ -79,4 +79,15 @@ COPY libs/EISMessageBus/install.sh ./install.sh
 RUN ./install.sh --cython
 
 ENV LD_LIBRARY_PATH "/usr/local/lib"
+
+RUN rm -rf /usr/local/bin/ccmake && \
+    rm -rf /usr/local/bin/cmake-gui && \
+    rm -rf /usr/local/bin/cpack && \
+    rm -rf /usr/local/bin/ctest &&  \
+    rm -rf /usr/local/doc && \
+    rm -rf /usr/local/man && \
+    rm -rf /usr/local/share/aclocal && \
+    rm -rf /usr/local/share/applications && \
+    rm -rf /usr/local/share/icons && \
+    rm -rf /usr/local/share/mime
 HEALTHCHECK NONE
