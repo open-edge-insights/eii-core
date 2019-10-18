@@ -12,9 +12,9 @@ package main
 
 /*
 typedef void (*callback_fcn)(char* key, char* value);
-callback_fcn userCallback;
-static inline void cgoCallBack(char *key, char *value){
-	userCallback(key, value);
+inline void cgoCallBack(callback_fcn cb, char *key, char *value){
+	cb(key, value);
+
 }
 */
 import "C"
@@ -22,35 +22,90 @@ import "C"
 import (
 	configmgr "IEdgeInsights/common/libs/ConfigManager"
 
+	"strings"
+	"sync"
+
 	"github.com/golang/glog"
 )
 
-var configMgr configmgr.ConfigManager
+var mu sync.Mutex
 
-func callback(CKey string, CValue string) {
-	key := C.CString(CKey)
-	value := C.CString(CValue)
-	C.cgoCallBack(key, value)
+var confMgr configmgr.ConfigManager
+
+// register callbacks by mapping usercallbacks to a specific config manager key
+var registerCallbacks = make(map[string][]C.callback_fcn)
+
+func registerCallback(key string, userCallback C.callback_fcn) {
+	flag := 0
+	glog.Infof("Register user callback")
+	for k, v := range registerCallbacks {
+		// config manager key already exists hence add user callbacks to the list
+		if k == key {
+			flag = 1
+			mu.Lock()
+			v = append(v, userCallback)
+			registerCallbacks[key] = v
+			mu.Unlock()
+			break
+		}
+	}
+	if flag == 0 {
+		// config manager key doen't exist hence create a new config manager key and user callback pair
+		mu.Lock()
+		registerCallbacks[key] = []C.callback_fcn{userCallback}
+		mu.Unlock()
+	}
+}
+
+func watchKeyCallback(key string, value string) {
+	ckey := C.CString(key)
+	cvalue := C.CString(value)
+	callbacks := registerCallbacks[key]
+	for _, userCb := range callbacks {
+		mu.Lock()
+		C.cgoCallBack(userCb, ckey, cvalue)
+		mu.Unlock()
+	}
+}
+
+func watchDirCallback(key string, value string) {
+	ckey := C.CString(key)
+	cvalue := C.CString(value)
+	for k := range registerCallbacks {
+		if (strings.HasPrefix(key, k)) && (key != k) {
+			callbacks := registerCallbacks[k]
+			for _, userCb := range callbacks {
+				mu.Lock()
+				C.cgoCallBack(userCb, ckey, cvalue)
+				mu.Unlock()
+			}
+		}
+	}
+
 }
 
 //export initialize
-func initialize(CStorageType *C.char, CCertFile *C.char, CKeyFile *C.char, CTrustFile *C.char) {
-
+func initialize(CStorageType *C.char, CCertFile *C.char, CKeyFile *C.char, CTrustFile *C.char) *C.char {
 	storageType := C.GoString(CStorageType)
 	config := map[string]string{
 		"certFile":  C.GoString(CCertFile),
 		"keyFile":   C.GoString(CKeyFile),
 		"trustFile": C.GoString(CTrustFile),
 	}
-	configMgr = configmgr.Init(storageType, config)
+	confMgr = configmgr.Init(storageType, config)
+	if confMgr == nil {
+		glog.Errorf("Config manager initializtion failed")
+		return C.CString("-1")
+	}
+	return C.CString("0")
 }
 
 //export getConfig
 func getConfig(keyy *C.char) *C.char {
 	key := C.GoString(keyy)
-	value, err := configMgr.GetConfig(key)
+	value, err := confMgr.GetConfig(key)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Fatalf("getConfig failed for the key %s with Error: %v", key, err)
 	}
 	glog.V(1).Infof("GetConfig is called and the value of the key %s is: %s", key, value)
 	return C.CString(value)
@@ -58,18 +113,33 @@ func getConfig(keyy *C.char) *C.char {
 
 //export registerWatchKey
 func registerWatchKey(CKey *C.char, userCallback C.callback_fcn) {
-	C.userCallback = userCallback
 	key := C.GoString(CKey)
-	glog.V(1).Infof("Watching on the key %s", key)
-	configMgr.RegisterKeyWatch(key, callback)
+	for k := range registerCallbacks {
+
+		if k == key {
+			glog.V(1).Infof("The key %s is registered for watch key event", key)
+			registerCallback(key, userCallback)
+			return
+		}
+	}
+	registerCallback(key, userCallback)
+	glog.Infof("Register the key: %s for watch key", key)
+	confMgr.RegisterKeyWatch(key, watchKeyCallback)
 }
 
 //export registerWatchDir
-func registerWatchDir(keyy *C.char, userCallback C.callback_fcn) {
-	C.userCallback = userCallback
-	key := C.GoString(keyy)
-	glog.V(1).Infof("Watching on the dir %s", key)
-	configMgr.RegisterDirWatch(key, callback)
+func registerWatchDir(Ckey *C.char, userCallback C.callback_fcn) {
+	key := C.GoString(Ckey)
+	for k := range registerCallbacks {
+		if k == key {
+			glog.Infof("The key %s is already registered for watch key event", key)
+			registerCallback(key, userCallback)
+			return
+		}
+	}
+	registerCallback(key, userCallback)
+	glog.Infof("Register the key: %s for watch prefix", key)
+	confMgr.RegisterDirWatch(key, watchDirCallback)
 }
 
 func main() {

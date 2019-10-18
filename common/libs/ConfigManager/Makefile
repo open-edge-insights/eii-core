@@ -6,8 +6,8 @@ build:
 	mv go/cgo/config_manager.so build/libconfigmanager.so
 
 run_test: build
-	cd tests/ && \
-	g++ -I ../include/eis/config_manager/ test.cpp ../src/config_manager_wrappers.cpp ../build/libconfigmanager.so -o test && \
+	cd examples/ && \
+	gcc -I ../include config_manager.c ../src/config_manager_wrappers.c ../build/libconfigmanager.so -o test && \
 	./test
 
 clean:

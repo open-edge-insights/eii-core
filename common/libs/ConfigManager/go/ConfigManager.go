@@ -12,7 +12,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package configmanager
 
 import (
-	"os"
 	"strings"
 
 	"github.com/golang/glog"
@@ -45,11 +44,10 @@ func GetConfigClient(storageType string, conf map[string]string) ConfigMgr {
 		config.trustFile = conf["trustFile"]
 		etcdclient, err := NewEtcdClient(config)
 		if err != nil {
-			glog.Errorf("Etcd client initialization failed!!")
-			os.Exit(1)
+			glog.Errorf("Etcd client initialization failed!! Error: %v", err)
+			return nil
 		}
 		return etcdclient
 	}
-
 	return nil
 }
