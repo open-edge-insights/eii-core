@@ -112,7 +112,7 @@ def start_kapacitor(client, host_name, dev_mode):
                 HTTPS_SCHEME, INFLUXDB_HOSTNAME_PORT)
 
         read_config(client, dev_mode)
-        subprocess.call("kapacitord -hostname " + host_name +
+        subprocess.run("kapacitord -hostname " + host_name +
                         " -config " + kapacitor_conf + " &", shell=True)
 
         logger.info("Started kapacitor Successfully...")
