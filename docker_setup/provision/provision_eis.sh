@@ -103,6 +103,8 @@ if [ $# -eq 0 ]
 			if [ $ETCD_NAME = 'master' ]; then
 				python3 gen_certs.py
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
+			else
+				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 			fi
 			
 			
