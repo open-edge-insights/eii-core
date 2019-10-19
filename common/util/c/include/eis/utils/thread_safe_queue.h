@@ -80,7 +80,7 @@ public:
     /**
      * Push item onto the queue.
      */
-    QueueRetCode push(T& value) {
+    QueueRetCode push(T value) {
         if(m_max_size > 0) {
             std::lock_guard<std::mutex> lk(m_mtx);
             size_t size = m_queue.size();
@@ -123,7 +123,7 @@ public:
      *
      * @return T
      */
-    T& front() {
+    T front() {
         std::lock_guard<std::mutex> lk(m_mtx);
         return m_queue.front();
     }

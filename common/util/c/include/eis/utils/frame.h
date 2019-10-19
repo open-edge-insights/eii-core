@@ -27,32 +27,67 @@
 #ifndef _EIS_UTILS_FRAME_H
 #define _EIS_UTILS_FRAME_H
 
+#include <atomic>
+
+#include <eis/msgbus/msg_envelope.h>
+
 namespace eis {
 namespace utils {
+
 
 /**
  * Wrapper around a frame object
  */
-class Frame {
+class Frame :
+    public eis::msgbus::Serializable,
+    public eis::msgbus::Deserializable
+{
 private:
-    // Underlying frame object
+    // This pointer represents the underlying object in which the raw pixel
+    // data for the frame resides. This pointer could be a GstBuffer, cv::Mat
+    // object, or any other representation. The purpose of having this pointer
+    // is to keep the memory of the underlying frame alive while the user needs
+    // to access the underlying bytes for the frame.
     void* m_frame;
 
     // Underlying free method for the frame
     void (*m_free_frame)(void*);
 
-    // Check if the underlying frame is writable.
-    bool (*m_is_writable)(void*);
-
-    // Underlying pointer to the frame data
+    // This pointer points to the underlying bytes for the frame, i.e. the
+    // bytes for the raw pixels of the frame. Note that the memory for this
+    // void* is ultimatly residing in the m_frame's memory, this is just a
+    // pointer to that underlying data provided to the constructor.
     void* m_data;
 
-public:
-    // Public attributes
-    const int width;
-    const int height;
-    const int channels;
+    // This member is only used in VERY special circumstances to make sure
+    // that the m_data pointer is freed. Generally, it will always be freed
+    // with the m_frame object, however, in the case of the frame being
+    // deserialized from a message envelope a different free method is
+    // required.
+    void (*m_free_data)(void*);
 
+    // Meta-data associated with the frame
+    msg_envelope_t* m_meta_data;
+
+    // Must-have attributes
+    int m_width;
+    int m_height;
+    int m_channels;
+
+    // Flag for if the frame has been serailized already
+    std::atomic<bool> m_serialized;
+
+    /**
+     * Function to be passed to the EIS Message Bus for freeing the frame after
+     * it has been transmitted over the bus.
+     */
+    static void msg_free_frame(void* hint) {
+        // Cast to a frame pointer
+        Frame* frame = (Frame*) hint;
+        delete frame;
+    };
+
+public:
     /**
      * Constructor
      *
@@ -61,55 +96,72 @@ public:
      * @param height            - Frame height
      * @param data              - Constant pointer to the underlying frame data
      * @param free_frame        - Function to free the underlying frame
-     * @param is_frame_writable - Function to check if a frame is writable
      */
     Frame(void* frame, int width, int height, int channels, void* data,
-            void (*free_frame)(void*), bool (*is_frame_writable)(void*)) :
-        m_frame(frame), m_free_frame(free_frame),
-        m_is_writable(is_frame_writable), m_data(data), width(width),
-        height(height), channels(channels)
-    {};
+            void (*free_frame)(void*));
+
+    /**
+     * Deserialize constructor
+     *
+     * @param msg - Message envelope to deserialize
+     */
+    Frame(msg_envelope_t* msg);
 
     /**
      * Destructor
      */
-    ~Frame() {
-        this->m_free_frame(this->m_frame);
-    };
+    ~Frame();
 
     /**
-     * Check whether or not the underlying frame data is writable.
+     * Get frame width.
      *
-     * @return bool
+     * @return int
      */
-    bool is_writable() {
-        return this->m_is_writable(this->m_frame);
-    };
+    int get_width();
 
     /**
-     * Get a constant pointer to the underlying frame data.
+     * Get frame height.
+     *
+     * @return int
+     */
+    int get_height();
+
+    /**
+     * Get number of channels in the frame.
+     *
+     * @return int
+     */
+    int get_channels();
+
+    /**
+     * Get the underlying frame data.
      *
      * @return void*
      */
-    const void* get_data() const {
-        return m_data;
-    };
+    void* get_data();
 
     /**
-     * Get the underlying frame data. The frame must be writeable in order for
-     * this method to return any frame data. NULL will be returned if it is not
-     * writeable.
+     * Get @c msg_envelope_t meta-data envelope.
      *
-     * @return void*
+     * \note NULL will be returned if the frame has already been serialized.
+     *
+     * @return @c msg_envelope_t*
      */
-    void* get_data() {
-        if(this->is_writable()) {
-            return m_data;
-        } else {
-            return NULL;
-        }
-    };
+    msg_envelope_t* get_meta_data();
 
+    /**
+     * \note **IMPORTANT NOTE:** This method PERMANENTLY changes the frame
+     *      object and can only be called ONCE. The reson for this is to make
+     *      sure that all of the underlying memory is properly managed and
+     *      free'ed at a point where the application will not SEGFAULT due to a
+     *      double free situation. All methods (except for width(), height(),
+     *      and channels()) will return errors after this.
+     *
+     * Overriden serialize method.
+     *
+     * @return @c msg_envelope_t*
+     */
+    msg_envelope_t* serialize() override;
 };
 
 } // utils

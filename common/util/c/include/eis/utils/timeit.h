@@ -25,8 +25,8 @@
  * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
-#ifndef _EIS_MESSAGE_BUS_TIMEIT_H
-#define _EIS_MESSAGE_BUS_TIMEIT_H
+#ifndef _EIS_UTILS_TIMEIT_H
+#define _EIS_UTILS_TIMEIT_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +35,7 @@ extern "C" {
 #ifdef WITH_TIMEIT
 
 #include <time.h>
-#include "eis/msgbus/logger.h"
+#include "eis/utils/logger.h"
 
 #define TIMEIT(msg, ...) { \
     clock_t t; \
@@ -52,4 +52,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif // __cplusplus
-#endif // _EIS_MESSAGE_BUS_TIMEIT_H
+#endif // _EIS_UTILS_TIMEIT_H

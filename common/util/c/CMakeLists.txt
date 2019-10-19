@@ -31,6 +31,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
 # Find packages
 find_package(cJSON REQUIRED)
+find_package(EISMsgEnv REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -67,6 +68,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
 include_directories(
     include/
     ${CJSON_LIBRARIES}/
+    ${EISMsgEnv_INCLUDE}/
     ${safestring_SOURCE_DIR}/include)
 
 # Get all source files
@@ -75,6 +77,8 @@ file(GLOB SOURCES "src/*.c" "src/*.cpp")
 # Add target
 add_library(eisutils SHARED ${SOURCES})
 target_link_libraries(eisutils
+    PUBLIC
+        ${EISMsgEnv_LIBRARIES}
     PRIVATE
         ${CJSON_LIBRARIES}
         safestring_static)

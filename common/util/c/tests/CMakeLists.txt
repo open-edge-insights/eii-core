@@ -69,3 +69,7 @@ add_test(NAME tsp-tests COMMAND tsp-tests)
 add_executable(thp-tests "thread_pool_tests.cpp")
 target_link_libraries(thp-tests eisutils gtest_main)
 add_test(NAME thp-tests COMMAND thp-tests)
+
+add_executable(frame-tests "frame_tests.cpp")
+target_link_libraries(frame-tests eisutils gtest_main)
+add_test(NAME frame-tests COMMAND frame-tests)
