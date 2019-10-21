@@ -111,7 +111,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
 # Step 3. Deployement Bundle Generation for new node
 
 1. This software works only on python3+ version.
-2. Please update the **config.json** file
+2. Please update the [docker_setup/deploy/config.json](./config.json) file
 
       ```
         { 
