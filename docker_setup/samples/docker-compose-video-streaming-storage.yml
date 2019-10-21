@@ -123,7 +123,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
@@ -153,7 +152,6 @@ services:
     privileged: true
     volumes:
       - "/dev:/dev"
-      - "$PWD/test_videos:/EIS/test_videos"
       - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
