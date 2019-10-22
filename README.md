@@ -122,11 +122,11 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
         * Reload the docker daemon
             ```
-            sudo systemctl daemon-reload
+            $ sudo systemctl daemon-reload
             ```
         * Restart docker
             ```
-            sudo systemctl restart docker
+            $ sudo systemctl restart docker
             ```
 
     * Set logging driver as part of docker compose which is conatiner specific and which always overwrites 1st option (i.e /etc/docker/daemon.json)
@@ -202,21 +202,25 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
-> Note: All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
+> **Note:**
+> * All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
+> * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
+>   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is 
+>   needed by `ia_visualizer` service to render the UI
 
    To build and run EIS in one command:
    ```sh
-   docker-compose up --build -d
+   $ docker-compose up --build -d
    ```
 
    The build and run steps can be split into two as well like below:
    ```sh
-   docker-compose build
-   docker-compose up -d
+   $ docker-compose build
+   $ docker-compose up -d
    ```
    If any of the services fails during build, it can be built using below command
    ```sh
-   docker-compose build --no-cache <service name>
+   $ docker-compose build --no-cache <service name>
 
    ```
 
@@ -265,6 +269,10 @@ For enabling this, different set of containers need to be built in EIS and it ca
 
 Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
 
+> **Note:**
+> * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
+>   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is 
+>   needed by `ia_visualizer` service to render the UI
 
 > ia_telegraf, ia_influxdbconnector, ia_data_analytics, ia_visualizer
 
