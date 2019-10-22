@@ -12,7 +12,7 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-msgbus-configuration)
+6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-messagebus-endpoint-configuration)
 
 7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
