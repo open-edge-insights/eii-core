@@ -42,6 +42,22 @@ func CheckPortAvailability(hostname, port string) bool {
 	return portUp
 }
 
+// CheckPortOccupied - checks for port being occupied already
+func CheckPortOccupied(hostname, port string) bool {
+
+	portUp := false
+	glog.Infof("Checking for Port: %s on hostname: %s ", port, hostname)
+
+	conn, _ := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
+	if conn != nil {
+		glog.Infof("Port: %s on hostname: %s is up.", port, hostname)
+		conn.Close()
+		portUp = true
+	}
+
+	return portUp
+}
+
 // WriteCertFile - A wrapper to write certifiates for different module
 func WriteCertFile(fileList []string, Certs map[string]interface{}) error {
 	for _, filePath := range fileList {
