@@ -248,6 +248,8 @@ All the changes related to camera type are made in the Etcd ingestor configurati
 
 For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
 
+For Sample docker-compose file and ETCD preload values for multiple camaras, refer to [docker_setup/samples/multi_cam_sample/README.md](docker_setup/samples/multi_cam_sample/README.md).
+
 # Using video accelerators
 
 EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [VideoAnalytics/README.md#classifier-config](VideoAnalytics/README.md#classifier-config)
@@ -282,6 +284,9 @@ More details on enabling this mode can be referred from [TimeSeriesAnalytics/REA
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
+For sample docker-compose file for TimeSeries analytics , refer to [docker_setup/samples/docker-compose-time-series-analytics.yml](docker_setup/samples/docker-compose-time-series-analytics.yml).
+
+
 # DiscoveryCreek
 
 DiscoveryCreek is a machine learning based anomaly detection engine.
@@ -291,6 +296,9 @@ For enabling DiscoveryCreek, please include the following services in the [docke
 > ia_telegraf, ia_influxdbconnector, ia_dc, ia_visualizer
 
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
+
+For sample docker-compose file for DiscoveryCreek analytics , refer to [docker_setup/samples/docker-compose-discovery-creek.yml](docker_setup/samples/docker-compose-discovery-creek.yml).
+
 
 # List of All EIS Services
 

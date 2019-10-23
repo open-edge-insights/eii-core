@@ -1,0 +1,158 @@
+{
+    "/VideoIngestion1/config": {
+        "ingestor": {
+        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "encoding": {
+            "type": "jpg",
+            "level": 100
+        },
+        "poll_interval": 0.2
+    },
+    "filter": {
+        "name": "bypass_filter",
+        "queue_size": 10,
+        "max_workers": 1,
+        "training_mode": "false"
+    }
+
+    },
+    "/VideoIngestion2/config": {
+        "ingestor": {
+            "video_src": "pylonsrc serial=22573662 imageformat=yuv422 exposureGigE=3250 interpacketdelay=1500 ! videoconvert ! appsink",
+            "encoding": {
+                "type": "jpg",
+                "level": 100
+            },
+            "poll_interval": 0.2
+        },
+        "filter": {
+            "name": "bypass_filter",
+            "queue_size": 10,
+            "max_workers": 1,
+            "training_mode": "false",
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
+        }
+
+    },
+    "/VideoIngestion3/config": {
+        "ingestor": {
+        "video_src": "v4l2src ! videoconvert ! appsink",
+        "encoding": {
+            "type": "jpg",
+            "level": 100
+        },
+        "poll_interval": 0.2
+    },
+    "filter": {
+        "name": "bypass_filter",
+        "queue_size": 10,
+        "max_workers": 1,
+        "training_mode": "false"
+    }
+
+    },
+    "/VideoIngestion4/config": {
+        "ingestor": {
+        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "encoding": {
+            "type": "jpg",
+            "level": 100
+        },
+        "poll_interval": 0.2
+    },
+    "filter": {
+        "name": "bypass_filter",
+        "queue_size": 10,
+        "max_workers": 1,
+        "training_mode": "false"
+    }
+    
+    },
+    "/VideoIngestion5/config": {
+        "ingestor": {
+        "video_src": "rtspsrc location=\"rtsp://localhost:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "encoding": {
+            "type": "jpg",
+            "level": 100
+        },
+        "poll_interval": 0.2
+    },
+    "filter": {
+        "name": "bypass_filter",
+        "queue_size": 10,
+        "max_workers": 1,
+        "training_mode": "false"
+    }
+
+    },
+    "/VideoIngestion6/config": {
+        "ingestor": {
+            "video_src": "pylonsrc serial=22784327 imageformat=mono8 exposureGigE=3250 interpacketdelay=1500 ! videoconvert ! appsink",
+            "encoding": {
+                "type": "jpg",
+                "level": 100
+            },
+            "poll_interval": 0.2
+        },
+        "filter": {
+            "name": "bypass_filter",
+            "queue_size": 10,
+            "max_workers": 1,
+            "training_mode": "false",
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000
+        }
+
+    },    
+    "/VideoAnalytics1/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1	    
+    },
+    "/VideoAnalytics2/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1
+    },
+    "/VideoAnalytics3/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1
+    },
+    "/VideoAnalytics4/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1
+    },
+    "/VideoAnalytics5/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1	
+    },
+    "/VideoAnalytics6/config": {
+        "name": "dummy_classifier",
+        "queue_size": 10,
+        "max_workers": 1
+    },    
+    "/Visualizer/config": {
+        "display": "true",
+        "save_image": "false",
+        "cert_path": ""
+    },
+    "/GlobalEnv/": {
+        "COMPOSE_HTTP_TIMEOUT":"200",
+        "COMPOSE_PROJECT_NAME":"EIS_docker_network",
+        "EIS_USER_NAME":"eisuser",
+        "EIS_UID":"5319",
+        "EIS_INSTALL_PATH":"/opt/intel/eis",
+        "PY_LOG_LEVEL":"DEBUG",
+        "GO_LOG_LEVEL":"INFO",
+        "GO_VERBOSE":"0",
+        "HOST_TIME_ZONE":"",
+        "ETCD_KEEPER_PORT":"7070"
+    }
+}
+
