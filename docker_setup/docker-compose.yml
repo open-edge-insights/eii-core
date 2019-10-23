@@ -101,7 +101,7 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "$PWD/test_videos:/EIS/test_videos"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     privileged: true
     devices:
       - "/dev/dri"
@@ -152,7 +152,7 @@ services:
     privileged: true
     volumes:
       - "/dev:/dev"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
     secrets:
@@ -215,8 +215,7 @@ services:
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
-    user: ${EIS_UID}
+      - "vol_eis_socket:${SOCKET_DIR}"
     secrets:
       - ca_etcd
       - etcd_Visualizer_cert
@@ -336,10 +335,10 @@ services:
   #     # point_data_cfg: "zmq_ipc,${SOCKET_DIR}/"
   #     point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
+  #     - "vol_influxdb_data:/influxdata"
   #     - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
   #     - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-  #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+  #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
   #   secrets:
   #     - ca_etcd
@@ -386,7 +385,7 @@ services:
   #     dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
 
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+  #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
   #   secrets:
   #     - ca_etcd
@@ -462,8 +461,8 @@ services:
   #     SubTopics: "VideoAnalytics/camera1_stream_results"
   #     camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/data:/data"
-  #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+  #     - "vol_imagestore_data:/data"
+  #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
   #   secrets:
   #       - ca_etcd
@@ -504,7 +503,7 @@ services:
   #     SubTopics: "VideoAnalytics/camera1_stream_results"
   #     camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+  #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
   #   secrets:
   #       - ca_etcd
@@ -544,12 +543,32 @@ services:
   #     SubTopics: "VideoAnalytics/camera1_stream_results"
   #     camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+  #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
   #   secrets:
   #       - ca_etcd
   #       - etcd_OpcuaExport_cert
   #       - etcd_OpcuaExport_key
+
+volumes:
+  vol_influxdb_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data/influxdata
+  vol_imagestore_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 
 secrets:
   ca_etcd:

@@ -174,6 +174,11 @@ Following actions will be performed as part of Provisioning
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
 
+**Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](docker_setup/provision/volume_data_script.py). The script can be run by the command:
+```
+python3.6 volume_data_script.py
+```
+
 Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
 ```
 $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>

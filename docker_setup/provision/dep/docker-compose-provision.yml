@@ -43,7 +43,7 @@ services:
     read_only: true
     image: ia_etcd_provision:$EIS_VERSION
     volumes:
-      - "../config:/EIS/etcd/config/"
+      - "vol_etcd:/EIS/etcd/config/"
       - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
       - "../Certificates:/EIS/etcd/Certificates"
     environment:
@@ -55,4 +55,12 @@ services:
       https_proxy: $https_proxy
     network_mode: host
     user: $EIS_UID
+
+volumes:
+  vol_etcd:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: $PWD/config
    
