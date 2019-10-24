@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package init
 
 import (
-	configmgr "IEdgeInsights/libs/ConfigManager/go"
+	configmgr "IEdgeInsights/common/libs/ConfigManager/go"
 
 	"github.com/golang/glog"
 )

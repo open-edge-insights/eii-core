@@ -12,15 +12,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package configmanager
 
 import (
-	util "IEdgeInsights/util"
+	util "IEdgeInsights/common/util"
 	"context"
 	"encoding/json"
 	"errors"
-
 	"os"
 
 	"github.com/golang/glog"
-
 	"go.etcd.io/etcd/clientv3"
 	"go.etcd.io/etcd/pkg/transport"
 )

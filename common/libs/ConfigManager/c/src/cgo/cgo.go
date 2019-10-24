@@ -12,7 +12,7 @@ package main
 
 /*
 typedef void (*callback_fcn)(char* key, char* value);
-inline void cgoCallBack(callback_fcn cb, char *key, char *value){
+static inline void cgoCallBack(callback_fcn cb, char *key, char *value){
 	cb(key, value);
 
 }
@@ -20,12 +20,12 @@ inline void cgoCallBack(callback_fcn cb, char *key, char *value){
 import "C"
 
 import (
-	configmgr "IEdgeInsights/common/libs/ConfigManager"
-
 	"strings"
 	"sync"
 
 	"github.com/golang/glog"
+
+	configmgr "IEdgeInsights/common/libs/ConfigManager"
 )
 
 var mu sync.Mutex

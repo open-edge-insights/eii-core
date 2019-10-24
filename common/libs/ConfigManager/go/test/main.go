@@ -11,11 +11,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package main
 
 import (
-	configmgr "IEdgeInsights/libs/ConfigManager"
 	"flag"
 	"fmt"
 	"log"
 	"time"
+
+	configmgr "IEdgeInsights/common/libs/ConfigManager"
 )
 
 func callback(key string, value string) {
