@@ -44,6 +44,12 @@ extern "C" {
  */
 config_t* json_config_new(const char* config_file);
 
+// prototypes
+void free_json(void* ctx);
+config_value_t* get_array_item(const void* array, int idx);
+config_value_t* get_config_value(const void* o, const char* key);
+
+
 #ifdef __cplusplus
 }
 #endif

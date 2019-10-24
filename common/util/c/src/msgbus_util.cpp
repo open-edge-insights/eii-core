@@ -1,40 +1,31 @@
 // Copyright (c) 2019 Intel Corporation.
-
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-// SOFTWARE.
-
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
 
 #include "eis/utils/msgbus_util.h"
 #include <cjson/cJSON.h>
+#include <eis/config_manager/config_manager.h>
 #include "eis/utils/json_config.h"
 #include "eis/utils/logger.h"
 
-using namespace eis::utils;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-// prototypes
-void free_json(void* ctx);
-config_value_t* get_config_value(const void* o, const char* key);
-#ifdef __cplusplus
-}
-#endif
+using namespace eis::utils;
 
 std::vector<std::string> MsgBusUtil::get_topics_from_env(const std::string& topic_type) {
     std::vector<std::string> topics;
@@ -59,12 +50,11 @@ void MsgBusUtil::tokenize(const std::string& tokenizable_data,
                           const char delimeter) {
     std::stringstream topic_stream(tokenizable_data);
     std::string data;
-    int count = 0;
 
     // Tokenizing based on delimeter
     while(getline(topic_stream, data, delimeter)) {
+        trim(data);
         tokenized_data.push_back(data);
-        count++;
     }
 }
 
@@ -87,12 +77,11 @@ std::string MsgBusUtil::trim(const std::string& value) {
 
 
 config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
-                                            std::string& topic_type,
-                                            std::string& clients) {
+                                            std::string& topic_type) {
 
     try {
         std::string app_name;
-        std::string topics;
+        std::string topic_cfg;
         std::string mode;
         std::string address;
         std::string host;
@@ -110,9 +99,9 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
         }
         app_name = trim(getenv("AppName"));
 
-        topic = topic + "_cfg";
-        topics = getenv(topic.c_str());
-        tokenize(topics, mode_address, ',');
+        topic_cfg = topic + "_cfg";
+        topic_cfg = getenv(topic_cfg.c_str());
+        tokenize(topic_cfg, mode_address, ',');
 
         mode = trim(mode_address[0]);
         address = trim(mode_address[1]);
@@ -126,17 +115,42 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
             port = trim(host_port[1]);
 
             transform(topic_type.begin(), topic_type.end(),
-                        topic_type.begin(), ::tolower);
+                      topic_type.begin(), ::tolower);
+
+            char *err_status = init("etcd","", "", "");
+            if(!strcmp(err_status, "-1")) {
+                LOG_ERROR("Config manager initializtaion failed: %s\n", err_status);
+                return NULL;
+            }
 
             if(topic_type == "pub") {
 
                 cJSON* zmq_tcp_publish = cJSON_CreateObject();
-                cJSON_AddItemToObject(json,"zmq_tcp_publish", zmq_tcp_publish);
+                cJSON_AddItemToObject(json, "zmq_tcp_publish", zmq_tcp_publish);
                 cJSON_AddStringToObject(zmq_tcp_publish, "host", host.c_str());
                 cJSON_AddNumberToObject(zmq_tcp_publish, "port", stoi(port));
 
                 if(dev_mode == false) {
-                    //TODO : Prod_Mode
+                    
+                    std::vector<std::string> allowed_clients;
+                    std::string clients = getenv("Clients");
+                    tokenize(clients, allowed_clients, ',');
+
+                    // cJSON* all_clients = cJSON_CreateArray();
+                    // for(std::string client : allowed_clients) {
+                    //     std::string client_pub_key = get_config(&("/PublicKeys" + client)[0]);
+                    //     // TODO: should we assert here
+                    //     if(!client_pub_key.empty()) {
+                    //         cJSON_AddItemToArray()
+                    //         allowed_clients.push_back(client_pub_key);
+                    //     }
+
+                    // }
+                    // cJSON_AddArrayToObject(json, "allowed_clients", &allowed_clients[0]);
+                    const char* server_secret_key = get_config(&("/" + app_name + "/private_key")[0]);
+                    cJSON_AddStringToObject(zmq_tcp_publish, "server_secret_key",
+                                          server_secret_key);
+                    
                 }
 
             } else if(topic_type == "sub") {
@@ -146,7 +160,29 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
                 cJSON_AddNumberToObject(pub_sub_topic, "port", stoi(port));
 
                 if(dev_mode == false) {
-                    //TODO : Prod_Mode
+                    
+                    const char* server_pub_key = get_config(
+                        &("/Publickeys/" + app_name)[0]
+                    );
+                    cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
+                                            server_pub_key);
+
+                    const char* client_pub_key = get_config(
+                        &("/Publickeys/" + app_name)[0]
+                    );
+                    cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
+                                            server_pub_key);
+
+                    const char* client_secret_key = get_config(
+                        &("/" + app_name + "/private_key")[0]
+                    );
+                    cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
+                                            client_secret_key);
+
+                    const char* server_secret_key = get_config(
+                        &("/" + app_name + "/private_key")[0]);
+                    cJSON_AddStringToObject(pub_sub_topic, "server_secret_key",
+                                          server_secret_key);
                 }
 
             }
@@ -164,7 +200,7 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
         }
 
         return config;
-    } catch (const std::exception& ex) {
+    } catch(const std::exception& ex) {
         LOG_ERROR("Exception occurred: %s", ex.what());
         return NULL;
     }

@@ -32,6 +32,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 # Find packages
 find_package(cJSON REQUIRED)
 find_package(EISMsgEnv REQUIRED)
+find_package(EISConfigMgr REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -68,6 +69,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
 include_directories(
     include/
     ${CJSON_LIBRARIES}/
+    ${EISConfigMgr_INCLUDE}/
     ${EISMsgEnv_INCLUDE}/
     ${safestring_SOURCE_DIR}/include)
 
@@ -79,6 +81,7 @@ add_library(eisutils SHARED ${SOURCES})
 target_link_libraries(eisutils
     PUBLIC
         ${EISMsgEnv_LIBRARIES}
+        eisconfigmgr
     PRIVATE
         ${CJSON_LIBRARIES}
         safestring_static)
@@ -94,7 +97,7 @@ if(WITH_TESTS)
 endif()
 
 ##
-## Configure pkg-config file to be installed for the EIS Message Bus
+## Configure pkg-config file to be installed for the EIS Utils
 ##
 set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisutils.pc.in")
 set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisutils.pc")
