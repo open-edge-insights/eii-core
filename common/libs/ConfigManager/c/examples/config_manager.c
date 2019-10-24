@@ -1,6 +1,7 @@
 #include<stdio.h>
+#include <string.h>
 #include<unistd.h>
-#include "eis/config_manager/config_manager_wrappers.h"
+#include "eis/config_manager/config_manager.h"
 
 void callback(char* key, char * val){
    printf("callback is called\n");
