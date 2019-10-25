@@ -1,7 +1,7 @@
 package util
 
 import (
-	configmgr "IEdgeInsights/libs/ConfigManager"
+	configmgr "IEdgeInsights/common/libs/ConfigManager"
 	"log"
 	"os"
 	"strconv"
