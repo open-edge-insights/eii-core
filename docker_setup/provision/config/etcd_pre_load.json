@@ -1,24 +1,15 @@
 {
     "/VideoIngestion/config": {
         "ingestor": {
-            "video_src": "./test_videos/pcb_d2000.avi",
+            "type": "opencv",
+            "pipeline": "/EIS/test_videos/pcb_d2000.avi",
             "encoding": {
                 "type": "jpg",
                 "level": 100
             },
             "loop_video": "true",
             "poll_interval": 0.2
-        },
-        "filter": {
-            "name": "pcb_filter",
-            "queue_size": 10,
-            "max_workers": 1,
-            "training_mode": "false",
-            "n_total_px": 300000,
-            "n_left_px": 1000,
-            "n_right_px": 1000
         }
-
     },
     "/VideoAnalytics/config": {
         "name": "pcb_classifier",

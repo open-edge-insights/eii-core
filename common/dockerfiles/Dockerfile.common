@@ -10,3 +10,4 @@ ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
 
 COPY libs ./libs
 COPY util/ ./util
+COPY cmake ./cmake

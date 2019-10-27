@@ -107,10 +107,10 @@ services:
       - "/dev/dri"
       - "/dev/:/dev/"
     user: ${EIS_UID}
-    secrets:
-      - ca_etcd
-      - etcd_VideoIngestion_cert
-      - etcd_VideoIngestion_key
+    #secrets:
+    #  - ca_etcd
+    #  - etcd_VideoIngestion_cert
+    #  - etcd_VideoIngestion_key
 
   ## Define VideoAnalytics service
   ia_video_analytics:
