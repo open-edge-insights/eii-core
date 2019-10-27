@@ -118,14 +118,14 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/ConfigMgr)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgr)
 
 install(TARGETS eisconfigmgr
     EXPORT eisconfigmgr-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisconfigmgr PROPERTIES EXPORT_NAME ConfigMgr)
+set_target_properties(eisconfigmgr PROPERTIES EXPORT_NAME EISConfigMgr)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config libeisconfigmgr.pc file
@@ -146,8 +146,27 @@ install(EXPORT eisconfigmgr-targets
 
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
 configure_package_config_file(
     ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
+
+# Install the config, configversion and custom find modules
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+export(EXPORT eisconfigmgr-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrTargets.cmake)
+
+# Register package in user's package registry
+export(PACKAGE EISConfigMgr)
