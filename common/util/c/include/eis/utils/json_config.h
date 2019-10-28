@@ -44,6 +44,16 @@ extern "C" {
  */
 config_t* json_config_new(const char* config_file);
 
+/**
+ * Create a configuration object from a json string
+ *
+ * \note Will return NULL if an error is encountered.
+ *
+ * @param buffer - json string
+ * @return config_t
+ */
+config_t* json_config_new_from_buffer(const char* buffer);
+
 // prototypes
 void free_json(void* ctx);
 config_value_t* get_array_item(const void* array, int idx);

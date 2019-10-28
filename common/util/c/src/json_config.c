@@ -92,6 +92,25 @@ err:
     return NULL;
 }
 
+config_t* json_config_new_from_buffer(const char* buffer) {
+    // Parse as JSON
+    cJSON* json = cJSON_Parse(buffer);
+    if(json == NULL) {
+        LOG_ERROR("Failed to parse JSON file: %s", cJSON_GetErrorPtr());
+        return NULL;
+    }
+
+    // Create configuration object
+    config_t* config = config_new(
+            (void*) json, free_json, get_config_value);
+    if(config == NULL) {
+        LOG_ERROR_0("Failed to initialize configuration object");
+        return NULL;
+    }
+
+    return config;
+}
+
 void free_json(void* ctx) {
     cJSON* json = (cJSON*) ctx;
     cJSON_Delete(json);
