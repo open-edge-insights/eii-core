@@ -116,8 +116,12 @@ void ThreadPool::run() {
                 continue;
             }
 
-            // Calling function
-            func->call();
+            try {
+                // Calling function
+                func->call();
+            } catch(const std::exception& e) {
+                LOG_ERROR("Error calling function: %s", e.what());
+            }
             delete func;
         }
     }
