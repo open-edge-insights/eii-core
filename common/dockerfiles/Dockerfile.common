@@ -1,13 +1,49 @@
-ARG UBUNTU_IMAGE_VERSION
 ARG EIS_VERSION
 
-FROM ubuntu:$UBUNTU_IMAGE_VERSION
+FROM ia_eisbase:$EIS_VERSION
 
-# Setting ENV for pybase containers
-ENV PY_WORK_DIR /EIS
+WORKDIR ${GO_WORK_DIR}
+
+COPY libs/EISMessageBus/install.sh ./common/libs/EISMessageBus/install.sh
+RUN ./common/libs/EISMessageBus/install.sh
+
+COPY cmake ./common/cmake
+
+COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
+RUN cd ./common/libs/EISMsgEnv && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make install
+
+COPY libs/ConfigManager ./common/libs/ConfigManager
+COPY util/ ./common/util/
+RUN cd ./common/libs/ConfigManager/c && \
+    rm -rf build && \
+    ./prebuild.sh && \
+    cd build && \
+    cmake .. && \
+    make install
+
+RUN cd ./common/util/c && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make install
+
+COPY libs/EISMessageBus ./common/libs/EISMessageBus
+RUN cd ./common/libs/EISMessageBus && \
+    rm -rf build deps && \
+    mkdir build && \
+    cd build && \
+    cmake -DWITH_PYTHON=ON .. && \
+    make install
+
+# Re-copying everything here to not to miss any of
+# the subfolders
+COPY libs ./common/libs
+COPY util ./common/util
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
-
-COPY libs ./libs
-COPY util/ ./util
-COPY cmake ./cmake

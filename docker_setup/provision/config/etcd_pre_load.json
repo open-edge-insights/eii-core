@@ -8,6 +8,7 @@
                 "level": 100
             },
             "loop_video": "true",
+            "queue_size": 20,
             "poll_interval": 0.2
         }
     },

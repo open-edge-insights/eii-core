@@ -4,19 +4,7 @@ services:
 
   ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   ## Define ia_eisbase service
-  ia_common:
-    build:
-      context: $PWD/../common
-      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
-      args:
-          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          EIS_VERSION: ${EIS_VERSION}
-    read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
-
   ia_eisbase:
-    depends_on:
-      - ia_common
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
@@ -25,9 +13,22 @@ services:
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
-  ia_openvino_base:
+  ## Define ia_common service
+  ia_common:
     depends_on:
       - ia_eisbase
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
+      args:
+          EIS_VERSION: ${EIS_VERSION}
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+
+  ## Define ia_openvino_base service
+  ia_openvino_base:
+    depends_on:
+      - ia_common
     build:
       context: $PWD/../common/openvino
       dockerfile: $PWD/../common/openvino/Dockerfile.openvino
@@ -57,10 +58,10 @@ services:
       AppName: "EtcdUi"
       DEV_MODE: ${DEV_MODE}
     user: ${EIS_UID}
-    secrets:
-      - ca_etcd
-      - etcd_root_cert
-      - etcd_root_key
+    # secrets:
+    #   - ca_etcd
+    #   - etcd_root_cert
+    #   - etcd_root_key
 
   ##----Start: EIS Containers ----
   ## Define VideoIngestion service
@@ -107,10 +108,10 @@ services:
       - "/dev/dri"
       - "/dev/:/dev/"
     user: ${EIS_UID}
-    #secrets:
-    #  - ca_etcd
-    #  - etcd_VideoIngestion_cert
-    #  - etcd_VideoIngestion_key
+    # secrets:
+    #   - ca_etcd
+    #   - etcd_VideoIngestion_cert
+    #   - etcd_VideoIngestion_key
 
   ## Define VideoAnalytics service
   ia_video_analytics:
@@ -155,10 +156,10 @@ services:
       - "vol_eis_socket:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
-    secrets:
-      - ca_etcd
-      - etcd_VideoAnalytics_cert
-      - etcd_VideoAnalytics_key
+    # secrets:
+    #   - ca_etcd
+    #   - etcd_VideoAnalytics_cert
+    #   - etcd_VideoAnalytics_key
 
   ## Define Visualizer service
   ia_visualizer:
