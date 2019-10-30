@@ -50,39 +50,40 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 ## C APIs
 
-1. **char\* init(char \*storage_type, char \*ca_cert, char \*cert_file, char \*key_file)**    
+1. **char\* config_mgr_new(config_mgr_config_t \*config_mgr_config)**    
    ```
-   init function to initialize config manager
-   :param storage_type      - Type of key-value storage, Eg. etcd
-   :param ca_cert           - config manager client ca cert
-   :param cert_file         - config manager client cert file
-   :param key_file          - config manager client key file
-   :return char*            - on success of initialization "0", on failure "-1"
+   config_mgr_new function to creates a new config manager client
+   @param config_mgr_config_t:
+        storage_type      - Type of key-value storage, Eg. etcd
+        ca_cert           - config manager client ca cert
+        cert_file         - config manager client cert file
+        key_file          - config manager client key file
+   @return char*          - on success of initialization "0", on failure "-1"
    ```
 
 2. **char\* get_config(char \*key)**
     ```
     get_config function gets the value of a key from config manager
-    :param key      - key to be queried on from config manager
-    :return char*   - values returned from config manager based on key
+    @param key      - key to be queried on from config manager
+    @return char*   - values returned from config manager based on key
+    ```
     ```
 
-3. **typedef void (\*callback_fcn)(char \*key, char \*value)**
-    ```
-    callback_fcn is a user callback function will be called on trigger of watch event
-    :param key       - key on which watch event triggered
-    :param value     - updated value of corrsponding key
-    ```
-4. **void register_watch_dir(char \*key, callback_fcn user_callback)**
+3. **void register_watch_dir(char \*key, (*register_watch_dir_cb)(char* key, char* value) user_callback)**
     ```
     register_watch_dir function registers to a callback and keeps a watch on the prefix of a specified key
 
-    :param key       - prefix of a key to keep a watch on
+    @param key                                                 - prefix of a key to keep a watch on
+    @param (*register_watch_dir_cb)(char* key, char* value)    - user callback to be called on watch event
+                                                                 with updated value on the respective key
     ```
-5. **void register_watch_key(char \*key, callback_fcn user_callback)**
+4. **void register_watch_key(char \*key, (*register_watch_key_cb)(char* key, char* value) user_callback)**
     ```
     register_watch_key function registers to a callback and keeps a watch on a specified key
-    :param key      - key to keep a watch on
+    @param key                                                 - key to keep a watch on
+    @param (*register_watch_key_cb)(char* key, char* value)    - user callback to be called on watch event
+                                                                 with updated value on the respective key
+    
     ```
 
 To refer C examples follow [examples/](examples/)

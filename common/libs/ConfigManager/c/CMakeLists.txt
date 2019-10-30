@@ -19,7 +19,7 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.11)
-project(eis-messagebus VERSION 1.0.0 LANGUAGES C CXX)
+project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" OFF)

@@ -14,16 +14,23 @@ void test_callback(char* key, char * val){
 }
 
 int main() {
-   char *err_status = init("etcd","", "", "");
-   if(!strcmp(err_status, "-1")) {
-      printf("Config manager initializtaion failed: %s\n", err_status);
-      return -1;
+   config_mgr_config_t *config_mgr_config = (config_mgr_config_t *)malloc(sizeof(config_mgr_config_t));
+   config_mgr_config->storage_type = "etcd";
+   config_mgr_config->ca_cert = "";
+   config_mgr_config->cert_file = "";
+   config_mgr_config->key_file = "";
+
+   config_mgr_t *config_mgr_client = config_mgr_new(config_mgr_config);
+   if (!strcmp(config_mgr_client->status, "-1")){
+      printf("Config manager client creation failed\n");
+      return;
    }
-
-   printf("get_config is called, value is: %s \n", get_config("/GlobalEnv/"));
-   register_watch_key("/Kapacitor", callback);
-   register_watch_dir("/Kapacitor/", test_callback);
+   char *value = config_mgr_client->get_config("/GlobalEnv/");
+   printf("get_config is called, value is: %s \n", value);
+   config_mgr_client->register_watch_key("/GlobalEnv/", callback);
+   config_mgr_client->register_watch_dir("/Kapacitor/", test_callback);
+   config_mgr_client->free_config(config_mgr_client);
+   config_mgr_client->free_config(config_mgr_config);
    sleep(35);
-
    return 0;
 }
