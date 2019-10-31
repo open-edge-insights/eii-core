@@ -26,6 +26,8 @@ option(WITH_TESTS    "Compile with unit tests" OFF)
 
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
+set(CMAKE_CXX_STANDARD 14)
+
 # Include directory for CMake modules
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
