@@ -25,13 +25,49 @@
 #include <string>
 #include <bits/stdc++.h>
 #include <cjson/cJSON.h>
+#include <eis/config_manager/config_manager.h>
 #include "eis/utils/json_config.h"
+
 
 namespace eis {
     namespace utils {
         class MsgBusUtil {
+            private:
+                /** Get the tokenized values from a string based on a delimiter set
+                 *
+                 * @param tokenizable_data: data that needs to be tokenized
+                 * @param tokenized_data: tokenized data in std::vector
+                 * @param delimeter: character based on which data needs to be tokenized
+                 */
+                void tokenize(const std::string& tokenizable_data,
+                            std::vector<std::string>& tozenized_data,
+                            const char delimeter);
+                std::string ltrim(const std::string& value);
+                std::string rtrim(const std::string& value);
+                std::string trim(const std::string& value);
+
+                // True for dev mode and false for prod mode
+                bool m_dev_mode;
+
+                // App Name
+                std::string m_app_name;
+
+                std::string whitespace = " \n\t";
+                // ConfigManager client
+                config_mgr_t* m_config_mgr_client;
+
+                // ConfigManager config
+                config_mgr_config_t* m_config_mgr_config;
+
             public:
-                std::string WhiteSpace = " \n\t";
+
+                /** Constructor
+                 */
+                MsgBusUtil();
+
+                /** Destructor
+                 */
+                ~MsgBusUtil();
 
                 /**
                  * Returns a list of all topics the module needs to subscribe or publish
@@ -52,19 +88,10 @@ namespace eis {
                 config_t* get_messagebus_config(std::string& topic,
                                                 std::string& topic_type);
 
-            private:
-                /** Get the tokenized values from a string based on a delimiter set
-                 *
-                 * @param tokenizable_data: data that needs to be tokenized
-                 * @param tokenized_data: tokenized data in std::vector
-                 * @param delimeter: character based on which data needs to be tokenized
+                /** Returns config manager client
                  */
-                void tokenize(const std::string& tokenizable_data,
-                            std::vector<std::string>& tozenized_data,
-                            const char delimeter);
-                std::string ltrim(const std::string& value);
-                std::string rtrim(const std::string& value);
-                std::string trim(const std::string& value);
+                config_mgr_t* get_config_mgr_client();
+
         };
     }
 }

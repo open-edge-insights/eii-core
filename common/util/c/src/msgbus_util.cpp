@@ -20,12 +20,55 @@
 
 #include "eis/utils/msgbus_util.h"
 #include <cjson/cJSON.h>
-#include <eis/config_manager/config_manager.h>
 #include "eis/utils/json_config.h"
 #include "eis/utils/logger.h"
 
 
 using namespace eis::utils;
+
+MsgBusUtil::MsgBusUtil() {
+    m_app_name = getenv("AppName");
+    std::string dev_mode_str = getenv("DEV_MODE");
+
+    if (dev_mode_str == "false") {
+        m_dev_mode = false;
+    } else if (dev_mode_str == "true") {
+        m_dev_mode = true;
+    }
+    std::string pub_cert_file = "";
+    std::string pri_key_file = "";
+    std::string trust_file = "";
+    if(!m_dev_mode) {
+        pub_cert_file = "/run/secrets/etcd_" + m_app_name + "_cert";
+        pri_key_file = "/run/secrets/etcd_" + m_app_name + "_key";
+        trust_file = "/run/secrets/ca_etcd";
+    }
+    m_config_mgr_config = new config_mgr_config_t;
+    m_config_mgr_config->storage_type = "etcd";
+    m_config_mgr_config->ca_cert = (char*) trust_file.c_str();
+    m_config_mgr_config->cert_file = (char*)pub_cert_file.c_str();
+    m_config_mgr_config->key_file = (char*) pri_key_file.c_str();
+
+    m_config_mgr_client = config_mgr_new(m_config_mgr_config);
+    if(m_config_mgr_client == NULL) {
+        const char* err = "Config manager client creation failed";
+        LOG_ERROR("%s", err);
+        throw(err);
+    }
+}
+
+MsgBusUtil::~MsgBusUtil() {
+    if(m_config_mgr_config) {
+        delete m_config_mgr_config;
+    }
+    if(m_config_mgr_client) {
+        delete m_config_mgr_client;
+    }
+}
+
+config_mgr_t* MsgBusUtil::get_config_mgr_client() {
+    return m_config_mgr_client;
+}
 
 std::vector<std::string> MsgBusUtil::get_topics_from_env(const std::string& topic_type) {
     std::vector<std::string> topics;
@@ -60,13 +103,13 @@ void MsgBusUtil::tokenize(const std::string& tokenizable_data,
 
 
 std::string MsgBusUtil::ltrim(const std::string& value) {
-    size_t start = value.find_first_not_of(WhiteSpace);
+    size_t start = value.find_first_not_of(whitespace);
     return (start == std::string::npos) ? "" : value.substr(start);
 }
 
 
 std::string MsgBusUtil::rtrim(const std::string& value) {
-    size_t end = value.find_last_not_of(WhiteSpace);
+    size_t end = value.find_last_not_of(whitespace);
     return (end == std::string::npos) ? "" : value.substr(0, end + 1);
 }
 
@@ -80,7 +123,6 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
                                             std::string& topic_type) {
 
     try {
-        std::string app_name;
         std::string topic_cfg;
         std::string mode;
         std::string address;
@@ -89,15 +131,6 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
 
         std::vector<std::string> mode_address;
         std::vector<std::string> host_port;
-
-        std::string dev_mode_str = getenv("DEV_MODE");
-        bool dev_mode;
-        if (dev_mode_str == "false") {
-            dev_mode = false;
-        } else if (dev_mode_str == "true") {
-            dev_mode = true;
-        }
-        app_name = trim(getenv("AppName"));
 
         topic_cfg = topic + "_cfg";
         topic_cfg = getenv(topic_cfg.c_str());
@@ -117,12 +150,6 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
             transform(topic_type.begin(), topic_type.end(),
                       topic_type.begin(), ::tolower);
 
-            char *err_status = init("etcd","", "", "");
-            if(!strcmp(err_status, "-1")) {
-                LOG_ERROR("Config manager initializtaion failed: %s\n", err_status);
-                return NULL;
-            }
-
             if(topic_type == "pub") {
 
                 cJSON* zmq_tcp_publish = cJSON_CreateObject();
@@ -130,15 +157,15 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
                 cJSON_AddStringToObject(zmq_tcp_publish, "host", host.c_str());
                 cJSON_AddNumberToObject(zmq_tcp_publish, "port", stoi(port));
 
-                if(dev_mode == false) {
-                    
+                if(m_dev_mode == false) {
+
                     std::vector<std::string> allowed_clients;
                     std::string clients = getenv("Clients");
                     tokenize(clients, allowed_clients, ',');
 
                     // cJSON* all_clients = cJSON_CreateArray();
                     // for(std::string client : allowed_clients) {
-                    //     std::string client_pub_key = get_config(&("/PublicKeys" + client)[0]);
+                    //     std::string client_pub_key = m_config_mgr_client->get_config(&("/PublicKeys" + client)[0]);
                     //     // TODO: should we assert here
                     //     if(!client_pub_key.empty()) {
                     //         cJSON_AddItemToArray()
@@ -147,10 +174,10 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
 
                     // }
                     // cJSON_AddArrayToObject(json, "allowed_clients", &allowed_clients[0]);
-                    const char* server_secret_key = get_config(&("/" + app_name + "/private_key")[0]);
+                    const char* server_secret_key = m_config_mgr_client->get_config(&("/" + m_app_name + "/private_key")[0]);
                     cJSON_AddStringToObject(zmq_tcp_publish, "server_secret_key",
                                           server_secret_key);
-                    
+
                 }
 
             } else if(topic_type == "sub") {
@@ -159,28 +186,28 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
                 cJSON_AddStringToObject(pub_sub_topic, "host", host.c_str());
                 cJSON_AddNumberToObject(pub_sub_topic, "port", stoi(port));
 
-                if(dev_mode == false) {
-                    
-                    const char* server_pub_key = get_config(
-                        &("/Publickeys/" + app_name)[0]
+                if(m_dev_mode == false) {
+
+                    const char* server_pub_key = m_config_mgr_client->get_config(
+                        &("/Publickeys/" + m_app_name)[0]
                     );
                     cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
                                             server_pub_key);
 
-                    const char* client_pub_key = get_config(
-                        &("/Publickeys/" + app_name)[0]
+                    const char* client_pub_key = m_config_mgr_client->get_config(
+                        &("/Publickeys/" + m_app_name)[0]
                     );
                     cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
                                             server_pub_key);
 
-                    const char* client_secret_key = get_config(
-                        &("/" + app_name + "/private_key")[0]
+                    const char* client_secret_key = m_config_mgr_client->get_config(
+                        &("/" + m_app_name + "/private_key")[0]
                     );
                     cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
                                             client_secret_key);
 
-                    const char* server_secret_key = get_config(
-                        &("/" + app_name + "/private_key")[0]);
+                    const char* server_secret_key = m_config_mgr_client->get_config(
+                        &("/" + m_app_name + "/private_key")[0]);
                     cJSON_AddStringToObject(pub_sub_topic, "server_secret_key",
                                           server_secret_key);
                 }
