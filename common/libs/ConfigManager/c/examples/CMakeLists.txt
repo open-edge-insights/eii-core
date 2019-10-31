@@ -18,8 +18,6 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-# Configure and copy over IPC configuration file
-
 # Add config manager example
 add_executable(config_manager "config_manager.c")
 target_link_libraries(config_manager eisconfigmgr pthread)
