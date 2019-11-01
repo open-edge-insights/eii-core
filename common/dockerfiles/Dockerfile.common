@@ -3,10 +3,6 @@ ARG EIS_VERSION
 FROM ia_eisbase:$EIS_VERSION
 
 WORKDIR ${GO_WORK_DIR}
-
-COPY libs/EISMessageBus/install.sh ./common/libs/EISMessageBus/install.sh
-RUN ./common/libs/EISMessageBus/install.sh
-
 COPY cmake ./common/cmake
 
 COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
@@ -38,7 +34,8 @@ RUN cd ./common/libs/EISMessageBus && \
     rm -rf build deps && \
     mkdir build && \
     cd build && \
-    cmake -DWITH_PYTHON=ON .. && \
+    cmake -DWITH_PYTHON=ON -DWITH_GO=ON .. && \
+    make && \
     make install
 
 # Re-copying everything here to not to miss any of
