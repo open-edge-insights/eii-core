@@ -47,9 +47,9 @@ static void free_config(void *config){
 
 config_mgr_t* config_mgr_new(config_mgr_config_t *config_mgr_config){
     char* status = initialize(config_mgr_config->storage_type,
-                                    config_mgr_config->ca_cert,
                                     config_mgr_config->cert_file,
-                                    config_mgr_config->key_file);
+                                    config_mgr_config->key_file,
+                                    config_mgr_config->ca_cert);
     if(!strcmp(status, "-1")) {
         return NULL;
     }
