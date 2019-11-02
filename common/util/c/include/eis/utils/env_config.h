@@ -31,7 +31,7 @@
 
 namespace eis {
     namespace utils {
-        class MsgBusUtil {
+        class EnvConfig {
             private:
                 /** Get the tokenized values from a string based on a delimiter set
                  *
@@ -52,7 +52,7 @@ namespace eis {
                 // App Name
                 std::string m_app_name;
 
-                std::string whitespace = " \n\t";
+                const std::string whitespace = " \n\t";
                 // ConfigManager client
                 config_mgr_t* m_config_mgr_client;
 
@@ -63,11 +63,11 @@ namespace eis {
 
                 /** Constructor
                  */
-                MsgBusUtil();
+                EnvConfig();
 
                 /** Destructor
                  */
-                ~MsgBusUtil();
+                ~EnvConfig();
 
                 /**
                  * Returns a list of all topics the module needs to subscribe or publish

@@ -59,7 +59,7 @@ tests.
 $ ./config-tests
 $ ./frame-tests
 $ ./log-tests
-$ ./msgbus-util-tests
+$ ./env-config-tests
 $ ./thp-tests
 $ ./tsp-tests
 ```

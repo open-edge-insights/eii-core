@@ -18,7 +18,7 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "eis/utils/msgbus_util.h"
+#include "eis/utils/env_config.h"
 #include <cjson/cJSON.h>
 #include "eis/utils/json_config.h"
 #include "eis/utils/logger.h"
@@ -26,7 +26,7 @@
 
 using namespace eis::utils;
 
-MsgBusUtil::MsgBusUtil() {
+EnvConfig::EnvConfig() {
     m_app_name = getenv("AppName");
     std::string dev_mode_str = getenv("DEV_MODE");
 
@@ -57,7 +57,7 @@ MsgBusUtil::MsgBusUtil() {
     }
 }
 
-MsgBusUtil::~MsgBusUtil() {
+EnvConfig::~EnvConfig() {
     if(m_config_mgr_config) {
         delete m_config_mgr_config;
     }
@@ -66,11 +66,11 @@ MsgBusUtil::~MsgBusUtil() {
     }
 }
 
-config_mgr_t* MsgBusUtil::get_config_mgr_client() {
+config_mgr_t* EnvConfig::get_config_mgr_client() {
     return m_config_mgr_client;
 }
 
-std::vector<std::string> MsgBusUtil::get_topics_from_env(const std::string& topic_type) {
+std::vector<std::string> EnvConfig::get_topics_from_env(const std::string& topic_type) {
     std::vector<std::string> topics;
     try {
         std::string topic_list;
@@ -88,7 +88,7 @@ std::vector<std::string> MsgBusUtil::get_topics_from_env(const std::string& topi
     }
 }
 
-void MsgBusUtil::tokenize(const std::string& tokenizable_data,
+void EnvConfig::tokenize(const std::string& tokenizable_data,
                           std::vector<std::string>& tokenized_data,
                           const char delimeter) {
     std::stringstream topic_stream(tokenizable_data);
@@ -102,24 +102,24 @@ void MsgBusUtil::tokenize(const std::string& tokenizable_data,
 }
 
 
-std::string MsgBusUtil::ltrim(const std::string& value) {
+std::string EnvConfig::ltrim(const std::string& value) {
     size_t start = value.find_first_not_of(whitespace);
     return (start == std::string::npos) ? "" : value.substr(start);
 }
 
 
-std::string MsgBusUtil::rtrim(const std::string& value) {
+std::string EnvConfig::rtrim(const std::string& value) {
     size_t end = value.find_last_not_of(whitespace);
     return (end == std::string::npos) ? "" : value.substr(0, end + 1);
 }
 
 
-std::string MsgBusUtil::trim(const std::string& value) {
+std::string EnvConfig::trim(const std::string& value) {
     return rtrim(ltrim(value));
 }
 
 
-config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
+config_t* EnvConfig::get_messagebus_config(std::string& topic,
                                             std::string& topic_type) {
 
     try {
@@ -131,6 +131,15 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
 
         std::vector<std::string> mode_address;
         std::vector<std::string> host_port;
+        std::vector<std::string> pub_topic;
+
+        transform(topic_type.begin(), topic_type.end(),
+                  topic_type.begin(), ::tolower);
+        
+        if (topic_type == "sub"){
+            tokenize(topic_type, pub_topic, '/');
+            topic = pub_topic[1];
+        }
 
         topic_cfg = topic + "_cfg";
         topic_cfg = getenv(topic_cfg.c_str());
@@ -140,6 +149,11 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
         address = trim(mode_address[1]);
 
         cJSON* json = cJSON_CreateObject();
+        if(json == NULL){
+            const char* err = "Unable to create JSON Object";
+            LOG_ERROR("%s", err);
+            throw(err);
+        }
         cJSON_AddStringToObject(json, "type", mode.c_str());
 
         if(mode == "zmq_tcp") {
@@ -147,32 +161,38 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
             host = trim(host_port[0]);
             port = trim(host_port[1]);
 
-            transform(topic_type.begin(), topic_type.end(),
-                      topic_type.begin(), ::tolower);
-
             if(topic_type == "pub") {
 
                 cJSON* zmq_tcp_publish = cJSON_CreateObject();
+                if(zmq_tcp_publish == NULL){
+                    const char* err = "Unable to create JSON Object";
+                    LOG_ERROR("%s", err);
+                    throw(err);
+                }
                 cJSON_AddItemToObject(json, "zmq_tcp_publish", zmq_tcp_publish);
                 cJSON_AddStringToObject(zmq_tcp_publish, "host", host.c_str());
                 cJSON_AddNumberToObject(zmq_tcp_publish, "port", stoi(port));
 
-                if(m_dev_mode == false) {
+                if(!m_dev_mode) {
 
                     std::vector<std::string> allowed_clients;
                     std::string clients = getenv("Clients");
                     tokenize(clients, allowed_clients, ',');
 
-                    // cJSON* all_clients = cJSON_CreateArray();
-                    // for(std::string client : allowed_clients) {
-                    //     std::string client_pub_key = m_config_mgr_client->get_config(&("/PublicKeys" + client)[0]);
-                    //     // TODO: should we assert here
-                    //     if(!client_pub_key.empty()) {
-                    //         cJSON_AddItemToArray()
-                    //         allowed_clients.push_back(client_pub_key);
-                    //     }
+                    cJSON* all_clients = cJSON_CreateArray();
+                    if(all_clients == NULL){
+                        const char* err = "Unable to create JSON Object";
+                        LOG_ERROR("%s", err);
+                        throw(err);
+                    }
+                    for(std::string client : allowed_clients) {
+                        std::string client_pub_key = m_config_mgr_client->get_config(&("/PublicKeys/" + client)[0]);
+                        // TODO: should we assert here
+                        if(!client_pub_key.empty()) {
+                            cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_pub_key.c_str()));
+                        }
 
-                    // }
+                    }
                     // cJSON_AddArrayToObject(json, "allowed_clients", &allowed_clients[0]);
                     const char* server_secret_key = m_config_mgr_client->get_config(&("/" + m_app_name + "/private_key")[0]);
                     cJSON_AddStringToObject(zmq_tcp_publish, "server_secret_key",
@@ -182,11 +202,16 @@ config_t* MsgBusUtil::get_messagebus_config(std::string& topic,
 
             } else if(topic_type == "sub") {
                 cJSON* pub_sub_topic = cJSON_CreateObject();
+                if(pub_sub_topic == NULL){
+                    const char* err = "Unable to create JSON Object";
+                    LOG_ERROR("%s", err);
+                    throw(err);
+                }
                 cJSON_AddItemToObject(json, topic.c_str(), pub_sub_topic);
                 cJSON_AddStringToObject(pub_sub_topic, "host", host.c_str());
                 cJSON_AddNumberToObject(pub_sub_topic, "port", stoi(port));
 
-                if(m_dev_mode == false) {
+                if(!m_dev_mode) {
 
                     const char* server_pub_key = m_config_mgr_client->get_config(
                         &("/Publickeys/" + m_app_name)[0]

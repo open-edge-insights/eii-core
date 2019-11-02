@@ -21,22 +21,22 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <sstream>
-#include "eis/utils/msgbus_util.h"
+#include "eis/utils/env_config.h"
 #include "eis/utils/logger.h"
 
 using namespace eis::utils;
 
-TEST(msgbus_util_tests, get_topics_from_env) {
+TEST(env_config_tests, get_topics_from_env) {
 	const char* topics_list = "sub_topic1,sub_topic2";
 	std::vector<std::string> topics{"sub_topic1", "sub_topic2"};
     setenv("SubTopics", topics_list, true);
-	MsgBusUtil obj;
+	EnvConfig obj;
 	std::vector<std::string> results = obj.get_topics_from_env("sub");
     EXPECT_EQ(topics[0], results[0]);
 	EXPECT_EQ(topics[1], results[1]);
 }
 
-TEST(msgbus_util_tests, get_messagebus_config) {
+TEST(env_config_tests, get_messagebus_config) {
 	std::string topic_type = "sub";
 	std::string topic = "camera1_stream_results";
 	std::string result = topic + "_cfg";
@@ -46,7 +46,7 @@ TEST(msgbus_util_tests, get_messagebus_config) {
 	setenv("DEV_MODE", "true", true);
 	setenv("Clients", "Visualizer", true);
 	setenv("AppName", "Sample", true);
-	MsgBusUtil obj;
+	EnvConfig obj;
 	config_t* config = obj.get_messagebus_config(topic, topic_type);
 	config_value_t* value = config->get_config_value(config->cfg, "type");
 	ASSERT_EQ(value->type, CVT_STRING);
