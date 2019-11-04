@@ -137,7 +137,7 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                   topic_type.begin(), ::tolower);
         
         if (topic_type == "sub"){
-            tokenize(topic_type, pub_topic, '/');
+            tokenize(topic, pub_topic, '/');
             topic = pub_topic[1];
         }
 

@@ -13,14 +13,16 @@
         }
     },
     "/VideoAnalytics/config": {
-        "name": "pcb_classifier",
-        "queue_size": 10,
-        "max_workers": 1,
-        "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
-        "ref_config_roi": "./VideoAnalytics/classifiers/ref_pcbdemo/roi_2.json",
-        "model_xml": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.xml",
-        "model_bin": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.bin",
-        "device": "CPU"
+        "analytics" : {
+            "name": "pcb_classifier",
+            "queue_size": 20,
+            "max_workers": 1,
+            "ref_img": "./VideoAnalytics/classifiers/ref_pcbdemo/ref.png",
+            "ref_config_roi": "./VideoAnalytics/classifiers/ref_pcbdemo/roi_2.json",
+            "model_xml": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.xml",
+            "model_bin": "./VideoAnalytics/classifiers/ref_pcbdemo/model_2.bin",
+            "device": "CPU"
+        }
     },
     "/Visualizer/config": {
         "display": "true",
