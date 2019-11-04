@@ -74,7 +74,3 @@ add_executable(frame-tests "frame_tests.cpp")
 target_link_libraries(frame-tests eisutils gtest_main)
 add_test(NAME frame-tests COMMAND frame-tests)
 
-# have this file as a unit test file instead of test program
-add_executable(env-config-tests env_config_tests.cpp)
-target_link_libraries(env-config-tests eisutils gtest_main)
-add_test(NAME env-config-tests COMMAND env-config-tests)

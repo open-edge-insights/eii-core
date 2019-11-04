@@ -36,8 +36,6 @@ extern "C" {
 #endif
 
 typedef struct {
-    char* status;
-
     /**
      * get_config function gets the value of a key from config manager
      *

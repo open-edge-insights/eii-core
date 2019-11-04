@@ -26,7 +26,9 @@
 
 #include "eis/config_manager/config_manager.h"
 #include "eis/config_manager/go_config_manager.h"
+#include <ctype.h>
 
+char supported_storage_types[][5] = {"etcd"};
 static char* get_config(char *key){
     return getConfig(key);
 }
@@ -46,6 +48,12 @@ static void free_config(void *config){
 }
 
 config_mgr_t* config_mgr_new(config_mgr_config_t *config_mgr_config){
+    for(int i = 0; i < sizeof(supported_storage_types) / sizeof(supported_storage_types[0]); i++){
+        if (!strcmp(config_mgr_config->storage_type, supported_storage_types[i])){
+            break;
+        }
+        return NULL;
+    }
     char* status = initialize(config_mgr_config->storage_type,
                                     config_mgr_config->cert_file,
                                     config_mgr_config->key_file,
@@ -54,7 +62,6 @@ config_mgr_t* config_mgr_new(config_mgr_config_t *config_mgr_config){
         return NULL;
     }
     config_mgr_t *config_mgr = (config_mgr_t *)malloc(sizeof(config_mgr_t));
-    config_mgr->status = status;
     config_mgr->get_config = get_config;
     config_mgr->register_watch_key = register_watch_key;
     config_mgr->register_watch_dir = register_watch_dir;

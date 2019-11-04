@@ -21,10 +21,10 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <sstream>
-#include "eis/utils/env_config.h"
+#include "eis/config_manager/env_config.h"
 #include "eis/utils/logger.h"
 
-using namespace eis::utils;
+using namespace eis::config_manager;
 
 TEST(env_config_tests, get_topics_from_env) {
 	const char* topics_list = "sub_topic1,sub_topic2";

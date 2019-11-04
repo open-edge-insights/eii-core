@@ -48,9 +48,22 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag.
 
+## Running Unit Tests
+
+> **NOTE:** The unit tests will only be compiled if the `WITH_TESTS=ON` option
+> is specified when running CMake.
+
+Run the following commands from the `build/tests` folder to cover the unit
+tests. Make sure etcd daemon should be running, etcdctl is available in the folder `build/tests` and install etcdctl by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
+
+```sh
+$ ./configmgr-tests
+$ ./env-config-tests
+```
+
 ## C APIs
 
-1. **char\* config_mgr_new(config_mgr_config_t \*config_mgr_config)**    
+1. **config_mgt_t\* config_mgr_new(config_mgr_config_t \*config_mgr_config)**    
    ```
    config_mgr_new function to creates a new config manager client
    @param config_mgr_config_t:

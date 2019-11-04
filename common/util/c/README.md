@@ -59,7 +59,6 @@ tests.
 $ ./config-tests
 $ ./frame-tests
 $ ./log-tests
-$ ./env-config-tests
 $ ./thp-tests
 $ ./tsp-tests
 ```
