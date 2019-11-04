@@ -1,3 +1,4 @@
+EIS distributed services centralized logging using ELK
 1. The EIS centralized logging architecture can be visualized as eis-containers--->rsyslog--->logstash--->elasticsearch--->kibana
 
 2. eis-containers logs has to be forwarded to the rsyslog, running onto the local system. 
@@ -13,10 +14,18 @@
    'sudo systemctl restart rsyslog'.
    For more information on the rsyslog, plase refer [https://www.rsyslog.com/plugins/](https://www.rsyslog.com/plugins/)
 
-4. logstash has to write the received logs from rsyslog to elasticsearch.
-   The required logstash configuration is available in the file named 'log-receiver.conf'
-   nohup logstash  -f ./log-receiver.conf &
-
-   Note: To start elasticsearch & logstash, java (java 11), has to be installed.
-   Please refer [https://www.elastic.co/](https://www.elastic.co/) to install
-   elasticsearch, logstash and kibana
+4. To start ELK containers Please follow below commands
+   ```
+   $sudo sysctl -w vm.max_map_count=262144
+   
+   #To start in dev mode elk.yml can be used.
+   $docker-compose -f elk.yml up -d
+   
+   #To start in prod mode elk_prod.yml can be used.
+   $docker-compose -f elk_prod.yml up -d
+   
+   ```
+   Pleas visit [https://localhost:5601](https://localhost:5601) for viewing the logs in KIBANA.
+   Note: The certificate attached to kibana is self signed and has to be accepted in
+   browser as an exception. The attached certificates are sample certificcates only and need to
+   be replaced for production environment.
