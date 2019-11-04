@@ -29,7 +29,7 @@ option(WITH_TESTS    "Compile with unit tests" OFF)
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
 
 # Set C standard to C11
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 # Set CFLAGS
 set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -pedantic -fstack-protector-strong -D_FORTIFY_SOURCE=2")
@@ -47,6 +47,10 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
         ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
     )
 endif()
+
+# Finding libraries
+find_package(EISUtils REQUIRED)
+find_package(EISMsgEnv REQUIRED)
 
 # Include Intel safestring library
 configure_file(${EIS_COMMON_CMAKE}/IntelSafeString.txt.in safestring-download/CMakeLists.txt)
@@ -71,10 +75,12 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
 # Include header directories
 include_directories(
     include/
+    ${EISMsgEnv_INCLUDE}
+    ${EISUtils_INCLUDE}
     ${safestring_SOURCE_DIR}/include)
 
 # Get all source files
-file(GLOB SOURCES "src/*.c")
+file(GLOB SOURCES "src/*.c" "src/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(eisconfigmgr SHARED
@@ -86,6 +92,8 @@ set_target_properties(goconfigmanager PROPERTIES IMPORTED_LOCATION ${CMAKE_BINAR
 target_link_libraries(eisconfigmgr
     PUBLIC
         pthread
+        ${EISMsgEnv_LIBRARIES}
+        ${EISUtils_LIBRARIES}
         goconfigmanager
     PRIVATE
         safestring_static)

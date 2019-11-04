@@ -30,7 +30,7 @@
 
 
 namespace eis {
-    namespace utils {
+    namespace config_manager {
         class EnvConfig {
             private:
                 /** Get the tokenized values from a string based on a delimiter set

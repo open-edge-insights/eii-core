@@ -13,18 +13,18 @@ RUN cd ./common/libs/EISMsgEnv && \
     cmake .. && \
     make install
 
-COPY libs/ConfigManager ./common/libs/ConfigManager
 COPY util/ ./common/util/
-RUN cd ./common/libs/ConfigManager/c && \
+RUN cd ./common/util/c && \
     rm -rf build && \
-    ./prebuild.sh && \
+    mkdir build && \
     cd build && \
     cmake .. && \
     make install
 
-RUN cd ./common/util/c && \
+COPY libs/ConfigManager ./common/libs/ConfigManager
+RUN cd ./common/libs/ConfigManager/c && \
     rm -rf build && \
-    mkdir build && \
+    ./prebuild.sh && \
     cd build && \
     cmake .. && \
     make install

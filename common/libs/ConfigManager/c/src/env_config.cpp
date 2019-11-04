@@ -18,13 +18,14 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "eis/utils/env_config.h"
+#include <string>
+#include "eis/config_manager/env_config.h"
 #include <cjson/cJSON.h>
 #include "eis/utils/json_config.h"
 #include "eis/utils/logger.h"
 
 
-using namespace eis::utils;
+using namespace eis::config_manager;
 
 EnvConfig::EnvConfig() {
     m_app_name = getenv("AppName");
@@ -160,6 +161,8 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
             tokenize(address, host_port, ':');
             host = trim(host_port[0]);
             port = trim(host_port[1]);
+            int i_port;
+            sprintf(&port[0], "%d", &i_port);
 
             if(topic_type == "pub") {
 
@@ -171,7 +174,7 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                 }
                 cJSON_AddItemToObject(json, "zmq_tcp_publish", zmq_tcp_publish);
                 cJSON_AddStringToObject(zmq_tcp_publish, "host", host.c_str());
-                cJSON_AddNumberToObject(zmq_tcp_publish, "port", stoi(port));
+                cJSON_AddNumberToObject(zmq_tcp_publish, "port", i_port);
 
                 if(!m_dev_mode) {
 
@@ -209,7 +212,7 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                 }
                 cJSON_AddItemToObject(json, topic.c_str(), pub_sub_topic);
                 cJSON_AddStringToObject(pub_sub_topic, "host", host.c_str());
-                cJSON_AddNumberToObject(pub_sub_topic, "port", stoi(port));
+                cJSON_AddNumberToObject(pub_sub_topic, "port", i_port);
 
                 if(!m_dev_mode) {
 
