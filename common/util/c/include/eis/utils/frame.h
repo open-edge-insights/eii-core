@@ -34,14 +34,10 @@
 namespace eis {
 namespace utils {
 
-
 /**
  * Wrapper around a frame object
  */
-class Frame :
-    public eis::msgbus::Serializable,
-    public eis::msgbus::Deserializable
-{
+class Frame : public eis::msgbus::Serializable {
 private:
     // This pointer represents the underlying object in which the raw pixel
     // data for the frame resides. This pointer could be a GstBuffer, cv::Mat
@@ -59,12 +55,10 @@ private:
     // pointer to that underlying data provided to the constructor.
     void* m_data;
 
-    // This member is only used in VERY special circumstances to make sure
-    // that the m_data pointer is freed. Generally, it will always be freed
-    // with the m_frame object, however, in the case of the frame being
-    // deserialized from a message envelope a different free method is
-    // required.
-    void (*m_free_data)(void*);
+    // This is only used when the frame was deserialized from a
+    // msg_envelope_t and then reserialized. This keeps track of the actual
+    // underlying blob memory (i.e. the frame's pixel data).
+    owned_blob_t* m_blob_ptr;
 
     // Meta-data associated with the frame
     msg_envelope_t* m_meta_data;
@@ -84,6 +78,18 @@ private:
     static void msg_free_frame(void* hint) {
         // Cast to a frame pointer
         Frame* frame = (Frame*) hint;
+
+        // Free frame data (if given a free function)
+        if(frame->m_free_frame != NULL) {
+            frame->m_free_frame(frame->m_frame);
+        }
+
+        // Free the owned blob for the frame data if this was deserialized from
+        // a msg_envelope_t
+        if(frame->m_blob_ptr != NULL) {
+            owned_blob_destroy(frame->m_blob_ptr);
+        }
+
         delete frame;
     };
 

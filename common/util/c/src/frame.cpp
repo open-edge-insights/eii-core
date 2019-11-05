@@ -30,8 +30,8 @@ using namespace eis::utils;
 
 Frame::Frame(void* frame, int width, int height, int channels, void* data,
              void (*free_frame)(void*)) :
-    Serializable(), Deserializable(NULL), m_frame(frame),
-    m_free_frame(free_frame), m_free_data(NULL), m_data(data), m_width(width),
+    Serializable(NULL), m_frame(frame),
+    m_blob_ptr(NULL), m_free_frame(free_frame), m_data(data), m_width(width),
     m_height(height), m_channels(channels), m_serialized(false)
 {
     if(m_free_frame == NULL) {
@@ -82,8 +82,8 @@ Frame::Frame(void* frame, int width, int height, int channels, void* data,
 }
 
 Frame::Frame(msg_envelope_t* msg) :
-    Serializable(), Deserializable(msg), m_frame(NULL), m_free_frame(NULL),
-    m_free_data(NULL), m_meta_data(msg), m_serialized(false)
+    Serializable(msg), m_frame(NULL), m_free_frame(NULL),
+    m_blob_ptr(NULL), m_meta_data(msg), m_serialized(false)
 {
     msgbus_ret_t ret = MSG_SUCCESS;
 
@@ -129,20 +129,17 @@ Frame::Frame(msg_envelope_t* msg) :
 }
 
 Frame::~Frame() {
-    // Free the underlying frame if the m_free_frame method is set
-    if(m_free_frame != NULL) {
-        this->m_free_frame(this->m_frame);
-    }
+    if(!m_serialized.load()) {
+        // Free the underlying frame if the m_free_frame method is set
+        if(m_free_frame != NULL) {
+            this->m_free_frame(this->m_frame);
+        }
 
-    // Free the underlying pixel data if the m_free_data method is set
-    if(m_free_data != NULL) {
-        this->m_free_data(this->m_data);
-    }
-
-    // Destroy the meta data message envelope if the frame is not from a
-    // deserialized message and if the frame itself has not been serialized
-    if(m_msg == NULL && !m_serialized.load()) {
-        msgbus_msg_envelope_destroy(m_meta_data);
+        // Destroy the meta data message envelope if the frame is not from a
+        // deserialized message and if the frame itself has not been serialized
+        if(m_msg == NULL && !m_serialized.load()) {
+            msgbus_msg_envelope_destroy(m_meta_data);
+        }
     }
 
     // else: If m_msg is not NULL, then the Frame was deserialized from a
@@ -204,11 +201,18 @@ msg_envelope_t* Frame::serialize() {
         // Set the m_free_data member, because the next lines after m_free_data
         // is set swap around the blob pointer and free functions so that the
         // frame object is correctly destroyed along with the actual blob bytes
-        this->m_free_data = blob->body.blob->shared->free;
+        // this->m_free_data = blob->body.blob->shared->free;
+        // this->m_blob_ptr = blob->body.blob->shared->ptr;
+        this->m_blob_ptr = owned_blob_copy(blob->body.blob->shared);
+        if(this->m_blob_ptr == NULL) {
+            throw "Failed to copy msg_envelope_t owned blob";
+        }
+        this->m_blob_ptr->owned = true;
 
         // Resetting blob shared memory free pointers
         blob->body.blob->shared->ptr = this;
         blob->body.blob->shared->free = Frame::msg_free_frame;
+        blob->body.blob->shared->owned = true;
 
         // Set m_msg to NULL so that the Deserializable destructor does not
         // call msgbus_msg_envelope_destroy() on the m_msg object. The reason
