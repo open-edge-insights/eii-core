@@ -18,6 +18,10 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+/**
+ * @brief EIS Env configuration interface implementation
+ */
+
 #include <string>
 #include "eis/config_manager/env_config.h"
 #include <cjson/cJSON.h>
@@ -189,7 +193,7 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                         throw(err);
                     }
                     for(std::string client : allowed_clients) {
-                        std::string client_pub_key = m_config_mgr_client->get_config(&("/PublicKeys/" + client)[0]);
+                        std::string client_pub_key = m_config_mgr_client->get_config(&("/Publickeys/" + client)[0]);
                         // TODO: should we assert here
                         if(!client_pub_key.empty()) {
                             cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_pub_key.c_str()));
