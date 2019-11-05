@@ -75,10 +75,10 @@ services:
       AppName: "EtcdUi"
       DEV_MODE: ${DEV_MODE}
     user: ${EIS_UID}
-    # secrets:
-    #   - ca_etcd
-    #   - etcd_root_cert
-    #   - etcd_root_key
+    secrets:
+      - ca_etcd
+      - etcd_root_cert
+      - etcd_root_key
 
   ##----Start: EIS Containers ----
   ## Define VideoIngestion service
@@ -125,10 +125,10 @@ services:
       - "/dev/dri"
       - "/dev/:/dev/"
     user: ${EIS_UID}
-    # secrets:
-    #   - ca_etcd
-    #   - etcd_VideoIngestion_cert
-    #   - etcd_VideoIngestion_key
+    secrets:
+      - ca_etcd
+      - etcd_VideoIngestion_cert
+      - etcd_VideoIngestion_key
 
   ## Define VideoAnalytics service
   ia_video_analytics:
@@ -173,15 +173,15 @@ services:
       - "vol_eis_socket:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
-    # secrets:
-    #   - ca_etcd
-    #   - etcd_VideoAnalytics_cert
-    #   - etcd_VideoAnalytics_key
+    secrets:
+      - ca_etcd
+      - etcd_VideoAnalytics_cert
+      - etcd_VideoAnalytics_key
 
   ## Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_common
+      - ia_eisbase
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -234,15 +234,15 @@ services:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
       - "vol_eis_socket:${SOCKET_DIR}"
-    # secrets:
-    #   - ca_etcd
-    #   - etcd_Visualizer_cert
-    #   - etcd_Visualizer_key
+    secrets:
+      - ca_etcd
+      - etcd_Visualizer_cert
+      - etcd_Visualizer_key
 
   # ## Define RestDataExport service
   # ia_rest_export:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../RestDataExport
   #     dockerfile: $PWD/../RestDataExport/Dockerfile
@@ -277,15 +277,15 @@ services:
   #     - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
   #     - "${EIS_INSTALL_PATH}:${EIS_INSTALL_PATH}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #   - ca_etcd
-  #   #   - etcd_RestDataExport_cert
-  #   #   - etcd_RestDataExport_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_RestDataExport_cert
+  #     - etcd_RestDataExport_key
 
   # ## Define telegraf service
   # ia_telegraf:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../Telegraf
   #     dockerfile: $PWD/../Telegraf/Dockerfile
@@ -307,15 +307,15 @@ services:
   #     - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
   #     - "./config/telegraf_devmode.conf:/etc/Telegraf/telegraf_devmode.conf"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #   - ca_etcd
-  #   #   - etcd_InfluxDBConnector_cert
-  #   #   - etcd_InfluxDBConnector_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_InfluxDBConnector_cert
+  #     - etcd_InfluxDBConnector_key
 
   # ## Define influxdb connector service
   # ia_influxdbconnector:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../InfluxDBConnector
   #     dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -359,16 +359,16 @@ services:
   #     - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #   - ca_etcd
-  #   #   - etcd_InfluxDBConnector_cert
-  #   #   - etcd_InfluxDBConnector_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_InfluxDBConnector_cert
+  #     - etcd_InfluxDBConnector_key
 
 
   # ## Define Discovery Creek service
   # ia_dc:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../DiscoveryCreek/
   #     dockerfile: $PWD/../DiscoveryCreek/Dockerfile
@@ -406,15 +406,15 @@ services:
   #   volumes:
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #   - ca_etcd
-  #   #   - etcd_DiscoveryCreek_cert
-  #   #   - etcd_DiscoveryCreek_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_DiscoveryCreek_cert
+  #     - etcd_DiscoveryCreek_key
 
   # ## Define DataAnalytics service
   # ia_data_analytics:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../TimeSeriesAnalytics/
   #     dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
@@ -438,16 +438,16 @@ services:
   #   devices:
   #     - "/dev/dri"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #   - ca_etcd
-  #   #   - etcd_Kapacitor_cert
-  #   #   - etcd_Kapacitor_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_Kapacitor_cert
+  #     - etcd_Kapacitor_key
 
 
   # ## Define Imagestore service which hosts minio dbs
   # ia_imagestore:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../ImageStore
   #     dockerfile: $PWD/../ImageStore/Dockerfile
@@ -483,16 +483,16 @@ services:
   #     - "vol_imagestore_data:/data"
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #     - ca_etcd
-  #   #     - etcd_ImageStore_cert
-  #   #     - etcd_ImageStore_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_ImageStore_cert
+  #     - etcd_ImageStore_key
 
 
   # ## Define FactoryControlApp service
   # ia_factoryctrl_app:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../FactoryControlApp
   #     dockerfile: $PWD/../FactoryControlApp/Dockerfile
@@ -524,15 +524,15 @@ services:
   #   volumes:
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #     - ca_etcd
-  #   #     - etcd_FactoryControlApp_cert
-  #   #     - etcd_FactoryControlApp_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_FactoryControlApp_cert
+  #     - etcd_FactoryControlApp_key
 
   # ## Define OpcuaExport service
   # ia_opcua_export:
   #   depends_on:
-  #     - ia_common
+  #     - ia_eisbase
   #   build:
   #     context: $PWD/../OpcuaExport
   #     dockerfile: $PWD/../OpcuaExport/Dockerfile
@@ -564,10 +564,10 @@ services:
   #   volumes:
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
-  #   # secrets:
-  #   #     - ca_etcd
-  #   #     - etcd_OpcuaExport_cert
-  #   #     - etcd_OpcuaExport_key
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_OpcuaExport_cert
+  #     - etcd_OpcuaExport_key
 
 volumes:
   vol_influxdb_data:
