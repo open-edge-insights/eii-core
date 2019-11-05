@@ -373,6 +373,7 @@ services:
   #   volumes:
   #     - "vol_influxdb_data:/influxdata"
   #     - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
+  #     - "./config/ignore_attributes.cfg:/EIS/go/src/IEdgeInsights/InfluxDBConnector/ignore_attributes.cfg"
   #     - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #   user: ${EIS_UID}
