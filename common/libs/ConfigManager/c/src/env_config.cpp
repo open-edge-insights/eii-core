@@ -165,8 +165,8 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
             tokenize(address, host_port, ':');
             host = trim(host_port[0]);
             port = trim(host_port[1]);
-            int i_port;
-            sprintf(&port[0], "%d", &i_port);
+            u_int64_t i_port;
+            sscanf(&port[0], "%lu", &i_port);
 
             if(topic_type == "pub") {
 
