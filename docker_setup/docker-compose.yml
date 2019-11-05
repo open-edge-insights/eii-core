@@ -223,7 +223,7 @@ services:
     #   - etcd_Visualizer_key
 
   # ## Define RestDataExport service
-  # ia_rde:
+  # ia_rest_export:
   #   depends_on:
   #     - ia_common
   #   build:
@@ -231,9 +231,9 @@ services:
   #     dockerfile: $PWD/../RestDataExport/Dockerfile
   #     args:
   #       EIS_VERSION: ${EIS_VERSION}
-  #   image: ${DOCKER_REGISTRY}ia_rde:${EIS_VERSION}
-  #   container_name: ia_rde
-  #   hostname: ia_rde
+  #   image: ${DOCKER_REGISTRY}ia_rest_export:${EIS_VERSION}
+  #   container_name: ia_rest_export
+  #   hostname: ia_rest_export
   #   network_mode: host
   #   restart: unless-stopped
   #   environment:
