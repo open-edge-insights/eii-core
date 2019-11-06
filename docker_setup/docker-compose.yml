@@ -39,24 +39,6 @@ services:
     read_only: true
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
 
-#  ia_grafana:
-#    image: ${GRAFANA}
-#    container_name: ia_grafana
-#    hostname: ia_grafana
-#    network_mode: host
-#    restart: unless-stopped
-#    user: ${EIS_UID}
-#    environment:
-#      AppName: "Grafana"
-#      CertType: "pem"
-#      DEV_MODE: ${DEV_MODE}
-#    volumes:
-#      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-#      - ./grafana/provisioning/:/etc/grafana/provisioning/
-#      - ./provision/Certificates/ca/ca_certificate.pem:/etc/ca-certificates/ca_certificate.pem
-#      - ./provision/Certificates/Grafana/Grafana_client_certificate.pem:/etc/ssl/Grafana/Grafana_client_certificate.pem
-#      - ./provision/Certificates/Grafana/Grafana_client_key.pem:/etc/ssl/Grafana/Grafana_client_key.pem
-
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
   ## Define ETCD UI service - must be included to view ETCD data over web UI
@@ -246,6 +228,33 @@ services:
       - ca_etcd
       - etcd_Visualizer_cert
       - etcd_Visualizer_key
+
+  # ## Start Grafana service
+  # ia_grafana:
+  #   depends_on:
+  #     - ia_common
+  #   build:
+  #     context: $PWD/../Grafana
+  #     dockerfile: $PWD/../Grafana/Dockerfile
+  #     args:
+  #         EIS_VERSION: ${EIS_VERSION}
+  #         GRAFANA_VERSION: ${GRAFANA_VERSION}
+  #         EIS_UID: ${EIS_UID}
+  #   container_name: ia_grafana
+  #   hostname: ia_grafana
+  #   network_mode: host
+  #   restart: unless-stopped
+  #   environment:
+  #     AppName: "Grafana"
+  #     InfluxDbAppName: "InfluxDBConnector"
+  #     CertType: "pem"
+  #     DEV_MODE: ${DEV_MODE}
+  #   secrets:
+  #     - ca_etcd
+  #     - etcd_Grafana_cert
+  #     - etcd_Grafana_key
+  #     - etcd_InfluxDBConnector_cert
+  #     - etcd_InfluxDBConnector_key
 
   # ## Define RestDataExport service
   # ia_rest_export:
@@ -644,3 +653,7 @@ secrets:
     file: provision/Certificates/root/root_client_certificate.pem
   etcd_root_key:
     file: provision/Certificates/root/root_client_key.pem
+  etcd_Grafana_cert:
+    file: provision/Certificates/Grafana/Grafana_client_certificate.pem
+  etcd_Grafana_key:
+     file: provision/Certificates/Grafana/Grafana_client_key.pem
