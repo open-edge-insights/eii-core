@@ -1,5 +1,5 @@
 ARG EIS_VERSION
-
+ARG CMAKE_BUILD_TYPE
 FROM ia_eisbase:$EIS_VERSION
 
 WORKDIR ${GO_WORK_DIR}
@@ -10,7 +10,7 @@ RUN cd ./common/libs/EISMsgEnv && \
     rm -rf build && \
     mkdir build && \
     cd build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
 
 COPY util/ ./common/util/
@@ -18,7 +18,7 @@ RUN cd ./common/util/c && \
     rm -rf build && \
     mkdir build && \
     cd build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
 
 COPY libs/ConfigManager ./common/libs/ConfigManager
@@ -26,7 +26,7 @@ RUN cd ./common/libs/ConfigManager/c && \
     rm -rf build && \
     ./prebuild.sh && \
     cd build && \
-    cmake .. && \
+    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
 
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
@@ -34,7 +34,7 @@ RUN cd ./common/libs/EISMessageBus && \
     rm -rf build deps && \
     mkdir build && \
     cd build && \
-    cmake -DWITH_PYTHON=ON -DWITH_GO=ON .. && \
+    cmake -DWITH_PYTHON=ON -DWITH_GO=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make && \
     make install
 
@@ -42,5 +42,6 @@ RUN cd ./common/libs/EISMessageBus && \
 # the subfolders
 COPY libs ./common/libs
 COPY util ./common/util
+COPY udfs ./common/udfs
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
