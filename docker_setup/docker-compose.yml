@@ -181,7 +181,7 @@ services:
   ## Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -242,7 +242,7 @@ services:
   # ## Define RestDataExport service
   # ia_rest_export:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../RestDataExport
   #     dockerfile: $PWD/../RestDataExport/Dockerfile
@@ -285,7 +285,7 @@ services:
   # ## Define telegraf service
   # ia_telegraf:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../Telegraf
   #     dockerfile: $PWD/../Telegraf/Dockerfile
@@ -315,7 +315,7 @@ services:
   # ## Define influxdb connector service
   # ia_influxdbconnector:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../InfluxDBConnector
   #     dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -368,7 +368,7 @@ services:
   # ## Define Discovery Creek service
   # ia_dc:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../DiscoveryCreek/
   #     dockerfile: $PWD/../DiscoveryCreek/Dockerfile
@@ -414,7 +414,7 @@ services:
   # ## Define DataAnalytics service
   # ia_data_analytics:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../TimeSeriesAnalytics/
   #     dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
@@ -447,7 +447,7 @@ services:
   # ## Define Imagestore service which hosts minio dbs
   # ia_imagestore:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../ImageStore
   #     dockerfile: $PWD/../ImageStore/Dockerfile
@@ -492,7 +492,7 @@ services:
   # ## Define FactoryControlApp service
   # ia_factoryctrl_app:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../FactoryControlApp
   #     dockerfile: $PWD/../FactoryControlApp/Dockerfile
@@ -532,7 +532,7 @@ services:
   # ## Define OpcuaExport service
   # ia_opcua_export:
   #   depends_on:
-  #     - ia_eisbase
+  #     - ia_common
   #   build:
   #     context: $PWD/../OpcuaExport
   #     dockerfile: $PWD/../OpcuaExport/Dockerfile
