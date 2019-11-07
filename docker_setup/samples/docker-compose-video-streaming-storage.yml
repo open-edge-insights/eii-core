@@ -5,6 +5,8 @@ services:
   #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   # Define ia_eisbase service
   ia_common:
+    depends_on:
+      - ia_eisbase
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
@@ -15,8 +17,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
   
   ia_eisbase:
-    depends_on:
-      - ia_common
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
@@ -101,7 +101,7 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "$PWD/test_videos:/EIS/test_videos"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     privileged: true
     devices:
       - "/dev/dri"
@@ -152,7 +152,7 @@ services:
     privileged: true
     volumes:
       - "/dev:/dev"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
     secrets:
@@ -163,7 +163,7 @@ services:
   # Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -216,7 +216,7 @@ services:
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -226,7 +226,7 @@ services:
   # Define influxdb connector service
   ia_influxdbconnector:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../InfluxDBConnector
       dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -265,10 +265,10 @@ services:
       # point_data_cfg: "zmq_ipc,${SOCKET_DIR}/"
       point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
     volumes:
-      - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "vol_influxdb_data:/influxdata"
       - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -278,7 +278,7 @@ services:
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../ImageStore
       dockerfile: $PWD/../ImageStore/Dockerfile
@@ -312,12 +312,33 @@ services:
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
     volumes:
-      - "${EIS_INSTALL_PATH}/data:/data"
+      - "vol_imagestore_data:/data"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
         - ca_etcd
         - etcd_ImageStore_cert
         - etcd_ImageStore_key
+
+volumes:
+  vol_influxdb_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data/influxdata
+  vol_imagestore_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 
 secrets:
   ca_etcd:

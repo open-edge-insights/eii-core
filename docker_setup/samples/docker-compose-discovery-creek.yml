@@ -5,18 +5,17 @@ services:
   #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   # Define ia_eisbase service
   ia_common:
+    depends_on:
+      - ia_eisbase
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
-          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
   
   ia_eisbase:
-    depends_on:
-      - ia_common
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
@@ -53,7 +52,7 @@ services:
   # Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -107,7 +106,7 @@ services:
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -117,7 +116,7 @@ services:
   # Define influxdb connector service
   ia_influxdbconnector:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../InfluxDBConnector
       dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -153,10 +152,10 @@ services:
       point_data_cfg: "zmq_tcp,127.0.0.1:65015"
       # point_data_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
-      - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "vol_influxdb_data:/influxdata"
       - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -167,7 +166,7 @@ services:
   # Define telegraf service
   ia_telegraf:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Telegraf
       dockerfile: $PWD/../Telegraf/Dockerfile
@@ -197,7 +196,7 @@ services:
 # Define Discovery Creek service
   ia_dc:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../DiscoveryCreek/
       dockerfile: $PWD/../DiscoveryCreek/Dockerfile
@@ -205,14 +204,13 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
-    tmpfs: /tmp
     image: ${DOCKER_REGISTRY}ia_dc:${EIS_VERSION}
     container_name: ia_dc
     hostname: ia_dc
     network_mode: host
     restart: unless-stopped
-    # ipc: host
+    read_only: true
+    tmpfs: /tmp
     environment:
       AppName: "DiscoveryCreek"
       DEV_MODE: ${DEV_MODE}
@@ -235,7 +233,7 @@ services:
 
     volumes:
       - "/dev:/dev"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     privileged: true
     devices:
       - "/dev/dri"
@@ -245,6 +243,20 @@ services:
       - ca_etcd
       - etcd_DiscoveryCreek_cert
       - etcd_DiscoveryCreek_key
+
+volumes:
+  vol_influxdb_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data/influxdata
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 
 secrets:
   ca_etcd:

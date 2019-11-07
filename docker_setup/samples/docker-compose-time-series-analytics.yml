@@ -5,6 +5,8 @@ services:
   #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   # Define ia_eisbase service
   ia_common:
+    depends_on:
+      - ia_eisbase
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
@@ -15,8 +17,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
   
   ia_eisbase:
-    depends_on:
-      - ia_common
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
@@ -53,7 +53,7 @@ services:
   # Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -106,7 +106,7 @@ services:
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -116,7 +116,7 @@ services:
   # Define influxdb connector service
   ia_influxdbconnector:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../InfluxDBConnector
       dockerfile: $PWD/../InfluxDBConnector/Dockerfile
@@ -156,10 +156,10 @@ services:
       # point_data_cfg: "zmq_ipc,${SOCKET_DIR}/"
       point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
     volumes:
-      - "${EIS_INSTALL_PATH}/data/influxdata:/influxdata"
+      - "vol_influxdb_data:/influxdata"
       - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
       - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
+      - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -170,7 +170,7 @@ services:
   # Define telegraf service
   ia_telegraf:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../Telegraf
       dockerfile: $PWD/../Telegraf/Dockerfile
@@ -200,7 +200,7 @@ services:
   # Define DataAnalytics service
   ia_data_analytics:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../TimeSeriesAnalytics/
       dockerfile: $PWD/../TimeSeriesAnalytics/Dockerfile
@@ -221,7 +221,6 @@ services:
     volumes:
       - "./config/kapacitor.conf:/etc/kapacitor/kapacitor.conf"
       - "./config/kapacitor_devmode.conf:/etc/kapacitor/kapacitor_devmode.conf"
-      - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
     user: ${EIS_UID}
@@ -229,6 +228,20 @@ services:
       - ca_etcd
       - etcd_Kapacitor_cert
       - etcd_Kapacitor_key
+
+volumes:
+  vol_influxdb_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data/influxdata
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 
 secrets:
   ca_etcd:
