@@ -219,9 +219,8 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                 cJSON_AddNumberToObject(pub_sub_topic, "port", i_port);
 
                 if(!m_dev_mode) {
-
                     const char* server_pub_key = m_config_mgr_client->get_config(
-                        &("/Publickeys/" + m_app_name)[0]
+                        &("/Publickeys/" + pub_topic[0])[0]
                     );
                     cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
                                             server_pub_key);
@@ -237,11 +236,6 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                     );
                     cJSON_AddStringToObject(pub_sub_topic, "server_public_key",
                                             client_secret_key);
-
-                    const char* server_secret_key = m_config_mgr_client->get_config(
-                        &("/" + m_app_name + "/private_key")[0]);
-                    cJSON_AddStringToObject(pub_sub_topic, "server_secret_key",
-                                          server_secret_key);
                 }
 
             }
