@@ -78,13 +78,15 @@ log_lvl_t get_log_level();
             lvl, __func__, __LINE__); \
 }
 
-#ifdef DEBUG
-#define LOG_DEBUG(fmt, ...) LOG("DEBUG", fmt, ##__VA_ARGS__)
-#define LOG_DEBUG_0(msg) LOG_0("DEBUG", msg)
-#else
-#define LOG_DEBUG(fmt, ...)
-#define LOG_DEBUG_0(msg)
-#endif
+#define LOG_DEBUG(fmt, ...) { \
+    if(get_log_level() >= LOG_LVL_DEBUG) \
+        LOG("DEBUG", fmt, ##__VA_ARGS__); \
+}
+
+#define LOG_DEBUG_0(msg) { \
+    if(get_log_level() >= LOG_LVL_DEBUG) \
+        LOG_0("DEBUG", msg); \
+}
 
 #define LOG_INFO(fmt, ...) { \
     if(get_log_level() >= LOG_LVL_INFO) \
