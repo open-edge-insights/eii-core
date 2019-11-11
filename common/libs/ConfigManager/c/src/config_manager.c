@@ -41,30 +41,29 @@ static void register_watch_dir(char *key, callback_fcn user_callback){
     registerWatchDir(key, user_callback);
 }
 
-static void free_config(void *config){
-    if(config) {
-        free(config);
-    }
-}
 
-config_mgr_t* config_mgr_new(config_mgr_config_t *config_mgr_config){
+config_mgr_t* config_mgr_new(char *storage_type, char *cert_file, char *key_file, char *ca_cert){
     for(int i = 0; i < sizeof(supported_storage_types) / sizeof(supported_storage_types[0]); i++){
-        if (!strcmp(config_mgr_config->storage_type, supported_storage_types[i])){
+        if (!strcmp(storage_type, supported_storage_types[i])){
             break;
         }
         return NULL;
     }
-    char* status = initialize(config_mgr_config->storage_type,
-                                    config_mgr_config->cert_file,
-                                    config_mgr_config->key_file,
-                                    config_mgr_config->ca_cert);
-    if(!strcmp(status, "-1")) {
+    int status = initialize(storage_type,
+                            cert_file,
+                            key_file,
+                            ca_cert);
+    if(status == -1) {
         return NULL;
     }
     config_mgr_t *config_mgr = (config_mgr_t *)malloc(sizeof(config_mgr_t));
     config_mgr->get_config = get_config;
     config_mgr->register_watch_key = register_watch_key;
     config_mgr->register_watch_dir = register_watch_dir;
-    config_mgr->free_config = free_config;
     return config_mgr;
+}
+
+void config_mgr_config_destroy(config_mgr_t *config_mgr_config){
+    if(config_mgr_config != NULL)
+        free(config_mgr_config);
 }

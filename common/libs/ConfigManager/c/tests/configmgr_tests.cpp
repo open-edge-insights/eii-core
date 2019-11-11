@@ -40,19 +40,14 @@ void watch_dir_callback(char* key, char* value){
 }
 
 config_mgr_t* get_config_mgr_client(char *storage_type){
-    config_mgr_config_t *config_mgr_config = (config_mgr_config_t *)malloc(sizeof(config_mgr_config_t));
-    config_mgr_config->storage_type = storage_type;
-    config_mgr_config->ca_cert = (char*)"";
-    config_mgr_config->cert_file = (char*)"";
-    config_mgr_config->key_file = (char*)"";
-    config_mgr_t *config_mgr_client = config_mgr_new(config_mgr_config);
+    config_mgr_t *config_mgr_client = config_mgr_new(storage_type, "", "", "");
     return config_mgr_client;
 }
 
 TEST(configmgr_test, configmgr_init) {
     config_mgr_t *config_mgr_client = get_config_mgr_client((char*)"etcd");
     ASSERT_NE(nullptr, config_mgr_client);
-    config_mgr_client->free_config(config_mgr_client);
+    config_mgr_config_destroy(config_mgr_client);
 }
 
 TEST(configmgr_test, configmgr_get_config) {
@@ -62,7 +57,7 @@ TEST(configmgr_test, configmgr_get_config) {
     }
     system("./etcdctl put test test123"); 
     char *value = config_mgr_client->get_config((char*)"test");
-    config_mgr_client->free_config(config_mgr_client);
+    config_mgr_config_destroy(config_mgr_client);
     ASSERT_STREQ("test123", value);
 }
 
@@ -75,7 +70,7 @@ TEST(configmgr_test, configmgr_register_watch_key) {
     config_mgr_client->register_watch_key((char*)"watch_key_test", watch_key_callback);
     sleep(2);
     system("./etcdctl put watch_key_test test12345678");
-    config_mgr_client->free_config(config_mgr_client);
+    config_mgr_config_destroy(config_mgr_client);
     ASSERT_EQ(1, watch_key_cb);
 }
 
@@ -87,7 +82,7 @@ TEST(configmgr_test, configmgr_register_watch_dir) {
     system("./etcdctl put test_watch_dir test123");
     config_mgr_client->register_watch_dir((char*)"test_watch", watch_dir_callback);
     sleep(2);
-    config_mgr_client->free_config(config_mgr_client);
+    config_mgr_config_destroy(config_mgr_client);
     system("./etcdctl put test_watch_dir test12345678"); 
     ASSERT_EQ(1, watch_dir_cb);
 }
@@ -95,4 +90,5 @@ TEST(configmgr_test, configmgr_register_watch_dir) {
 TEST(configmgr_test, configmgr_init_fail) {
     config_mgr_t *config_mgr_client = get_config_mgr_client((char*)"test");
     ASSERT_EQ(nullptr, config_mgr_client);
+    config_mgr_config_destroy(config_mgr_client);
 }

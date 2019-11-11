@@ -63,15 +63,14 @@ $ ./env-config-tests
 
 ## C APIs
 
-1. **config_mgt_t\* config_mgr_new(config_mgr_config_t \*config_mgr_config)**    
+1. **config_mgr_t\* config_mgr_t* config_mgr_new(char \*storage_type, char \*cert_file, char \*key_file, char \*ca_cert)**    
    ```
    config_mgr_new function to creates a new config manager client
-   @param config_mgr_config_t:
-        storage_type      - Type of key-value storage, Eg. etcd
-        ca_cert           - config manager client ca cert
-        cert_file         - config manager client cert file
-        key_file          - config manager client key file
-   @return char*          - on success of initialization "0", on failure "-1"
+   @param storage_type      - Type of key-value storage, Eg. etcd
+   @param cert_file         - config manager client cert file
+   @param key_file          - config manager client key file
+   @param ca_cert           - config manager client ca cert
+   @return config_mgt_t     - config_mgr_t object on success, NULL on failure
    ```
 
 2. **char\* get_config(char \*key)**

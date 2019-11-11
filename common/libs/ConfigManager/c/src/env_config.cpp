@@ -48,13 +48,11 @@ EnvConfig::EnvConfig() {
         pri_key_file = "/run/secrets/etcd_" + m_app_name + "_key";
         trust_file = "/run/secrets/ca_etcd";
     }
-    m_config_mgr_config = new config_mgr_config_t;
-    m_config_mgr_config->storage_type = "etcd";
-    m_config_mgr_config->ca_cert = (char*) trust_file.c_str();
-    m_config_mgr_config->cert_file = (char*)pub_cert_file.c_str();
-    m_config_mgr_config->key_file = (char*) pri_key_file.c_str();
 
-    m_config_mgr_client = config_mgr_new(m_config_mgr_config);
+    m_config_mgr_client = config_mgr_new("etcd",
+                                        (char*)pub_cert_file.c_str(),
+                                        (char*) pri_key_file.c_str(),
+                                        (char*) trust_file.c_str());
     if(m_config_mgr_client == NULL) {
         const char* err = "Config manager client creation failed";
         LOG_ERROR("%s", err);

@@ -64,12 +64,7 @@ typedef struct {
      */
     void (*register_watch_dir)(
             char *key, 
-            void (*register_watch_dir_cb)(char *key, char *value) );
-    
-    /**
-     * free_config function to free memory
-     */
-    void (*free_config)(void *config);
+            void (*register_watch_dir_cb)(char *key, char *value));
 } config_mgr_t;
 
 typedef struct {
@@ -81,15 +76,20 @@ typedef struct {
 
 /**
  * config_mgr_new function to creates a new config manager client
- *  @param config_mgr_config_t:
- *       storage_type      - Type of key-value storage, Eg. etcd
- *       ca_cert           - config manager client ca cert
- *       cert_file         - config manager client cert file
- *       key_file          - config manager client key file
+ *  @param storage_type      - Type of key-value storage, Eg. etcd
+ *  @param cert_file         - config manager client cert file
+ *  @param key_file          - config manager client key file
+ *  @param ca_cert           - config manager client ca cert
  *  @return NULL for any errors occured or config_mg_t* on successful
  */
-config_mgr_t* config_mgr_new(config_mgr_config_t *config_mgr_config);
+config_mgr_t* config_mgr_new(char *storage_type, char *cert_file, char *key_file, char *ca_cert);
 
+/**
+ * Destroy config_mgr_t* object.
+ *
+ * @param config_mgr_config - Config manager's configuration to destroy
+ */
+void config_mgr_config_destroy(config_mgr_t *config_mgr_config);
 #ifdef __cplusplus
 } //end extern "C"
 #endif
