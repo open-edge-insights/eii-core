@@ -8,12 +8,24 @@ EIS distributed services centralized logging using ELK
    After the modification of 'daemon.json' docker daemon has to be restarted using the below command
    'sudo systemctl restart docker'
 
+   In case of sending the logs over a secure channel from docker daemon to rsyslog, please refer the 'daemon.json.secure'.
+   In this sample configuration, please replace 
+   CA_CERT_PATH : CA certificate path
+   DOCKER_CERT_PATH : Docker certificate path
+   DOCKER_KEY_PATH : Docker key path
+
 3. rsyslog has to forward the received logs from containers to logstash.
    The file named 'eis.conf' has to be copyied into the directory name '/etc/rsyslog.d/'
    After copying this file, the rsyslog service need to restarted using the below command
    'sudo systemctl restart rsyslog'.
    For more information on the rsyslog, plase refer [https://www.rsyslog.com/plugins/](https://www.rsyslog.com/plugins/)
 
+   In case of receiving the logs from docker over the secure channel, please refer the sample config file 'eis.conf.secure'
+   In this sample configuration, please replace 
+   CA_CERT_PATH : CA certificate path
+   DOCKER_CERT_PATH : Docker certificate path
+   DOCKER_KEY_PATH : Docker key path
+      
 4. To start ELK containers Please follow below commands
    ```
    $sudo sysctl -w vm.max_map_count=262144

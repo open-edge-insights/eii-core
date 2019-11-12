@@ -1,0 +1,13 @@
+{
+
+ "dns":["10.248.2.1","8.8.8.8"],
+  "log-driver": "syslog",
+  "log-opts": {
+    "syslog-address": "tcp+tls://127.0.0.1:10514",
+    "tag": "{{.Name}}/{{.ID}}",
+    "syslog-tls-ca-cert": "CA_CERT_PATH",
+    "syslog-tls-cert": "DOCKER_CERT_PATH",
+    "syslog-tls-key": "DOCKER_KEY_PATH"
+  }
+}
+

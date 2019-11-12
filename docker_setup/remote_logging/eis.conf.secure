@@ -1,0 +1,22 @@
+
+global(
+    defaultNetstreamDriver="gtls"
+    defaultNetstreamDriverCAFile="CA_CERT_PATH"
+    defaultNetstreamDriverCertFile="DOCKER_CERT_PATH"
+    defaultNetstreamDriverKeyFile="DOCKER_KEY_PATH"
+)
+
+module(
+    load="imtcp"
+    StreamDriver.Name="gtls"
+    StreamDriver.Mode="1"
+    StreamDriver.Authmode="x509/certvalid"
+)
+
+if $programname startswith("ia_") then action(type="omfwd" Target="localhost" Port="5700" Protocol="tcp")
+
+input(
+    type="imtcp"
+    address="127.0.0.1"
+    port="10514"
+    )
