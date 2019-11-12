@@ -89,7 +89,7 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 
 // _setEnv is a local function to set global env
 func _setEnv(etcd *clientv3.Client) {
-	response, err := etcd.Get(context.TODO(), "/GlobalEnv")
+	response, err := etcd.Get(context.TODO(), "/GlobalEnv/")
 	if err != nil {
 		return
 	}
