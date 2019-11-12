@@ -39,6 +39,11 @@
         "save_image": "false",
         "cert_path": ""
     },
+    "/WebVisualizer/config": {
+        "username": "admin",
+        "password": "admin@123",
+        "port": 5000
+    },
     "/InfluxDBConnector/config": {
         "influxdb": {
             "retention": "1h30m5s",
