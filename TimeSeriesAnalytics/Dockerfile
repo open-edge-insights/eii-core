@@ -54,5 +54,11 @@ COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python
 COPY . ./
 RUN chmod +x ./classifier_start.sh
 
+#Removing build dependencies
+RUN apt-get remove -y wget && \
+    apt-get remove -y git && \
+    apt-get remove curl && \
+    apt-get autoremove -y
+
 RUN go build -o point_classifier point_classifier.go 
 ENTRYPOINT ["./classifier_start.sh"]
