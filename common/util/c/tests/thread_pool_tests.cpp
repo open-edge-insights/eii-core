@@ -62,30 +62,6 @@ TEST(th_pool_tests, simple) {
     tp.stop();
 }
 
-TEST(th_pool_tests, max_jobs) {
-    auto duration = std::chrono::milliseconds(500);
-    ThreadPool tp(1, 1);
-
-    int val = 0;
-    JobHandle* handle = tp.submit(sleep_run, (void*) &val);
-    FAIL_NULL(handle, "Handle is null");
-
-    int val2 = 1;
-    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2);
-    if(handle2 != NULL) {
-        delete handle2;
-        delete handle;
-        FAIL() << "Handle 2 is not NULL...";
-    }
-
-    // The wait really should return immediately
-    handle->wait();
-
-    // Clean up
-    delete handle;
-    tp.stop();
-}
-
 TEST(th_pool_tests, multi_jobs) {
     auto duration = std::chrono::milliseconds(500);
     ThreadPool tp(2, -1);
@@ -103,6 +79,24 @@ TEST(th_pool_tests, multi_jobs) {
     handle2->wait();
 
     // Clean up
+    delete handle;
+    delete handle2;
+    tp.stop();
+}
+
+TEST(th_pool_tests, queue_full) {
+    ThreadPool tp(1, 1);
+
+    int val = 0;
+    JobHandle* handle = tp.submit(sleep_run, (void*) &val);
+    FAIL_NULL(handle, "Handle is null");
+
+    int val2 = 1;
+    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2);
+    FAIL_NULL(handle2, "Handle2 is null");
+
+    handle2->wait();
+
     delete handle;
     delete handle2;
     tp.stop();

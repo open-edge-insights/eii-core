@@ -24,6 +24,7 @@
  */
 
 #include <thread>
+#include <chrono>
 #include <gtest/gtest.h>
 #include "eis/utils/thread_safe_queue.h"
 
@@ -125,4 +126,29 @@ TEST(tsp_tests, max_reached) {
     ret = queue.push(val);
     ASSERT_NE(ret, QueueRetCode::SUCCESS);
     ASSERT_EQ(queue.size(), 1);
+}
+
+void wait_pop_run(ThreadSafeQueue<int>* queue) {
+    auto duration = std::chrono::milliseconds(500);
+    std::this_thread::sleep_for(duration);
+    queue->pop();
+}
+
+TEST(tsp_tests, queue_full_push_wait) {
+    ThreadSafeQueue<int> queue(5);
+
+    for(int i = 0; i < 5; i++) {
+        queue.push(i);
+    }
+
+    int val = 43;
+    QueueRetCode ret = queue.push(val);
+    ASSERT_EQ(ret, QueueRetCode::QUEUE_FULL);
+
+    std::thread th(&wait_pop_run, &queue);
+
+    ret = queue.push_wait(val);
+    ASSERT_EQ(ret, QueueRetCode::SUCCESS);
+
+    th.join();
 }

@@ -64,17 +64,9 @@ JobHandle* ThreadPool::submit(void(*fn)(void*), void* vargs) {
     JobHandle* handle = new JobHandle();
     Func* func = new Func(fn, vargs, handle);
 
-    QueueRetCode ret = m_funcs.push(func);
-    if(ret != QueueRetCode::SUCCESS) {
-        // Doing warning log since this is not necessarily an error in the
-        // calling application
-        LOG_WARN_0("Job queue for thread pool is full");
-
-        delete handle;
-        delete func;
-
-        return NULL;
-    }
+    // Put the function into the job queue, if it is full block indefinitely
+    // until the job can be pushed
+    m_funcs.push_wait(func);
 
     if(((int) m_threads.size()) < m_max_threads) {
         LOG_DEBUG_0("Launching new thread in thread pool");

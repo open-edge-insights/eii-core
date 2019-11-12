@@ -61,6 +61,9 @@ private:
     // Condition variable for waiting for an element to be ready
     std::condition_variable m_cv;
 
+    // Condition variable for waiting for a free spot in the queue
+    std::condition_variable m_full_cv;
+
     // Max size of the queue
     int m_max_size;
 
@@ -94,6 +97,26 @@ public:
             m_queue.push(value);
             m_cv.notify_all();
         }
+
+        return QueueRetCode::SUCCESS;
+    }
+
+    /**
+     * Push item onto the queue. If it is full wait for a space to become
+     * available to put the given value into.
+     *
+     * @param value - Value to enqueue
+     */
+    QueueRetCode push_wait(T value) {
+        QueueRetCode ret;
+
+        do {
+            ret = this->push(value);
+            if(ret == QueueRetCode::QUEUE_FULL) {
+                std::unique_lock<std::mutex> lk(m_mtx);
+                this->m_full_cv.wait(lk);
+            }
+        } while(ret != QueueRetCode::SUCCESS);
 
         return QueueRetCode::SUCCESS;
     }
@@ -134,6 +157,7 @@ public:
     void pop() {
         std::lock_guard<std::mutex> lk(m_mtx);
         m_queue.pop();
+        m_full_cv.notify_one();
     }
 
     /**
