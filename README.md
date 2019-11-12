@@ -233,6 +233,17 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
    A successful run will open Visualizer UI with results of video analytics.
 
+   >**Note**: In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the [docker-compose.yml](docker_setup/docker-compose.yml) file can be modified with the required configurations and below command can be used to build and run the containers.
+
+    ```sh
+    $ docker-compose up --build -d
+    ```
+>**Note**:In case GVA elements are used in VideoIngestion configuration then one
+can choose to not run the VideoAnalytics services.
+
+>**Note**:VideoIngestion service can also used to load the filter udf and the classifier udf using UdfLoader and VideoAnalytics service can be avoided in order to have improved performance.
+
+
 # Etcd Secrets and MessageBus Endpoint Configuration
 
 Etcd Secrets and MessageBus endpoint configurations are done to establish the data path
