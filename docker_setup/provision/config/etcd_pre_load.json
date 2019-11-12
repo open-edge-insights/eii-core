@@ -10,14 +10,31 @@
             "loop_video": "true",
             "queue_size": 10,
             "poll_interval": 0.2
-        }
+        },
+        "max_jobs": 20,
+        "udfs": [{
+            "name": "dummy",
+            "type": "python",
+            "training_mode": "false",
+            "n_total_px": 300000,
+            "n_left_px": 1000,
+            "n_right_px": 1000,
+            "param1": "param1",
+            "param2": "param2"
+
+        }]
     },
     "/VideoAnalytics/config": {
         "queue_size": 10,
         "max_jobs": 1,
         "udfs": [{
-            "name": "dummy",
-            "type": "native"
+            "name": "pcb.pcb_classifier",
+            "type": "python",
+            "ref_img": "common/udfs/python/pcb/ref/ref.png",
+            "ref_config_roi": "common/udfs/python/pcb/ref/roi_2.json",
+            "model_xml": "common/udfs/python/pcb/ref/model_2.xml",
+            "model_bin": "common/udfs/python/pcb/ref/model_2.bin",
+            "device": "CPU"
         }]
     },
     "/Visualizer/config": {
@@ -72,7 +89,7 @@
         "EIS_USER_NAME": "eisuser",
         "EIS_UID": "5319",
         "EIS_INSTALL_PATH": "/opt/intel/eis",
-        "PY_LOG_LEVEL": "INFO",
+        "PY_LOG_LEVEL": "DEBUG",
         "GO_LOG_LEVEL": "INFO",
         "GO_VERBOSE": "0",
         "HOST_TIME_ZONE": "",

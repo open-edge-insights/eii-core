@@ -78,13 +78,13 @@ services:
         EIS_USER_NAME: ${EIS_USER_NAME}
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
-    read_only: true
+    # read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
     restart: unless-stopped
-    command: ["INFO"]
+    command: ["DEBUG"]
     environment:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
@@ -135,7 +135,7 @@ services:
     hostname: ia_video_analytics
     network_mode: host
     restart: unless-stopped
-    command: ["INFO"]
+    command: ["DEBUG"]
     environment:
       AppName: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
