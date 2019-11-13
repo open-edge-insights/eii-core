@@ -67,13 +67,6 @@ typedef struct {
             void (*register_watch_dir_cb)(char *key, char *value));
 } config_mgr_t;
 
-typedef struct {
-    char* storage_type;
-    char* ca_cert;
-    char* cert_file;
-    char* key_file;
-} config_mgr_config_t;
-
 /**
  * config_mgr_new function to creates a new config manager client
  *  @param storage_type      - Type of key-value storage, Eg. etcd

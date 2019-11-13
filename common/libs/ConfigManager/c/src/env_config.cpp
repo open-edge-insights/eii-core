@@ -61,11 +61,8 @@ EnvConfig::EnvConfig() {
 }
 
 EnvConfig::~EnvConfig() {
-    if(m_config_mgr_config) {
-        delete m_config_mgr_config;
-    }
     if(m_config_mgr_client) {
-        delete m_config_mgr_client;
+        config_mgr_config_destroy(m_config_mgr_client);
     }
 }
 

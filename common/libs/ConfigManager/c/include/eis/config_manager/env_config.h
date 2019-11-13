@@ -56,9 +56,6 @@ namespace eis {
                 // ConfigManager client
                 config_mgr_t* m_config_mgr_client;
 
-                // ConfigManager config
-                config_mgr_config_t* m_config_mgr_config;
-
             public:
 
                 /** Constructor
