@@ -101,7 +101,7 @@ services:
       PubTopics: "camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
-      - "$PWD/test_videos:/EIS/test_videos"
+      - "./test_videos:/EIS/test_videos"
       - "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
     privileged: true
     devices:
