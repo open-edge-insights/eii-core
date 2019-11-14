@@ -57,7 +57,7 @@ if [ $ETCD_RESET = 'true' ]; then
 fi
 
 mkdir -p $EIS_INSTALL_PATH/data/influxdata
-mkdir -p $EIS_INSTALL_PATH/data/etcd
+mkdir -p $EIS_INSTALL_PATH/data/etcd/data
 mkdir -p $EIS_INSTALL_PATH/sockets/
 chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
 
