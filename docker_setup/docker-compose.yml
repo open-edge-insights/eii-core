@@ -84,7 +84,7 @@ services:
     hostname: ia_video_ingestion
     network_mode: host
     restart: unless-stopped
-    command: ["DEBUG"]
+    command: ["INFO"]
     environment:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
