@@ -146,6 +146,9 @@ public:
      */
     void* get_data();
 
+    void set_data(void* frame, int width, int height, int channels, void* data,
+                  void (*free_frame)(void*));
+
     /**
      * Get @c msg_envelope_t meta-data envelope.
      *

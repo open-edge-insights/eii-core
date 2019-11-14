@@ -169,6 +169,103 @@ void* Frame::get_data() {
     return m_data;
 }
 
+void Frame::set_data(
+        void* frame, int width, int height, int channels, void* data,
+        void (*free_frame)(void*))
+{
+    msgbus_ret_t ret = MSG_SUCCESS;
+
+    if(m_serialized.load()) {
+        LOG_ERROR_0("Cannot set data after serialization");
+        throw "Cannot set data after serialization";
+    }
+
+    // Release old data
+    if(m_msg == NULL) {
+        // Initialized from the first constructor
+        this->m_free_frame(this->m_frame);
+        this->m_free_frame = free_frame;
+    } else {
+        // This is a deserialized frame
+        // NOTE: This doing major surgery on the underlying data in the
+        // message envlope, this is not generally recommend and should
+        // probably be made better in the future
+
+        // Destroy the old blob
+        msgbus_msg_envelope_elem_destroy(m_msg->blob);
+
+        // Set old blob to NULL so that it can be set again
+        m_msg->blob = NULL;
+
+        // Create the new blob element
+        msg_envelope_elem_body_t* blob = msgbus_msg_envelope_new_blob(
+                (char*) data, width * height * channels);
+        if(blob == NULL) {
+            throw "Failed to initialize new blob in Frame::set_data()";
+        }
+
+        // Set correct ownership/blob pointers for memory management
+        blob->body.blob->shared->ptr = frame;
+        blob->body.blob->shared->free = free_frame;
+        blob->body.blob->shared->owned = true;
+
+        // Re-add the blob to the message envelope
+        ret = msgbus_msg_envelope_put(m_msg, NULL, blob);
+        if(ret != MSG_SUCCESS) {
+            throw "Failed to re-add new blob data to received msg envelope";
+        }
+    }
+
+    // Repoint all internal data structures
+    this->m_frame = frame;
+    this->m_data = data;
+    this->m_width = width;
+    this->m_height = height;
+    this->m_channels = channels;
+
+    // Update meta-data for width, height, and channels
+    // Remove old meta-data
+    msgbus_msg_envelope_remove(m_meta_data, "width");
+    msgbus_msg_envelope_remove(m_meta_data, "height");
+    msgbus_msg_envelope_remove(m_meta_data, "channels");
+
+    // Add width
+    msg_envelope_elem_body_t* e_width = msgbus_msg_envelope_new_integer(
+            width);
+    if(e_width == NULL) {
+        throw "Failed to initialize width meta-data";
+    }
+    ret = msgbus_msg_envelope_put(m_meta_data, "width", e_width);
+    if(ret != MSG_SUCCESS) {
+        throw "Failed to put width meta-data";
+    }
+
+    // Add height
+    msg_envelope_elem_body_t* e_height = msgbus_msg_envelope_new_integer(
+            height);
+    if(e_height == NULL) {
+        throw "Failed to initialize height meta-data";
+    }
+    ret = msgbus_msg_envelope_put(m_meta_data, "height", e_height);
+    if(ret != MSG_SUCCESS) {
+        msgbus_msg_envelope_elem_destroy(e_width);
+        throw "Failed to put height meta-data";
+    }
+
+    // Add channels
+    msg_envelope_elem_body_t* e_channels = msgbus_msg_envelope_new_integer(
+            channels);
+    if(e_channels == NULL) {
+        throw "Failed to initialize channels meta-data";
+    }
+    ret = msgbus_msg_envelope_put(m_meta_data, "channels", e_channels);
+    if(ret != MSG_SUCCESS) {
+        msgbus_msg_envelope_elem_destroy(e_height);
+        msgbus_msg_envelope_elem_destroy(e_width);
+        throw "Failed to put channels meta-data";
+    }
+}
+
 msg_envelope_t* Frame::get_meta_data() {
     if(m_serialized.load()) {
         LOG_ERROR_0("Cannot get meta-data after frame serialization");
