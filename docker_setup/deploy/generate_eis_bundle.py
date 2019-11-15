@@ -89,7 +89,6 @@ class EisBundleGenerator:
         cmdlist.append("mv docker-compose.yml ./" + self.bundle_tag_name)
         cmdlist.append("cp -rf ../config ./" + self.bundle_tag_name)
         cmdlist.append("cp ../.env ./" + self.bundle_tag_name)
-        cmdlist.append("cp -rf ../test_videos/ ./" + self.bundle_tag_name)
         if self.env["DEV_MODE"] == "false":
             cmdlist.append("mkdir -p " + self.bundle_tag_name + "/provision")
             for service in self.config['services'].keys():

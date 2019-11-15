@@ -149,7 +149,7 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 The section assumes the EIS software is already downloaded from the release package or from git.
 
-* Download the full package for OpenVINO toolkit for Linux version "2019 R3" from the official website
+* Download the full package for OpenVINO toolkit for Linux version "2019 R3.1" from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
   directory `l_openvino_toolkit_xxxxx/` inside `[repo]/common/openvino`.
 

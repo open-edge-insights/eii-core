@@ -2,7 +2,7 @@
     "/VideoIngestion/config": {
         "ingestor": {
             "type": "opencv",
-            "pipeline": "/EIS/test_videos/pcb_d2000.avi",
+            "pipeline": "./test_videos/pcb_d2000.avi",
             "encoding": {
                 "type": "jpg",
                 "level": 100

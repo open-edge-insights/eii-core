@@ -2,20 +2,8 @@ version: '3.6'
 
 services:
 
-  #----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
-  # Define ia_eisbase service
-  ia_common:
-    depends_on:
-      - ia_eisbase
-    build:
-      context: $PWD/../common
-      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
-      args:
-          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          EIS_VERSION: ${EIS_VERSION}
-    read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
-  
+  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
+  ## Define ia_eisbase service
   ia_eisbase:
     build:
       context: $PWD/../common
@@ -25,9 +13,24 @@ services:
           EIS_VERSION: ${EIS_VERSION}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
-  ia_openvino_base:
+  ## Define ia_common service
+  ia_common:
     depends_on:
       - ia_eisbase
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
+      args:
+          EIS_VERSION: ${EIS_VERSION}
+          # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+          CMAKE_BUILD_TYPE: "Release"
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+
+  ## Define ia_openvino_base service
+  ia_openvino_base:
+    depends_on:
+      - ia_common
     build:
       context: $PWD/../common/openvino
       dockerfile: $PWD/../common/openvino/Dockerfile.openvino
@@ -35,11 +38,10 @@ services:
           EIS_VERSION: ${EIS_VERSION}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
-    
 
-  #----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+  ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
-  # Define ETCD UI service - must be included to view ETCD data over web UI
+  ## Define ETCD UI service - must be included to view ETCD data over web UI
   ia_etcd_ui:
     build:
       context: $PWD/../EtcdUI
@@ -62,8 +64,8 @@ services:
       - etcd_root_cert
       - etcd_root_key
 
-  #----Start: EIS Containers ----
-  # Define VideoIngestion service
+  ##----Start: EIS Containers ----
+  ## Define VideoIngestion service
   ia_video_ingestion:
     depends_on:
       - ia_openvino_base
@@ -74,12 +76,15 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
     read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
     network_mode: host
     restart: unless-stopped
+    command: ["INFO"]
     environment:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
@@ -88,9 +93,9 @@ services:
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
-      Clients: "VideoAnalytics,Visualizer"
+      Clients: "VideoAnalytics,Visualizer,RestDataExport"
       CertType: "zmq"
-      
+
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -100,7 +105,6 @@ services:
       PubTopics: "camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
-      - "./test_videos:/EIS/test_videos"
       - "vol_eis_socket:${SOCKET_DIR}"
     privileged: true
     devices:
@@ -112,7 +116,7 @@ services:
       - etcd_VideoIngestion_cert
       - etcd_VideoIngestion_key
 
-  # Define VideoAnalytics service
+  ## Define VideoAnalytics service
   ia_video_analytics:
     depends_on:
       - ia_openvino_base
@@ -123,11 +127,14 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics
     hostname: ia_video_analytics
     network_mode: host
     restart: unless-stopped
+    command: ["INFO"]
     environment:
       AppName: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
@@ -135,9 +142,9 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport"
       CertType: "zmq"
-      
+
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -160,7 +167,7 @@ services:
       - etcd_VideoAnalytics_cert
       - etcd_VideoAnalytics_key
 
-  # Define Visualizer service
+ ## Define Visualizer service
   ia_visualizer:
     depends_on:
       - ia_common
@@ -180,7 +187,7 @@ services:
     restart: unless-stopped
     environment:
       AppName: "Visualizer"
-      DISPLAY: ${DISPLAY}
+      DISPLAY: ":0"
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
@@ -188,7 +195,7 @@ services:
 
       # MessageBus Endpoint Configuration
       CertType: "zmq"
-      
+
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
       # based containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -206,18 +213,16 @@ services:
 
       # Uncomment the below three lines for running Video and Time Series together
       # SubTopics: "VideoAnalytics/camera1_stream_results,InfluxDBConnector/point_classifier_results"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
       # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
 
       # Uncomment the below two lines for running DiscoveryCreek usecase alone
       # SubTopics: "DiscoveryCreek/dc_point_data_results"
       # dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
-    privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
       - "vol_eis_socket:${SOCKET_DIR}"
-    user: ${EIS_UID}
     secrets:
       - ca_etcd
       - etcd_Visualizer_cert
@@ -250,7 +255,7 @@ services:
       Clients: "Visualizer,DiscoveryCreek"
       Server: "zmq_tcp,127.0.0.1:8675"
       INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
-      
+
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
       # based containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -274,7 +279,7 @@ services:
       - ca_etcd
       - etcd_InfluxDBConnector_cert
       - etcd_InfluxDBConnector_key
-  
+
   # Define Imagestore service which hosts redis and minio dbs
   ia_imagestore:
     depends_on:
