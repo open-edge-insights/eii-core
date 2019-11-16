@@ -25,7 +25,7 @@
  */
 
 #include "eis/config_manager/config_manager.h"
-#include "eis/config_manager/go_config_manager.h"
+#include "cgo/go_config_manager.h"
 #include <ctype.h>
 
 char supported_storage_types[][5] = {"etcd"};

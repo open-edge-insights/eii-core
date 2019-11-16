@@ -51,33 +51,27 @@ endif()
 # Finding libraries
 find_package(EISUtils REQUIRED)
 find_package(EISMsgEnv REQUIRED)
-
-# Include Intel safestring library
-configure_file(${EIS_COMMON_CMAKE}/IntelSafeString.txt.in safestring-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-                RESULT_VARIABLE ss_result
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
-if(ss_result)
-    message(FATAL_ERROR "CMake step for safestring failed: ${ss_result}")
-endif()
-
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE ss_result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
-if(result)
-    message(FATAL_ERROR "Build step for safestring failed: ${ss_result}")
-endif()
-
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/safestring-build
-                 EXCLUDE_FROM_ALL)
+find_package(IntelSafeString REQUIRED)
 
 # Include header directories
 include_directories(
     include/
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
-    ${safestring_SOURCE_DIR}/include)
+    ${IntelSafeString_INCLUDE})
+
+# Genreate CGO static library
+find_program(GO_EXECUTABLE "go" DOC "Go Executable")
+
+add_custom_target(cgo-config-mgr-code
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/cgo.go)
+add_custom_target(cgo-config-mgr
+    COMMENT "Generating cgo static library"
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/cgo.go
+    COMMAND ${GO_EXECUTABLE} build -buildmode=c-archive -o ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.a
+    COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.h ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/
+    VERBATIM)
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
@@ -86,9 +80,11 @@ set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 add_library(eisconfigmgr SHARED
     ${SOURCES}
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../util/cpuid/cpuid-check.c")
+add_dependencies(eisconfigmgr cgo-config-mgr)
 
 add_library(goconfigmanager STATIC IMPORTED)
-set_target_properties(goconfigmanager PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/libgoconfigmanager.a)
+add_dependencies(goconfigmanager cgo-config-mgr)
+set_target_properties(goconfigmanager PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/go_config_manager.a)
 target_link_libraries(eisconfigmgr
     PUBLIC
         pthread
@@ -96,7 +92,7 @@ target_link_libraries(eisconfigmgr
         ${EISUtils_LIBRARIES}
         goconfigmanager
     PRIVATE
-        safestring_static)
+        ${IntelSafeString_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

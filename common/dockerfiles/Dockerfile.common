@@ -5,6 +5,14 @@ FROM ia_eisbase:$EIS_VERSION
 WORKDIR ${GO_WORK_DIR}
 COPY cmake ./common/cmake
 
+COPY libs/IntelSafeString ./common/libs/IntelSafeString/
+RUN cd ./common/libs/IntelSafeString && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+    make install
+
 COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
 RUN cd ./common/libs/EISMsgEnv && \
     rm -rf build && \
@@ -24,7 +32,7 @@ RUN cd ./common/util/c && \
 COPY libs/ConfigManager ./common/libs/ConfigManager
 RUN cd ./common/libs/ConfigManager/c && \
     rm -rf build && \
-    ./prebuild.sh && \
+    mkdir build && \
     cd build && \
     cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install

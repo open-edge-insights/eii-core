@@ -34,6 +34,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 # Find packages
 find_package(cJSON REQUIRED)
 find_package(EISMsgEnv REQUIRED)
+find_package(IntelSafeString REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -44,34 +45,12 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     )
 endif()
 
-# Include Intel safestring library
-configure_file(
-    "${EIS_COMMON_CMAKE}/IntelSafeString.txt.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/safestring-download/CMakeLists.txt")
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-                RESULT_VARIABLE ss_result
-                WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
-if(ss_result)
-    message(FATAL_ERROR "CMake step for safestring failed: ${ss_result}")
-endif()
-
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE ss_result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
-if(result)
-    message(FATAL_ERROR "Build step for safestring failed: ${ss_result}")
-endif()
-
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/safestring-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/safestring-build
-                 EXCLUDE_FROM_ALL)
-
 # Include header directories
 include_directories(
     include/
     ${CJSON_LIBRARIES}/
     ${EISMsgEnv_INCLUDE}/
-    ${safestring_SOURCE_DIR}/include)
+    ${IntelSafeString_INCLUDE})
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
@@ -84,7 +63,7 @@ target_link_libraries(eisutils
     PRIVATE
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
-        safestring_static)
+        ${IntelSafeString_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
