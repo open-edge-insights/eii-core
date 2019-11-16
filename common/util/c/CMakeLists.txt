@@ -83,6 +83,7 @@ target_link_libraries(eisutils
         ${EISMsgEnv_LIBRARIES}
     PRIVATE
         ${CJSON_LIBRARIES}
+        ${OpenCV_LIBRARIES}
         safestring_static)
 
 # If compile in debug mode, set DEBUG flag for C code
