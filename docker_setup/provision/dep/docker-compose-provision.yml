@@ -45,6 +45,7 @@ services:
     volumes:
       - "../config:/EIS/etcd/config/"
       - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+      - "../Certificates:/EIS/etcd/Certificates"
     environment:
       ETCDCTL_API: 3
       DEV_MODE: ${DEV_MODE}
