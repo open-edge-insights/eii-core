@@ -22,5 +22,10 @@ def get_volume_info(filepath):
             print("Cleaning volume:",vol)
             _execute_cmd('docker volume rm docker_setup_' + vol)
 
+    command= 'docker volume ls | grep dep_vol_etcd | wc -l'
+    if int(_execute_cmd(command)) == 1:
+        _execute_cmd('docker kill ia_etcd ; docker rm -f ia_etcd')
+        _execute_cmd('docker volume rm dep_vol_etcd')
+
 if __name__=="__main__":
     get_volume_info("../docker-compose.yml")
