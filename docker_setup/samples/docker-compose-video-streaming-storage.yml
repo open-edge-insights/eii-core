@@ -84,7 +84,6 @@ services:
     hostname: ia_video_ingestion
     network_mode: host
     restart: unless-stopped
-    command: ["INFO"]
     environment:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
@@ -134,7 +133,6 @@ services:
     hostname: ia_video_analytics
     network_mode: host
     restart: unless-stopped
-    command: ["INFO"]
     environment:
       AppName: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
@@ -167,7 +165,7 @@ services:
       - etcd_VideoAnalytics_cert
       - etcd_VideoAnalytics_key
 
- ## Define Visualizer service
+  ## Define Visualizer service
   ia_visualizer:
     depends_on:
       - ia_common
@@ -228,7 +226,7 @@ services:
       - etcd_Visualizer_cert
       - etcd_Visualizer_key
 
-  # Define influxdb connector service
+  ## Define influxdb connector service
   ia_influxdbconnector:
     depends_on:
       - ia_common
@@ -254,8 +252,8 @@ services:
       # MessageBus Endpoint Configuration
       Clients: "Visualizer,DiscoveryCreek"
       Server: "zmq_tcp,127.0.0.1:8675"
+      # Server: "zmq_ipc,${SOCKET_DIR}/"
       INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
-
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
       # based containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -272,6 +270,7 @@ services:
     volumes:
       - "vol_influxdb_data:/influxdata"
       - "./config/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "./config/ignore_attributes.cfg:/EIS/go/src/IEdgeInsights/InfluxDBConnector/ignore_attributes.cfg"
       - "./config/influxdb_devmode.conf:/etc/influxdb/influxdb_devmode.conf"
       - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
@@ -280,7 +279,7 @@ services:
       - etcd_InfluxDBConnector_cert
       - etcd_InfluxDBConnector_key
 
-  # Define Imagestore service which hosts redis and minio dbs
+  ## Define Imagestore service which hosts minio dbs
   ia_imagestore:
     depends_on:
       - ia_common
@@ -303,11 +302,10 @@ services:
 
       # MessageBus Endpoint Configuration
       # Uncomment the following line if using Discover history tool in PROD mode
-      Clients: "Visualizer"
       CertType: "zmq"
       Server: "zmq_tcp,127.0.0.1:5669"
-      SOCKET_DIR: ${SOCKET_DIR}
-
+      Clients: "Visualizer,RestDataExport"
+      # Server: "zmq_ipc,${SOCKET_DIR}/"
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
       # based containers are running on the same host. If they are running on diff
       # host, please use TCP mode for communication.
@@ -321,9 +319,9 @@ services:
       - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
     secrets:
-        - ca_etcd
-        - etcd_ImageStore_cert
-        - etcd_ImageStore_key
+      - ca_etcd
+      - etcd_ImageStore_cert
+      - etcd_ImageStore_key
 
 volumes:
   vol_influxdb_data:
