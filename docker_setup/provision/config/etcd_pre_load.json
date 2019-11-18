@@ -1,12 +1,12 @@
 {
     "/VideoIngestion/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "ingestor": {
             "type": "opencv",
             "pipeline": "./test_videos/pcb_d2000.avi",
-            "encoding": {
-                "type": "jpg",
-                "level": 100
-            },
             "loop_video": "true",
             "queue_size": 10,
             "poll_interval": 0.2
@@ -22,6 +22,10 @@
         }]
     },
     "/VideoAnalytics/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
         "max_jobs": 1,
         "udfs": [{
