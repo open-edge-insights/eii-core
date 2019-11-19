@@ -21,6 +21,10 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 	var subTopics []string
 	var topicConfigList []string
 	appName := os.Getenv("AppName")
+	msgbusHwm, err := strconv.ParseInt(os.Getenv("ZMQ_RECV_HWM"), 10, 64)
+	if err != nil {
+		glog.Errorf("string to int64 converstion Error: %v", err)
+	}
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
 	topic = strings.TrimSpace(topic)
 	if strings.ToLower(topicType) == "sub" {
@@ -51,6 +55,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			messageBusConfig = map[string]interface{}{
 				"type":            "zmq_tcp",
 				"zmq_tcp_publish": hostConfig,
+				"zmq_recv_hwm": msgbusHwm,
 			}
 
 			if !devMode {
@@ -82,6 +87,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			messageBusConfig = map[string]interface{}{
 				"type": "zmq_tcp",
 				topic:  hostConfig,
+				"zmq_recv_hwm": msgbusHwm,
 			}
 			if !devMode {
 				subTopics[0] = strings.TrimSpace(subTopics[0])
@@ -105,6 +111,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			messageBusConfig = map[string]interface{}{
 				"type": "zmq_tcp",
 				topic:  hostConfig,
+				"zmq_recv_hwm": msgbusHwm,
 			}
 			if !devMode {
 				var allowedClients []interface{}
@@ -134,6 +141,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			messageBusConfig = map[string]interface{}{
 				"type": "zmq_tcp",
 				topic:  hostConfig,
+				"zmq_recv_hwm": msgbusHwm,
 			}
 			if !devMode {
 				clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
@@ -162,6 +170,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 		messageBusConfig = map[string]interface{}{
 			"type":       "zmq_ipc",
 			"socket_dir": topicConfigList[1],
+			"zmq_recv_hwm": msgbusHwm,
 		}
 	} else {
 		panic("Unsupported MessageBus Type!!!")

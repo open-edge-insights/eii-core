@@ -143,6 +143,10 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
 
         topic_cfg = topic + "_cfg";
         topic_cfg = getenv(topic_cfg.c_str());
+        std::string msgbus_hwm = getenv("ZMQ_RECV_HWM");
+        u_int64_t i_ZMQ_RECV_HWM;
+        std::istringstream s_ZMQ_RECV_HWM(&msgbus_hwm[0]);
+        s_ZMQ_RECV_HWM >> i_ZMQ_RECV_HWM;
         tokenize(topic_cfg, mode_address, ',');
 
         mode = trim(mode_address[0]);
@@ -155,13 +159,15 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
             throw(err);
         }
         cJSON_AddStringToObject(json, "type", mode.c_str());
+        cJSON_AddNumberToObject(json, "zmq_recv_hwm", i_ZMQ_RECV_HWM);
 
         if(mode == "zmq_tcp") {
             tokenize(address, host_port, ':');
             host = trim(host_port[0]);
             port = trim(host_port[1]);
             u_int64_t i_port;
-            sscanf(&port[0], "%lu", &i_port);
+            std::istringstream s_port(&port[0]);
+            s_port >> i_port;
 
             if(topic_type == "pub") {
 
@@ -195,7 +201,7 @@ config_t* EnvConfig::get_messagebus_config(std::string& topic,
                         }
 
                     }
-                    // cJSON_AddArrayToObject(json, "allowed_clients", &allowed_clients[0]);
+                    cJSON_AddItemToObject(json, "allowed_clients", all_clients);
                     const char* server_secret_key = m_config_mgr_client->get_config(&("/" + m_app_name + "/private_key")[0]);
                     cJSON_AddStringToObject(zmq_tcp_publish, "server_secret_key",
                                           server_secret_key);

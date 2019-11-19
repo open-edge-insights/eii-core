@@ -70,11 +70,13 @@ class MsgBusUtil:
         mode, address = os.environ[topic + "_cfg"].split(",")
         mode = mode.strip()
         address = address.strip()
+        msgbus_hwm = int(os.environ["ZMQ_RECV_HWM"])
+        config = {
+            "type": mode,
+            "zmq_recv_hwm": msgbus_hwm
+        }
         if mode == "zmq_tcp":
             host, port = address.split(":")
-            config = {
-                        "type": mode
-            }
             host_port_details = {
                   "host":   host,
                   "port":   int(port)
@@ -115,10 +117,7 @@ class MsgBusUtil:
             else:
                 log.error("{} type is not valid".format(topic_type))
         elif mode == "zmq_ipc":
-            config = {
-                        "type":   mode,
-                        "socket_dir":   address
-                    }
+            config["socket_dir"] = address
         else:
             log.error("{} mode is not valid".format(mode))
 
