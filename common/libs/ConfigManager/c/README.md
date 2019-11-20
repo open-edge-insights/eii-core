@@ -2,13 +2,22 @@
 
 ConfigManager provides C APIs for distributed key-value store like `etcd` to read EIS related config details.
 
+## Prerequisites
+Install Intel Safestring lib by follwoing below commands from `IEdegInsights/common/libs/IntelSafeString`
+
+```sh
+$ cd IEdegInsights/common/libs/IntelSafeString
+$ mkdir build
+$ cd build
+$ cmake ..
+$ sudo make install
+```
 ## Compilation
 The EIS Config Manager utilizes CMake as the build tool for compiling the C/C++
 library. The simplest sequence of commands for building the library are
 shown below.
 
 ```sh
-$ ./prebuild.sh
 $ cd build
 $ cmake ..
 $ make
