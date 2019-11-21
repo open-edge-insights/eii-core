@@ -41,3 +41,5 @@ EIS distributed services centralized logging using ELK
    Note: The certificate attached to kibana is self signed and has to be accepted in
    browser as an exception. The attached certificates are sample certificcates only and need to
    be replaced for production environment.
+
+5. After above 4 steps, please start/restart the EIS services.
