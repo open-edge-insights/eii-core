@@ -70,11 +70,12 @@ class MsgBusUtil:
         mode, address = os.environ[topic + "_cfg"].split(",")
         mode = mode.strip()
         address = address.strip()
-        msgbus_hwm = int(os.environ["ZMQ_RECV_HWM"])
+        msgbus_hwm = int(os.environ.get("ZMQ_RECV_HWM", -1))
         config = {
-            "type": mode,
-            "zmq_recv_hwm": msgbus_hwm
+            "type": mode
         }
+        if msgbus_hwm != -1:
+            config["zmq_recv_hwm"] = msgbus_hwm
         if mode == "zmq_tcp":
             host, port = address.split(":")
             host_port_details = {
