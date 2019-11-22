@@ -239,6 +239,7 @@ services:
           EIS_VERSION: ${EIS_VERSION}
           GRAFANA_VERSION: ${GRAFANA_VERSION}
           EIS_UID: ${EIS_UID}
+    image: ${DOCKER_REGISTRY}ia_grafana:${EIS_VERSION}
     container_name: ia_grafana
     hostname: ia_grafana
     network_mode: host
