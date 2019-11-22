@@ -257,6 +257,7 @@ services:
 
   #     # MessageBus Endpoint Configuration
   #     CertType: "zmq,pem"
+  #     ZMQ_RECV_HWM: "1000"
 
   #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
   #     # based containers are running on the same host. If they are running on diff
