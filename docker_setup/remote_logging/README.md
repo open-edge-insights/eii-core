@@ -16,9 +16,10 @@ EIS distributed services centralized logging using ELK
 
 3. rsyslog has to forward the received logs from containers to logstash.
    The file named 'eis.conf' has to be copyied into the directory name '/etc/rsyslog.d/'
-   After copying this file, the rsyslog service need to restarted using the below command
+   After copying this file, install rsyslog module using the command 'sudo apt-get install rsyslog-gnutls'(The rsyslog module
+   installation is one time activity).Then rsyslog service need to restarted using the below command
    'sudo systemctl restart rsyslog'.
-   For more information on the rsyslog, plase refer [https://www.rsyslog.com/plugins/](https://www.rsyslog.com/plugins/)
+   For more information on the rsyslog,please refer [https://www.rsyslog.com/plugins/](https://www.rsyslog.com/plugins/)
 
    In case of receiving the logs from docker over the secure channel, please refer the sample config file 'eis.conf.secure'
    In this sample configuration, please replace 
