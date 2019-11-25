@@ -328,11 +328,13 @@ EIS stack comes with following services, which can be included/excluded in docke
 6. [OpcuaExport](OpcuaExport/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua    clients
 7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants
    to control the light based on defective/non-defective data
-8. [Telegraf](Telegraf/README.md)
+8. Telegraf
 9. [TimeSeriesAnalytics](TimeSeriesAnalytics/README.md)
 10. [EtcdUI](EtcdUI/README.md)
 11. [DiscoveryCreek](DiscoveryCreek/README.md)
-
+12. [WebVisualizer](WebVisualizer/README.md)
+13. [Grafana](Grafana/README.md)
+14. [Rest Data Export](RestDataExport/README.md)
 
 # EIS multi node cluster provision and deployment using Turtlecreek
 
@@ -350,12 +352,13 @@ remote managibility using turtlecreek, please follow [docker_setup/deploy/README
     ENV https_proxy http://proxy.iind.intel.com:911
     ```
 
-2. `docker ps` should list all the containers which are included in docker-compose.yml
+2. `docker ps` should list all the enabled containers which are included in docker-compose.yml
 
-3. To verify if the data pipeline withing EIS is working fine i.e., from ingestion -> classification -> publishing classifed metadata onto the databus, then check the logs of `ia_video_analytics` container using cmd: `docker logs -f ia_video_analytics`. One should see, publish messages like `Publishing topic: [topic_name]`
+3. To verify if the default video pipeline with EIS is working fine i.e., from video ingestion->video analytics->visualizer, please check the visualizer UI
 
-5. `/opt/intel/eis` root directory gets created - This is the installation path for EIS:
+4. `/opt/intel/eis` root directory gets created - This is the installation path for EIS:
      * `data/` - stores the backup data for persistent imagestore and influxdb
+     * `sockets/` - stores the IPC ZMQ socket files
 
 ---
 **Note**:
