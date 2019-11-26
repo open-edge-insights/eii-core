@@ -73,39 +73,82 @@ $ ./env-config-tests
 
 ## C APIs
 
-1. **config_mgr_t\* config_mgr_t* config_mgr_new(char \*storage_type, char \*cert_file, char \*key_file, char \*ca_cert)**    
-   ```
-   config_mgr_new function to creates a new config manager client
-   @param storage_type      - Type of key-value storage, Eg. etcd
-   @param cert_file         - config manager client cert file
-   @param key_file          - config manager client key file
-   @param ca_cert           - config manager client ca cert
-   @return config_mgt_t     - config_mgr_t object on success, NULL on failure
-   ```
+1. Creating a new config manager client
 
-2. **char\* get_config(char \*key)**
-    ```
-    get_config function gets the value of a key from config manager
-    @param key      - key to be queried on from config manager
-    @return char*   - values returned from config manager based on key
-    ```
-    ```
+    `config_mgr_t* config_mgr_client = config_mgr_new(char *storage_type, char *cert_file, char *key_file, char *ca_cert)`
 
-3. **void register_watch_dir(char \*key, (*register_watch_dir_cb)(char* key, char* value) user_callback)**
-    ```
-    register_watch_dir function registers to a callback and keeps a watch on the prefix of a specified key
-
-    @param key                                                 - prefix of a key to keep a watch on
-    @param (*register_watch_dir_cb)(char* key, char* value)    - user callback to be called on watch event
-                                                                 with updated value on the respective key
-    ```
-4. **void register_watch_key(char \*key, (*register_watch_key_cb)(char* key, char* value) user_callback)**
-    ```
-    register_watch_key function registers to a callback and keeps a watch on a specified key
-    @param key                                                 - key to keep a watch on
-    @param (*register_watch_key_cb)(char* key, char* value)    - user callback to be called on watch event
-                                                                 with updated value on the respective key
     
+    **API documentation:**
+
+    `config_mgr_t* config_mgr_new(char *storage_type, char *cert_file, char *key_file, char *ca_cert);`
+    ```
+        config_mgr_new function to creates a new config manager client
+        @param storage_type      - Type of key-value storage, Eg. etcd
+        @param cert_file         - config manager client cert file
+        @param key_file          - config manager client key file
+        @param ca_cert           - config manager client ca cert
+        @return config_mgt_t     - config_mgr_t object on success, NULL on failure
+    ```
+
+2. Accessing value of a key stored in distributed store like etcd
+
+    `char* value = config_mgr_client->get_config("/VideoIngestion/config");`
+
+    **API documentation:**
+
+    `char* get_config(char *key)`
+    ```
+        get_config function gets the value of a key from config manager
+        @param key      - key to be queried on from config manager
+        @return char*   - values returned from config manager based on key
+    ```
+
+3. Registers user callback function to keep a watch on key based on it's prefix
+
+    `config_mgr_client->register_watch_dir("/VideoIngestion/config", user_callback);`
+
+    **API documentation:**
+
+    `void register_watch_dir(char *key, (*register_watch_dir_cb)(char* key, char* value) user_callback)`
+    
+    `Here user_callback is callback function to be passed as an argument and example is given below`
+
+    `void user_callback(char* key, char *updated_value_on_watch){}`
+
+    ```
+        register_watch_dir function registers to a callback and keeps a watch on the prefix of a specified key
+        @param key                                                 - prefix of a key to keep a watch on
+        @param (*register_watch_dir_cb)(char* key, char* value)    - user callback to be called on watch event
+                                                                     with updated value on the respective key
+    ```
+4. Registers user callback function to keep a watch on specified key
+
+    `config_mgr_client->register_watch_key("/VideoIngestion/config", user_callback);`
+
+    **API documentation:**
+
+    `void register_watch_key(char *key, (*register_watch_key_cb)(char* key, char* value) user_callback)`
+
+    `Here user_callback is callback function to be passed as an argument and example is given below`
+
+    `void user_callback(char* key, char *updated_value_on_watch){}`
+
+    ```
+        register_watch_key function registers to a callback and keeps a watch on a specified key
+        @param key                                                 - key to keep a watch on
+        @param (*register_watch_key_cb)(char* key, char* value)    - user callback to be called on watch event
+                                                                     with updated value on the respective key
+    ```
+5. Destroy config manager
+
+    `config_mgr_config_destroy(config_mgr_client);`
+
+    **API documentation:**
+    `void config_mgr_config_destroy(config_mgr_t *config_mgr_config)`
+
+    ```
+        config_mgr_config_destroy function to delete the config_mgr_client instance
+        @param config_mgt_t     -   config_mgr_client object
     ```
 
 To refer C examples follow [examples/](examples/)
