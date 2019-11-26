@@ -63,9 +63,10 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 > is specified when running CMake.
 
 Run the following commands from the `build/tests` folder to cover the unit
-tests. Make sure etcd daemon should be running, etcdctl is available in the folder `build/tests` and install etcdctl by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
+tests. Make sure etcd daemon should be running, `etcdctl` is available in the folder `build/tests` and install `etcdctl` by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
 
 ```sh
+$ export ETCDCTL_API=3
 $ ./configmgr-tests
 $ ./env-config-tests
 ```
