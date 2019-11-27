@@ -45,7 +45,7 @@ RUN git clone https://github.com/intel/safestringlib.git && \
     cd include && \
     sed -i "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( ${MAX_SAFESTRING_SIZE}UL << 10 )      /* ${MAX_SAFESTRING_SIZE}KB */" "safe_str_lib.h" && \
     cd .. && \
-    make -j$(nproc)
+    make -j$(nproc --ignore=2)
 
 # These flags are needed for enabling security while compiling and linking with cpuidcheck in golang
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
