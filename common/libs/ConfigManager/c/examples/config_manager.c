@@ -43,7 +43,7 @@ int main() {
    config_mgr_t *config_mgr_client = config_mgr_new("etcd", "", "", "");
    if (config_mgr_client == NULL){
       printf("Config manager client creation failed\n");
-      return;
+      return 0;
    }
    char *value = config_mgr_client->get_config("/GlobalEnv/");
    printf("get_config is called, value is: %s \n", value);
