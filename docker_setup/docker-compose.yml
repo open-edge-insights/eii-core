@@ -92,7 +92,7 @@ services:
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
-      Clients: "VideoAnalytics,Visualizer,RestDataExport"
+      Clients: "VideoAnalytics,Visualizer,RestDataExport,WebVisualizer"
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"
 
@@ -141,7 +141,7 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer"
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"
 
