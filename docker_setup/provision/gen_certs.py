@@ -39,6 +39,9 @@ def parse_args():
                         help='Clear All the Generated Certificates')
     parser.add_argument('--f', dest='compose_file_path',
                         help='docker-compose.yml file path')
+    parser.add_argument('--capath', dest='rootca_path',
+                        help='RootCA certificate Path, if given,cert-tool\
+                        will re-use the existing rootCA certificate')
     return parser.parse_args()
 
 
@@ -79,6 +82,7 @@ def parse_yml(filepath):
                                         data["certs"].append({cert_name:
                                                              cert_details})
     return data
+
 
 def parse_json():
     with open("config/x509_cert_config.json") as f:
@@ -142,6 +146,11 @@ if __name__ == '__main__':
             data = parse_json()
         else:
             data = parse_yml(args.compose_file_path)
-        generate(data)
+        if args.rootca_path:
+            root_ca_dir = args.rootca_path
+            paths.root_ca_dir_name = root_ca_dir
+            generate(data, False)   # re use existing root CA
+        else:
+            generate(data, True)  # Generate new root CA
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))

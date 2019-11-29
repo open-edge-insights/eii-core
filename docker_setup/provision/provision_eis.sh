@@ -101,7 +101,12 @@ if [ $# -eq 0 ]
 			docker-compose -f dep/docker-compose-provision.yml up --build -d ia_etcd
 	else
 			if [ $ETCD_NAME = 'master' ]; then
-				python3 gen_certs.py
+				if [ -d "rootca" ]; then
+					python3 gen_certs.py --capath rootca/
+				else
+					python3 gen_certs.py
+				fi
+
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 			else
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
@@ -123,7 +128,11 @@ else
  			echo "EIS is not running in Secure mode. Generating certificates is not required.. "
  		else
  	 		if [ $ETCD_NAME = 'master' ]; then
-				python3 gen_certs.py --f $1
+				if [ -d "rootca" ]; then
+					python3 gen_certs.py --f $1 --capath rootca/
+				else
+					python3 gen_certs.py --f $1
+				fi
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 			fi
 			
@@ -145,7 +154,7 @@ else
 		if [ $DEV_MODE = 'true' ]; then
 			docker-compose -f dep/docker-compose-provision.yml up --build -d
 		else
-			rm -rf client rootca server
+			rm -rf client server
 			docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
 		fi
 

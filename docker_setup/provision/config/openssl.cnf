@@ -9,6 +9,7 @@ root_ca_dir = rootca
 
 certificate   = $root_ca_dir/cacert.pem
 database      = $root_ca_dir/index.txt
+unique_subject	= no
 new_certs_dir = $root_ca_dir/certs
 private_key   = $root_ca_dir/private/cakey.pem
 serial        = $root_ca_dir/serial
