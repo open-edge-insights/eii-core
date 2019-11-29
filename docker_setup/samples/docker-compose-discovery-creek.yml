@@ -52,67 +52,6 @@ services:
       - etcd_root_cert
       - etcd_root_key
 
-  ## Define Visualizer service
-  ia_visualizer:
-    depends_on:
-      - ia_common
-    build:
-      context: $PWD/../Visualizer
-      dockerfile: $PWD/../Visualizer/Dockerfile
-      args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: ${EIS_UID}
-        EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
-    image: ${DOCKER_REGISTRY}ia_visualizer:${EIS_VERSION}
-    container_name: ia_visualizer
-    hostname: ia_visualizer
-    network_mode: host
-    ipc: host
-    restart: unless-stopped
-    command: ["pcb_demo_label.json"]
-    environment:
-      AppName: "Visualizer"
-      DISPLAY: ":0"
-      IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
-      DEV_MODE: ${DEV_MODE}
-      PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy}
-
-      # MessageBus Endpoint Configuration
-      CertType: "zmq"
-
-      # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
-      # based containers are running on the same host. If they are running on diff
-      # host, please use TCP mode for communication.
-      # Eg: Stream cfg for
-      # IPC: zmq_ipc, <absolute_socket_directory_path>
-      # TPC: zmq_tcp, <publisher_host>:<publisher_port>
-
-      # For default video streaming usecase alone
-      #SubTopics: "VideoAnalytics/camera1_stream_results"
-      #camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
-
-      # Uncomment the below two lines for running Time Series use case only
-      # SubTopics: "InfluxDBConnector/point_classifier_results"
-      # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
-
-      # Uncomment the below three lines for running Video and Time Series together
-      # SubTopics: "VideoAnalytics/camera1_stream_results,InfluxDBConnector/point_classifier_results"
-      # camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-      # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
-
-      # Uncomment the below two lines for running DiscoveryCreek usecase alone
-      SubTopics: "DiscoveryCreek/dc_point_data_results"
-      dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
-    volumes:
-      - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
-      - "/tmp/.X11-unix:/tmp/.X11-unix"
-      - "vol_eis_socket:${SOCKET_DIR}"
-    secrets:
-      - ca_etcd
-      - etcd_Visualizer_cert
-      - etcd_Visualizer_key
 
   ## Define telegraf service
   ia_telegraf:
@@ -168,7 +107,7 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients: "Visualizer,DiscoveryCreek"
+      Clients: "DiscoveryCreek"
       Server: "zmq_tcp,127.0.0.1:8675"
       # Server: "zmq_ipc,${SOCKET_DIR}/"
       INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
@@ -222,7 +161,7 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients : "InfluxDBConnector,Visualizer"
+      Clients : "InfluxDBConnector"
       CertType: "zmq"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
@@ -298,10 +237,6 @@ secrets:
     file: provision/Certificates/Kapacitor/Kapacitor_client_certificate.pem
   etcd_Kapacitor_key:
     file: provision/Certificates/Kapacitor/Kapacitor_client_key.pem
-  etcd_Visualizer_cert:
-    file: provision/Certificates/Visualizer/Visualizer_client_certificate.pem
-  etcd_Visualizer_key:
-    file: provision/Certificates/Visualizer/Visualizer_client_key.pem
   etcd_DiscoveryCreek_cert:
     file: provision/Certificates/DiscoveryCreek/DiscoveryCreek_client_certificate.pem
   etcd_DiscoveryCreek_key:
