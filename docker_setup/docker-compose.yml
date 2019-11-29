@@ -106,11 +106,11 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "vol_eis_socket:${SOCKET_DIR}"
+      - "/var/tmp:/var/tmp"  
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
-    user: ${EIS_UID}
     secrets:
       - ca_etcd
       - etcd_VideoIngestion_cert
