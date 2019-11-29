@@ -162,11 +162,11 @@ For more help:
 
 # Step 4a. EIS - Multinode deployment with TurtleCreek
 
-Edge Insights Software (EIS) Deployment Bundle Generation for TurtleCreek Agent which will be deployed via Telit portal.This Utility helps you to generate deployment bundle for EIS Software deployment via Telit Portal
+Edge Insights Software (EIS) Deployment Bundle Generation for TurtleCreek Agent which will be deployed via Thingsboard/Telit portal.This Utility helps you to generate deployment bundle for EIS Software deployment via Thingsboard/Telit Portal
 
-## Telit - TurtleCreek:
+## Thingsboard/Telit - TurtleCreek:
 
-EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via Telit portal. 
+EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via Thingsboard/Telit portal. 
 
 1. For TurtleCreek Agent installtion, provisioning and deploying the bundle generated using Step 3 above, please refer TurtleCreek repo Readme.
 
