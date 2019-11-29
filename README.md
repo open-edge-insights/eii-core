@@ -268,16 +268,28 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `Myriad` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [VideoAnalytics/README.md#classifier-config](VideoAnalytics/README.md#classifier-config)
+EIS supports running inference on `CPU`, `GPU`, `MYRIAD` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [VideoAnalytics/README.md#classifier-config](VideoAnalytics/README.md#classifier-config)
 
-> Note:
-> To run on HDDL devices, make sure to uncomment the below section of code in [VideoAnalytics/va_classifier_start.sh](VideoAnalytics/va_classifier_start.sh).
+**Note**:
+----
+To run on HDDL devices, please refer to the link below to install OpenVINO on host and run the HDDL daemon.
 
-    ```sh
-    #Uncomment these lines if you are using HDDL
-    #$HDDL_INSTALL_DIR/bin/hddldaemon &
-    #sleep 20
-    ```
+Please refer to the OpenVINO links for any issues regarding running the HDDL daemon on host.
+
+1. OpenVINO install:
+   https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_fpga.html#install-openvino
+2. HDDL daemon setup:
+   https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+3. Extra steps if using the iEi Mustang V100 HDDL card:
+   https://docs.openvinotoolkit.org/latest/_docs_install_guides_movidius_setup_guide.html
+
+When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
+
+```sh
+$ source /op/intel/openvino/bin/setupvars.sh
+$ $HDDL_INSTALL_DIR/bin/hddldaemon &
+```
+----
 
 # Time-series Analytics
 

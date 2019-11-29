@@ -158,10 +158,12 @@ services:
       # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
+      - "/var/tmp:/var/tmp"
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
     devices:
       - "/dev/dri"
+      - "/dev/ion:/dev/ion"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics_cert
