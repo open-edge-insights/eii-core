@@ -70,6 +70,7 @@ services:
     network_mode: host
     ipc: host
     restart: unless-stopped
+    command: ["pcb_demo_label.json"]
     environment:
       AppName: "Visualizer"
       DISPLAY: ":0"
