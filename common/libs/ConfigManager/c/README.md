@@ -14,6 +14,11 @@ $ cd build
 $ cmake ..
 $ sudo make install
 ```
+
+ConfigManager also has dependency on EISUtils library. Follow the documentation of EISUtils to install it.
+
+* [EISUtils](../../../util/c/README.md)
+
 ## Compilation
 The EIS Config Manager utilizes CMake as the build tool for compiling the C/C++
 library. The simplest sequence of commands for building the library are

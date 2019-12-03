@@ -33,8 +33,11 @@
  static char** get_topics_from_env(const char* topic_type){
     char* topic_list = NULL;
     char* individual_topic = NULL;
-    char **topics = (char **)malloc(SIZE * sizeof(char*));
-
+    char **topics = (char **)calloc(SIZE, sizeof(char*));
+    if(topics == NULL) {
+        LOG_ERROR_0("Calloc failed");
+        return NULL;
+    }
     if(!strcmp(topic_type, PUB)){
         topic_list = getenv("PubTopics");
     }
@@ -56,8 +59,8 @@
 static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topics, const char* topic_type){
     
     char* topic_cfg = NULL;
-    char* mode_address[SIZE];
-    char* host_port[SIZE];
+    char* mode_address[SIZE] = {};
+    char* host_port[SIZE] = {};
     char* data = NULL;
     char* mode = NULL;
     char* address = NULL;
@@ -66,17 +69,24 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
     int i;
     int j;
 
-    char* dev_mode=getenv("DEV_MODE");
+    char* dev_mode = getenv("DEV_MODE");
+    if(dev_mode == NULL) {
+        LOG_ERROR_0(" The DEV_MOde is not set properly in .env file or the environmental variable is not set in the container");
+        return NULL;
+    }
     const char* m_app_name = getenv("AppName");
+    if(m_app_name == NULL) {
+        goto err;
+    }
     const char cfg[]= "_cfg";
 
-    bool m_dev_mode;
+    bool m_dev_mode = false;
     if(!strcmp(dev_mode,"true")){
-        m_dev_mode=true;
+        m_dev_mode = true;
     }else if(!strcmp(dev_mode,"false")){
-        m_dev_mode=false;
+        m_dev_mode = false;
     }
-    
+
     const char* topic = NULL;
     const char* publisher = NULL;
     char publisher_topic[SIZE];
@@ -91,15 +101,24 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
             goto err;
         } 
         char* temp = publisher_topic;
-        const char* pub_topic[SIZE];
+        const char* pub_topic[SIZE] = {};
         j=0;
         while (individual_topic = strtok_r(temp, "/", &temp)){
             pub_topic[j] = individual_topic;            
             j++;
         }
         topic = (char*) malloc(strlen(pub_topic[1]) + 1);
+        if(topic == NULL) {
+            LOG_ERROR_0("malloc failed for pub_topic");
+            goto err;
+        }
+        memset(topic, 0, strlen(pub_topic[1]) + 1);
         publisher = (char*) malloc(strlen(pub_topic[0]) + 1);
-        
+        if(publisher == NULL) {
+            LOG_ERROR_0("malloc failed for pub_topic");
+            goto err;
+        }
+        memset(publisher, 0, strlen(pub_topic[0]) + 1);
         ret = strncpy_s(topic, SIZE, pub_topic[1], strlen(pub_topic[1]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
@@ -200,10 +219,12 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
                     if(strcmp(client_pub_key,"")){
                         cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_pub_key));
                     }
-                    char* all_clients_print= cJSON_Print(all_clients);
                 }
 
                 char* app_private_key = (char*) calloc(SIZE, sizeof(char));
+                if(app_private_key == NULL) {
+                    goto err;
+                }
                 app_private_key[0] = '/';
                 ret = strncat_s(app_private_key, SIZE, m_app_name, strlen(m_app_name));
                 if(ret != 0) {
@@ -260,6 +281,10 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
                 cJSON_AddStringToObject(pub_sub_topic, "client_public_key",client_pub_key);
                 
                 char* app_private_key = (char*) calloc(SIZE, sizeof(char));
+                if(app_private_key == NULL) {
+                    LOG_ERROR_0("Calloc failed");
+                    goto err;
+                }
                 app_private_key[0] = '/';
                 ret = strncat_s(app_private_key,SIZE,m_app_name, strlen(m_app_name));
                 if(ret != 0) {
@@ -297,8 +322,13 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
 return config;
 
 err:
-    free(topic);
-    free(publisher);
+    if(topic) {
+        free(topic);
+    }
+    if (publisher) {
+        free(publisher);
+    }
+
     return NULL;
 }
 
@@ -343,6 +373,9 @@ void env_config_destroy(env_config_t* env_config){
 env_config_t* env_config_new(){
 
     env_config_t *env_config = (env_config_t *)malloc(sizeof(env_config_t));
+    if(env_config == NULL) {
+        return NULL;
+    }
     env_config->get_topics_from_env = get_topics_from_env;
     env_config->get_messagebus_config = get_messagebus_config;
     env_config->trim = trim;

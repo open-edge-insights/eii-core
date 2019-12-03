@@ -27,6 +27,7 @@
 #include "eis/config_manager/config_manager.h"
 #include "cgo/go_config_manager.h"
 #include <ctype.h>
+#include <eis/utils/logger.h>
 
 char supported_storage_types[][5] = {"etcd"};
 static char* get_config(char *key){
@@ -57,6 +58,10 @@ config_mgr_t* config_mgr_new(char *storage_type, char *cert_file, char *key_file
         return NULL;
     }
     config_mgr_t *config_mgr = (config_mgr_t *)malloc(sizeof(config_mgr_t));
+    if(config_mgr == NULL) {
+        LOG_ERROR_0("Malloc failed for Config_mgr_t");
+        return NULL;
+    }
     config_mgr->get_config = get_config;
     config_mgr->register_watch_key = register_watch_key;
     config_mgr->register_watch_dir = register_watch_dir;
