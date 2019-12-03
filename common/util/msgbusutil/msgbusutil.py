@@ -41,7 +41,8 @@ class MsgBusUtil:
             topicsList = os.environ["PubTopics"].split(",")
         elif topic_type == "sub":
             topicsList = os.environ["SubTopics"].split(",")
-
+        elif topic_type == "server" or topic_type == "client":
+            topicsList = os.environ["Server"].split(",")
         return topicsList
 
     @staticmethod
@@ -67,15 +68,22 @@ class MsgBusUtil:
         """
         app_name = os.environ["AppName"]
         topic = topic.strip()
-        mode, address = os.environ[topic + "_cfg"].split(",")
+
+        if topic_type == "server":
+            mode, address = os.environ["Server"].split(",")
+        else:
+            mode, address = os.environ[topic + "_cfg"].split(",")
+
         mode = mode.strip()
         address = address.strip()
         msgbus_hwm = int(os.environ.get("ZMQ_RECV_HWM", -1))
         config = {
             "type": mode
         }
+
         if msgbus_hwm != -1:
             config["zmq_recv_hwm"] = msgbus_hwm
+
         if mode == "zmq_tcp":
             host, port = address.split(":")
             host_port_details = {
@@ -115,6 +123,43 @@ class MsgBusUtil:
                     config[topic]["client_secret_key"] = \
                         config_client.GetConfig("/" + app_name +
                                                 "/private_key")
+
+            elif topic_type == "server":
+                config[topic] = host_port_details
+
+                if not dev_mode:
+                    allowed_clients = []
+                    for subscriber in zmq_clients:
+                        subscriber = subscriber.strip()
+                        allowed_clients_keys = config_client.GetConfig(
+                                        "/Publickeys/{0}".format(subscriber))
+                        if allowed_clients_keys is not None:
+                            allowed_clients.append(allowed_clients_keys)
+
+                    config["allowed_clients"] = allowed_clients
+                    config[app_name]["server_secret_key"] = \
+                        config_client.GetConfig("/" + app_name +
+                                                "/private_key")
+
+            elif topic_type == "client":
+                config[topic] = host_port_details
+                if not dev_mode:
+                    zmq_clients = zmq_clients.strip()
+                    end_points = os.environ["RequestEP"].split(",")
+                    for end_point in end_points:
+                        if topic == end_point:
+                            config[topic]["server_public_key"] = \
+                                config_client.GetConfig("/Publickeys/{0}".
+                                                        format(topic))
+
+                            config[topic]["client_public_key"] = \
+                                config_client.GetConfig("/Publickeys/"
+                                                        + app_name)
+
+                            config[topic]["client_secret_key"] = \
+                                config_client.GetConfig("/" + app_name +
+                                                        "/private_key")
+
             else:
                 log.error("{} type is not valid".format(topic_type))
         elif mode == "zmq_ipc":
