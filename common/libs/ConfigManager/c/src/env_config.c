@@ -24,7 +24,7 @@
  * @brief Env Config implementation
  */
 
-#include "eis/config_manager/config.h"
+#include "eis/config_manager/env_config.h"
 
 #define SIZE 100
 #define PUB "pub"

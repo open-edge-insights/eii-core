@@ -18,78 +18,60 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#ifndef _EIS_MSGBUS_UTIL_H
-#define _EIS_MSGBUS_UTIL_H
 
-#include <iostream>
-#include <string>
-#include <bits/stdc++.h>
+/**
+ * @file
+ * @brief Env Config interface
+ */
+
+#ifndef _EIS_ENV_CONFIG_H
+#define _EIS_ENV_CONFIG_H
+
 #include <cjson/cJSON.h>
 #include <eis/config_manager/config_manager.h>
 #include "eis/utils/json_config.h"
+#include "eis/utils/logger.h"
 
+#ifdef __cplusplus
+#include <bits/stdc++.h>
+extern "C" {
+#endif
 
-namespace eis {
-    namespace config_manager {
-        class EnvConfig {
-            private:
-                /** Get the tokenized values from a string based on a delimiter set
-                 *
-                 * @param tokenizable_data: data that needs to be tokenized
-                 * @param tokenized_data: tokenized data in std::vector
-                 * @param delimeter: character based on which data needs to be tokenized
-                 */
-                void tokenize(const std::string& tokenizable_data,
-                            std::vector<std::string>& tozenized_data,
-                            const char delimeter);
-                std::string ltrim(const std::string& value);
-                std::string rtrim(const std::string& value);
-                std::string trim(const std::string& value);
+typedef struct {
 
-                // True for dev mode and false for prod mode
-                bool m_dev_mode;
+    /**
+     * get_topics_from_env function gives the topics with respect to publisher/subscriber.
+     *
+     * @param topic_type       - Topic type. Either pub or sub
+     * @return char**          - topics returned from env config based on topic type
+     */
 
-                // App Name
-                std::string m_app_name;
+    char** (*get_topics_from_env)(const char* topic_type);
 
-                const std::string whitespace = " \n\t";
-                // ConfigManager client
-                config_mgr_t* m_config_mgr_client;
+    /**
+     * get_messagebus_config function gives the configuration that needs in connecting to EIS messagebus
+     *
+     * @param configmgr       - Config Manager object
+     * @param topic           - Topic for which msg bus config needs to be constructed
+     * @param topic_type      - TopicType for which msg bus config needs to be constructed
+     * @return config_t*      - JSON msg bus config of type config_t
+     */
+    config_t* (*get_messagebus_config)(const config_mgr_t* configmgr, const char topic[], const char* topic_type);
 
-            public:
+    /**
+     * trim function removes white spaces around the string value
+     *
+     * @param str_value       - str_value will be trimmed of from white spaces
+     */
+    void (*trim)(char* str_value);
 
-                /** Constructor
-                 */
-                EnvConfig();
+} env_config_t;
 
-                /** Destructor
-                 */
-                ~EnvConfig();
+void env_config_destroy(env_config_t* env_config);
+env_config_t* env_config_new();
 
-                /**
-                 * Returns a list of all topics the module needs to subscribe or publish
-                 *
-                 * @param topic_type: type of the topic(pub/sub)
-                 * @return std::vector of topics in PubTopics/SubTopics, empty if an
-                 *         error occurs
-                 */
-                std::vector<std::string> get_topics_from_env(const std::string& topic_type);
+#ifdef __cplusplus
+} //end extern "C"
+#endif
 
-                /** Returns the config associated with the corresponding topic
-                 *
-                 * @param topic: name of the topic
-                 * @param topic_type: type of the topic(pub/sub)
-                 *
-                 * @return: config_t or NULL if an error occurs
-                 */
-                config_t* get_messagebus_config(std::string& topic,
-                                                std::string& topic_type);
-
-                /** Returns config manager client
-                 */
-                config_mgr_t* get_config_mgr_client();
-
-        };
-    }
-}
 #endif
