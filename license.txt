@@ -6,6 +6,6 @@ Any Open Source Software is subject to the respective license included in applic
 All other Software is subject to the terms of the signed license agreement entered into between Intel and you.
 
 Non-modifiable software:
-             Data Agent CPU-ID check in main() function.
+             msgbus.c
              util/cpuid
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
