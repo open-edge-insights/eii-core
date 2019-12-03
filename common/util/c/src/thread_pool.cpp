@@ -38,6 +38,13 @@ ThreadPool::ThreadPool(int max_threads, int max_jobs) :
 
 ThreadPool::~ThreadPool() {
     this->stop();
+
+    // Clear any queued job which did not run
+    while(!m_funcs.empty()) {
+        Func* func = m_funcs.front();
+        m_funcs.pop();
+        delete func;
+    }
 }
 
 void ThreadPool::stop() {
