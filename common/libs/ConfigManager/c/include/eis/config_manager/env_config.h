@@ -66,7 +66,16 @@ typedef struct {
 
 } env_config_t;
 
+/**
+ * env_config_destroy function to delete the env_config_client instance
+ * @param env_config_t*     - env_config_client object
+ */
 void env_config_destroy(env_config_t* env_config);
+
+/**
+ * env_config_new function to creates a new env config client
+ * @return env_config_t     - env_config object
+ * /
 env_config_t* env_config_new();
 
 #ifdef __cplusplus
