@@ -1,6 +1,8 @@
 # ConfigManager
 
-ConfigManager provides C APIs for distributed key-value store like `etcd` to read EIS related config details.
+ConfigManager provides C APIs for:
+- distributed key-value store like `etcd` to read and watch on EIS related config details.
+- To read EIS environment info needed to build EIS MessageBus config
 
 ## Prerequisites
 Install Intel Safestring lib by follwoing below commands from `IEdegInsights/common/libs/IntelSafeString`
@@ -48,7 +50,7 @@ $ sudo make install
 By default, this command will install the EIS Config Manager C library into
 `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
 by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`,
-otherwise you will encounter issues using the EIS Message Bus. This can
+otherwise you will encounter issues using the Config Manager. This can
 be accomplished with the following `export`:
 
 ```sh
@@ -72,6 +74,8 @@ $ ./env-config-tests
 ```
 
 ## C APIs
+
+### APIs for reading from distributed key-value store
 
 1. Creating a new config manager client
 
@@ -151,4 +155,63 @@ $ ./env-config-tests
         @param config_mgt_t     -   config_mgr_client object
     ```
 
-To refer C examples follow [examples/](examples/)
+To refer C examples follow config_manager.c in [examples/](examples/)
+
+
+### APIs for reading environment info to build EIS MessageBus config
+
+1. Creating a new env config client
+
+    `env_config_t* env_config_client = env_config_new();`
+
+    **API documentation:**
+
+    `env_config_t* env_config_new();`
+    ```
+        env_config_new function to creates a new env config client
+        @return env_config_t     - env_config object
+    ```
+
+2. Getting publish/subscribe topics from env
+
+    `char** pub_topics = env_config_client->get_topics_from_env("pub");`
+    `char** sub_topics = env_config_client->get_topics_from_env("sub");`
+
+    **API documentation:**
+
+    `char** get_topics_from_env(const char* topic_type);`
+    ```
+        get_topics_from_env function gives the topics with respect to publisher/subscriber.
+        @param topic_type - "pub" for publisher and "sub" for subscriber.
+        @return topics    - topics returned from env config based on topic type
+    ```
+
+3. Getting EIS Message Bus config from ENV variables and config manager.
+
+    `config_t* msgbus_config_pub = env_config_client->get_messagebus_config(config_mgr_client, pub_topics[0], "pub");`
+    `config_t* msgbus_config_sub = env_config_client->get_messagebus_config(config_mgr_client, sub_topics[0], "sub");`
+
+    **API documentation:**
+
+    `config_t* get_messagebus_config(const config_mgr_t* configmgr, const char topic[], const char* topic_type);`
+    ```
+        get_messagebus_config function gives the configuration that needs in connecting to EIS messagebus
+        @param configmgr       - Config Manager object
+        @param topic           - Topic for which msg bus config needs to be constructed
+        @param topic_type      - TopicType for which msg bus config needs to be constructed
+        @return config_t*      - JSON msg bus config of type config_t
+    ```
+
+4. Destroy Env Config
+
+    `env_config_destroy(env_config_client);`
+
+    **API documentation:**
+
+    `void env_config_destroy(env_config_t* env_config_client);`
+    ```
+        env_config_destroy function to delete the env_config_client instance
+        @param env_config_t     -   env_config_client object
+    ```
+
+To refer C examples follow env_config_example.c in [examples/](examples/)

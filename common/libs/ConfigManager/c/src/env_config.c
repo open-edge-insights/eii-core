@@ -77,8 +77,8 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
         m_dev_mode=false;
     }
     
-    char* topic = (char*) malloc(sizeof(char*));
-    const char* publisher = (char*) malloc(sizeof(char*));
+    const char* topic = NULL;
+    const char* publisher = NULL;
     char publisher_topic[SIZE];
     int ret = 0;
 
@@ -97,6 +97,9 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
             pub_topic[j] = individual_topic;            
             j++;
         }
+        topic = (char*) malloc(strlen(pub_topic[1]) + 1);
+        publisher = (char*) malloc(strlen(pub_topic[0]) + 1);
+        
         ret = strncpy_s(topic, SIZE, pub_topic[1], strlen(pub_topic[1]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
@@ -107,7 +110,7 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
         } 
-        ret = strncpy_s(publisher_topic, SIZE, pub_topic[1], strlen(pub_topic[1]));
+        ret = strncpy_s(publisher_topic, SIZE, topic, strlen(topic));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;

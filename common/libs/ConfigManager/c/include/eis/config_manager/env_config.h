@@ -33,7 +33,6 @@
 #include "eis/utils/logger.h"
 
 #ifdef __cplusplus
-#include <bits/stdc++.h>
 extern "C" {
 #endif
 
