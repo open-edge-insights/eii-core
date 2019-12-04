@@ -157,6 +157,15 @@ $ ./env-config-tests
 
 To refer C examples follow config_manager.c in [examples/](examples/)
 
+**Steps to run example file:**
+
+1. Navigate to ConfigManager/c
+2. mkdir build
+3. cd build
+4. cmake -DWITH_EXAMPLES=ON ..
+5. make
+6. cd examples
+7. `./config_manager`
 
 ### APIs for reading environment info to build EIS MessageBus config
 
@@ -215,3 +224,13 @@ To refer C examples follow config_manager.c in [examples/](examples/)
     ```
 
 To refer C examples follow env_config_example.c in [examples/](examples/)
+
+**Steps to run example file:**
+
+1. Navigate to ConfigManager/c
+2. mkdir build
+3. cd build
+4. cmake -DWITH_EXAMPLES=ON ..
+5. make
+6. cd examples
+7. `./env_config`
