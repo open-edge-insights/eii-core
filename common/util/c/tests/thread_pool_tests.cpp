@@ -51,7 +51,7 @@ TEST(th_pool_tests, simple) {
     ThreadPool tp(1, -1);
 
     // Submit the job
-    JobHandle* handle = tp.submit(simple_run, (void*) &val);
+    JobHandle* handle = tp.submit(simple_run, (void*) &val, NULL);
     FAIL_NULL(handle, "Handle is null");
 
     // The wait really should return immediately
@@ -67,11 +67,11 @@ TEST(th_pool_tests, multi_jobs) {
     ThreadPool tp(2, -1);
 
     int val = 0;
-    JobHandle* handle = tp.submit(sleep_run, (void*) &val);
+    JobHandle* handle = tp.submit(sleep_run, (void*) &val, NULL);
     FAIL_NULL(handle, "Handle is null");
 
     int val2 = 1;
-    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2);
+    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2, NULL);
     FAIL_NULL(handle2, "Handle2 is null");
 
     // The wait really should return immediately
@@ -88,11 +88,11 @@ TEST(th_pool_tests, queue_full) {
     ThreadPool tp(1, 1);
 
     int val = 0;
-    JobHandle* handle = tp.submit(sleep_run, (void*) &val);
+    JobHandle* handle = tp.submit(sleep_run, (void*) &val, NULL);
     FAIL_NULL(handle, "Handle is null");
 
     int val2 = 1;
-    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2);
+    JobHandle* handle2 = tp.submit(sleep_run, (void*) &val2, NULL);
     FAIL_NULL(handle2, "Handle2 is null");
 
     handle2->wait();

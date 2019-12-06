@@ -115,6 +115,9 @@ private:
     // Function to be called
     void(*m_fn)(void*);
 
+    // Free function for the m_vargs
+    void(*m_free)(void*);
+
     // Handle to the submitter for the job
     JobHandle* m_handle;
 
@@ -122,11 +125,13 @@ public:
     /**
      * Constructor.
      *
-     * @param fn     - Function pointer to call
-     * @param vargs  - Argument to pass to the function
-     * @param handle - Handle to the job for the function
+     * @param fn      - Function pointer to call
+     * @param vargs   - Argument to pass to the function
+     * @param free_fn - Free function for vargs
+     * @param handle  - Handle to the job for the function
      */
-    Func(void(*fn)(void*), void* vargs, JobHandle* handle);
+    Func(void(*fn)(void*), void* vargs, void(*free_fn)(void*),
+         JobHandle* handle);
 
     /**
      * Destructor.
@@ -194,11 +199,12 @@ public:
      * NULL will be returned if the thread pool is full, the thread pool has
      * been stopped or if the some other issue occurs.
      *
-     * @param fn    - Function pointer
-     * @param vargs - Argument to pass to the function
+     * @param fn      - Function pointer
+     * @param vargs   - Argument to pass to the function
+     * @param freE_fn - vargs free function
      * @return @c JobHandle, NULL if an issue occurs
      */
-    JobHandle* submit(void(*fn)(void*), void* vargs);
+    JobHandle* submit(void(*fn)(void*), void* vargs, void(*free_fn)(void*));
 };
 
 } // utils

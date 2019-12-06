@@ -62,14 +62,15 @@ void ThreadPool::stop() {
     }
 }
 
-JobHandle* ThreadPool::submit(void(*fn)(void*), void* vargs) {
+JobHandle* ThreadPool::submit(
+        void(*fn)(void*), void* vargs, void(*free_fn)(void*)) {
     if(m_stop.load()) {
         LOG_ERROR_0("Job submitted after thread pool stopped");
         return NULL;
     }
 
     JobHandle* handle = new JobHandle();
-    Func* func = new Func(fn, vargs, handle);
+    Func* func = new Func(fn, vargs, free_fn, handle);
 
     // Put the function into the job queue, if it is full block indefinitely
     // until the job can be pushed
@@ -156,11 +157,16 @@ void JobHandle::completed() {
 // Func implementation
 //
 
-Func::Func(void(*fn)(void*), void* vargs, JobHandle* handle) :
-    m_vargs(vargs), m_fn(fn), m_handle(handle)
+Func::Func(void(*fn)(void*), void* vargs, void(*free_fn)(void*),
+           JobHandle* handle) :
+    m_vargs(vargs), m_fn(fn), m_free(free_fn), m_handle(handle)
 {}
 
-Func::~Func() {}
+Func::~Func() {
+    if(m_free != NULL) {
+        m_free(m_vargs);
+    }
+}
 
 void Func::call() {
     // Call the function
