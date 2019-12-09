@@ -2,13 +2,14 @@
 # Provision EIS
 # Usage: sudo ./provision_eis <path-of-docker-compose-file>
 
-hostIP=`hostname -I | awk '{print $1}'`
-export HOST_IP=$hostIP
-echo 'System IP Address is:' $HOST_IP
-
 set -a
 source ../.env
 set +a
+if [ -z $HOST_IP ]; then 
+	hostIP=`hostname -I | awk '{print $1}'`
+	export HOST_IP=$hostIP
+fi
+echo 'System IP Address is:' $HOST_IP
 export no_proxy=$no_proxy,$HOST_IP
 
 if [ $ETCD_NAME = 'master' ]; then

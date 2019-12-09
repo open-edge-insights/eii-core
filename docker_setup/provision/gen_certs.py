@@ -108,12 +108,16 @@ def generate(opts, root_ca_needed=True):
     copy_certificates_to_results_folder()
     for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
+        os.environ["SAN"] = \
+            "IP:127.0.0.1,DNS:localhost,URI:urn:unconfigured:application"
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
                 outform = cert_opts['output_format']
             else:
                 outform = None
             if "server_alt_name" in cert_opts:
+                os.environ["SAN"] = "IP:" + \
+                     os.environ["HOST_IP"] + "," + os.environ["SAN"]
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("server",

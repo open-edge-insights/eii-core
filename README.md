@@ -173,6 +173,8 @@ Following actions will be performed as part of Provisioning
  * Loading inital ETCD values from json file located at [docker_setup/provision/config/etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json).
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
+ * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [docker_setup/.env](docker_setup/.env).
+ * If HOST_IP is blank in [docker_setup/.env](docker_setup/.env), then HOST_IP will be automatically detected when server certificates are generated.
 
 **Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](docker_setup/provision/volume_data_script.py). The script can be run by the command:
 ```

@@ -1,4 +1,3 @@
-SAN = "IP:127.0.0.1,DNS:localhost,URI:urn:unconfigured:application"
 common_name = @COMMON_NAME@
 
 [ ca ]
