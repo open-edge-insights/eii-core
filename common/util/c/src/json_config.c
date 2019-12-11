@@ -135,7 +135,7 @@ config_value_t* get_config_value(const void* o, const char* key) {
     cJSON* json = (cJSON*) o;
     cJSON* obj = cJSON_GetObjectItem(json, key);
     if(obj == NULL) {
-        LOG_ERROR("JSON does not contain key: %s", key);
+        LOG_WARN("JSON does not contain key: %s", key);
         return NULL;
     }
     return json_to_cvt(obj);
