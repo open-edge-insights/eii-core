@@ -17,14 +17,14 @@ $ make
 $ sudo make install
 ```
 
-By default, this command will install the EIS Message Envelope C library into
+By default, this command will install the Intel safestring library into
 `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
-by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`,
-otherwise you will encounter issues using the EIS Message Bus. This can
-be accomplished with the following `export`:
+by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`.
+This can be accomplished with the following `export`:
 
 ```sh
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ```
+
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag.

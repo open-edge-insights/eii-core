@@ -2,6 +2,13 @@
 
 EIS Utils is a C library providing commonly used APIs across the C/C++ EIS modules and EIS Message Bus library.
 
+## Dependency Installation
+
+EISUtils depends on the below libraries. Follow their documentation to install them.
+* [IntelSafeString](../../libs/IntelSafeString/README.md)
+* [EISMsgEnv](../../libs/EISMsgEnv/README.md)
+
+
 ## Compilation
 
 The EIS Utils utilizes CMake as the build tool for compiling the C
@@ -37,13 +44,13 @@ $ sudo make install
 
 By default, this command will install the EIS Utils C library into
 `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
-by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`,
-otherwise you will encounter issues using the EIS Message Bus. This can
-be accomplished with the following `export`:
+by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`.
+This can be accomplished with the following `export`:
 
 ```sh
 $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ```
+
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag.
 

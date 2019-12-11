@@ -5,18 +5,15 @@ ConfigManager provides C APIs for:
 - To read EIS environment info needed to build EIS MessageBus config
 
 ## Prerequisites
-Install Intel Safestring lib by follwoing below commands from `IEdegInsights/common/libs/IntelSafeString`
+
+To install the dependencies for the ConfigManager execute the following command:
 
 ```sh
-$ cd IEdegInsights/common/libs/IntelSafeString
-$ mkdir build
-$ cd build
-$ cmake ..
-$ sudo make install
+$ sudo -E ./install.sh
 ```
 
 ConfigManager also has dependency on EISUtils library. Follow the documentation of EISUtils to install it.
-
+* [IntelSafeString](../../IntelSafeString/README.md)
 * [EISUtils](../../../util/c/README.md)
 
 ## Compilation

@@ -101,7 +101,7 @@ install(TARGETS eisutils
 set_target_properties(eisutils PROPERTIES EXPORT_NAME EISUtils)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeismsgbus.pc file
+# Install pkg-config libeisutils.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
