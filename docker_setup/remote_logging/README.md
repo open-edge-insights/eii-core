@@ -38,7 +38,9 @@ EIS distributed services centralized logging using ELK
    CA_CERT_PATH : CA certificate path
    DOCKER_CERT_PATH : Docker certificate path
    DOCKER_KEY_PATH : Docker key path
-      
+   If case of docker daemon sending logs to remote rsyslog agent, then replace '127.0.0.1' (address="127.0.0.1") with the
+   actual IP address of the machine where rsyslog is running.
+
 4. To start ELK containers Please follow below commands
    ```sh
    $ sudo sysctl -w vm.max_map_count=262144
