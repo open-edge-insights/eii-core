@@ -212,8 +212,9 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 > **Note:**
 > * All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
 > * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
->   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is 
->   needed by `ia_visualizer` service to render the UI
+>   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is needed by `ia_visualizer` service to render the UI
+
+> * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber. If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root. In [docker-compose.yml](docker_setup/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above, then the subscriber service should not have that too
 
    To build and run EIS in one command:
    ```sh
@@ -392,9 +393,9 @@ remote managibility using turtlecreek, please follow [docker_setup/deploy/README
    some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
 
 3. For debug purpose, it becomes essential to send dev team the logs of the build/run scripts to rootcause the issue effectively. This is     where the `tee` command comes to rescue.
-4. 
+
 4. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
    `docker-compose logs -f`
-
+ 
 ---
 
