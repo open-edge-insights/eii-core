@@ -80,6 +80,18 @@ class EtcdCli:
             return value[0].decode('utf-8')
         return value[0]
 
+    def PutConfig(self, key, value):
+        """ PutConfig to save a value to Etcd
+        :param key: keyin etcd to set
+        :type: string
+        :param value: value to set key to
+        :type: string
+        """
+        try:
+            self.etcd.put(key, value)
+        except Exception as e:
+            raise e
+
     def onChangeCallback(self, event):
         key = event.events[0].key
         value = event.events[0].value

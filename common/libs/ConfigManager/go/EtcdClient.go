@@ -121,6 +121,15 @@ func (etcdClient EtcdCli) GetConfig(key string) (string, error) {
 	return responseString, err
 }
 
+// PutConfig to Save a value of the key to ETCD
+func (etcdClient EtcdCli) PutConfig(key string, value string) error {
+	_, err := etcdClient.etcd.Put(context.TODO(), key, value)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // RegisterDirWatch registers to a callback and keeps a watch on the prefix of a specified key
 func (etcdClient *EtcdCli) RegisterDirWatch(key string, onChangeCallback OnChangeCallback) {
 

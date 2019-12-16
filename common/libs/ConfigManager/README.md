@@ -13,7 +13,7 @@ ConfigManager provides go/py APIs for distributed key-value store like `etcd` to
    :param config: config of type Dict with certFile, keyFile and trustFile
    ```
 
-To refer Python examples on etcd client wrapper follow [python/etcd/test](python/etcd/test)
+To refer Python examples on etcd client wrapper follow [python/test](python/test)
 
 # Go APIs
 
@@ -25,6 +25,7 @@ To refer Python examples on etcd client wrapper follow [python/etcd/test](python
     
     :param storage_type: Type of key-value storage, Eg. etcd
     :param config: config of type Dict with certFile, keyFile and trustFile
+    :return config manager client if creation of client is successful, nil on failure
     ```
 
 2. **GetConfigClient(storageType string, conf map[string]string)**

@@ -63,11 +63,14 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 
 ## Running Unit Tests
 
-> **NOTE:** The unit tests will only be compiled if the `WITH_TESTS=ON` option
-> is specified when running CMake.
+> **NOTE:**
+* The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
+
+* Currently Unit tests for config manager are written only for dev mode
 
 Run the following commands from the `build/tests` folder to cover the unit
 tests. Make sure etcd daemon should be running, `etcdctl` is available in the folder `build/tests` and install `etcdctl` by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
+
 
 ```sh
 $ export ETCDCTL_API=3
@@ -109,7 +112,25 @@ $ ./env-config-tests
         @return char*   - values returned from config manager based on key
     ```
 
-3. Registers user callback function to keep a watch on key based on it's prefix
+3. To save a value to etcd if key already exists, if not create a new set of key-value in etcd
+
+    `int value = config_mgr_client->put_config("/VideoIngestion/datastore", "data");`
+
+    **API documentation:**
+
+    `int put_config(char *key, char *value)`
+    ```
+        put_config function stores the value of a key to config manager
+        @param key      - key in  config manager to set
+        @param value    - value to set the key to
+        @return int     - 0 on success, -1 on failure
+    ```
+    **NOTE:**
+    1. As per default EIS configuration, put is allowed only on /[Appname]/datastore`
+    2. If running in prod mode, make sure the same application which is used to create config manager instance has to be used on put_config i.e the key to save in config manager would be /[AppName]/datastore
+    Eg: If Visualizer has been used to create config_manager instance, put_config can only save value on /Visualizer/datastore
+
+4. Registers user callback function to keep a watch on key based on it's prefix
 
     `config_mgr_client->register_watch_dir("/VideoIngestion/config", user_callback);`
 
@@ -127,7 +148,7 @@ $ ./env-config-tests
         @param (*register_watch_dir_cb)(char* key, char* value)    - user callback to be called on watch event
                                                                      with updated value on the respective key
     ```
-4. Registers user callback function to keep a watch on specified key
+5. Registers user callback function to keep a watch on specified key
 
     `config_mgr_client->register_watch_key("/VideoIngestion/config", user_callback);`
 
@@ -145,7 +166,7 @@ $ ./env-config-tests
         @param (*register_watch_key_cb)(char* key, char* value)    - user callback to be called on watch event
                                                                      with updated value on the respective key
     ```
-5. Destroy config manager
+6. Destroy config manager
 
     `config_mgr_config_destroy(config_mgr_client);`
 

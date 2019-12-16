@@ -85,7 +85,7 @@ func watchDirCallback(key string, value string) {
 }
 
 //export initialize
-func initialize(CStorageType *C.char, CCertFile *C.char, CKeyFile *C.char, CTrustFile *C.char) *C.char {
+func initialize(CStorageType *C.char, CCertFile *C.char, CKeyFile *C.char, CTrustFile *C.char) int {
 	storageType := C.GoString(CStorageType)
 	config := map[string]string{
 		"certFile":  C.GoString(CCertFile),
@@ -95,9 +95,9 @@ func initialize(CStorageType *C.char, CCertFile *C.char, CKeyFile *C.char, CTrus
 	confMgr = configmgr.Init(storageType, config)
 	if confMgr == nil {
 		glog.Errorf("Config manager initializtion failed")
-		return C.CString("-1")
+		return -1
 	}
-	return C.CString("0")
+	return 0
 }
 
 //export getConfig
@@ -109,6 +109,18 @@ func getConfig(keyy *C.char) *C.char {
 	}
 	glog.V(1).Infof("GetConfig is called and the value of the key %s is: %s", key, value)
 	return C.CString(value)
+}
+
+//export putConfig
+func putConfig(ckey *C.char, cvalue *C.char) int {
+	key := C.GoString(ckey)
+	value := C.GoString(cvalue)
+	errStatus := confMgr.PutConfig(key, value)
+	if errStatus != nil {
+		glog.Errorf("Config manager PutConfig failed")
+		return -1
+	}
+	return 0
 }
 
 //export registerWatchKey

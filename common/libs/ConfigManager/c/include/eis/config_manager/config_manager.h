@@ -45,6 +45,15 @@ typedef struct {
     char* (*get_config)(char *key);
 
     /**
+     *To save a value to config manager if key already exists, if not create/store a new set of key-value to config manager
+     * @param key      - key in config manager to set
+     * @param value    - value to set the key to
+     * @return int     - 0 on success, -1 on failure
+
+    */
+    int (*put_config)(char *key, char *value);
+
+    /**
      * register_watch_key function registers to a callback and keeps a watch on a specified key
      * 
      * @param key                                                 - key to keep a watch on

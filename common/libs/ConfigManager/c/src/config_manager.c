@@ -30,8 +30,13 @@
 #include <eis/utils/logger.h>
 
 char supported_storage_types[][5] = {"etcd"};
+
 static char* get_config(char *key){
     return getConfig(key);
+}
+
+static int put_config(char *key, char* value){
+    return putConfig(key, value);
 }
 
 static void register_watch_key(char *key, callback_fcn user_callback){
@@ -63,6 +68,7 @@ config_mgr_t* config_mgr_new(char *storage_type, char *cert_file, char *key_file
         return NULL;
     }
     config_mgr->get_config = get_config;
+    config_mgr->put_config = put_config;
     config_mgr->register_watch_key = register_watch_key;
     config_mgr->register_watch_dir = register_watch_dir;
     return config_mgr;

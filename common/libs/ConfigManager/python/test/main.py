@@ -38,13 +38,18 @@ def main():
     p.add_argument('-trustFile', help="provide ca cert file")
     p.add_argument('-key', help="provide etcd key")
     p.add_argument('-action', help="provide the action to be performed \
-                    on etcd key Eg: get|watchkey|watchdir")
+                    on etcd key Eg: get|watchkey|watchdir|put")
+    p.add_argument('-val', help="value to be set on the provided \
+                    key(applies only for the action 'put')")
     args = p.parse_args()
 
     conf = {"certFile": args.certFile,
             "keyFile": args.privateFile, "trustFile": args.trustFile}
     cfg_mgr = ConfigManager()
-    client = cfg_mgr.get_config_client("etcd", conf)
+    try:
+        client = cfg_mgr.get_config_client("etcd", conf)
+    except Exception as e:
+        print("Creation of config manager client is failed: {}".format(e))
 
     if args.action == "get":
         try:
@@ -52,6 +57,14 @@ def main():
             print("GetConfig is called and the value is", value)
         except Exception as e:
             print("GetConfig failure {}".format(e))
+        return
+    elif args.action == "put":
+        try:
+            client.PutConfig(args.key, args.val)
+            print("Setting the key:{0} with \
+                   the value:{1}".format(args.key, args.val))
+        except Exception as e:
+            print("PutConfig failure {}".format(e))
         return
     elif args.action == "watchkey":
         try:

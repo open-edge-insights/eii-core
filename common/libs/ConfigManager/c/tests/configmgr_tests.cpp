@@ -61,6 +61,23 @@ TEST(configmgr_test, configmgr_get_config) {
     ASSERT_STREQ("test123", value);
 }
 
+TEST(configmgr_test, configmgr_put_config) {
+    config_mgr_t *config_mgr_client = get_config_mgr_client((char*)"etcd");
+    if (config_mgr_client == NULL){
+        FAIL() << "Failed to create config manager client";
+    }
+    char* key = "/Visualizer/datastore";
+    char* val = "UnitTesting put_config api";
+    int err_status = config_mgr_client->put_config(key, val);
+    if (err_status == -1){
+        FAIL() << "Failed to create config manager client";
+    }
+    
+    char *value = config_mgr_client->get_config(key);
+    config_mgr_config_destroy(config_mgr_client);
+    ASSERT_STREQ(val, value);
+}
+
 TEST(configmgr_test, configmgr_register_watch_key) {
     config_mgr_t *config_mgr_client = get_config_mgr_client((char*)"etcd");
     if (config_mgr_client == NULL){

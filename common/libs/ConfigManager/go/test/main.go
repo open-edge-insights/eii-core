@@ -30,7 +30,9 @@ func main() {
 	privateFile := flag.String("privateFile", "", "provide client private key file")
 	trustFile := flag.String("trustFile", "", "provide ca cert file")
 	key := flag.String("key", "", "provide etcd key")
-	action := flag.String("action", "", "provide the action to be performed on etcd key Eg: get|watchkey|watchdir")
+	action := flag.String("action", "", "provide the action to be performed on etcd key Eg: get|put|watchkey|watchdir|put")
+	val := flag.String("val", "", "value to be set on the provided key(applies only for the action 'put')")
+
 	flag.Parse()
 
 	config := map[string]string{
@@ -38,9 +40,13 @@ func main() {
 		"keyFile":   *privateFile,
 		"trustFile": *trustFile,
 	}
-	etcd := configmgr.Init("etcd", config)
+	configMgrClient := configmgr.Init("etcd", config)
+	if configMgrClient == nil {
+		log.Fatal("Creation of config manager client is failed")
+	}
+
 	if *action == "get" {
-		value, err := etcd.GetConfig(*key)
+		value, err := configMgrClient.GetConfig(*key)
 		fmt.Printf("value is %s", value)
 		if err != nil {
 			log.Fatal(err)
@@ -49,10 +55,14 @@ func main() {
 		return
 	} else if *action == "watchkey" {
 		fmt.Printf("Watching on the key %s", *key)
-		etcd.RegisterKeyWatch(*key, callback)
+		configMgrClient.RegisterKeyWatch(*key, callback)
 	} else if *action == "watchdir" {
 		fmt.Printf("Watching on the dir %s", *key)
-		etcd.RegisterDirWatch(*key, callback)
+		configMgrClient.RegisterDirWatch(*key, callback)
+	} else if *action == "put" {
+		fmt.Printf("Setting the key:%s with the value:%s", *key, *val)
+		configMgrClient.PutConfig(*key, *val)
+		return
 	} else {
 		fmt.Println("Provided action is not supported")
 		return

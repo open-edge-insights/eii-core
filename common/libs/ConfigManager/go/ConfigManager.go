@@ -27,6 +27,8 @@ type config struct {
 type ConfigMgr interface {
 	GetConfig(key string) (string, error)
 
+	PutConfig(key string, value string) error
+
 	RegisterDirWatch(key string, onChangeCallback OnChangeCallback)
 
 	RegisterKeyWatch(key string, onChangeCallback OnChangeCallback)

@@ -27,6 +27,7 @@ import logging
 from libs.ConfigManager.python.etcd.etcd_client import EtcdCli
 import os
 
+
 class ConfigManager:
     def get_config_client(self, storage_type, config):
         """ Returns config manager client based on storage_type
