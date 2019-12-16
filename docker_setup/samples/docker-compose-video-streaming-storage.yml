@@ -211,18 +211,6 @@ services:
       SubTopics: "VideoAnalytics/camera1_stream_results"
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
 
-      # Uncomment the below two lines for running Time Series use case only
-      # SubTopics: "InfluxDBConnector/point_classifier_results"
-      # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
-
-      # Uncomment the below three lines for running Video and Time Series together
-      # SubTopics: "VideoAnalytics/camera1_stream_results,InfluxDBConnector/point_classifier_results"
-      # camera1_stream_results_cfg: "zmq_tcp,127.0.0.1:65013"
-      # point_classifier_results_cfg: "zmq_tcp,127.0.0.1:65016"
-
-      # Uncomment the below two lines for running DiscoveryCreek usecase alone
-      # SubTopics: "DiscoveryCreek/dc_point_data_results"
-      # dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
