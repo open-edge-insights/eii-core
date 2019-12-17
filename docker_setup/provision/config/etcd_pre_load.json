@@ -101,5 +101,18 @@
         "GO_VERBOSE": "0",
         "HOST_TIME_ZONE": "",
         "ETCD_KEEPER_PORT": "7070"
+    },
+    "/TLS_RemoteAgent/config": {
+        "display": "true",
+        "save_image": "false",
+        "cert_path": "",
+        "tls_host": "localhost",
+        "user_labels":
+	[{
+            "VideoAnalytics": {
+                "0": "D_MISSING",
+                "1": "D_SHORT"
+            }
+	}]
     }
 }
