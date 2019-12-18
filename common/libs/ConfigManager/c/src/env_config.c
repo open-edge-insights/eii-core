@@ -25,10 +25,14 @@
  */
 
 #include "eis/config_manager/env_config.h"
+#include <safe_str_lib.h>
 
 #define SIZE 100
 #define PUB "pub"
 #define SUB "sub"
+
+// Forward declaration
+void trim(char* str_value);
 
  static char** get_topics_from_env(const char* topic_type){
     char* topic_list = NULL;
@@ -46,7 +50,7 @@
     }
 
     int j=0;
-    while (individual_topic = strtok_r(topic_list, ",", &topic_list)){
+    while((individual_topic = strtok_r(topic_list, ",", &topic_list))) {
         topics[j] = individual_topic;
         LOG_DEBUG("Topics are : %s \n", topics[j]);
         j++;
@@ -56,11 +60,11 @@
  }
 
 
-static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topics, const char* topic_type){
+static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char *topics, const char* topic_type){
     
     char* topic_cfg = NULL;
-    char* mode_address[SIZE] = {};
-    char* host_port[SIZE] = {};
+    char* mode_address[SIZE];
+    char* host_port[SIZE];
     char* data = NULL;
     char* mode = NULL;
     char* address = NULL;
@@ -87,8 +91,8 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
         m_dev_mode = false;
     }
 
-    const char* topic = NULL;
-    const char* publisher = NULL;
+    char* topic = NULL;
+    char* publisher = NULL;
     char publisher_topic[SIZE];
     int ret = 0;
 
@@ -101,9 +105,9 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
             goto err;
         } 
         char* temp = publisher_topic;
-        const char* pub_topic[SIZE] = {};
+        const char* pub_topic[SIZE];
         j=0;
-        while (individual_topic = strtok_r(temp, "/", &temp)){
+        while((individual_topic = strtok_r(temp, "/", &temp))) {
             pub_topic[j] = individual_topic;            
             j++;
         }
@@ -156,7 +160,7 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
     }
     
     i=0;
-    while (data = strtok_r(topic_cfg, ",", &topic_cfg)){
+    while((data = strtok_r(topic_cfg, ",", &topic_cfg))) {
         mode_address[i] = data;
         i++;
     }
@@ -175,7 +179,7 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
 
     if(!strcmp(mode,"zmq_tcp")) {
         i=0;
-        while (data = strtok_r(address, ":", &address)){
+        while((data = strtok_r(address, ":", &address))) {
             host_port[i] = data;
             i++;
         }
@@ -197,7 +201,7 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
                 i = 0;
                 const char* allowed_clients[SIZE];
                 char* clients = getenv("Clients");
-                while (data = strtok_r(clients, ",", &clients)){
+                while((data = strtok_r(clients, ",", &clients))) {
                     allowed_clients[i] = data;
                     i++;
                 }
@@ -322,19 +326,17 @@ static config_t* get_messagebus_config(config_mgr_t* configmgr, const char *topi
 return config;
 
 err:
-    if(topic) {
+    if(topic != NULL) {
         free(topic);
     }
-    if (publisher) {
+    if(publisher != NULL) {
         free(publisher);
     }
 
     return NULL;
 }
 
-
-void trim(char* str_value)
-{
+void trim(char* str_value) {
     int index;
     int i;
 
