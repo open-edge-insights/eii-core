@@ -103,8 +103,6 @@
         "ETCD_KEEPER_PORT": "7070"
     },
     "/TLS_RemoteAgent/config": {
-        "display": "true",
-        "save_image": "false",
         "cert_path": "",
         "tls_host": "localhost",
         "user_labels":
