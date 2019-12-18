@@ -633,51 +633,49 @@ services:
 
   # ## Define TLS_RemoteAgent service
   # ia_tls_remoteagent:
-  # depends_on:
-  #   - ia_common
-  # build:
-  #   context: $PWD/../TLSRemoteAgent
-  #   dockerfile: $PWD/../TLSRemoteAgent/Dockerfile
-  #   args:
-  #     EIS_VERSION: ${EIS_VERSION}
-  #     EIS_UID: ${EIS_UID}
-  #     EIS_USER_NAME: ${EIS_USER_NAME}
-  # read_only: false
-  # image: ${DOCKER_REGISTRY}ia_tls_remoteagent:${EIS_VERSION}
-  # container_name: ia_tls_remoteagent
-  # hostname: ia_tls_remoteagent
-  # network_mode: host
-  # ipc: host
-  # restart: unless-stopped
-  # environment:
-  #   AppName: "TLS_RemoteAgent"
-  #   DISPLAY: ":0"
-  #   IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
-  #   DEV_MODE: ${DEV_MODE}
-  #   PROFILING_MODE: ${PROFILING_MODE}
-  #   no_proxy: ${no_proxy}
+  #   depends_on:
+  #     - ia_common
+  #   build:
+  #     context: $PWD/../TLSRemoteAgent
+  #     dockerfile: $PWD/../TLSRemoteAgent/Dockerfile
+  #     args:
+  #       EIS_VERSION: ${EIS_VERSION}
+  #       EIS_UID: ${EIS_UID}
+  #       EIS_USER_NAME: ${EIS_USER_NAME}
+  #   read_only: false
+  #   image: ${DOCKER_REGISTRY}ia_tls_remoteagent:${EIS_VERSION}
+  #   container_name: ia_tls_remoteagent
+  #   hostname: ia_tls_remoteagent
+  #   network_mode: host
+  #   ipc: host
+  #   restart: unless-stopped
+  #   environment:
+  #     AppName: "TLS_RemoteAgent"
+  #     DISPLAY: ":0"
+  #     IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
+  #     DEV_MODE: ${DEV_MODE}
+  #     PROFILING_MODE: ${PROFILING_MODE}
+  #     no_proxy: ${no_proxy}
 
-  #   # MessageBus Endpoint Configuration
-  #   CertType: "zmq"
+  #     # MessageBus Endpoint Configuration
+  #     CertType: "zmq"
 
-  #   # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
-  #   # based containers are running on the same host. If they are running on diff
-  #   # host, please use TCP mode for communication.
-  #   # Eg: Stream cfg for
-  #   # IPC: zmq_ipc, <absolute_socket_directory_path>
-  #   # TPC: zmq_tcp, <publisher_host>:<publisher_port>
+  #     # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
+  #     # based containers are running on the same host. If they are running on diff
+  #     # host, please use TCP mode for communication.
+  #     # Eg: Stream cfg for
+  #     # IPC: zmq_ipc, <absolute_socket_directory_path>
+  #     # TPC: zmq_tcp, <publisher_host>:<publisher_port>
 
-  #   # For default video streaming usecase alone
-  #   SubTopics: "VideoAnalytics/camera1_stream_results"
-  #   camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
+  #     # For default video streaming usecase alone
+  #     SubTopics: "VideoAnalytics/camera1_stream_results"
+  #     camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
 
-  #   # For multiple video analytics usecase, with 3rd stream using gva plugin directly from VideoIngestion container
-  #   # SubTopics: "VideoAnalytics/camera1_stream_results,VideoAnalytics2/camera2_stream_results,VideoIngestion3/camera3_stream"
-  #   # camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
-  #   # camera2_stream_results_cfg : "zmq_tcp,127.0.0.1:65014"
-  #   # camera3_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
-
-
+  #     # For multiple video analytics usecase, with 3rd stream using gva plugin directly from VideoIngestion container
+  #     # SubTopics: "VideoAnalytics/camera1_stream_results,VideoAnalytics2/camera2_stream_results,VideoIngestion3/camera3_stream"
+  #     # camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
+  #     # camera2_stream_results_cfg : "zmq_tcp,127.0.0.1:65014"
+  #     # camera3_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
   #   volumes:
   #     - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
   #     - "/tmp/.X11-unix:/tmp/.X11-unix"
