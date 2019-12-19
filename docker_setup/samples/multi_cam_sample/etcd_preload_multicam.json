@@ -143,15 +143,10 @@
         "cert_path": ""
     },
     "/GlobalEnv/": {
-        "COMPOSE_HTTP_TIMEOUT":"200",
-        "COMPOSE_PROJECT_NAME":"EIS_docker_network",
-        "EIS_USER_NAME":"eisuser",
-        "EIS_UID":"5319",
-        "EIS_INSTALL_PATH":"/opt/intel/eis",
-        "PY_LOG_LEVEL":"DEBUG",
+        "PY_LOG_LEVEL":"INFO",
         "GO_LOG_LEVEL":"INFO",
+	"C_LOG_LEVEL":"INFO",
         "GO_VERBOSE":"0",
-        "HOST_TIME_ZONE":"",
         "ETCD_KEEPER_PORT":"7070"
     }
 }
