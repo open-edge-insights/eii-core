@@ -1,7 +1,7 @@
 {
     "/VideoIngestion1/config": {
         "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
             "type": "jpg",
             "level": 100
@@ -55,7 +55,7 @@
     },
     "/VideoIngestion4/config": {
         "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
             "type": "jpg",
             "level": 100
@@ -72,7 +72,7 @@
     },
     "/VideoIngestion5/config": {
         "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! appsink max_buffers=2 drop=TRUE",
+        "video_src": "rtspsrc location=\"rtsp://localhost:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
             "type": "jpg",
             "level": 100
