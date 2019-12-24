@@ -215,6 +215,7 @@ services:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
       - "vol_eis_socket:${SOCKET_DIR}"
+    user: ${EIS_UID}
     secrets:
       - ca_etcd
       - etcd_Visualizer_cert
