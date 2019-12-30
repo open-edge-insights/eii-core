@@ -185,7 +185,6 @@ services:
     container_name: ia_visualizer
     hostname: ia_visualizer
     network_mode: host
-    ipc: host
     restart: unless-stopped
     command: ["pcb_demo_label.json"]
     environment:

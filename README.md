@@ -271,7 +271,7 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `MYRIAD` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [VideoAnalytics/README.md#classifier-config](VideoAnalytics/README.md#classifier-config)
+EIS supports running inference on `CPU`, `GPU`, `MYRIAD` and `HDDL` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”) which is part of the classifier configuration in Etcd. For more details, check [common/udfs/README.md](common/udfs/README.md)
 
 **Note**:
 ----

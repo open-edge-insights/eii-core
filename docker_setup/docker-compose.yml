@@ -185,7 +185,6 @@ services:
     container_name: ia_visualizer
     hostname: ia_visualizer
     network_mode: host
-    ipc: host
     restart: unless-stopped
     # For safety gear demo, use "safety_demo_label.json"
     # For pcb demo, use "pcb_demo_label.json"
@@ -239,7 +238,6 @@ services:
   #   container_name: ia_web_visualizer
   #   hostname: ia_web_visualizer
   #   network_mode: host
-  #   ipc: host
   #   restart: unless-stopped
   #   command: ["pcb_demo_label.json"]
   #   environment:
@@ -650,7 +648,6 @@ services:
   #   container_name: ia_tls_remoteagent
   #   hostname: ia_tls_remoteagent
   #   network_mode: host
-  #   ipc: host
   #   restart: unless-stopped
   #   environment:
   #     AppName: "TLS_RemoteAgent"
