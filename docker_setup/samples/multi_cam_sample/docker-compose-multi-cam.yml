@@ -76,7 +76,6 @@ services:
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
-    read_only: true
     container_name: ia_video_ingestion1
     hostname: ia_video_ingestion1
     network_mode: host
@@ -170,7 +169,6 @@ services:
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
-    read_only: true
     container_name: ia_video_ingestion2
     hostname: ia_video_ingestion2
     network_mode: host
@@ -269,7 +267,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion3
     hostname: ia_video_ingestion3
@@ -369,7 +366,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion4
     hostname: ia_video_ingestion4
@@ -469,7 +465,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion5
     hostname: ia_video_ingestion5
@@ -569,7 +564,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
-    read_only: true
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion6
     hostname: ia_video_ingestion6
