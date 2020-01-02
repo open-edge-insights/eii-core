@@ -188,6 +188,10 @@ $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
 ```
+**Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](docker_setup/provision/etcd_capture.sh) script. This can be achieved using the following command:
+```
+./etcd_capture.sh
+```
 
 
 # Build and Run EIS PCB Demo Example
