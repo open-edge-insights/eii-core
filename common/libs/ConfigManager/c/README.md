@@ -209,6 +209,10 @@ To refer C examples follow config_manager.c in [examples/](examples/)
         get_messagebus_config function gives the configuration that needs in connecting to EIS messagebus
         @param configmgr       - Config Manager object
         @param topic           - Topic for which msg bus config needs to be constructed
+                                 In case the topic is being published, it will be the stream name like `camera1_stream`
+                                 and in case the topic is being subscribed, it will be of the format
+                                 `[Publisher_AppName]/[stream_name]`.
+                                 Eg: `VideoIngestion/camera1_stream`
         @param topic_type      - TopicType for which msg bus config needs to be constructed
         @return config_t*      - JSON msg bus config of type config_t
     ```

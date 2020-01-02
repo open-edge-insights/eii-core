@@ -30,29 +30,44 @@
 #define SIZE 100
 #define PUB "pub"
 #define SUB "sub"
+#define CLIENTS_ENV "Clients"
+#define PUBTOPICS_ENV "PubTopics"
+#define SUBTOPICS_ENV "SubTopics"
+#define DEV_MODE_ENV "DEV_MODE"
+#define APPNAME_ENV "AppName"
+#define ZMQ_RECV_HWM_ENV "ZMQ_RECV_HWM"
 
 // Forward declaration
 void trim(char* str_value);
 
- static char** get_topics_from_env(const char* topic_type){
+static char** get_topics_from_env(const char* topic_type) {
     char* topic_list = NULL;
     char* individual_topic = NULL;
+    char* topics_env = NULL;
+    if(!strcmp(topic_type, PUB)){
+        topics_env = PUBTOPICS_ENV;
+    }
+    else if(!strcmp(topic_type, SUB)){
+        topics_env = SUBTOPICS_ENV;
+    } else {
+        LOG_ERROR("topic type: %s is not supported", topic_type);
+        return NULL;
+    }
+
+    topic_list = getenv(topics_env);
+    if(topic_list == NULL) {
+        LOG_ERROR("%s env doesn't exist", topics_env);
+        return NULL;
+    }
+
     char **topics = (char **)calloc(SIZE, sizeof(char*));
     if(topics == NULL) {
         LOG_ERROR_0("Calloc failed");
         return NULL;
     }
-    if(!strcmp(topic_type, PUB)){
-        topic_list = getenv("PubTopics");
-    }
-    else if(!strcmp(topic_type, SUB)){
-        topic_list = getenv("SubTopics");
-    }
-
     int j=0;
     while((individual_topic = strtok_r(topic_list, ",", &topic_list))) {
         topics[j] = individual_topic;
-        LOG_DEBUG("Topics are : %s \n", topics[j]);
         j++;
     }
     topics[j] = NULL;
@@ -60,8 +75,8 @@ void trim(char* str_value);
  }
 
 
-static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char *topics, const char* topic_type){
-    
+static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char *topic, const char* topic_type){
+
     char* topic_cfg = NULL;
     char* mode_address[SIZE];
     char* host_port[SIZE];
@@ -70,95 +85,108 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
     char* address = NULL;
     char* host = NULL;
     char* port = NULL;
+    char* actual_topic = NULL;
+    char* publisher = NULL;
     int i;
     int j;
 
-    char* dev_mode = getenv("DEV_MODE");
-    if(dev_mode == NULL) {
-        LOG_ERROR_0(" The DEV_MOde is not set properly in .env file or the environmental variable is not set in the container");
-        return NULL;
+    char* dev_mode_env = getenv(DEV_MODE_ENV);
+    if(dev_mode_env == NULL) {
+        LOG_ERROR("%s env doesn't exist", DEV_MODE_ENV);
+        goto err;
     }
-    const char* m_app_name = getenv("AppName");
-    if(m_app_name == NULL) {
+    const char* app_name_env = getenv(APPNAME_ENV);
+    if(app_name_env == NULL) {
+        LOG_ERROR("%s env doesn't exist", APPNAME_ENV);
         goto err;
     }
     const char cfg[]= "_cfg";
 
-    bool m_dev_mode = false;
-    if(!strcmp(dev_mode,"true")){
-        m_dev_mode = true;
-    }else if(!strcmp(dev_mode,"false")){
-        m_dev_mode = false;
+    bool dev_mode = false;
+    if(!strcmp(dev_mode_env,"true")){
+        dev_mode = true;
+    } else if(!strcmp(dev_mode_env,"false")){
+        dev_mode = false;
+    } else {
+        LOG_WARN("%s env is not set to true or false, so using false as default", DEV_MODE_ENV);
     }
 
-    char* topic = NULL;
-    char* publisher = NULL;
     char publisher_topic[SIZE];
     int ret = 0;
 
     if (!strcmp(topic_type,SUB)){
-
         char* individual_topic;
-        ret = strncpy_s(publisher_topic, SIZE,topics, strlen(topics));
+        ret = strncpy_s(publisher_topic, SIZE, topic, strlen(topic));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        } 
+        }
         char* temp = publisher_topic;
         const char* pub_topic[SIZE];
         j=0;
         while((individual_topic = strtok_r(temp, "/", &temp))) {
-            pub_topic[j] = individual_topic;            
+            pub_topic[j] = individual_topic;
             j++;
         }
-        topic = (char*) malloc(strlen(pub_topic[1]) + 1);
-        if(topic == NULL) {
+        if (j == 1 || j > 2) {
+            LOG_ERROR("sub topic should be of the format [AppName]/[stream_name]");
+            goto err;
+        }
+        actual_topic = (char*) malloc(strlen(pub_topic[1]) + 1);
+        if(actual_topic == NULL) {
             LOG_ERROR_0("malloc failed for pub_topic");
             goto err;
         }
-        memset(topic, 0, strlen(pub_topic[1]) + 1);
+        memset(actual_topic, 0, strlen(pub_topic[1]) + 1);
         publisher = (char*) malloc(strlen(pub_topic[0]) + 1);
         if(publisher == NULL) {
             LOG_ERROR_0("malloc failed for pub_topic");
             goto err;
         }
         memset(publisher, 0, strlen(pub_topic[0]) + 1);
-        ret = strncpy_s(topic, SIZE, pub_topic[1], strlen(pub_topic[1]));
+        ret = strncpy_s(actual_topic, SIZE, pub_topic[1], strlen(pub_topic[1]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        } 
+        }
+        LOG_DEBUG("Actual topic: %s", actual_topic);
         ret = strncpy_s(publisher, SIZE, pub_topic[0],strlen(pub_topic[0]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        } 
-        ret = strncpy_s(publisher_topic, SIZE, topic, strlen(topic));
+        }
+        LOG_DEBUG("publisher: %s", publisher);
+        ret = strncpy_s(publisher_topic, SIZE, actual_topic, strlen(actual_topic));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        } 
+        }
         ret = strncat_s(publisher_topic, SIZE, cfg, strlen(cfg));
         if(ret != 0) {
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
-        } 
-        topic_cfg = getenv(publisher_topic);
-     }
-     else if(!strcmp(topic_type,PUB)){
-        ret = strncpy_s(publisher_topic,SIZE, topics,strlen(topics));
+        }
+     } else if(!strcmp(topic_type,PUB)){
+        ret = strncpy_s(publisher_topic,SIZE, topic, strlen(topic));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        } 
+        }
         ret = strncat_s(publisher_topic, SIZE, cfg, strlen(cfg));
         if(ret != 0) {
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
-        } 
-        topic_cfg = getenv(publisher_topic);
+        }
+    } else {
+        LOG_ERROR("topic type: %s is not supported", topic_type);
+        goto err;
     }
-    
+    LOG_DEBUG("publisher_topic: %s", publisher_topic);
+    topic_cfg = getenv(publisher_topic);
+    if(topic_cfg == NULL) {
+        LOG_ERROR("%s env doens't exist", publisher_topic);
+        goto err;
+    }
     i=0;
     while((data = strtok_r(topic_cfg, ",", &topic_cfg))) {
         mode_address[i] = data;
@@ -172,9 +200,11 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
     cJSON* json = cJSON_CreateObject();
     cJSON_AddStringToObject(json, "type", mode);
 
-    char* zmq_recv_hwm = getenv("ZMQ_RECV_HWM");
+    char* zmq_recv_hwm = getenv(ZMQ_RECV_HWM_ENV);
     if(zmq_recv_hwm != NULL){
         cJSON_AddNumberToObject(json, "ZMQ_RECV_HWM", atoi(zmq_recv_hwm));
+    } else {
+        LOG_DEBUG("%s env is not set", ZMQ_RECV_HWM_ENV);
     }
 
     if(!strcmp(mode,"zmq_tcp")) {
@@ -197,10 +227,15 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
             cJSON_AddStringToObject(zmq_tcp_publish, "host", host);
             cJSON_AddNumberToObject(zmq_tcp_publish, "port", i_port);
 
-            if(!m_dev_mode){
+            if(!dev_mode){
                 i = 0;
                 const char* allowed_clients[SIZE];
-                char* clients = getenv("Clients");
+                char* clients = getenv(CLIENTS_ENV);
+                if(clients == NULL) {
+                    LOG_ERROR("%s env doens't exist", CLIENTS_ENV);
+                    goto err;
+                }
+
                 while((data = strtok_r(clients, ",", &clients))) {
                     allowed_clients[i] = data;
                     i++;
@@ -212,12 +247,12 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
                     if(ret != 0) {
                         LOG_ERROR("String copy failed (errno: %d)", ret);
                         goto err;
-                    } 
+                    }
                     ret = strncat_s(publicKey, SIZE, allowed_clients[j], strlen(allowed_clients[j]));
                     if(ret != 0) {
                         LOG_ERROR("String concatenation failed (errno: %d)", ret);
                         goto err;
-                    } 
+                    }
                     char* client_pub_key = configmgr->get_config(publicKey);
 
                     if(strcmp(client_pub_key,"")){
@@ -230,16 +265,16 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
                     goto err;
                 }
                 app_private_key[0] = '/';
-                ret = strncat_s(app_private_key, SIZE, m_app_name, strlen(m_app_name));
+                ret = strncat_s(app_private_key, SIZE, app_name_env, strlen(app_name_env));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
+                }
                 ret = strncat_s(app_private_key, SIZE, "/private_key", strlen("/private_key"));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
+                }
 
                 const char* server_secret_key = configmgr->get_config(app_private_key);
 
@@ -250,67 +285,68 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
         }
         else if(!strcmp(topic_type,SUB)){
             cJSON* pub_sub_topic = cJSON_CreateObject();
-            cJSON_AddItemToObject(json, topic, pub_sub_topic);
+            cJSON_AddItemToObject(json, actual_topic, pub_sub_topic);
             cJSON_AddStringToObject(pub_sub_topic, "host", host);
             cJSON_AddNumberToObject(pub_sub_topic, "port", i_port);
-            free(topic);
+            free(actual_topic);
 
-            if(!m_dev_mode){                
+            if(!dev_mode){
                 ret = strncpy_s(publicKey, SIZE, "/Publickeys/", strlen("/Publickeys/"));
                 if(ret != 0) {
                     LOG_ERROR("String copy failed (errno: %d)", ret);
                     goto err;
-                } 
+                }
                 ret = strncat_s(publicKey,SIZE, publisher, strlen(publisher));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
-        
+                }
+
                 const char* server_pub_key = configmgr->get_config(publicKey);
                 cJSON_AddStringToObject(pub_sub_topic, "server_public_key",server_pub_key);
                 ret = strncpy_s(publicKey, SIZE, "/Publickeys/", strlen("/Publickeys/"));
                 if(ret != 0) {
                     LOG_ERROR("String copy failed (errno: %d)", ret);
                     goto err;
-                } 
-                ret = strncat_s(publicKey, SIZE, m_app_name, strlen(m_app_name));
+                }
+                ret = strncat_s(publicKey, SIZE, app_name_env, strlen(app_name_env));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
+                }
                 free(publisher);
-                
+
                 const char* client_pub_key = configmgr->get_config(publicKey);
                 cJSON_AddStringToObject(pub_sub_topic, "client_public_key",client_pub_key);
-                
+
                 char* app_private_key = (char*) calloc(SIZE, sizeof(char));
                 if(app_private_key == NULL) {
                     LOG_ERROR_0("Calloc failed");
                     goto err;
                 }
                 app_private_key[0] = '/';
-                ret = strncat_s(app_private_key,SIZE,m_app_name, strlen(m_app_name));
+                ret = strncat_s(app_private_key,SIZE,app_name_env, strlen(app_name_env));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
+                }
                 ret = strncat_s(app_private_key, SIZE, "/private_key", strlen("/private_key"));
                 if(ret != 0) {
                     LOG_ERROR("String concatenation failed (errno: %d)", ret);
                     goto err;
-                } 
-                
+                }
+
                 const char* client_secret_key = configmgr->get_config(app_private_key);
                 cJSON_AddStringToObject(pub_sub_topic, "client_secret_key",client_secret_key);
             }
 
         }
-        
-    }
-    else if(!strcmp(mode,"zmq_ipc")){
-        cJSON_AddStringToObject(json, "socket_dir", mode_address[1]);
 
+    } else if(!strcmp(mode,"zmq_ipc")){
+        cJSON_AddStringToObject(json, "socket_dir", mode_address[1]);
+    } else {
+        LOG_ERROR("mode: %s is not supported", mode);
+        return NULL;
     }
 
     char* config_value = cJSON_Print(json);
@@ -322,12 +358,12 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
-  
-return config;
+
+    return config;
 
 err:
-    if(topic != NULL) {
-        free(topic);
+    if(actual_topic != NULL) {
+        free(actual_topic);
     }
     if(publisher != NULL) {
         free(publisher);
@@ -362,7 +398,7 @@ void trim(char* str_value) {
         }
         i++;
     }
-    // Mark the next character to last non white space character as NULL 
+    // Mark the next character to last non white space character as NULL
     str_value[index + 1] = '\0';
 }
 

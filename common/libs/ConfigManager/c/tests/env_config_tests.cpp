@@ -19,37 +19,104 @@
 // IN THE SOFTWARE.
 
 #include <gtest/gtest.h>
-#include <stdlib.h>
-#include <sstream>
 #include "eis/config_manager/env_config.h"
+#include "eis/config_manager/config_manager.h"
 #include "eis/utils/logger.h"
 
-using namespace eis::config_manager;
+void test_setup() {
+	//clear all envs
+	int ret;
+	const char* env[] = {"DEV_MODE", "AppName", "PubTopics", "SubTopics"};
+	for(int i = 0; i < sizeof(env)/sizeof(env[0]); i++) {
+		ret = unsetenv(env[i]);
+		if (ret != 0) {
+			LOG_ERROR("%s env unset failed", env[i]);
+		}
+	}
+}
 
 TEST(env_config_tests, get_topics_from_env) {
+	set_log_level(LOG_LVL_DEBUG);
+	test_setup();
+
+	env_config_t* env_config = env_config_new();
+	char** results = NULL;
+
+	LOG_INFO_0("========1. Test absence of SubTopics env========");
+	results = env_config->get_topics_from_env("sub");
+	ASSERT_TRUE(results == NULL);
+
+	LOG_INFO_0("========2. Test absence of PubTopics env========");
+	results = env_config->get_topics_from_env("pub");
+	ASSERT_TRUE(results == NULL);
+
+	LOG_INFO_0("========3. Test with SubTopics/PubTopics env========");
 	const char* topics_list = "sub_topic1,sub_topic2";
 	std::vector<std::string> topics{"sub_topic1", "sub_topic2"};
-    setenv("SubTopics", topics_list, true);
-	EnvConfig obj;
-	std::vector<std::string> results = obj.get_topics_from_env("sub");
-    EXPECT_EQ(topics[0], results[0]);
-	EXPECT_EQ(topics[1], results[1]);
+
+	std::map<std::string, std::string> topics_map = {
+		{"pub", "PubTopics"},
+		{"sub", "SubTopics"},
+	};
+	for(auto& ele : topics_map) {
+		setenv((char*)&ele.second[0], topics_list, true);
+		results = env_config->get_topics_from_env((char*)&ele.first[0]);
+		EXPECT_EQ(topics[0], results[0]);
+		EXPECT_EQ(topics[1], results[1]);
+	}
+
+	LOG_INFO_0("========4. Test with wrong topic type========");
+	results = env_config->get_topics_from_env("res");
+	ASSERT_TRUE(results == NULL);
 }
 
 TEST(env_config_tests, get_messagebus_config) {
-	std::string topic_type = "sub";
+	set_log_level(LOG_LVL_DEBUG);
+	test_setup();
+
+	const char* topic_type = "sub";
+	config_t* config = NULL;
+
 	std::string topic = "camera1_stream_results";
 	std::string result = topic + "_cfg";
+	std::string sub_topic = "VideoIngestion/" + topic;
 
-	// setting required envs
-	setenv((char*)&result[0], "zmq_tcp,127.0.0.1:65013", true);
+	unsetenv(&result[0]);
+
+	env_config_t* env_config = env_config_new();
+
+	LOG_INFO_0("========1. Test absence of DEV_MODE env========");
+	config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+	ASSERT_TRUE(config == NULL);
+
+	LOG_INFO_0("========2. Test absence of AppName env========");
 	setenv("DEV_MODE", "true", true);
-	setenv("Clients", "Visualizer", true);
+	config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+	ASSERT_TRUE(config == NULL);
+
+	LOG_INFO_0("========3. Send wrong topic type========");
 	setenv("AppName", "Sample", true);
-	EnvConfig obj;
-	config_t* config = obj.get_messagebus_config(topic, topic_type);
+	config = env_config->get_messagebus_config(NULL, &sub_topic[0], "");
+	ASSERT_TRUE(config == NULL);
+
+	LOG_INFO_0("========4. Test absence of [topic]_cfg env========");
+	setenv("SubTopics", sub_topic.c_str(), true);
+    config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+	ASSERT_TRUE(config == NULL);
+
+	LOG_INFO_0("========5. Test sending the wrong format of sub topic========");
+	setenv((char*) &result[0], "zmq_tcp,127.0.0.1:65013", true);
+	LOG_INFO("Topic: %s, topic cfg: %s", &topic[0], &result[0]);
+	config = env_config->get_messagebus_config(NULL, &topic[0], topic_type);
+	ASSERT_TRUE(config == NULL);
+
+	LOG_INFO_0("========6. Test the actual flow========");
+	LOG_INFO("Sub topic: %s", sub_topic.c_str());
+	config = env_config->get_messagebus_config(NULL, sub_topic.c_str(), topic_type);
 	config_value_t* value = config->get_config_value(config->cfg, "type");
 	ASSERT_EQ(value->type, CVT_STRING);
 	ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
-    //TODO: Add additional checks
+
+	// TODO: Enable extensive tests to thoroughly test all possible scenarios
+	// for both dev and prod mode
 }
