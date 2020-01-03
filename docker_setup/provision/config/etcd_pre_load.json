@@ -84,7 +84,9 @@
             "port": "8086"
         },
         "pub_workers": "5",
-        "sub_workers": "5"
+        "sub_workers": "5",
+        "ignore_keys": [ "defects" ],
+        "tag_keys": []
     },
     "/Kapacitor/config": {
         "influxdb": {
