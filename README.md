@@ -280,7 +280,7 @@ To run on HDDL devices, please refer to the link below to install OpenVINO on ho
 Please refer to the OpenVINO links for any issues regarding running the HDDL daemon on host.
 
 1. OpenVINO install:
-   https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_fpga.html#install-openvino
+   https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux.html#install-openvino
 2. HDDL daemon setup:
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 3. Extra steps if using the iEi Mustang V100 HDDL card:
