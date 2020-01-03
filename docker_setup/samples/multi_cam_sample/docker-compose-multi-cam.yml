@@ -75,6 +75,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion1
     hostname: ia_video_ingestion1
@@ -123,6 +126,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics1
     hostname: ia_video_analytics1
@@ -168,6 +172,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion2
     hostname: ia_video_ingestion2
@@ -216,6 +223,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics2
     hostname: ia_video_analytics2
@@ -267,6 +275,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion3
     hostname: ia_video_ingestion3
@@ -315,6 +326,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics3
     hostname: ia_video_analytics3
@@ -366,6 +378,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion4
     hostname: ia_video_ingestion4
@@ -414,6 +429,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics4
     hostname: ia_video_analytics4
@@ -465,6 +481,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion5
     hostname: ia_video_ingestion5
@@ -513,6 +532,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics5
     hostname: ia_video_analytics5
@@ -564,6 +584,9 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion6
     hostname: ia_video_ingestion6
@@ -612,6 +635,7 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        CMAKE_BUILD_TYPE: "Release"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics6
     hostname: ia_video_analytics6
@@ -700,8 +724,25 @@ services:
       - etcd_Visualizer_cert
       - etcd_Visualizer_key
 
-
-
+volumes:
+  vol_influxdb_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data/influxdata
+  vol_imagestore_data:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/data
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 
 secrets:
   etcd_VideoIngestion1_cert:

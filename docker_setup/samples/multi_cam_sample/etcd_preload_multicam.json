@@ -1,153 +1,154 @@
 {
     "/VideoIngestion1/config": {
-        "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
-            "type": "jpg",
+            "type": "jpeg",
             "level": 100
         },
-        "poll_interval": 0.2
-    },
-    "filter": {
-        "name": "bypass_filter",
-        "queue_size": 10,
-        "max_workers": 1,
-        "training_mode": "false"
-    }
-
+        "ingestor": {
+            "type": "opencv",
+            "pipeline": "./test_videos/pcb_d2000.avi",
+            "loop_video": "true",
+            "queue_size": 10,
+            "poll_interval": 0.2
+        },
+        "max_jobs": 20,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoIngestion2/config": {
-        "ingestor": {
-            "video_src": "pylonsrc serial=22573662 imageformat=yuv422 exposureGigE=3250 interpacketdelay=1500 ! videoconvert ! appsink",
-            "encoding": {
-                "type": "jpg",
-                "level": 100
-            },
-            "poll_interval": 0.2
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
         },
-        "filter": {
-            "name": "bypass_filter",
-            "queue_size": 10,
-            "max_workers": 1,
-            "training_mode": "false",
-            "n_total_px": 300000,
-            "n_left_px": 1000,
-            "n_right_px": 1000
+        "ingestor": {
+            "type": "opencv",
+            "pipeline": "pylonsrc serial=22573662 imageformat=yuv422 exposureGigE=3250 interpacketdelay=6000 ! videoconvert ! appsink"
         }
-
     },
     "/VideoIngestion3/config": {
-        "ingestor": {
-        "video_src": "v4l2src ! videoconvert ! appsink",
         "encoding": {
-            "type": "jpg",
+            "type": "jpeg",
             "level": 100
         },
-        "poll_interval": 0.2
-    },
-    "filter": {
-        "name": "bypass_filter",
-        "queue_size": 10,
-        "max_workers": 1,
-        "training_mode": "false"
-    }
-
+        "ingestor": {
+            "type": "opencv",
+            "pipeline": "/dev/video0"
+        }
     },
     "/VideoIngestion4/config": {
-        "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
-            "type": "jpg",
+            "type": "jpeg",
             "level": 100
         },
-        "poll_interval": 0.2
-    },
-    "filter": {
-        "name": "bypass_filter",
-        "queue_size": 10,
-        "max_workers": 1,
-        "training_mode": "false"
-    }
-    
+        "ingestor": {
+            "type": "gstreamer",
+            "pipeline": "rtspsrc location=\"rtsp://localhost:8554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! video/x-raw,format=BGRx ! vaapipostproc format=bgrx height=300 width=300 ! videoconvert ! video/x-raw,format=BGR ! appsink"
+        }
     },
     "/VideoIngestion5/config": {
-        "ingestor": {
-        "video_src": "rtspsrc location=\"rtsp://localhost:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgr ! videoconvert ! appsink max_buffers=2 drop=TRUE",
         "encoding": {
-            "type": "jpg",
+            "type": "jpeg",
             "level": 100
         },
-        "poll_interval": 0.2
-    },
-    "filter": {
-        "name": "bypass_filter",
-        "queue_size": 10,
-        "max_workers": 1,
-        "training_mode": "false"
-    }
-
+        "ingestor": {
+            "type": "gstreamer",
+            "pipeline": "rtspsrc location=\"rtsp://admin:intel123@<RTSP CAMERA IP>:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! videoconvert ! video/x-raw,format=BGR ! appsink"
+        }
     },
     "/VideoIngestion6/config": {
-        "ingestor": {
-            "video_src": "pylonsrc serial=22784327 imageformat=mono8 exposureGigE=3250 interpacketdelay=1500 ! videoconvert ! appsink",
-            "encoding": {
-                "type": "jpg",
-                "level": 100
-            },
-            "poll_interval": 0.2
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
         },
-        "filter": {
-            "name": "bypass_filter",
-            "queue_size": 10,
-            "max_workers": 1,
-            "training_mode": "false",
-            "n_total_px": 300000,
-            "n_left_px": 1000,
-            "n_right_px": 1000
+        "ingestor": {
+            "type": "gstreamer",
+            "pipeline": "pylonsrc serial=22563664 imageformat=yuv422 exposureGigE=3250 interpacketdelay=1500 ! video/x-raw,format=YUY2 ! videoconvert ! video/x-raw,format=BGR ! appsink"
         }
-
-    },    
+    },
     "/VideoAnalytics1/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1	    
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoAnalytics2/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoAnalytics3/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoAnalytics4/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoAnalytics5/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1	
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
     },
     "/VideoAnalytics6/config": {
-        "name": "dummy_classifier",
+        "encoding": {
+            "type": "jpeg",
+            "level": 100
+        },
         "queue_size": 10,
-        "max_workers": 1
-    },    
+        "max_jobs": 1,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
+    },
     "/Visualizer/config": {
         "display": "true",
         "save_image": "false",
         "cert_path": ""
     },
     "/GlobalEnv/": {
-        "PY_LOG_LEVEL":"INFO",
-        "GO_LOG_LEVEL":"INFO",
-	"C_LOG_LEVEL":"INFO",
-        "GO_VERBOSE":"0",
-        "ETCD_KEEPER_PORT":"7070"
+        "PY_LOG_LEVEL": "INFO",
+        "GO_LOG_LEVEL": "INFO",
+        "C_LOG_LEVEL" : "INFO",
+        "GO_VERBOSE": "0",
+        "ETCD_KEEPER_PORT": "7070"
     }
 }
-
