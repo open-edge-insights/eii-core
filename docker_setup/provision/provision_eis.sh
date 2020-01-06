@@ -34,7 +34,13 @@ else
 		fi
 fi
 
+echo "Updating .env for container timezone..."
+# Get Docker Host timezone
+hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
+hostTimezone=`echo $hostTimezone`
 
+# This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
+sed -i '/HOST_TIME_ZONE/d' ../.env && echo "HOST_TIME_ZONE=$hostTimezone" >> ../.env
 
 echo "Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
 

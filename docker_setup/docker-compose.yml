@@ -11,6 +11,7 @@ services:
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
   ## Define ia_common service
