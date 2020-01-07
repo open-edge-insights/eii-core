@@ -33,7 +33,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 		topic = subTopics[1]
 	}
 
-	if topicType == "server" || topicType == "client" {
+	if topicType == "server" {
 		topicConfigList = strings.Split(os.Getenv("Server"), ",")
 	} else {
 		topicConfigList = strings.Split(os.Getenv(topic+"_cfg"), ",")
@@ -42,7 +42,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 	topicConfigList[0] = strings.TrimSpace(topicConfigList[0])
 	topicConfigList[1] = strings.TrimSpace(topicConfigList[1])
 	messageBusConfig = map[string]interface{}{
-		"type":  topicConfigList[0],
+		"type": topicConfigList[0],
 	}
 	if msgbusHwm != -1 {
 		messageBusConfig["zmq_recv_hwm"] = msgbusHwm
@@ -134,24 +134,30 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 		} else if strings.ToLower(topicType) == "client" {
 			messageBusConfig[topic] = hostConfig
 			if !devMode {
-				clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
-				if err != nil {
-					glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
-				}
+				endPoints := strings.Split(os.Getenv("RequestEP"), ",")
+				for _, endpoint := range endPoints {
+					if topic == endpoint {
+						clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
+						if err != nil {
+							glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
+						}
 
-				clientSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
-				if err != nil {
-					log.Fatal(err)
-				}
+						clientSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
+						if err != nil {
+							log.Fatal(err)
+						}
 
-				serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + topic)
-				if err != nil || serverPublicKey == "" {
-					glog.Errorf("ConfigManager couldn't get Server's Public Key %v", err)
-				}
+						serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + topic)
+						if err != nil || serverPublicKey == "" {
+							glog.Errorf("ConfigManager couldn't get Server's Public Key %v", err)
+						}
 
-				hostConfig["server_public_key"] = serverPublicKey
-				hostConfig["client_secret_key"] = clientSecretKey
-				hostConfig["client_public_key"] = clientPublicKey
+						hostConfig["server_public_key"] = serverPublicKey
+						hostConfig["client_secret_key"] = clientSecretKey
+						hostConfig["client_public_key"] = clientPublicKey
+                                                break
+					}
+				}
 			}
 		} else {
 			panic("Unsupported Topic Type!!!")
