@@ -106,6 +106,7 @@ services:
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "vol_eis_socket:${SOCKET_DIR}"
+      - "/dev:/dev"
       - "/var/tmp:/var/tmp"  
     privileged: true
     devices:

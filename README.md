@@ -285,12 +285,37 @@ Please refer to the OpenVINO links for any issues regarding running the HDDL dae
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 3. Extra steps if using the iEi Mustang V100 HDDL card:
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_movidius_setup_guide.html
-
 When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
 
 ```sh
 $ source /op/intel/openvino/bin/setupvars.sh
 $ $HDDL_INSTALL_DIR/bin/hddldaemon &
+```
+
+4. Additionally following is an workaround can be excercised if in case user observes NC_ERROR during device initialization of NCS2 stick.
+   While running EIS if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
+   User can verify the successfull initialization by executing ***dmesg**** & ***lsusb***  as below:
+
+```sh
+lsusb | grep "03e7" (03e7 is the VendorID and 2485 is one of the  productID for MyriadX)
+```
+
+```sh
+dmesg > dmesg.txt
+[ 3818.214919] usb 3-4: new high-speed USB device number 10 using xhci_hcd
+[ 3818.363542] usb 3-4: New USB device found, idVendor=03e7, idProduct=2485
+[ 3818.363546] usb 3-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 3818.363548] usb 3-4: Product: Movidius MyriadX
+[ 3818.363550] usb 3-4: Manufacturer: Movidius Ltd.
+[ 3818.363552] usb 3-4: SerialNumber: 03e72485
+[ 3829.153556] usb 3-4: USB disconnect, device number 10
+[ 3831.134804] usb 3-4: new high-speed USB device number 11 using xhci_hcd
+[ 3831.283430] usb 3-4: New USB device found, idVendor=03e7, idProduct=2485
+[ 3831.283433] usb 3-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 3831.283436] usb 3-4: Product: Movidius MyriadX
+[ 3831.283438] usb 3-4: Manufacturer: Movidius Ltd.
+[ 3831.283439] usb 3-4: SerialNumber: 03e72485
+[ 3906.460590] usb 3-4: USB disconnect, device number 11
 ```
 ----
 

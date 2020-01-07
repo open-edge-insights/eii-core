@@ -104,6 +104,7 @@ services:
       PubTopics: "camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
+      - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"  
     privileged: true
