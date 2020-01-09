@@ -2,7 +2,7 @@
     "/VideoIngestion1/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "opencv",
@@ -12,6 +12,7 @@
             "poll_interval": 0.2
         },
         "max_jobs": 20,
+        "max_workers":4,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -20,7 +21,7 @@
     "/VideoIngestion2/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "opencv",
@@ -30,7 +31,7 @@
     "/VideoIngestion3/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "opencv",
@@ -40,7 +41,7 @@
     "/VideoIngestion4/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "gstreamer",
@@ -50,7 +51,7 @@
     "/VideoIngestion5/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "gstreamer",
@@ -60,7 +61,7 @@
     "/VideoIngestion6/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "ingestor": {
             "type": "gstreamer",
@@ -70,10 +71,11 @@
     "/VideoAnalytics1/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
+        "max_workers":4,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -82,10 +84,10 @@
     "/VideoAnalytics2/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -94,10 +96,10 @@
     "/VideoAnalytics3/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -106,10 +108,10 @@
     "/VideoAnalytics4/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -118,10 +120,10 @@
     "/VideoAnalytics5/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
         "udfs": [{
             "name": "dummy",
             "type": "native"
@@ -130,10 +132,10 @@
     "/VideoAnalytics6/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 100
+            "level": 95
         },
         "queue_size": 10,
-        "max_jobs": 1,
+        "max_jobs": 20,
         "udfs": [{
             "name": "dummy",
             "type": "native"
