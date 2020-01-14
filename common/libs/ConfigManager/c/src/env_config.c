@@ -36,6 +36,8 @@
 #define DEV_MODE_ENV "DEV_MODE"
 #define APPNAME_ENV "AppName"
 #define ZMQ_RECV_HWM_ENV "ZMQ_RECV_HWM"
+#define CFG "_cfg"
+#define SOCKET_FILE "socket_file"
 
 // Forward declaration
 void trim(char* str_value);
@@ -74,9 +76,16 @@ static char** get_topics_from_env(const char* topic_type) {
     return topics;
  }
 
+ static size_t get_topics_count(char* topics[]) {
+    size_t i=0;
+    size_t topic_count=0;
+    while(topics[i++] != NULL) {
+        ++topic_count;
+    }
+    return topic_count;
+ }
 
-static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char *topic, const char* topic_type){
-
+static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topic[], size_t num_of_topics, const char* topic_type){
     char* topic_cfg = NULL;
     char* mode_address[SIZE];
     char* host_port[SIZE];
@@ -90,6 +99,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
     int i;
     int j;
 
+    mode_address[2] = NULL;
     char* dev_mode_env = getenv(DEV_MODE_ENV);
     if(dev_mode_env == NULL) {
         LOG_ERROR("%s env doesn't exist", DEV_MODE_ENV);
@@ -100,7 +110,6 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
         LOG_ERROR("%s env doesn't exist", APPNAME_ENV);
         goto err;
     }
-    const char cfg[]= "_cfg";
 
     bool dev_mode = false;
     if(!strcmp(dev_mode_env,"true")){
@@ -116,7 +125,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
 
     if (!strcmp(topic_type,SUB)){
         char* individual_topic;
-        ret = strncpy_s(publisher_topic, SIZE, topic, strlen(topic));
+        ret = strncpy_s(publisher_topic, SIZE, topic[0], strlen(topic[0]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
@@ -128,6 +137,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
             pub_topic[j] = individual_topic;
             j++;
         }
+
         if (j == 1 || j > 2) {
             LOG_ERROR("sub topic should be of the format [AppName]/[stream_name]");
             goto err;
@@ -161,18 +171,18 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
         }
-        ret = strncat_s(publisher_topic, SIZE, cfg, strlen(cfg));
+        ret = strncat_s(publisher_topic, SIZE, CFG, strlen(CFG));
         if(ret != 0) {
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
      } else if(!strcmp(topic_type,PUB)){
-        ret = strncpy_s(publisher_topic,SIZE, topic, strlen(topic));
+        ret = strncpy_s(publisher_topic,SIZE, topic[0], strlen(topic[0]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
         }
-        ret = strncat_s(publisher_topic, SIZE, cfg, strlen(cfg));
+        ret = strncat_s(publisher_topic, SIZE, CFG, strlen(CFG));
         if(ret != 0) {
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
@@ -188,9 +198,17 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
         goto err;
     }
     i=0;
+
     while((data = strtok_r(topic_cfg, ",", &topic_cfg))) {
         mode_address[i] = data;
         i++;
+    }
+
+    if(mode_address[2] == NULL) {
+        LOG_DEBUG_0("socket file not explicitly given by application");
+    }
+    else {
+        LOG_DEBUG_0("socket file explicitly given by application");
     }
 
     mode = mode_address[0];
@@ -340,10 +358,38 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
                 cJSON_AddStringToObject(pub_sub_topic, "client_secret_key",client_secret_key);
             }
 
+        } else {
+            LOG_ERROR_0("topic is neither PUB nor SUB");
+            goto err;
         }
 
-    } else if(!strcmp(mode,"zmq_ipc")){
+    } else if(!strcmp(mode,"zmq_ipc")) {
+        char* socket_file = NULL;
+        if(mode_address[2] == NULL) {
+            LOG_DEBUG_0("Socket file explicitly not given by application ");
+        } else {
+            LOG_DEBUG("Socket file given by the application is = %s",mode_address[2]);
+            socket_file = mode_address[2];
+        }
         cJSON_AddStringToObject(json, "socket_dir", mode_address[1]);
+
+        // If socket_file is given by the application
+        if(socket_file != NULL) {
+            if(!strcmp(topic_type,PUB)) {
+                LOG_DEBUG_0(" topic type is Pub");
+                for (size_t i=0; i < num_of_topics; ++i) {
+                    cJSON* socket_file_obj = cJSON_CreateObject();
+                    cJSON_AddItemToObject(json, topic[i], socket_file_obj);
+                    cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, socket_file);
+                }
+            } else if(!strcmp(topic_type,SUB)) {
+                LOG_DEBUG_0(" topic type is Sub");
+                cJSON* socket_file_obj = cJSON_CreateObject();
+                cJSON_AddItemToObject(json, actual_topic, socket_file_obj);
+                cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, socket_file);
+            }
+        }
+
     } else {
         LOG_ERROR("mode: %s is not supported", mode);
         return NULL;
@@ -358,7 +404,6 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, const char
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
-
     return config;
 
 err:
@@ -416,6 +461,7 @@ env_config_t* env_config_new(){
     }
     env_config->get_topics_from_env = get_topics_from_env;
     env_config->get_messagebus_config = get_messagebus_config;
+    env_config->get_topics_count = get_topics_count;
     env_config->trim = trim;
     return env_config;
 }

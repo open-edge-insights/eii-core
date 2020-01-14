@@ -199,20 +199,22 @@ To refer C examples follow config_manager.c in [examples/](examples/)
 
 3. Getting EIS Message Bus config from ENV variables and config manager.
 
-    `config_t* msgbus_config_pub = env_config_client->get_messagebus_config(config_mgr_client, pub_topics[0], "pub");`
-    `config_t* msgbus_config_sub = env_config_client->get_messagebus_config(config_mgr_client, sub_topics[0], "sub");`
+    `config_t* msgbus_config_pub = env_config_client->get_messagebus_config(config_mgr_client, pub_topics[], num_of_topics, "pub");`
+    `config_t* msgbus_config_sub = env_config_client->get_messagebus_config(config_mgr_client, sub_topics[], num_of_topics, "sub");`
 
     **API documentation:**
 
-    `config_t* get_messagebus_config(const config_mgr_t* configmgr, const char topic[], const char* topic_type);`
+    `config_t* get_messagebus_config(const config_mgr_t* configmgr, const char* topic[], size_t num_of_topics, const char* topic_type);`
     ```
-        get_messagebus_config function gives the configuration that needs in connecting to EIS messagebus
+        get_messagebus_config function gives the configuration that needs in connecting to EIS messagebus. In case of supporting multiple topics, the application will be responsible for providing the context for TCP & IPC connection. Example, in case of IPC the connection parameters which include socket directory & socket file are provided by the application.
+
         @param configmgr       - Config Manager object
-        @param topic           - Topic for which msg bus config needs to be constructed
+        @param topic           - Array of Topics for which msg bus config needs                          to be constructed
                                  In case the topic is being published, it will be the stream name like `camera1_stream`
                                  and in case the topic is being subscribed, it will be of the format
                                  `[Publisher_AppName]/[stream_name]`.
                                  Eg: `VideoIngestion/camera1_stream`
+        @param num_of_topics   - Number of topics
         @param topic_type      - TopicType for which msg bus config needs to be constructed
         @return config_t*      - JSON msg bus config of type config_t
     ```

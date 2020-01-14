@@ -51,15 +51,24 @@ typedef struct {
      * get_messagebus_config function gives the configuration of the pub/sub topic to communicate over EIS messagebus
      *
      * @param configmgr       - Config Manager object
-     * @param topic           - Topic for which msg bus config needs to be constructed.
+     * @param topic[]           -C string array having list of topics for which msg bus config needs to be constructed.
      *                          In case the topic is being published, it will be the stream name like `camera1_stream`
      *                          and in case the topic is being subscribed, it will be of the format
      *                          `[Publisher_AppName]/[stream_name]`.
      *                          Eg: `VideoIngestion/camera1_stream`
+     * @param num_of_topics    - num of topics
      * @param topic_type      - TopicType for which msg bus config needs to be constructed
      * @return config_t*      - JSON msg bus config of type config_t
      */
-    config_t* (*get_messagebus_config)(const config_mgr_t* configmgr, const char topic[], const char* topic_type);
+    config_t* (*get_messagebus_config)(const config_mgr_t* configmgr, char* topic[], size_t num_of_topics, const char* topic_type);
+
+    /**
+     * get_topics_count function gives the number of topics returned by the other Env_config API "get_topics_from_env"
+     *
+     * @param topics[]       -  An array of C strings provided by get_messagebus_config
+     * @return size_t      -    Number of topics returned by by get_messagebus_config API (type is unsigned int)
+     */
+    size_t (*get_topics_count)(char* topics[]);
 
     /**
      * trim function removes white spaces around the string value
