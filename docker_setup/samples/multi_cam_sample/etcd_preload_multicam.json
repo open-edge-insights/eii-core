@@ -144,7 +144,12 @@
     "/Visualizer/config": {
         "display": "true",
         "save_image": "false",
-        "cert_path": ""
+        "labels" : {
+            "camera1_stream_results": {
+                "0": "MISSING",
+                "1": "SHORT"
+            }
+        }
     },
     "/GlobalEnv/": {
         "PY_LOG_LEVEL": "INFO",
