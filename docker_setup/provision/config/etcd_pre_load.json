@@ -59,7 +59,19 @@
     "/WebVisualizer/config": {
         "username": "admin",
         "password": "admin@123",
-        "port": 5000
+        "port": 5000,
+        "labels" : {
+            "camera1_stream_results": {
+                "0": "MISSING",
+                "1": "SHORT"
+            },
+            "camera2_stream_results":{
+                "1": "safety_helmet",
+                "2": "safety_jacket",
+                "3": "Safe",
+                "4": "Violation"
+            }
+        }
     },
     "/InfluxDBConnector/config": {
         "influxdb": {
