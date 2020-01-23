@@ -3,7 +3,7 @@
 ## `Etcd Secrets Configuration`
 
 The below are the ENV's that should be present in the environment section
-of every service in [docker-compose.yml](docker_setup/docker-compose.yml):
+of every service in [docker-compose.yml](build/docker-compose.yml):
 
 ```
   [service_name]:
@@ -19,7 +19,7 @@ of every service in [docker-compose.yml](docker_setup/docker-compose.yml):
 Etcd secrets(certs) for all the services of docker compose file will be generated automatically during provisioning.
 Post provisioning this secrets should be mentioned in following two places for each service.
 
-1) in the `secrets` section at the bottom of [docker-compose.yml](docker_setup/docker-compose.yml):
+1) in the `secrets` section at the bottom of [docker-compose.yml](build/docker-compose.yml):
     ```
     secrets:
       etcd_ca_certificate:
@@ -64,7 +64,7 @@ Post provisioning this secrets should be mentioned in following two places for e
 ## `Messagebus Endpoints Configuration`
 
 The below are the ENV's that should be present in the environment section
-of every service in [docker-compose.yml](docker_setup/docker-compose.yml). All services needs
+of every service in [docker-compose.yml](build/docker-compose.yml). All services needs
 to have all or section of the below ENV's based on if the service is a
 publisher/subscriber/server/client type.
 

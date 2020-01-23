@@ -143,7 +143,7 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_KEY"] = "/run/secrets/etcd_root_key"
 
     apps = get_appname(str(sys.argv[1]))
-    load_data_etcd("./config/etcd_pre_load.json")
+    load_data_etcd("./config/eis_config.json")
     for key, value in apps.items():
         try:
             if not devMode:

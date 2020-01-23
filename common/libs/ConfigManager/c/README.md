@@ -292,7 +292,7 @@ To refer C examples follow env_config_example.c in [examples/](examples/)
 **NOTE:** Ensure provisioning is done, in order to run env_config example in prod_mode.
 
 ```
-sudo cp ../../../../docker_setup/provision/Certificates/ca/* ../../../../docker_setup/provision/Certificates/VideoIngestion/* ./examples/Sample_certs/.
+sudo cp ../../../../build/provision/Certificates/ca/* ../../../../build/provision/Certificates/VideoIngestion/* ./examples/Sample_certs/.
   ```
 
 3. mkdir build

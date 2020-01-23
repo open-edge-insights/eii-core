@@ -21,7 +21,7 @@ class EisBundleGenerator:
             if self.env['DOCKER_REGISTRY'] is '' or \
                     "/" not in self.env['DOCKER_REGISTRY']:
                 print("Please Check the Docker Regsitry Address in \
-                'DOCKER_REGISTRY' env of docker_setup\\.env file")
+                'DOCKER_REGISTRY' env of build\\.env file")
                 os._exit(1)
 
     def get_env_dict(self):

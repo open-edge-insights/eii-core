@@ -76,7 +76,7 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
    
    * If one wants to install the tools and configure it manually, please follow the steps mentioned in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md)
 
-2. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [docker_setup/docker_security_recommendation.md](docker_setup/docker_security_recommendation.md)
+2. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [build/docker_security_recommendation.md](build/docker_security_recommendation.md)
 
 3. **Optional:** If one wishes to enable log rotation for docker containers
 
@@ -140,51 +140,50 @@ Follow below steps to provision EIS. Provisioning must be done before deploying 
 
 Please follow below steps to provision EIS in Developer mode. Developer mode will have all security disabled.
 
-* Please update DEV_MODE=true in [docker_setup/.env](docker_setup/.env) to provision EIS in Developer mode.
-* <b>Please comment secrets section for all services in [docker_setup/docker-compose.yml](../docker-compose.yml)</b>
+* Please update DEV_MODE=true in [build/.env](build/.env) to provision EIS in Developer mode.
+* <b>Please comment secrets section for all services in [build/docker-compose.yml](../docker-compose.yml)</b>
 
 Following actions will be performed as part of Provisioning
 
- * Loading inital ETCD values from json file located at [docker_setup/provision/config/etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json).
+ * Loading inital ETCD values from json file located at [build/provision/config/etcd_pre_load.json](build/provision/config/etcd_pre_load.json).
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
- * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [docker_setup/.env](docker_setup/.env).
- * If HOST_IP is blank in [docker_setup/.env](docker_setup/.env), then HOST_IP will be automatically detected when server certificates are generated.
+ * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
+ * If HOST_IP is blank in [build/.env](build/.env), then HOST_IP will be automatically detected when server certificates are generated.
 
-**Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](docker_setup/provision/volume_data_script.py). The script can be run by the command:
+**Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](build/provision/volume_data_script.py). The script can be run by the command:
 ```
 python3.6 volume_data_script.py
 ```
 
 Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
 ```
-$ cd [repo]/docker_setup/provision
+$ cd [repo]/build/provision
 $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
 eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
 ```
-**Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](docker_setup/provision/etcd_capture.sh) script. This can be achieved using the following command:
+**Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
 ```
 ./etcd_capture.sh
 ```
 
 # Build and Run EIS PCB/timeseries use cases
 
-    
   ---
   > **Note:**
-  > * All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
-  > * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
+  > * All EIS build and run commands are to be executed from the [repo]/build/ directory.
+  > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
      run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. 
      This is needed by `ia_visualizer` service to render the UI
   > * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber. 
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root. 
-     In [docker-compose.yml](docker_setup/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the 
+     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the 
      same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above, 
      then the subscriber service should not have that too.
   > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the 
-     [docker-compose.yml](docker_setup/docker-compose.yml) file can be modified with the required configurations and 
+     [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and 
      below command can be used to build and run the containers.
   >    ```sh
   >     $ docker-compose up --build -d
@@ -195,22 +194,22 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 Below are the main usecases supported by EIS:
 
 * For video streaming use case only:
-  Refer our default docker-compose file at [docker_setup/docker-compose.yml](docker_setup/docker-compose.yml)
+  Refer our default docker-compose file at [build/docker-compose.yml](build/docker-compose.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer
 
 * For video streaming and historical use case:
-  Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-video-streaming-and-historical-usecase.yml](docker_setup/samples/docker-compose-video-streaming-and-historical-usecase.yml)
+  Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-and-historical-usecase.yml](build/samples/docker-compose-video-streaming-and-historical-usecase.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
 * For timeseries use case only:
-  Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml)
+  Sample docker-compose file is accessible at [build/samples/docker-compose-timeseries-usecase.yml](build/samples/docker-compose-timeseries-usecase.yml)
 
     > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
   
 * For video streaming and timeseries use case:
-  Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml](docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml)
+  Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-timeseries-usecase.yml](build/samples/docker-compose-video-streaming-timeseries-usecase.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
 
@@ -242,7 +241,7 @@ A successful run will open Visualizer UI with results of video analytics for all
 Etcd Secrets and MessageBus endpoint configurations are done to establish the data path
 and configuration of various EIS containers.
 
-Every service in [docker_setup/docker-compose.yml](docker_setup/docker-compose.yml)
+Every service in [build/docker-compose.yml](build/docker-compose.yml)
 is a
 * messagebus client if it needs to send or receive data over EISMessageBus
 * etcd client if it needs to get data from etcd distributed key store
@@ -257,12 +256,12 @@ All the changes related to camera type are made in the Etcd ingestor configurati
 
 For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
 
-For Sample docker-compose file and ETCD preload values for multiple camaras, refer to [docker_setup/samples/multi_cam_sample/README.md](docker_setup/samples/multi_cam_sample/README.md).
+For Sample docker-compose file and ETCD preload values for multiple camaras, refer to [build/samples/multi_cam_sample/README.md](build/samples/multi_cam_sample/README.md).
 
 # Using video accelerators
 
 EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU"), part of the `udf` object configuration in `udfs`
-key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json)
+key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](build/provision/config/etcd_pre_load.json)
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
 check [common/udfs/README.md](common/udfs/README.md).
 
@@ -336,7 +335,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 
   Please Refer the [README_fpga.md](README_fpga.md) for installing FPGA drivers. Once that is setup, please follow below steps:
   
-  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](docker_setup/docker-compose.yml).
+  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](build/docker-compose.yml).
     If one is using docker-compose samples, please ensure to follow the same.
   
     Eg: Just set the value of `FPGA_ENABLE` to `enable` like below for `ia_openvino_base` service:
@@ -349,7 +348,7 @@ check [common/udfs/README.md](common/udfs/README.md).
     ```
   * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above. 
     For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
-    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json)
+    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](build/provision/config/etcd_pre_load.json)
     before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
     check [common/udfs/README.md](common/udfs/README.md).
 
@@ -361,31 +360,28 @@ For time-series data, a sample analytics flow uses Telegraf for ingestion, Influ
 
 For enabling this, different set of containers need to be built in EIS and it can be selected by modifying the docker-compose file.
 
-Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
+Please incldue following services in [docker-compose.yml](build/docker-compose.yml) for Time series analytics example.
 
 > ia_telegraf, ia_influxdbconnector, ia_kapacitor, ia_grafana
-
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
-For sample docker-compose file for TimeSeries analytics, refer to [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml).
-
+For sample docker-compose file for TimeSeries analytics , refer to [build/samples/docker-compose-time-series-analytics.yml](build/samples/docker-compose-time-series-analytics.yml).
 
 # DiscoveryCreek
 
 DiscoveryCreek is a machine learning based anomaly detection engine.
 
-For enabling DiscoveryCreek, please include the following services in the [docker-compose.yml](docker_setup/docker-compose.yml) file:
+For enabling DiscoveryCreek, please include the following services in the [docker-compose.yml](build/docker-compose.yml) file:
 
 > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc
 
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
 
-For sample docker-compose file for DiscoveryCreek analytics, refer to [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml).
-
+For sample docker-compose file for DiscoveryCreek analytics , refer to [build/samples/docker-compose-discovery-creek.yml](build/samples/docker-compose-discovery-creek.yml).
 
 # List of All EIS Services
 
@@ -410,13 +406,13 @@ EIS stack comes with following services, which can be included/excluded in docke
 # EIS multi node cluster provision and deployment using Turtlecreek
 
 By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and 
-remote managibility using turtlecreek, please follow [docker_setup/deploy/README.md](docker_setup/deploy/README.md)
+remote managibility using turtlecreek, please follow [build/deploy/README.md](build/deploy/README.md)
 
 
 # Debugging options
 
 1. To check if all the EIS images are built successfully, use cmd: `docker images|grep ia` and
-   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EIS containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `docker_setup\dockerfiles` at the top after the LABEL instruction and retry the building EIS images:
+   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EIS containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `build\dockerfiles` at the top after the LABEL instruction and retry the building EIS images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911

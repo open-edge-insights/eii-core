@@ -44,7 +44,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes 
 Provision the Master node using the below command.
 
         ```
-        $ cd [EIS_repo]/docker_setup/provision
+        $ cd [EIS_repo]/build/provision
         $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
@@ -59,7 +59,7 @@ EIS Deployment on multiple node must be done using a docker registry.
 
 Follow below steps:
 
-* Please update docker registry url in DOCKER_REGISTRY variable in [docker_setup/.env](docker_setup/.env). Please use full registry URL with a traliling /
+* Please update docker registry url in DOCKER_REGISTRY variable in [build/.env](build/.env). Please use full registry URL with a traliling /
 
 * Building EIS images and pushing the same to docker registry.
 
@@ -69,7 +69,7 @@ Follow below steps:
 
       ```
 
-> **NOTE**: Please copy only docker_setup folder on node on which EIS is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
+> **NOTE**: Please copy only build folder on node on which EIS is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
 > **NOTE**: Above commenting/removing build dependencies is not required if entire EIS repo is present on the node on which EIS is being launched through registry.
 
 
@@ -79,7 +79,7 @@ EIS uses ETCD for clustering. When EIS is deployed on a cluster having multiple 
 
 By default EIS starts with single node cluster.
 
-For running EIS in multi node cluster mode, we have to indetify one master node. For a master node, ETCD_NAME in [docker_setup/.env](../.env) must be set to `master`.
+For running EIS in multi node cluster mode, we have to indetify one master node. For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`.
 
 > **NOTE**: Master node is the primary administative node, which is used for following
 > * Generating Required Certificates and Secrets.
@@ -95,8 +95,8 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
 > **NOTE**:
 > * Steps 'a' to be executed on `master` node'.
 > * Step 'b' to be executed on 'new node' which will join EIS cluster.
-> * Please execute below commands in directory [repo]/docker_setup/provision.
-> * For environment under proxy, please make sure IP addresses or IP range for all nodes in a cluster are appended to no_proxy in [docker_setup/.env](../.env) for `master` node.
+> * Please execute below commands in directory [repo]/build/provision.
+> * For environment under proxy, please make sure IP addresses or IP range for all nodes in a cluster are appended to no_proxy in [build/.env](../.env) for `master` node.
 
 
 
@@ -110,7 +110,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
         ```
-* <b>Please execute below command in working directory docker_setup/provision to join new node to cluster.</b>
+* <b>Please execute below command in working directory build/provision to join new node to cluster.</b>
 
 ```
 
@@ -123,7 +123,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
 > **NOTE**: Please note that `< NodeName >` and `< IP Address of the New Node >` above, must not be part of existing node list of the cluster. (Please use command `./etcd_cluster_info.sh` to see existing node list of the cluster.)
 
 * Once the above command is executed successfully, a message should come that node is added to cluster.
-* Also it will create a `<NodeName>_provision.tar.gz` file in docker_setup/provision/ folder. This file needs to be copied to New Node.
+* Also it will create a `<NodeName>_provision.tar.gz` file in build/provision/ folder. This file needs to be copied to New Node.
 
 > **NOTE**: Please make sure to copy and untar the above bundle on a secure location having root only access as it container secrets.
 
@@ -167,7 +167,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
 >Note: This deployment bundle is used as both provisioning bundle & deployment bundle in case of "Multi-node provisioning without etcd clustering" (aka Lightweight provisioning).
 
 1. This software works only on python3+ version.
-2. Please update the [docker_setup/deploy/config.json](./config.json) file
+2. Please update the [build/deploy/config.json](./config.json) file
 
       ```
         {
@@ -179,7 +179,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
         }
       ```
     ***Note***: Please validate the json.
-    Also Please ensure that you have updated the DOCKER_REGISTRY in [docker_setup/.env](../.env) file
+    Also Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
 
 3. Follow the below commands for EIS bundle Generation.
     ```
@@ -251,7 +251,7 @@ EIS Deployment will be done only TurtleCreek Installed & Provisioned Device via 
 
     While deploying EIS Software Stack via Telit-TurtleCreek. Visualizer UI will not pop up because of display not attached to docker container of Visualizer.
 
-    To Overcome. goto IEdgeInsights/docker_setup
+    To Overcome. goto IEdgeInsights/build
     -->  Stop the running ia_visualizer container with it's name or container id using "docker ps" command.
          ```sh
          docker rm -f ia_visualizer
@@ -272,13 +272,13 @@ Once EIS bundle is generated using Step 4, copy the bundle tar.gz to new node an
 
 ```
     $ sudo tar -xvf <eis_bundle gz generated in step 4>
-    $ cd docker_setup
+    $ cd build
     $ docker-compose up -d
 
     eq.
 
     $ sudo tar -xvf eis_bundle.tar.gz
-    $ cd docker_setup
+    $ cd build
     $ docker-compose up -d
 
 ```

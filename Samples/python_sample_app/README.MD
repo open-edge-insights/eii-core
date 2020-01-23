@@ -45,18 +45,18 @@ ia_python_publisher container.
 ## `Configuration`
 1. Please replace the
 
-   [docker-compose.yml](../../docker_setup/docker-compose.yml) with
+   [docker-compose.yml](../../build/docker-compose.yml) with
    [docker-compose.yml](./docker-compose.yml)
 
    And
 
-   [etcd_pre_load.json](../../docker_setup/provision/config/etcd_pre_load.json) with
+   [etcd_pre_load.json](../../build/provision/config/etcd_pre_load.json) with
    [etcd_pre_load.json](./config/etcd_pre_load.json)
 
 2. Do provisioning and start containers.
 
    ```sh
-   $ cd docker_setup/provision
+   $ cd build/provision
    $ sudo ./provision_eis.sh ../docker-compose.yml
    $ cd ..
    ```

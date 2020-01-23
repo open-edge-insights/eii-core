@@ -1,0 +1,69 @@
+version: '3.6'
+
+services:
+
+  ##----Start: EIS Base Images -- These Base images must be included for building any EIS servcies ----
+  ## Define ia_eisbase service
+  ia_eisbase:
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
+      args:
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        EIS_VERSION: ${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
+
+  ## Define ia_common service
+  ia_common:
+    depends_on:
+    - ia_eisbase
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: Release
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+
+  ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+
+  ## Define ETCD UI service - must be included to view ETCD data over web UI
+  ia_etcd_ui:
+    build:
+      context: $PWD/../EtcdUI
+      dockerfile: $PWD/../EtcdUI/Dockerfile
+      args:
+        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
+        EIS_VERSION: ${EIS_VERSION}
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
+    container_name: ia_etcd_ui
+    hostname: ia_etcd_ui
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      AppName: "EtcdUi"
+      DEV_MODE: ${DEV_MODE}
+    user: ${EIS_UID}
+    secrets:
+      - ca_etcd
+      - etcd_root_cert
+      - etcd_root_key
+
+volumes:
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
+
+secrets:
+  ca_etcd:
+    file: provision/Certificates/ca/ca_certificate.pem
+  etcd_root_cert:
+    file: provision/Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file: provision/Certificates/root/root_client_key.pem

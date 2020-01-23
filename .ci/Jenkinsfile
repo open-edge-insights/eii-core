@@ -42,9 +42,9 @@ pipeline {
                 cleanWs()
                 checkout scm
 
-                // Enable all services in docker_setup/docker-compose.yml
-                echo "Uncomment all services in docker_setup/docker-compose.yml file..."
-                sh 'sed -i "s:^  # :  :g" docker_setup/docker-compose.yml'
+                // Enable all services in build/docker-compose.yml
+                echo "Uncomment all services in build/docker-compose.yml file..."
+                sh 'sed -i "s:^  # :  :g" build/docker-compose.yml'
 
                 dir('CITests') {
                     git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', branch: "${params.CI_TESTS_BRANCH}", changelog: false, poll: false

@@ -54,6 +54,5 @@ RUN cd ./common/libs/EISMessageBus && \
 # the subfolders
 COPY libs ./common/libs
 COPY util ./common/util
-COPY udfs ./common/udfs
 
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"

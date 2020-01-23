@@ -17,10 +17,10 @@ def get_volume_info(filepath):
                         list_of_volumes = list(value.keys())
 
     for vol in list_of_volumes:
-        cmd = 'docker volume ls | grep ' + 'docker_setup_' + vol + ' | wc -l'
+        cmd = 'docker volume ls | grep ' + 'build_' + vol + ' | wc -l'
         if int(_execute_cmd(cmd)) == 1 :
             print("Cleaning volume:",vol)
-            _execute_cmd('docker volume rm docker_setup_' + vol)
+            _execute_cmd('docker volume rm build_' + vol)
 
     command= 'docker volume ls | grep dep_vol_etcd | wc -l'
     if int(_execute_cmd(command)) == 1:

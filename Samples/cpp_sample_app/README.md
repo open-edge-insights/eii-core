@@ -45,7 +45,7 @@ The high level logical flow of Sample App is as below:
 2. Do provisioning and start containers.
 
    ```sh
-   $ cd docker_setup/provision
+   $ cd build/provision
    $ sudo ./provision_eis.sh ../docker-compose.yml
    $ cd ..
    ```

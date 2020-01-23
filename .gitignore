@@ -18,9 +18,9 @@ __pycache__/
 *.test
 
 common/openvino/l_openvino*
-docker_setup/provision/Certificates
-docker_setup/provision/client/
-docker_setup/provision/rootca/
-docker_setup/provision/server/
-docker_setup/provision/node*
+build/provision/Certificates
+build/provision/client/
+build/provision/rootca/
+build/provision/server/
+build/provision/node*
 .vscode

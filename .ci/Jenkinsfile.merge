@@ -73,9 +73,9 @@ pipeline {
         // https://jenkins-iotg-ba.iind.intel.com/job/EIS-CI-Merge-Request/configure
         stage('Build') {
             steps {
-                // Enable all services in docker_setup/docker-compose.yml
-                echo "Uncomment all services in docker_setup/docker-compose.yml file..."
-                sh 'sed -i "s:^  # :  :g" docker_setup/docker-compose.yml'
+                // Enable all services in build/docker-compose.yml
+                echo "Uncomment all services in build/docker-compose.yml file..."
+                sh 'sed -i "s:^  # :  :g" build/docker-compose.yml'
 
                 dir('CITests') {
                     sh '''
