@@ -34,10 +34,13 @@
 #define PUBTOPICS_ENV "PubTopics"
 #define SUBTOPICS_ENV "SubTopics"
 #define DEV_MODE_ENV "DEV_MODE"
+#define RequestEP "RequestEP"
 #define APPNAME_ENV "AppName"
 #define ZMQ_RECV_HWM_ENV "ZMQ_RECV_HWM"
 #define CFG "_cfg"
 #define SOCKET_FILE "socket_file"
+#define SERVER "Server"
+#define CLIENT "client"
 
 // Forward declaration
 void trim(char* str_value);
@@ -176,7 +179,8 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
-     } else if(!strcmp(topic_type,PUB)){
+        topic_cfg = getenv(publisher_topic);
+    } else if(!strcmp(topic_type,PUB)){
         ret = strncpy_s(publisher_topic,SIZE, topic[0], strlen(topic[0]));
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
@@ -187,12 +191,26 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
+        topic_cfg = getenv(publisher_topic);
+    }else if(!strcmp(topic_type,"server")){
+        topic_cfg = getenv(SERVER);
+    }else if(!strcmp(topic_type,CLIENT)){
+        ret = strncpy_s(publisher_topic,SIZE, topic[0], strlen(topic[0]));
+        if(ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d)", ret);
+            goto err;
+        }
+        ret = strncat_s(publisher_topic, SIZE, CFG, strlen(CFG));
+        if(ret != 0) {
+            LOG_ERROR("String concatenation failed (errno: %d)", ret);
+            goto err;
+        }
+        topic_cfg = getenv(publisher_topic);
     } else {
         LOG_ERROR("topic type: %s is not supported", topic_type);
         goto err;
     }
     LOG_DEBUG("publisher_topic: %s", publisher_topic);
-    topic_cfg = getenv(publisher_topic);
     if(topic_cfg == NULL) {
         LOG_ERROR("%s env doens't exist", publisher_topic);
         goto err;
@@ -358,11 +376,129 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
                 cJSON_AddStringToObject(pub_sub_topic, "client_secret_key",client_secret_key);
             }
 
-        } else {
-            LOG_ERROR_0("topic is neither PUB nor SUB");
-            goto err;
         }
+        else if (!strcmp(topic_type,"server")){
+            cJSON* zmq_tcp_server = cJSON_CreateObject();
+            cJSON_AddItemToObject(json, topic[0], zmq_tcp_server);
+            cJSON_AddStringToObject(zmq_tcp_server, "host", host);
+            cJSON_AddNumberToObject(zmq_tcp_server, "port", i_port);
 
+            if(!dev_mode){
+                i = 0;
+                const char* allowed_clients[SIZE];
+                char* clients = getenv("Clients");
+                while((data = strtok_r(clients, ",", &clients))) {
+                    allowed_clients[i] = data;
+                    i++;
+                }
+
+		cJSON* all_clients = cJSON_CreateArray();
+                for(j=0; j<i; j++){
+                    ret = strncpy_s(publicKey, SIZE, "/Publickeys/", strlen("/Publickeys/"));
+                    if(ret != 0) {
+                        LOG_ERROR("String copy failed (errno: %d)", ret);
+                        goto err;
+                    }
+                    ret = strncat_s(publicKey, SIZE, allowed_clients[j], strlen(allowed_clients[j]));
+                    if(ret != 0) {
+                        LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                        goto err;
+                    }
+                    char* client_pub_key = configmgr->get_config(publicKey);
+
+                    if(strcmp(client_pub_key,"")){
+                        cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_pub_key));
+                    }
+                }
+
+                char* app_private_key = (char*) calloc(SIZE, sizeof(char));
+                if(app_private_key == NULL) {
+                    goto err;
+                }
+                app_private_key[0] = '/';
+                ret = strncat_s(app_private_key, SIZE, app_name_env, strlen(app_name_env));
+                if(ret != 0) {
+                    LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                    goto err;
+                }
+                ret = strncat_s(app_private_key, SIZE, "/private_key", strlen("/private_key"));
+                if(ret != 0) {
+                    LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                    goto err;
+                }
+
+	        const char* server_secret_key = configmgr->get_config(app_private_key);
+
+                cJSON_AddStringToObject(zmq_tcp_server, "server_secret_key",server_secret_key);
+                cJSON_AddItemToObject(json, "allowed_clients", all_clients);
+	    }
+	}
+	else if(!strcmp(topic_type,"client")){
+            cJSON* zmq_tcp_client = cJSON_CreateObject();
+            cJSON_AddItemToObject(json, topic[0], zmq_tcp_client);
+            cJSON_AddStringToObject(zmq_tcp_client, "host", host);
+            cJSON_AddNumberToObject(zmq_tcp_client, "port", i_port);
+
+	    if(!dev_mode){
+		char* end_point_list = NULL;
+                char* end_point = NULL;
+                end_point_list = getenv(RequestEP);
+                while((end_point = strtok_r(end_point_list, ",", &end_point_list))) {
+                    if (!strcmp(topic[0],end_point)) {
+                        ret = strncpy_s(publicKey, SIZE, "/Publickeys/", strlen("/Publickeys/"));
+                        if(ret != 0) {
+                            LOG_ERROR("String copy failed (errno: %d)", ret);
+                            goto err;
+                        }
+                        ret = strncat_s(publicKey, SIZE, app_name_env, strlen(app_name_env));
+                        if(ret != 0) {
+                            LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                            goto err;
+                        }
+                        free(publisher);
+
+                        const char* client_pub_key = configmgr->get_config(publicKey);
+                        cJSON_AddStringToObject(zmq_tcp_client, "client_public_key",client_pub_key);
+                        ret = strncpy_s(publicKey, SIZE, "/Publickeys/", strlen("/Publickeys/"));
+
+                        if(ret != 0) {
+                            LOG_ERROR("String copy failed (errno: %d)", ret);
+                            goto err;
+                        }
+                        ret = strncat_s(publicKey,SIZE, topic[0], strlen(topic[0]));
+                        if(ret != 0) {
+                            LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                            goto err;
+                        }
+
+                        const char* server_pub_key = configmgr->get_config(publicKey);
+                        cJSON_AddStringToObject(zmq_tcp_client, "server_public_key",server_pub_key);
+
+                        char* app_private_key = (char*) calloc(SIZE, sizeof(char));
+                        if(app_private_key == NULL) {
+                            LOG_ERROR_0("Calloc failed");
+                            goto err;
+                        }
+                        app_private_key[0] = '/';
+                        ret = strncat_s(app_private_key,SIZE,app_name_env, strlen(app_name_env));
+                        if(ret != 0) {
+                            LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                            goto err;
+                        }
+                        ret = strncat_s(app_private_key, SIZE, "/private_key", strlen("/private_key"));
+                        if(ret != 0) {
+                            LOG_ERROR("String concatenation failed (errno: %d)", ret);
+                            goto err;
+                        }
+                        const char* client_secret_key = configmgr->get_config(app_private_key);
+                        cJSON_AddStringToObject(zmq_tcp_client, "client_secret_key",client_secret_key);
+                    }
+                }
+            }
+        } else {
+            LOG_ERROR_0("topic is neither PUB nor SUB / neither Server nor Client");
+            goto err;
+          }
     } else if(!strcmp(mode,"zmq_ipc")) {
         char* socket_file = NULL;
         if(mode_address[2] == NULL) {
@@ -390,7 +526,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             }
         }
 
-    } else {
+    }else {
         LOG_ERROR("mode: %s is not supported", mode);
         return NULL;
     }

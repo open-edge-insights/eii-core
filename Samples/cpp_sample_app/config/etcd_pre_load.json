@@ -1,0 +1,6 @@
+{
+    "/GlobalEnv/": {
+        "C_LOG_LEVEL": "INFO",
+        "ETCD_KEEPER_PORT": "7070"
+    }
+}

@@ -1,0 +1,145 @@
+version: '3.6'
+
+services:
+
+  ia_eisbase:
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
+      args:
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          EIS_VERSION: ${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
+
+  ## Define ia_common service
+  ia_common:
+    depends_on:
+      - ia_eisbase
+    build:
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
+      args:
+          EIS_VERSION: ${EIS_VERSION}
+          # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+          CMAKE_BUILD_TYPE: "Release"
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+
+  ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+
+  ## Define ETCD UI service - must be included to view ETCD data over web UI
+  ia_etcd_ui:
+    build:
+      context: $PWD/../EtcdUI
+      dockerfile: $PWD/../EtcdUI/Dockerfile
+      args:
+        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
+        EIS_VERSION: ${EIS_VERSION}
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
+    container_name: ia_etcd_ui
+    hostname: ia_etcd_ui
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      AppName: "EtcdUi"
+      DEV_MODE: ${DEV_MODE}
+    user: ${EIS_UID}
+    secrets:
+      - ca_etcd
+      - etcd_root_cert
+      - etcd_root_key
+
+  ia_cpp_publisher:
+    build:
+      context: $PWD/../Samples//cpp_sample_app
+      dockerfile: $PWD/../Samples/cpp_sample_app/Dockerfile.pub
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+        EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+    image: ${DOCKER_REGISTRY}ia_cpp_publisher:${EIS_VERSION}
+    container_name: ia_cpp_publisher
+    hostname: ia_cpp_publisher
+    network_mode: host
+    restart: unless-stopped
+    user: ${EIS_UID}
+    environment:
+      AppName: "cppPublisher"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${no_proxy}
+      # MessageBus Endpoint Configuration
+      Clients : "cppSubscriber"
+      CertType: "zmq"
+      
+      # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
+      # containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: zmq_ipc, <absolute_socket_directory_path>
+      # TPC: zmq_tcp, <publisher_host>:<publisher_port>
+      PubTopics: "publish_test"
+      publish_test_cfg: "zmq_tcp,127.0.0.1:60013"
+      Server: "zmq_tcp,127.0.0.1:50013"
+      # publish_test_cfg_cfg: "zmq_ipc,${SOCKET_DIR}/"
+    secrets:
+      - ca_etcd
+      - etcd_cppPublisher_cert
+      - etcd_cppPublisher_key
+
+  ia_cpp_subscriber:
+    build:
+      context: $PWD/../Samples/cpp_sample_app
+      dockerfile: $PWD/../Samples/cpp_sample_app/Dockerfile.sub
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+        EIS_USER_NAME: ${EIS_USER_NAME}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+    image: ${DOCKER_REGISTRY}ia_cpp_subscriber:${EIS_VERSION}
+    container_name: ia_cpp_subscriber 
+    hostname: ia_cpp_subscriber
+    network_mode: host
+    restart: unless-stopped
+    user: ${EIS_UID}
+    environment:
+      AppName: "cppSubscriber"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${no_proxy}
+      # MessageBus Endpoint Configuration
+      CertType: "zmq"
+
+      # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
+      # containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: zmq_ipc, <absolute_socket_directory_path>
+      # TPC: zmq_tcp, <publisher_host>:<publisher_port>
+      SubTopics: "cppPublisher/publish_test"
+      publish_test_cfg: "zmq_tcp,127.0.0.1:60013"
+      RequestEP: "cppPublisher"
+      cppPublisher_cfg: "zmq_tcp,127.0.0.1:50013"
+      #publish_test_cfg: "zmq_ipc,${SOCKET_DIR}/"
+    secrets:
+      - ca_etcd
+      - etcd_cppSubscriber_cert
+      - etcd_cppSubscriber_key
+
+secrets:
+  ca_etcd:
+    file: provision/Certificates/ca/ca_certificate.pem
+  etcd_cppPublisher_cert:
+    file: provision/Certificates/cppPublisher/cppPublisher_client_certificate.pem
+  etcd_cppPublisher_key:
+    file: provision/Certificates/cppPublisher/cppPublisher_client_key.pem
+  etcd_cppSubscriber_cert:
+    file: provision/Certificates/cppSubscriber/cppSubscriber_client_certificate.pem
+  etcd_cppSubscriber_key:
+    file: provision/Certificates/cppSubscriber/cppSubscriber_client_key.pem
+  etcd_root_cert:
+    file: provision/Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file: provision/Certificates/root/root_client_key.pem

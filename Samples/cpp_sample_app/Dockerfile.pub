@@ -1,0 +1,23 @@
+# Dockerfile for cpp_publisher
+ARG EIS_VERSION
+FROM ia_eisbase:$EIS_VERSION as eisbase
+LABEL description="cpp_publisher image"
+
+WORKDIR ${PY_WORK_DIR}
+ARG EIS_UID
+ARG EIS_USER_NAME
+RUN useradd -r -u ${EIS_UID} -G video ${EIS_USER_NAME}
+
+FROM ia_common:$EIS_VERSION as common
+
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib
+
+# Adding project depedency modules
+COPY ./publisher ./publisher
+COPY ./include ./include
+COPY ./util ./util
+
+RUN g++ -o ./publisher/main ./publisher/*.cpp ./util/*.cpp -I./include -leismsgbus -leisconfigmgr -leisutils -leismsgenv -lpthread
+
+ENTRYPOINT ["/EIS/go/src/IEdgeInsights/publisher/main"]
+CMD ["publish_test"]
