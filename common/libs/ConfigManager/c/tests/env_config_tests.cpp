@@ -24,6 +24,7 @@
 #include "eis/utils/logger.h"
 
 void test_setup() {
+	set_log_level(LOG_LVL_DEBUG);
 	//clear all envs
 	int ret;
 	const char* env[] = {"DEV_MODE", "AppName", "PubTopics", "SubTopics"};
@@ -36,7 +37,6 @@ void test_setup() {
 }
 
 TEST(env_config_tests, get_topics_from_env) {
-	set_log_level(LOG_LVL_DEBUG);
 	test_setup();
 
 	env_config_t* env_config = env_config_new();
@@ -71,7 +71,6 @@ TEST(env_config_tests, get_topics_from_env) {
 }
 
 TEST(env_config_tests, get_messagebus_config) {
-	set_log_level(LOG_LVL_DEBUG);
 	test_setup();
 
 	const char* topic_type = "sub";
@@ -80,43 +79,71 @@ TEST(env_config_tests, get_messagebus_config) {
 	std::string topic = "camera1_stream_results";
 	std::string result = topic + "_cfg";
 	std::string sub_topic = "VideoIngestion/" + topic;
+	char* c_sub_topics = new char[sub_topic.length() + 1];
+	strcpy(c_sub_topics, sub_topic.c_str());
+
+	std::string wrong_sub_topic = "VideoIngestion##" + topic;
+	char* c_wrong_sub_topic = new char[wrong_sub_topic.length() + 1];
+	strcpy(c_wrong_sub_topic, wrong_sub_topic.c_str());
+
+	size_t num_of_sub_topics = 1;
 
 	unsetenv(&result[0]);
 
 	env_config_t* env_config = env_config_new();
 
 	LOG_INFO_0("========1. Test absence of DEV_MODE env========");
-	config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+	config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type); 
 	ASSERT_TRUE(config == NULL);
 
 	LOG_INFO_0("========2. Test absence of AppName env========");
 	setenv("DEV_MODE", "true", true);
-	config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+	config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type);
 	ASSERT_TRUE(config == NULL);
 
 	LOG_INFO_0("========3. Send wrong topic type========");
 	setenv("AppName", "Sample", true);
-	config = env_config->get_messagebus_config(NULL, &sub_topic[0], "");
+	config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, "");
 	ASSERT_TRUE(config == NULL);
 
 	LOG_INFO_0("========4. Test absence of [topic]_cfg env========");
 	setenv("SubTopics", sub_topic.c_str(), true);
-    config = env_config->get_messagebus_config(NULL, &sub_topic[0], topic_type);
+    config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type);
 	ASSERT_TRUE(config == NULL);
 
 	LOG_INFO_0("========5. Test sending the wrong format of sub topic========");
 	setenv((char*) &result[0], "zmq_tcp,127.0.0.1:65013", true);
 	LOG_INFO("Topic: %s, topic cfg: %s", &topic[0], &result[0]);
-	config = env_config->get_messagebus_config(NULL, &topic[0], topic_type);
+	config = env_config->get_messagebus_config(NULL, &c_wrong_sub_topic, num_of_sub_topics, topic_type);
+
 	ASSERT_TRUE(config == NULL);
 
 	LOG_INFO_0("========6. Test the actual flow========");
 	LOG_INFO("Sub topic: %s", sub_topic.c_str());
-	config = env_config->get_messagebus_config(NULL, sub_topic.c_str(), topic_type);
+	config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type);
 	config_value_t* value = config->get_config_value(config->cfg, "type");
 	ASSERT_EQ(value->type, CVT_STRING);
 	ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
 
+	delete [] c_sub_topics;
+	delete [] c_wrong_sub_topic;
 	// TODO: Enable extensive tests to thoroughly test all possible scenarios
 	// for both dev and prod mode
+}
+
+TEST(env_config_tests, get_topics_count) {
+	test_setup();
+	env_config_t* env_config = env_config_new();
+
+	LOG_INFO_0("========1. Test if the number of topics are returned properly by API========");
+
+	char* topics[4] = {"camera1_stream", "camera2_stream", "camera3_stream", NULL};
+	size_t len = 3; // is equal to the number of topics in the string array topics
+
+	size_t num_of_topics = env_config->get_topics_count(topics);
+
+	LOG_INFO("num of topics = %d", num_of_topics);
+
+	ASSERT_TRUE(num_of_topics == len);
+
 }

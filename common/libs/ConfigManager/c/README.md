@@ -218,7 +218,23 @@ To refer C examples follow config_manager.c in [examples/](examples/)
         @return topics    - topics returned from env config based on topic type
     ```
 
-3. Getting EIS Message Bus config from ENV variables and config manager.
+3. Getting the number of topics in "SubTopics" or "PubTopics" environmental variable.
+
+   `size_t num_of_topics_pub = env_config_client->get_topics_count(pub_topics);`
+   `size_t num_of_topics_sub = env_config_client->get_topics_count(sub_topics);`
+
+   **API documentation:**
+
+   `size_t get_topics_count(char* topics[]);`
+   ```
+        get_topics_count function gives the number of topics in "SubTopics" or "PubTopics" environmental variable.
+
+        @param topics[]       -  An array of C strings
+
+        @return size_t      -    Number of topics
+    ```
+
+4. Getting EIS Message Bus config from ENV variables and config manager.
 
     `config_t* msgbus_config_pub = env_config_client->get_messagebus_config(config_mgr_client, pub_topics[], num_of_topics, "pub");`
     `config_t* msgbus_config_sub = env_config_client->get_messagebus_config(config_mgr_client, sub_topics[], num_of_topics, "sub");`
@@ -240,7 +256,7 @@ To refer C examples follow config_manager.c in [examples/](examples/)
         @return config_t*      - JSON msg bus config of type config_t
     ```
 
-4. Destroy Env Config
+5. Destroy Env Config
 
     `env_config_destroy(env_config_client);`
 

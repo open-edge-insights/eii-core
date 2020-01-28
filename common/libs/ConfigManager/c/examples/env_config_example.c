@@ -31,9 +31,36 @@
 #define PUB "pub"
 #define SUB "sub"
 
-int main(){
+void usage(const char* name) {
+    printf("Usage: %s [Optional argument prod_mode=1 (By default dev_mode is enabled)]\n", name);
+}
 
-    config_mgr_t* config_mgr_client = config_mgr_new("etcd", "", "", "");
+int main(int argc, char** argv){
+    bool dev_mode = true;
+    if(argc >= 3) {
+        usage(argv[0]);
+        return -1;
+    } else if(argc == 2) {
+        if(!strcmp(argv[1], "1")) {
+            dev_mode = false;
+        } else if(!strcmp(argv[1], "0")) {
+            dev_mode = true;
+        }
+    }
+
+    config_mgr_t* config_mgr_client;
+
+    if(!dev_mode) {// if prod mode
+        char pub_cert_file[100] = "../../examples/Sample_certs/VideoIngestion_client_certificate.pem";
+
+        char pri_key_file[100] = "../../examples/Sample_certs/VideoIngestion_client_key.pem";
+
+        char trust_file[] = "../../examples/Sample_certs/ca_certificate.pem";
+        config_mgr_client = config_mgr_new("etcd", pub_cert_file, pri_key_file, trust_file);
+    } else { // if dev mode
+        config_mgr_client = config_mgr_new("etcd", "", "", "");
+    }
+
     if(config_mgr_client == NULL) {
        printf("Config manager client creation failed\n");
        return 0;
