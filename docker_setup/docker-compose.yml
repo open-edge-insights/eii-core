@@ -235,7 +235,7 @@ services:
   #       EIS_VERSION: ${EIS_VERSION}
   #       EIS_UID: ${EIS_UID}
   #       EIS_USER_NAME: ${EIS_USER_NAME}
-  #   # read_only: true
+  #   read_only: true
   #   image: ${DOCKER_REGISTRY}ia_web_visualizer:${EIS_VERSION}
   #   container_name: ia_web_visualizer
   #   hostname: ia_web_visualizer
@@ -266,8 +266,8 @@ services:
 
   #   volumes:
   #     - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
-  #     - "/tmp/.X11-unix:/tmp/.X11-unix"
   #     - "vol_eis_socket:${SOCKET_DIR}"
+  #     - "vol_temp_webv:/var/tmp"
   #   secrets:
   #     - ca_etcd
   #     - etcd_WebVisualizer_cert
@@ -719,6 +719,12 @@ volumes:
       type: local
       o: bind
       device: ${EIS_INSTALL_PATH}/sockets
+  vol_temp_webv:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      o: "size=5K"
+      device: tmpfs
 
 secrets:
   ca_etcd:
