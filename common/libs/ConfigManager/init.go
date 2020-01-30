@@ -15,6 +15,7 @@ import (
 	configmgr "IEdgeInsights/common/libs/ConfigManager/go"
 
 	"github.com/golang/glog"
+	"flag"
 )
 
 // ConfigManager interface
@@ -24,6 +25,10 @@ type ConfigManager interface {
 
 //Init function to initialize config manager
 func Init(storageType string, config map[string]string) configmgr.ConfigMgr {
+	flag.Parse()
+	flag.Lookup("logtostderr").Value.Set("true")
+	defer glog.Flush()
+
 	glog.Infof("initializing configuration manager...")
 	return configmgr.GetConfigClient(storageType, config)
 }
