@@ -70,7 +70,7 @@ services:
     depends_on:
       - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}

@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
 
-  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
+   ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   ## Define ia_eisbase service
   ia_eisbase:
     build:
@@ -26,6 +26,18 @@ services:
           CMAKE_BUILD_TYPE: "Release"
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+
+  ## Define ia_openvino_base service
+  ia_openvino_base:
+    depends_on:
+      - ia_common
+    build:
+      context: $PWD/../common/openvino
+      dockerfile: $PWD/../common/openvino/Dockerfile.openvino
+      args:
+          EIS_VERSION: ${EIS_VERSION}
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
 
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
@@ -51,6 +63,34 @@ services:
       - ca_etcd
       - etcd_root_cert
       - etcd_root_key
+
+  ## Start Grafana service
+  ia_grafana:
+    depends_on:
+      - ia_common
+    build:
+      context: $PWD/../Grafana
+      dockerfile: $PWD/../Grafana/Dockerfile
+      args:
+          EIS_VERSION: ${EIS_VERSION}
+          GRAFANA_VERSION: ${GRAFANA_VERSION}
+          EIS_UID: ${EIS_UID}
+    image: ${DOCKER_REGISTRY}ia_grafana:${EIS_VERSION}
+    container_name: ia_grafana
+    hostname: ia_grafana
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      AppName: "Grafana"
+      InfluxDbAppName: "InfluxDBConnector"
+      CertType: "pem"
+      DEV_MODE: ${DEV_MODE}
+    secrets:
+      - ca_etcd
+      - etcd_Grafana_cert
+      - etcd_Grafana_key
+      - etcd_InfluxDBConnector_cert
+      - etcd_InfluxDBConnector_key
 
   ## Define telegraf service
   ia_telegraf:
@@ -106,7 +146,7 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients: "DiscoveryCreek"
+      Clients: "Visualizer,DiscoveryCreek"
       Server: "zmq_tcp,127.0.0.1:8675"
       # Server: "zmq_ipc,${SOCKET_DIR}/"
       INFLUXDB_TLS_CIPHERS: ${TLS_CIPHERS}
@@ -134,6 +174,53 @@ services:
       - ca_etcd
       - etcd_InfluxDBConnector_cert
       - etcd_InfluxDBConnector_key
+
+
+  ## Define Discovery Creek service
+  ia_dc:
+    depends_on:
+      - ia_common
+    build:
+      context: $PWD/../DiscoveryCreek/
+      dockerfile: $PWD/../DiscoveryCreek/Dockerfile
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+        EIS_USER_NAME: ${EIS_USER_NAME}
+    image: ${DOCKER_REGISTRY}ia_dc:${EIS_VERSION}
+    container_name: ia_dc
+    hostname: ia_dc
+    network_mode: host
+    restart: unless-stopped
+    read_only: true
+    tmpfs: /tmp
+    environment:
+      AppName: "DiscoveryCreek"
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: ${no_proxy}
+
+      # MessageBus Endpoint Configuration
+      Clients : "InfluxDBConnector,Visualizer"
+      CertType: "zmq"
+
+      # Use IPC mode (zmq_ipc) when VideoIngestion, VideoAnalytics and Visualizer
+      # based containers are running on the same host. If they are running on diff
+      # host, please use TCP mode for communication.
+      # Eg: Stream cfg for
+      # IPC: zmq_ipc, <absolute_socket_directory_path>
+      # TPC: zmq_tcp, <publisher_host>:<publisher_port>
+      SubTopics: "InfluxDBConnector/point_data"
+      point_data_cfg: "zmq_tcp,127.0.0.1:65015"
+      PubTopics: "dc_point_data_results"
+      dc_point_data_results_cfg: "zmq_tcp,127.0.0.1:65014"
+
+    volumes:
+      - "vol_eis_socket:${SOCKET_DIR}"
+    user: ${EIS_UID}
+    secrets:
+      - ca_etcd
+      - etcd_DiscoveryCreek_cert
+      - etcd_DiscoveryCreek_key
 
   ## Define DataAnalytics service
   ia_data_analytics:
@@ -166,34 +253,6 @@ services:
       - ca_etcd
       - etcd_Kapacitor_cert
       - etcd_Kapacitor_key
-
-  ## Start Grafana service
-  ia_grafana:
-    depends_on:
-      - ia_common
-    build:
-      context: $PWD/../Grafana
-      dockerfile: $PWD/../Grafana/Dockerfile
-      args:
-          EIS_VERSION: ${EIS_VERSION}
-          GRAFANA_VERSION: ${GRAFANA_VERSION}
-          EIS_UID: ${EIS_UID}
-    image: ${DOCKER_REGISTRY}ia_grafana:${EIS_VERSION}
-    container_name: ia_grafana
-    hostname: ia_grafana
-    network_mode: host
-    restart: unless-stopped
-    environment:
-      AppName: "Grafana"
-      InfluxDbAppName: "InfluxDBConnector"
-      CertType: "pem"
-      DEV_MODE: ${DEV_MODE}
-    secrets:
-      - ca_etcd
-      - etcd_Grafana_cert
-      - etcd_Grafana_key
-      - etcd_InfluxDBConnector_cert
-      - etcd_InfluxDBConnector_key
 
 volumes:
   vol_influxdb_data:
@@ -228,4 +287,7 @@ secrets:
     file: provision/Certificates/Grafana/Grafana_client_certificate.pem
   etcd_Grafana_key:
     file: provision/Certificates/Grafana/Grafana_client_key.pem
-  
+  etcd_DiscoveryCreek_cert:
+    file: provision/Certificates/DiscoveryCreek/DiscoveryCreek_client_certificate.pem
+  etcd_DiscoveryCreek_key:
+    file: provision/Certificates/DiscoveryCreek/DiscoveryCreek_client_key.pem

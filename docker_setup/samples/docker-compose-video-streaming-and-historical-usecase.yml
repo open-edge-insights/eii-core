@@ -2,7 +2,7 @@ version: '3.6'
 
 services:
 
-  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
+##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   ## Define ia_eisbase service
   ia_eisbase:
     build:
@@ -70,7 +70,7 @@ services:
     depends_on:
       - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -78,6 +78,7 @@ services:
         EIS_USER_NAME: ${EIS_USER_NAME}
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        WITH_PROFILE: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion
     hostname: ia_video_ingestion
@@ -91,7 +92,7 @@ services:
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
-      Clients: "VideoAnalytics,Visualizer,RestDataExport"
+      Clients: "VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent"
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"
 
@@ -104,9 +105,9 @@ services:
       PubTopics: "camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
-      - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/dev:/dev"
+      - "/var/tmp:/var/tmp"
     privileged: true
     devices:
       - "/dev/dri"
@@ -141,7 +142,7 @@ services:
       no_proxy: ${no_proxy}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport"
+      Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer,TLS_RemoteAgent"
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"
 
@@ -158,9 +159,9 @@ services:
       # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
+      - "/var/tmp:/var/tmp"
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
@@ -213,10 +214,12 @@ services:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
       - "vol_eis_socket:${SOCKET_DIR}"
+    user: ${EIS_UID}
     secrets:
       - ca_etcd
       - etcd_Visualizer_cert
       - etcd_Visualizer_key
+
 
   ## Define influxdb connector service
   ia_influxdbconnector:

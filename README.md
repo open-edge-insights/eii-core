@@ -193,63 +193,63 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 ./etcd_capture.sh
 ```
 
-
 # Build and Run EIS PCB Demo Example
 
- Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for PCB Demo example
+ Please include following services in [docker-compose.yml](docker_setup/docker-compose.yml) for PCB Demo example
 
-* For streaming use case only:
+* For video streaming use case only:
+  Refer our default docker-compose file at [docker_setup/docker-compose.yml](docker_setup/docker-compose.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer
 
-* For historical use case only:
-
-    > ia_video_ingestion, ia_video_analytics, ia_imagestore, ia_influxdbconnector
-
-  > **NOTE**: Use [DiscoverHistory](tools/DiscoverHistory/README.md) to view the historical data from ia_imagestore
-  > and ia_influxdbconnector.
-
-* For streaming and historical use case
+* For video streaming and historical use case:
+  Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-video-streaming-and-historical-usecase.yml](docker_setup/samples/docker-compose-video-streaming-and-historical-usecase.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
-> **Note:**
-> * All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
-> * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
->   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is needed by `ia_visualizer` service to render the UI
+* For video streaming and timeseries use case:
+  Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml](docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml)
 
-> * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber. If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root. In [docker-compose.yml](docker_setup/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above, then the subscriber service should not have that too
+    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_data_analytics
 
-   To build and run EIS in one command:
-   ```sh
-   $ docker-compose up --build -d
-   ```
+To build and run EIS in one command:
 
-   The build and run steps can be split into two as well like below:
-   ```sh
-   $ docker-compose build
-   $ docker-compose up -d
-   ```
-   If any of the services fails during build, it can be built using below command
-   ```sh
-   $ docker-compose build --no-cache <service name>
+```sh
+$ docker-compose up --build -d
+```
 
-   ```
+The build and run steps can be split into two as well like below:
 
-   Please note that the first time build of EIS containers take ~70 minutes.
+```sh
+$ docker-compose build
+$ docker-compose up -d
+```
 
-   A successful run will open Visualizer UI with results of video analytics.
+If any of the services fails during build, it can be built using below command
 
-   >**Note**: In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the [docker-compose.yml](docker_setup/docker-compose.yml) file can be modified with the required configurations and below command can be used to build and run the containers.
+```sh
+$ docker-compose build --no-cache <service name>
+```
+
+Please note that the first time build of EIS containers take ~70 minutes.
+
+A successful run will open Visualizer UI with results of video analytics.
+
+---
+**Note:**
+
+* All EIS build and run commands are to be executed from the [repo]/docker_setup/ directory.
+* If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
+  run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is needed by `ia_visualizer` service to render the UI
+* For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber. If   
+  publisher is running as root (eg: VI, VA), then the subscriber also need to run as root. In [docker-compose.yml](docker_setup/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above, then the subscriber service should not have that too.
+* In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the [docker-compose.yml](docker_setup/docker-compose.yml) file can be modified with the required configurations and below command can be used to build and run the containers.
 
     ```sh
     $ docker-compose up --build -d
     ```
->**Note**:In case GVA elements are used in VideoIngestion configuration then one
-can choose to not run the VideoAnalytics services.
 
->**Note**:VideoIngestion service can also used to load the filter udf and the classifier udf using UdfLoader and VideoAnalytics service can be avoided in order to have improved performance.
-
+---
 
 # Etcd Secrets and MessageBus Endpoint Configuration
 
@@ -291,10 +291,10 @@ Please refer to the OpenVINO links for any issues regarding running the HDDL dae
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_movidius_setup_guide.html
 When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
 
-```sh
-$ source /op/intel/openvino/bin/setupvars.sh
-$ $HDDL_INSTALL_DIR/bin/hddldaemon &
-```
+    ```sh
+    $ source /op/intel/openvino/bin/setupvars.sh
+    $ $HDDL_INSTALL_DIR/bin/hddldaemon &
+    ```
 
 4. Additionally following is an workaround can be excercised if in case user observes NC_ERROR during device initialization of NCS2 stick.
    While running EIS if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
@@ -331,11 +331,6 @@ For enabling this, different set of containers need to be built in EIS and it ca
 
 Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
 
-> **Note:**
-> * If `ia_visualizer` service is enabled in the [docker-compose.yml](docker_setup/docker-compose.yml) file, please
->   run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. This is 
->   needed by `ia_visualizer` service to render the UI
-
 > ia_telegraf, ia_influxdbconnector, ia_data_analytics, ia_visualizer
 
 
@@ -344,7 +339,7 @@ More details on enabling this mode can be referred from [TimeSeriesAnalytics/REA
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
-For sample docker-compose file for TimeSeries analytics , refer to [docker_setup/samples/docker-compose-time-series-analytics.yml](docker_setup/samples/docker-compose-time-series-analytics.yml).
+For sample docker-compose file for TimeSeries analytics, refer to [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml).
 
 
 # DiscoveryCreek
@@ -353,11 +348,11 @@ DiscoveryCreek is a machine learning based anomaly detection engine.
 
 For enabling DiscoveryCreek, please include the following services in the [docker-compose.yml](docker_setup/docker-compose.yml) file:
 
-> ia_telegraf, ia_influxdbconnector, ia_dc, ia_visualizer
+> ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc
 
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
 
-For sample docker-compose file for DiscoveryCreek analytics , refer to [docker_setup/samples/docker-compose-discovery-creek.yml](docker_setup/samples/docker-compose-discovery-creek.yml).
+For sample docker-compose file for DiscoveryCreek analytics, refer to [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml).
 
 
 # List of All EIS Services
