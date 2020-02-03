@@ -40,6 +40,13 @@ class EtcdCli:
 
         self.logger = logging.getLogger(__name__)
         hostname = "localhost"
+
+        # This change will be moved to an argument to the function in 2.3
+        # This is done now for backward compatibility
+        etcd_host = os.getenv("ETCD_HOST")
+        if etcd_host is not None and etcd_host != "":
+            hostname = etcd_host
+
         port = 2379
 
         if not Util.check_port_availability(hostname, port):

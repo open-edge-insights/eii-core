@@ -44,6 +44,14 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 
 	var cfg clientv3.Config
 	hostname := "localhost"
+
+	// This change will be moved to an argument to the function in 2.3
+	// This is done now for backward compatibility
+	etcdHost := os.Getenv("ETCD_HOST")
+	if etcdHost != "" {
+		hostname = etcdHost
+	}
+
 	port := "2379"
 	endpoint := []string{hostname + ":" + port}
 	portUp := util.CheckPortAvailability(hostname, port)

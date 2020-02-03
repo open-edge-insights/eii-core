@@ -88,7 +88,8 @@ services:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -139,7 +140,8 @@ services:
       AppName: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer,TLS_RemoteAgent"
@@ -193,8 +195,8 @@ services:
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy}
-
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
       # MessageBus Endpoint Configuration
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"
@@ -242,7 +244,8 @@ services:
       CertType: "zmq,pem"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
       Clients: "Visualizer,DiscoveryCreek"
@@ -293,7 +296,8 @@ services:
     environment:
       AppName: "ImageStore"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${no_proxy}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
       # Uncomment the following line if using Discover history tool in PROD mode
