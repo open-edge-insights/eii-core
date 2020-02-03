@@ -27,18 +27,6 @@ services:
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
-  ## Define ia_openvino_base service
-  ia_openvino_base:
-    depends_on:
-      - ia_common
-    build:
-      context: $PWD/../common/openvino
-      dockerfile: $PWD/../common/openvino/Dockerfile.openvino
-      args:
-          EIS_VERSION: ${EIS_VERSION}
-    read_only: true
-    image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
-
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
   ## Define ETCD UI service - must be included to view ETCD data over web UI
