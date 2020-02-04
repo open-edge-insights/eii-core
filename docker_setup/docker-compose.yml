@@ -88,7 +88,7 @@ services:
       AppName: "VideoIngestion"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -140,7 +140,7 @@ services:
       AppName: "VideoAnalytics"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -195,7 +195,7 @@ services:
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -245,7 +245,7 @@ services:
   #     IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
   #     DEV_MODE: ${DEV_MODE}
   #     PROFILING_MODE: ${PROFILING_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     # MessageBus Endpoint Configuration
@@ -319,7 +319,7 @@ services:
   #   environment:
   #     AppName: "RestDataExport"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     Server: "zmq_tcp,127.0.0.1:5669"
   #     ETCD_HOST: ${ETCD_HOST}
   
@@ -366,7 +366,7 @@ services:
   #     InfluxDbAppName: "InfluxDBConnector"
   #     CertType: ""
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
   #   volumes:
   #     - "./config/telegraf.conf:/etc/Telegraf/telegraf.conf"
@@ -398,7 +398,7 @@ services:
   #     CertType: "zmq,pem"
   #     DEV_MODE: ${DEV_MODE}
   #     PROFILING_MODE: ${PROFILING_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     # MessageBus Endpoint Configuration
@@ -453,7 +453,7 @@ services:
   #   environment:
   #     AppName: "DiscoveryCreek"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     # MessageBus Endpoint Configuration
@@ -497,7 +497,7 @@ services:
   #   environment:
   #     AppName: "Kapacitor"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     CertType: "pem"
@@ -532,7 +532,7 @@ services:
   #   environment:
   #     AppName: "ImageStore"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
   
   #     # MessageBus Endpoint Configuration
@@ -579,7 +579,7 @@ services:
   #   environment:
   #     AppName: "FactoryControlApp"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
   
   #     # MessageBus Endpoint Configuration
@@ -618,7 +618,7 @@ services:
   #   environment:
   #     AppName: "OpcuaExport"
   #     DEV_MODE: ${DEV_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     # MessageBus Endpoint Configuration
@@ -666,7 +666,7 @@ services:
   #     IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
   #     DEV_MODE: ${DEV_MODE}
   #     PROFILING_MODE: ${PROFILING_MODE}
-  #     no_proxy: ${no_proxy},${ETCD_HOST}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
 
   #     # MessageBus Endpoint Configuration

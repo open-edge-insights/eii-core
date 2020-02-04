@@ -10,7 +10,7 @@ if [ -z $HOST_IP ]; then
 	export HOST_IP=$hostIP
 fi
 echo 'System IP Address is:' $HOST_IP
-export no_proxy=$no_proxy,$HOST_IP
+export no_proxy=$eis_no_proxy,$HOST_IP
 
 if [ $ETCD_NAME = 'master' ]; then
 	echo "Installing dependencies.."

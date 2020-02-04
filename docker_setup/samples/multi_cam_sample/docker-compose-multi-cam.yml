@@ -87,7 +87,7 @@ services:
       AppName: "VideoIngestion1"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -137,7 +137,7 @@ services:
       AppName: "VideoAnalytics1"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -186,7 +186,7 @@ services:
       AppName: "VideoIngestion2"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       
       # MessageBus Endpoint Configuration
@@ -237,7 +237,7 @@ services:
       AppName: "VideoAnalytics2"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -292,7 +292,7 @@ services:
       AppName: "VideoIngestion3"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -343,7 +343,7 @@ services:
       AppName: "VideoAnalytics3"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -398,7 +398,7 @@ services:
       AppName: "VideoIngestion4"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -449,7 +449,7 @@ services:
       AppName: "VideoAnalytics4"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -504,7 +504,7 @@ services:
       AppName: "VideoIngestion5"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -555,7 +555,7 @@ services:
       AppName: "VideoAnalytics5"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -610,7 +610,7 @@ services:
       AppName: "VideoIngestion6"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       
       # MessageBus Endpoint Configuration
@@ -661,7 +661,7 @@ services:
       AppName: "VideoAnalytics6"
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -717,7 +717,7 @@ services:
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
-      no_proxy: ${no_proxy},${ETCD_HOST}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
