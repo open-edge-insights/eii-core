@@ -117,7 +117,8 @@ def generate(opts, root_ca_needed=True):
                 outform = None
             if "server_alt_name" in cert_opts:
                 os.environ["SAN"] = "IP:" + \
-                     os.environ["HOST_IP"] + "," + os.environ["SAN"]
+                    os.environ["HOST_IP"] + "," + "IP:" + \
+                    os.environ["SSL_SAN_IP"] + "," + os.environ["SAN"]
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("server",
