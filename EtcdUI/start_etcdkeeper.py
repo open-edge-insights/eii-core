@@ -68,16 +68,16 @@ if __name__ == "__main__":
                 /tmp/nginx/eis_nginx_temp.conf".format(ip)
         cmd2 = "sed  's/NGINX_PORT/{}/' \
                 /tmp/nginx/eis_nginx_temp.conf \
-                >/tmp/nginx/eis_nginx.conf".format(port)
+                > /tmp/nginx/eis_nginx.conf".format(port)
         _execute_cmd(cmd1)
         _execute_cmd(cmd2)
     else:
         cmd1 = "sed  's/NGINX_HOST/{}/' \
-                ./eis_nginx_prod.conf >/ \
-                tmp/nginx/eis_nginx_temp.conf".format(ip)
+                ./eis_nginx_prod.conf > \
+                /tmp/nginx/eis_nginx_temp.conf".format(ip)
         cmd2 = "sed  's/NGINX_PORT/{}/' \
                 /tmp/nginx/eis_nginx_temp.conf \
-                >/tmp/nginx/eis_nginx.conf".format(port)
+                > /tmp/nginx/eis_nginx.conf".format(port)
         _execute_cmd(cmd1)
         _execute_cmd(cmd2)
 
