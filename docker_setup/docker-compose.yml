@@ -326,7 +326,8 @@ services:
   #     AppName: "RestDataExport"
   #     DEV_MODE: ${DEV_MODE}
   #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
-  #     Server: "zmq_tcp,127.0.0.1:5669"
+  #     RequestEP: "ImageStore"
+  #     ImageStore_cfg: "zmq_tcp,127.0.0.1:5669"
   #     ETCD_HOST: ${ETCD_HOST}
   
   #     # MessageBus Endpoint Configuration
