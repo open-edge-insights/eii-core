@@ -41,6 +41,12 @@ services:
     environment:
       AppName: "EtcdUi"
       DEV_MODE: ${DEV_MODE}
+      NGINX_PORT: 8080
+      CertType: "pem"
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
+    volumes:
+      - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -62,7 +68,8 @@ services:
     environment:
       AppName: "GoPublisher"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${no_proxy}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
       # MessageBus Endpoint Configuration
       Clients : "GoSubscriber"
       CertType: "zmq"
@@ -77,6 +84,8 @@ services:
       publish_test_cfg: "zmq_tcp,127.0.0.1:60013"
       Server: "zmq_tcp,127.0.0.1:50013"
       # publish_test_cfg_cfg: "zmq_ipc,${SOCKET_DIR}/"
+    volumes:
+      - "vol_eis_socket:${SOCKET_DIR}"
     secrets:
       - ca_etcd
       - etcd_GoPublisher_cert
@@ -97,7 +106,8 @@ services:
     environment:
       AppName: "GoSubscriber"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${no_proxy}
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
       # MessageBus Endpoint Configuration
       CertType: "zmq"
 
@@ -112,11 +122,25 @@ services:
       #publish_test_cfg: "zmq_ipc,${SOCKET_DIR}/"
       RequestEP: "GoPublisher"
       GoPublisher_cfg: "zmq_tcp,127.0.0.1:50013"
+    volumes:
+      - "vol_eis_socket:${SOCKET_DIR}"
     secrets:
       - ca_etcd
       - etcd_GoSubscriber_cert
       - etcd_GoSubscriber_key
 
+volumes:
+  vol_etcd_keeper:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  vol_eis_socket:
+    driver: local
+    driver_opts:
+      type: local
+      o: bind
+      device: ${EIS_INSTALL_PATH}/sockets
 secrets:
   ca_etcd:
     file: provision/Certificates/ca/ca_certificate.pem

@@ -59,6 +59,12 @@ services:
     environment:
       AppName: "EtcdUi"
       DEV_MODE: ${DEV_MODE}
+      NGINX_PORT: 8080
+      CertType: "pem"
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
+    volumes:
+      - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -762,6 +768,11 @@ volumes:
       type: local
       o: bind
       device: ${EIS_INSTALL_PATH}/sockets
+  vol_etcd_keeper:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
 
 secrets:
   etcd_VideoIngestion1_cert:

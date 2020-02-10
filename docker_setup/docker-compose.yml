@@ -64,6 +64,8 @@ services:
       DEV_MODE: ${DEV_MODE}
       NGINX_PORT: 8080
       CertType: "pem"
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
@@ -302,6 +304,7 @@ services:
   #     InfluxDbAppName: "InfluxDBConnector"
   #     CertType: "pem"
   #     DEV_MODE: ${DEV_MODE}
+  #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
   #   secrets:
   #     - ca_etcd
