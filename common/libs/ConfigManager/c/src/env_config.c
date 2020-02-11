@@ -58,8 +58,14 @@ static char** get_topics_from_env(const char* topic_type) {
         LOG_ERROR("topic type: %s is not supported", topic_type);
         return NULL;
     }
+    int ret = 0;
+    topic_list = (char*) calloc(SIZE, sizeof(char));
+    ret = strncpy_s(topic_list, SIZE, getenv(topics_env), SIZE);
+    if(ret != 0) {
+        LOG_ERROR("String copy failed (errno: %d)", ret);
+        return NULL;
+    }
 
-    topic_list = getenv(topics_env);
     if(topic_list == NULL) {
         LOG_ERROR("%s env doesn't exist", topics_env);
         return NULL;
@@ -125,6 +131,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
 
     char publisher_topic[SIZE];
     int ret = 0;
+    topic_cfg = (char *)calloc(SIZE, sizeof(char));
 
     if (!strcmp(topic_type,SUB)){
         char* individual_topic;
@@ -132,11 +139,13 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;
-        }
-        char* temp = publisher_topic;
+        }        
+        char* temp_topic = NULL;
+        temp_topic = (char *)calloc(SIZE, sizeof(char));
+        ret = strncpy_s(temp_topic, SIZE, topic[0], strlen(topic[0]));
         const char* pub_topic[SIZE];
         j=0;
-        while((individual_topic = strtok_r(temp, "/", &temp))) {
+        while((individual_topic = strtok_r(temp_topic, "/", &temp_topic))) {
             pub_topic[j] = individual_topic;
             j++;
         }
@@ -179,7 +188,11 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
-        topic_cfg = getenv(publisher_topic);
+        ret = strncpy_s(topic_cfg, SIZE, getenv(publisher_topic), SIZE);
+        if(ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d)", ret);
+            goto err;
+        }
     } else if(!strcmp(topic_type,PUB)){
         ret = strncpy_s(publisher_topic,SIZE, topic[0], strlen(topic[0]));
         if(ret != 0) {
@@ -191,9 +204,17 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
-        topic_cfg = getenv(publisher_topic);
+        ret = strncpy_s(topic_cfg, SIZE, getenv(publisher_topic), SIZE);
+        if(ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d)", ret);
+            goto err;
+        }
     }else if(!strcmp(topic_type,"server")){
-        topic_cfg = getenv(SERVER);
+        ret = strncpy_s(topic_cfg, SIZE, getenv(publisher_topic), SIZE);
+        if(ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d)", ret);
+            goto err;
+        }
     }else if(!strcmp(topic_type,CLIENT)){
         ret = strncpy_s(publisher_topic,SIZE, topic[0], strlen(topic[0]));
         if(ret != 0) {
@@ -205,7 +226,11 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String concatenation failed (errno: %d)", ret);
             goto err;
         }
-        topic_cfg = getenv(publisher_topic);
+        ret = strncpy_s(topic_cfg, SIZE, getenv(publisher_topic), SIZE);
+        if(ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d)", ret);
+            goto err;
+        }
     } else {
         LOG_ERROR("topic type: %s is not supported", topic_type);
         goto err;
@@ -215,13 +240,10 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
         LOG_ERROR("%s env doens't exist", publisher_topic);
         goto err;
     }
-    i=0;
-
     while((data = strtok_r(topic_cfg, ",", &topic_cfg))) {
         mode_address[i] = data;
         i++;
     }
-
     if(mode_address[2] == NULL) {
         LOG_DEBUG_0("socket file not explicitly given by application");
     }
@@ -528,7 +550,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
 
     }else {
         LOG_ERROR("mode: %s is not supported", mode);
-        return NULL;
+        goto err;
     }
 
     char* config_value = cJSON_Print(json);
@@ -538,7 +560,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             (void*) json, free_json, get_config_value);
     if(config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
-        return NULL;
+        goto err;
     }
     return config;
 
