@@ -31,6 +31,8 @@ services:
     user: $EIS_UID
     
   ia_etcd_provision:
+    depends_on:
+      - ia_etcd
     build:
        context: ../
        dockerfile: ./dep/Dockerfile.provision
@@ -38,8 +40,6 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: $EIS_UID
     container_name: ia_etcd_provision
-    depends_on:
-       - ia_etcd
     read_only: true
     image: ia_etcd_provision:$EIS_VERSION
     volumes:
