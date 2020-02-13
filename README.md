@@ -287,14 +287,28 @@ Please refer to the OpenVINO links for any issues regarding running the HDDL dae
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux.html#install-openvino
 2. HDDL daemon setup:
    https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
-3. Extra steps if using the iEi Mustang V100 HDDL card:
-   https://docs.openvinotoolkit.org/latest/_docs_install_guides_movidius_setup_guide.html
+3. No Extra steps are required if using the iEi Mustang V100 HDDL card with OpenVINO 2020.1
+   
 When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
 
     ```sh
-    $ source /op/intel/openvino/bin/setupvars.sh
+    $ source /opt/intel/openvino/bin/setupvars.sh
     $ $HDDL_INSTALL_DIR/bin/hddldaemon &
     ```
+---
+
+**Note**: 
+          
+* Running HDDL devices on Ubuntu 18.04 with Kernel 5.3 is not supported by OpenVINO 2020.1 so please downgrade the kernel version
+  (HDDL was tested with OpenVINO 2020.1 on Ubuntu 18.04 with kernel version 4.15.0-76-generic)
+
+* Please refer OpenVINO 2020.1 release notes in the below link for new features and changes from the previous versions.
+  https://software.intel.com/en-us/articles/OpenVINO-RelNotes
+
+* Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
+  https://docs.openvinotoolkit.org/latest/index.html
+
+---
 
 4. Additionally following is an workaround can be excercised if in case user observes NC_ERROR during device initialization of NCS2 stick.
    While running EIS if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
