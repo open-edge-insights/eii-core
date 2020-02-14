@@ -50,7 +50,7 @@ TEST(env_config_tests, get_topics_from_env) {
 	results = env_config->get_topics_from_env("pub");
 	ASSERT_TRUE(results == NULL);
 
-	LOG_INFO_0("========3. Test with SubTopics/PubTopics env========");
+	LOG_INFO_0("========3. Test with SubTopics/PubTopics env multiple times========");
 	const char* topics_list = "sub_topic1,sub_topic2";
 	std::vector<std::string> topics{"sub_topic1", "sub_topic2"};
 
@@ -60,9 +60,13 @@ TEST(env_config_tests, get_topics_from_env) {
 	};
 	for(auto& ele : topics_map) {
 		setenv((char*)&ele.second[0], topics_list, true);
-		results = env_config->get_topics_from_env((char*)&ele.first[0]);
-		EXPECT_EQ(topics[0], results[0]);
-		EXPECT_EQ(topics[1], results[1]);
+		for(int i = 0; i < 4; i++) {
+			results = env_config->get_topics_from_env((char*)&ele.first[0]);
+			LOG_INFO("%s : %s",results[0], &topics[0][0]);
+			LOG_INFO("%s : %s",results[1], &topics[1][0]);
+			EXPECT_EQ(topics[0], results[0]);
+			EXPECT_EQ(topics[1], results[1]);
+		}
 	}
 
 	LOG_INFO_0("========4. Test with wrong topic type========");
@@ -118,12 +122,17 @@ TEST(env_config_tests, get_messagebus_config) {
 
 	ASSERT_TRUE(config == NULL);
 
-	LOG_INFO_0("========6. Test the actual flow========");
+	LOG_INFO_0("========6. Test the actual flow of api multiple times========");
 	LOG_INFO("Sub topic: %s", sub_topic.c_str());
-	config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type);
-	config_value_t* value = config->get_config_value(config->cfg, "type");
-	ASSERT_EQ(value->type, CVT_STRING);
-	ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
+	config_value_t* value =NULL;
+	for(int i = 0; i < 4; i++) {
+		config = env_config->get_messagebus_config(NULL, &c_sub_topics, num_of_sub_topics, topic_type);
+		value = config->get_config_value(config->cfg, "type");
+		ASSERT_EQ(value->type, CVT_STRING);
+		ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
+	}
+	free(value);
+	free(config);
 
 	delete [] c_sub_topics;
 	delete [] c_wrong_sub_topic;
