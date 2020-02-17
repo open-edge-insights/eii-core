@@ -59,7 +59,7 @@ def start_subscriber():
         print('[INFO] Running...')
 
         while True:
-            msg = subscriber.recv()
+            msg, _ = subscriber.recv()
             if msg is not None:
                 print(f'[INFO] RECEIVED: {msg}')
             else:

@@ -55,7 +55,7 @@ def start_server():
 
         print('[INFO] Running...')
         while True:
-            request = service.recv()
+            request, _ = service.recv()
             print(f'[INFO] Received request: {request}')
             service.response(request)
     except KeyboardInterrupt:

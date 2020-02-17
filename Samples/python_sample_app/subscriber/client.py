@@ -60,7 +60,7 @@ def start_client():
             print(f'[INFO] Sending request {request}')
             service.request(request)
             print('[INFO] Waiting for response')
-            response = service.recv()
+            response, _ = service.recv()
             print(f'[INFO] Received response: {response}')
             time.sleep(1)
     except KeyboardInterrupt:
