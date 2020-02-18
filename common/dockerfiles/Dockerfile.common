@@ -5,6 +5,16 @@ FROM ia_eisbase:$EIS_VERSION
 WORKDIR ${GO_WORK_DIR}
 COPY cmake ./common/cmake
 
+RUN git clone https://github.com/netmail-open/wjelement && \
+    cd wjelement && \
+    git checkout -b known_version 1c792c1669fd8441cf17647facc0cc908441dc0d && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make && \
+    make install
+
 COPY libs/IntelSafeString ./common/libs/IntelSafeString/
 RUN cd ./common/libs/IntelSafeString && \
     rm -rf build && \

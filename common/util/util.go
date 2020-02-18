@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/xeipuuv/gojsonschema"
 )
 
 // CheckPortAvailability - checks for port availability on hostname
@@ -102,4 +103,28 @@ func GetCryptoMap(appName string) map[string]string {
 	}
 
 	return conf
+}
+
+// ValidateJSON - JSON validator function
+func ValidateJSON(schema string, config string) bool {
+	schemaJSON := gojsonschema.NewStringLoader(schema)
+	validJSON := gojsonschema.NewStringLoader(config)
+
+	result, err := gojsonschema.Validate(schemaJSON, validJSON)
+	if err != nil {
+		glog.Error("Error during JSON validation %v", err)
+		return false
+	}
+
+	if !result.Valid() {
+		for _, desc := range result.Errors() {
+			glog.Errorf("- %s\n", desc)
+		}
+		glog.Error("JSON schema validation failed !")
+		return false
+	}
+
+	glog.Info("JSON schema validation passed !")
+	return true
+
 }

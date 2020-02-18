@@ -23,6 +23,8 @@ import logging as log
 import time
 import base64
 import os
+import json
+from jsonschema import validate
 from distutils.util import strtobool
 
 class Util:
@@ -91,3 +93,14 @@ class Util:
             conf["trustFile"] = "/run/secrets/ca_etcd"
         
         return conf
+
+    @staticmethod
+    def validate_json(schema, config):
+        try:
+            validate(instance=json.loads(config), schema=json.loads(schema))
+            log.info("JSON schema validation passed !")
+            return True
+        except Exception as e:
+            log.error(e)
+            log.error("JSON schema validation failed !")
+            return False

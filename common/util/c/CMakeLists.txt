@@ -63,7 +63,9 @@ target_link_libraries(eisutils
     PRIVATE
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
-        ${IntelSafeString_LIBRARIES})
+        ${IntelSafeString_LIBRARIES}
+        wjelement
+        wjreader)
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
