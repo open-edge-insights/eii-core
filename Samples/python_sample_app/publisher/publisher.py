@@ -21,27 +21,16 @@
 """
 
 import time
-import argparse
 import eis.msgbus as mb
 import os
+import json
 from distutils.util import strtobool
 from util.msgbusutil import MsgBusUtil
 from libs.ConfigManager import ConfigManager
 from util.util import Util
 
-# Argument parsing
-ap = argparse.ArgumentParser()
-ap.add_argument('-t', '--topic', default='publish_test', help='Topic')
-ap.add_argument('-b', '--blob_size', type=int, default=10,
-                help='Number of bytes for the blob')
-ap.add_argument('-i', '--interval', type=float, default=1,
-                help='Interval between each publication')
-ap.add_argument('-s', '--service-name', dest='service_name',
-                default='PythonPublisher', help='Service name')
-args = ap.parse_args()
 
-
-def start_publisher():
+def start_publisher(topic_string):
     publisher = None
 
     try:
@@ -56,24 +45,26 @@ def start_publisher():
         config_client = cfg_mgr.get_config_client("etcd", conf)
         dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
-        for topic in topics_list_pub:
-            topic = topic.strip()
+        topic = topics_list_pub[0]
+        topic = topic.strip()
 
-            msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "pub",
-                                                          client_list,
-                                                          config_client,
-                                                          dev_mode)
-            break  # since it is a single element
+        msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "pub",
+                                                      client_list,
+                                                      config_client,
+                                                      dev_mode)
+
+        app_config = config_client.GetConfig("/" + app_name + "/config")
+        app_config_dict = json.loads(app_config)
 
         print('[INFO] Initializing message bus context')
         msgbus_pub = mb.MsgbusContext(msgbus_cfg)
 
-        print(f'[INFO] Initializing publisher for topic \'{args.topic}\'')
-        publisher = msgbus_pub.new_publisher(args.topic)
+        print(f'[INFO] Initializing publisher for topic \'{topic_string}\'')
+        publisher = msgbus_pub.new_publisher(topic_string)
 
         print('[INFO] Running...')
         while True:
-            blob = b'\x22' * args.blob_size
+            blob = b'\x22' * 10
             meta = {
                 'integer': 123,
                 'floating': 55.5,
@@ -85,7 +76,7 @@ def start_publisher():
             }
 
             publisher.publish((meta, blob,))
-            time.sleep(args.interval)
+            time.sleep(int(app_config_dict["loop_interval"]))
     except KeyboardInterrupt:
         print('[INFO] Quitting...')
     finally:

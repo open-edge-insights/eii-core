@@ -23,16 +23,16 @@
 import time
 import eis.msgbus as mb
 import os
+import json
 from distutils.util import strtobool
 from util.msgbusutil import MsgBusUtil
 from libs.ConfigManager import ConfigManager
 from util.util import Util
 
 
-def start_client():
+def start_client(server_name):
     msgbus = None
     service = None
-    server_name = "PythonPublisher"
 
     try:
         print('[INFO] Initializing message bus context')
@@ -48,8 +48,11 @@ def start_client():
                                                       config_client, dev_mode)
         msgbus = mb.MsgbusContext(msgbus_cfg)
 
-        print(f'[INFO] Initializing service for PythonServer')
-        service = msgbus.get_service("PythonPublisher")
+        app_config = config_client.GetConfig("/" + app_name + "/config")
+        app_config_dict = json.loads(app_config)
+
+        print(f'[INFO] Initializing service for {server_name}')
+        service = msgbus.get_service(server_name)
 
         # Request used for the example
         request = {'int': 42, 'float': 55.5,
@@ -62,7 +65,7 @@ def start_client():
             print('[INFO] Waiting for response')
             response, _ = service.recv()
             print(f'[INFO] Received response: {response}')
-            time.sleep(1)
+            time.sleep(int(app_config_dict["loop_interval"]))
     except KeyboardInterrupt:
         print('[INFO] Quitting...')
     finally:

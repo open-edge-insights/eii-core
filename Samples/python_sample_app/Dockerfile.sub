@@ -25,14 +25,6 @@ FROM ia_eisbase:$EIS_VERSION as eisbase
 
 WORKDIR ${PY_WORK_DIR}
 
-ARG DEBIAN_FRONTEND=noninteractive
-# Setting timezone inside the container
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.6 get-pip.py
-
 ARG EIS_USER_NAME
 RUN adduser --quiet --disabled-password ${EIS_USER_NAME}
 

@@ -22,11 +22,14 @@
 import threading
 import subscriber
 import client
+import os
 
 
 def main():
-    t1 = threading.Thread(target=subscriber.start_subscriber)
-    t2 = threading.Thread(target=client.start_client)
+    t1 = threading.Thread(target=subscriber.start_subscriber,
+                          args=(os.environ["SubTopics"],))
+    t2 = threading.Thread(target=client.start_client,
+                          args=(os.environ["RequestEP"],))
     t1.start()
     t2.start()
     t1.join()

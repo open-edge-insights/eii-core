@@ -25,14 +25,6 @@ FROM ia_eisbase:$EIS_VERSION as eisbase
 
 WORKDIR ${PY_WORK_DIR}
 
-ARG DEBIAN_FRONTEND=noninteractive
-# Setting timezone inside the container
-RUN echo "$HOST_TIME_ZONE" >/etc/timezone
-RUN cat /etc/timezone
-
-RUN wget https://bootstrap.pypa.io/get-pip.py && \
-    python3.6 get-pip.py
-
 ARG EIS_USER_NAME
 RUN adduser --quiet --disabled-password ${EIS_USER_NAME}
 
@@ -48,9 +40,10 @@ FROM ia_common:$EIS_VERSION as common
 FROM eisbase
 
 COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
-COPY --from=common /usr/local/lib /usr/local/lib
 COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
+COPY --from=common /usr/local/lib /usr/local/lib
 COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
 
 COPY ./publisher ./publisher
+
 ENTRYPOINT ["python3.6", "-u", "publisher/main.py"]

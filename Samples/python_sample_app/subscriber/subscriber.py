@@ -28,7 +28,7 @@ from util.msgbusutil import MsgBusUtil
 from util.util import Util
 
 
-def start_subscriber():
+def start_subscriber(topic_string):
     subscriber = None
 
     try:
@@ -38,23 +38,22 @@ def start_subscriber():
         conf = Util.get_crypto_dict(app_name)
         cfg_mgr = ConfigManager()
         config_client = cfg_mgr.get_config_client("etcd", conf)
+        dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
-        for topic in topics_list_sub:
-            publisher, topic = topic.split("/")
-            topic = topic.strip()
-            dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
+        topic = topics_list_sub[0]
+        publisher, topic = topic.split("/")
+        topic = topic.strip()
 
-            msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "sub",
-                                                          publisher,
-                                                          config_client,
-                                                          dev_mode)
-            break  # since it is a single element
+        msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "sub",
+                                                      publisher,
+                                                      config_client,
+                                                      dev_mode)
 
         print('[INFO] Initializing message bus context')
         msgbus_sub = mb.MsgbusContext(msgbus_cfg)
 
-        print(f'[INFO] Initializing subscriber for topic publish_test')
-        subscriber = msgbus_sub.new_subscriber("publish_test")
+        print(f'[INFO] Initializing subscriber for topic {topic}')
+        subscriber = msgbus_sub.new_subscriber(topic)
 
         print('[INFO] Running...')
 

@@ -22,10 +22,12 @@
 import threading
 import publisher
 import server
+import os
 
 
 def main():
-    t1 = threading.Thread(target=publisher.start_publisher)
+    t1 = threading.Thread(target=publisher.start_publisher,
+                          args=(os.environ["PubTopics"],))
     t2 = threading.Thread(target=server.start_server)
     t1.start()
     t2.start()
