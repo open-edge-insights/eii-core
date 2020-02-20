@@ -20,7 +20,7 @@
 
 /**
  * @file
- * @brief publisher main program
+ * @brief Publisher main program
  */
 
 #include <signal.h>
@@ -31,7 +31,7 @@
 #include "server.h"
 #include <pthread.h>
 #include "eis/utils/logger.h"
-#include <usage.h>
+
 
 using namespace std;
 
@@ -42,31 +42,17 @@ int start_publisher(char *topic_name);
 int start_server(char *service_name);
 
 void signal_handler(int signo) 
-{    *loop = false;}
+{    loop->store(false,std::memory_order_relaxed);}
 
-int main(int argc, char** argv)
+int main()
 {
-    if(argc == 1) {
-        LOG_ERROR_0("Too few arguments");
-        return -1;
-    } else if(argc > 3) {
-        LOG_ERROR_0("Too many arguments");
-        return -1;
-    }
-
-    if(strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-        usage(argv[0]);
-        return 0;
-    }
-
-    set_log_level(LOG_LVL_DEBUG);
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
     loop = new std::atomic<bool>;
     *loop = true;
 
-    if( (start_publisher("publish_test") == 0) && (start_server("cppPublisher") == 0) ) {
+    if( (start_publisher(getenv("PubTopics")) == 0) && (start_server(getenv("AppName")) == 0) ) {
         pthread_join(pub_thread,NULL);
         pthread_join(server_thread,NULL);
     }
@@ -77,11 +63,11 @@ int main(int argc, char** argv)
 
 int start_publisher(char *topic_name)
 {
-    publisher *pub = new publisher(loop);
+    Publisher *pub = new Publisher(loop);
     int ret_val = -1;
 
     if(pub->init(topic_name)){
-        if((ret_val = pthread_create(&pub_thread, NULL,publisher::start,pub)) != 0){
+        if((ret_val = pthread_create(&pub_thread, NULL,Publisher::start,pub)) != 0){
             LOG_ERROR("Unable to initialize publisher thread, error code : %d", ret_val);
         }
     }else{
@@ -94,11 +80,11 @@ int start_publisher(char *topic_name)
 
 int start_server(char *service_name)
 {
-    server *ser = new server(loop);
+    Server *ser = new Server(loop);
 	int ret_val = -1;
 
     if(ser->init(service_name)){
-        if((ret_val = pthread_create(&server_thread, NULL,server::start,ser)) != 0){
+        if((ret_val = pthread_create(&server_thread, NULL,Server::start,ser)) != 0){
             LOG_ERROR("Unable to initialize server thread, error code : %d", ret_val);
         }
     }else{

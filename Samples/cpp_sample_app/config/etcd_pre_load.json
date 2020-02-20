@@ -1,6 +1,15 @@
 {
     "/GlobalEnv/": {
+	"PY_LOG_LEVEL": "INFO",
+        "GO_LOG_LEVEL": "INFO",
         "C_LOG_LEVEL": "INFO",
         "ETCD_KEEPER_PORT": "7070"
+    },
+    "/cppPublisher/config":{
+        "loop_interval": "1"
+    },
+    "/cppSubscriber/config":{
+        "loop_interval": "1"
     }
+
 }

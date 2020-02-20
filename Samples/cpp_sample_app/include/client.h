@@ -12,7 +12,7 @@
 #ifndef _EIS_CPP_CLIENT_H
 #define _EIS_CPP_CLIENT_H
 
-class client
+class Client
 {
     private:
         env_config_t* g_env_config_client = NULL;
@@ -22,15 +22,15 @@ class client
         msg_envelope_serialized_part_t* parts = NULL;
         msg_envelope_t* msg = NULL;
         int num_parts = 0;
-        char* m_app_name = "cppPublisher";
         std::atomic<bool> *loop;
 
     public:
-        client(std::atomic<bool> *loop);
-        ~client();
+        Client(std::atomic<bool> *loop);
+        ~Client();
         bool init(char *service_name);
         static void* start(void *arg);
         int client_service();
+        void clean_up();
 };
 
 #endif //_EIS_CPP_CLIENT_H

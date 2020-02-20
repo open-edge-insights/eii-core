@@ -20,4 +20,3 @@ COPY ./util ./util
 RUN g++ -o ./publisher/main ./publisher/*.cpp ./util/*.cpp -I./include -leismsgbus -leisconfigmgr -leisutils -leismsgenv -lpthread
 
 ENTRYPOINT ["/EIS/go/src/IEdgeInsights/publisher/main"]
-CMD ["publish_test"]

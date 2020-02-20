@@ -7,7 +7,7 @@
 #ifndef _EIS_CPP_SUBSCRIBER_H
 #define _EIS_CPP_SUBSCRIBER_H
 
-class subscriber
+class Subscriber
 {
     private:
         recv_ctx_t* g_sub_ctx = NULL;
@@ -20,8 +20,8 @@ class subscriber
         std::atomic<bool> *loop;
     
     public:
-        subscriber(std::atomic<bool> *loop);
-        ~subscriber();
+        Subscriber(std::atomic<bool> *loop);
+        ~Subscriber();
         bool init(char *topic_name);
         static void* start(void *arg);
         int subscribe();

@@ -33,10 +33,10 @@
 #include <eis/config_manager/env_config.h>
 #include <get_config_mgr.h>
 
-server::server(std::atomic<bool> *loop)
+Server::Server(std::atomic<bool> *loop)
 {this->loop = loop;}
 
-server::~server()
+Server::~Server()
 {
     if(msg != NULL)
         msgbus_msg_envelope_destroy(msg);
@@ -48,7 +48,7 @@ server::~server()
         msgbus_destroy(g_msgbus_ctx_server);
 }
 
-bool server::init(char *service_name)
+bool Server::init(char *service_name)
 {
     g_env_config_client = env_config_new();
     g_config_mgr = get_config_mgr();
@@ -78,10 +78,10 @@ err:
     return false;
 }
 
-void* server::start(void *arg)
+void* Server::start(void *arg)
 {
     int ret_val = -1;
-    server *obj = (server*)arg ;
+    Server *obj = (Server*)arg ;
     
     if( ( ret_val = obj->server_service() ) != 0 ){
         LOG_ERROR("server failed.(errno: %d)", ret_val);
@@ -89,7 +89,7 @@ void* server::start(void *arg)
     delete obj;
 }
 
-int server::server_service() {
+int Server::server_service() {
 
     int ret = 0;
     LOG_INFO_0("Running...");

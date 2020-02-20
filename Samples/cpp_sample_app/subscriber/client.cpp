@@ -19,7 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief Message bus echo service client example
+ * @brief Message bus echo service Client example
  */
 
 #include <signal.h>
@@ -33,12 +33,16 @@
 #include <eis/config_manager/env_config.h>
 #include "client.h"
 #include <get_config_mgr.h>
-#include <usage.h>
+#include <get_app_config.h>
 
-client::client(std::atomic<bool> *loop)
+
+#define MAX_CONFIG_KEY_LENGTH 40
+char* cpp_sub_config = NULL;
+
+Client::Client(std::atomic<bool> *loop)
 {this->loop = loop;}
 
-client::~client()
+Client::~Client()
 {
     if(msg != NULL)
         msgbus_msg_envelope_destroy(msg);
@@ -50,11 +54,11 @@ client::~client()
         msgbus_destroy(g_msgbus_ctx_client);
 }
 
-bool client::init(char *service_name)
+bool Client::init(char *service_name)
 {
     g_env_config_client = env_config_new();
     g_config_mgr = get_config_mgr();
-    char* TOPICS[] = {m_app_name};
+    char* TOPICS[] = {service_name};
     size_t num_of_topics_pub = g_env_config_client->get_topics_count(TOPICS);
     config_t* config_client = g_env_config_client->get_messagebus_config(g_config_mgr, TOPICS,num_of_topics_pub ,"client");
     g_msgbus_ctx_client = msgbus_initialize(config_client);
@@ -64,7 +68,7 @@ bool client::init(char *service_name)
     }
 
     msgbus_ret_t ret ;
-    ret = msgbus_service_get(g_msgbus_ctx_client, m_app_name, NULL, &g_service_ctx);
+    ret = msgbus_service_get(g_msgbus_ctx_client, service_name, NULL, &g_service_ctx);
     if(ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize service (errno: %d)", ret);
         goto err;
@@ -80,10 +84,10 @@ err:
     return false;
 }
 
-void* client::start(void *arg)
+void* Client::start(void *arg)
 {
     int ret_val = -1;
-    client *obj = (client*)arg ;
+    Client *obj = (Client*)arg ;
 
     if( ( ret_val = obj -> client_service() ) != 0 ){
         LOG_ERROR("client service failed.(errno: %d)", ret_val);
@@ -91,9 +95,58 @@ void* client::start(void *arg)
     delete obj;
 }
 
-int client::client_service() {
+void Client::clean_up(){
+    config_mgr_config_destroy(g_config_mgr);
+    env_config_destroy(g_env_config_client);
+}
+
+int Client::client_service() {
     
-    int ret=0;
+    int ret = 0;
+    int sleep_val = 0;
+    try
+    {
+        //setting the LOG LEVEL
+        char* str_log_level = NULL;
+        log_lvl_t log_level = LOG_LVL_ERROR; // default log level is `ERROR`
+
+        str_log_level = getenv("C_LOG_LEVEL");
+        if(str_log_level == NULL) {
+            throw "\"C_LOG_LEVEL\" env not set";
+        } else {
+            if(strncmp(str_log_level, "DEBUG", 5) == 0) {
+                log_level = LOG_LVL_DEBUG;
+            } else if(strncmp(str_log_level, "INFO", 5) == 0) {
+                log_level = LOG_LVL_INFO;
+            } else if(strncmp(str_log_level, "WARN", 5) == 0) {
+                log_level = LOG_LVL_WARN;
+            } else if(strncmp(str_log_level, "ERROR", 5) == 0) {
+                log_level = LOG_LVL_ERROR;
+            }
+        set_log_level(log_level);
+        }
+        set_log_level(log_level);
+
+        std::string app_name = "";
+        char* str_app_name = NULL;
+        str_app_name = getenv("AppName");
+        if(str_app_name == NULL) {
+            throw "\"AppName\" env not set";
+            } else {
+                app_name = str_app_name;
+        }
+        // Get the configuration from the configuration manager
+        char config_key[MAX_CONFIG_KEY_LENGTH];
+        snprintf(config_key, MAX_CONFIG_KEY_LENGTH, "/%s/config", app_name.c_str());
+        cpp_sub_config = g_config_mgr->get_config(config_key);
+        LOG_DEBUG("App config: %s", cpp_sub_config);
+        sleep_val = get_app_config(cpp_sub_config);
+
+    }catch(const std::exception& ex) {
+        LOG_ERROR("Exception '%s' occurred", ex.what());
+        clean_up();
+    }
+
     while(*loop) {
         // Initailize request
         msg_envelope_elem_body_t* integer ;
@@ -119,7 +172,7 @@ int client::client_service() {
             LOG_ERROR("Failed to send request (errno: %d)", ret);
             goto err;
         }
-        sleep(1);
+        sleep(sleep_val);
         msgbus_msg_envelope_destroy(msg);
         msg = NULL;
 

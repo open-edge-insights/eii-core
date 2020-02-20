@@ -7,10 +7,10 @@
 #ifndef _EIS_CPP_PUBLISHER_H
 #define _EIS_CPP_PUBLISHER_H
 
-class publisher
+class Publisher
 {
  private:
-    publisher_ctx_t* g_pub_ctx = NULL;
+    publisher_ctx_t* m_pub_ctx = NULL;
     int num_parts = 0;
     void* g_msgbus_ctx = NULL;
     env_config_t* g_env_config_client = NULL;
@@ -20,11 +20,12 @@ class publisher
     std::atomic<bool> *loop;
 
  public:
-    publisher(std::atomic<bool> *loop);
-    ~publisher();
+    Publisher(std::atomic<bool> *loop);
+    ~Publisher();
     bool init(char *topic_name);
     static void* start(void *arg);
     int publish();
+    void clean_up();
 };
 
 #endif //_EIS_CPP_PUBLISHER_H

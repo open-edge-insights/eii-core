@@ -19,7 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief Message bus subscriber example
+ * @brief Message bus Subscriber example
  */
 
 #include <signal.h>
@@ -27,15 +27,17 @@
 #include "eis/msgbus/msgbus.h"
 #include <eis/config_manager/env_config.h>
 #include <get_config_mgr.h>
-#include <usage.h>
+extern "C" {
+    #include <safe_str_lib.h>
+}
 #include "subscriber.h"
 
-char* TOPIC[] = {"cppPublisher/publish_test"};
+#define SIZE 100
 
-subscriber::subscriber(std::atomic<bool> *loop)
+Subscriber::Subscriber(std::atomic<bool> *loop)
 {this->loop = loop;}
 
-subscriber::~subscriber()
+Subscriber::~Subscriber()
 {
     if(msg != NULL)
         msgbus_msg_envelope_destroy(msg);
@@ -47,10 +49,15 @@ subscriber::~subscriber()
         msgbus_destroy(g_msgbus_ctx);
 }
 
-bool subscriber::init(char *topic_name)
+bool Subscriber::init(char *topic_name)
 {
+    char* individual_topic = NULL;
+    int j = 0;
+    const char* pub_topic[SIZE];
+    
     g_env_config_client = env_config_new();
     g_config_mgr = get_config_mgr();
+    char* TOPIC[] = {topic_name};
     size_t num_of_topics_pub = g_env_config_client->get_topics_count(TOPIC);
     config_t* sub_config = g_env_config_client->get_messagebus_config(g_config_mgr,TOPIC,num_of_topics_pub,"sub");
 
@@ -60,14 +67,17 @@ bool subscriber::init(char *topic_name)
         goto err;
     }
 
+    while((individual_topic = strtok_r(topic_name, "/", &topic_name))) {
+        pub_topic[j] = individual_topic;
+        j++;
+    }
     msgbus_ret_t ret;
-    ret = msgbus_subscriber_new(g_msgbus_ctx, topic_name, NULL, &g_sub_ctx);
+    ret = msgbus_subscriber_new(g_msgbus_ctx, pub_topic[1], NULL, &g_sub_ctx);
 
     if(ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize subscriber (errno: %d)", ret);
         goto err;
     }
-
     return true;
     
 err:
@@ -80,10 +90,10 @@ err:
 
 }
 
-void* subscriber::start(void *arg)
+void* Subscriber::start(void *arg)
 {
     int ret_val = -1;
-    subscriber *obj = (subscriber*)arg ;
+    Subscriber *obj = (Subscriber*)arg ;
 
     if( ( ret_val = obj->subscribe() ) != 0 ){
         LOG_ERROR("subscribe failed.(errno: %d)", ret_val);
@@ -92,11 +102,12 @@ void* subscriber::start(void *arg)
     delete obj;
 }
 
-int subscriber::subscribe() {
+int Subscriber::subscribe() {
 
     int ret=0;
     LOG_INFO_0("Running...");
-    while(*loop) {
+
+    while(loop->load()) {
         ret = msgbus_recv_wait(g_msgbus_ctx, g_sub_ctx, &msg);
         if(ret != MSG_SUCCESS) {
             // Interrupt is an acceptable error

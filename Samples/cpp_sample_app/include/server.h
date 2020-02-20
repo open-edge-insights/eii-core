@@ -12,7 +12,7 @@
 #ifndef _EIS_CPP_SERVER_H
 #define _EIS_CPP_SERVER_H
 
-class server
+class Server
 {
     private:
         void* g_msgbus_ctx_server = NULL; 
@@ -26,8 +26,8 @@ class server
         std::atomic<bool> *loop;
     
     public:
-        server(std::atomic<bool> *loop);
-        ~server();
+        Server(std::atomic<bool> *loop);
+        ~Server();
         bool init(char *service_name);
         static void* start(void *arg);
         int server_service();

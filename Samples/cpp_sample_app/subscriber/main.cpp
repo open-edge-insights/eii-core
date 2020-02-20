@@ -31,7 +31,6 @@
 #include "client.h"
 #include <pthread.h>
 #include "eis/utils/logger.h"
-#include <usage.h>
 
 using namespace std;
 
@@ -42,31 +41,16 @@ int start_subscriber(char *topic_name);
 int start_client(char *service_name);
 
 void signal_handler(int signo) 
-{    *loop = false;}
+{    loop->store(false,std::memory_order_relaxed);}
 
-int main(int argc, char** argv)
+int main()
 {
-	if(argc == 1) {
-        LOG_ERROR_0("Too few arguments");
-        return -1;
-    } else if(argc > 3) {
-        LOG_ERROR_0("Too many arguments");
-        return -1;
-    }
-
-    if(strcmp(argv[1], "-h") == 0 || strcmp(argv[1], "--help") == 0) {
-        usage(argv[0]);
-        return 0;
-    }
-
-	set_log_level(LOG_LVL_DEBUG);
 	signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
 	loop = new std::atomic<bool>;
     *loop = true;
-
-	if( (start_subscriber("publish_test") == 0) && (start_client("cppPublisher") == 0) ) {
+	if( (start_subscriber(getenv("SubTopics")) == 0) && (start_client(getenv("RequestEP")) == 0)) {
         pthread_join(sub_thread,NULL);
 		pthread_join(client_thread,NULL);
     }
@@ -77,11 +61,11 @@ int main(int argc, char** argv)
 
 int start_subscriber(char *topic_name)
 {
-	subscriber *sub = new subscriber(loop);
+	Subscriber *sub = new Subscriber(loop);
     int ret_val = -1;
 
 	if(sub->init(topic_name)){
-        if((ret_val = pthread_create(&sub_thread, NULL,subscriber::start,sub)) != 0){
+        if((ret_val = pthread_create(&sub_thread, NULL,Subscriber::start,sub)) != 0){
             LOG_ERROR("Unable to initialize subscriber thread, error code : %d", ret_val);
         }
         }else{
@@ -94,11 +78,11 @@ int start_subscriber(char *topic_name)
 
 int start_client(char *service_name)
 {
-	client *cli = new client(loop);
+	Client *cli = new Client(loop);
 	int ret_val = -1;
 
 	if(cli->init(service_name)){
-		if((ret_val = pthread_create(&client_thread,NULL,client::start,cli)) !=0){
+		if((ret_val = pthread_create(&client_thread,NULL,Client::start,cli)) !=0){
 			LOG_ERROR("Unable to initialize client thread, error code : %d", ret_val);
 		}
 	}else{

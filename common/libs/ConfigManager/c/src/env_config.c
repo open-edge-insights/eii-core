@@ -210,7 +210,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             goto err;
         }
     }else if(!strcmp(topic_type,"server")){
-        ret = strncpy_s(topic_cfg, SIZE, getenv(publisher_topic), SIZE);
+        ret = strncpy_s(topic_cfg, SIZE, getenv("Server"), SIZE);
         if(ret != 0) {
             LOG_ERROR("String copy failed (errno: %d)", ret);
             goto err;

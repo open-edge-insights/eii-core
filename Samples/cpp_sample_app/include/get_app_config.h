@@ -17,9 +17,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 
-#ifndef _EIS_GET_CONFIG_MGR_H
-#define _EIS_GET_CONFIG_MGR_H
+#ifndef _EIS_GET_APP_CONFIG_H
+#define _EIS_GET_APP_CONFIG_H
 
-config_mgr_t* get_config_mgr();
+int get_app_config(char* cpp_app_config);
 
-#endif //_EIS_GET_CONFIG_MGR_H
+#endif //_EIS_GET_APP_CONFIG_H
