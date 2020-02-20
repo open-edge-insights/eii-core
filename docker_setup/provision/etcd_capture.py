@@ -47,7 +47,8 @@ def main():
     keys = str(cmd, encoding='utf-8')
     key_list = keys.split()
     value_list = []
-    matchers = ['Publickeys', 'private_key']
+    matchers = ['Publickeys', 'private_key',
+                'ca_cert', 'server_cert', 'server_key']
     matching = [s for s in key_list if any(xs in s for xs in matchers)]
 
     for key in matching:
