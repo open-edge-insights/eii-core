@@ -278,4 +278,5 @@ To refer C examples follow env_config_example.c in [examples/](examples/)
 4. cmake -DWITH_EXAMPLES=ON ..
 5. make
 6. cd examples
-7. `./env_config`
+7. For dev mode either run `./env_config` or just `./env_config 0`.
+8. For prod mode run `./env_config 1`
