@@ -22,12 +22,17 @@ SOFTWARE.
 
 package main
 
+import "os"
+
 func main() {
 
 	flag := make(chan bool, 1)
 
-	go start_subscriber()
-	go start_client()
+	topic := os.Getenv("SubTopics")
+	serviceName := os.Getenv("RequestEP")
+
+	go start_subscriber(topic)
+	go start_client(serviceName)
 
 	<-flag
 }

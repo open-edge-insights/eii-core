@@ -30,12 +30,13 @@ import (
 	"os"
 	"strconv"
 	"time"
+        "encoding/json"
+        configmgr "IEdgeInsights/common/libs/ConfigManager"
 )
 
-func start_client() {
+func start_client(serviceName string) {
 	mode := os.Getenv("DEV_MODE")
 	devMode, err := strconv.ParseBool(mode)
-	serviceName := "GoPublisher"
 
 	config1, err := readClientConfig(serviceName, devMode)
 	fmt.Printf("-- Initializing message bus context for client %v", config1)
@@ -58,6 +59,10 @@ func start_client() {
 
 	req := map[string]interface{}{"command": "C"}
 	count := 1
+
+        data, err := get_app_config()
+        loop_interval, _ := time.ParseDuration(data["loop_interval"])
+
 	for {
 		var cmd interface{} = req["command"].(string) + strconv.Itoa(count)
 		req["command"] = cmd
@@ -83,7 +88,7 @@ func start_client() {
 		}
 
 		fmt.Printf("---Client sent Request %v and received response %v\n", req, res)
-		time.Sleep(1 * time.Second)
+		time.Sleep(loop_interval)
 	}
 }
 
@@ -91,4 +96,24 @@ func readClientConfig(serviceName string, devMode bool) (map[string]interface{},
 	appName := os.Getenv("AppName")
 	cfgMgrConfig := util.GetCryptoMap(appName)
 	return msgbusutil.GetMessageBusConfig(serviceName, "client", devMode, cfgMgrConfig), nil
+}
+
+func get_app_config()(map[string]string, error){
+        data := make(map[string]string)
+        appName := os.Getenv("AppName")
+        config := util.GetCryptoMap(appName)
+        mgr := configmgr.Init("etcd", config)
+
+        value, err := mgr.GetConfig("/" + appName + "/config")
+        if err != nil {
+                fmt.Printf("Not able to read value from etcd for /%v/config", appName)
+                return nil, err
+        }
+
+        err = json.Unmarshal([]byte(value), &data)
+        if err != nil {
+                fmt.Printf("json error: %s", err.Error())
+                return nil, err
+        }
+        return data,nil
 }

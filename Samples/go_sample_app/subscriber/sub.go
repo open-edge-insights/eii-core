@@ -33,11 +33,9 @@ import (
 	"time"
 )
 
-func start_subscriber() {
+func start_subscriber(topic string) {
 	mode := os.Getenv("DEV_MODE")
 	devMode, err := strconv.ParseBool(mode)
-	// topic to be subscribed for
-	topic := "GoPublisher/publish_test"
 
 	config, err := readSubConfig(topic, devMode)
 	fmt.Printf("-- Initializing message bus context for sub %v\n", config)

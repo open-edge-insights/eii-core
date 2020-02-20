@@ -31,7 +31,7 @@ services:
       dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
         ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
-        #EIS_VERSION: ${EIS_VERSION}
+        EIS_VERSION: ${EIS_VERSION}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui

@@ -31,12 +31,14 @@ import (
 	"os"
 	"strconv"
 	"time"
+        "encoding/json"
+        configmgr "IEdgeInsights/common/libs/ConfigManager"
 )
 
-func start_publisher() {
+func start_publisher(topic string) {
+
 	mode := os.Getenv("DEV_MODE")
 	devMode, err := strconv.ParseBool(mode)
-	topic := "publish_test"
 	flag.Parse()
 
 	config, err := readPubConfig(topic, devMode)
@@ -56,29 +58,31 @@ func start_publisher() {
 	}
 	defer publisher.Close()
 
-	sMsg := map[string]interface{}{
-		"str":   "hello",
-		"int":   2.0,
-		"float": 55.5,
-		"bool":  true,
-		"obj": map[string]interface{}{
-			"nest": map[string]interface{}{
-				"test": "hello",
-			},
-			"hello": "world",
-		},
-		"arr":   []interface{}{"test", 123.0},
-		"empty": nil,
-	}
-
 	fmt.Println("-- Running publisher...")
 
+        sMsg := map[string]interface{}{
+                "str":   "hello",
+                "count":   0,
+        }
+
+        count := 0
+
+        data, err := get_app_config()
+        loop_interval, _ := time.ParseDuration(data["loop_interval"])
+
 	for {
+                sMsg["count"] = count
+
 		err = publisher.Publish(sMsg)
+
 		if err != nil {
 			fmt.Printf("-- Failed to publish message: %v \n", err)
-		}
-		time.Sleep(1 * time.Second)
+		}else{
+		        fmt.Printf("-- Published message : %v \n", sMsg)
+                }
+
+                count++
+		time.Sleep(loop_interval)
 	}
 }
 
@@ -87,3 +91,25 @@ func readPubConfig(topicName string, devMode bool) (map[string]interface{}, erro
 	cfgMgrConfig := util.GetCryptoMap(appName)
 	return msgbusutil.GetMessageBusConfig(topicName, "pub", devMode, cfgMgrConfig), nil
 }
+
+func get_app_config()(map[string]string, error){
+        data := make(map[string]string)
+	appName := os.Getenv("AppName")
+	config := util.GetCryptoMap(appName)
+        mgr := configmgr.Init("etcd", config)
+
+        value, err := mgr.GetConfig("/" + appName + "/config")
+        if err != nil {
+                fmt.Printf("Not able to read value from etcd for /%v/config", appName)
+                return nil, err
+        }
+
+        err = json.Unmarshal([]byte(value), &data)
+        if err != nil {
+                fmt.Printf("json error: %s", err.Error())
+                return nil, err
+        }
+        return data,nil
+}
+
+

@@ -22,11 +22,14 @@ SOFTWARE.
 
 package main
 
+import "os"
+
 func main() {
 
 	flag := make(chan bool, 1)
 
-	go start_publisher()
+	topic := os.Getenv("PubTopics")
+	go start_publisher(topic)
 	go start_server()
 
 	<-flag
