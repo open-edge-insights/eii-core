@@ -52,7 +52,10 @@ COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python
 
 # Adding classifier program
 COPY . ./
-RUN chmod +x ./classifier_start.sh
+RUN chmod +x ./classifier_start.sh && \
+    cp ./config/kapacitor.conf /etc/kapacitor/ && \
+    cp ./config/kapacitor_devmode.conf /etc/kapacitor/ && \
+    rm -rf ./config/
 
 #Removing build dependencies
 RUN apt-get remove -y wget && \
