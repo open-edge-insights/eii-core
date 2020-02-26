@@ -28,7 +28,7 @@ import stat
 import json
 import socket
 import datetime
-from libs.ConfigManager import ConfigManager
+from eis.config_manager import ConfigManager
 from util.log import configure_logging, LOG_LEVELS
 from distutils.util import strtobool
 import os

@@ -22,7 +22,7 @@
 
 import eis.msgbus as mb
 import os
-from libs.ConfigManager import ConfigManager
+from eis.config_manager import ConfigManager
 from distutils.util import strtobool
 from util.msgbusutil import MsgBusUtil
 from util.util import Util

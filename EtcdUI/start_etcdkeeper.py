@@ -24,7 +24,7 @@ import subprocess
 from distutils.util import strtobool
 import logging
 import subprocess
-from libs.ConfigManager import ConfigManager
+from eis.config_manager import ConfigManager
 from util.util import Util
 import shutil
 import threading

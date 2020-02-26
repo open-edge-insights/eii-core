@@ -45,6 +45,9 @@ FROM eisbase
 COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
 COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
 
+COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
+
+
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./
 COPY eis_nginx_prod.conf ./
@@ -58,4 +61,4 @@ RUN chown -R ${EIS_UID}:${EIS_UID} /run/nginx.pid && \
     rm -rf /var/lib/nginx && ln -sf /tmp/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 
-ENTRYPOINT ["python3", "start_etcdkeeper.py"]
+ENTRYPOINT ["python3.6", "start_etcdkeeper.py"]

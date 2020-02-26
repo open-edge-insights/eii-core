@@ -37,6 +37,10 @@ RUN cd ./common/libs/ConfigManager/c && \
     cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
 
+RUN cd ./common/libs/ConfigManager/python && \
+    rm -rf build && \
+    python3.6 setup.py install
+
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
 RUN cd ./common/libs/EISMessageBus && \
     rm -rf build deps && \

@@ -1,15 +1,15 @@
-# Copyright (c) 2019 Intel Corporation.
-
+# Copyright (c) 2020 Intel Corporation.
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,24 +17,33 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-"""
-config_manager to chose datastore client object
+"""Python distutils installer for the Python EIS Config Manager library
 """
 
-import etcd3
-import logging
-from libs.ConfigManager.python.etcd.etcd_client import EtcdCli
 import os
+from distutils.core import setup
 
+# Python install script for config manager is added
+# for v2.3
+eis_configmanager_version = "2.3"
+eis_version = os.getenv("EIS_VERSION")
+if eis_version is not None and eis_version != "":
+    eis_configmanager_version = eis_version
 
-class ConfigManager:
-    def get_config_client(self, storage_type, config):
-        """ Returns config manager client based on storage_type
-        :param storage_type: Type of key-value storage, Eg. etcd
-        :param config: config of type Dict with certFile, keyFile
-        and trustFile
-        """
-        if storage_type.lower() == "etcd":
-            return EtcdCli(config)
-        raise ValueError(storage_type)
+# Main package setup
+setup(
+    name='eis-configmanager',
+    version=eis_configmanager_version,
+    description='EIS config manager Python wrapper',
+    keywords='config_manager eis config manager',
+    url='',
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Operating System :: POSIX',
+        'Intended Audience :: Developers',
+        'Topic :: System :: Networking',
+    ],
+    long_description='EIS config manager Python wrapper',
+    package_dir={'': '.'},
+    packages=['eis']
+)

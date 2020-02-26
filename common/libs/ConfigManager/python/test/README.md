@@ -19,11 +19,12 @@ The py example program demonstrates 4 basic functionalities :
 * Install python-etcd3 which is a python etcd client lib, from sources(as the master supports for watchprefix feature) by following the link: [python-etcd3](https://python-etcd3.readthedocs.io/en/latest/installation.html#from-sources)
 ### Dependencies
 
-* Set `PYTHONPATH` env variable to common/ folder path
-  * If executing from ConfigManager/python/test, set it as below:
+* Install config manager lib
     
     ```sh
-    export PYTHONPATH=../../../../
+    cd ./common/libs/ConfigManager/python
+    rm -rf build
+    sudo python3.6 setup.py install
     ```
 
 ### 1. Testing with security enabled

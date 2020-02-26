@@ -27,7 +27,8 @@ import etcd3
 import logging
 import json
 import os
-from util.util import Util
+import socket
+import time
 
 
 class EtcdCli:
@@ -55,7 +56,7 @@ class EtcdCli:
 
         port = 2379
 
-        if not Util.check_port_availability(hostname, port):
+        if not self.check_port_availability(hostname, port):
             raise Exception("etcd service port {} is not up!".format(port))
 
         try:
@@ -92,6 +93,33 @@ class EtcdCli:
             self.logger.error("Exception raised in _setEnv\
                 with error:{}".format(e))
             raise e
+
+    # Duplicated this function from utils to avoid the python eis
+    # config manager dependency on utils
+    def check_port_availability(self, hostname, port):
+        """Verifies port availability on hostname for accepting connection
+
+        :param hostname: hostname of the machine
+        :type hostname: str
+        :param port: port
+        :type port: str
+        :return: portUp (whether port is up or not)
+        :rtype: Boolean
+        """
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.logger.debug("Attempting to connect to {}:{}\
+            ".format(hostname, port))
+        num_retries = 1000
+        retry_count = 0
+        port_up = False
+        while(retry_count < num_retries):
+            if(sock.connect_ex((hostname, int(port)))):
+                self.logger.debug("{} port is up on {}".format(port, hostname))
+                port_up = True
+                break
+            retry_count += 1
+            time.sleep(0.1)
+        return port_up
 
     def GetConfig(self, key):
         """ GetConfig gets the value of a key from Etcd

@@ -1,4 +1,3 @@
-
 # Copyright (c) 2019 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,7 +18,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libs.ConfigManager.python.config_manager import *
+"""
+config_manager to chose datastore client object
+"""
+
+import etcd3
+import logging
+from .etcd_client import EtcdCli
+import os
 
 
-__all__ = ["ConfigManager"]
+class ConfigManager:
+    def get_config_client(self, storage_type, config):
+        """ Returns config manager client based on storage_type
+        :param storage_type: Type of key-value storage, Eg. etcd
+        :param config: config of type Dict with certFile, keyFile
+        and trustFile
+        """
+        if storage_type.lower() == "etcd":
+            return EtcdCli(config)
+        raise ValueError(storage_type)

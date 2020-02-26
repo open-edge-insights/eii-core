@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-from libs.ConfigManager import ConfigManager
+from eis.config_manager import ConfigManager
 import time
 import argparse
 import sys
