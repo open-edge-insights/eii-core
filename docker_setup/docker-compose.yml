@@ -252,7 +252,6 @@ services:
   #   restart: unless-stopped
   #   environment:
   #     AppName: "WebVisualizer"
-  #     IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
   #     DEV_MODE: ${DEV_MODE}
   #     PROFILING_MODE: ${PROFILING_MODE}
   #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
@@ -274,7 +273,6 @@ services:
   #     camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
 
   #   volumes:
-  #     - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
   #     - "vol_eis_socket:${SOCKET_DIR}"
   #     - "vol_temp_webv:/var/tmp"
   #   secrets:
