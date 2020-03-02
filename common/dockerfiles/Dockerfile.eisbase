@@ -16,8 +16,7 @@ WORKDIR ${GO_WORK_DIR}
 RUN apt-get update && \
     apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
     wget https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz && \
-    go get -u github.com/golang/dep/cmd/dep
+    tar -C /usr/local -xzf go1.10.3.linux-amd64.tar.gz
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Setting timezone inside the container
@@ -28,10 +27,11 @@ RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
     dpkg-reconfigure -f noninteractive tzdata
 
 ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
+ENV GLOG_VER 23def4e6c14b4da8ac2ed8007337bc5eb5007998
 RUN mkdir -p ${GLOG_GO_PATH} && \
     git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
     cd ${GLOG_GO_PATH} && \
-    git checkout -b known_version 23def4e6c14b4da8ac2ed8007337bc5eb5007998
+    git checkout -b ${GLOG_VER} ${GLOG_VER}
 
 RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
     tar --strip-components=1 -xz -C /usr/local
@@ -41,7 +41,7 @@ ENV SAFESTRING_VER 77b772849eda2321fb0dca56a321e3939930d7b9
 ENV MAX_SAFESTRING_SIZE 60
 RUN git clone https://github.com/intel/safestringlib.git && \
     cd safestringlib && \
-    git checkout ${SAFESTRING_VER} && \
+    git checkout -b ${SAFESTRING_VER} ${SAFESTRING_VER} && \
     cd include && \
     sed -i "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( ${MAX_SAFESTRING_SIZE}UL << 10 )      /* ${MAX_SAFESTRING_SIZE}KB */" "safe_str_lib.h" && \
     cd .. && \
@@ -52,10 +52,11 @@ ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fsta
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
 ENV ETCD_GO_PATH ${GOPATH}/src/go.etcd.io/etcd
+ENV ETCD_GO_VER 0c787e26bcd102c3bb14050ac893b07ba9ea029f
 RUN mkdir -p ${ETCD_GO_PATH} && \
     git clone https://github.com/etcd-io/etcd ${ETCD_GO_PATH} && \
     cd ${ETCD_GO_PATH} && \
-    git checkout -b known_version 0c787e26bcd102c3bb14050ac893b07ba9ea029f
+    git checkout -b ${ETCD_GO_VER} ${ETCD_GO_VER}
 
 ENV PY_WORK_DIR /EIS
 WORKDIR ${PY_WORK_DIR}
@@ -73,7 +74,7 @@ RUN apt-get update && \
 ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
 RUN git clone https://github.com/kragniz/python-etcd3 && \
     cd python-etcd3 && \
-    git checkout ${PY_ETCD3_VERSION} && \
+    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION} && \
     python3.6 setup.py install && \
     cd .. && \
     rm -rf python-etcd3
