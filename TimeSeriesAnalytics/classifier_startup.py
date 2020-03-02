@@ -1,6 +1,28 @@
+# Copyright (c) 2020 Intel Corporation.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+
 import subprocess
 import os.path
 import argparse
+import shutil
 import time
 import stat
 import json
@@ -12,24 +34,34 @@ from distutils.util import strtobool
 import os
 from util.util import Util
 
-KAPACITOR_CERT = "/etc/ssl/kapacitor/kapacitor_server_certificate.pem"
-KAPACITOR_KEY = "/etc/ssl/kapacitor/kapacitor_server_key.pem"
-KAPACITOR_CA = "/etc/ssl/ca/ca_certificate.pem"
-
+TEMP_KAPACITOR_DIR = "/tmp/"
+KAPACITOR_CERT = TEMP_KAPACITOR_DIR + "kapacitor_server_certificate.pem"
+KAPACITOR_KEY = TEMP_KAPACITOR_DIR + "kapacitor_server_key.pem"
+KAPACITOR_CA = TEMP_KAPACITOR_DIR + "ca_certificate.pem"
+KAPACITOR_DEV = "kapacitor_devmode.conf"
+KAPACITOR_PROD = "kapacitor.conf"
 SUCCESS = 0
 FAILURE = -1
 KAPACITOR_PORT = 9092
 KAPACITOR_NAME = 'kapacitord'
 logger = None
 args = None
-POINT_SOCKET_FILE = "/tmp/point_classifier"
 
 
-def start_classifier():
+def start_classifier(udf_type, udf_name):
     """Starts the classifier module
     """
     try:
-        subprocess.call("./point_classifier &", shell=True)
+        if udf_type == "go":
+            logger.info("Running Go based UDF ...")
+            subprocess.call("go run ./udf/" + udf_name + ".go &", shell=True)
+        elif udf_type == "python":
+            logger.info("Running Python based UDF ...")
+            subprocess.call("python3.6 ./udf/" + udf_name + ".py &",
+                            shell=True)
+        else:
+            logger.error("Not a compatible type, please select \
+                          either go or python")
         logger.info("classifier started successfully")
         return True
     except Exception as e:
@@ -59,11 +91,9 @@ def write_cert(file_name, cert):
                                                                    e))
 
 
-def read_config(client, dev_mode):
+def read_config(client, dev_mode, app_name, config_key_path):
     """Read the configuration from etcd
     """
-    app_name = os.environ["AppName"]
-    config_key_path = "config"
     configfile = client.GetConfig("/{0}/{1}".format(
                  app_name, config_key_path))
     config = json.loads(configfile)
@@ -84,7 +114,12 @@ def read_config(client, dev_mode):
         write_cert(KAPACITOR_CA, ca)
 
 
-def start_kapacitor(client, host_name, dev_mode):
+def start_kapacitor(client,
+                    host_name,
+                    dev_mode,
+                    app_name,
+                    config_key_path,
+                    socket_path):
     """Starts the kapacitor Daemon in the background
     """
     HTTP_SCHEME = "http://"
@@ -92,9 +127,11 @@ def start_kapacitor(client, host_name, dev_mode):
     KAPACITOR_HOSTNAME_PORT = os.environ["KAPACITOR_URL"].split("://")[1]
     INFLUXDB_HOSTNAME_PORT = os.environ["KAPACITOR_INFLUXDB_0_URLS_0"].split(
         "://")[1]
+
     try:
         if dev_mode:
-            kapacitor_conf = "/etc/kapacitor/kapacitor_devmode.conf"
+            kapacitor_conf = TEMP_KAPACITOR_DIR + KAPACITOR_DEV
+            shutil.copy("/EIS/config/" + KAPACITOR_DEV, kapacitor_conf)
             os.environ["KAPACITOR_URL"] = "{}{}".format(
                                                 HTTP_SCHEME,
                                                 KAPACITOR_HOSTNAME_PORT)
@@ -103,7 +140,8 @@ def start_kapacitor(client, host_name, dev_mode):
                 HTTP_SCHEME, INFLUXDB_HOSTNAME_PORT)
         else:
             # Populate the certificates for kapacitor server
-            kapacitor_conf = "/etc/kapacitor/kapacitor.conf"
+            kapacitor_conf = TEMP_KAPACITOR_DIR + KAPACITOR_PROD
+            shutil.copy("/EIS/config/" + KAPACITOR_PROD, kapacitor_conf)
             os.environ["KAPACITOR_URL"] = "{}{}".format(
                                                 HTTPS_SCHEME,
                                                 KAPACITOR_HOSTNAME_PORT)
@@ -111,9 +149,12 @@ def start_kapacitor(client, host_name, dev_mode):
             os.environ["KAPACITOR_INFLUXDB_0_URLS_0"] = "{}{}".format(
                 HTTPS_SCHEME, INFLUXDB_HOSTNAME_PORT)
 
-        read_config(client, dev_mode)
+        subprocess.run("sed -i 's#socket = .*#socket = \"" +
+                       socket_path + "\"#'g " + kapacitor_conf,
+                       shell=True)
+        read_config(client, dev_mode, app_name, config_key_path)
         subprocess.run("kapacitord -hostname " + host_name +
-                        " -config " + kapacitor_conf + " &", shell=True)
+                       " -config " + kapacitor_conf + " &", shell=True)
 
         logger.info("Started kapacitor Successfully...")
         return True
@@ -156,7 +197,7 @@ def exit_with_failure_message(message):
     exit(FAILURE)
 
 
-def enable_classifier_task(host_name, dev_mode):
+def enable_classifier_task(host_name, dev_mode, tick_script, task_name):
     """Enable the classifier TICK Script using the kapacitor CLI
     """
     retry_count = 5
@@ -166,12 +207,12 @@ def enable_classifier_task(host_name, dev_mode):
     logger.info("Kapacitor Port is Open for Communication....")
     while(retry < retry_count):
         definePointClCmd = ["kapacitor", "-skipVerify", "define",
-                            "point_classifier_task", "-tick",
-                            "point_classifier.tick"]
+                            task_name, "-tick",
+                            "tick_scripts/" + tick_script + ".tick"]
 
         if (subprocess.check_call(definePointClCmd) == SUCCESS):
             definePointClCmd = ["kapacitor", "-skipVerify", "enable",
-                                "point_classifier_task"]
+                                task_name]
 
             if (subprocess.check_call(definePointClCmd) == SUCCESS):
                 logger.info("Kapacitor Tasks Enabled Successfully")
@@ -186,8 +227,8 @@ def enable_classifier_task(host_name, dev_mode):
 
     if not (dev_mode):
         try:
-            file_list = ["/etc/ssl/kapacitor/kapacitor_server_certificate.pem",
-                         "/etc/ssl/kapacitor/kapacitor_server_key.pem"]
+            file_list = [KAPACITOR_CERT,
+                         KAPACITOR_KEY]
             Util.delete_certs(file_list)
         except Exception:
             logger.error("Exception Occured while removing kapacitor certs")
@@ -199,22 +240,41 @@ if __name__ == '__main__':
     # Initializing Etcd to set env variables
     app_name = os.environ["AppName"]
     conf = Util.get_crypto_dict(app_name)
-        
+
     cfg_mgr = ConfigManager()
     config_client = cfg_mgr.get_config_client("etcd", conf)
+    app_name = os.environ["AppName"]
+    config_key_path = "config"
+    configfile = config_client.GetConfig("/{0}/{1}".format(
+                 app_name, config_key_path))
+    config = json.loads(configfile)
+
+    # TODO Enable support for more than one UDF simultaneously
+    udf_type = config['udfs']['type'].lower()
+    udf_name = config['udfs']['name']
+    socket_path = config['udfs']['socket_path']
+    tick_script = config['udfs']['tick_script']
+    task_name = config['udfs']['task_name']
 
     logger = configure_logging(os.environ['PY_LOG_LEVEL'].upper(),
-                               __name__,dev_mode)
+                               __name__, dev_mode)
+    os.environ["SOCKET_PATH"] = socket_path
+
     logger.info("=============== STARTING data_analytics ==============")
 
     host_name = os.environ["KAPACITOR_SERVER"]
     if not host_name:
         exit_with_failure_message('Kapacitor hostname is not Set in the \
          container.So exiting..')
-    if (start_classifier() is True):
-        grant_permission_socket(POINT_SOCKET_FILE)
-        if(start_kapacitor(config_client, host_name, dev_mode) is True):
-            enable_classifier_task(host_name, dev_mode)
+    if (start_classifier(udf_type, udf_name) is True):
+        grant_permission_socket(socket_path)
+        if(start_kapacitor(config_client,
+                           host_name,
+                           dev_mode,
+                           app_name,
+                           config_key_path,
+                           socket_path) is True):
+            enable_classifier_task(host_name, dev_mode, tick_script, task_name)
         else:
             logger.info("Kapacitor is not starting.So Exiting...")
             exit(FAILURE)

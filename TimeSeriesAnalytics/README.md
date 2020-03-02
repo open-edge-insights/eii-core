@@ -131,8 +131,11 @@ For more information on the supported input and output plugins please refer
     gets the temperature data. After getting this data, Kapacitor calls these UDF, which detects the anamoly in the temerature
     and sends back the results to Influx.
 
-  * The sample UDF is at [point_classifier.go](point_classifier.go) and
-    the tick script  is at [point_classifier.tick](point_classifier.tick)
+  * The sample Go UDF is at [go_classifier.go](udf/go_point_classifier.go) and
+    the tick script  is at [go_point_classifier.tick](TICK_script/go_point_classifier.tick)
+
+  * The sample Python UDF is at [py_classifier.py](udf/py_point_classifier.py) and
+    the tick script  is at [py_point_classifier.tick](TICK_script/py_point_classifier.tick)
 
     For more details, on Kapacitor and UDF, please refer below links
     i)  Writing a sample UDF at [anomaly detection](https://docs.influxdata.com/kapacitor/v1.5/guides/anomaly_detection/)
@@ -142,3 +145,36 @@ For more information on the supported input and output plugins please refer
     [TimeSeriesAnalytics/config/kapacitor.conf](./config/kapacitor.conf)
     and in developer mode the config file would be
     [TimeSeriesAnalytics/config/kapacitor_devmode.conf](./config/kapacitor_devmode.conf)
+
+## Steps to configure the UDFs in kapacitor.
+
+  * Keep the custom UDFs in the [udf](udf) directory and the TICK script in the [tick_scripts](tick_scripts) directory.
+
+  * Modify the udf section in the [kapacitor.conf](config/kapacitor.conf) and in the [kapacitor_devmode.conf](config/kapacitor_devmode.conf).
+    Mention the custom udf in the conf
+    for example
+    ```
+    [udf.functions.customUDF]
+      socket = $SOCKET_PATH
+      timeout = "20s"
+    ```
+
+  * Update the following details in the [etcd_pre_load.json](../../docker_setup/provision/config/etcd_pre_load.json) file.
+    ```
+    "udfs": {
+            "type": "python",
+            "name": "py_classifier",
+            "socket_path": "/tmp/point_classifier",
+            "tick_script": "py_point_classifier.tick",
+            "task_name": "py_point_classifier"
+        }
+    ```
+    ### Note:
+    1. Currently only one UDF is supported at a time and by default, go_classifier is configured.
+
+    2. Mention the task name same as mentioned in the TICK script udf function.
+      ```
+       @py_point_classifier()
+      ```
+
+  * Do the [provisioning](../README.md) and run the EIS stack.

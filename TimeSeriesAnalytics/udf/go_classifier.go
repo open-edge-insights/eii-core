@@ -1,3 +1,25 @@
+/*
+Copyright (c) 2020 Intel Corporation.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to
+deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+IN THE SOFTWARE.
+*/
+
 package main
 
 import (
@@ -11,8 +33,8 @@ import (
 	"github.com/influxdata/kapacitor/udf/agent"
 )
 
-const min_threshold float64 = 20.00
-const max_threshold float64 = 25.00
+const minThreshold float64 = 20.00
+const maxThreshold float64 = 25.00
 
 // Mirrors all points it receives back to Kapacitor
 type mirrorHandler struct {
@@ -69,7 +91,7 @@ func (h *mirrorHandler) Point(p *agent.Point) error {
 	glog.V(1).Infof("6. Point Method Called")
 	mapOfFields := p.FieldsDouble
 	temparature := mapOfFields["temperature"]
-	if (temparature < min_threshold) || (temparature > max_threshold) {
+	if (temparature < minThreshold) || (temparature > maxThreshold) {
 		h.agent.Responses <- &agent.Response{
 			Message: &agent.Response_Point{
 				Point: p,
@@ -114,7 +136,7 @@ func (acc *accepter) Accept(conn net.Conn) {
 	}()
 }
 
-var socketPath = flag.String("socket", "/tmp/point_classifier", "Where to create the unix socket")
+var socketPath = flag.String("socket", os.Getenv("SOCKET_PATH"), "Where to create the unix socket")
 
 func main() {
 	flag.Parse()

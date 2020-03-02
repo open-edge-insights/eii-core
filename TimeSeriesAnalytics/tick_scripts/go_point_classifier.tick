@@ -6,7 +6,7 @@ var data0 = stream
                 .database('datain')
                 .retentionPolicy('autogen')
                 .measurement('point_data')
-        @point_classifier()
+        @go_point_classifier()
         |influxDBOut()
                 .buffer(0)
                 .database('datain')

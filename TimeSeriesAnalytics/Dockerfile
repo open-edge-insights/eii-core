@@ -15,28 +15,15 @@ ENV KAPACITOR_URL http://localhost:9092/
 ENV KAPACITOR_UNSAFE_SSL true
 ENV KAPACITOR_INFLUXDB_0_URLS_0 http://localhost:8086/
 
-# Installing protobuf module needed for UDF function
-RUN mkdir -p /etc/ssl/ca
-
 # Adding kapacitor related files
-COPY kapacitor ${KAPACITOR_REPO}
-RUN cd ${KAPACITOR_REPO} && \
-    python2.7 build.py --clean -o ${GO_ROOT_BIN} && \
-    mkdir -p ${DIR}/kapacitor && \
-    cp -r udf ${DIR}/kapacitor
+ARG KAPACITOR_VERSION
+RUN mkdir -p ${KAPACITOR_REPO} && \
+    git clone https://github.com/influxdata/kapacitor.git ${KAPACITOR_REPO} && \
+    cd ${KAPACITOR_REPO} && \
+    git checkout -b v${KAPACITOR_VERSION} tags/v${KAPACITOR_VERSION} && \
+    python3.6 build.py --clean -o ${GO_ROOT_BIN}
 
-#Creating dir for kapacitor certs file
-RUN mkdir -p /etc/ssl/kapacitor && \
-    chown ${EIS_UID} /EIS && \
-    chown -R ${EIS_UID} /etc/ssl && \
-    mkdir -p /etc/kapacitor && \
-    chown ${EIS_UID} /etc/kapacitor && \
-    mkdir -p /etc/ssl/ca && \
-    chown ${EIS_UID} /etc/ssl/ca
-
-RUN mkdir ${PY_WORK_DIR}/classifier_logs && \
-    chown ${EIS_UID} -R ${PY_WORK_DIR}/classifier_logs 
-
+ENV PYTHONPATH $PYTHONPATH:${KAPACITOR_REPO}/udf/agent/py/
 ENV KAPACITOR_SERVER localhost
 ENV KAPACITOR_PORT 9092
 
@@ -52,10 +39,6 @@ COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python
 
 # Adding classifier program
 COPY . ./
-RUN chmod +x ./classifier_start.sh && \
-    cp ./config/kapacitor.conf /etc/kapacitor/ && \
-    cp ./config/kapacitor_devmode.conf /etc/kapacitor/ && \
-    rm -rf ./config/
 
 #Removing build dependencies
 RUN apt-get remove -y wget && \
@@ -63,5 +46,4 @@ RUN apt-get remove -y wget && \
     apt-get remove curl && \
     apt-get autoremove -y
 
-RUN go build -o point_classifier point_classifier.go 
-ENTRYPOINT ["./classifier_start.sh"]
+ENTRYPOINT ["python3.6", "./classifier_startup.py"]
