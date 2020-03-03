@@ -207,13 +207,12 @@ Below are the main usecases supported by EIS:
 * For timeseries use case only:
   Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-timeseries-usecase.yml](docker_setup/samples/docker-compose-timeseries-usecase.yml)
 
-    > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_data_analytics
+    > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
   
 * For video streaming and timeseries use case:
   Sample docker-compose file is accessible at [docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml](docker_setup/samples/docker-compose-video-streaming-timeseries-usecase.yml)
 
-    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_data_analytics
-    
+    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
 
 To build and run EIS in one command:
 
@@ -364,11 +363,11 @@ For enabling this, different set of containers need to be built in EIS and it ca
 
 Please incldue following services in [docker-compose.yml](docker_setup/docker-compose.yml) for Time series analytics example.
 
-> ia_telegraf, ia_influxdbconnector, ia_data_analytics, ia_visualizer
+> ia_telegraf, ia_influxdbconnector, ia_kapacitor, ia_grafana
 
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
-More details on enabling this mode can be referred from [TimeSeriesAnalytics/README.md](TimeSeriesAnalytics/README.md)
+More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
@@ -401,7 +400,7 @@ EIS stack comes with following services, which can be included/excluded in docke
 7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants
    to control the light based on defective/non-defective data
 8. Telegraf
-9. [TimeSeriesAnalytics](TimeSeriesAnalytics/README.md)
+9. [Kapacitor](Kapacitor/README.md)
 10. [EtcdUI](EtcdUI/README.md)
 11. [DiscoveryCreek](DiscoveryCreek/README.md)
 12. [WebVisualizer](WebVisualizer/README.md)
