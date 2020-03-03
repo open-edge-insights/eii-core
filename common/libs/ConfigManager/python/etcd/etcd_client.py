@@ -39,6 +39,8 @@ class EtcdCli:
         and trustFile"""
 
         self.logger = logging.getLogger(__name__)
+
+        self.etcd_key_prefix = None
         hostname = "localhost"
 
         # This change will be moved to an argument to the function in 2.3
@@ -46,6 +48,10 @@ class EtcdCli:
         etcd_host = os.getenv("ETCD_HOST")
         if etcd_host is not None and etcd_host != "":
             hostname = etcd_host
+
+        key_prefix = os.getenv("ETCD_PREFIX")
+        if key_prefix is not None and key_prefix != "":
+            self.etcd_key_prefix = key_prefix
 
         port = 2379
 
@@ -62,16 +68,30 @@ class EtcdCli:
                                          cert_key=config["keyFile"],
                                          cert_cert=config["certFile"])
         except Exception as e:
+            self.logger.error("Exception raised when creating etcd \
+                client instance with error:{}".format(e))
             raise e
         self.callback = None
         self._setEnv()
 
     def _setEnv(self):
         """ _setEnv is a local function to set global env """
-        value = self.etcd.get("/GlobalEnv/")
-        jsonConfig = json.loads(value[0].decode('utf-8'))
-        for key in jsonConfig.keys():
-            os.environ[key] = jsonConfig[key]
+        try:
+            global_env_prfix = "/GlobalEnv/"
+            if self.etcd_key_prefix is not None:
+                global_env_prfix = self.etcd_key_prefix + "/GlobalEnv/"
+            value = self.etcd.get(global_env_prfix)
+            if value[0] is not None:
+                jsonConfig = json.loads(value[0].decode('utf-8'))
+                for key in jsonConfig.keys():
+                    os.environ[key] = jsonConfig[key]
+            else:
+                raise TypeError("config manager key {} must be set as \
+                    a prerequisite ...".format(global_env_prfix))
+        except Exception as e:
+            self.logger.error("Exception raised in _setEnv\
+                with error:{}".format(e))
+            raise e
 
     def GetConfig(self, key):
         """ GetConfig gets the value of a key from Etcd
@@ -80,8 +100,12 @@ class EtcdCli:
         :return: values returned from etcd based on key
         :rtype: string"""
         try:
+            if self.etcd_key_prefix is not None:
+                key = self.etcd_key_prefix + key
             value = self.etcd.get(key)
         except Exception as e:
+            self.logger.error("Exception raised in GetConfig\
+                with error:{}".format(e))
             raise e
         if value[0] is not None:
             return value[0].decode('utf-8')
@@ -95,8 +119,12 @@ class EtcdCli:
         :type: string
         """
         try:
+            if self.etcd_key_prefix is not None:
+                key = self.etcd_key_prefix + key
             self.etcd.put(key, value)
         except Exception as e:
+            self.logger.error("Exception raised in PutConfig \
+                with error:{}".format(e))
             raise e
 
     def onChangeCallback(self, event):
@@ -114,8 +142,12 @@ class EtcdCli:
 
         self.callback = callback
         try:
+            if self.etcd_key_prefix is not None:
+                key = self.etcd_key_prefix + key
             self.etcd.add_watch_prefix_callback(key, self.onChangeCallback)
         except Exception as e:
+            self.logger.error("Exception raised RegisterDirWatch\
+                with error:{}".format(e))
             raise e
 
     def RegisterKeyWatch(self, key, callback):
@@ -128,6 +160,10 @@ class EtcdCli:
 
         self.callback = callback
         try:
+            if self.etcd_key_prefix is not None:
+                key = self.etcd_key_prefix + key
             self.etcd.add_watch_callback(key, self.onChangeCallback)
         except Exception as e:
+            self.logger.error("Exception raised in RegisterKeyWatch\
+                 with error:{}".format(e))
             raise e

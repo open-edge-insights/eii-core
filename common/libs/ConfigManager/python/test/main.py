@@ -50,6 +50,7 @@ def main():
         client = cfg_mgr.get_config_client("etcd", conf)
     except Exception as e:
         print("Creation of config manager client is failed: {}".format(e))
+        return
 
     if args.action == "get":
         try:

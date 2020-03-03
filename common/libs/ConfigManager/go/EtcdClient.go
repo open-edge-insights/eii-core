@@ -25,7 +25,8 @@ import (
 
 // EtcdCli implements ConfigMgr
 type EtcdCli struct {
-	etcd *clientv3.Client
+	etcd      *clientv3.Client
+	keyPrefix string
 }
 
 // RegisterWatchOnKey go routine
@@ -43,6 +44,8 @@ func RegisterWatchOnKey(rch clientv3.WatchChan, onChangeCallback OnChangeCallbac
 func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 
 	var cfg clientv3.Config
+
+	etcdKeyPrefix := ""
 	hostname := "localhost"
 
 	// This change will be moved to an argument to the function in 2.3
@@ -50,6 +53,11 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	etcdHost := os.Getenv("ETCD_HOST")
 	if etcdHost != "" {
 		hostname = etcdHost
+	}
+
+	etcdPrefix := os.Getenv("ETCD_PREFIX")
+	if etcdPrefix != "" {
+		etcdKeyPrefix = etcdPrefix
 	}
 
 	port := "2379"
@@ -91,13 +99,14 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	if err != nil {
 		return nil, err
 	}
-	_setEnv(etcdcli)
-	return &EtcdCli{etcd: etcdcli}, err
+	_setEnv(etcdcli, etcdKeyPrefix)
+	return &EtcdCli{etcd: etcdcli, keyPrefix: etcdKeyPrefix}, err
 }
 
 // _setEnv is a local function to set global env
-func _setEnv(etcd *clientv3.Client) {
-	response, err := etcd.Get(context.TODO(), "/GlobalEnv/")
+func _setEnv(etcd *clientv3.Client, etcdKeyPrefix string) {
+	globalEnvKey := etcdKeyPrefix + "/GlobalEnv/"
+	response, err := etcd.Get(context.TODO(), globalEnvKey)
 	if err != nil {
 		return
 	}
@@ -105,6 +114,9 @@ func _setEnv(etcd *clientv3.Client) {
 	responseString := ""
 	for _, ev := range response.Kvs {
 		responseString = convertUIntArrToString(ev.Value)
+		if responseString == "" {
+			glog.Errorf("config manager key %v must be set as a prerequisite ...", globalEnvKey)
+		}
 	}
 
 	// Setting env variables
@@ -118,6 +130,9 @@ func _setEnv(etcd *clientv3.Client) {
 // GetConfig gets the value of a key from Etcd
 func (etcdClient EtcdCli) GetConfig(key string) (string, error) {
 
+	key = etcdClient.keyPrefix + key
+
+	glog.V(1).Infof("GetConfig of key:%v.......", key)
 	response, err := etcdClient.etcd.Get(context.TODO(), key)
 	if err != nil {
 		return "", err
@@ -131,6 +146,8 @@ func (etcdClient EtcdCli) GetConfig(key string) (string, error) {
 
 // PutConfig to Save a value of the key to ETCD
 func (etcdClient EtcdCli) PutConfig(key string, value string) error {
+	key = etcdClient.keyPrefix + key
+	glog.V(1).Infof("PutConfig for key:%v with value:%v.......", key, value)
 	_, err := etcdClient.etcd.Put(context.TODO(), key, value)
 	if err != nil {
 		return err
@@ -140,7 +157,7 @@ func (etcdClient EtcdCli) PutConfig(key string, value string) error {
 
 // RegisterDirWatch registers to a callback and keeps a watch on the prefix of a specified key
 func (etcdClient *EtcdCli) RegisterDirWatch(key string, onChangeCallback OnChangeCallback) {
-
+	key = etcdClient.keyPrefix + key
 	glog.Infoln("watching on Dir:", key)
 	rch := etcdClient.etcd.Watch(context.TODO(), key, clientv3.WithPrefix())
 	go RegisterWatchOnKey(rch, onChangeCallback)
@@ -149,7 +166,7 @@ func (etcdClient *EtcdCli) RegisterDirWatch(key string, onChangeCallback OnChang
 
 // RegisterKeyWatch registers to a callback and keeps a watch on a specified key
 func (etcdClient *EtcdCli) RegisterKeyWatch(key string, onChangeCallback OnChangeCallback) {
-
+	key = etcdClient.keyPrefix + key
 	glog.Infoln("Watching on key:", key)
 	rch := etcdClient.etcd.Watch(context.TODO(), key)
 	go RegisterWatchOnKey(rch, onChangeCallback)

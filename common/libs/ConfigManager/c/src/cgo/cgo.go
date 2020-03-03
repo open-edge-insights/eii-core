@@ -20,6 +20,7 @@ static inline void cgoCallBack(callback_fcn cb, char *key, char *value){
 import "C"
 
 import (
+	"os"
 	"strings"
 	"sync"
 
@@ -35,9 +36,16 @@ var confMgr configmgr.ConfigManager
 // register callbacks by mapping usercallbacks to a specific config manager key
 var registerCallbacks = make(map[string][]C.callback_fcn)
 
-func registerCallback(key string, userCallback C.callback_fcn) {
+func registerCallback(key string, userCallback C.callback_fcn) string {
 	flag := 0
-	glog.Infof("Register user callback")
+
+	// Check if ETCD_PREFIX is set, if so register callback for the prepended prefixed key
+	etcdPrefix := os.Getenv("ETCD_PREFIX")
+	if etcdPrefix != "" {
+		key = etcdPrefix + key
+	}
+
+	glog.Infof("Register user callback on key %v", key)
 	for k, v := range registerCallbacks {
 		// config manager key already exists hence add user callbacks to the list
 		if k == key {
@@ -55,6 +63,7 @@ func registerCallback(key string, userCallback C.callback_fcn) {
 		registerCallbacks[key] = []C.callback_fcn{userCallback}
 		mu.Unlock()
 	}
+	return key
 }
 
 func watchKeyCallback(key string, value string) {
@@ -134,8 +143,8 @@ func registerWatchKey(CKey *C.char, userCallback C.callback_fcn) {
 			return
 		}
 	}
-	registerCallback(key, userCallback)
-	glog.Infof("Register the key: %s for watch key", key)
+	registeredKey := registerCallback(key, userCallback)
+	glog.Infof("Register the key: %s for watch key", registeredKey)
 	confMgr.RegisterKeyWatch(key, watchKeyCallback)
 }
 
@@ -149,8 +158,8 @@ func registerWatchDir(Ckey *C.char, userCallback C.callback_fcn) {
 			return
 		}
 	}
-	registerCallback(key, userCallback)
-	glog.Infof("Register the key: %s for watch prefix", key)
+	registeredKey := registerCallback(key, userCallback)
+	glog.Infof("Register the key: %s for watch prefix", registeredKey)
 	confMgr.RegisterDirWatch(key, watchDirCallback)
 }
 
