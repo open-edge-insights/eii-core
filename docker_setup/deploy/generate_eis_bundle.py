@@ -87,7 +87,6 @@ class EisBundleGenerator:
         cmdlist.append("rm -rf " + self.bundle_tag_name)
         cmdlist.append("mkdir -p " + self.bundle_tag_name)
         cmdlist.append("mv docker-compose.yml ./" + self.bundle_tag_name)
-        cmdlist.append("cp -rf ../config ./" + self.bundle_tag_name)
         cmdlist.append("cp ../.env ./" + self.bundle_tag_name)
         if self.env["DEV_MODE"] == "false":
             cmdlist.append("mkdir -p " + self.bundle_tag_name + "/provision")
@@ -98,7 +97,6 @@ class EisBundleGenerator:
                 cmdlist.append("cp -rf " +
                                "../provision/Certificates/" +
                                servicename + "/ " + eis_cert_dir)
-            
             for cert in DEFAULT_CERTS:
                 cmdlist.append("cp -rf " +
                                "../provision/Certificates/" +
