@@ -63,6 +63,7 @@ services:
       CertType: "pem"
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
@@ -97,6 +98,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics1,Visualizer"
@@ -151,6 +153,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -204,7 +207,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-
+      ETCD_PREFIX: ${ETCD_PREFIX}
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics2,Visualizer"
@@ -259,6 +262,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -318,6 +322,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -373,6 +378,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -432,6 +438,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -487,6 +494,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -546,6 +554,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -601,6 +610,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -660,7 +670,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-
+      ETCD_PREFIX: ${ETCD_PREFIX}
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics6,Visualizer"
@@ -715,6 +725,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer"
@@ -775,7 +786,8 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-
+      ETCD_PREFIX: ${ETCD_PREFIX}
+      
       # MessageBus Endpoint Configuration
       CertType: "zmq"
       ZMQ_RECV_HWM: "1000"

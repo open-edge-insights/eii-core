@@ -52,6 +52,7 @@ services:
       CertType: "pem"
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
@@ -83,6 +84,7 @@ services:
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     secrets:
       - ca_etcd
       - etcd_Grafana_cert
@@ -117,6 +119,7 @@ services:
       HOST_IP: '127.0.0.1'
       INFLUX_SERVER: '127.0.0.1'
       INFLUXDB_PORT: $INFLUXDB_PORT
+      ETCD_PREFIX: ${ETCD_PREFIX}
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -147,6 +150,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients: "Visualizer,DiscoveryCreek"
@@ -202,6 +206,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "InfluxDBConnector,Visualizer"
@@ -249,6 +254,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
       CertType: "pem"
       KAPACITOR_URL: http://127.0.0.1:$KAPACITOR_PORT/
       KAPACITOR_UNSAFE_SSL: "true"

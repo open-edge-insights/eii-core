@@ -45,6 +45,7 @@ services:
       CertType: "pem"
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
@@ -70,6 +71,7 @@ services:
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
       # MessageBus Endpoint Configuration
       Clients : "GoSubscriber"
       CertType: "zmq"
@@ -108,6 +110,7 @@ services:
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
       # MessageBus Endpoint Configuration
       CertType: "zmq"
 

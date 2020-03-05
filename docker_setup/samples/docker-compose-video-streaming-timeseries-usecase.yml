@@ -64,6 +64,7 @@ services:
       CertType: "pem"
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
@@ -98,6 +99,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
@@ -156,6 +158,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "Visualizer,FactoryControlApp,OpcuaExport,ImageStore,InfluxDBConnector,RestDataExport,WebVisualizer,TLS_RemoteAgent"
@@ -215,6 +218,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       CertType: "zmq"
@@ -264,6 +268,7 @@ services:
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
     secrets:
       - ca_etcd
       - etcd_Grafana_cert
@@ -328,7 +333,8 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-
+      ETCD_PREFIX: ${ETCD_PREFIX}
+      
       # MessageBus Endpoint Configuration
       Clients: "Visualizer,DiscoveryCreek"
       Server: "zmq_tcp,127.0.0.1:8675"
@@ -383,6 +389,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
       Clients : "InfluxDBConnector,Visualizer"
@@ -430,6 +437,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
       CertType: "pem"
       KAPACITOR_URL: http://127.0.0.1:$KAPACITOR_PORT/
       KAPACITOR_UNSAFE_SSL: "true"
