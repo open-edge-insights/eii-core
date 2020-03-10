@@ -126,6 +126,8 @@ services:
     privileged: true
     devices:
       - "/dev/dri"
+      # We are volume mounting the entire /dev filesystem here for the usecase
+      # of reading from multiple USB cameras
       - "/dev/:/dev/"
       - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
@@ -341,7 +343,7 @@ services:
   #     RequestEP: "ImageStore"
   #     ImageStore_cfg: "zmq_tcp,127.0.0.1:5669"
   #     ETCD_HOST: ${ETCD_HOST}
-  
+
   #     # MessageBus Endpoint Configuration
   #     CertType: "zmq,pem"
 
@@ -544,7 +546,7 @@ services:
   #     DEV_MODE: ${DEV_MODE}
   #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
-  
+
   #     # MessageBus Endpoint Configuration
   #     # Uncomment the following line if using Discover history tool in PROD mode
   #     CertType: "zmq"
@@ -591,7 +593,7 @@ services:
   #     DEV_MODE: ${DEV_MODE}
   #     no_proxy: ${eis_no_proxy},${ETCD_HOST}
   #     ETCD_HOST: ${ETCD_HOST}
-  
+
   #     # MessageBus Endpoint Configuration
   #     CertType: "zmq"
 

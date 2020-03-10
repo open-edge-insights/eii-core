@@ -114,11 +114,15 @@ services:
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion1_cert
@@ -163,9 +167,13 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics1_cert
@@ -196,7 +204,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-      
+
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics2,Visualizer"
@@ -214,16 +222,20 @@ services:
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion2_cert
       - etcd_VideoIngestion2_key
-  
+
   ## Define VideoAnalytics2 service
   ia_video_analytics2:
     depends_on:
@@ -269,15 +281,19 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics2_cert
       - etcd_VideoAnalytics2_key
 
-  ## Define VideoIngestion3 service        
+  ## Define VideoIngestion3 service
   ia_video_ingestion3:
     depends_on:
       - ia_openvino_base
@@ -320,17 +336,21 @@ services:
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion3_cert
       - etcd_VideoIngestion3_key
 
-  ## Define VideoAnalytics3 service    
+  ## Define VideoAnalytics3 service
   ia_video_analytics3:
     depends_on:
       - ia_openvino_base
@@ -375,9 +395,13 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics3_cert
@@ -426,17 +450,21 @@ services:
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion4_cert
       - etcd_VideoIngestion4_key
 
-  ## Define VideoAnalytics4 service      
+  ## Define VideoAnalytics4 service
   ia_video_analytics4:
     depends_on:
       - ia_openvino_base
@@ -481,14 +509,18 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics4_cert
       - etcd_VideoAnalytics4_key
-  
+
   ## Define VideoIngestion5 service
   ia_video_ingestion5:
     depends_on:
@@ -532,17 +564,21 @@ services:
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
-      - "/var/tmp:/var/tmp"  
+      - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion5_cert
       - etcd_VideoIngestion5_key
 
-## Define VideoAnalytics5 service    
+## Define VideoAnalytics5 service
   ia_video_analytics5:
     depends_on:
       - ia_openvino_base
@@ -587,14 +623,18 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics5_cert
       - etcd_VideoAnalytics5_key
-  
+
   ## Define VideoIngestion6 service
   ia_video_ingestion6:
     depends_on:
@@ -620,7 +660,7 @@ services:
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-      
+
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics6,Visualizer"
@@ -639,16 +679,20 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       - "/dev/dri"
       - "/dev/:/dev/"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion6_cert
       - etcd_VideoIngestion6_key
-        
-  ## Define VideoAnalytics6 service      
+
+  ## Define VideoAnalytics6 service
   ia_video_analytics6:
     depends_on:
       - ia_openvino_base
@@ -693,14 +737,18 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
+      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
+      - "/opt/altera:/opt/altera"
+      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       - "/dev/dri"
       - "/dev/ion:/dev/ion"
+      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics6_cert
       - etcd_VideoAnalytics6_key
-        
+
   ## Define Visualizer service
   ia_visualizer:
     depends_on:
@@ -738,7 +786,7 @@ services:
       camera3_stream_results_cfg : "zmq_tcp,127.0.0.1:65015"
       camera4_stream_results_cfg : "zmq_tcp,127.0.0.1:65016"
       camera5_stream_results_cfg : "zmq_tcp,127.0.0.1:65017"
-      camera6_stream_results_cfg : "zmq_tcp,127.0.0.1:65018"  
+      camera6_stream_results_cfg : "zmq_tcp,127.0.0.1:65018"
     privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
@@ -787,7 +835,7 @@ secrets:
   etcd_VideoIngestion2_cert:
     file: provision/Certificates/VideoIngestion2/VideoIngestion2_client_certificate.pem
   etcd_VideoIngestion2_key:
-    file: provision/Certificates/VideoIngestion2/VideoIngestion2_client_key.pem 
+    file: provision/Certificates/VideoIngestion2/VideoIngestion2_client_key.pem
   etcd_VideoAnalytics2_key:
     file: provision/Certificates/VideoAnalytics2/VideoAnalytics2_client_key.pem
   etcd_VideoAnalytics2_cert:
@@ -823,12 +871,12 @@ secrets:
   etcd_VideoIngestion6_cert:
     file: provision/Certificates/VideoIngestion6/VideoIngestion6_client_certificate.pem
   etcd_VideoIngestion6_key:
-    file: provision/Certificates/VideoIngestion6/VideoIngestion6_client_key.pem    
+    file: provision/Certificates/VideoIngestion6/VideoIngestion6_client_key.pem
   etcd_VideoAnalytics6_key:
     file: provision/Certificates/VideoAnalytics6/VideoAnalytics6_client_key.pem
   etcd_VideoAnalytics6_cert:
-    file: provision/Certificates/VideoAnalytics6/VideoAnalytics6_client_certificate.pem    
-  
+    file: provision/Certificates/VideoAnalytics6/VideoAnalytics6_client_certificate.pem
+
   etcd_Visualizer_cert:
     file: provision/Certificates/Visualizer/Visualizer_client_certificate.pem
   etcd_Visualizer_key:
