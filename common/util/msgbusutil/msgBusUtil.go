@@ -13,6 +13,7 @@ import (
 const (
 	maxClients     = 200
 	maxSubscribers = 200
+	maxEndPoints   = 100
 )
 
 // GetMessageBusConfig - constrcuts config object based on topic type(pub/sub),
@@ -64,7 +65,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				var allowedClients []interface{}
 				subscribers := strings.Split(os.Getenv("Clients"), ",")
 				if len(subscribers) > maxSubscribers {
-					glog.Infof("Exceeded Max Subscribers ", len(subscribers))
+					glog.Errorf("Exceeded Max Subscribers %d", len(subscribers))
 				} else {
 					for _, subscriber := range subscribers {
 						subscriber = strings.TrimSpace(subscriber)
@@ -111,7 +112,7 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 				var allowedClients []interface{}
 				clients := strings.Split(os.Getenv("Clients"), ",")
 				if len(clients) > maxClients {
-					glog.Infof("Exceeded Max Clients ", len(clients))
+					glog.Errorf("Exceeded Max Clients %d", len(clients))
 				} else {
 					for _, client := range clients {
 						client = strings.TrimSpace(client)
@@ -135,27 +136,31 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 			messageBusConfig[topic] = hostConfig
 			if !devMode {
 				endPoints := strings.Split(os.Getenv("RequestEP"), ",")
-				for _, endpoint := range endPoints {
-					if topic == endpoint {
-						clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
-						if err != nil {
-							glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
-						}
+				if len(endPoints) > maxEndPoints {
+					glog.Errorf("Exceeded End points limit %d", len(endPoints))
+				} else {
+					for _, endpoint := range endPoints {
+						if topic == endpoint {
+							clientPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + appName)
+							if err != nil {
+								glog.Errorf("ConfigManager couldn't get Client's Public Key %v", err)
+							}
 
-						clientSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
-						if err != nil {
-							log.Fatal(err)
-						}
+							clientSecretKey, err := cfgMgrCli.GetConfig("/" + appName + "/private_key")
+							if err != nil {
+								log.Fatal(err)
+							}
 
-						serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + topic)
-						if err != nil || serverPublicKey == "" {
-							glog.Errorf("ConfigManager couldn't get Server's Public Key %v", err)
-						}
+							serverPublicKey, err := cfgMgrCli.GetConfig("/Publickeys/" + topic)
+							if err != nil || serverPublicKey == "" {
+								glog.Errorf("ConfigManager couldn't get Server's Public Key %v", err)
+							}
 
-						hostConfig["server_public_key"] = serverPublicKey
-						hostConfig["client_secret_key"] = clientSecretKey
-						hostConfig["client_public_key"] = clientPublicKey
-                                                break
+							hostConfig["server_public_key"] = serverPublicKey
+							hostConfig["client_secret_key"] = clientSecretKey
+							hostConfig["client_public_key"] = clientPublicKey
+							break
+						}
 					}
 				}
 			}
