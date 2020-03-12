@@ -5,7 +5,7 @@
 * Right click on the tree node to add or delete.
 * For secure mode, authentication is required. User name and password needs to be entered in the dialogue box.
 * Username is 'root' and default password is located at ETCD_ROOT_PASSWORD key under environment section in [docker_setup/provision/dep/docker-compose-provision.override.prod.yml](../docker_setup/provision/dep/docker-compose-provision.override.prod.yml).
-* This service can accessed from a remote system at address: https://$(HOST_IP):8080 (when EIS is running in secure mode). In this case, CA cert has to be imported in the browser. For insecure mode i.e. DEV mode, it can be accessed at http://$(HOST_IP):8080
+* This service can accessed from a remote system at address: https://$(HOST_IP):7071 (when EIS is running in secure mode). In this case, CA cert has to be imported in the browser. For insecure mode i.e. DEV mode, it can be accessed at http://$(HOST_IP):7071
 
 ---
 **NOTE**:
