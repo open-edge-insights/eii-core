@@ -2,7 +2,7 @@
     "/VideoIngestion/config": {
         "encoding": {
             "type": "jpeg",
-            "level": 95
+            "level": 96
         },
         "ingestor": {
             "type": "opencv",
