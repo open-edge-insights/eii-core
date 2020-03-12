@@ -35,11 +35,10 @@ OUTPUT_DIR="$1_provision"
 mkdir -p $OUTPUT_DIR/provision
 
 if [ $DEV_MODE = 'false' ]; then
-
-	mkdir $OUTPUT_DIR/provision/Certificates
-	cp -r Certificates/ca $OUTPUT_DIR/provision/Certificates/
-	cp -r Certificates/etcdserver $OUTPUT_DIR/provision/Certificates/
-	cp -r Certificates/root $OUTPUT_DIR/provision/Certificates/
+    mkdir $OUTPUT_DIR/provision/Certificates
+    mkdir $OUTPUT_DIR/provision/Certificates/ca
+    cp -r Certificates/ca/ca_cert*  $OUTPUT_DIR/provision/Certificates/ca
+    cp -r Certificates/etcdserver $OUTPUT_DIR/provision/Certificates/
 fi
 
 mkdir $OUTPUT_DIR/provision/dep

@@ -100,7 +100,7 @@ check_ETCD_port() {
 echo "Checking ETCD port"
 check_ETCD_port
 
-if [ $# -eq 0 ]
+if [ $ETCD_NAME != 'master' ]
   then
     
 	if [ $DEV_MODE = 'true' ]; then
@@ -118,9 +118,8 @@ if [ $# -eq 0 ]
 			else
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 			fi
-			
-			
-			docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d  ia_etcd
+
+			docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.slave.yml up --build -d  ia_etcd
 	fi
 
 else
@@ -142,21 +141,18 @@ else
 				fi
 				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 			fi
-			
+
  		fi
-		
-		
-		
+
 		echo "Bringing down existing EIS containers"
 		python3 stop_and_remove_existing_eis.py --f $1
-	
+
 		echo "5. Copying docker compose yaml file which is provided as argument."
 		# This file will be volume mounted inside the provisioning container and deleted once privisioning it done
 
 		cp $1 ./docker-compose.yml
 
 		echo "5. Starting and provisioning ETCD ..."
-		
 
 		if [ $DEV_MODE = 'true' ]; then
 			docker-compose -f dep/docker-compose-provision.yml up --build -d
@@ -166,7 +162,7 @@ else
 		fi
 
 		rm ./docker-compose.yml
-	
+
 	fi
 
 fi
