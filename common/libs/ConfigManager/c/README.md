@@ -190,6 +190,8 @@ To refer C examples follow config_manager.c in [examples/](examples/)
 6. cd examples
 7. `./config_manager`
 
+**NOTE:** In order to run config_manager example in prod_mode, ensure provisioning is done. Also, run `./config_manager -h` from examples folder for its usage.
+
 ### APIs for reading environment info to build EIS MessageBus config
 
 1. Creating a new env config client
@@ -273,10 +275,18 @@ To refer C examples follow env_config_example.c in [examples/](examples/)
 **Steps to run example file:**
 
 1. Navigate to ConfigManager/c
-2. mkdir build
-3. cd build
-4. cmake -DWITH_EXAMPLES=ON ..
-5. make
-6. cd examples
-7. For dev mode either run `./env_config` or just `./env_config 0`.
-8. For prod mode run `./env_config 1`
+2. Run the below command from ConfigManager/c, if provisioning is done in prod mode.
+
+**NOTE:** Ensure provisioning is done, in order to run env_config example in prod_mode.
+
+```
+sudo cp ../../../../docker_setup/provision/Certificates/ca/* ../../../../docker_setup/provision/Certificates/VideoIngestion/* ./examples/Sample_certs/.
+  ```
+
+3. mkdir build
+4. cd build
+5. cmake -DWITH_EXAMPLES=ON ..
+6. make
+7. cd examples
+8. For dev mode either run `./env_config` or just `./env_config 0`.
+9. For prod mode run `./env_config 1`
