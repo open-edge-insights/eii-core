@@ -78,11 +78,11 @@ typedef struct {
     void (*trim)(char* str_value);
 
     /**
-     * free_mem function is to de-allocate the memory of void**
+     * free_mem function is to de-allocate the memory of char**
      *
-     * @param arr       - void** variable that needs memory deallocation
+     * @param arr       - char** variable that needs memory deallocation
      */
-    void (*free_mem)(void* arr[]);
+    void (*free_mem)(char** arr);
 
 } env_config_t;
 

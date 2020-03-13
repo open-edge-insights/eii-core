@@ -45,7 +45,7 @@
 // Forward declaration
 void trim(char* str_value);
 
-static void free_mem(void* arr[]){
+static void free_mem(char** arr){
     int k = 0;
     while(arr[k] != NULL){
         free(arr[k]);
@@ -154,12 +154,12 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
         LOG_ERROR_0("Calloc failed for host_port");
         goto err;
     }
-    const char** allowed_clients = (char **)calloc(SIZE, sizeof(char*));
+    char** allowed_clients = (char **)calloc(SIZE, sizeof(char*));
     if(allowed_clients == NULL) {
         LOG_ERROR_0("Calloc failed for allowed_clients");
         goto err;
     }
-    const char **pub_topic = (char **)calloc(SIZE, sizeof(char*));
+    char **pub_topic = (char **)calloc(SIZE, sizeof(char*));
     if(pub_topic == NULL) {
         LOG_ERROR_0("Calloc failed for pub_topic");
         goto err;
