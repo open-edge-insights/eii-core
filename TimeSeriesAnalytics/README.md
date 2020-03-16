@@ -26,7 +26,7 @@ Kapacitor is an analytics engine where user can write custom analytics plug-ins 
 
 ## Starting the example
 l
-1. To start the mqtt-temp-sensor, please refer [tools/mqtt-temp-sensor/README.md](../../tools/mqtt-temp-sensor/README.md) .
+1. To start the mqtt-temp-sensor, please refer [tools/mqtt-temp-sensor/README.md](../tools/mqtt-temp-sensor/README.md) .
 
 2. In case, if SI wants to use the IEdgeInsights only for Point data Analytics,
    then comment Video use case containers ia_video_ingestion and ia_video_analytics in [docker_setup/docker-compose.yml](../docker_setup/docker-compose.yml)
