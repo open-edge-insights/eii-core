@@ -113,9 +113,9 @@ of the plugin.
     ```
 
 The production mode Telegraf configuration file is
-[docker_setup/config/telegraf.conf](../../docker_setup/config/telegraf.conf). And in developer mode,
+[Telegraf/config/telegraf.conf](../Telegraf/config/telegraf.conf) and in developer mode,
 the configuration file is
-[docker_setup/config/telegraf_devmode.conf](../../docker_setup/config/telegraf_devmode.conf).
+[Telegraf/config/telegraf_devmode.conf](../Telegraf/config/telegraf_devmode.conf).
 
 For more information on the supported input and output plugins please refer
 [https://docs.influxdata.com/telegraf/v1.10/plugins/](https://docs.influxdata.com/telegraf/v1.10/plugins/)
@@ -139,6 +139,6 @@ For more information on the supported input and output plugins please refer
     ii) UDF and kapacitor interaction [here](https://docs.influxdata.com/kapacitor/v1.5/guides/socket_udf/)
 
   * In production mode the Kapacitor config file is
-    [docker_setup/config/kapacitor.conf](../../docker_setup/config/kapacitor.conf)
+    [TimeSeriesAnalytics/config/kapacitor.conf](./config/kapacitor.conf)
     and in developer mode the config file would be
-    [docker_setup/config/kapacitor_devmode.conf](../../docker_setup/config/kapacitor_devmode.conf)
+    [TimeSeriesAnalytics/config/kapacitor_devmode.conf](./config/kapacitor_devmode.conf)
