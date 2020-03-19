@@ -37,9 +37,7 @@ def start_publisher(topic_string):
         topics_list_pub = MsgBusUtil.get_topics_from_env("pub")
 
         app_name = os.environ["AppName"]
-        clients = os.environ["Clients"]
-        client_list = []
-        client_list.append(clients)
+        clients = os.environ["Clients"].split(',')
         conf = Util.get_crypto_dict(app_name)
         cfg_mgr = ConfigManager()
         config_client = cfg_mgr.get_config_client("etcd", conf)
@@ -49,7 +47,7 @@ def start_publisher(topic_string):
         topic = topic.strip()
 
         msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "pub",
-                                                      client_list,
+                                                      clients,
                                                       config_client,
                                                       dev_mode)
 

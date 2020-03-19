@@ -37,16 +37,14 @@ def start_server():
         print('[INFO] Initializing message bus context')
 
         app_name = os.environ["AppName"]
-        clients = os.environ["Clients"]
-        client_list = []
-        client_list.append(clients)
+        clients = os.environ["Clients"].split(',')
         conf = Util.get_crypto_dict(app_name)
         cfg_mgr = ConfigManager()
         config_client = cfg_mgr.get_config_client("etcd", conf)
         dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
         msgbus_cfg = MsgBusUtil.get_messagebus_config(app_name, "server",
-                                                      client_list,
+                                                      clients,
                                                       config_client, dev_mode)
         msgbus = mb.MsgbusContext(msgbus_cfg)
 
