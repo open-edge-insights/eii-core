@@ -275,7 +275,10 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devices by accepting device type (“CPU”|”GPU”|”MYRIAD”|”HDDL”|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU") which is part of the `udf` object configuration in `udfs` key. For more details, check [common/udfs/README.md](common/udfs/README.md)
+EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU"), part of the `udf` object configuration in `udfs`
+key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json)
+before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
+check [common/udfs/README.md](common/udfs/README.md).
 
 **Note**:
 ----
@@ -345,7 +348,24 @@ EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devi
 
 * **To run on HDDLF(FGPA) devices**
 
-  Please Refer the [README_fpga.md](README_fpga.md)
+  Please Refer the [README_fpga.md](README_fpga.md) for installing FPGA drivers. Once that is setup, please follow below steps:
+  
+  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](docker_setup/docker-compose.yml).
+    If one is using docker-compose samples, please ensure to follow the same.
+  
+    Eg: Just set the value of `FPGA_ENABLE` to `enable` like below for `ia_openvino_base` service:
+    ```sh
+      ia_openvino_base:
+        ...
+        args: ...
+              FPGA_ENABLE: "enable"
+        ...
+    ```
+  * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above. 
+    For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
+    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](docker_setup/provision/config/etcd_pre_load.json)
+    before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
+    check [common/udfs/README.md](common/udfs/README.md).
 
 ----
 
