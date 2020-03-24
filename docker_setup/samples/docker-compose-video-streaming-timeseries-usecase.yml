@@ -271,7 +271,6 @@ services:
       - etcd_InfluxDBConnector_cert
       - etcd_InfluxDBConnector_key
 
-
   ## Define telegraf service
   ia_telegraf:
     depends_on:
@@ -294,7 +293,11 @@ services:
       CertType: ""
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
+      HOST_IP: '127.0.0.1'
+      INFLUX_SERVER: '127.0.0.1'
+      INFLUXDB_PORT: $INFLUXDB_PORT
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -323,6 +326,7 @@ services:
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -347,6 +351,8 @@ services:
       - "vol_influxdb_data:/influxdata"
       - "vol_eis_socket:${SOCKET_DIR}"
     user: ${EIS_UID}
+    ports:
+      - "$INFLUXDB_PORT:$INFLUXDB_PORT"
     secrets:
       - ca_etcd
       - etcd_InfluxDBConnector_cert
@@ -375,6 +381,7 @@ services:
       AppName: "DiscoveryCreek"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
 
       # MessageBus Endpoint Configuration
@@ -421,11 +428,20 @@ services:
       AppName: "Kapacitor"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       CertType: "pem"
+      KAPACITOR_URL: http://127.0.0.1:$KAPACITOR_PORT/
+      KAPACITOR_UNSAFE_SSL: "true"
+      KAPACITOR_INFLUXDB_0_URLS_0: http://127.0.0.1:$INFLUXDB_PORT/
+      INFLUX_SERVER: '127.0.0.1'
+      KAPACITOR_SERVER: '127.0.0.1'
+      KAPACITOR_PORT: $KAPACITOR_PORT
     user: ${EIS_UID}
     volumes:
       - "vol_temp_kapacitor:/tmp/"
+    ports:
+      - "$KAPACITOR_PORT:$KAPACITOR_PORT"
     secrets:
       - ca_etcd
       - etcd_Kapacitor_cert

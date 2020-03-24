@@ -11,9 +11,6 @@ ENV KAPACITOR_REPO /EIS/go/src/github.com/influxdata/kapacitor
 ENV GO_ROOT_BIN /EIS/go/bin
 ENV PYTHONPATH ${PYTHONPATH}
 ARG EIS_UID
-ENV KAPACITOR_URL http://localhost:9092/
-ENV KAPACITOR_UNSAFE_SSL true
-ENV KAPACITOR_INFLUXDB_0_URLS_0 http://localhost:8086/
 
 # Adding kapacitor related files
 ARG KAPACITOR_VERSION
@@ -24,8 +21,6 @@ RUN mkdir -p ${KAPACITOR_REPO} && \
     python3.6 build.py --clean -o ${GO_ROOT_BIN}
 
 ENV PYTHONPATH $PYTHONPATH:${KAPACITOR_REPO}/udf/agent/py/
-ENV KAPACITOR_SERVER localhost
-ENV KAPACITOR_PORT 9092
 
 FROM ia_common:$EIS_VERSION as common
 
