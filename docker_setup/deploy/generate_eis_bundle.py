@@ -4,8 +4,6 @@ import json
 import os
 import argparse
 
-DEFAULT_CERTS = ["ca", "root"]
-
 
 class EisBundleGenerator:
 
@@ -50,7 +48,7 @@ class EisBundleGenerator:
         '''
         try:
             with open(self.docker_file_path, 'r') as ymlfile:
-                self.config = yaml.load(ymlfile)
+                self.config = yaml.load(ymlfile, Loader=yaml.FullLoader)
             self.config['version'] = self.docker_compose_file_version
 
             for service in self.config['services'].keys():
@@ -83,13 +81,14 @@ class EisBundleGenerator:
         '''
 
         eis_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
+        eis_provision_dir = "./" + self.bundle_tag_name + "/provision/"
         cmdlist = []
         cmdlist.append("rm -rf " + self.bundle_tag_name)
         cmdlist.append("mkdir -p " + self.bundle_tag_name)
         cmdlist.append("mv docker-compose.yml ./" + self.bundle_tag_name)
         cmdlist.append("cp ../.env ./" + self.bundle_tag_name)
+        cmdlist.append("mkdir -p " + self.bundle_tag_name + "/provision")
         if self.env["DEV_MODE"] == "false":
-            cmdlist.append("mkdir -p " + self.bundle_tag_name + "/provision")
             for service in self.config['services'].keys():
                 servicename =\
                     self.config['services'][service]['environment']['AppName']
@@ -97,11 +96,16 @@ class EisBundleGenerator:
                 cmdlist.append("cp -rf " +
                                "../provision/Certificates/" +
                                servicename + "/ " + eis_cert_dir)
-            for cert in DEFAULT_CERTS:
-                cmdlist.append("cp -rf " +
-                               "../provision/Certificates/" +
-                               cert + "/ " + eis_cert_dir)
 
+            cmdlist.append("cp -rf " +
+                           "../provision/Certificates/" +
+                           "ca" + "/ " + eis_cert_dir)
+
+            cmdlist.append("sudo rm " + eis_cert_dir + "ca/ca_key.pem")
+
+        cmdlist.append("sudo chmod +x ../provision/slave_provision_noetcd.sh")
+        cmdlist.append("sudo cp -f " + "../provision/slave_provision_noetcd.sh"
+                                       + " " + eis_provision_dir)
         cmdlist.append("chown -R eisuser:eisuser ./" + self.bundle_tag_name)
         cmdlist.append("tar -czvf \
                 " + self.bundle_tag_name + ".tar.gz ./" + self.bundle_tag_name)
