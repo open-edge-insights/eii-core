@@ -258,6 +258,18 @@ To refer C examples follow config_manager.c in [examples/](examples/)
         @return config_t*      - JSON msg bus config of type config_t
     ```
 
+**NOTE:** `get_messagebus_config()` api supports multiple ipc socket file configuration. 
+
+With respect to multiple tcp configuration, even though api receives list of topics, it returns config of only first topic.
+So, if an application needs env config for multiple topics, then this api should be called multiple times with the required topic.
+
+For Example: In `config_t* msgbus_config_pub = env_config_client->get_messagebus_config(config_mgr_client, pub_topics[], num_of_topics, "pub");`
+let's say pub_topics[] has **"camera1_stream,camera2_stream,camera3_stream"**. Calling this api with mentioned pub_topics, env_config is received by caller application for only **"camera1_stream"**.
+
+If config is needed for other topics, that is **camera2_stream and camera 3_stream**, then caller application should make sure that **camera2_stream or camera3_stream** should be the first element in **pub_topics[]** array respectively based on whichever config is needed.
+
+Similarly for **sub_topics[]** tcp config as well.
+
 5. Destroy Env Config
 
     `env_config_destroy(env_config_client);`
