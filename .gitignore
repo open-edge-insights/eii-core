@@ -17,10 +17,11 @@ __pycache__/
 *.dylib
 *.test
 
-common/openvino/l_openvino*
-build/provision/Certificates
-build/provision/client/
-build/provision/rootca/
-build/provision/server/
-build/provision/node*
 .vscode
+
+# Generated files during provisioning and composing
+# consolidated docker-compose file
+build/docker-compose.yml
+build/provision/Certificates/
+build/provision/config/eis_config.json
+build/provision/rootca/
