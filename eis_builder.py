@@ -23,7 +23,6 @@ import ruamel.yaml
 import argparse
 import os
 import json
-import xml.etree.ElementTree as ET
 from jsonmerge import merge
 from common.util.log import configure_logging, LOG_LEVELS
 
@@ -32,15 +31,6 @@ yaml = ruamel.yaml.YAML()
 
 docker_compose_path = './build/docker-compose.yml'
 
-def parse_args():
-    """Parse command line arguments.
-    """
-    ap = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    ap.add_argument('-m', '--manifest', default="../.repo/manifests/default.xml",
-                    help='Available usecases(Video, TimeSeries, DiscoveryCreek). Default is set to all')
-
-    return ap.parse_args()
 
 def json_parser(file):
     """Generate etcd config by parsing through
@@ -73,7 +63,7 @@ def json_parser(file):
         with open(x + '/config.json', "rb") as infile:
             data = {}
             head = json.load(infile)
-            x = x.replace('.','')
+            x = x.replace('.', '')
             data[x+'/config'] = head
             config_json = merge(config_json, data)
 
@@ -82,23 +72,24 @@ def json_parser(file):
     f.write(json.dumps(config_json, sort_keys=True, indent=4))
 
 
-def yaml_parser(manifest):
+def yaml_parser():
     """Yaml parser method.
     """
 
-    # Parsing the XML file to fetch required services
-    logger.info("Parsing XML file to fetch required services...")
-    tree = ET.parse(manifest)
-    root = tree.getroot()
+    # Fetching list of subdirectories
+    logger.info("Parsing through directory to fetch required services...")
+    dir_list = [f.name for f in os.scandir('.') if f.is_dir()]
+
+    # Adding openvino manually since it's not a direct sub-directory
+    if os.path.isdir('common/openvino'):
+        dir_list.append('common/openvino')
+
     app_list = []
-    for child in root:
-        if child.tag == 'project':
-            if child.attrib['path'] == 'IEdgeInsights':
-                pass
-            else:
-                s = child.attrib['path']
-                AppName = s.split("IEdgeInsights/",1)[1]
-                app_list.append(AppName)
+    for dirs in dir_list:
+        # Append to app_list if dir has both docker-compose.yml and config.json
+        if os.path.isfile(dirs + '/docker-compose.yml') and \
+             os.path.isfile(dirs + '/config.json'):
+            app_list.append(dirs)
 
     # Load the common docker-compose.yml
     yaml_files_dict = []
@@ -106,7 +97,7 @@ def yaml_parser(manifest):
         data = yaml.load(fp)
         yaml_files_dict.append(data)
 
-    #Load the required yaml files
+    # Load the required yaml files
     for k in app_list:
         with open('./' + k + '/docker-compose.yml', 'r') as fp:
             data = yaml.load(fp)
@@ -116,27 +107,22 @@ def yaml_parser(manifest):
     x = yaml_files_dict[0]
     for v in yaml_files_dict[1:]:
         for k in v:
-            # Update the values from current compose file to previous compose file
+            # Update the values from current compose
+            # file to previous compose file
             for i in v[k]:
                 if(k == "version"):
                     pass
                 else:
-                    x[k].update({i:v[k][i]})
+                    x[k].update({i: v[k][i]})
 
     with open(docker_compose_path, 'w') as fp:
         yaml.dump(x, fp)
-    
+
     # Starting json parser
     json_parser(docker_compose_path)
 
-def main(args):
-    """Main method.
-    """
-    logger.info("Manifest provided is {}".format(args.manifest))
-    yaml_parser(args.manifest)
 
 if __name__ == '__main__':
 
     # Parse command line arguments
-    args = parse_args()
-    main(args)
+    yaml_parser()
