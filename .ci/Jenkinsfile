@@ -1,0 +1,315 @@
+loadGlobalLibrary()
+
+pipeline {
+    agent { label 'EIS_Pipeline' }
+    parameters {
+        string(name: 'SCANNERS', defaultValue: 'protex,checkmarx,bdba', description: 'Valid scanners are protex, checkmarx, bdba')
+        string(name: 'CI_TESTS_BRANCH', defaultValue: 'master', description: 'CITests branch to clone')
+        string(name: 'PROTEX_PROJECT_NAME', defaultValue: 'Edge Insights Software v2.3', description: 'Protex Project Name')
+        string(name: 'CHECKMARX_PROJECT_NAME', defaultValue: 'IEI_CI_Checkmarx', description: 'Protex Project Name')
+        booleanParam defaultValue: true, description: 'Execute Fresh build', name: 'CLEAN_BUILD'
+    }
+    options {
+        gitLabConnection('BuildAutomation')
+        gitlabBuilds(builds: ['Build', 'Prep Static Code Scan', 'Klocwork', 'Static Code Analysis', 'Virus Scan'])
+        buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '30'))
+        timestamps()
+        disableConcurrentBuilds()
+        timeout(time: 9, unit: 'HOURS')
+        skipDefaultCheckout() // manual checkout stage to allow for a clean workspace on each build
+    }
+    triggers {
+        cron('@daily')
+    }
+    environment {
+        PASSWORD = credentials('eis-strong-password')
+        STATIC_RESOURCES = "/home/$USER/openvino_sdk"
+        OPENVINO_VERSION = "2020.1.023"
+        PROTECODE_BIN_DIR = "Protecode"
+    }
+    stages {
+        stage('Build') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'master'
+                    }
+                }
+            }
+            steps {
+                cleanWs()
+                checkout scm
+
+                // Enable all services in docker_setup/docker-compose.yml
+                echo "Uncomment all services in docker_setup/docker-compose.yml file..."
+                sh 'sed -i "s:^  # :  :g" docker_setup/docker-compose.yml'
+
+                dir('CITests') {
+                    git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', branch: "${params.CI_TESTS_BRANCH}", changelog: false, poll: false
+
+                    sh 'echo $PASSWORD | sudo -SEH pip3 install -r requirements.txt'
+
+                    script {
+                        def envVars = []
+
+                        if(env.CLEAN_BUILD == 'true') {
+                            envVars << "BUILD_TYPE=nightly"
+                        }
+
+                        withEnv(envVars) {
+                            sh 'echo $PASSWORD | sudo -SE python3 pre_merge_and_nightly_build_script.py'
+                        }
+
+                        sh 'docker ps -a' //debug
+
+                        // Copy binaries from inside docker containers to the protecode directory
+                        sh 'rm -rf $PROTECODE_BIN_DIR && mkdir -p $PROTECODE_BIN_DIR'
+
+                        sh 'docker cp -a ia_video_ingestion:/EIS/go/src/IEdgeInsights/VideoIngestion/build/video-ingestion $PROTECODE_BIN_DIR/video-ingestion'
+                        sh 'docker cp -a ia_video_analytics:/EIS/go/src/IEdgeInsights/VideoAnalytics/build/video-analytics $PROTECODE_BIN_DIR/video-analytics'
+
+                        stash name: 'bdba', includes: "${PROTECODE_BIN_DIR}/**"
+                    }
+                }
+
+                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+            }
+        }
+
+        stage('Klocwork') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'master'
+                    }
+                }
+            }
+            environment {
+                STATIC_RESOURCES = "/home/$USER/openvino_sdk"
+                OPENVINO_VERSION = "2020.1.023"
+                PROJECT_NAME     = 'FoG_ETA'
+                TABLE_ROOT       = "/home/$USER/kw/FG_Table"
+                KW_SERVER        = 'https://klocwork-ir1.devtools.intel.com:8075'
+                KW_HOST          = 'klocwork02p.elic.intel.com'
+                KW_PORT          = '7500'
+                PATH             = "$PATH:/home/$USER/kw/kw18/bin:/usr/local/go/bin"
+                GOPATH           = "$WORKSPACE"
+                RBHE_DOCKER      = credentials('intel-harbor-credentials')
+            }
+            steps {
+                // modeled after https://jenkins-iotg-val-ba.iind.intel.com/view/EIS/job/EIS_CI_NIGHTLY_Ubuntu_KW
+                cleanWs()
+
+                // get a clean copy of the WS
+                dir('src/IEdgeInsights') {
+                    checkout scm
+                }
+
+                // clone dependencies
+                dir('src/IEdgeInsights/CITests') {
+                    git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', branch: "${params.CI_TESTS_BRANCH}", changelog: false, poll: false
+                }
+
+                dir('src/github.com/golang/glog') {
+                    checkout (
+                        changelog: false,
+                        poll: false,
+                        scm: [
+                            $class: 'GitSCM',
+                            userRemoteConfigs: [[url: 'https://github.com/golang/glog']],
+                            branches: [[name: '23def4e6c14b4da8ac2ed8007337bc5eb5007998']],
+                            doGenerateSubmoduleConfigurations: false
+                        ]
+                    )
+                }
+
+                dir('src/go.etcd.io/etcd') {
+                    checkout (
+                        changelog: false,
+                        poll: false,
+                        scm: [
+                            $class: 'GitSCM',
+                            userRemoteConfigs: [[url: 'https://github.com/etcd-io/etcd']],
+                            branches: [[name: '0c787e26bcd102c3bb14050ac893b07ba9ea029f']],
+                            doGenerateSubmoduleConfigurations: false
+                        ]
+                    )
+                }
+
+                dir('src/IEdgeInsights') {
+                    sh 'kwdeploy sync --url "$KW_SERVER"'
+                    sh 'cp CITests/kw_script.sh .'
+
+                    script {
+                        try {
+                            sh 'echo $PASSWORD | sudo -SE env "PATH=$PATH" "GOPATH=$GOPATH" ./kw_script.sh'
+                        }
+                        catch(e) {
+                            // ignore failures for now due to intermitent connection issues
+                            // kwadmin: Could not connect to https://irvapp007.ir.intel.com:8075
+                            // IST: shared database loading stage: Failed to load build 'test-51' database of project 'FoG_ETA': kwloaddb exited with 1. See kwloaddb.log for more details.
+                        }
+                    }
+                }
+
+                // generate KW report and archive
+                script {
+                    sh 'docker login --username="$RBHE_DOCKER_USR" --password="$RBHE_DOCKER_PSW" amr-registry.caas.intel.com'
+                    sh 'docker pull amr-registry.caas.intel.com/rrp-devops/klocwork-report-agent:latest'
+
+                    def kwReportImage = 'amr-registry.caas.intel.com/rrp-devops/klocwork-report-agent:latest'
+
+                    docker.image(kwReportImage).inside('-v /home/labuser/.klocwork:/tmp/.klocwork -e http_proxy= -e https_proxy=') {
+                        withEnv(['KLOCWORK_LTOKEN=/tmp/.klocwork/ltoken']) {
+                            sh '''
+                            mkdir -p klocwork-reports
+                            python /klocwork/OWR_klocwork_report.py -s "https://irvapp007.ir.intel.com" -p "8075" -t "$PROJECT_NAME" -b default -q "$KW_REPORT_QUERY" -o klocwork-reports/kw_report.html
+                            '''
+                        }
+                    }
+
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: "klocwork-reports",
+                        reportFiles: 'kw_report.html',
+                        reportName: 'Klocwork Report',
+                        reportTitles: 'Klocwork Report'
+                    ])
+
+                    archiveArtifacts allowEmptyArchive: true, artifacts: 'klocwork-reports/kw_report.csv'
+                }
+
+                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+            }
+        }
+
+        stage('Prep Static Code Scan') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'master'
+                    }
+                }
+            }
+            steps {
+                // clean static code scan parallel dirs
+                sh 'echo $PASSWORD | sudo -SE sudo rm -rf ${WORKSPACE}@[2,3,4]/*'
+                sh 'echo $PASSWORD | sudo -SE sudo rm -rf ${WORKSPACE}@[2,3,4]/.[^.]*'
+            }
+        }
+
+        stage('Static Code Scan') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'master'
+                    }
+                }
+            }
+            environment {
+                // SCANNERS = 'protex,checkmarx,bdba'  //see parameter above
+                PROJECT_NAME = 'EIS'
+                
+                // PROTEX_PROJECT_NAME  = '' //see parameter above
+                PROTEX_SERVER_URL    = 'https://garprotex009.devtools.intel.com/'
+                PROTEX_CREDENTIAL_ID = 'protex-gar009'
+
+                // CHECKMARX_PROJECT_NAME     = '' //see parameter above
+                CHECKMARX_CREDENTIAL_ID    = 'checkmarx-scanner-credentials'
+                CHECKMARX_GROUP_ID         = '0f40ed7e-d5c7-45dd-ba72-a7a3ea9d59e5'
+                CHECKMARX_PRESET_ID        = '100049'
+                CHECKMARX_INCREMENTAL_SCAN = 'true'
+
+                PROTECODE_BIN_DIR = "Protecode"
+            }
+            steps {
+                cleanWs()
+
+                dir('CleanSourceCode') {
+                    checkout scm
+
+                    // depends on the Build stage
+                    unstash 'bdba'
+
+                    withEnv(["WORKSPACE=${WORKSPACE}/CleanSourceCode"]) {
+                        rbheStaticCodeScan()
+                    }
+                }
+
+                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+            }
+        }
+
+        stage('Virus Scan') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'master'
+                    }
+                }
+            }
+            steps {
+                // The only files that need to be scanned are the compiled binaries
+                // so we will just scan the bdba folder since it has the required files
+                script {
+                    virusScan {
+                        dir = "./CleanSourceCode/${PROTECODE_BIN_DIR}"
+                    }
+                }
+
+                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+            }
+        }
+    }
+    post {
+        always {
+            emailext(
+                body: '$DEFAULT_CONTENT',
+                replyTo: '$DEFAULT_REPLYTO',
+                subject: '$DEFAULT_SUBJECT',
+                to: env.EIS_BUILD_PDL,
+                attachmentsPattern: 'Checkmarx/Reports/CxSASTReport_*'
+            )
+            cleanWs()
+        }
+        
+        success {
+            updateGitlabCommitStatus name: 'Virus Scan', state: 'success'
+        }
+
+        failure {
+            updateGitlabCommitStatus name: 'Virus Scan', state: 'failed'
+        }
+    }
+}
+
+def loadGlobalLibrary(branch = '*/master') {
+    library(identifier: 'jenkins-common-pipelines@master',
+        changelog: false,
+        retriever: legacySCM([
+            $class: 'GitSCM',
+            branches: [[name: branch]],
+            doGenerateSubmoduleConfigurations: false,
+            userRemoteConfigs: [[
+                credentialsId: 'iotg-rbhe-github-impcloud-pat',
+                url: 'https://github.impcloud.net/Responsive-Retail/jenkins-common-pipelines.git'
+            ]],
+            extensions: [
+                [$class: 'SubmoduleOption', recursiveSubmodules: true],
+                [$class: 'IgnoreNotifyCommit']
+            ]
+        ])
+    ) _
+}
