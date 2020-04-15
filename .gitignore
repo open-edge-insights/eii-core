@@ -25,3 +25,25 @@ build/docker-compose.yml
 build/provision/Certificates/
 build/provision/config/eis_config.json
 build/provision/rootca/
+build/provision/server
+build/provision/client
+
+# Adding these folder names as eis-core repo
+# is pulled onto IEdgeInsights folder making
+# all these apps/services appear as untracked
+# files
+DiscoveryCreek/
+FactoryControlApp/
+Grafana/
+ImageStore/
+InfluxDBConnector/
+OpcuaExport/
+RestDataExport/
+TLSRemoteAgent/
+Telegraf/
+Kapacitor/
+VideoAnalytics/
+VideoIngestion/
+Visualizer/
+WebVisualizer/
+common/openvino/
