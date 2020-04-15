@@ -2,28 +2,29 @@ version: '3.6'
 
 services:
 
-  ##----Start: EIS Base Images -- These Base images must be included for building any EIS servcies ----
+  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   ## Define ia_eisbase service
   ia_eisbase:
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
       args:
-        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-        EIS_VERSION: ${EIS_VERSION}
+          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+          EIS_VERSION: ${EIS_VERSION}
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
   ## Define ia_common service
   ia_common:
     depends_on:
-    - ia_eisbase
+      - ia_eisbase
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
-        EIS_VERSION: ${EIS_VERSION}
-        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
-        CMAKE_BUILD_TYPE: Release
+          EIS_VERSION: ${EIS_VERSION}
+          # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+          CMAKE_BUILD_TYPE: "Release"
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
@@ -31,12 +32,15 @@ services:
 
   ## Define ETCD UI service - must be included to view ETCD data over web UI
   ia_etcd_ui:
+    depends_on:
+      - ia_common
     build:
       context: $PWD/../EtcdUI
       dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
         ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
         EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui
@@ -46,6 +50,13 @@ services:
     environment:
       AppName: "EtcdUi"
       DEV_MODE: ${DEV_MODE}
+      NGINX_PORT: 7071
+      CertType: "pem"
+      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      ETCD_HOST: ${ETCD_HOST}
+      ETCD_PREFIX: ${ETCD_PREFIX}
+    volumes:
+      - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
@@ -59,6 +70,12 @@ volumes:
       type: local
       o: bind
       device: ${EIS_INSTALL_PATH}/sockets
+
+  vol_etcd_keeper:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
 
 secrets:
   ca_etcd:
