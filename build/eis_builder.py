@@ -1,23 +1,24 @@
 #!/usr/bin/python3
 
-"""
-Copyright (c) 2020 Intel Corporation.
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
+# Copyright (c) 2020 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 import ruamel.yaml
 import argparse
@@ -29,15 +30,15 @@ from common.util.log import configure_logging, LOG_LEVELS
 logger = configure_logging('INFO', __name__, True)
 yaml = ruamel.yaml.YAML()
 
-docker_compose_path = './build/docker-compose.yml'
-
+DOCKER_COMPOSE_PATH = './docker-compose.yml'
+SCAN_DIR = ".."
 
 def json_parser(file):
     """Generate etcd config by parsing through
        individual app configs
     """
     # Fetching GlobalEnv config
-    with open('./eis_config.json', "rb") as infile:
+    with open('./common_config.json', "rb") as infile:
         data = {}
         head = json.load(infile)
         data['/GlobalEnv/'] = head
@@ -50,15 +51,15 @@ def json_parser(file):
     app_list = []
     # Replacing $PWD with relative path to EIS dir
     for key in data['services']:
-        s = data['services'][key]['build']['context'].replace('$PWD/..', '.')
+        s = data['services'][key]['build']['context'].replace('$PWD/..', '..')
         app_list.append(s)
 
     # Removing duplicates & unwanted dirs from app list
     app_list = list(dict.fromkeys(app_list))
-    app_list.remove('./common')
+    app_list.remove(SCAN_DIR + '/common')
 
+    eis_config_path = "./provision/config/eis_config.json"
     # Fetching and merging individual App configs
-    logger.info("Constructing consolidated config json...")
     for x in app_list:
         with open(x + '/config.json', "rb") as infile:
             data = {}
@@ -70,8 +71,10 @@ def json_parser(file):
             config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
-    f = open("./build/provision/config/eis_config.json", "w")
+    f = open(eis_config_path, "w")
     f.write(json.dumps(config_json, sort_keys=True, indent=4))
+    logger.info("Successfully created consolidated config json at {}".format(
+        eis_config_path))
 
 
 def yaml_parser():
@@ -80,18 +83,20 @@ def yaml_parser():
 
     # Fetching list of subdirectories
     logger.info("Parsing through directory to fetch required services...")
-    dir_list = [f.name for f in os.scandir('.') if f.is_dir()]
+    root_dir = os.getcwd() + '/../'
+    dir_list = [f.name for f in os.scandir(root_dir) if f.is_dir()]
 
     # Adding openvino manually since it's not a direct sub-directory
-    if os.path.isdir('common/openvino'):
-        dir_list.append('common/openvino')
+    if os.path.isdir(root_dir + 'common/video'):
+        dir_list.append('common/video')
 
     app_list = []
-    for dirs in dir_list:
+    for dir in dir_list:
+        prefix_path = root_dir + dir
         # Append to app_list if dir has both docker-compose.yml and config.json
-        if os.path.isfile(dirs + '/docker-compose.yml') and \
-             os.path.isfile(dirs + '/config.json'):
-            app_list.append(dirs)
+        if os.path.isfile(prefix_path + '/docker-compose.yml') and \
+             os.path.isfile(prefix_path + '/config.json'):
+            app_list.append(prefix_path)
 
     # Load the common docker-compose.yml
     yaml_files_dict = []
@@ -101,11 +106,10 @@ def yaml_parser():
 
     # Load the required yaml files
     for k in app_list:
-        with open('./' + k + '/docker-compose.yml', 'r') as fp:
+        with open(k + '/docker-compose.yml', 'r') as fp:
             data = yaml.load(fp)
             yaml_files_dict.append(data)
 
-    logger.info("Constructing consolidated yaml file...")
     x = yaml_files_dict[0]
     for v in yaml_files_dict[1:]:
         for k in v:
@@ -117,11 +121,15 @@ def yaml_parser():
                 else:
                     x[k].update({i: v[k][i]})
 
-    with open(docker_compose_path, 'w') as fp:
+    with open(DOCKER_COMPOSE_PATH, 'w') as fp:
         yaml.dump(x, fp)
 
+    str = "Successfully created consolidated docker-compose.yml file: {}".format(
+          DOCKER_COMPOSE_PATH)
+    logger.info(str)
+
     # Starting json parser
-    json_parser(docker_compose_path)
+    json_parser(DOCKER_COMPOSE_PATH)
 
 
 if __name__ == '__main__':

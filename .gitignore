@@ -46,4 +46,4 @@ VideoAnalytics/
 VideoIngestion/
 Visualizer/
 WebVisualizer/
-common/openvino/
+common/video/

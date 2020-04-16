@@ -126,9 +126,9 @@ The section assumes the EIS software is already downloaded from the release pack
 
 * Download the full package for OpenVINO toolkit for Linux version "2020.1" from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
-  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/common/openvino`.
+  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/common/video`.
 
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/common/openvino folder as 
+   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/common/video folder as 
    > we are adding `l_openvino_toolkit_*` into Dockerfile which could result in  build failure of 
    > openvino base container if there are multiple openvino sdk's in there (especially the old ones)
 
