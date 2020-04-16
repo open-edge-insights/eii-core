@@ -64,6 +64,8 @@ def json_parser(file):
             data = {}
             head = json.load(infile)
             x = x.replace('.', '')
+            # remove trailing '/'
+            x = x.rstrip('/')
             data[x+'/config'] = head
             config_json = merge(config_json, data)
 
