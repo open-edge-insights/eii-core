@@ -28,7 +28,6 @@ from jsonmerge import merge
 from common.util.log import configure_logging, LOG_LEVELS
 
 logger = configure_logging('INFO', __name__, True)
-yaml = ruamel.yaml.YAML()
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
@@ -46,7 +45,7 @@ def json_parser(file):
 
     # Fetching docker-compose.yml to retrieve required App dirs
     with open(file, 'r') as fp:
-        data = yaml.load(fp)
+        data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
 
     app_list = []
     # Replacing $PWD with relative path to EIS dir
@@ -85,10 +84,11 @@ def yaml_parser():
     logger.info("Parsing through directory to fetch required services...")
     root_dir = os.getcwd() + '/../'
     dir_list = [f.name for f in os.scandir(root_dir) if f.is_dir()]
+    dir_list = sorted(dir_list)
 
-    # Adding openvino manually since it's not a direct sub-directory
+    # Adding video folder manually since it's not a direct sub-directory
     if os.path.isdir(root_dir + 'common/video'):
-        dir_list.append('common/video')
+        dir_list.insert(0, 'common/video')
 
     app_list = []
     for dir in dir_list:
@@ -101,13 +101,13 @@ def yaml_parser():
     # Load the common docker-compose.yml
     yaml_files_dict = []
     with open('common-docker-compose.yml', 'r') as fp:
-        data = yaml.load(fp)
+        data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
         yaml_files_dict.append(data)
 
     # Load the required yaml files
     for k in app_list:
         with open(k + '/docker-compose.yml', 'r') as fp:
-            data = yaml.load(fp)
+            data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
             yaml_files_dict.append(data)
 
     x = yaml_files_dict[0]
@@ -122,7 +122,7 @@ def yaml_parser():
                     x[k].update({i: v[k][i]})
 
     with open(DOCKER_COMPOSE_PATH, 'w') as fp:
-        yaml.dump(x, fp)
+        ruamel.yaml.round_trip_dump(x, fp)
 
     str = "Successfully created consolidated docker-compose.yml file: {}".format(
           DOCKER_COMPOSE_PATH)
