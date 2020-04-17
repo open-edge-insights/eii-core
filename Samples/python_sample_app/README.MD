@@ -50,8 +50,8 @@ ia_python_publisher container.
 
    And
 
-   [etcd_pre_load.json](../../build/provision/config/etcd_pre_load.json) with
-   [etcd_pre_load.json](./config/etcd_pre_load.json)
+   [eis_config.json](../../build/provision/config/eis_config.json) with
+   [eis_config.json](./config/eis_config.json)
 
 2. Do provisioning and start containers.
 

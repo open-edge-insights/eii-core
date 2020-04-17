@@ -126,11 +126,31 @@ The section assumes the EIS software is already downloaded from the release pack
 
 * Download the full package for OpenVINO toolkit for Linux version "2020.1" from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
-  directory `l_openvino_toolkit_xxxxx/` inside `[repo]/common/video`.
+  directory `l_openvino_toolkit_xxxxx/` inside `IEdgeInsights/common/video`.
 
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under [repo]/common/video folder as 
+   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/common/video folder as 
    > we are adding `l_openvino_toolkit_*` into Dockerfile which could result in  build failure of 
    > openvino base container if there are multiple openvino sdk's in there (especially the old ones)
+  
+* Generating consolidated docker-compose.yml & eis_config.json:
+
+  Move to build directory:
+
+  ```sh
+  $ cd build
+  ```
+
+  Install requirements for [eis_builder.py](build/eis_builder.py):
+
+  ```sh
+  $ pip3 install -r requirements.txt
+  ```
+
+  Run [eis_builder.py](build/eis_builder.py):
+
+  ```sh
+  $ python3 eis_builder.py
+  ```
 
 # Provision EIS
 
@@ -145,7 +165,7 @@ Please follow below steps to provision EIS in Developer mode. Developer mode wil
 
 Following actions will be performed as part of Provisioning
 
- * Loading inital ETCD values from json file located at [build/provision/config/etcd_pre_load.json](build/provision/config/etcd_pre_load.json).
+ * Loading inital ETCD values from json file located at [build/provision/config/eis_config.json](build/provision/config/eis_config.json).
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
  * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
@@ -158,7 +178,7 @@ python3.6 volume_data_script.py
 
 Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
 ```
-$ cd [repo]/build/provision
+$ cd IEdgeInsights/build/provision
 $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
 eq. $ sudo ./provision_eis.sh ../docker-compose.yml
@@ -173,7 +193,7 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
   ---
   > **Note:**
-  > * All EIS build and run commands are to be executed from the [repo]/build/ directory.
+  > * All EIS build and run commands are to be executed from the IEdgeInsights/build/ directory.
   > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
      run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. 
      This is needed by `ia_visualizer` service to render the UI
@@ -212,6 +232,7 @@ Below are the main usecases supported by EIS:
   Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-timeseries-usecase.yml](build/samples/docker-compose-video-streaming-timeseries-usecase.yml)
 
     > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
+
 
 To build and run EIS in one command:
 
@@ -261,7 +282,7 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 # Using video accelerators
 
 EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU"), part of the `udf` object configuration in `udfs`
-key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](build/provision/config/etcd_pre_load.json)
+key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
 check [common/udfs/README.md](common/udfs/README.md).
 
@@ -348,7 +369,7 @@ check [common/udfs/README.md](common/udfs/README.md).
     ```
   * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above. 
     For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
-    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [etcd_pre_load.json](build/provision/config/etcd_pre_load.json)
+    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
     before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
     check [common/udfs/README.md](common/udfs/README.md).
 

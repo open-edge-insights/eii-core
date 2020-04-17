@@ -25,12 +25,11 @@ import argparse
 import os
 import json
 from jsonmerge import merge
-from common.util.log import configure_logging, LOG_LEVELS
-
-logger = configure_logging('INFO', __name__, True)
+import distutils.util as util
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
+
 
 def json_parser(file):
     """Generate etcd config by parsing through
@@ -72,7 +71,7 @@ def json_parser(file):
     # Writing consolidated json into desired location
     f = open(eis_config_path, "w")
     f.write(json.dumps(config_json, sort_keys=True, indent=4))
-    logger.info("Successfully created consolidated config json at {}".format(
+    print("Successfully created consolidated config json at {}".format(
         eis_config_path))
 
 
@@ -81,7 +80,7 @@ def yaml_parser():
     """
 
     # Fetching list of subdirectories
-    logger.info("Parsing through directory to fetch required services...")
+    print("Parsing through directory to fetch required services...")
     root_dir = os.getcwd() + '/../'
     dir_list = [f.name for f in os.scandir(root_dir) if f.is_dir()]
     dir_list = sorted(dir_list)
@@ -95,7 +94,7 @@ def yaml_parser():
         prefix_path = root_dir + dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         if os.path.isfile(prefix_path + '/docker-compose.yml') and \
-             os.path.isfile(prefix_path + '/config.json'):
+           os.path.isfile(prefix_path + '/config.json'):
             app_list.append(prefix_path)
 
     # Load the common docker-compose.yml
@@ -121,12 +120,34 @@ def yaml_parser():
                 else:
                     x[k].update({i: v[k][i]})
 
+    # Fetching DEV_MODE from .env
+    with open(".env") as f:
+        for line in f:
+            if line.startswith('DEV_MODE'):
+                dev_mode = line.strip().split('=')[1]
+                dev_mode = util.strtobool(dev_mode)
+                break
+
+    if dev_mode:
+        for k, v in x.items():
+            # Deleting the main secrets section
+            if(k == "secrets"):
+                del x[k]
+            # Deleting secrets section for individual services
+            elif(k == "services"):
+                for _, service_dict in v.items():
+                    for service_keys, _ in service_dict.items():
+                        if(service_keys == "secrets"):
+                            del service_dict[service_keys]
+
     with open(DOCKER_COMPOSE_PATH, 'w') as fp:
         ruamel.yaml.round_trip_dump(x, fp)
 
-    str = "Successfully created consolidated docker-compose.yml file: {}".format(
-          DOCKER_COMPOSE_PATH)
-    logger.info(str)
+    str = "PROD"
+    if dev_mode:
+        str = "DEV"
+    print("Successfully created docker-compose.yml"
+          " file for {} mode".format(str))
 
     # Starting json parser
     json_parser(DOCKER_COMPOSE_PATH)

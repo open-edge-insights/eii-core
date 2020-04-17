@@ -1,4 +1,4 @@
-//get_app_config gets the app config and returns the sleep value from etcd_pre_load.json
+//get_app_config gets the app config and returns the sleep value from eis_config.json
 
 #include "eis/msgbus/msgbus.h"
 #include <eis/config_manager/env_config.h>

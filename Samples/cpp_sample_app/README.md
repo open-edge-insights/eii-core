@@ -39,8 +39,8 @@ The high level logical flow of Sample App is as below:
 
    And
 
-   [etcd_pre_load.json](../../provision/config/etcd_pre_load.json) with
-   [etcd_pre_load.json](./config/etcd_pre_load.json)
+   [eis_config.json](../../provision/config/eis_config.json) with
+   [eis_config.json](./config/eis_config.json)
 
 2. Do provisioning and start containers.
 

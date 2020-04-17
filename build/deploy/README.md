@@ -95,7 +95,7 @@ For running EIS in multi node cluster mode, we have to indetify one master node.
 > **NOTE**:
 > * Steps 'a' to be executed on `master` node'.
 > * Step 'b' to be executed on 'new node' which will join EIS cluster.
-> * Please execute below commands in directory [repo]/build/provision.
+> * Please execute below commands in directory IEdgeInsights/build/provision.
 > * For environment under proxy, please make sure IP addresses or IP range for all nodes in a cluster are appended to no_proxy in [build/.env](../.env) for `master` node.
 
 

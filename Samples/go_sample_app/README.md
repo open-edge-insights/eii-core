@@ -35,8 +35,8 @@ server and gets the response back.
 
    And
 
-   [build/provision/config/etcd_pre_load.json](../../build/provision/config/etcd_pre_load.json) with
-   [Samples/go_sample_app/config/etcd_pre_load.json](./config/etcd_pre_load.json)
+   [build/provision/config/eis_config.json](../../build/provision/config/eis_config.json) with
+   [Samples/go_sample_app/config/eis_config.json](./config/eis_config.json)
 
 2. Do provisioning and start containers.
 
