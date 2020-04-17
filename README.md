@@ -124,7 +124,7 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 The section assumes the EIS software is already downloaded from the release package or from git.
 
-* Download the full package for OpenVINO toolkit for Linux version "2020.1" from the official website
+* Download the full package for OpenVINO toolkit for Linux version "2020.2" from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
   directory `l_openvino_toolkit_xxxxx/` inside `IEdgeInsights/common/video`.
 
@@ -290,14 +290,15 @@ check [common/udfs/README.md](common/udfs/README.md).
 ----
 * **Troubleshooting issues for HDDL and HDDLF(FGPA) devices**
 
-  * Running HDDL devices on Ubuntu 18.04 with Kernel 5.3 is not supported by OpenVINO 2020.1 so please downgrade the kernel version
-    (HDDL was tested with OpenVINO 2020.1 on Ubuntu 18.04 with kernel version 4.15.0-76-generic)
+  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported. Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory(As mentioned in OpenVINO Release notes). When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
 
-  * Please refer OpenVINO 2020.1 release notes in the below link for new features and changes from the previous versions.
+    Note: HDDL was tested with OpenVINO 2020.2 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+
+  * Please refer OpenVINO 2020.2 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/en-us/articles/OpenVINO-RelNotes
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2020.1/index.html
+    https://docs.openvinotoolkit.org/2020.2/index.html
 
   * The OS Kernel version shouldn't be greater than 4.18 for FPGA accelerator inference, Please follow below steps to downgrade the Kernel on host m/c.
      ```
@@ -314,10 +315,10 @@ check [common/udfs/README.md](common/udfs/README.md).
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2020.1/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2020.2/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2020.1/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
-  3. No Extra steps are required if using the iEi Mustang V100 HDDL card with OpenVINO 2020.1
+     https://docs.openvinotoolkit.org/2020.2/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+  3. No Extra steps are required if using the iEi Mustang V100 HDDL card with OpenVINO 2020.2
 
      When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
 
