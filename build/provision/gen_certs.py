@@ -109,7 +109,7 @@ def generate(opts, root_ca_needed=True):
     for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
         os.environ["SAN"] = \
-            "IP:127.0.0.1,DNS:localhost,URI:urn:unconfigured:application"
+            "IP:127.0.0.1,DNS:*,URI:urn:unconfigured:application"
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
                 outform = cert_opts['output_format']

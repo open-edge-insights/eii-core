@@ -72,6 +72,41 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
       ```sh
       $ ./csladm register artifact --type file  --name webvisualizer --version 2.3 --file ./webvis_module_spec.json
       ```
+## Deploying Telegraf, InfluxDbConnector, Kapacitor & Grafana of EIS TimeSeries use-case in CSL.
+
+> **NOTE**:
+> For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
+> It was advisable to use `csladm` utility in CSL Manager installed node.
+> * For more details please this command:
+>        ```sh
+>        $ ./csladm register artifact -h
+>       ```
+
+* Load Module spec of Telegraf/InfluxDbConnector/Kapacitor/Grafana modules to CSL manager following commands using CSL admin utility.
+
+    * Telegraf
+    
+      ```sh
+      $ ./csladm register artifact --type file  --name telegraf --version 2.3 --file ./telegraf_module_spec.json 
+      ```
+    
+    * InfluxDbConnector
+    
+      ```sh
+      $ ./csladm register artifact --type file  --name influxdbconnector --version 2.3 --file ./influxdbconnector_module_spec.json 
+      ```
+    
+    * Kapacitor
+      
+      ```sh
+      $ ./csladm register artifact --type file  --name kapacitor --version 2.3 --file ./kapacitor_module_spec.json
+      ```
+
+    * Grafana
+
+      ```sh
+      $ ./csladm register artifact --type file  --name grafana --version 2.3 --file ./grafana_module_spec.json
+      `
 
 *  Update the Container Image along with Registry details in Module Spec Files.
 

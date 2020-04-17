@@ -1,0 +1,24 @@
+{
+    "SchemaVersion": "0.2",
+    "Runtime": "docker",
+    "RuntimeOptions": {
+        "ContainerImage": "ia_telegraf:2.3"
+    },
+    "DataStore": {
+        "Protocol": "DIRECT",
+        "DataBuckets": [
+            {
+                "Name": "EIS/Telegraf",
+                "Permissions": "RO"
+            },
+            {
+                "Name": "EIS/GlobalEnv",
+                "Permissions": "RO"
+            },
+            {
+                "Name": "EIS/Publickeys",
+                "Permissions": "RO"
+            }
+        ]
+    }
+}

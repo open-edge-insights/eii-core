@@ -304,7 +304,7 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       NO_PROXY: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
-      HOST_IP: '127.0.0.1'
+      MQTT_BROKER_HOST: '127.0.0.1'
       INFLUX_SERVER: '127.0.0.1'
       INFLUXDB_PORT: $INFLUXDB_PORT
     user: ${EIS_UID}
