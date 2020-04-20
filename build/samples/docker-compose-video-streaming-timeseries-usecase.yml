@@ -269,6 +269,10 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
+      INFLUX_SERVER: '127.0.0.1'
+      GRAFANA_SERVER: '0.0.0.0'
+    ports:
+      - "$GRAFANA_PORT:$GRAFANA_PORT"
     secrets:
       - ca_etcd
       - etcd_Grafana_cert
