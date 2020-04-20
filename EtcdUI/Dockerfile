@@ -21,6 +21,15 @@
 ARG EIS_VERSION
 FROM ia_eisbase:$EIS_VERSION as eisbase
 
+ARG ETCD_VERSION
+RUN apt-get update && \
+    apt-get install -y curl && \
+    mkdir /EIS/etcd && \
+    curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
+    tar -xvf /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EIS/etcd --strip 1 && \
+    rm -f /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz /EIS/etcd/etcd && \
+    mv /EIS/etcd/etcdctl /EIS/ && apt-get remove -y curl
+
 RUN apt-get update && \
     apt-get install -y nginx && \
     apt-get update && apt-get install -y procps
@@ -40,15 +49,16 @@ COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
 COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
 
 
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY start_etcdkeeper.py ./
-COPY eis_nginx_prod.conf ./
-COPY eis_nginx_dev.conf ./
 COPY etcdkeeper ./etcdkeeper/
 
 RUN cd ./etcdkeeper/src/etcdkeeper \
     && go build -o etcdkeeper main.go \
     && mv etcdkeeper ../../
+
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY start_etcdkeeper.py ./
+COPY eis_nginx_prod.conf ./
+COPY eis_nginx_dev.conf ./
 
 RUN touch /run/nginx.pid
 

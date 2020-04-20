@@ -39,6 +39,7 @@ services:
       context: $PWD/../EtcdUI
       dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
+        ETCD_VERSION: ${ETCD_VERSION}
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
     read_only: true
@@ -55,13 +56,16 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
+      ETCD_USER: "root"
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
     secrets:
       - ca_etcd
-      - etcd_root_cert
-      - etcd_root_key
+      - etcd_EtcdUI_cert
+      - etcd_EtcdUI_key
+      - etcd_etcduser_cert
+      - etcd_etcduser_key
 
 volumes:
   vol_eis_socket:
@@ -80,7 +84,11 @@ volumes:
 secrets:
   ca_etcd:
     file: provision/Certificates/ca/ca_certificate.pem
-  etcd_root_cert:
+  etcd_etcduser_cert:
     file: provision/Certificates/root/root_client_certificate.pem
-  etcd_root_key:
+  etcd_etcduser_key:
     file: provision/Certificates/root/root_client_key.pem
+  etcd_EtcdUI_cert:
+    file: provision/Certificates/EtcdUI/EtcdUI_client_certificate.pem
+  etcd_EtcdUI_key:
+    file: provision/Certificates/EtcdUI/EtcdUI_client_key.pem
