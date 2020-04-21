@@ -11,7 +11,7 @@ pipeline {
     }
     options {
         gitLabConnection('BuildAutomation')
-        gitlabBuilds(builds: ['Build', 'Prep Static Code Scan', 'Klocwork', 'Static Code Analysis', 'Virus Scan'])
+        gitlabBuilds(builds: ['Build', 'Klocwork', 'Prep Static Code Scan', 'Static Code Analysis', 'Virus Scan', 'Notify'])
         buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '30'))
         timestamps()
         disableConcurrentBuilds()
@@ -26,6 +26,7 @@ pipeline {
         STATIC_RESOURCES = "/home/$USER/openvino_sdk"
         OPENVINO_VERSION = "2020.1.023"
         PROTECODE_BIN_DIR = "Protecode"
+        EMAIL_ARTIFACTS_DIR = getTmpDir()
     }
     stages {
         stage('Build') {
@@ -34,7 +35,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'master'
+                        branch 'feature/v2.3'
                     }
                 }
             }
@@ -69,6 +70,10 @@ pipeline {
 
                         sh 'docker cp -a ia_video_ingestion:/EIS/go/src/IEdgeInsights/VideoIngestion/build/video-ingestion $PROTECODE_BIN_DIR/video-ingestion'
                         sh 'docker cp -a ia_video_analytics:/EIS/go/src/IEdgeInsights/VideoAnalytics/build/video-analytics $PROTECODE_BIN_DIR/video-analytics'
+                        sh 'docker cp -a ia_imagestore:/EIS/go/src/IEdgeInsights/ImageStore/main $PROTECODE_BIN_DIR/imagestore_main'
+                        sh 'docker cp -a ia_influxdbconnector:/EIS/go/bin/InfluxDBConnector $PROTECODE_BIN_DIR/InfluxDBConnector'
+                        sh 'docker cp -a ia_opcua_export:/EIS/go/src/IEdgeInsights/OpcuaExport/OpcuaExport $PROTECODE_BIN_DIR/OpcuaExport'
+                        sh 'docker cp -a ia_rest_export:/EIS/go/src/IEdgeInsights/RestDataExport/RestDataExport $PROTECODE_BIN_DIR/RestDataExport'
 
                         stash name: 'bdba', includes: "${PROTECODE_BIN_DIR}/**"
                     }
@@ -84,7 +89,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'master'
+                        branch 'feature/v2.3'
                     }
                 }
             }
@@ -142,7 +147,7 @@ pipeline {
 
                 dir('src/IEdgeInsights') {
                     sh 'kwdeploy sync --url "$KW_SERVER"'
-                    sh 'cp CITests/kw_script.sh .'
+                    sh 'cp CITests/klocwork/kw_script.sh .'
 
                     script {
                         try {
@@ -183,6 +188,9 @@ pipeline {
                     ])
 
                     archiveArtifacts allowEmptyArchive: true, artifacts: 'klocwork-reports/kw_report.csv'
+
+                    sh 'mkdir -p $EMAIL_ARTIFACTS_DIR'
+                    sh 'cp klocwork-reports/kw_report* $EMAIL_ARTIFACTS_DIR'
                 }
 
                 updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
@@ -195,7 +203,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'master'
+                        branch 'feature/v2.3'
                     }
                 }
             }
@@ -212,7 +220,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'master'
+                        branch 'feature/v2.3'
                     }
                 }
             }
@@ -229,8 +237,6 @@ pipeline {
                 CHECKMARX_GROUP_ID         = '0f40ed7e-d5c7-45dd-ba72-a7a3ea9d59e5'
                 CHECKMARX_PRESET_ID        = '100049'
                 CHECKMARX_INCREMENTAL_SCAN = 'true'
-
-                PROTECODE_BIN_DIR = "Protecode"
             }
             steps {
                 cleanWs()
@@ -246,6 +252,9 @@ pipeline {
                     }
                 }
 
+                sh 'cp ${WORKSPACE}@[2,3,4]/**/CodeOriginationScan* $EMAIL_ARTIFACTS_DIR/'
+                sh 'cp ${WORKSPACE}@[2,3,4]/**/**/CxSASTReport_* $EMAIL_ARTIFACTS_DIR/'
+
                 updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
             }
         }
@@ -256,7 +265,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'master'
+                        branch 'feature/v2.3'
                     }
                 }
             }
@@ -265,32 +274,59 @@ pipeline {
                 // so we will just scan the bdba folder since it has the required files
                 script {
                     virusScan {
-                        dir = "./CleanSourceCode/${PROTECODE_BIN_DIR}"
+                        dir = "./CleanSourceCode/Protecode"
                     }
+
+                    sh 'cp vsreports/report.html $EMAIL_ARTIFACTS_DIR/virus-scan.html'
+                    sh 'ls -al $EMAIL_ARTIFACTS_DIR'
                 }
 
                 updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
             }
         }
+
+        stage('Notify') {
+            when {
+                anyOf {
+                    triggeredBy 'UserIdCause'
+                    allOf {
+                        triggeredBy 'TimerTrigger'
+                        branch 'feature/v2.3'
+                    }
+                }
+            }
+            steps {
+                sh 'rm -rf FinalReports && mkdir -p FinalReports'
+                sh 'cp $EMAIL_ARTIFACTS_DIR/* FinalReports/'
+
+                emailext(
+                    body: '$DEFAULT_CONTENT',
+                    replyTo: '$DEFAULT_REPLYTO',
+                    subject: '$DEFAULT_SUBJECT',
+                    to: env.EIS_BUILD_PDL,
+                    attachmentsPattern: "FinalReports/*"
+                )
+            }
+        }
     }
     post {
         always {
+            cleanWs()
+        }
+
+        success {
+            updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+        }
+
+        failure {
             emailext(
                 body: '$DEFAULT_CONTENT',
                 replyTo: '$DEFAULT_REPLYTO',
                 subject: '$DEFAULT_SUBJECT',
-                to: env.EIS_BUILD_PDL,
-                attachmentsPattern: 'Checkmarx/Reports/CxSASTReport_*'
+                to: env.EIS_BUILD_PDL
             )
-            cleanWs()
-        }
-        
-        success {
-            updateGitlabCommitStatus name: 'Virus Scan', state: 'success'
-        }
 
-        failure {
-            updateGitlabCommitStatus name: 'Virus Scan', state: 'failed'
+            updateGitlabCommitStatus name: env.STAGE_NAME, state: 'failed'
         }
     }
 }
@@ -312,4 +348,8 @@ def loadGlobalLibrary(branch = '*/master') {
             ]
         ])
     ) _
+}
+
+def getTmpDir() {
+    sh(script: 'mktemp -d -t ci-XXXXXXXXXX', returnStdout: true).trim()
 }

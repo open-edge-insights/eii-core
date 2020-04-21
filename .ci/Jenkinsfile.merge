@@ -4,7 +4,7 @@ pipeline {
     agent { label 'EIS_Pipeline' }
     options {
         gitLabConnection('BuildAutomation')
-        gitlabBuilds(builds: ['Checkout', 'Prepare', 'Pre-Receive', 'Build', 'Klocwork', 'Static Code Scan'])
+        gitlabBuilds(builds: ['Checkout', 'Prepare', 'Pre-Receive', 'Build', 'Klocwork', 'Static Code Scan', 'Notify'])
         buildDiscarder(logRotator(numToKeepStr: '30', daysToKeepStr: '30'))
         timestamps()
         disableConcurrentBuilds()
@@ -29,6 +29,7 @@ pipeline {
         PASSWORD = credentials('eis-strong-password')
         STATIC_RESOURCES = "/home/$USER/openvino_sdk"
         OPENVINO_VERSION = "2020.1.023"
+        EMAIL_ARTIFACTS_DIR = getTmpDir()
     }
     stages {
         stage('Checkout') {
@@ -142,7 +143,7 @@ pipeline {
 
                 dir('src/IEdgeInsights') {
                     sh 'kwdeploy sync --url "$KW_SERVER"'
-                    sh 'cp CITests/kw_script.sh .'
+                    sh 'cp CITests/klocwork/kw_script.sh .' 
 
                     script {
                         try {
@@ -183,6 +184,9 @@ pipeline {
                     ])
 
                     archiveArtifacts allowEmptyArchive: true, artifacts: 'klocwork-reports/kw_report.csv'
+
+                    sh 'mkdir -p $EMAIL_ARTIFACTS_DIR'
+                    sh 'cp klocwork-reports/kw_report* $EMAIL_ARTIFACTS_DIR'
                 }
 
                 updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
@@ -228,25 +232,40 @@ pipeline {
                     }
                 }
 
+                sh 'cp ${WORKSPACE}@[2,3,4]/**/**/CxSASTReport_* $EMAIL_ARTIFACTS_DIR/'
+
                 updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
+            }
+        }
+
+        stage('Notify') {
+            steps {
+                sh 'rm -rf FinalReports && mkdir -p FinalReports'
+                sh 'cp $EMAIL_ARTIFACTS_DIR/* FinalReports/'
+
+                emailext(
+                    body: '$DEFAULT_CONTENT',
+                    replyTo: '$DEFAULT_REPLYTO',
+                    subject: '$DEFAULT_SUBJECT',
+                    to: env.EIS_BUILD_PDL,
+                    attachmentsPattern: "FinalReports/*"
+                )
             }
         }
     }
     post {
-        always {
+        success {
+            updateGitlabCommitStatus name: 'Build', state: 'success'
+        }
+
+        failure {
             emailext(
                 body: '$DEFAULT_CONTENT',
                 replyTo: '$DEFAULT_REPLYTO',
                 subject: '$DEFAULT_SUBJECT',
                 to: env.EIS_BUILD_PDL
             )
-        }
-        
-        success {
-            updateGitlabCommitStatus name: 'Build', state: 'success'
-        }
 
-        failure {
             updateGitlabCommitStatus name: 'Build', state: 'failed'
         }
     }
@@ -291,4 +310,8 @@ def cloneSource() {
     }
 
     gitVars
+}
+
+def getTmpDir() {
+    sh(script: 'mktemp -d -t ci-XXXXXXXXXX', returnStdout: true).trim()
 }
