@@ -22,6 +22,7 @@ cmake_minimum_required(VERSION 3.11)
 project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
+option(WITH_GO_ENV_CONFIG "Install Go EnvConfig" OFF)
 option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
@@ -47,6 +48,25 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
         ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
+    )
+endif()
+
+# Install Go EnvConfig if specified to
+if(WITH_GO_ENV_CONFIG)
+    message("-- Configuring Go EnvConfig installation")
+
+    # Verify the $GOPATH environmental variable exists
+    if("$ENV{GOPATH}" STREQUAL "")
+        message(FATAL_ERROR "-- $GOPATH envronmental variable is not set")
+    endif()
+
+    # Configure install command to copy the Go EnvConfig to the
+    # user's $GOPATH
+    install(
+        DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/../go/EnvConfig
+        DESTINATION
+            $ENV{GOPATH}/src/
     )
 endif()
 

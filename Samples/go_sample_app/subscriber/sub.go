@@ -25,7 +25,7 @@ package main
 import (
 	eismsgbus "EISMessageBus/eismsgbus"
 	util "IEdgeInsights/common/util"
-	msgbusutil "IEdgeInsights/common/util/msgbusutil"
+	envconfig "EnvConfig"
 	"fmt"
 	"os"
 	"strconv"
@@ -72,5 +72,5 @@ func start_subscriber(topic string) {
 func readSubConfig(topicName string, devMode bool) (map[string]interface{}, error) {
 	appName := os.Getenv("AppName")
 	cfgMgrConfig := util.GetCryptoMap(appName)
-	return msgbusutil.GetMessageBusConfig(topicName, "sub", devMode, cfgMgrConfig), nil
+	return envconfig.GetMessageBusConfig(topicName, "sub", devMode, cfgMgrConfig), nil
 }

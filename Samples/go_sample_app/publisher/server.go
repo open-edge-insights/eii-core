@@ -25,7 +25,7 @@ package main
 import (
 	eismsgbus "EISMessageBus/eismsgbus"
 	util "IEdgeInsights/common/util"
-	msgbusutil "IEdgeInsights/common/util/msgbusutil"
+	envconfig "EnvConfig"
 	"fmt"
 	"os"
 	"strconv"
@@ -66,5 +66,5 @@ func start_server() {
 func readServerConfig(devMode bool) (map[string]interface{}, error) {
 	appName := os.Getenv("AppName")
 	cfgMgrConfig := util.GetCryptoMap(appName)
-	return msgbusutil.GetMessageBusConfig(appName, "server", devMode, cfgMgrConfig), nil
+	return envconfig.GetMessageBusConfig(appName, "server", devMode, cfgMgrConfig), nil
 }

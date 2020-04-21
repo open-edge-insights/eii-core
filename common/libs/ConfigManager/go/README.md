@@ -10,7 +10,21 @@ The go example program demonstrates 4 basic functionalities :
 
 **Note**: Currently supported storage types: **etcd**
 
-## How to run examples from [examples](examples) folder
+## How to install EIS Go EnvConfig
+
+* There are 2 ways to install EIS Go EnvConfig
+1. Execute `cmake -DWITH_GO_ENV_CONFIG=ON ..` and `make` commands from `build` directory of `common/libs/ConfigManager`, follow README [C/README](../../C/README.md) for more information.
+2. Without installing `EIS Go EnvConfig` through cmake 
+
+```sh
+$ cp -r go/EnvConfig/ $GOPATH/src
+# OR
+$ ln -s go/EnvConfig/ $GOPATH/src
+```
+
+> **NOTE:** The command above assumes that you are currently in the
+> ConfigManger source root `common/libs/ConfigManager` directory.
+  
 
 ### 1. Pre-requisite
 
@@ -32,7 +46,9 @@ $ ln -s go/ConfigManager/ $GOPATH/src
 
 > **NOTE:** The command above assumes that you are currently in the
 > ConfigManger source root directory.
-  
+
+## How to run examples from [examples](examples) folder
+
 ### 1. Testing with security enabled
 
 * To test basic functionalities:

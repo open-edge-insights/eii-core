@@ -44,7 +44,7 @@ RUN cd ./common/libs/ConfigManager/c && \
     rm -rf build && \
     mkdir build && \
     cd build && \
-    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+    cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
 
 RUN cd ./common/libs/ConfigManager/python && \

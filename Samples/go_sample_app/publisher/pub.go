@@ -25,7 +25,7 @@ package main
 import (
 	eismsgbus "EISMessageBus/eismsgbus"
 	util "IEdgeInsights/common/util"
-	msgbusutil "IEdgeInsights/common/util/msgbusutil"
+	envconfig "EnvConfig"
 	"flag"
 	"fmt"
 	"os"
@@ -89,7 +89,7 @@ func start_publisher(topic string) {
 func readPubConfig(topicName string, devMode bool) (map[string]interface{}, error) {
 	appName := os.Getenv("AppName")
 	cfgMgrConfig := util.GetCryptoMap(appName)
-	return msgbusutil.GetMessageBusConfig(topicName, "pub", devMode, cfgMgrConfig), nil
+	return envconfig.GetMessageBusConfig(topicName, "pub", devMode, cfgMgrConfig), nil
 }
 
 func get_app_config()(map[string]string, error){
