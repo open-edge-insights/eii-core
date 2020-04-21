@@ -32,6 +32,7 @@ import random
 import logging
 from distutils.util import strtobool
 
+ETCD_PREFIX = os.environ['ETCD_PREFIX']
 
 def get_appname(file):
     """Parse given docker-compose file and returns dict for
@@ -75,12 +76,12 @@ def put_zmqkeys(appname):
         str_secret_key = secret_key.decode()
     try:
         subprocess.run(["./etcdctl", "put",
-                        "/Publickeys/" + appname, public_key])
+                        ETCD_PREFIX + "/Publickeys/" + appname, public_key])
     except Exception:
         logging.error("Error putting Etcd public key for" + appname)
     try:
         subprocess.run(["./etcdctl", "put",
-                        "/" + appname + "/private_key", secret_key])
+                        ETCD_PREFIX + "/" + appname + "/private_key", secret_key])
     except Exception:
         logging.error("Error putting Etcd private key for" + appname)
 
@@ -101,6 +102,7 @@ def load_data_etcd(file):
         config = json.load(f)
     logging.info("=======Adding key/values to etcd========")
     for key, value in config.items():
+        key = ETCD_PREFIX + key
         if isinstance(value, str):
             subprocess.run(["./etcdctl", "put", key, bytes(value.encode())])
         elif isinstance(value, dict) and key == '/GlobalEnv/':
@@ -115,6 +117,7 @@ def load_data_etcd(file):
 
     logging.info("=======Reading key/values to etcd========")
     for key in config.keys():
+        key = ETCD_PREFIX + key
         value = subprocess.run(["./etcdctl", "get", key])
         logging.info(key, '->', value)
 
@@ -132,7 +135,7 @@ def create_etcd_users(appname):
 def put_x509_certs(appname, certtype):
     """Put required X509 certs to ETCD
     """
-    subprocess.run(["./put_x509_certs.sh", appname, certtype])
+    subprocess.run(["./put_x509_certs.sh", appname, certtype, ETCD_PREFIX])
 
 
 if __name__ == "__main__":
@@ -141,7 +144,8 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_CACERT"] = "/run/secrets/ca_etcd"
         os.environ["ETCDCTL_CERT"] = "/run/secrets/etcd_root_cert"
         os.environ["ETCDCTL_KEY"] = "/run/secrets/etcd_root_key"
-
+        if os.environ['ETCD_HOST'] and os.environ['ETCD_CLIENT_PORT']:
+            os.environ["ETCDCTL_ENDPOINTS"]= os.environ['ETCD_HOST'] + ":" + os.environ['ETCD_CLIENT_PORT']
     apps = get_appname(str(sys.argv[1]))
     load_data_etcd("./config/eis_config.json")
     for key, value in apps.items():
@@ -153,9 +157,10 @@ if __name__ == "__main__":
                     put_x509_certs(key, 'pem')
                 if 'der' in value:
                     put_x509_certs(key, 'der')
-                create_etcd_users(key)
+                if os.environ['provision_mode'] != "csl":
+                    create_etcd_users(key)
         except ValueError:
             pass
 
-    if not devMode:
+    if not devMode and os.environ['provision_mode'] != "csl":
         enable_etcd_auth()

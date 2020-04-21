@@ -1,0 +1,151 @@
+{
+    "Name": "EISVIDEO",
+    "Version": "0.2",
+    "Description": "Edge Insights Software Video Usecase Deployment",
+    "Type": "persistent",
+    "DataStore": {
+        "DataBucket": "EIS"
+    },
+    "Modules": [
+        {
+            "Name": "VideoIngestion",
+            "Description": "Video_Ingestion module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:videoingestion:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "VideoIngestion",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "false",
+                "Clients": "VideoAnalytics,WebVisualizer",
+                "PROFILING_MODE": "false",
+                "ZMQ_RECV_HWM": "1000",
+                "PubTopics": "camera1_stream",
+                "camera1_stream_cfg": "zmq_tcp,0.0.0.0:${ep.outputvi.localport}",
+                "C_LOG_LEVEL": "INFO"
+            },
+            "Endpoints": [
+                {
+                    "Name": "outputvi",
+                    "Endtype": "server",
+                    "DataType": "messages",
+                    "Link": "vitovalink"
+                }
+            ]
+        },
+        {
+            "Name": "VideoAnalytics",
+            "Description": "VideoAnalytics module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:videoanalytics:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "VideoAnalytics",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "DEV_MODE": "false",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "PROFILING_MODE": "false",
+                "ZMQ_RECV_HWM": "1000",
+                "Clients": "WebVisualizer",
+                "SubTopics": "VideoIngestion/camera1_stream",
+                "camera1_stream_cfg": "zmq_tcp,${ep.inputva.remoteaddress}:${ep.inputva.remoteport}",
+                "PubTopics": "camera1_stream_results",
+                "camera1_stream_results_cfg": "zmq_tcp,0.0.0.0:${ep.outputva.localport}",
+                "C_LOG_LEVEL": "INFO"
+            },
+            "Endpoints": [
+                {
+                    "Name": "outputva",
+                    "Endtype": "server",
+                    "Protocol": "TCP",
+                    "DataType": "messages",
+                    "Link": "vatowebvis"
+                },
+                {
+                    "Name": "inputva",
+                    "Endtype": "client",
+                    "Protocol": "TCP",
+                    "DataType": "messages",
+                    "Link": "vitovalink",
+                    "Port": "29170"
+                }
+            ]
+        },
+        {
+            "Name": "WebVisualizer",
+            "Description": "Web_visualizer module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:webvisualizer:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "WebVisualizer",
+                "PROFILING_MODE": "false",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "DEV_MODE": "false",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "CertType": "zmq,pem",
+                "ZMQ_RECV_HWM": "1000",
+                "SubTopics": "VideoAnalytics/camera1_stream_results",
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.webvisinput.remoteaddress}:${ep.webvisinput.remoteport}",
+                "PY_LOG_LEVEL": "INFO"
+            },
+            "Endpoints": [
+                {
+                    "Name": "webvisout",
+                    "Endtype": "server",
+                    "Protocol": "TCP",
+                    "Port": "5000",
+                    "DataType": "messages",
+                    "Link": "webvisoutlink"
+                },
+                {
+                    "Name": "webvisinput",
+                    "Endtype": "client",
+                    "DataType": "messages",
+                    "Link": "vatowebvis",
+                    "Port":"29170"
+                }
+            ]
+        }
+    ],
+    "Links": [
+        {
+            "Name": "vitovalink"
+        },
+        {
+            "Name": "webvisoutlink"
+        },
+        {
+            "Name": "vatowebvis"
+        }
+    ],
+    "Ingresses": [
+        {
+            "Name": "ext-webvisualizer",
+            "Protocol": "TCP",
+            "Options": {
+                "Backend": "webvisoutlink",
+                "Port": "31505"
+            }
+        }
+    ]
+}

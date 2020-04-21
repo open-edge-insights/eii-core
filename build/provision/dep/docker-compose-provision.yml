@@ -52,6 +52,10 @@ services:
       NO_PROXY: $eis_no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
+      provision_mode: $PROVISION_MODE
+      ETCD_PREFIX: $ETCD_PREFIX
+      ETCD_HOST: $ETCD_HOST
+      ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
     network_mode: host
     user: $EIS_UID
 

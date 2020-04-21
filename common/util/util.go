@@ -100,6 +100,15 @@ func GetCryptoMap(appName string) map[string]string {
 		conf["certFile"] = "/run/secrets/etcd_" + appName + "_cert"
 		conf["keyFile"] = "/run/secrets/etcd_" + appName + "_key"
 		conf["trustFile"] = "/run/secrets/ca_etcd"
+
+		configmgr_cert := os.Getenv("CONFIGMGR_CERT")
+		configmgr_key := os.Getenv("CONFIGMGR_KEY")
+		configmgr_cacert := os.Getenv("CONFIGMGR_CACERT")
+		if ( configmgr_cert != "") && (configmgr_key != "") && (configmgr_cacert != "") {
+			conf["certFile"] = configmgr_cert
+			conf["keyFile"] = configmgr_key
+			conf["trustFile"] = configmgr_cacert
+		}
 	}
 
 	return conf

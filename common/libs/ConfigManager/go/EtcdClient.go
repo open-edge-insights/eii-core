@@ -17,6 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	"github.com/golang/glog"
 	"go.etcd.io/etcd/clientv3"
@@ -51,8 +52,16 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	// This change will be moved to an argument to the function in 2.3
 	// This is done now for backward compatibility
 	etcdHost := os.Getenv("ETCD_HOST")
+	port := "2379"
 	if etcdHost != "" {
 		hostname = etcdHost
+	}
+
+	// ETCD_ENDPOINT Variable overrides the ETCD_HOST & ETCDT_CLIENT_PORT 
+	etcdendpoint := os.Getenv("ETCD_ENDPOINT")
+	if etcdendpoint != "" {
+		hostname = strings.Split(etcdendpoint,":")[0]
+		port = strings.Split(etcdendpoint,":")[1]
 	}
 
 	etcdPrefix := os.Getenv("ETCD_PREFIX")
@@ -60,7 +69,6 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 		etcdKeyPrefix = etcdPrefix
 	}
 
-	port := "2379"
 	endpoint := []string{hostname + ":" + port}
 	portUp := util.CheckPortAvailability(hostname, port)
 	if !portUp {

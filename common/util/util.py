@@ -88,9 +88,16 @@ class Util:
         dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
         if not dev_mode :
-            conf["certFile"] = "/run/secrets/etcd_" + app_name + "_cert" 
+            conf["certFile"] = "/run/secrets/etcd_" + app_name + "_cert"
             conf["keyFile"] = "/run/secrets/etcd_" + app_name + "_key"
             conf["trustFile"] = "/run/secrets/ca_etcd"
+            configmgr_cert = os.environ['CONFIGMGR_CERT']
+            configmgr_key = os.environ['CONFIGMGR_KEY']
+            configmgr_cacert = os.environ['CONFIGMGR_CACERT']
+            if (configmgr_cert and configmgr_key and configmgr_cacert):
+                conf["certFile"] = configmgr_cert
+                conf["keyFile"] = configmgr_key
+                conf["trustFile"] = configmgr_cacert
         
         return conf
 

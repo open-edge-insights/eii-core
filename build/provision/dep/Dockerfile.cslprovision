@@ -1,0 +1,22 @@
+FROM python:3.7-slim
+RUN  apt update && \
+     apt install -y curl
+ARG EIS_VERSION
+ARG ETCD_VERSION
+RUN mkdir -p /EIS/etcd/data
+RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
+    tar -xvf /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EIS/etcd --strip 1 && \
+    rm -f /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+WORKDIR /EIS/etcd/
+COPY dep/requirements.txt .
+RUN pip3 install -r requirements.txt && \
+    rm -rf requirements.txt
+COPY dep/etcd_provision.py .
+COPY dep/etcd_create_user.sh .
+COPY dep/etcd_enable_auth.sh .
+COPY dep/put_x509_certs.sh .
+RUN chmod +x etcd_create_user.sh && \
+    chmod +x etcd_enable_auth.sh && \
+    chmod +x put_x509_certs.sh
+
+ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]

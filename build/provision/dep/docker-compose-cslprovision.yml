@@ -1,0 +1,43 @@
+version: '3.6'
+services:  
+  ia_csl_etcd_provision:
+    build:
+       context: ../
+       dockerfile: ./dep/Dockerfile.cslprovision
+       args:
+        EIS_VERSION: ${EIS_VERSION}
+        ETCD_VERSION: $ETCD_VERSION
+        EIS_UID: $EIS_UID
+    container_name: ia_csl_etcd_provision
+    read_only: true
+    image: ia_csl_etcd_provision:$EIS_VERSION    
+    volumes:
+      - "../config:/EIS/etcd/config/"
+      - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+      - "../Certificates:/EIS/etcd/Certificates"
+    environment:
+      ETCDCTL_API: 3
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: $eis_no_proxy
+      NO_PROXY: $eis_no_proxy
+      http_proxy: $http_proxy
+      https_proxy: $https_proxy
+      provision_mode: $PROVISION_MODE
+      ETCD_PREFIX: ${ETCD_PREFIX}
+      CSL_MGR_IP: ${CSL_MGR_IP}
+      ETCD_HOST: ${ETCD_HOST}
+      ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
+    network_mode: host
+    user: $EIS_UID
+    secrets:
+      - ca_etcd
+      - etcd_root_cert
+      - etcd_root_key
+
+secrets:
+  ca_etcd:
+    file: ../../provision/Certificates/csl/cacert.pem
+  etcd_root_cert:
+    file: ../../provision/Certificates/csl/cert.pem
+  etcd_root_key:
+    file: ../../provision/Certificates/csl/client.key

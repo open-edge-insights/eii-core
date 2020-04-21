@@ -4,6 +4,7 @@
 
 set -a
 source ../.env
+source .env
 set +a
 if [ -z $HOST_IP ]; then 
 	hostIP=`hostname -I | awk '{print $1}'`
@@ -79,80 +80,107 @@ else
 	chmod -R 777 $EIS_INSTALL_PATH/data/
 fi
 
-echo "Bringing down existing ETCD container"
-docker-compose -f dep/docker-compose-provision.yml down
-
-check_ETCD_port() {
-	echo "Checking if ETCD ports are already up..."
-	ports=($ETCD_CLIENT_PORT)
-	for port in "${ports[@]}"
-	do
-		set +e
-		fuser $port/tcp
-		if [ $? -eq 0 ]; then
-			echo "$port is already being used, so please kill that process and re-run the script."
-			exit 1
-		fi
-		set -e
-	done
-}
-
-echo "Checking ETCD port"
-check_ETCD_port
-
-if [ $ETCD_NAME != 'master' ]
-  then
-
-	if [ $DEV_MODE = 'true' ]; then
-		echo "EIS is not running in Secure mode. Certificates are not required.. "
-		docker-compose -f dep/docker-compose-provision.yml up --build -d ia_etcd
-	else
+if [ $PROVISION_MODE = 'csl' ]; then
+	if [ $DEV_MODE = 'false' ]; then
+		echo "Provisioning EIS in CSL MODE"
+		cp $1 ./docker-compose.yml
+		echo "Generating EIS Certificates"
+		python3 gen_certs.py --f $1
+		echo "Generating CSL Certificates"
+		/bin/bash ./dep/generate_csl_certificates.sh
 		chown -R $EIS_USER_NAME:$EIS_UID Certificates/
-		docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.slave.yml up --build -d  ia_etcd
-	fi
-
-else
-	if ! [ -f $1 ]; then
-		echo "Supplied docker compose file '$1' does not exists"
-		echo 'Usage: $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>'
-		exit 1
+		echo "Provisioning ETCD "
+		docker-compose -f dep/docker-compose-cslprovision.yml up --build -d
+		rm -rf client server
+		rm ./docker-compose.yml
 	else
-		echo "Generating required certificates"
+		echo "Orchestration with CSL is not supported in Dev mode"
+	fi
+else
+	echo "4 Bringing down existing ETCD container"
+	docker-compose -f dep/docker-compose-provision.yml down
 
+	check_ETCD_port() {
+		echo "Checking if ETCD ports are already up..."
+		ports=($ETCD_CLIENT_PORT)
+		for port in "${ports[@]}"
+		do
+			set +e
+			fuser $port/tcp
+			if [ $? -eq 0 ]; then
+				echo "$port is already being used, so please kill that process and re-run the script."
+				exit 1
+			fi
+			set -e
+		done
+	}
+
+	echo "Checking ETCD port"
+	check_ETCD_port
+
+	if [ $ETCD_NAME != 'master' ]
+	then
 		if [ $DEV_MODE = 'true' ]; then
-			echo "EIS is not running in Secure mode. Generating certificates is not required.. "
- 		else
-			if [ $ETCD_NAME = 'master' ]; then
-				if [ -d "rootca" ]; then
-					python3 gen_certs.py --f $1 --capath rootca/
+				echo "EIS is not running in Secure mode. Certificates are not required.. "
+				docker-compose -f dep/docker-compose-provision.yml up --build -d ia_etcd
+		else
+				if [ $ETCD_NAME = 'master' ]; then
+					if [ -d "rootca" ]; then
+						python3 gen_certs.py --capath rootca/
+					else
+						python3 gen_certs.py
+					fi
+
+					chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 				else
-					python3 gen_certs.py --f $1
+					chown -R $EIS_USER_NAME:$EIS_UID Certificates/
 				fi
-				chown -R $EIS_USER_NAME:$EIS_UID Certificates/
+
+				docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.slave.yml up --build -d  ia_etcd
+		fi
+
+	else
+		if ! [ -f $1 ]; then
+			echo "Supplied docker compose file '$1' does not exists"
+			echo 'Usage: $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>'
+			exit 1
+		else
+			echo "2 Generating required certificates"
+
+			if [ $DEV_MODE = 'true' ]; then
+				echo "EIS is not running in Secure mode. Generating certificates is not required.. "
+			else
+				if [ $ETCD_NAME = 'master' ]; then
+					if [ -d "rootca" ]; then
+						python3 gen_certs.py --f $1 --capath rootca/
+					else
+						python3 gen_certs.py --f $1
+					fi
+					chown -R $EIS_USER_NAME:$EIS_UID Certificates/
+				fi
+
 			fi
 
+			echo "Bringing down existing EIS containers"
+			python3 stop_and_remove_existing_eis.py --f $1
+
+			echo "5. Copying docker compose yaml file which is provided as argument."
+			# This file will be volume mounted inside the provisioning container and deleted once privisioning it done
+
+			cp $1 ./docker-compose.yml
+
+			echo "5. Starting and provisioning ETCD ..."
+
+			if [ $DEV_MODE = 'true' ]; then
+				docker-compose -f dep/docker-compose-provision.yml up --build -d
+			else
+				rm -rf client server
+				docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
+			fi
+
+			rm ./docker-compose.yml
+
 		fi
-
-		echo "Bringing down existing EIS containers"
-		python3 stop_and_remove_existing_eis.py --f $1
-
-		echo "Copying docker compose yaml file which is provided as argument."
-		# This file will be volume mounted inside the provisioning container and deleted once privisioning it done
-
-		cp $1 ./docker-compose.yml
-
-		echo "Starting and provisioning ETCD ..."
-
-		if [ $DEV_MODE = 'true' ]; then
-			docker-compose -f dep/docker-compose-provision.yml up --build -d
-		else
-			rm -rf client server
-			docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
-		fi
-
-		rm ./docker-compose.yml
 
 	fi
-
 fi
-

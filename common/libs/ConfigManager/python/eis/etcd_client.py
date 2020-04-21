@@ -43,6 +43,7 @@ class EtcdCli:
 
         self.etcd_key_prefix = None
         hostname = "localhost"
+        port = 2379
 
         # This change will be moved to an argument to the function in 2.3
         # This is done now for backward compatibility
@@ -50,11 +51,14 @@ class EtcdCli:
         if etcd_host is not None and etcd_host != "":
             hostname = etcd_host
 
+        etcd_endpoint = os.getenv("ETCD_ENDPOINT")
+        if etcd_endpoint is not None and etcd_endpoint != "":
+            hostname = etcd_endpoint.split(':')[0]
+            port = etcd_endpoint.split(':')[1]
+
         key_prefix = os.getenv("ETCD_PREFIX")
         if key_prefix is not None and key_prefix != "":
             self.etcd_key_prefix = key_prefix
-
-        port = 2379
 
         if not self.check_port_availability(hostname, port):
             raise Exception("etcd service port {} is not up!".format(port))
