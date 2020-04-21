@@ -141,9 +141,13 @@ def put_x509_certs(appname, certtype):
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
     if not devMode:
-        os.environ["ETCDCTL_CACERT"] = "/run/secrets/ca_etcd"
-        os.environ["ETCDCTL_CERT"] = "/run/secrets/etcd_root_cert"
-        os.environ["ETCDCTL_KEY"] = "/run/secrets/etcd_root_key"
+        os.environ["ETCD_CERT_FILE"] = os.environ.get("ETCD_CERT_FILE" , "/run/secrets/etcd_server_cert")
+        os.environ["ETCD_KEY_FILE"] = os.environ.get("ETCD_KEY_FILE" , "/run/secrets/etcd_server_key")
+        os.environ["ETCD_TRUSTED_CA_FILE"] = os.environ.get("ETCD_TRUSTED_CA_FILE" , "/run/secrets/ca_etcd")
+        os.environ["ETCDCTL_CACERT"] = os.environ.get("ETCD_TRUSTED_CA_FILE" , "/run/secrets/ca_etcd")
+        os.environ["ETCDCTL_CERT"] = os.environ.get("ETCD_ROOT_CERT" , "/run/secrets/etcd_root_cert")
+        os.environ["ETCDCTL_KEY"] = os.environ.get("ETCD_ROOT_KEY" , "/run/secrets/etcd_root_key")
+
         if os.environ['ETCD_HOST'] and os.environ['ETCD_CLIENT_PORT']:
             os.environ["ETCDCTL_ENDPOINTS"]= os.environ['ETCD_HOST'] + ":" + os.environ['ETCD_CLIENT_PORT']
     apps = get_appname(str(sys.argv[1]))

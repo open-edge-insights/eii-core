@@ -51,6 +51,11 @@ class EtcdCli:
         if etcd_host is not None and etcd_host != "":
             hostname = etcd_host
 
+        try:
+            port = os.getenv("ETCD_CLIENT_PORT")
+        except Exception as e:
+            log.debug("Using default etcd port")
+
         etcd_endpoint = os.getenv("ETCD_ENDPOINT")
         if etcd_endpoint is not None and etcd_endpoint != "":
             hostname = etcd_endpoint.split(':')[0]

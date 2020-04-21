@@ -57,6 +57,10 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 		hostname = etcdHost
 	}
 
+	etcdPort := os.Getenv("ETCD_CLIENT_PORT")
+	if etcdPort != "" {
+			port = etcdPort
+	}
 	// ETCD_ENDPOINT Variable overrides the ETCD_HOST & ETCDT_CLIENT_PORT 
 	etcdendpoint := os.Getenv("ETCD_ENDPOINT")
 	if etcdendpoint != "" {
