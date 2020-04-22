@@ -10,7 +10,7 @@ The go example program demonstrates 4 basic functionalities :
 
 **Note**: Currently supported storage types: **etcd**
 
-## How to run examples from present working directory
+## How to run examples from [examples](examples) folder
 
 ### 1. Pre-requisite
 
@@ -20,6 +20,19 @@ The go example program demonstrates 4 basic functionalities :
 
   **Note**: Currently EIS is tested on commit ID: 0c787e26bcd102c3bb14050ac893b07ba9ea029f
 
+* Install EIS Go ConfigManager: There are 2 ways to install Go ConfigManager
+1. Execute `cmake` and `make` commands from `build` directory of `C ConfigManager`, follow README [C/README](../../C/README) for more information.
+2. Without installing `EIS C ConfigManager`
+
+```sh
+$ cp -r go/ConfigManager/ $GOPATH/src
+# OR
+$ ln -s go/ConfigManager/ $GOPATH/src
+```
+
+> **NOTE:** The command above assumes that you are currently in the
+> ConfigManger source root directory.
+  
 ### 1. Testing with security enabled
 
 * To test basic functionalities:

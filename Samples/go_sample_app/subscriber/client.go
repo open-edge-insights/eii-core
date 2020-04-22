@@ -31,7 +31,7 @@ import (
 	"strconv"
 	"time"
         "encoding/json"
-        configmgr "IEdgeInsights/common/libs/ConfigManager"
+        configmgr "ConfigManager"
 )
 
 func start_client(serviceName string) {
@@ -101,8 +101,11 @@ func readClientConfig(serviceName string, devMode bool) (map[string]interface{},
 func get_app_config()(map[string]string, error){
         data := make(map[string]string)
         appName := os.Getenv("AppName")
-        config := util.GetCryptoMap(appName)
-        mgr := configmgr.Init("etcd", config)
+	config := util.GetCryptoMap(appName)
+	mgr := configmgr.Init("etcd", config)
+	if mgr == nil {
+		glog.Fatalf("Config Manager initialization failed...")
+	}
 
         value, err := mgr.GetConfig("/" + appName + "/config")
         if err != nil {

@@ -16,7 +16,7 @@ import (
 	"log"
 	"time"
 
-	configmgr "IEdgeInsights/common/libs/ConfigManager"
+	configmgr "ConfigManager"
 )
 
 func callback(key string, value string) {

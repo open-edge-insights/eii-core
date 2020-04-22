@@ -1,7 +1,7 @@
 package util
 
 import (
-	configmgr "IEdgeInsights/common/libs/ConfigManager"
+	configmgr "ConfigManager"
 	"log"
 	"os"
 	"strconv"
@@ -28,6 +28,10 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 		msgbusHwm = -1
 	}
 	cfgMgrCli := configmgr.Init("etcd", cfgMgrConfig)
+	if cfgMgrCli == nil {
+		glog.Errorf("Config Manager initialization failed...")
+	}
+
 	topic = strings.TrimSpace(topic)
 	if strings.ToLower(topicType) == "sub" {
 		subTopics = strings.Split(topic, "/")

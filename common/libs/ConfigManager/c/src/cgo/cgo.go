@@ -26,12 +26,12 @@ import (
 
 	"github.com/golang/glog"
 
-	configmgr "IEdgeInsights/common/libs/ConfigManager"
+	configmgr "ConfigManager"
 )
 
 var mu sync.Mutex
 
-var confMgr configmgr.ConfigManager
+var confMgr configmgr.ConfigMgr
 
 // register callbacks by mapping usercallbacks to a specific config manager key
 var registerCallbacks = make(map[string][]C.callback_fcn)

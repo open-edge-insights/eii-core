@@ -40,6 +40,8 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 # Add cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
+# Set EIS GO Config Manger src path 
+set(EIS_GO_CFGMGR_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../go/ConfigManager)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -68,6 +70,7 @@ add_custom_target(cgo-config-mgr-code
 add_custom_target(cgo-config-mgr
     COMMENT "Generating cgo static library"
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/cgo.go
+    COMMAND cp -rf ${EIS_GO_CFGMGR_SRC} $ENV{GOPATH}/src/
     COMMAND ${GO_EXECUTABLE} build -buildmode=c-archive -o ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.a
     COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.h ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/

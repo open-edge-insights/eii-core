@@ -32,7 +32,7 @@ import (
 	"strconv"
 	"time"
         "encoding/json"
-        configmgr "IEdgeInsights/common/libs/ConfigManager"
+        configmgr "ConfigManager"
 )
 
 func start_publisher(topic string) {
@@ -97,6 +97,9 @@ func get_app_config()(map[string]string, error){
 	appName := os.Getenv("AppName")
 	config := util.GetCryptoMap(appName)
         mgr := configmgr.Init("etcd", config)
+	if mgr == nil {
+		glog.Fatal("Config Manager initialization failed...")
+	}
 
         value, err := mgr.GetConfig("/" + appName + "/config")
         if err != nil {

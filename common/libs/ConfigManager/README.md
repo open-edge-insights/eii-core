@@ -37,7 +37,7 @@ To refer Python examples on etcd client wrapper follow [python/test](python/test
     :param config: config of type Dict with certFile, keyFile and trustFile
     ```
         
-To refer GO examples on etcd client wrapper follow [go/test](go/test)
+To refer GO examples on etcd client wrapper follow [go/README](go/README)
 
 # C APIs
 

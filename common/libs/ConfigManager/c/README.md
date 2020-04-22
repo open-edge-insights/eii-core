@@ -22,6 +22,7 @@ library. The simplest sequence of commands for building the library are
 shown below.
 
 ```sh
+$ mkdir build
 $ cd build
 $ cmake ..
 $ make

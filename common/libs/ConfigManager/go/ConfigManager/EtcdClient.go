@@ -12,12 +12,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 package configmanager
 
 import (
-	util "IEdgeInsights/common/util"
 	"context"
 	"encoding/json"
 	"errors"
 	"os"
 	"strings"
+	"net"
+	"time"
 
 	"github.com/golang/glog"
 	"go.etcd.io/etcd/clientv3"
@@ -28,6 +29,28 @@ import (
 type EtcdCli struct {
 	etcd      *clientv3.Client
 	keyPrefix string
+}
+
+//Duplicated this function from utils to avoid the Go eis config manager dependency on utils
+// CheckPortAvailability - checks for port availability on hostname
+func CheckPortAvailability(hostname, port string) bool {
+	maxRetries := 1000
+	retryCount := 0
+
+	portUp := false
+	glog.Infof("Waiting for Port: %s on hostname: %s ", port, hostname)
+	for retryCount < maxRetries {
+		conn, _ := net.DialTimeout("tcp", net.JoinHostPort(hostname, port), (5 * time.Second))
+		if conn != nil {
+			glog.Infof("Port: %s on hostname: %s is up.", port, hostname)
+			conn.Close()
+			portUp = true
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+		retryCount++
+	}
+	return portUp
 }
 
 // RegisterWatchOnKey go routine
@@ -53,6 +76,7 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	// This is done now for backward compatibility
 	etcdHost := os.Getenv("ETCD_HOST")
 	port := "2379"
+
 	if etcdHost != "" {
 		hostname = etcdHost
 	}
@@ -74,7 +98,7 @@ func NewEtcdClient(conf config) (etcdCli *EtcdCli, err error) {
 	}
 
 	endpoint := []string{hostname + ":" + port}
-	portUp := util.CheckPortAvailability(hostname, port)
+	portUp := CheckPortAvailability(hostname, port)
 	if !portUp {
 		glog.Error("etcd service port not up")
 		return nil, errors.New("etcd service port not up")

@@ -8,27 +8,60 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-// Package init is a to initialize configmanager
-package init
+// Package configmanager to chose datastore client object
+package configmanager
 
 import (
-	configmgr "IEdgeInsights/common/libs/ConfigManager/go"
+	"strings"
+	"flag"
 
 	"github.com/golang/glog"
-	"flag"
 )
 
-// ConfigManager interface
-type ConfigManager interface {
-	configmgr.ConfigMgr
+type config struct {
+	certFile  string
+	keyFile   string
+	trustFile string
 }
 
+// ConfigMgr interface
+type ConfigMgr interface {
+	GetConfig(key string) (string, error)
+
+	PutConfig(key string, value string) error
+
+	RegisterDirWatch(key string, onChangeCallback OnChangeCallback)
+
+	RegisterKeyWatch(key string, onChangeCallback OnChangeCallback)
+}
+
+// OnChangeCallback callback
+type OnChangeCallback func(key string, newValue string)
+
 //Init function to initialize config manager
-func Init(storageType string, config map[string]string) configmgr.ConfigMgr {
+func Init(storageType string, config map[string]string) ConfigMgr {
 	flag.Parse()
 	flag.Lookup("logtostderr").Value.Set("true")
 	defer glog.Flush()
 
 	glog.Infof("initializing configuration manager...")
-	return configmgr.GetConfigClient(storageType, config)
+	return GetConfigClient(storageType, config)
+}
+
+//GetConfigClient function returns respective config client instance
+func GetConfigClient(storageType string, conf map[string]string) ConfigMgr {
+	var config config
+
+	if strings.ToLower(storageType) == "etcd" {
+		config.certFile = conf["certFile"]
+		config.keyFile = conf["keyFile"]
+		config.trustFile = conf["trustFile"]
+		etcdclient, err := NewEtcdClient(config)
+		if err != nil {
+			glog.Errorf("Etcd client initialization failed!! Error: %v", err)
+			return nil
+		}
+		return etcdclient
+	}
+	return nil
 }
