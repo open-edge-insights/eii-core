@@ -25,7 +25,7 @@ import eis.msgbus as mb
 import os
 import json
 from distutils.util import strtobool
-from util.msgbusutil import MsgBusUtil
+from eis.env_config import EnvConfig
 from eis.config_manager import ConfigManager
 from util.util import Util
 
@@ -34,7 +34,7 @@ def start_publisher(topic_string):
     publisher = None
 
     try:
-        topics_list_pub = MsgBusUtil.get_topics_from_env("pub")
+        topics_list_pub = EnvConfig.get_topics_from_env("pub")
 
         app_name = os.environ["AppName"]
         clients = os.environ["Clients"].split(',')
@@ -46,7 +46,7 @@ def start_publisher(topic_string):
         topic = topics_list_pub[0]
         topic = topic.strip()
 
-        msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "pub",
+        msgbus_cfg = EnvConfig.get_messagebus_config(topic, "pub",
                                                       clients,
                                                       config_client,
                                                       dev_mode)

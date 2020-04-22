@@ -30,11 +30,15 @@ eis_version = os.getenv("EIS_VERSION")
 if eis_version is not None and eis_version != "":
     eis_configmanager_version = eis_version
 
+source_dir = "${CMAKE_CURRENT_SOURCE_DIR}"
+if not source_dir.startswith("/"):
+    source_dir = "."
+
 # Main package setup
 setup(
     name='eis-configmanager',
     version=eis_configmanager_version,
-    description='EIS config manager Python wrapper',
+    description='EIS config manager Python wrapper, Env Config',
     keywords='config_manager eis config manager',
     url='',
     classifiers=[
@@ -43,7 +47,7 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: System :: Networking',
     ],
-    long_description='EIS config manager Python wrapper',
-    package_dir={'': '.'},
+    long_description='EIS Python Config Manager and Env Config',
+    package_dir={'': source_dir},
     packages=['eis']
 )

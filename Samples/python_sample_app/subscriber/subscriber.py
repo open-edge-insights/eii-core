@@ -24,7 +24,7 @@ import eis.msgbus as mb
 import os
 from eis.config_manager import ConfigManager
 from distutils.util import strtobool
-from util.msgbusutil import MsgBusUtil
+from eis.env_config import EnvConfig
 from util.util import Util
 
 
@@ -32,7 +32,7 @@ def start_subscriber(topic_string):
     subscriber = None
 
     try:
-        topics_list_sub = MsgBusUtil.get_topics_from_env("sub")
+        topics_list_sub = EnvConfig.get_topics_from_env("sub")
 
         app_name = os.environ["AppName"]
         conf = Util.get_crypto_dict(app_name)
@@ -44,7 +44,7 @@ def start_subscriber(topic_string):
         publisher, topic = topic.split("/")
         topic = topic.strip()
 
-        msgbus_cfg = MsgBusUtil.get_messagebus_config(topic, "sub",
+        msgbus_cfg = EnvConfig.get_messagebus_config(topic, "sub",
                                                       publisher,
                                                       config_client,
                                                       dev_mode)

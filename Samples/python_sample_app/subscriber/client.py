@@ -25,7 +25,7 @@ import eis.msgbus as mb
 import os
 import json
 from distutils.util import strtobool
-from util.msgbusutil import MsgBusUtil
+from eis.env_config import EnvConfig
 from eis.config_manager import ConfigManager
 from util.util import Util
 
@@ -43,7 +43,7 @@ def start_client(server_name):
         config_client = cfg_mgr.get_config_client("etcd", conf)
         dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
-        msgbus_cfg = MsgBusUtil.get_messagebus_config(server_name, "client",
+        msgbus_cfg = EnvConfig.get_messagebus_config(server_name, "client",
                                                       server_name,
                                                       config_client, dev_mode)
         msgbus = mb.MsgbusContext(msgbus_cfg)

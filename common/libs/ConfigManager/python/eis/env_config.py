@@ -25,7 +25,7 @@ import base64
 import os
 
 
-class MsgBusUtil:
+class EnvConfig:
 
     @staticmethod
     def get_topics_from_env(topic_type):

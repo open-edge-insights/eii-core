@@ -40,16 +40,13 @@ RUN cd ./common/util/c && \
     make install
 
 COPY libs/ConfigManager ./common/libs/ConfigManager
-RUN cd ./common/libs/ConfigManager/c && \
+RUN cd ./common/libs/ConfigManager && \
     rm -rf build && \
     mkdir build && \
     cd build && \
     cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+    cmake -DWITH_PYTHON=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make install
-
-RUN cd ./common/libs/ConfigManager/python && \
-    rm -rf build && \
-    python3.6 setup.py install
 
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
 RUN cd ./common/libs/EISMessageBus && \

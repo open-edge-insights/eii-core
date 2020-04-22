@@ -10,7 +10,7 @@ The py example program demonstrates 4 basic functionalities :
 
 **Note**: Currently supported storage types: **etcd**
 
-## How to run examples from present working directory
+## To run examples from [ConfigManager/python/examples folder]
 
 ### 1. Pre-requisite
 
@@ -19,26 +19,28 @@ The py example program demonstrates 4 basic functionalities :
 * Install python-etcd3 which is a python etcd client lib, from sources(as the master supports for watchprefix feature) by following the link: [python-etcd3](https://python-etcd3.readthedocs.io/en/latest/installation.html#from-sources)
 ### Dependencies
 
-* Install config manager lib
+* Install EIS Python Config Manager lib and Python EnvConfig
     
     ```sh
-    cd ./common/libs/ConfigManager/python
+    cd ConfigManager/python
     rm -rf build
     sudo python3.6 setup.py install
     ```
 
-### 1. Testing with security enabled
+### Testing with security enabled
 
 * To test basic functionalities:
 
 ```sh
-make configmgrclient key=<provide a key> action=<provide the action to be performed on key, possible options are get, put, watchkey, watchdir> value=<value to set the key to(relevant only for the action 'put')>
+$ cd ConfigManager/python/examples
+$ make configmgrclient key=<provide a key> action=<provide the action to be performed on key, possible options are get, put, watchkey, watchdir> value=<value to set the key to(relevant only for the action 'put')>
 ```
 
-### 1. Testing with security disabled
+### Testing with security disabled
 
 * To test basic functionalities:
 
 ```sh
-make configmgrclient_insecure key=<provide a key> action=<provide the action to be performed on key, possible options are get, put, watchkey, watchdir> value=<value to set the key to(relevant only for the action 'put')>
+$ cd ConfigManager/python/examples
+$ make configmgrclient_insecure key=<provide a key> action=<provide the action to be performed on key, possible options are get, put, watchkey, watchdir> value=<value to set the key to(relevant only for the action 'put')>
 ```

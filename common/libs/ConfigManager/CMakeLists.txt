@@ -22,12 +22,15 @@ cmake_minimum_required(VERSION 3.11)
 project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
+
 option(WITH_GO_ENV_CONFIG "Install Go EnvConfig" OFF)
+option(WITH_PYTHON   "Compile with Py Config Manager and Py EnvConfig" OFF)
 option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
 # Globals
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
+set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+set(EIS_PYTHON_CFG_MGR "${CMAKE_CURRENT_SOURCE_DIR}/python/")
 
 # Set C standard to C11
 set(CMAKE_CXX_STANDARD 11)
@@ -42,7 +45,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
 # Set EIS GO Config Manger src path 
-set(EIS_GO_CFGMGR_SRC ${CMAKE_CURRENT_SOURCE_DIR}/../go/ConfigManager)
+set(EIS_GO_CFGMGR_SRC ${CMAKE_CURRENT_SOURCE_DIR}/go/ConfigManager)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -64,7 +67,7 @@ if(WITH_GO_ENV_CONFIG)
     # user's $GOPATH
     install(
         DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/../go/EnvConfig
+            ${CMAKE_CURRENT_SOURCE_DIR}/go/EnvConfig
         DESTINATION
             $ENV{GOPATH}/src/
     )
@@ -81,6 +84,10 @@ include_directories(
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
+
+if(WITH_PYTHON)
+    add_subdirectory("${EIS_PYTHON_CFG_MGR}")
+endif()
 
 # Genreate CGO static library
 find_program(GO_EXECUTABLE "go" DOC "Go Executable")
@@ -102,7 +109,7 @@ set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(eisconfigmgr SHARED
     ${SOURCES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../../util/cpuid/cpuid-check.c")
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../util/cpuid/cpuid-check.c")
 add_dependencies(eisconfigmgr cgo-config-mgr)
 
 add_library(goconfigmanager STATIC IMPORTED)
