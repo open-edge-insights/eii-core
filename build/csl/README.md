@@ -129,7 +129,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
      ```   
   * Set **whitelisted_mounts** property value to **/dev** directory.
      ```sh    
-     $   whitelisted_mounts=/dev
+     $   whitelisted_mounts=/dev,/var/tmp
      ```
   > Save the file.
 

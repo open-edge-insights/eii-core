@@ -5,7 +5,8 @@
         "ContainerImage": "ia_video_ingestion:2.3",
         "Privileged": true,
         "TemporaryVolumes": [
-            "/dev:/dev"
+            "/dev:/dev",
+            "/var/tmp:/var/tmp"
         ]
     },
     "DataStore": {
