@@ -121,6 +121,41 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
         }
         ```
 
+* Update the Settings for Mounting External Devices to CSL.
+
+  * Goto **CSL Manager** Machine.
+     ```sh
+     $   sudo vi /opt/csl/csl-manager/application.properties
+     ```   
+  * Set **whitelisted_mounts** property value to **/dev** directory.
+     ```sh    
+     $   whitelisted_mounts=/dev
+     ```
+  > Save the file.
+
+  * Restart the **csl-manager** System Service
+    ```sh    
+    $   sudo systemctl restart csl-manager
+    ```
+>**Below steps are Mandatory, should be performed in all client nodes**
+* Steps to set the **CSL Network Configuration** for Accesseing Basler Camera
+
+  * Create a new Network using **csladm** utility by following command in your ***client machine***
+  ```sh
+    sudo /opt/csl/csl-node/bin/csladm register network
+  ```
+  * Enter the network configuration name as follows:
+  ```sh
+    Network configuration Name: cslhostnetworkinterface
+  ```
+  * Enter the Host Network Interface Name
+  ```sh
+    Network configuration default interface [eth0]: <host network interface>
+  ```
+  * Type ***Y*** and continue.
+
+  >**Note** The host network interace name should be your client machine & basler camera connected interface name.
+
 * Update the Appspec Execution Environment as needed by individual modules.
 
 * Open CSLManager in your browser.

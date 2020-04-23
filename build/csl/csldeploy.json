@@ -16,6 +16,7 @@
                 "CPU": 100,
                 "MemoryMB": 100
             },
+            "Networks": ["cslhostnetworkinterface"],
             "ExecutionEnv": {
                 "AppName": "VideoIngestion",
                 "ETCD_ENDPOINT": "${datastore.endpoint}",

@@ -2,7 +2,11 @@
     "SchemaVersion": "0.2",
     "Runtime": "docker",
     "RuntimeOptions": {
-        "ContainerImage": "ia_video_ingestion:2.3"
+        "ContainerImage": "ia_video_ingestion:2.3",
+        "Privileged": true,
+        "TemporaryVolumes": [
+            "/dev:/dev"
+        ]
     },
     "DataStore": {
         "Protocol": "DIRECT",
