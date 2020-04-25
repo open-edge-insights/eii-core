@@ -12,6 +12,7 @@ services:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+          GO_VERSION: ${GO_VERSION}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
   ## Define ia_common service
@@ -38,7 +39,6 @@ services:
       context: $PWD/../EtcdUI
       dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
-        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
     read_only: true

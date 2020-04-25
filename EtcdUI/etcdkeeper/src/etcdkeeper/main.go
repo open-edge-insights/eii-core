@@ -27,6 +27,7 @@ var (
 	sep            = flag.String("sep", "/", "separator")
 	separator      = ""
 	usetls         = flag.Bool("usetls", false, "use tls")
+	eisuser        = flag.String("user", "", "User name created in etcd for EIS framework")
 	cacert         = flag.String("cacert", "", "verify certificates of TLS-enabled secure servers using this CA bundle (v3)")
 	cert           = flag.String("cert", "", "identify secure client using this TLS certificate file (v3)")
 	keyfile        = flag.String("key", "", "identify secure client using this TLS key file (v3)")
@@ -107,7 +108,6 @@ func main() {
 func nothing(_ http.ResponseWriter, _ *http.Request) {
 	// Nothing
 }
-
 
 //func v2request(w http.ResponseWriter, r *http.Request){
 //	if err := r.ParseForm(); err != nil {
@@ -566,10 +566,9 @@ func connect(w http.ResponseWriter, r *http.Request) {
 	host := r.FormValue("host")
 	uname := r.FormValue("uname")
 	passwd := r.FormValue("passwd")
-
 	if *useAuth {
-		if _, ok := rootUsers[host]; !ok && uname != "root" { // no root user
-			b, _ := json.Marshal(map[string]interface{}{"status":"root"})
+		if _, ok := rootUsers[host]; !ok && uname != "root" && uname != *eisuser { // no root or eisadmin user
+			b, _ := json.Marshal(map[string]interface{}{"status": "root"})
 			io.WriteString(w, string(b))
 			return
 		}
@@ -601,7 +600,7 @@ func connect(w http.ResponseWriter, r *http.Request) {
 	_ = sess.Set("uinfo", uinfo)
 
 	if *useAuth {
-		if uname == "root" {
+		if uname == "root" || uname == *eisuser {
 			rootUsers[host] = uinfo
 		}
 	} else {
@@ -992,7 +991,7 @@ func getPermissionPrefix(host, uname, key string) ([][]string, error) {
 	if !*useAuth {
 		return [][]string{{key, "p"}}, nil // No auth return all
 	} else {
-		if uname == "root" {
+		if uname == "root" || uname == *eisuser {
 			return [][]string{{key, "p"}}, nil
 		}
 		rootUser := rootUsers[host]

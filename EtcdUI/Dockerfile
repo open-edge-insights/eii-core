@@ -20,14 +20,6 @@
 
 ARG EIS_VERSION
 FROM ia_eisbase:$EIS_VERSION as eisbase
-ARG ETCD_KEEPER_VERSION
-
-RUN apt update && \
-    apt install -y curl unzip && \
-    curl -L https://github.com/evildecay/etcdkeeper/releases/download/${ETCD_KEEPER_VERSION}/etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip -o etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip && \
-    unzip etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip && \
-    rm -rf etcdkeeper-${ETCD_KEEPER_VERSION}-linux_x86_64.zip && \
-    chmod +x etcdkeeper/etcdkeeper
 
 RUN apt-get update && \
     apt-get install -y nginx && \
@@ -52,6 +44,11 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./
 COPY eis_nginx_prod.conf ./
 COPY eis_nginx_dev.conf ./
+COPY etcdkeeper ./etcdkeeper/
+
+RUN cd ./etcdkeeper/src/etcdkeeper \
+    && go build -o etcdkeeper main.go \
+    && mv etcdkeeper ../../
 
 RUN touch /run/nginx.pid
 
