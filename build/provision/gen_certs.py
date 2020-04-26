@@ -134,8 +134,6 @@ def generate(opts, root_ca_needed=True):
                                                             cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("client",
                                                       component, outform)
-
-
 def clean():
     for trees in [paths.root_ca_path(), paths.leaf_pair_path("server"),
                   paths.result_path(),
@@ -163,5 +161,18 @@ if __name__ == '__main__':
             generate(data, False)   # re use existing root CA
         else:
             generate(data, True)  # Generate new root CA
+        if os.environ['PROVISION_MODE'] == "k8s":
+            subprocess.run ("kubectl create secret generic ca-etcd --from-file=Certificates/ca/ca_certificate.pem" , shell=True)
+            subprocess.run ("kubectl get secret ca-etcd --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
+            subprocess.run ("kubectl create namespace kube-eis" , shell=True)
+            for key,value in data.items():
+                for var in value:
+                    for k,v in var.items():
+                        k1 = k.replace("_","-").lower()
+                        cs = list(v)[0].split("_")[0]
+                        subprocess.run ("kubectl create secret generic " + k1 + "-cert --from-file=Certificates/" + k + "/" + k + "_" + cs + "_certificate.pem" , shell=True)
+                        subprocess.run ("kubectl create secret generic " + k1 + "-key --from-file=Certificates/" + k + "/" + k + "_" + cs + "_key.pem" , shell=True)
+                        subprocess.run ("kubectl get secret " + k1 + "-cert --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
+                        subprocess.run ("kubectl get secret " + k1 + "-key --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))
