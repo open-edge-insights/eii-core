@@ -43,7 +43,6 @@ class EtcdCli:
 
         self.etcd_key_prefix = None
         hostname = "localhost"
-        port = 2379
 
         # This change will be moved to an argument to the function in 2.3
         # This is done now for backward compatibility
@@ -52,7 +51,7 @@ class EtcdCli:
             hostname = etcd_host
 
         try:
-            port = os.getenv("ETCD_CLIENT_PORT")
+            port = os.getenv("ETCD_CLIENT_PORT", "2379")
         except Exception as e:
             log.debug("Using default etcd port")
 
