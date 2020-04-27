@@ -54,23 +54,6 @@ pipeline {
             }
         }
 
-        stage('Pre-Receive') {
-            steps {
-                dir('CITests') {
-                    git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', changelog: false, poll: false
-                }
-
-                sh '''
-                cp CITests/pre_receive_hook.sh .
-                chmod +x pre_receive_hook.sh
-
-                ./pre_receive_hook.sh GO_CHECK="no"
-                '''
-
-                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
-            }
-        }
-
         // https://jenkins-iotg-ba.iind.intel.com/job/EIS-CI-Merge-Request/configure
         stage('Build') {
             steps {
@@ -85,6 +68,23 @@ pipeline {
                     '''
                     updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
                 }
+            }
+        }
+
+        stage('Pre-Receive') {
+            steps {
+                dir('CITests') {
+                    git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', changelog: false, poll: false
+                }
+
+                sh '''
+                cp CITests/pre_receive_hook.sh .
+                chmod +x pre_receive_hook.sh
+
+                ./pre_receive_hook.sh GO_CHECK="no"
+                '''
+
+                updateGitlabCommitStatus name: env.STAGE_NAME, state: 'success'
             }
         }
 
@@ -171,7 +171,7 @@ pipeline {
             }
         }
 
-        stage('Static Code Scan') {
+        stage('Checkmarx) {
             environment {
                 SCANNERS = 'checkmarx'
                 PROJECT_NAME = 'EIS'
@@ -270,7 +270,7 @@ def loadGlobalLibrary(branch = '*/master') {
 
 def cloneSource() {
     def gitVars
-    
+
     if(env.gitlabSourceBranch && env.gitlabTargetBranch) {
         // https://github.com/jenkinsci/gitlab-plugin#pipeline-jobs
         gitVars = checkout( changelog: true,

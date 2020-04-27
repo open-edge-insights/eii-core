@@ -35,7 +35,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
@@ -89,7 +89,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
@@ -181,7 +181,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
@@ -198,14 +198,14 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
             environment {
                 // SCANNERS = 'protex,checkmarx,bdba'  //see parameter above
                 PROJECT_NAME = 'EIS'
-                
+
                 // PROTEX_PROJECT_NAME  = '' //see parameter above
                 PROTEX_SERVER_URL    = 'https://garprotex009.devtools.intel.com/'
                 PROTEX_CREDENTIAL_ID = 'protex-gar009'
@@ -243,7 +243,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
@@ -269,7 +269,7 @@ pipeline {
                     triggeredBy 'UserIdCause'
                     allOf {
                         triggeredBy 'TimerTrigger'
-                        branch 'feature/v2.3'
+                        branch 'master'
                     }
                 }
             }
