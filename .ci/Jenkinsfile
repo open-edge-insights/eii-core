@@ -106,60 +106,38 @@ pipeline {
                 RBHE_DOCKER      = credentials('intel-harbor-credentials')
             }
             steps {
-                // modeled after https://jenkins-iotg-val-ba.iind.intel.com/view/EIS/job/EIS_CI_NIGHTLY_Ubuntu_KW
+                // modeled after https://jenkins-iotg-val-ba.iind.intel.com/view/EIS/job/EIS_CI_NIGHTLY_Docker_KW
                 cleanWs()
 
-                // get a clean copy of the WS
-                dir('src/IEdgeInsights') {
-                    checkout scm
+
+                withCredentials([usernamePassword(credentialsId: 'eis-kw', usernameVariable: 'KW_USER', passwordVariable: 'KW_PWD')]) {
+                    // available as an env variable, but will be masked if you try to print it out any which way
+                    // note: single quotes prevent Groovy interpolation; expansion is by Bourne Shell, which is what you want
+                    sh '''
+                    echo $KW_USER > kwcreds
+                    echo $KW_PWD >> kwcreds
+                    '''
                 }
 
-                // clone dependencies
-                dir('src/IEdgeInsights/CITests') {
-                    git url: 'ssh://git@gitlab.devtools.intel.com:29418/Indu/IEdgeInsights/CITests.git', branch: "${params.CI_TESTS_BRANCH}", changelog: false, poll: false
-                }
+                sh '''
+                echo $PASSWORD | sudo -S chmod -R 777 docker_setup/provision
+                cp -r CITests/klocwork/. .
+                # Build klockwork image
+                docker-compose build
 
-                dir('src/github.com/golang/glog') {
-                    checkout (
-                        changelog: false,
-                        poll: false,
-                        scm: [
-                            $class: 'GitSCM',
-                            userRemoteConfigs: [[url: 'https://github.com/golang/glog']],
-                            branches: [[name: '23def4e6c14b4da8ac2ed8007337bc5eb5007998']],
-                            doGenerateSubmoduleConfigurations: false
-                        ]
-                    )
-                }
+                rm -rf kwcreds
 
-                dir('src/go.etcd.io/etcd') {
-                    checkout (
-                        changelog: false,
-                        poll: false,
-                        scm: [
-                            $class: 'GitSCM',
-                            userRemoteConfigs: [[url: 'https://github.com/etcd-io/etcd']],
-                            branches: [[name: '0c787e26bcd102c3bb14050ac893b07ba9ea029f']],
-                            doGenerateSubmoduleConfigurations: false
-                        ]
-                    )
-                }
+                # Run KW scan
+                docker-compose up -d
 
-                dir('src/IEdgeInsights') {
-                    sh 'kwdeploy sync --url "$KW_SERVER"'
-                    sh 'cp CITests/klocwork/kw_script.sh .'
+                # print logs
+                docker logs -f ia_klocwork
 
-                    script {
-                        try {
-                            sh 'echo $PASSWORD | sudo -SE env "PATH=$PATH" "GOPATH=$GOPATH" ./kw_script.sh'
-                        }
-                        catch(e) {
-                            // ignore failures for now due to intermitent connection issues
-                            // kwadmin: Could not connect to https://irvapp007.ir.intel.com:8075
-                            // IST: shared database loading stage: Failed to load build 'test-51' database of project 'FoG_ETA': kwloaddb exited with 1. See kwloaddb.log for more details.
-                        }
-                    }
-                }
+                exit_code=`docker inspect ia_klocwork --format='{{.State.ExitCode}}'`
+                if [ "$exit_code" != 0 ]; then
+                    exit -1
+                fi
+                '''
 
                 // generate KW report and archive
                 script {
