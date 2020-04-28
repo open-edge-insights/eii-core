@@ -27,6 +27,8 @@ openssl req -newkey rsa:2048 -nodes -keyout client.key -out client.csr -subj "/C
 echo "Receving Trusted Certificates from the CSL Server"
 
 mkdir -p Certificates/csl
+curl -k -u "$CSL_MGR_USERNAME:$CSL_MGR_PASSWORD" -X DELETE "https://$CSL_MGR_IP:8443/api/v1/datastore/users/$DEFAULT_COMMON_NAME"
+curl -k -u "$CSL_MGR_USERNAME:$CSL_MGR_PASSWORD" -H "Content-Type: application/json" "https://$CSL_MGR_IP:8443/api/v1/datastore/users/" -d '{ "Username": "'$DEFAULT_COMMON_NAME'", "Password": "'$DEFAULT_COMMON_PASSWORD'" }'
 curl -k -u "$CSL_MGR_USERNAME:$CSL_MGR_PASSWORD" -H "Content-Type: multipart/form-data" "https://$CSL_MGR_IP:8443/api/v1/datastore/users/$DEFAULT_COMMON_NAME/csr" -F "csr=@client.csr" | jq -r '."cert.pem"' | base64 -d > Certificates/csl/cert.pem
 curl -k -u "$CSL_MGR_USERNAME:$CSL_MGR_PASSWORD" -H "Content-Type: multipart/form-data" "https://$CSL_MGR_IP:8443/api/v1/datastore/users/$DEFAULT_COMMON_NAME/csr" -F "csr=@client.csr" | jq -r '."cacert.pem"' | base64 -d > Certificates/csl/cacert.pem
 echo "Setting RW Permission for Root Bucket: $ROOT_BUCKET with User: $DEFAULT_COMMON_NAME User"

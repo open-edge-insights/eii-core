@@ -56,7 +56,6 @@ services:
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
-      ETCD_USER: "root"
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}

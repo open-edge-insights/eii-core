@@ -43,64 +43,46 @@ if __name__ == "__main__":
     except KeyError:
         devMode = 1
 
-    cfgmgr_user_conf = Util.get_crypto_dict("etcduser")
-    ETCD_CERT = cfgmgr_user_conf["certFile"]
-    ETCD_KEY = cfgmgr_user_conf["keyFile"]
-    CA_CERT = cfgmgr_user_conf["trustFile"]
-
-    if not devMode:
-        etcd_cert = ""
-        etcd_key = ""
-        ca_cert = ""
-        try:
-            etcd_cert = os.environ["ETCD_CERT"]
-            etcd_key = os.environ["ETCD_KEY"]
-            ca_cert = os.environ["CA_CERT"]
-        except KeyError:
-            pass
-
-        if etcd_cert != "" and etcd_key != "":
-            ETCD_CERT = etcd_cert
-            ETCD_KEY = etcd_key
-
-        if ca_cert != "":
-            CA_CERT = ca_cert
-
-    etcd_user = os.environ["ETCD_USER"]
-    etcd_prefix = ""
-    if etcd_user == "":
-        logger.error("Please provide an Etcd User. Exiting!!!")
-        sys.exit(-1)
+    etcd_prefix = os.environ["ETCD_PREFIX"]
+    etcd_prefix = etcd_prefix + '/'
+    if os.getenv('ETCD_HOST') is not None:
+        etcd_endpoint = os.getenv('ETCD_HOST', '127.0.0.1') + ':2379'
+    elif os.getenv('ETCD_ENDPOINT') is not None:
+        etcd_endpoint = os.environ['ETCD_ENDPOINT']
     else:
-        if etcd_user != "root":
-            if devMode:
-                get_prefix_command = "./etcdctl role get {} | \
-                                        grep -A1 Read | grep prefix | \
-                                        cut -d' ' -f4 | cut -d')' -f1".format(
-                                        etcd_user)
-            else:
-                get_prefix_command = "./etcdctl --cacert {} --cert {} --key \
-                                        {} role get {} | grep -A1 Read | grep \
-                                        prefix | cut -d' ' -f4 | cut -d')' \
-                                        -f1".format(CA_CERT,
-                                                    ETCD_CERT,
-                                                    ETCD_KEY,
-                                                    etcd_user)
+        logger.error("ETCD_HOST/ETCD_ENDPOINT envs not set or missing. Exiting!!!")
+        sys.exit(-1)
+    etcd_user = os.getenv("ETCD_USER", "root")
+    app_name = os.environ["AppName"]
+    conf = Util.get_crypto_dict(app_name)
 
-            etcd_prefix = _execute_cmd(get_prefix_command).decode(
-                            'utf-8').rstrip()
+    if etcd_user != "root":
+        if devMode:
+            get_prefix_command = "./etcdctl role get {} | \
+                                    grep -A1 Read | grep prefix | \
+                                    cut -d' ' -f4 | cut -d')' -f1".format(
+                                    etcd_user)
+        else:
+            etcd_pwd = os.environ["ETCD_PASSWORD"]
+            get_prefix_command = "./etcdctl --user {} --password {} --cacert {} --cert {} --key \
+                                    {} --endpoints {} role get {} | grep -A1 Read | grep \
+                                    prefix | cut -d' ' -f4 | cut -d')' \
+                                    -f1".format(etcd_user,
+                                                etcd_pwd,
+                                                conf["trustFile"],
+                                                conf["certFile"],
+                                                conf["keyFile"],
+                                                etcd_endpoint,
+                                                etcd_user)
+
+        etcd_prefix = _execute_cmd(get_prefix_command).decode(
+                        'utf-8').rstrip()
 
     if not devMode:
-        app_name = os.environ["AppName"]
-        conf = Util.get_crypto_dict(app_name)
         cfg_mgr = ConfigManager()
-        os.environ["ETCD_PREFIX"] = etcd_prefix
         config_client = cfg_mgr.get_config_client("etcd", conf)
-
-        server_cert = config_client.GetConfig(etcd_prefix + "/" +
-                                              app_name + "/server_cert")
-        server_key = config_client.GetConfig(etcd_prefix + "/" +
-                                             app_name + "/server_key")
+        server_cert = config_client.GetConfig("/" + app_name + "/server_cert")
+        server_key = config_client.GetConfig("/" + app_name + "/server_key")
 
         with open('/tmp/nginx/server_cert.pem', 'w') as f:
             f.write(server_cert)
@@ -136,19 +118,18 @@ if __name__ == "__main__":
         if devMode:
             subprocess.Popen(["./etcdkeeper/etcdkeeper",
                               "-p", "7070",
-                              "-sep", etcd_prefix + "/"],
+                              "-sep", etcd_prefix],
                              start_new_session=True)
 
         else:
             subprocess.Popen(["./etcdkeeper/etcdkeeper",
-                              "-h", "127.0.0.1",
                               "-p", "7070",
-                              "-sep", etcd_prefix + "/",
                               "-user", etcd_user,
+                              "-sep", etcd_prefix,
                               "-usetls",
-                              "-cacert", CA_CERT,
-                              "-key", ETCD_KEY,
-                              "-cert", ETCD_CERT,
+                              "-cacert", conf["trustFile"],
+                              "-key", conf["keyFile"],
+                              "-cert", conf["certFile"],
                               "-auth"], start_new_session=True)
 
     except Exception as e:

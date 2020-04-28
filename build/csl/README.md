@@ -22,8 +22,11 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
     * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
       Before your provisioning in CSLMode
         * PROVISION_MODE=csl
-        * CSL_MGR_USERNAME=[csl manager username]
-        * CSL_MGR_PASSWORD=[csl manager password]
+        * CSL_MGR_USERNAME         =   [csl manager username]
+        * CSL_MGR_PASSWORD         =   [csl manager password]
+        * CSL_MGR_IP               =   [csl manager IP]
+        * DEFAULT_COMMON_NAME      =   [Etcd username for EtcdUI login]
+        * DEFAULT_COMMON_PASSWORD  =   [Etcd password for EtcdUI login]
 
     * Please Update following Environment Variables in [build/.env](../../build/.env)
         * ETCD_PREFIX=/csl/apps/EIS

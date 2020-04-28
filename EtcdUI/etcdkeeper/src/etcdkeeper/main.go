@@ -141,7 +141,7 @@ func connectV2(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 	sess := sessmgr.SessionStart(w, r)
-	host := strings.TrimSpace(r.FormValue("host"))
+	host := strings.TrimSpace(os.Getenv("ETCD_ENDPOINT"))
 	uname := r.FormValue("uname")
 	passwd := r.FormValue("passwd")
 	if !strings.HasPrefix(host, "http") {
@@ -563,7 +563,7 @@ func connect(w http.ResponseWriter, r *http.Request) {
 	mu.Lock()
 	defer mu.Unlock()
 	sess := sessmgr.SessionStart(w, r)
-	host := r.FormValue("host")
+	host := os.Getenv("ETCD_ENDPOINT")
 	uname := r.FormValue("uname")
 	passwd := r.FormValue("passwd")
 	if *useAuth {

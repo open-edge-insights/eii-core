@@ -8,15 +8,48 @@
     },
     "Modules": [
         {
-        "Name": "Telegraf",
-        "Description": "Telegraf module manifest",
-        "SchemaVersion": "0.2",
-        "ManifestFile": "${idx:telegraf:2.3}",
-        "Resources": {
-            "CPU": 100,
-            "MemoryMB": 100
+            "Name": "EtcdUI",
+            "Description": "EtcdUI module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:etcdui:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "EtcdUI",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "ETCD_USER": "eisuser",
+                "ETCD_PASSWORD": "Eis@123",
+                "DEV_MODE": "false",
+                "PROFILING_MODE": "false",
+                "NGINX_PORT": 7071
+            },
+            "Endpoints": [
+                {
+                    "Name": "etcdout",
+                    "Endtype": "server",
+                    "Protocol": "TCP",
+                    "Port": "7070",
+                    "DataType": "messages",
+                    "Link": "etcduiout"
+                }
+            ]
         },
-        "ExecutionEnv": {
+        {
+            "Name": "Telegraf",
+            "Description": "Telegraf module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:telegraf:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
                 "AppName": "Telegraf",
                 "ETCD_ENDPOINT": "${datastore.endpoint}",
                 "CONFIGMGR_CACERT": "${databucket.cacert}",
@@ -29,157 +62,156 @@
                 "MQTT_BROKER_HOST": "127.0.0.1",
                 "INFLUX_SERVER": "${ep.inputTelegraf.remoteaddress}",
                 "INFLUXDB_PORT": "8086"
-        },
-        "Endpoints": [
-            {
-                "Name": "inputTelegraf",
-                "Endtype": "client",
-                "Protocol": "TCP",
-                "DataType": "messages",
-                "Link": "influxout"
-            }
-        ]
-   },
-
-{
-    "Name": "InfluxDBConnector",
-    "Description": "InfluxDBConnector module manifest",
-    "SchemaVersion": "0.2",
-    "ManifestFile": "${idx:influxdbconnector:2.3}",
-    "Resources": {
-        "CPU": 100,
-        "MemoryMB": 100
-    },
-    "ExecutionEnv": {
-      "AppName": "InfluxDBConnector",
-      "ETCD_ENDPOINT": "${datastore.endpoint}",
-      "CONFIGMGR_CACERT": "${databucket.cacert}",
-      "CONFIGMGR_CERT": "${databucket.cert}",
-      "CONFIGMGR_KEY": "${databucket.key}",
-      "ETCD_PREFIX": "/csl/apps/EIS",
-      "DEV_MODE": "false",
-      "PROFILING_MODE": "false",
-      "ZMQ_RECV_HWM": "1000",
-      "Clients": "Visualizer,DiscoveryCreek",
-      "Server": "zmq_tcp,0.0.0.0:${ep.sOutInflux.localport}",
-      "PubTopics": "point_data,point_classifier_results",
-      "point_data_cfg": "zmq_tcp,0.0.0.0:${ep.pdOutInflux.localport}",
-      "point_classifier_results_cfg": "zmq_tcp,0.0.0.0:${ep.pcOutInflux.localport}"
-},
-    "Endpoints": [
-        {
-            "Name": "outputInflux",
-            "Endtype": "server",
-            "Port": "8086",
-            "DataType": "messages",
-            "Link": "influxout"
+            },
+            "Endpoints": [
+                {
+                    "Name": "inputTelegraf",
+                    "Endtype": "client",
+                    "Protocol": "TCP",
+                    "DataType": "messages",
+                    "Link": "influxout"
+                }
+            ]
         },
         {
-            "Name": "sOutInflux",
-            "Endtype": "server",
-            "Port": "8675",
-            "DataType": "messages",
-            "Link": "sinfluxout"
+            "Name": "InfluxDBConnector",
+            "Description": "InfluxDBConnector module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:influxdbconnector:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "InfluxDBConnector",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "false",
+                "PROFILING_MODE": "false",
+                "ZMQ_RECV_HWM": "1000",
+                "Clients": "Visualizer,DiscoveryCreek",
+                "Server": "zmq_tcp,0.0.0.0:${ep.sOutInflux.localport}",
+                "PubTopics": "point_data,point_classifier_results",
+                "point_data_cfg": "zmq_tcp,0.0.0.0:${ep.pdOutInflux.localport}",
+                "point_classifier_results_cfg": "zmq_tcp,0.0.0.0:${ep.pcOutInflux.localport}"
+            },
+            "Endpoints": [
+                {
+                    "Name": "outputInflux",
+                    "Endtype": "server",
+                    "Port": "8086",
+                    "DataType": "messages",
+                    "Link": "influxout"
+                },
+                {
+                    "Name": "sOutInflux",
+                    "Endtype": "server",
+                    "Port": "8675",
+                    "DataType": "messages",
+                    "Link": "sinfluxout"
+                },
+                {
+                    "Name": "pdOutInflux",
+                    "Endtype": "server",
+                    "Port": "65015",
+                    "DataType": "messages",
+                    "Link": "pdinfluxout"
+                },
+                {
+                    "Name": "pcOutInflux",
+                    "Endtype": "server",
+                    "Port": "65016",
+                    "DataType": "messages",
+                    "Link": "pcinfluxout"
+                }
+            ]
         },
         {
-            "Name": "pdOutInflux",
-            "Endtype": "server",
-            "Port": "65015",
-            "DataType": "messages",
-            "Link": "pdinfluxout"
+            "Name": "Kapacitor",
+            "Description": "Kapacitor module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:kapacitor:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "Kapacitor",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "false",
+                "PROFILING_MODE": "false",
+                "KAPACITOR_URL": "http://${ep.outputKapacitor.localaddress}:${ep.outputKapacitor.localport}/",
+                "KAPACITOR_UNSAFE_SSL": "true",
+                "KAPACITOR_INFLUXDB_0_URLS_0": "http://${ep.inputDaFromInflux.remoteaddress}:8086/",
+                "INFLUX_SERVER": "${ep.inputDaFromInflux.remoteaddress}",
+                "KAPACITOR_SERVER": "${ep.outputKapacitor.localaddress}",
+                "KAPACITOR_PORT": 9092
+            },
+            "Endpoints": [
+                {
+                    "Name": "outputKapacitor",
+                    "Endtype": "server",
+                    "Port": "9092",
+                    "DataType": "messages",
+                    "Link": "kapacitorout"
+                },
+                {
+                    "Name": "inputDaFromInflux",
+                    "Endtype": "client",
+                    "Protocol": "TCP",
+                    "DataType": "messages",
+                    "Link": "influxout"
+                }
+            ]
         },
         {
-            "Name": "pcOutInflux",
-            "Endtype": "server",
-            "Port": "65016",
-            "DataType": "messages",
-            "Link": "pcinfluxout"
+            "Name": "Grafana",
+            "Description": "Grafana module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:grafana:2.3}",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "Grafana",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "false",
+                "PROFILING_MODE": "false",
+                "InfluxDbAppName": "InfluxDBConnector",
+                "INFLUX_SERVER": "${ep.inputGrafana.remoteaddress}",
+                "GRAFANA_SERVER": "0.0.0.0"
+            },
+            "Endpoints": [
+                {
+                    "Name": "inputGrafana",
+                    "Endtype": "client",
+                    "Protocol": "TCP",
+                    "DataType": "messages",
+                    "Link": "influxout"
+                },
+                {
+                    "Name": "grafanout",
+                    "Endtype": "server",
+                    "Protocol": "TCP",
+                    "Port": "3000",
+                    "DataType": "messages",
+                    "Link": "grafanaout"
+                }
+            ]
         }
-    ]
-},
-{
-    "Name": "Kapacitor",
-    "Description": "Kapacitor module manifest",
-    "SchemaVersion": "0.2",
-    "ManifestFile": "${idx:kapacitor:2.3}",
-    "Resources": {
-        "CPU": 100,
-        "MemoryMB": 100
-    },
-    "ExecutionEnv": {
-      "AppName": "Kapacitor",
-      "ETCD_ENDPOINT": "${datastore.endpoint}",
-      "CONFIGMGR_CACERT": "${databucket.cacert}",
-      "CONFIGMGR_CERT": "${databucket.cert}",
-      "CONFIGMGR_KEY": "${databucket.key}",
-      "ETCD_PREFIX": "/csl/apps/EIS",
-      "DEV_MODE": "false",
-      "PROFILING_MODE": "false",
-      "KAPACITOR_URL": "http://${ep.outputKapacitor.localaddress}:${ep.outputKapacitor.localport}/",
-      "KAPACITOR_UNSAFE_SSL": "true",
-      "KAPACITOR_INFLUXDB_0_URLS_0": "http://${ep.inputDaFromInflux.remoteaddress}:8086/",
-      "INFLUX_SERVER": "${ep.inputDaFromInflux.remoteaddress}",
-      "KAPACITOR_SERVER": "${ep.outputKapacitor.localaddress}",
-      "KAPACITOR_PORT": 9092
-    },
-    "Endpoints": [
-        {
-            "Name": "outputKapacitor",
-            "Endtype": "server",
-            "Port": "9092",
-            "DataType": "messages",
-            "Link": "kapacitorout"
-        },
-        {
-            "Name": "inputDaFromInflux",
-            "Endtype": "client",
-            "Protocol": "TCP",
-            "DataType": "messages",
-            "Link": "influxout"
-        }
-    ]
-},
-{
-    "Name": "Grafana",
-    "Description": "Grafana module manifest",
-    "SchemaVersion": "0.2",
-    "ManifestFile": "${idx:grafana:2.3}",
-    "Resources": {
-        "CPU": 100,
-        "MemoryMB": 100
-    },
-    "ExecutionEnv": {
-            "AppName": "Grafana",
-            "ETCD_ENDPOINT": "${datastore.endpoint}",
-            "CONFIGMGR_CACERT": "${databucket.cacert}",
-            "CONFIGMGR_CERT": "${databucket.cert}",
-            "CONFIGMGR_KEY": "${databucket.key}",
-            "ETCD_PREFIX": "/csl/apps/EIS",
-            "DEV_MODE": "false",
-            "PROFILING_MODE": "false",
-            "InfluxDbAppName": "InfluxDBConnector",
-            "INFLUX_SERVER": "${ep.inputGrafana.remoteaddress}",
-            "GRAFANA_SERVER": "0.0.0.0"
-    },
-    "Endpoints": [
-        {
-            "Name": "inputGrafana",
-            "Endtype": "client",
-            "Protocol": "TCP",
-            "DataType": "messages",
-            "Link": "influxout"
-        },
-        {
-            "Name": "grafanout",
-            "Endtype": "server",
-            "Protocol": "TCP",
-            "Port": "3000",
-            "DataType": "messages",
-            "Link": "grafanaout"
-        }
-    ]
-}
-],
+    ],
     "Links": [
         {
             "Name": "influxout"
@@ -198,9 +230,12 @@
         },
         {
             "Name": "pcinfluxout"
+        },
+        {
+            "Name": "etcduiout"
         }
     ],
-"Ingresses": [
+    "Ingresses": [
         {
             "Name": "ext-grafana",
             "Protocol": "TCP",
@@ -208,7 +243,14 @@
                 "Backend": "grafanaout",
                 "Port": "31506"
             }
+        },
+        {
+            "Name": "ext-etcdui",
+            "Protocol": "TCP",
+            "Options": {
+                "Backend": "etcduiout",
+                "Port": "31508"
+            }
         }
     ]
- }
-
+}
