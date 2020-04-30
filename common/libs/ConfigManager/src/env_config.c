@@ -28,8 +28,9 @@
 #include <safe_str_lib.h>
 
 #define PUBLIC_PRIVATE_KEY_SIZE 500
-#define PUB "pub"
-#define SUB "sub"
+#define PUB "PUB"
+#define SUB "SUB"
+#define SERVER_ENV "Server"
 #define CLIENTS_ENV "Clients"
 #define PUBTOPICS_ENV "PubTopics"
 #define SUBTOPICS_ENV "SubTopics"
@@ -39,8 +40,8 @@
 #define ZMQ_RECV_HWM_ENV "ZMQ_RECV_HWM"
 #define CFG "_cfg"
 #define SOCKET_FILE "socket_file"
-#define SERVER "Server"
-#define CLIENT "client"
+#define SERVER "SERVER"
+#define CLIENT "CLIENT"
 
 // Forward declaration
 void trim(char* str_value);
@@ -54,6 +55,18 @@ static void free_mem(char** arr) {
     free(arr);
 }
 
+static void to_upper(char arr[]) {
+    // to_upper is called to maintain case-insensitive for topic_type by converting every 
+    // character of a string to upper case.
+    int j = 0;
+    while (arr[j] != '\0') {
+        if (arr[j] >= 'a' && arr[j] <= 'z') {
+            arr[j] = arr[j] - 32;
+        }
+        j++;
+    }
+}
+
 static char** get_topics_from_env(const char* topic_type) {
     char* env_topics = NULL;
     char* individual_topic = NULL;
@@ -62,13 +75,22 @@ static char** get_topics_from_env(const char* topic_type) {
     char* str = NULL;
     int ret = 0;
     int j = 0;
+    size_t topic_type_len = strlen(topic_type);
+    char topic_type_arr[topic_type_len +1];
+    ret = strncpy_s(topic_type_arr, topic_type_len + 1, topic_type, topic_type_len);
+    if (ret != 0) {
+        LOG_ERROR("String copy failed (errno: %d): Failed to copy topic_type %s", ret, topic_type);
+        return NULL;
+    }
 
-    if (!strcmp(topic_type, PUB)) {
+    to_upper(topic_type_arr);
+
+    if (!strcmp(topic_type_arr, PUB)) {
         topics_env = PUBTOPICS_ENV;
-    } else if (!strcmp(topic_type, SUB)) {
+    } else if (!strcmp(topic_type_arr, SUB)) {
         topics_env = SUBTOPICS_ENV;
     } else {
-        LOG_ERROR("topic type: %s is not supported", topic_type);
+        LOG_ERROR("topic type: %s is not supported", topic_type_arr);
         return NULL;
     }
     env_topics = getenv(topics_env);
@@ -145,6 +167,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
     char* clients_env = NULL;
     char zmq_hwm[] = {0, 1};
     size_t data_len;
+    size_t zmq_recv_hwm_len;
     int ret = 0;
     int i = 0;
     int j;
@@ -154,17 +177,26 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
     char** allowed_clients = NULL;
     char** pub_topic = NULL;
 
+    size_t topic_type_len = strlen(topic_type);
+    char topic_type_arr[topic_type_len +1];
+    ret = strncpy_s(topic_type_arr, topic_type_len + 1, topic_type, topic_type_len);
+    if (ret != 0) {
+        LOG_ERROR("String copy failed (errno: %d): Failed to copy topic_type %s", ret, topic_type);
+        return NULL;
+    }
+    to_upper(topic_type_arr);
+
     size_t cfg_len = strlen(CFG);
     size_t topic_arr_len = strlen(topic[0]);
     char topic_arr[topic_arr_len + 1];
     char* zmq_recv_hwm = getenv(ZMQ_RECV_HWM_ENV);
     if (zmq_recv_hwm == NULL) {
-        LOG_ERROR("getenv failed for zmq_recv_hwm %s\n", ZMQ_RECV_HWM_ENV);
-        goto err;
+        LOG_WARN("getenv failed for zmq_recv_hwm %s\n", ZMQ_RECV_HWM_ENV);
+    } else {
+        trim(zmq_recv_hwm);
+        zmq_recv_hwm_len = strlen(zmq_recv_hwm);
+        zmq_hwm[zmq_recv_hwm_len + 1];
     }
-    trim(zmq_recv_hwm);
-    size_t zmq_recv_hwm_len = strlen(zmq_recv_hwm);
-    zmq_hwm[zmq_recv_hwm_len + 1];
 
     char* dev_mode_env = getenv(DEV_MODE_ENV);
     if (dev_mode_env == NULL) {
@@ -191,7 +223,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
     char* topic_cfg = NULL;
     char topic_cfg_arr[]={0, 1};
     size_t topic_cfg_len;
-    if (!strcmp(topic_type, SUB)) { 
+    if (!strcmp(topic_type_arr, SUB)) { 
         char* individual_topic;
         ret = strncpy_s(topic_arr, topic_arr_len + 1, topic[0], topic_arr_len);
         if (ret != 0) {
@@ -256,7 +288,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String copy failed (errno: %d): Failed to copy topic_cfg \" %s \" to topic_cfg_arr", ret, topic_cfg);
             goto err;
         }
-    } else if (!strcmp(topic_type, PUB)) {
+    } else if (!strcmp(topic_type_arr, PUB)) {
         char publisher_topic[topic_arr_len + cfg_len + 1];
         ret = strncpy_s(publisher_topic, topic_arr_len + 1, topic[0], topic_arr_len);
         if (ret != 0) {
@@ -282,8 +314,8 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String copy failed (errno: %d): Failed to copy topic_cfg \" %s \" env value to topic_cfg_arr", ret, topic_cfg);
             goto err;
         }
-    } else if (!strcmp(topic_type, SERVER)) {
-        topic_cfg = getenv(SERVER);
+    } else if (!strcmp(topic_type_arr, SERVER)) {
+        topic_cfg = getenv(SERVER_ENV);
         if (topic_cfg == NULL) {
             LOG_ERROR("getenv failed for server %s\n", SERVER);
             goto err;
@@ -295,7 +327,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             LOG_ERROR("String copy failed (errno: %d): Failed to copy server env \" %s \" value to topic_cfg_arr", ret, topic_cfg);
             goto err;
         }
-    } else if (!strcmp(topic_type, CLIENT)) {
+    } else if (!strcmp(topic_type_arr, CLIENT)) {
         char publisher_topic[topic_arr_len + cfg_len + 1];
         ret = strncpy_s(publisher_topic, topic_arr_len + 1, topic[0], topic_arr_len);
         if (ret != 0) {
@@ -323,7 +355,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             goto err;
         }
     } else {
-        LOG_ERROR("topic type: %s is not supported", topic_type);
+        LOG_ERROR("topic type: %s is not supported", topic_type_arr);
         goto err;
     }
 
@@ -365,12 +397,14 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
     trim(address);
     cJSON* json = cJSON_CreateObject();
     cJSON_AddStringToObject(json, "type", mode);
-    ret = strncpy_s(zmq_hwm, zmq_recv_hwm_len + 1, zmq_recv_hwm, zmq_recv_hwm_len);
-    if (ret != 0) {
-        LOG_ERROR("String copy failed (errno: %d) :  Failed to copy zmq_recv_hwm \" %s \" ", ret, zmq_recv_hwm);
-        goto err;
+    if (zmq_recv_hwm != NULL) {
+        ret = strncpy_s(zmq_hwm, zmq_recv_hwm_len + 1, zmq_recv_hwm, zmq_recv_hwm_len);
+        if (ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d) :  Failed to copy zmq_recv_hwm \" %s \" ", ret, zmq_recv_hwm);
+            goto err;
+        }
+        cJSON_AddNumberToObject(json, "ZMQ_RECV_HWM", atoi(zmq_hwm));
     }
-    cJSON_AddNumberToObject(json, "ZMQ_RECV_HWM", atoi(zmq_hwm));
 
     host_port = (char **)calloc(strlen(address) + 1, sizeof(char*));
     if (host_port == NULL) {
@@ -402,7 +436,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
 
         __int64_t i_port = atoi(port);
         size_t clients_env_len;
-        if (!strcmp(topic_type, PUB)) {
+        if (!strcmp(topic_type_arr, PUB)) {
             cJSON* zmq_tcp_config = cJSON_CreateObject();
             cJSON_AddItemToObject(json, "zmq_tcp_publish", zmq_tcp_config);
             cJSON_AddStringToObject(zmq_tcp_config, "host", host);
@@ -484,7 +518,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             }
 
         }
-        else if (!strcmp(topic_type, SUB)) {
+        else if (!strcmp(topic_type_arr, SUB)) {
             cJSON* zmq_tcp_config = cJSON_CreateObject();
             cJSON_AddItemToObject(json, pub_topic[1], zmq_tcp_config);
             cJSON_AddStringToObject(zmq_tcp_config, "host", host);
@@ -535,7 +569,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
             }
 
         }
-        else if (!strcmp(topic_type, "server")) {
+        else if (!strcmp(topic_type_arr, SERVER)) {
             cJSON* zmq_tcp_config = cJSON_CreateObject();
             cJSON_AddItemToObject(json, topic[0], zmq_tcp_config);
             cJSON_AddStringToObject(zmq_tcp_config, "host", host);
@@ -618,7 +652,7 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
                 cJSON_AddItemToObject(json, "allowed_clients", all_clients);
 	        }
 	    }
-        else if (!strcmp(topic_type, "client")) {
+        else if (!strcmp(topic_type_arr, CLIENT)) {
             cJSON* zmq_tcp_config = cJSON_CreateObject();
             cJSON_AddItemToObject(json, topic[0], zmq_tcp_config);
             cJSON_AddStringToObject(zmq_tcp_config, "host", host);
@@ -709,14 +743,14 @@ static config_t* get_messagebus_config(const config_mgr_t* configmgr, char* topi
 
         // If socket_file is given by the application
         if (socket_file != NULL) {
-            if (!strcmp(topic_type, PUB)) {
+            if (!strcmp(topic_type_arr, PUB)) {
                 LOG_DEBUG_0(" topic type is Pub");
                 for (size_t i=0; i < num_of_topics; ++i) {
                     cJSON* socket_file_obj = cJSON_CreateObject();
                     cJSON_AddItemToObject(json, topic[i], socket_file_obj);
                     cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, socket_file);
                 }
-            } else if (!strcmp(topic_type, SUB)) {
+            } else if (!strcmp(topic_type_arr, SUB)) {
                 LOG_DEBUG_0(" topic type is Sub");
                 cJSON* socket_file_obj = cJSON_CreateObject();
                 cJSON_AddItemToObject(json, pub_topic[1], socket_file_obj);

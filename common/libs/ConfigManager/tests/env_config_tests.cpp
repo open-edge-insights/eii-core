@@ -131,6 +131,26 @@ TEST(env_config_tests, get_messagebus_config) {
 		ASSERT_EQ(value->type, CVT_STRING);
 		ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
 	}
+	
+	topic_type = "server";
+	char* Server_name[]= {"SampleServer"};
+
+	LOG_INFO_0("========7. Test the api for server configuration ========");
+	setenv("Server", "zmq_tcp,127.0.0.1:5669", true);
+	config = env_config->get_messagebus_config(NULL, Server_name, 1, topic_type);
+	value = config->get_config_value(config->cfg, "type");
+	ASSERT_EQ(value->type, CVT_STRING);
+	ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
+
+	topic_type = "client";
+	LOG_INFO_0("========8. Test the api for client configuration ========");
+	char* RequestEP[] = {"SampleEP"};
+	setenv("SampleEP_cfg", "zmq_tcp,127.0.0.1:5669", true);
+	config = env_config->get_messagebus_config(NULL, RequestEP, 1, topic_type);
+	value = config->get_config_value(config->cfg, "type");
+	ASSERT_EQ(value->type, CVT_STRING);
+	ASSERT_STRCASEEQ(value->body.string, "zmq_tcp");
+
 	free(value);
 	free(config);
 

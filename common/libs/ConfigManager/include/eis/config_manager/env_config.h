@@ -42,7 +42,9 @@ typedef struct {
      * get_topics_from_env function gives the topics with respect to publisher/subscriber.
      *
      * @param topic_type       - Topic type. Either pub or sub
-     * @return char**          - topics returned from env config based on topic type
+     * @return char**          - topics returned from env config based on topic type (PUB/SUB). 
+     *                           topic_type is case insensitive.
+     *                           Eg: pub/sub, PUB/SUB, Pub/Sub.
      */
 
     char** (*get_topics_from_env)(const char* topic_type);
@@ -57,7 +59,9 @@ typedef struct {
      *                          `[Publisher_AppName]/[stream_name]`.
      *                          Eg: `VideoIngestion/camera1_stream`
      * @param num_of_topics    - num of topics
-     * @param topic_type      - TopicType for which msg bus config needs to be constructed
+     * @param topic_type      - TopicType for which msg bus config needs to be constructed (PUB/SUB, SERVER/CLIENT). 
+     *                          topic_type is case insensitive.
+     *                          Eg: pub/sub, PUB/SUB, Pub/Sub, server/client, SERVER/CLIENT, Server/Client.
      * @return config_t*      - JSON msg bus config of type config_t
      */
     config_t* (*get_messagebus_config)(const config_mgr_t* configmgr, char* topic[], size_t num_of_topics, const char* topic_type);
