@@ -2,7 +2,8 @@
 
 # EIS setup with Kubernetes for single node.
 # This README is for setting up EIS with kubernetes in a single node setup for now.
-1. Install K8 by running 'k8_install.sh' Use sudo to install K8 from the directoty where you want to install k8. This installation script will be merged later.
+1. Install Kubernetes by running below command . 
+   sudo ./k8s_install.sh
 2. Add 'HOST_IP' and 'ETCD_HOST' in build/.env file.
 3. Update ETCD_CLIENT_PORT and ETCD_PEER_PORT to 8379 and 8380 respectively in build/.env file.
 3. Update EIS_LOCAL_PATH, PROVISION_MODE as k8s in provision/.env file
