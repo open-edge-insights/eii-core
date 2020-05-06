@@ -16,3 +16,4 @@
  envsubst < ia_video_ingestion.yml > deploy_yml/ia_video_ingestion.yml
  envsubst < ia_video_analytics.yml > deploy_yml/ia_video_analytics.yml
  envsubst < ia_visualizer.yml > deploy_yml/ia_visualizer.yml
+ envsubst < ia_web_visualizer.yml > deploy_yml/ia_web_visualizer.yml

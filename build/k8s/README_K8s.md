@@ -20,3 +20,5 @@
    And then run below command to get pods and services running.
    Section b. kubectl -n kube-eis apply (appname.yml)
    E.g. kubectl -n kube-eis apply sample_publisher_subscriber.yml
+9. Web Visualizer can be accessed through https://IPaddress:30007
+   E.g. https://10.223.109.135:30007/
