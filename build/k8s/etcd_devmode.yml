@@ -10,7 +10,6 @@ spec:
   - name: etcd
     port: 8379
     protocol: TCP
-    targetPort: 8379
   selector:
     app: etcd
 
@@ -23,7 +22,7 @@ metadata:
   name: ia-etcd
   namespace: kube-eis
 spec:
-  hostNetwork: true
+  restartPolicy: OnFailure
   containers:
   - name: ia-etcd
     image: ia_etcd:${EIS_VERSION}
@@ -39,33 +38,14 @@ spec:
       value: "$ETCD_CLIENT_PORT"
     - name: ETCD_PEER_PORT
       value: "$ETCD_PEER_PORT"
-    - name: ETCD_HOST
-      value: "$ETCD_HOST" #TBD
     - name: ETCD_NAME
       value: "$ETCD_NAME"
     - name: ETCD_INITIAL_CLUSTER_STATE
       value: "new"
     - name: ETCDCTL_API
       value: "3"
-    - name: HOST_IP
-      value: "$HOST_IP"
     - name: ETCD_DATA_DIR
       value: "$ETCD_DATA_DIR"
-  volumes:
-  - name: "etcd-data"
-    hostPath:
-      path: ${EIS_INSTALL_PATH}/data/etcd/
----
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    app: etcd
-  name: etcd-provision
-  namespace: kube-eis
-spec:
-  hostNetwork: true
-  containers:
   - name: ia-etcd-provision
     image: ia_etcd_provision:${EIS_VERSION}
     volumeMounts:
@@ -83,7 +63,7 @@ spec:
     - name: ETCD_ROOT_PASSWORD
       value: "eis123"
     - name: ETCD_HOST
-      value: "$ETCD_HOST"
+      value: localhost
     - name: ETCD_CLIENT_PORT
       value: "$ETCD_CLIENT_PORT"
     - name: ETCD_PEER_PORT
@@ -92,9 +72,10 @@ spec:
       value: "$PROVISION_MODE"
     - name: ETCD_PREFIX
       value: "$ETCD_PREFIX"
-    - name: HOST_IP
-      value: "$HOST_IP"
   volumes:
+  - name: "etcd-data"
+    hostPath:
+      path: ${EIS_INSTALL_PATH}/data/etcd/
   - name: config
     hostPath:
       path: ${EIS_LOCAL_PATH}/build/provision/config

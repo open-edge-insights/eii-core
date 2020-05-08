@@ -7,13 +7,10 @@
  source ../provision/.env
  set +a
 
- sudo rm -rf deploy_yml
- mkdir deploy_yml
+ mkdir -p deploy_yml
 
- envsubst < etcd_devmode.yml > deploy_yml/etcd_devmode.yml
- envsubst < etcd_prodmode.yml > deploy_yml/etcd_prodmode.yml
- envsubst < sample_publisher_subscriber.yml > deploy_yml/sample_publisher_subscriber.yml
- envsubst < ia_video_ingestion.yml > deploy_yml/ia_video_ingestion.yml
- envsubst < ia_video_analytics.yml > deploy_yml/ia_video_analytics.yml
- envsubst < ia_visualizer.yml > deploy_yml/ia_visualizer.yml
- envsubst < ia_web_visualizer.yml > deploy_yml/ia_web_visualizer.yml
+for file in *.yml 
+do
+ echo "$file"
+ envsubst < $file > deploy_yml/$file
+done

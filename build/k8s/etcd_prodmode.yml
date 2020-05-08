@@ -10,7 +10,6 @@ spec:
   - name: etcd
     port: 8379
     protocol: TCP
-    targetPort: 8379
   selector:
     app: etcd
 
@@ -23,7 +22,7 @@ metadata:
   name: ia-etcd
   namespace: kube-eis
 spec:
-  hostNetwork: true
+  restartPolicy: OnFailure
   containers:
   - name: ia-etcd
     image: ia_etcd:${EIS_VERSION}
@@ -49,16 +48,12 @@ spec:
       value: "$ETCD_CLIENT_PORT"
     - name: ETCD_PEER_PORT
       value: "$ETCD_PEER_PORT"
-    - name: ETCD_HOST
-      value: "$ETCD_HOST" #TBD
     - name: ETCD_NAME
       value: "$ETCD_NAME"
     - name: ETCD_INITIAL_CLUSTER_STATE
       value: "new"
     - name: ETCDCTL_API
       value: "3"
-    - name: HOST_IP
-      value: "$HOST_IP"
     - name: ETCD_TRUSTED_CA_FILE
       value: "/run/secrets/ca_etcd/ca_certificate.pem"
     - name: ETCD_CERT_FILE
@@ -67,37 +62,6 @@ spec:
       value: "/run/secrets/etcd_server_key/etcdserver_server_key.pem"
     - name: ETCD_DATA_DIR
       value: "$ETCD_DATA_DIR"
-
-  volumes:
-  - name: "root-cert"
-    secret:
-      secretName: root-cert
-  - name: "root-key"
-    secret:
-      secretName: root-key
-  - name: "ca-cert"
-    secret:
-      secretName: ca-etcd
-  - name: "etcdserver-cert"
-    secret:
-      secretName: etcdserver-cert
-  - name: "etcdserver-key"
-    secret:
-      secretName: etcdserver-key
-  - name: "etcd-data"
-    hostPath:
-      path: ${EIS_INSTALL_PATH}/data/etcd/
----
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    app: etcd
-  name: etcd-provision
-  namespace: kube-eis
-spec:
-  hostNetwork: true
-  containers:
   - name: ia-etcd-provision
     image: ia_etcd_provision:${EIS_VERSION}
     volumeMounts:
@@ -123,9 +87,7 @@ spec:
     - name: ETCD_ROOT_PASSWORD
       value: "eis123"
     - name: ETCD_HOST
-      value: "$ETCD_HOST"
-    - name: HOST_IP
-      value: "$HOST_IP"
+      value: "localhost"
     - name: ETCD_CLIENT_PORT
       value: "$ETCD_CLIENT_PORT"
     - name: ETCD_PEER_PORT
@@ -140,7 +102,6 @@ spec:
       value: "$PROVISION_MODE"
     - name: ETCD_PREFIX
       value: "$ETCD_PREFIX"
-
   volumes:
   - name: "root-cert"
     secret:
@@ -151,6 +112,15 @@ spec:
   - name: "ca-cert"
     secret:
       secretName: ca-etcd
+  - name: "etcdserver-cert"
+    secret:
+      secretName: etcdserver-cert
+  - name: "etcdserver-key"
+    secret:
+      secretName: etcdserver-key
+  - name: "etcd-data"
+    hostPath:
+      path: ${EIS_INSTALL_PATH}/data/etcd/
   - name: "certs"
     hostPath:
       path: ${EIS_LOCAL_PATH}/build/provision/Certificates
@@ -160,4 +130,3 @@ spec:
   - name: docker-compose
     hostPath:
       path: ${EIS_LOCAL_PATH}/build/docker-compose.yml
-

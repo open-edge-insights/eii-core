@@ -15,13 +15,14 @@ spec:
       mountPath: /EIS/sockets
     - name: saved-images
       mountPath: '${EIS_INSTALL_PATH}/saved_images'
+    - name: tmp
+      mountPath: /tmp/.X11-unix
     - name: "ca-cert"
       mountPath: /run/secrets/ca_etcd
     - name: "visualizer-cert"
       mountPath: /run/secrets/etcd_Visualizer_cert
     - name: "visualizer-key"
       mountPath: /run/secrets/etcd_Visualizer_key
-      readOnly: true
 
     env:
     - name: AppName
@@ -35,9 +36,9 @@ spec:
     - name: PROFILING_MODE
       value: '${PROFILING_MODE}'
     - name: no_proxy
-      value: '${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}'
+      value: '${eis_no_proxy}'
     - name: ETCD_HOST
-      value: '${ETCD_HOST}'
+      value: etcd
     - name: ETCD_CLIENT_PORT
       value: '${ETCD_CLIENT_PORT}'
     - name: PROVISION_MODE
@@ -66,9 +67,8 @@ spec:
     - name:  SubTopics
       value: "VideoAnalytics/camera1_stream_results"
     - name: camera1_stream_results_cfg
-      value: "zmq_tcp,${HOST_IP}:65013"
+      value: "zmq_tcp,videoanalytics:65013"
 
-  hostNetwork: true
   volumes:
   - name: eis-dev
     hostPath:
@@ -79,6 +79,9 @@ spec:
   - name: saved-images
     hostPath:
       path: ${EIS_INSTALL_PATH}/saved_images
+  - name: tmp
+    hostPath:
+      path: /tmp/.X11-unix
   - name: "ca-cert"
     secret:
       secretName: ca-etcd
@@ -88,4 +91,3 @@ spec:
   - name: "visualizer-key"
     secret:
       secretName: visualizer-key
-

@@ -110,7 +110,7 @@ def generate(opts, root_ca_needed=True):
     for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
         os.environ["SAN"] = \
-            "IP:127.0.0.1,DNS:localhost,DNS:*,URI:urn:unconfigured:application"
+                "IP:127.0.0.1,DNS:etcd,DNS:*,DNS:localhost,URI:urn:unconfigured:application"
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
                 outform = cert_opts['output_format']
@@ -162,9 +162,9 @@ if __name__ == '__main__':
         else:
             generate(data, True)  # Generate new root CA
         if os.environ['PROVISION_MODE'] == "k8s":
+            subprocess.run ("kubectl create namespace kube-eis" , shell=True)
             subprocess.run ("kubectl create secret generic ca-etcd --from-file=Certificates/ca/ca_certificate.pem" , shell=True)
             subprocess.run ("kubectl get secret ca-etcd --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
-            subprocess.run ("kubectl create namespace kube-eis" , shell=True)
             for key,value in data.items():
                 for var in value:
                     for k,v in var.items():

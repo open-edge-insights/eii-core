@@ -1,6 +1,20 @@
 apiVersion: v1
+kind: Service
+metadata:
+  name: videoingestion
+  namespace: kube-eis
+spec:
+  ports:
+  - port: 65012
+    name: tcp
+  selector:
+    app: video
+---
+apiVersion: v1
 kind: Pod
 metadata:
+  labels:
+    app: video
   name: ia-video-ingestion
   namespace: kube-eis
 
@@ -19,7 +33,6 @@ spec:
       mountPath: /run/secrets/etcd_VideoIngestion_cert
     - name: "video-ingest-key"
       mountPath: /run/secrets/etcd_VideoIngestion_key
-      readOnly: true
 
     env:
     - name: AppName
@@ -29,9 +42,9 @@ spec:
     - name: PROFILING_MODE
       value: '${PROFILING_MODE}'
     - name: no_proxy
-      value: '${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}'
+      value: '${eis_no_proxy},${RTSP_CAMERA_IP}'
     - name: ETCD_HOST
-      value: '${ETCD_HOST}'
+      value: etcd
     - name: ETCD_CLIENT_PORT
       value: '${ETCD_CLIENT_PORT}'
     - name: PROVISION_MODE
@@ -44,7 +57,7 @@ spec:
       value: "/run/secrets/etcd_VideoIngestion_cert/VideoIngestion_client_certificate.pem"
     - name: CONFIGMGR_KEY
       value: "/run/secrets/etcd_VideoIngestion_key/VideoIngestion_client_key.pem"
-      # MessageBus Endpoint Configuration
+      #MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
     - name: Clients
       value: "VideoAnalytics,Visualizer,RestDataExport,WebVisualizer,TLS_RemoteAgent"
@@ -62,9 +75,10 @@ spec:
     - name: PubTopics
       value: "camera1_stream"
     - name: camera1_stream_cfg
-      value: zmq_tcp,0.0.0.0:9000
+      value: "zmq_tcp,0.0.0.0:65012"
+    - name: Server
+      value: "zmq_tcp,0.0.0.0:66013"
 
-  hostNetwork: true
   volumes:
   - name: eis-dev
     hostPath:

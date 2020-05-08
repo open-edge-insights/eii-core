@@ -22,3 +22,12 @@
    E.g. kubectl -n kube-eis apply sample_publisher_subscriber.yml
 9. Web Visualizer can be accessed through https://IPaddress:30007
    E.g. https://10.223.109.135:30007/
+10. In order to run video use case in dev mode.It is needed to comment the secrets in .yml files .
+E.g. To comment below in ia_video_ingestion.yml if need to run in DEV mode:
+  volumeMounts:
+    - name: "ca-cert"
+      mountPath: /run/secrets/ca_etcd
+    - name: "video-ingest-cert"
+      mountPath: /run/secrets/etcd_VideoIngestion_cert
+    - name: "video-ingest-key"
+      mountPath: /run/secrets/etcd_VideoIngestion_key
