@@ -54,6 +54,11 @@ if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     )
 endif()
 
+# Finding libraries
+find_package(cJSON REQUIRED)
+find_package(EISUtils REQUIRED)
+find_package(IntelSafeString REQUIRED)
+
 # Install Go EnvConfig if specified to
 if(WITH_GO_ENV_CONFIG)
     message("-- Configuring Go EnvConfig installation")

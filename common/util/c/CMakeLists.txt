@@ -35,6 +35,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 find_package(cJSON REQUIRED)
 find_package(EISMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
+find_package(WJE REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -50,7 +51,8 @@ include_directories(
     include/
     ${CJSON_LIBRARIES}/
     ${EISMsgEnv_INCLUDE}/
-    ${IntelSafeString_INCLUDE})
+    ${IntelSafeString_INCLUDE}/
+    ${WJE_INCLUDE_DIRS})
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
@@ -64,8 +66,7 @@ target_link_libraries(eisutils
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
-        wjelement
-        wjreader)
+        ${WJE_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

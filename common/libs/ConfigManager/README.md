@@ -6,7 +6,27 @@ ConfigManager provides C/Python/Golang APIs for:
 
 # C ConfigManager
 
-## Prerequisites
+## Dependency Installation
+
+The EISUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
+the default version installed via `apt-get`. To install the correct version
+of CMake, execute the following commands:
+
+```sh
+# Remove old CMake version
+$ sudo apt -y purge cmake
+$ sudo apt -y autoremove
+
+# Download CMake
+$ wget https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.sh
+
+# Installation CMake
+$ sudo mkdir /opt/cmake
+$ sudo cmake-3.15.0-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
+
+# Make the command available to all users
+$ sudo update-alternatives --install /usr/bin/cmake cmake /opt/cmake/bin/cmake 1 --force
+```
 
 To install the dependencies for the ConfigManager execute the following command:
 
@@ -14,7 +34,7 @@ To install the dependencies for the ConfigManager execute the following command:
 $ sudo -E ./install.sh
 ```
 
-ConfigManager also has dependency on EISUtils library. Follow the documentation of EISUtils to install it.
+Additionally, ConfigManager also has dependency on EISUtils library. Follow the documentation of EISUtils to install it.
 * [IntelSafeString](../IntelSafeString/README.md)
 * [EISUtils](../../util/c/README.md)
 
@@ -32,7 +52,7 @@ $ make
 Set `WITH_PYTHON=ON` to compile Config Manager and EnvConfig in Python.
 
 ```
-$ cmake DWITH_PYTHON=ON ..
+$ cmake -DWITH_PYTHON=ON ..
 ```
 
 If you wish to compile the EIS Config Manager along with C examples
