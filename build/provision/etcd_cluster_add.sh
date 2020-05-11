@@ -18,6 +18,10 @@ if ! [[ $2 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
+if [ -z "$ETCD_HOST" ] && [ -z "$ETCD_CLIENT_PORT" ] ; then
+  ETCDCTL_ENDPOINTS= $ETCD_HOST:$ETCD_CLIENT_PORT
+fi
+
 if [ $DEV_MODE = 'true' ]; then
     docker exec -it ia_etcd ./etcdctl  member add $1 --peer-urls http://$2:$ETCD_PEER_PORT > $1.env
 else
@@ -51,11 +55,9 @@ rm $1.env $OUTPUT_DIR/provision/dep/$1tmp.env
 cp ../.env $OUTPUT_DIR/
 sed -i "s/ETCD_NAME=.*/ETCD_NAME=$1/g"  $OUTPUT_DIR/.env
 
+cp .env $OUTPUT_DIR/provision/.
 
 cp provision_eis.sh $OUTPUT_DIR/provision/
 
 tar -czvf $OUTPUT_DIR.tar.gz $OUTPUT_DIR/
 rm -rf $OUTPUT_DIR/
-
-
-

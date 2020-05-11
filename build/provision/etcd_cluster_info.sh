@@ -4,6 +4,10 @@ set -a
 source ../.env
 set +a
 
+if [ -z "$ETCD_HOST" ] && [ -z "$ETCD_CLIENT_PORT" ] ; then
+  ETCDCTL_ENDPOINTS= $ETCD_HOST:$ETCD_CLIENT_PORT
+fi
+
 if [ $DEV_MODE = 'true' ]; then
     docker exec -it ia_etcd ./etcdctl member list -w table
 else
