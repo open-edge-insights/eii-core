@@ -18,6 +18,10 @@
             {
                 "Name": "EIS/Publickeys",
                 "Permissions": "RO"
+            },
+	    {
+		"Name": "EIS/InfluxDBConnector",
+		"Permissions": "RO"
             }
         ]
     }
