@@ -73,19 +73,44 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ## Running Unit Tests
 
 > **NOTE:**
+
 * The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
 
-* Currently Unit tests for config manager are written only for dev mode
+* Provisioning EIS should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
 
 Run the following commands from the `build/tests` folder to cover the unit
-tests. Make sure etcd daemon should be running, `etcdctl` is available in the folder `build/tests` and install `etcdctl` by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).
+tests. Make sure etcd daemon should be running, `etcdctl` is available in the folder `build/tests` and install `etcdctl` by following [https://github.com/etcd-io/etcd/releases](https://github.com/etcd-io/etcd/releases).Config manager(go etcd) APIs have been tested on commit `0c787e26bcd102c3bb14050ac893b07ba9ea029f`
 
+* To run EnvConfig unit tests
+```
+$ ./env-config-tests
+```
+
+* TO run ConfigManager unit tests in Dev mode
 
 ```sh
 $ export ETCDCTL_API=3
-$ ./configmgr-tests
-$ ./env-config-tests
+$ ./configmgr-tests <AppName>(AppName is optional in Devmode)
 ```
+
+* Running Config Manager unit tests in Prod mode
+
+```sh
+To check usuage,
+$ ./configmgr-tests -h
+
+$ ./configmgr-tests <AppName> <app_cert_file> <app_key_file> <ca_file> <root_cert> <root_key>
+
+Here,
+AppName: service name
+app_cert_file: config manager client certificate in pem format
+app_key_file: config manager private key in pem format
+ca_file: ca certificate in pem format
+root_cert: config manager root certificate in pem format
+root_key: config manager root key in pem format
+```
+
+
 
 ## C APIs
 
@@ -118,7 +143,8 @@ $ ./env-config-tests
     ```
         get_config function gets the value of a key from config manager
         @param key      - key to be queried on from config manager
-        @return char*   - values returned from config manager based on key
+        @return char*   - values returned from config manager based on key,
+                          "-1" as a value on any failure
     ```
 
 3. To save a value to etcd if key already exists, if not create a new set of key-value in etcd
@@ -135,9 +161,9 @@ $ ./env-config-tests
         @return int     - 0 on success, -1 on failure
     ```
     **NOTE:**
-    1. As per default EIS configuration, put is allowed only on /[Appname]/datastore`
-    2. If running in prod mode, make sure the same application which is used to create config manager instance has to be used on put_config i.e the key to save in config manager would be /[AppName]/datastore
-    Eg: If Visualizer has been used to create config_manager instance, put_config can only save value on /Visualizer/datastore
+    1. As per default EIS configuration, put is allowed only on `/[Appname]/datastore`
+    2. If running in prod mode, make sure the same application which is used to create config manager instance has to be used on put_config i.e the key to save in config manager would be `/[AppName]/datastore`
+    Eg: If `Visualizer` has been used to create config_manager instance, put_config can only save value on `/Visualizer/datastore`
 
 4. Registers user callback function to keep a watch on key based on it's prefix
 

@@ -114,7 +114,8 @@ func getConfig(keyy *C.char) *C.char {
 	key := C.GoString(keyy)
 	value, err := confMgr.GetConfig(key)
 	if err != nil {
-		glog.Fatalf("getConfig failed for the key %s with Error: %v", key, err)
+		glog.Errorf("getConfig failed for the key %s with Error: %v", key, err)
+		return nil
 	}
 	glog.V(1).Infof("GetConfig is called and the value of the key %s is: %s", key, value)
 	return C.CString(value)
