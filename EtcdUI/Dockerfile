@@ -19,7 +19,8 @@
 # SOFTWARE.
 
 ARG EIS_VERSION
-FROM ia_eisbase:$EIS_VERSION as eisbase
+ARG DOCKER_REGISTRY
+FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION as eisbase
 
 ARG ETCD_VERSION
 RUN apt-get update && \
@@ -39,7 +40,7 @@ RUN chown -R ${EIS_UID}:${EIS_UID} /var/log/nginx/ && \
     chown -R ${EIS_UID}:${EIS_UID} /var/lib/nginx/
 
 
-FROM ia_common:$EIS_VERSION as common
+FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
 
 FROM eisbase
 

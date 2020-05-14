@@ -26,6 +26,7 @@ services:
           EIS_VERSION: ${EIS_VERSION}
           # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
           CMAKE_BUILD_TYPE: "Release"
+          DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
@@ -42,6 +43,7 @@ services:
         ETCD_VERSION: ${ETCD_VERSION}
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui
