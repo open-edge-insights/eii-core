@@ -29,15 +29,22 @@
                 "PROFILING_MODE": "false",
                 "ZMQ_RECV_HWM": "1000",
                 "PubTopics": "camera1_stream",
-                "camera1_stream_cfg": "zmq_tcp,0.0.0.0:${ep.outputvi.localport}",
+                "camera1_stream_cfg": "zmq_tcp,0.0.0.0:${ep.output-vi.localport}",
+                "Server": "zmq_tcp,0.0.0.0:${ep.output-vi-sw-tr.localport}",
                 "C_LOG_LEVEL": "INFO"
             },
             "Endpoints": [
                 {
-                    "Name": "outputvi",
+                    "Name": "output-vi-sw-tr",
                     "Endtype": "server",
                     "DataType": "messages",
-                    "Link": "vitovalink"
+                    "Link": "vi-sw-tr"
+                },
+                {
+                    "Name": "output-vi",
+                    "Endtype": "server",
+                    "DataType": "messages",
+                    "Link": "vi-va-link"
                 }
             ]
         },
@@ -62,25 +69,25 @@
                 "ZMQ_RECV_HWM": "1000",
                 "Clients": "WebVisualizer",
                 "SubTopics": "VideoIngestion/camera1_stream",
-                "camera1_stream_cfg": "zmq_tcp,${ep.inputva.remoteaddress}:${ep.inputva.remoteport}",
+                "camera1_stream_cfg": "zmq_tcp,${ep.input-va.remoteaddress}:${ep.input-va.remoteport}",
                 "PubTopics": "camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,0.0.0.0:${ep.outputva.localport}",
+                "camera1_stream_results_cfg": "zmq_tcp,0.0.0.0:${ep.output-va.localport}",
                 "C_LOG_LEVEL": "INFO"
             },
             "Endpoints": [
                 {
-                    "Name": "outputva",
+                    "Name": "output-va",
                     "Endtype": "server",
                     "Protocol": "TCP",
                     "DataType": "messages",
-                    "Link": "vatowebvis"
+                    "Link": "va-web-vis"
                 },
                 {
-                    "Name": "inputva",
+                    "Name": "input-va",
                     "Endtype": "client",
                     "Protocol": "TCP",
                     "DataType": "messages",
-                    "Link": "vitovalink",
+                    "Link": "vi-va-link",
                     "Port": "29170"
                 }
             ]
@@ -106,23 +113,23 @@
                 "CertType": "zmq,pem",
                 "ZMQ_RECV_HWM": "1000",
                 "SubTopics": "VideoAnalytics/camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,${ep.webvisinput.remoteaddress}:${ep.webvisinput.remoteport}",
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.web-vis-in.remoteaddress}:${ep.web-vis-in.remoteport}",
                 "PY_LOG_LEVEL": "INFO"
             },
             "Endpoints": [
                 {
-                    "Name": "webvisout",
+                    "Name": "web-vis-out",
                     "Endtype": "server",
                     "Protocol": "TCP",
                     "Port": "5000",
                     "DataType": "messages",
-                    "Link": "webvisoutlink"
+                    "Link": "web-vis-outlink"
                 },
                 {
-                    "Name": "webvisinput",
+                    "Name": "web-vis-in",
                     "Endtype": "client",
                     "DataType": "messages",
-                    "Link": "vatowebvis",
+                    "Link": "va-web-vis",
                     "Port":"29170"
                 }
             ]
@@ -130,13 +137,16 @@
     ],
     "Links": [
         {
-            "Name": "vitovalink"
+            "Name": "vi-va-link"
         },
         {
-            "Name": "webvisoutlink"
+            "Name": "web-vis-outlink"
         },
         {
-            "Name": "vatowebvis"
+            "Name": "va-web-vis"
+        },
+        {
+            "Name": "vi-sw-tr"
         }
     ],
     "Ingresses": [
@@ -144,7 +154,7 @@
             "Name": "ext-webvisualizer",
             "Protocol": "TCP",
             "Options": {
-                "Backend": "webvisoutlink",
+                "Backend": "web-vis-outlink",
                 "Port": "31505"
             }
         }
