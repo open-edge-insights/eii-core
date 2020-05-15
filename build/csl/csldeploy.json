@@ -16,7 +16,9 @@
                 "CPU": 100,
                 "MemoryMB": 100
             },
-            "Networks": ["cslhostnetworkinterface"],
+            "Networks": [
+                "cslhostnetworkinterface"
+            ],
             "ExecutionEnv": {
                 "AppName": "VideoIngestion",
                 "ETCD_ENDPOINT": "${datastore.endpoint}",
@@ -97,6 +99,8 @@
             "Description": "Web_visualizer module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:webvisualizer:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -130,7 +134,7 @@
                     "Endtype": "client",
                     "DataType": "messages",
                     "Link": "va-web-vis",
-                    "Port":"29170"
+                    "Port": "29170"
                 }
             ]
         }

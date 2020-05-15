@@ -12,6 +12,8 @@
             "Description": "EtcdUI module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:etcdui:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -45,6 +47,8 @@
             "Description": "Telegraf module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:telegraf:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -78,6 +82,8 @@
             "Description": "InfluxDBConnector module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:influxdbconnector:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -134,6 +140,8 @@
             "Description": "Kapacitor module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:kapacitor:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -176,6 +184,8 @@
             "Description": "Grafana module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:grafana:2.3}",
+            "RunAsUser": "5319",
+            "RunAsGroup": "5319",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
