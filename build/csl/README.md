@@ -79,16 +79,16 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
   * Goto **build/csl/** directory
   ```sh
     $ ./generate_csl_specs.sh
-  ````
+  ```
   
   * All the appspec & Module spec will be generated under **build/csl/deploy** directory.
 
-## Deploying VideoIngestion,VideoAnalytics & WebVisualizer of EIS in CSL.
+## Deploying VideoIngestion, VideoAnalytics, EtcdUI, InfluxDBConnector, ImageStore, & WebVisualizer of EIS in CSL.
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
 > Use the Appspec & Module spec present in **deploy** folder.
-> It was advisable to use `csladm` utility in CSL Manager installed node.
+> It is advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please this command:    
 >        ```sh
 >        $ ./csladm register artifact -h
@@ -113,11 +113,138 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
       ```sh
       $ ./csladm register artifact --type file  --name webvisualizer --version 2.3 --file ./webvis_module_spec.json
       ```
+
+    * InfluxDBConnector
+
+      ```sh
+      $ ./csladm register artifact --type file  --name influxdbconnector --version 2.3 --file ./influxdbconnector_module_spec.json
+      ```
+
+    * ImageStore
+
+      ```sh
+      $ ./csladm register artifact --type file  --name imagestore --version 2.3 --file ./imagestore_module_spec.json
+      ```
+
+    * EtcdUI
+
+      ```sh
+      $ ./csladm register artifact --type file  --name etcdui --version 2.3 --file ./etcd_ui_module_spec.json
+      ```
+
+## Deploying Video Streaming without storage in CSL.
+
+* To deploy the Video Streaming application
+
+  * Delete the InfluxDBConnector and ImageStore configurations from the video_deploy.json appspec.
+
+    Config that required to be deleted in the **modules** section,
+    ```
+        {
+            "Name": "InfluxDBConnector",
+            "Description": "InfluxDBConnector module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:influxdbconnector:2.3}",
+            "RunAsUser": "$EIS_UID",
+            "RunAsGroup": "$EIS_UID",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+	    "Constraints": {
+		"influx": "true"
+            },
+            "ExecutionEnv": {
+                "AppName": "InfluxDBConnector",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
+                "DEV_MODE": "$DEV_MODE",
+                "PROFILING_MODE": "false",
+                "ZMQ_RECV_HWM": "1000",
+                "Clients": "Visualizer",
+                "Server": "zmq_tcp,0.0.0.0:${ep.sOutInflux.localport}",
+		"SubTopics": "VideoAnalytics/camera1_stream_results",
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.influx-va-in.remoteaddress}:${ep.influx-va-in.remoteport}"
+            },
+            "Endpoints": [
+                {
+                    "Name": "sOutInflux",
+                    "Endtype": "server",
+                    "Port": "8675",
+		    "DataType": "messages",
+                    "Link": "sinfluxout"
+                },
+                {
+                    "Name": "influx-va-in",
+                    "Endtype": "client",
+                    "DataType": "messages",
+                    "Link": "va-is-influx-web-vis"
+                }
+            ]
+        },
+        {
+            "Name": "ImageStore",
+            "Description": "ImageStore module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:imagestore:2.3}",
+            "RunAsUser": "$EIS_UID",
+            "RunAsGroup": "$EIS_UID",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "ImageStore",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
+                "DEV_MODE": "$DEV_MODE",
+                "PROFILING_MODE": "false",
+                "ZMQ_RECV_HWM": "1000",
+                "Clients": "Visualizer",
+                "Server": "zmq_tcp,0.0.0.0:${ep.out-is-server.localport}",
+		"SubTopics": "VideoAnalytics/camera1_stream_results",
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.is-va-in.remoteaddress}:${ep.is-va-in.remoteport}"
+            },
+            "Endpoints": [
+                {
+                    "Name": "out-is-server",
+                    "Endtype": "server",
+                    "Port": "5669",
+		    "DataType": "messages",
+                    "Link": "server-is"
+                },
+                {
+                    "Name": "is-va-in",
+                    "Endtype": "client",
+                    "DataType": "messages",
+                    "Link": "va-is-influx-web-vis"
+                }
+            ]
+	}
+    ```
+
+    Config that required to be deleted in the **Links** section,
+    ```
+	{
+            "Name": "sinfluxout"
+        },
+        {
+            "Name": "server-is"
+        },
+    ```
+
 ## Deploying Telegraf, InfluxDbConnector, Kapacitor & Grafana of EIS TimeSeries use-case in CSL.
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> It was advisable to use `csladm` utility in CSL Manager installed node.
+> Use the Appspec & Module spec present in **deploy** folder.
+> It is advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please this command:
 >        ```sh
 >        $ ./csladm register artifact -h
@@ -167,7 +294,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
      ```   
   * Set **whitelisted_mounts** property value to **/dev** directory.
      ```sh    
-     $   whitelisted_mounts=/dev,/var/tmp
+     $   whitelisted_mounts=/dev,/var/tmp,/opt/intel/eis/data
      ```
   > Save the file.
 
@@ -226,6 +353,36 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
             },
         ``
       **Note** Make Sure that you have appended properly and validate the json.
+
+>**Below steps are recommended, to use the storage feature and keep the data consistent of Video Streaming and Historical application in multinode setup across multiple deployment**
+  * Open the video_deploy.json file.
+
+  * Add the following section in the ImageStore and InfluxDBConnector modules in appspec.
+  ```sh
+    "Constraints": {
+	"key": "value"
+    },
+  ```
+  Adding "Constraints" to modules will tie the Pods of those modules to particular node (which have the same labels (key:value) set).
+
+  * Set the labels in a Node, where InfluxDBConnector and ImageStore will run, as these containers store data in local file system
+  it is necessary to fix a Node
+
+  * It can be set during the CSL-Client installation, or it can be updated with the help of API exposed by CSL Manager
+  ```sh
+     $  curl -k -H "Content-type: applicatio/json" -u user -X PUT "https://csl-manager-host:8443/api/v1/nodes/node/metadata" -d '{"key":"value"}'
+
+     where node: string representation of the client name
+  ```
+
+  * To delete the labels from node use the following command
+  ```sh
+     $  curl -k -H "Content-type: applicatio/json" -u user -X DELETE "https://csl-manager-host:8443/api/v1/nodes/node/metadata" -d '{"key":"value"}'
+
+     where node: string representation of the client name
+  ```
+
+  >**Note** If the labels are not set in any Node, and Constraints section is added in the InfluxDBConnector and ImageStore modules in appspec. InfluxDBCOnnector and ImageStore modules will not launch.
 
 * Update the Appspec Execution Environment as needed by individual modules.
 

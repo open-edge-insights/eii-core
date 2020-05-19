@@ -2,7 +2,10 @@
     "SchemaVersion": "0.2",
     "Runtime": "docker",
     "RuntimeOptions": {
-        "ContainerImage": "ia_influxdbconnector:2.3"
+        "ContainerImage": "ia_influxdbconnector:$EIS_VERSION",
+        "TemporaryVolumes": [
+            "$EIS_INSTALL_PATH/data/:/influxdata"
+        ]
     },
     "DataStore": {
         "Protocol": "DIRECT",

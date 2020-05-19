@@ -2,13 +2,16 @@
     "SchemaVersion": "0.2",
     "Runtime": "docker",
     "RuntimeOptions": {
-        "ContainerImage": "ia_telegraf:$EIS_VERSION"
+        "ContainerImage": "ia_imagestore:$EIS_VERSION",
+        "TemporaryVolumes": [
+            "$EIS_INSTALL_PATH/data:/data"
+        ]
     },
     "DataStore": {
         "Protocol": "DIRECT",
         "DataBuckets": [
             {
-                "Name": "EIS/Telegraf",
+                "Name": "EIS/ImageStore",
                 "Permissions": "RO"
             },
             {
@@ -18,10 +21,6 @@
             {
                 "Name": "EIS/Publickeys",
                 "Permissions": "RO"
-            },
-	    {
-		"Name": "EIS/InfluxDBConnector",
-		"Permissions": "RO"
             }
         ]
     }

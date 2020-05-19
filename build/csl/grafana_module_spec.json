@@ -2,7 +2,7 @@
     "SchemaVersion": "0.2",
     "Runtime": "docker",
     "RuntimeOptions": {
-        "ContainerImage": "ia_grafana:2.3"
+        "ContainerImage": "ia_grafana:$EIS_VERSION"
     },
     "DataStore": {
         "Protocol": "DIRECT",
