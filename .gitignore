@@ -46,5 +46,6 @@ VideoAnalytics/
 VideoIngestion/
 Visualizer/
 WebVisualizer/
+EISAzureBridge/
 common/video/
 tools/
