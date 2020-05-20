@@ -25,15 +25,14 @@
                 "CONFIGMGR_CACERT": "${databucket.cacert}",
                 "CONFIGMGR_CERT": "${databucket.cert}",
                 "CONFIGMGR_KEY": "${databucket.key}",
-                "ETCD_PREFIX": "/csl/apps/EIS",
-                "DEV_MODE": "false",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
+                "DEV_MODE": "$DEV_MODE",
                 "Clients": "VideoAnalytics,WebVisualizer",
                 "PROFILING_MODE": "false",
                 "ZMQ_RECV_HWM": "1000",
                 "PubTopics": "camera1_stream",
                 "camera1_stream_cfg": "zmq_tcp,0.0.0.0:${ep.output-vi.localport}",
-                "Server": "zmq_tcp,0.0.0.0:${ep.output-vi-sw-tr.localport}",
-                "C_LOG_LEVEL": "INFO"
+                "Server": "zmq_tcp,0.0.0.0:${ep.output-vi-sw-tr.localport}"
             },
             "Endpoints": [
                 {
@@ -65,16 +64,15 @@
                 "CONFIGMGR_CACERT": "${databucket.cacert}",
                 "CONFIGMGR_CERT": "${databucket.cert}",
                 "CONFIGMGR_KEY": "${databucket.key}",
-                "DEV_MODE": "false",
-                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "$DEV_MODE",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
                 "PROFILING_MODE": "false",
                 "ZMQ_RECV_HWM": "1000",
                 "Clients": "WebVisualizer",
                 "SubTopics": "VideoIngestion/camera1_stream",
                 "camera1_stream_cfg": "zmq_tcp,${ep.input-va.remoteaddress}:${ep.input-va.remoteport}",
                 "PubTopics": "camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,0.0.0.0:${ep.output-va.localport}",
-                "C_LOG_LEVEL": "INFO"
+                "camera1_stream_results_cfg": "zmq_tcp,0.0.0.0:${ep.output-va.localport}"
             },
             "Endpoints": [
                 {
@@ -99,8 +97,8 @@
             "Description": "Web_visualizer module manifest",
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:webvisualizer:2.3}",
-            "RunAsUser": "5319",
-            "RunAsGroup": "5319",
+            "RunAsUser": "$EIS_UID",
+            "RunAsGroup": "$EIS_UID",
             "Resources": {
                 "CPU": 100,
                 "MemoryMB": 100
@@ -112,13 +110,12 @@
                 "CONFIGMGR_CACERT": "${databucket.cacert}",
                 "CONFIGMGR_CERT": "${databucket.cert}",
                 "CONFIGMGR_KEY": "${databucket.key}",
-                "DEV_MODE": "false",
-                "ETCD_PREFIX": "/csl/apps/EIS",
+                "DEV_MODE": "$DEV_MODE",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
                 "CertType": "zmq,pem",
                 "ZMQ_RECV_HWM": "1000",
                 "SubTopics": "VideoAnalytics/camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,${ep.web-vis-in.remoteaddress}:${ep.web-vis-in.remoteport}",
-                "PY_LOG_LEVEL": "INFO"
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.web-vis-in.remoteaddress}:${ep.web-vis-in.remoteport}"
             },
             "Endpoints": [
                 {

@@ -45,11 +45,21 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
         ```
 
+## Generating the CSL Appspec & Module Spec.
+  * CSL Appspec & Module Spec will be generated under **build/csl/deploy** folder.
+
+  * Goto **build/csl/** directory
+  ```sh
+    $ sh ./generate_csl_specs.sh.sh
+  ````
+  
+  * All the appspec & Module spec will be generated under **build/csl/deploy** directory.
 
 ## Deploying VideoIngestion,VideoAnalytics & WebVisualizer of EIS in CSL.
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
+> Use the Appspec & Module spec present in **deploy** folder.
 > It was advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please this command:    
 >        ```sh
