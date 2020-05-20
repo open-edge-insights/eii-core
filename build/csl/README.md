@@ -10,7 +10,11 @@
 
 ## Provisioning EIS with CSL
 
-> **Note**: EIS Deployment with CSL can be done only in **PROD** mode.
+ **Note**: 
+
+1. EIS Deployment with CSL can be done only in **PROD** mode.
+
+2. For running EIS in multi node, we have to identify one master node. For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`.
 
 Provisioning EIS with CSL is done in 2 ways. 
 
@@ -65,10 +69,11 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
     * EIS Master Node Provisioning should be done any other **1** CSL client node.
   * Please follow the EIS Pre-requisites before CSL Provisioning.
     [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+  * Change the value of ETCD_NAME=<any name other than `master`> in [build/.env](../../build/.env).
   * Goto `build/provision` directory.
   * Provisioning EIS Slave node in CSL Client node.
     ```sh
-      $ sudo ./slave_provision_noetcd.sh
+      $ sudo ./provision_eis.sh
     ```
   
 

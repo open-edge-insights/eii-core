@@ -103,8 +103,8 @@ class EisBundleGenerator:
 
             cmdlist.append("sudo rm " + eis_cert_dir + "ca/ca_key.pem")
 
-        cmdlist.append("sudo chmod +x ../provision/slave_provision_noetcd.sh")
-        cmdlist.append("sudo cp -f " + "../provision/slave_provision_noetcd.sh"
+        cmdlist.append("sudo chmod +x ../provision/provision_eis.sh")
+        cmdlist.append("sudo cp -f " + "../provision/provision_eis.sh"
                                        + " " + eis_provision_dir)
         cmdlist.append("chown -R eisuser:eisuser ./" + self.bundle_tag_name)
         cmdlist.append("tar -czvf \

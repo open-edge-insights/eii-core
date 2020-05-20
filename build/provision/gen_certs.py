@@ -104,6 +104,7 @@ def generate_root_ca():
 
 def generate(opts, root_ca_needed=True):
     if root_ca_needed:
+        print("Generating root CA certs...")
         generate_root_ca()
     copy_certificates_to_results_folder()
     for cert in opts["certs"]:

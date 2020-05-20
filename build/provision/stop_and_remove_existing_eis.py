@@ -46,7 +46,7 @@ def stop_and_remove_eis_containers(composefile):
                 print("Stopping Service : ", service)
                 subprocess.run("docker rm -f " + service, shell=True, stderr=open(os.devnull, 'wb'))
             except:
-                print("Error stopping EIS. Please stop EIS manually \
+                print("Error stopping Services. Please stop all the services manually \
                          and try provision again.")
                 
 
