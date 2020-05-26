@@ -82,7 +82,8 @@ def yaml_parser():
     # Fetching list of subdirectories
     print("Parsing through directory to fetch required services...")
     root_dir = os.getcwd() + '/../'
-    dir_list = [f.name for f in os.scandir(root_dir) if f.is_dir()]
+    dir_list = [f.name for f in os.scandir(root_dir) if
+                (f.is_dir() or os.path.islink(f))]
     dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
