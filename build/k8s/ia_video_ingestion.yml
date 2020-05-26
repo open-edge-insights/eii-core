@@ -22,11 +22,21 @@ spec:
   containers:
   - name: ia-video-ingestion
     image: ia_video_ingestion:${EIS_VERSION}
+    securityContext:
+      privileged: true
     volumeMounts:
     - name: eis-dev
       mountPath: /dev
     - name: eis-socket
       mountPath: /EIS/sockets
+    - name: tmp
+      mountPath: /var/tmp
+    - name: opencl
+      mountPath: /opt/Intel/OpenCL/Boards
+    - name: altera
+      mountPath: /opt/altera
+    - name: fpga
+      mountPath: /opt/intel/intelFPGA
     - name: "ca-cert"
       mountPath: /run/secrets/ca_etcd
     - name: "video-ingest-cert"
@@ -86,6 +96,18 @@ spec:
   - name: eis-socket
     hostPath:
       path: /opt/intel/eis/sockets
+  - name: tmp
+    hostPath:
+      path: /var/tmp
+  - name: opencl
+    hostPath:
+      path: /opt/Intel/OpenCL/Boards
+  - name: altera
+    hostPath:
+      path: /opt/altera
+  - name: fpga
+    hostPath:
+      path: /opt/intel/intelFPGA
   - name: "ca-cert"
     secret:
       secretName: ca-etcd
