@@ -34,7 +34,7 @@ EIS software will run on the below mentioned Intel platforms:
 
 ```
 * 6th generation Intel® CoreTM processor onwards OR
-  6th generation Intel® Xeon® processor onwards OR 
+  6th generation Intel® Xeon® processor onwards OR
   Pentium® processor N4200/5, N3350/5, N3450/5 with Intel® HD Graphics
 * At least 16GB RAM
 * At least 64GB hard drive
@@ -58,22 +58,22 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
      Follow the below steps in `installer` repo/folder:
      * Add below 2 entries in `installer/installation/config/config.cfg` file
-        
+
        ```sh
        dockerce
        docker_compose
        ```
-    
+
      * Follow the pre-requisite section to install EIS from `installer/README.md`
      * Run the below steps to install above binaries:
-        
+
        ```sh
        $ cd installer/installation
        $ chmod +x setup.sh
        $ sudo ./setup.sh
         ```
      * Logout and log back in to manage docker as a non-root user
-   
+
    * If one wants to install the tools and configure it manually, please follow the steps mentioned in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md)
 
 2. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [build/docker_security_recommendation.md](build/docker_security_recommendation.md)
@@ -124,14 +124,6 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 The section assumes the EIS software is already downloaded from the release package or from git.
 
-* Download the full package for OpenVINO toolkit for Linux version "2020.2" from the official website
-  (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux), extract it and copy the
-  directory `l_openvino_toolkit_xxxxx/` inside `IEdgeInsights/common/video`.
-
-   > **NOTE**: Make sure there is always one `l_openvino_toolkit_xxxxx/` folder under IEdgeInsights/common/video folder as 
-   > we are adding `l_openvino_toolkit_*` into Dockerfile which could result in  build failure of 
-   > openvino base container if there are multiple openvino sdk's in there (especially the old ones)
-  
 * Generating consolidated docker-compose.yml & eis_config.json:
 
   Move to build directory:
@@ -195,22 +187,22 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
   > **Note:**
   > * All EIS build and run commands are to be executed from the IEdgeInsights/build/ directory.
   > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
-     run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration. 
+     run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration.
      This is needed by `ia_visualizer` service to render the UI
-  > * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber. 
-     If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root. 
-     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the 
-     same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above, 
+  > * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber.
+     If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
+     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the
+     same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
-  > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the 
-     [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and 
+  > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the
+     [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and
      below command can be used to build and run the containers.
   >    ```sh
   >     $ docker-compose up --build -d
   >     ```
   ---
-    
-  
+
+
 Below are the main usecases supported by EIS:
 
 * For video streaming use case only:
@@ -227,7 +219,7 @@ Below are the main usecases supported by EIS:
   Sample docker-compose file is accessible at [build/samples/docker-compose-timeseries-usecase.yml](build/samples/docker-compose-timeseries-usecase.yml)
 
     > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
-  
+
 * For video streaming and timeseries use case:
   Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-timeseries-usecase.yml](build/samples/docker-compose-video-streaming-timeseries-usecase.yml)
 
@@ -283,34 +275,13 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 EIS supports running inference on `CPU`, `GPU`, `MYRIAD`, `HDDL` and `FPGA` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU"), part of the `udf` object configuration in `udfs`
 key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
-before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
+before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](common/udfs/README.md).
 
-**Note**:
-----
-* **Troubleshooting issues for HDDL and HDDLF(FGPA) devices**
-
-  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported. Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory(As mentioned in OpenVINO Release notes). When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
-
-    Note: HDDL was tested with OpenVINO 2020.2 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
-
-  * Please refer OpenVINO 2020.2 release notes in the below link for new features and changes from the previous versions.
-    https://software.intel.com/en-us/articles/OpenVINO-RelNotes
-
-  * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2020.2/index.html
-
-  * The OS Kernel version shouldn't be greater than 4.18 for FPGA accelerator inference, Please follow below steps to downgrade the Kernel on host m/c.
-     ```
-    $ sudo gedit /etc/default/grub
-    ```
-    Change GRUB_TIMEOUT to -1 and run below command.
-    ```
-    $ sudo update-grub
-    ```
-    Reboot the machine with `sudo reboot`. Please select the Kernel version 4.18 or lower in the grub menu.
-
 * **To run on HDDL devices**
+
+  * Download the full package for OpenVINO toolkit for Linux version "2020.2" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
@@ -327,7 +298,33 @@ check [common/udfs/README.md](common/udfs/README.md).
      $ $HDDL_INSTALL_DIR/bin/hddldaemon &
      ```
 
-  4. Additionally following is an workaround can be excercised if in case user observes NC_ERROR during device initialization of NCS2 stick.
+* **To run on HDDLF(FGPA) devices**
+
+  Please Refer the [README_fpga.md](README_fpga.md) for installing FPGA drivers. Once that is setup, please follow below steps:
+
+  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](build/docker-compose.yml).
+    If one is using docker-compose samples, please ensure to follow the same.
+
+    Eg: Just set the value of `FPGA_ENABLE` to `enable` like below for `ia_openvino_base` service:
+    ```sh
+      ia_openvino_base:
+        ...
+        args: ...
+              FPGA_ENABLE: "enable"
+        ...
+    ```
+  * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above.
+    For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
+    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
+    before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
+    check [common/udfs/README.md](common/udfs/README.md).
+
+**Note**:
+----
+
+* **Troubleshooting issues for NCS2(MYRIAD) devices**
+
+  * Following is an workaround can be excercised if in case user observes `NC_ERROR` during device initialization of NCS2 stick.
      While running EIS if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
      User can verify the successfull initialization by executing ***dmesg**** & ***lsusb***  as below:
 
@@ -351,29 +348,28 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3831.283438] usb 3-4: Manufacturer: Movidius Ltd.
      [ 3831.283439] usb 3-4: SerialNumber: 03e72485
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
+
+* **Troubleshooting issues for HDDL and HDDLF(FGPA) devices**
+
+  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported. Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory(As mentioned in OpenVINO Release notes). When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
+
+    Note: HDDL was tested with OpenVINO 2020.2 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+
+  * Please refer OpenVINO 2020.2 release notes in the below link for new features and changes from the previous versions.
+    https://software.intel.com/en-us/articles/OpenVINO-RelNotes
+
+  * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
+    https://docs.openvinotoolkit.org/2020.2/index.html
+
+  * The OS Kernel version shouldn't be greater than 4.18 for FPGA accelerator inference, Please follow below steps to downgrade the Kernel on host m/c.
      ```
-
-* **To run on HDDLF(FGPA) devices**
-
-  Please Refer the [README_fpga.md](README_fpga.md) for installing FPGA drivers. Once that is setup, please follow below steps:
-  
-  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](build/docker-compose.yml).
-    If one is using docker-compose samples, please ensure to follow the same.
-  
-    Eg: Just set the value of `FPGA_ENABLE` to `enable` like below for `ia_openvino_base` service:
-    ```sh
-      ia_openvino_base:
-        ...
-        args: ...
-              FPGA_ENABLE: "enable"
-        ...
+    $ sudo gedit /etc/default/grub
     ```
-  * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above. 
-    For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
-    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
-    before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config, 
-    check [common/udfs/README.md](common/udfs/README.md).
-
+    Change GRUB_TIMEOUT to -1 and run below command.
+    ```
+    $ sudo update-grub
+    ```
+    Reboot the machine with `sudo reboot`. Please select the Kernel version 4.18 or lower in the grub menu.
 ----
 
 # Time-series Analytics
@@ -427,7 +423,7 @@ EIS stack comes with following services, which can be included/excluded in docke
 
 # EIS multi node cluster provision and deployment using Turtlecreek
 
-By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and 
+By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and
 remote managibility using turtlecreek, please follow [build/deploy/README.md](build/deploy/README.md)
 
 
@@ -462,12 +458,12 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
      * [docker compose cli](https://docs.docker.com/compose/reference/overview/)
      * [docker compose reference](https://docs.docker.com/compose/compose-file/)
      * [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
-     
+
 2. If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps      ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be
    some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
 
 3. Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
    `docker-compose logs -f`
- 
+
 ---
 
