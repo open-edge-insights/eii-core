@@ -12,6 +12,20 @@
 
 > **Note**: EIS Deployment with CSL can be done only in **PROD** mode.
 
+Provisioning EIS with CSL is done in 2 ways. 
+
+1.  [EIS Master/Single Node Provisioning in CSL Client Node](#eis-mastersingle-node-provisioning-in-csl-client-node)
+    * This is the Mandatory Provisioning step should be done atleast in **1** CSL Client node for deploying EIS.
+
+2.  [EIS Slave node Provisioning in CSL Client Node](#eis-slave-node-provisioning-in-csl-client-node)
+    * This Provisioning step should be done when we are deploying EIS in CSL on multiple Client nodes.
+    * It should be done after Master Node Provisioning is done in **1** CSL Client node for deploying EIS.
+    * Slave provisioning will create only the EIS dependent directories, users & its permissions.
+    
+    **Note** Slave Provisioning should not be done alone without master node provisioning. 
+
+### EIS Master/Single Node Provisioning in CSL Client Node
+
 To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the below steps.
 
 * EIS Should be provisioned properly in Client Machine. Please Select the Client machine where you want provision the eis by following below steps.
@@ -43,7 +57,21 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
         $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
     
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
-        ```
+
+### EIS Slave node Provisioning in CSL Client Node
+>**Note** This should be used in other than EIS master CSL Client nodes on ***Multi node scenario*** only. This is not a primary provisioning step for **Single Node**.
+  * This step to be followed from the EIS Slave Client node machines for enabling EIS in mulit nodes of CSL.
+  * Pre requisites:
+    * EIS Master Node Provisioning should be done any other **1** CSL client node.
+  * Please follow the EIS Pre-requisites before CSL Provisioning.
+    [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+  * Goto `build/provision` directory.
+  * Provisioning EIS Slave node in CSL Client node.
+    ```sh
+      $ sudo ./slave_provision_noetcd.sh
+    ```
+  
+
 
 ## Generating the CSL Appspec & Module Spec.
   * CSL Appspec & Module Spec will be generated under **build/csl/deploy** folder.
@@ -178,6 +206,3 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
     * Verify the logs of deployed application status.
 
-
-> **NOTE**
-> Running CASL in Multiple Node is "Work In Progress"
