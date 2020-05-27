@@ -7,47 +7,19 @@ WORKDIR ${GO_WORK_DIR}
 COPY cmake ./common/cmake
 
 COPY libs/IntelSafeString ./common/libs/IntelSafeString/
-RUN cd ./common/libs/IntelSafeString && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    make install
 
 COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
-RUN cd ./common/libs/EISMsgEnv && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    make install
 
 COPY util/ ./common/util/
-RUN cd ./common/util/c && \
-    ./install.sh && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    make install
 
 COPY libs/ConfigManager ./common/libs/ConfigManager
-RUN cd ./common/libs/ConfigManager && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    cmake -DWITH_PYTHON=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    make install
 
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
-RUN cd ./common/libs/EISMessageBus && \
-    rm -rf build deps && \
-    mkdir build && \
-    cd build && \
-    cmake -DWITH_PYTHON=ON -DWITH_GO=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-    make && \
-    make install
+
+COPY eis_libs_installer.sh ./common
+
+RUN cd common && \
+    ./eis_libs_installer.sh
 
 # Re-copying everything here to not to miss any of
 # the subfolders
