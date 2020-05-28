@@ -103,7 +103,7 @@
                 "ETCD_PREFIX": "$ETCD_PREFIX",
                 "PROFILING_MODE": "false",
                 "ZMQ_RECV_HWM": "1000",
-                "Clients": "WebVisualizer,InfluxDBConnector,ImageStore",
+                "Clients": "WebVisualizer,Visualizer,InfluxDBConnector,ImageStore",
                 "SubTopics": "VideoIngestion/camera1_stream",
                 "camera1_stream_cfg": "zmq_tcp,${ep.input-va.remoteaddress}:${ep.input-va.remoteport}",
                 "PubTopics": "camera1_stream_results",
@@ -163,6 +163,43 @@
                 },
                 {
                     "Name": "web-vis-in",
+                    "Endtype": "client",
+                    "DataType": "messages",
+                    "Link": "va-is-influx-web-vis",
+                    "Port": "29170"
+                }
+            ]
+        },
+        {
+            "Name": "Visualizer",
+            "Description": "Visualizer module manifest",
+            "SchemaVersion": "0.2",
+            "ManifestFile": "${idx:visualizer:$EIS_VERSION}",
+            "RunAsUser": "$EIS_UID",
+            "RunAsGroup": "$EIS_UID",
+            "Resources": {
+                "CPU": 100,
+                "MemoryMB": 100
+            },
+            "ExecutionEnv": {
+                "AppName": "Visualizer",
+                "DISPLAY": ":0",
+                "IMAGE_DIR": "${EIS_INSTALL_PATH}/saved_images",
+                "PROFILING_MODE": "false",
+                "ETCD_ENDPOINT": "${datastore.endpoint}",
+                "CONFIGMGR_CACERT": "${databucket.cacert}",
+                "CONFIGMGR_CERT": "${databucket.cert}",
+                "CONFIGMGR_KEY": "${databucket.key}",
+                "DEV_MODE": "$DEV_MODE",
+                "ETCD_PREFIX": "$ETCD_PREFIX",
+                "CertType": "zmq",
+                "ZMQ_RECV_HWM": "1000",
+                "SubTopics": "VideoAnalytics/camera1_stream_results",
+                "camera1_stream_results_cfg": "zmq_tcp,${ep.vis-in.remoteaddress}:${ep.vis-in.remoteport}"
+            },
+            "Endpoints": [
+                {
+                    "Name": "vis-in",
                     "Endtype": "client",
                     "DataType": "messages",
                     "Link": "va-is-influx-web-vis",

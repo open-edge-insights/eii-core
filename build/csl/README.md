@@ -83,7 +83,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
   
   * All the appspec & Module spec will be generated under **build/csl/deploy** directory.
 
-## Deploying VideoIngestion, VideoAnalytics, EtcdUI, InfluxDBConnector, ImageStore, & WebVisualizer of EIS in CSL.
+## Deploying VideoIngestion, VideoAnalytics, EtcdUI, InfluxDBConnector, ImageStore, WebVisualizer & Visualizer of EIS in CSL.
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
@@ -112,6 +112,12 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
       
       ```sh
       $ ./csladm register artifact --type file  --name webvisualizer --version 2.3 --file ./webvis_module_spec.json
+      ```
+
+    * Visualizer
+
+      ```sh
+      $ ./csladm register artifact --type file  --name visualizer --version 2.3 --file ./visualizer_module_spec.json
       ```
 
     * InfluxDBConnector
@@ -294,7 +300,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
      ```   
   * Set **whitelisted_mounts** property value to **/dev** directory.
      ```sh    
-     $   whitelisted_mounts=/dev,/var/tmp,/opt/intel/eis/data
+     $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images
      ```
   > Save the file.
 
