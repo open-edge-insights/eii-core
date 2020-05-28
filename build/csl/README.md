@@ -50,7 +50,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
   * Goto **build/csl/** directory
   ```sh
-    $ sh ./generate_csl_specs.sh.sh
+    $ ./generate_csl_specs.sh
   ````
   
   * All the appspec & Module spec will be generated under **build/csl/deploy** directory.

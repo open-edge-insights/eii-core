@@ -21,11 +21,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+set -a
 source ../.env
 source ../provision/.env
+set +a
 mkdir -p deploy
 
-set -a
 echo "Generating the CSL deploy files"
 
 for file in *.json 
