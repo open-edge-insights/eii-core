@@ -21,6 +21,12 @@
 cmake_minimum_required(VERSION 3.12)
 project(intel-safestring VERSION 1.0.0)
 
+set (MAX_SAFESTRING_SIZE "60")
+set (sed_cmd "sed")
+set (sed_arg1 "-i")
+set (sed_arg2 "/RSIZE_MAX_STR/c\#define RSIZE_MAX_STR      ( ${MAX_SAFESTRING_SIZE}UL << 10 )      /* ${MAX_SAFESTRING_SIZE}KB */")
+set (sed_arg3 "${CMAKE_CURRENT_SOURCE_DIR}/safestring-src/include/safe_str_lib.h")
+
 # Download Intel Safe String library source code
 configure_file(
     "cmake/IntelSafeString.txt.in"
@@ -37,6 +43,15 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/safestring-download)
 if(result)
     message(FATAL_ERROR "Build step for safestring failed: ${ss_result}")
+endif()
+
+execute_process(COMMAND "echo" "Changing safe_str_lib.h file")
+execute_process(COMMAND ${sed_cmd} ${sed_arg1} ${sed_arg2} ${sed_arg3}
+                RESULT_VARIABLE ss_result
+                OUTPUT_VARIABLE ss_output_var)
+
+if(ss_result)
+    message(FATAL_ERROR "Changing safe_str_lib.h failed: ${ss_result} : ${ss_output_var}")
 endif()
 
 # Add CMake subdirectories for the safestring-src
