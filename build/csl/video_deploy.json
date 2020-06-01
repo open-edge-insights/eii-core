@@ -13,8 +13,8 @@
             "SchemaVersion": "0.2",
             "ManifestFile": "${idx:videoingestion:2.3}",
             "Resources": {
-                "CPU": 100,
-                "MemoryMB": 100
+                "CPU": 4000,
+                "MemoryMB": 2000
             },
             "Networks": [
                 "cslhostnetworkinterface"

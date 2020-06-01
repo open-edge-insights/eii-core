@@ -194,6 +194,39 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
   >**Note** The host network interace name should be your client machine & basler camera connected interface name.
 
+* Steps to set the Accelarator Node Affinity to CSL Client Nodes.
+
+  * CSL has a node affinity feature and we can restrict particular module/application to deploy on specific node.
+  * For HDDL/NCS2 dependenecies follow the steps for setting node affinity.
+  * Using CSL API Set the Meta Key & Meta Value on particular node as follows
+    * For HDDL
+      ```sh
+      $ curl -k -H "Content-type: application/json" -u <username> -X PUT "https://csl-mgr-ip/api/v1/nodes/nodename/metadata" -d '{"hddl": "true"}'
+      ```
+    * For NCS2
+      ```sh
+      $ curl -k -H "Content-type: application/json" -u <username> -X PUT "https://csl-mgr-ip/api/v1/nodes/nodename/metadata" -d '{"ncs2": "true"}'
+      ```
+    **Note** Here the nodename is your client machine hostname you can refer the same in CSL Manager Client nodes section.
+
+    * Updating the Appspec
+      Select the appspec and update the **Constraints** under Modules section.
+      * For HDDL
+        In *VideoAnalytics* or *VideoIngestion* based on your application usage Section of Appspec under *Modules* Update the follwing key values:
+        ```sh
+           "Constraints": {
+                "hddl": "true"
+            }
+        ```
+      * For NCS2
+        In *VideoAnalytics* or *VideoIngestion* based on your application usage Section of Appspec under *Modules* Update the follwing key values:
+        ```sh
+           "Constraints": {
+                "ncs2": "true"
+            },
+        ``
+      **Note** Make Sure that you have appended properly and validate the json.
+
 * Update the Appspec Execution Environment as needed by individual modules.
 
 * Open CSLManager in your browser.
