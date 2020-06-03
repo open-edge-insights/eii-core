@@ -79,20 +79,13 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
 
 ## Generating the CSL Appspec & Module Spec.
-  * CSL Appspec & Module Spec will be generated under **build/csl/deploy** folder.
-
-  * Goto **build/csl/** directory
-  ```sh
-    $ ./generate_csl_specs.sh
-  ```
-  
-  * All the appspec & Module spec will be generated under **build/csl/deploy** directory.
+  * CSL Appspec will be auto-generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
 ## Deploying VideoIngestion, VideoAnalytics, EtcdUI, InfluxDBConnector, ImageStore, WebVisualizer & Visualizer of EIS in CSL.
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the Appspec & Module spec present in **deploy** folder.
+> Use the Module specs present in every app's individual folders.
 > It is advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please this command:    
 >        ```sh
@@ -254,7 +247,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the Appspec & Module spec present in **deploy** folder.
+> Use the Module specs present in every app's individual folders.
 > It is advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please this command:
 >        ```sh
@@ -402,7 +395,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 * Click on **Submit New App** button, which pop's up a window to paste the Appspec.
 
     * Copy the Appspec of EIS-CSL from 
-        [build/csl/csldeploy.json](../csl/csldeploy.json)
+        [build/csl/csl_app_spec.json.json](../csl/csl_app_spec.json.json)
         and paste it in Window & Submit.
 
     * Verify the logs of deployed application status.

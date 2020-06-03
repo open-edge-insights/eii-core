@@ -24,16 +24,40 @@ import ruamel.yaml
 import argparse
 import os
 import json
+import subprocess
 from jsonmerge import merge
 import distutils.util as util
+
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
 
 
+def source_env(file):
+    """Method to source an env file
+
+    :param file: Path of env file
+    :type file: str
+    """
+    try:
+        with open(file, 'r') as fp:
+            for line in fp.readlines():
+                # Checking if line has = in env
+                if "=" in line:
+                    # Emulating sourcing an env
+                    key, value = line.strip().split("=")
+                    os.environ[key] = value
+    except Exception as e:
+        print("Exception occured {}".format(e))
+        return
+
+
 def json_parser(file):
     """Generate etcd config by parsing through
        individual app configs
+
+    :param file: Path of json file
+    :type file: str
     """
     # Fetching GlobalEnv config
     with open('./common_config.json', "rb") as infile:
@@ -75,6 +99,96 @@ def json_parser(file):
         eis_config_path))
 
 
+def csl_parser(app_list):
+    """Generate CSL AppSpec by parsing through
+       individual app specific AppSpecs
+
+    :param app_list: List of services
+    :type app_list: list
+    """
+    # Fetching the template json
+    with open('./csl/csl_template.json', "rb") as infile:
+        csl_template = json.load(infile)
+
+    # json to store all publisher endpoints
+    publisher_list = {
+        "VideoAnalytics": {},
+        "InfluxDBConnector": {}
+    }
+
+    # Updating publisher apps endpoints
+    for app in app_list:
+        with open(app + '/app_spec.json', "rb") as infile:
+            jsonFile = json.load(infile)
+            head = jsonFile["Module"]
+            if head["Name"] == list(publisher_list.keys())[0] or\
+               head["Name"] == list(publisher_list.keys())[1]:
+                publisher_list[head["Name"]] = head["Endpoints"]
+
+    # Creating deploy AppSpec from individual AppSpecs
+    for app in app_list:
+        with open(app + '/app_spec.json', "rb") as infile:
+            jsonFile = json.load(infile)
+            head = jsonFile["Module"]
+            csl_template["Modules"].append(head)
+            # Variable to handle no publishers
+            publisher_present = False
+
+            # Fetch links from all AppSpecs & update deploy AppSpec
+            for endpoint in head["Endpoints"]:
+                if "Link" in endpoint.keys():
+                    csl_template["Links"].append({"Name": endpoint["Link"]})
+                else:
+                    # Iterate through available publisher list
+                    for publisher in publisher_list.keys():
+                        # Verify publiser doesn't try to fetch keys of itself
+                        if publisher != head["Name"]:
+                            if publisher_list[publisher] != "{}":
+                                pub_list = publisher_list[publisher]
+                                # Iterate through publisher's multiple
+                                #  endpoints
+                                for ep in pub_list:
+                                    # Add Link if Publisher endpoint is of type
+                                    # server
+                                    if ep["Endtype"] == "server":
+                                        endpoint["Link"] = ep["Link"]
+                                        publisher_present = True
+                            # Remove link if no publishers are available
+                            if publisher_present is False:
+                                head["Endpoints"].remove(endpoint)
+
+            # Removing all duplicate links
+            csl_template["Links"] = [dict(t) for t in {tuple(d.items())
+                                     for d in csl_template["Links"]}]
+
+            # Fetch links from all AppSpecs & update deploy AppSpec
+            if "Ingress" in jsonFile.keys():
+                csl_template["Ingresses"].append(jsonFile["Ingress"])
+
+    # Creating consolidated json
+    f = open('./csl/tmp_csl_app_spec.json', "w")
+    f.write(json.dumps(csl_template, sort_keys=False, indent=4))
+
+    # Sourcing required env from .env & provision/.env
+    source_env("./.env")
+    source_env("./provision/.env")
+
+    # Substituting sourced env in AppSpec
+    csl_config_path = "./csl/csl_app_spec.json"
+    cmnd = "envsubst < ./csl/tmp_csl_app_spec.json > " + csl_config_path
+    try:
+        ret = subprocess.check_output(cmnd, shell=True)
+    except subprocess.CalledProcessError as e:
+        print("Subprocess error: {}, {}".format(e.returncode, e.output))
+        sys.exit(1)
+
+    # Removing generated temporary file
+    os.remove("./csl/tmp_csl_app_spec.json")
+
+    print("Successfully created consolidated AppSpec json at "
+          "{}".format(csl_config_path))
+
+
 def yaml_parser():
     """Yaml parser method.
     """
@@ -91,12 +205,18 @@ def yaml_parser():
         dir_list.insert(0, 'common/video')
 
     app_list = []
+    csl_app_list = []
     for dir in dir_list:
         prefix_path = root_dir + dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         if os.path.isfile(prefix_path + '/docker-compose.yml') and \
            os.path.isfile(prefix_path + '/config.json'):
             app_list.append(prefix_path)
+        # Append to csl_app_list if dir has both app_spec.json and
+        # module_spec.json
+        if os.path.isfile(prefix_path + '/app_spec.json') and \
+           os.path.isfile(prefix_path + '/module_spec.json'):
+            csl_app_list.append(prefix_path)
 
     # Load the common docker-compose.yml
     yaml_files_dict = []
@@ -152,6 +272,9 @@ def yaml_parser():
 
     # Starting json parser
     json_parser(DOCKER_COMPOSE_PATH)
+
+    # Starting csl json parser
+    csl_parser(csl_app_list)
 
 
 if __name__ == '__main__':

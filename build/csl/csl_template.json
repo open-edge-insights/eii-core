@@ -1,0 +1,12 @@
+{
+    "Name": "EIS",
+    "Version": "0.2",
+    "Description": "Edge Insights Software CSL Deployment",
+    "Type": "persistent",
+    "DataStore": {
+        "DataBucket": "EIS"
+    },
+    "Modules": [],
+    "Links": [],
+    "Ingresses": []
+}
