@@ -54,6 +54,7 @@ fi
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigManager="$CUR_DIR/libs/ConfigManager"
 CMAKE_BUILD_TYPE="Release"
+RUN_TESTS="OFF"
 
 # Installing cmake 3.15
 wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
@@ -84,7 +85,12 @@ cd $EISMessageBus/../EISMsgEnv/ &&
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   cmake  -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+   make && \
+   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
+   ./msg-envelope-tests  && \
+   ./crc32-tests  && \
+   cd .. ; fi && \
    make install
 
 cd $EISMessageBus/../../util/c/ &&
@@ -92,20 +98,37 @@ cd $EISMessageBus/../../util/c/ &&
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   make && \
+   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests  && \
+   ./config-tests
+   ./log-tests
+   ./thp-tests
+   ./tsp-tests
+   cd .. ; fi  && \
    make install
 
 cd $ConfigManager &&
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-   cmake -DWITH_PYTHON=ON -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+   cmake -DWITH_TESTS=${RUN_TESTS} -DWITH_PYTHON=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+   make && \
+   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
+   ./env-config-tests && \
+   cd .. ; fi && \
    make install
 
 cd $EISMessageBus &&
    rm -rf build deps && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_PYTHON=ON -DWITH_GO=ON -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   cmake  -DWITH_TESTS=${RUN_TESTS} -DWITH_PYTHON=ON -DWITH_GO=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+   make && \
+   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests  && \
+   ./msgbus-tests && \
+   source ./source.sh && \
+   python3.6 msgbus_envelope.py && \
+   cd .. ; fi  && \
    make install
