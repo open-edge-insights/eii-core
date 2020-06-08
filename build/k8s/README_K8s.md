@@ -31,3 +31,5 @@ E.g. To comment below in ia_video_ingestion.yml if need to run in DEV mode:
       mountPath: /run/secrets/etcd_VideoIngestion_cert
     - name: "video-ingest-key"
       mountPath: /run/secrets/etcd_VideoIngestion_key
+11. Follow below link for Basler camera connection.
+[README_Basler_Nw.md](README_Basler_Nw.md)
