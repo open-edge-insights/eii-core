@@ -194,7 +194,7 @@ fi
 
 #############################################################
 
-if [ $PROVISION_MODE = 'csl' ]; then
+if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
     if [ $DEV_MODE = 'false' ]; then
 	log_info "Provisioning EIS with mode... "
         copy_docker_compose_file

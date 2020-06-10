@@ -1,7 +1,7 @@
 import yaml
 import subprocess
 import json
-import os
+import sys
 import argparse
 
 
@@ -17,19 +17,21 @@ class EisBundleGenerator:
                 config['docker_compose_file_version']
             self.exclude_services = config['exclude_services']
             self.include_services = config['include_services']
-            self.env = self.get_env_dict()
-            if self.env['DOCKER_REGISTRY'] is '' or \
-                    "/" not in self.env['DOCKER_REGISTRY']:
-                print("Please Check the Docker Regsitry Address in \
-                'DOCKER_REGISTRY' env of build\\.env file")
-                os._exit(1)
+            self.env = self.get_env_dict("../.env")
+            self.provisionenv = self.get_env_dict("../provision/.env")
+            if self.provisionenv['PROVISION_MODE'] != "csl":
+                if self.env['DOCKER_REGISTRY'] is '' or \
+                        "/" not in self.env['DOCKER_REGISTRY']:
+                    print("Please Check the Docker Regsitry Address in \
+                    'DOCKER_REGISTRY' env of build\\.env file")
+                    sys.exit(0)
 
-    def get_env_dict(self):
+    def get_env_dict(self, filepath):
         '''
             This method reads the .env file and returns as
             dict values
         '''
-        with open("../.env") as f:
+        with open(filepath) as f:
             envList = f.readlines()
 
         envDict = {}
@@ -73,9 +75,57 @@ class EisBundleGenerator:
         except Exception as e:
             print("Exception Occured", e)
 
-    def generate_eis_bundle(self):
+    def generate_eis_bundle_for_csl(self):
         '''
-            generateTelitBundle helps to execute set of pre
+            generate EIS Bundle helps to execute set of pre
+            commands which is required for EIS CSL Slave Setup and finally
+            it generates the bundle
+        '''
+        eis_provision_dir = "./" + self.bundle_tag_name + "/provision/"
+        cmdlist = []
+        cmdlist.append("rm -rf " + self.bundle_tag_name)
+        cmdlist.append("mkdir -p " + self.bundle_tag_name)
+        cmdlist.append("mv docker-compose.yml ./" + self.bundle_tag_name)
+        cmdlist.append("cp ../.env ./" + self.bundle_tag_name)
+        cmdlist.append("mkdir -p " + self.bundle_tag_name + "/provision")
+        cmdlist.append("cp ../.env ./" + self.bundle_tag_name + "/provision")
+        cmdlist.append("sudo chmod +x ../provision/provision_eis.sh")
+        cmdlist.append("sudo cp -f " + "../provision/provision_eis.sh"
+                                       + " " + eis_provision_dir)
+        cmdlist.append("chown -R eisuser:eisuser ./" + self.bundle_tag_name)
+        
+        try:
+            for cmd in cmdlist:
+                subprocess.check_output(cmd, shell=True)
+            env = open(self.bundle_tag_name + "/.env", "rt")
+            envdata = env.read()
+            newenvdata = envdata.replace("ETCD_NAME=master","ETCD_NAME=slave")
+            env.close()
+            newenv = open(self.bundle_tag_name + "/.env", "wt")
+            newenv.write(newenvdata)
+            newenv.close()
+            cmdlist = []
+            cmdlist.append("tar -czvf \
+                " + self.bundle_tag_name + ".tar.gz ./" + self.bundle_tag_name)
+            if self.bundle_folder is False:
+                cmdlist.append("rm -rf " + self.bundle_tag_name + "/")
+            else:
+                pass
+            
+            if self.bundle_folder is False:
+                cmdlist.append("rm -rf " + self.bundle_tag_name + "/")
+            else:
+                pass
+            
+            for cmd in cmdlist:
+                subprocess.check_output(cmd, shell=True)
+            print("EIS CSL Slave Setup Bundle Generated Succesfully")
+        except Exception as e:
+            print("Exception Occured ", str(e))
+
+    def generate_eis_bundle_for_tc(self):
+        '''
+            generate_eis_bundle_for_tc helps to execute set of pre
             commands which is required for TC Bundle and finally
             it generates the bundle
         '''
@@ -119,13 +169,16 @@ class EisBundleGenerator:
             print("TurtleCreek Bundle Generated Succesfully")
         except Exception as e:
             print("Exception Occured ", str(e))
-
+   
     def main(self, args):
         self.bundle_tag_name = args.bundle_tag_name
         self.docker_file_path = args.compose_file_path
         self.bundle_folder = args.bundle_folder
         self.generate_docker_composeyml()
-        self.generate_eis_bundle()
+        if self.provisionenv['PROVISION_MODE'] == "csl":
+            self.generate_eis_bundle_for_csl()
+        else:
+            self.generate_eis_bundle_for_tc()
 
 
 if __name__ == '__main__':

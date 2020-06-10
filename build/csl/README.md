@@ -1,4 +1,24 @@
-# EIS Orchestration using CSL
+# EIS Orchestration using CSL Orchestrator
+
+EIS Orchestration using CSL Orchestrator.
+
+1. [CSL Setup](#csl-setup)
+
+2. [EIS CSL Pre-requisites](#eis-csl-pre-requisites)
+
+3. [Provisioning EIS with CSL](#provisioning-eis-with-csl)
+
+4. [Registering EIS ModuleSpecs with CSL SMR](#registering-eis-modulespecs-with-csl-smr)
+
+5. [Deploying EIS Application with CSL Using CSL Manager UI
+](#deploying-eis-application-with-csl-using-csl-manager-ui)
+
+6. [Steps to enable Basler Camera](#steps-to-enable-basler-camera)
+
+7. [Steps to enable Accelarators](#steps-to-enable-accelarators)
+
+8. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
+
 
 ## CSL Setup
 
@@ -6,7 +26,84 @@
 
     * Please refer orchestrator repo.
 
-      > **Note**: Installation of CSL is a pre-requisite before EIS Provisioning in following steps.
+      > **Note**: Installation of CSL is a pre-requisite before EIS Provisioning with CSL in following steps.
+
+## EIS CSL Pre-Requisites
+  ### EIS Pre-Requisites
+  * Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) steps for generating the appspecs & module specs using EIS Builder.
+
+  ### Update the Settings for Mounting External Devices/Volumes to CSL Client Nodes.
+  >**Note** This steps should be done in `cslmanager` machine only.
+  * Goto **CSL Manager** Machine.
+      ```sh
+      $   sudo vi /opt/csl/csl-manager/application.properties
+      ```   
+  * Set **whitelisted_mounts** property value as follows.
+      ```sh    
+      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images
+      ```
+  > Save the file.
+
+  * Restart the **csl-manager** System Service
+    ```sh    
+    $   sudo systemctl restart csl-manager
+    ```
+
+ 
+  ### Update the Container Image details in Module Spec Files.
+> **NOTE**:
+> For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
+> Use the Module specs present in every app's individual folders.
+> It is advisable to use `csladm` utility in CSL Manager installed node.
+> * For more details please use this command:    
+>   ```sh
+>        $ ./csladm register artifact -h
+>   ```
+> * For `csladm` utility we can use Env Variable to Set the CSL Manager & Software Module Repository to Avoid Frequent User Interaction on using this `csladm` utility for every operation.
+>    ```sh
+>      export CSLADM_USERNAME=<csl manager username>
+>      export CSLADM_PASSWORD=<csl manager password>
+>      export CSLADM_SMR_USERNAME=<csl smr username>
+>      export CSLADM_SMR_PASSWORD=<csl smr password>
+>    ```
+
+*  Pre-Requisites
+  
+    **Note** For Running EIS Modules in a node corresponding module Container Image should be present in the docker registry / SMR.
+
+ 
+* Updating the Module Spec files based on the Docker Regitry / Software Module Repo.
+  > **Note** For EIS If you are using docker image without any registry, no need to change anything in module spec `ContainerImage` Section. by default image name will be there.
+
+  * For Docker Registry
+    ```sh
+    "RuntimeOptions": {
+        "ContainerImage": "${DOCKER_REGISTRY}:${EIS_VERSION}"
+    }
+    ```
+
+  * For SMR 
+    
+    **Note** Registering docker image with SMR is optional incase of docker registry setup is not available. SMR can be used as needed.
+    * Build & Update the Docker Repository and Images.
+      * For Saving Docker Images
+        ```sh
+          $ docker save imagename:version > name.tar.gz
+        ```
+      **Note** `name` is the Reference name which you give it for each image while saving and the same used while loading in another machine docker.
+      
+      * For Registering & Loading the Saved Image with SMR
+  >   **Note** Registering docker image with SMR is optional incase of docker registry setup is not available. SMR can be used as needed.
+        
+    ```sh
+          $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./name.tar.gz --name <modulename> --version <EIS_VERSION>
+    ``` 
+    * Update generated Module Manifest file based on SMR registered artifact name and version.
+      ```sh
+      "RuntimeOptions": {
+          "ContainerImage": "%{idx:<registered_artifactname>:EIS_VERSION}"
+      }
+    
 
 ## Provisioning EIS with CSL
 
@@ -16,298 +113,90 @@
 
 2. For running EIS in multi node, we have to identify one master node. For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`.
 
-Provisioning EIS with CSL is done in 2 ways. 
+3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL Provisioning.
+   
 
-1.  [EIS Master/Single Node Provisioning in CSL Client Node](#eis-mastersingle-node-provisioning-in-csl-client-node)
+Provisioning EIS with CSL is done in 2 steps. 
+
+1.  [EIS Master Node Provisioning in CSL Client Node](#eis-master-node-provisioning-in-csl-client-node)
     * This is the Mandatory Provisioning step should be done atleast in **1** CSL Client node for deploying EIS.
 
 2.  [EIS Slave node Provisioning in CSL Client Node](#eis-slave-node-provisioning-in-csl-client-node)
     * This Provisioning step should be done when we are deploying EIS in CSL on multiple Client nodes.
-    * It should be done after Master Node Provisioning is done in **1** CSL Client node for deploying EIS.
-    * Slave provisioning will create only the EIS dependent directories, users & its permissions.
+    * It should be done after master Node Provisioning is done in **1** CSL client node for deploying EIS.    
+    **Note** EIS CSL slave Provisioning should be done after master node provisioning done. 
+
+### EIS Master Node Provisioning in CSL Client Node
+
+  * To Deploy EIS with CSL. EIS has to provisioned in "csl" mode.
+
+  * Please Select the client machine where you want provision the `master eis csl node` by following below steps.
     
-    **Note** Slave Provisioning should not be done alone without master node provisioning. 
+  * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
+    Before your provisioning in CSLMode
+      * PROVISION_MODE=csl
+      * CSL_MGR_USERNAME         =   [csl manager username]
+      * CSL_MGR_PASSWORD         =   [csl manager password]
+      * CSL_MGR_IP               =   [csl manager IP]
+      * DEFAULT_COMMON_NAME      =   [Etcd username for EtcdUI login]
+      * DEFAULT_COMMON_PASSWORD  =   [Etcd password for EtcdUI login]
 
-### EIS Master/Single Node Provisioning in CSL Client Node
-
-To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the below steps.
-
-* EIS Should be provisioned properly in Client Machine. Please Select the Client machine where you want provision the eis by following below steps.
-
-* Below script loads values from json file located at [build/provision/config/eis_config.json](../../build/provision/config/eis_config.json) to CSL Datastore based on the 
-  generated users & keys of CSL datastore.
-    
-    * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
-      Before your provisioning in CSLMode
-        * PROVISION_MODE=csl
-        * CSL_MGR_USERNAME         =   [csl manager username]
-        * CSL_MGR_PASSWORD         =   [csl manager password]
-        * CSL_MGR_IP               =   [csl manager IP]
-        * DEFAULT_COMMON_NAME      =   [Etcd username for EtcdUI login]
-        * DEFAULT_COMMON_PASSWORD  =   [Etcd password for EtcdUI login]
-
-    * Please Update following Environment Variables in [build/.env](../../build/.env)
-        * ETCD_PREFIX=/csl/apps/EIS
-        * Under Etcd Client Settings Update ETCD_HOST=<csl manager ip address/virtual ip address>
-        * Update ETCD_CLIENT_PORT if needed.
+  * Please Update following Environment Variables in [build/.env](../../build/.env)
+      * ETCD_PREFIX=/csl/apps/EIS
+      * Under Etcd Client Settings Update ETCD_HOST=<csl manager ip address/virtual ip address>
+      * Update ETCD_CLIENT_PORT if needed.
 
     **NOTE** please make sure your CSL Manger IP address is part of eis_no_proxy for it's Communication.
-
-    * Please follow the EIS Pre-requisites before CSL Provisioning.
-        [EIS Pre-requisites](../../README.md#eis-pre-requisites)
-
-
+  * Provision EIS CSL Master/Single node.
         ```sh
         $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
-    
+
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+        ```
 
 ### EIS Slave node Provisioning in CSL Client Node
 >**Note** This should be used in other than EIS master CSL Client nodes on ***Multi node scenario*** only. This is not a primary provisioning step for **Single Node**.
-  * This step to be followed from the EIS Slave Client node machines for enabling EIS in mulit nodes of CSL.
   * Pre requisites:
-    * EIS Master Node Provisioning should be done any other **1** CSL client node.
-  * Please follow the EIS Pre-requisites before CSL Provisioning.
-    [EIS Pre-requisites](../../README.md#eis-pre-requisites)
-  * Change the value of ETCD_NAME=<any name other than `master`> in [build/.env](../../build/.env).
-  * Goto `build/provision` directory.
-  * Provisioning EIS Slave node in CSL Client node.
-    ```sh
-      $ sudo ./provision_eis.sh
-    ```
+    * EIS Master Node should be provisioned in any other CSL client node.
+    **Note:** EIS Master Node provision should done only in *one* system.
+    
+  * Generate the EIS CSL Slave Provisioning Setup Bundle & Provision EIS CSL Slave Client node refer as follows
+     *  [EIS CSL Slave Provisioning Setup Bundle Generation](../deploy/README.md#step-6-generate-eis-bundle-for-csl-slave-provisioning)
   
-
+  **Note** Make Sure ETCD_NAME=<any name other than `master`> in [build/.env](../../build/.env).
 
 ## Generating the CSL Appspec & Module Spec.
   * CSL Appspec will be auto-generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
-## Deploying VideoIngestion, VideoAnalytics, EtcdUI, InfluxDBConnector, ImageStore, WebVisualizer & Visualizer of EIS in CSL.
+## Registering EIS ModuleSpecs with CSL SMR. 
+**Note** Module Specs will be generated under `build/csl` directory based on the EIS Repo.
 
-> **NOTE**:
-> For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the Module specs present in every app's individual folders.
-> It is advisable to use `csladm` utility in CSL Manager installed node.
-> * For more details please this command:    
->        ```sh
->        $ ./csladm register artifact -h
->       ```
-
-* Load Module spec of VideoIngestion/VideoAnalytics/WebVisualizer modules to CSL manager following commands using CSL admin utility.
-
-    * VideoIngestion
-    
-      ```sh
-      $ ./csladm register artifact --type file  --name videoingestion --version 2.3 --file ./vi_module_spec.json 
-      ```
-    
-    * VideoAnalytics
-    
-      ```sh
-      $ ./csladm register artifact --type file  --name videoanalytics --version 2.3 --file ./va_module_spec.json 
-      ```
-    
-    * WebVisualizer
-      
-      ```sh
-      $ ./csladm register artifact --type file  --name webvisualizer --version 2.3 --file ./webvis_module_spec.json
-      ```
-
-    * Visualizer
-
-      ```sh
-      $ ./csladm register artifact --type file  --name visualizer --version 2.3 --file ./visualizer_module_spec.json
-      ```
-
-    * InfluxDBConnector
-
-      ```sh
-      $ ./csladm register artifact --type file  --name influxdbconnector --version 2.3 --file ./influxdbconnector_module_spec.json
-      ```
-
-    * ImageStore
-
-      ```sh
-      $ ./csladm register artifact --type file  --name imagestore --version 2.3 --file ./imagestore_module_spec.json
-      ```
-
-    * EtcdUI
-
-      ```sh
-      $ ./csladm register artifact --type file  --name etcdui --version 2.3 --file ./etcd_ui_module_spec.json
-      ```
-
-## Deploying Video Streaming without storage in CSL.
-
-* To deploy the Video Streaming application
-
-  * Delete the InfluxDBConnector and ImageStore configurations from the video_deploy.json appspec.
-
-    Config that required to be deleted in the **modules** section,
+* Please use the following command to register the module spec with CSL manager using CSL admin utility.
+    ```sh
+    $ ./csladm register artifact --type file --name <modulename> --version <EISVersion> --file ./<module_spec_file>
     ```
-        {
-            "Name": "InfluxDBConnector",
-            "Description": "InfluxDBConnector module manifest",
-            "SchemaVersion": "0.2",
-            "ManifestFile": "${idx:influxdbconnector:2.3}",
-            "RunAsUser": "$EIS_UID",
-            "RunAsGroup": "$EIS_UID",
-            "Resources": {
-                "CPU": 100,
-                "MemoryMB": 100
-            },
-	    "Constraints": {
-		"influx": "true"
-            },
-            "ExecutionEnv": {
-                "AppName": "InfluxDBConnector",
-                "ETCD_ENDPOINT": "${datastore.endpoint}",
-                "CONFIGMGR_CACERT": "${databucket.cacert}",
-                "CONFIGMGR_CERT": "${databucket.cert}",
-                "CONFIGMGR_KEY": "${databucket.key}",
-                "ETCD_PREFIX": "$ETCD_PREFIX",
-                "DEV_MODE": "$DEV_MODE",
-                "PROFILING_MODE": "false",
-                "ZMQ_RECV_HWM": "1000",
-                "Clients": "Visualizer",
-                "Server": "zmq_tcp,0.0.0.0:${ep.sOutInflux.localport}",
-		"SubTopics": "VideoAnalytics/camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,${ep.influx-va-in.remoteaddress}:${ep.influx-va-in.remoteport}"
-            },
-            "Endpoints": [
-                {
-                    "Name": "sOutInflux",
-                    "Endtype": "server",
-                    "Port": "8675",
-		    "DataType": "messages",
-                    "Link": "sinfluxout"
-                },
-                {
-                    "Name": "influx-va-in",
-                    "Endtype": "client",
-                    "DataType": "messages",
-                    "Link": "va-is-influx-web-vis"
-                }
-            ]
-        },
-        {
-            "Name": "ImageStore",
-            "Description": "ImageStore module manifest",
-            "SchemaVersion": "0.2",
-            "ManifestFile": "${idx:imagestore:2.3}",
-            "RunAsUser": "$EIS_UID",
-            "RunAsGroup": "$EIS_UID",
-            "Resources": {
-                "CPU": 100,
-                "MemoryMB": 100
-            },
-            "ExecutionEnv": {
-                "AppName": "ImageStore",
-                "ETCD_ENDPOINT": "${datastore.endpoint}",
-                "CONFIGMGR_CACERT": "${databucket.cacert}",
-                "CONFIGMGR_CERT": "${databucket.cert}",
-                "CONFIGMGR_KEY": "${databucket.key}",
-                "ETCD_PREFIX": "$ETCD_PREFIX",
-                "DEV_MODE": "$DEV_MODE",
-                "PROFILING_MODE": "false",
-                "ZMQ_RECV_HWM": "1000",
-                "Clients": "Visualizer",
-                "Server": "zmq_tcp,0.0.0.0:${ep.out-is-server.localport}",
-		"SubTopics": "VideoAnalytics/camera1_stream_results",
-                "camera1_stream_results_cfg": "zmq_tcp,${ep.is-va-in.remoteaddress}:${ep.is-va-in.remoteport}"
-            },
-            "Endpoints": [
-                {
-                    "Name": "out-is-server",
-                    "Endtype": "server",
-                    "Port": "5669",
-		    "DataType": "messages",
-                    "Link": "server-is"
-                },
-                {
-                    "Name": "is-va-in",
-                    "Endtype": "client",
-                    "DataType": "messages",
-                    "Link": "va-is-influx-web-vis"
-                }
-            ]
-	}
-    ```
-
-    Config that required to be deleted in the **Links** section,
-    ```
-	{
-            "Name": "sinfluxout"
-        },
-        {
-            "Name": "server-is"
-        },
-    ```
-
-## Deploying Telegraf, InfluxDbConnector, Kapacitor & Grafana of EIS TimeSeries use-case in CSL.
-
-> **NOTE**:
-> For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the Module specs present in every app's individual folders.
-> It is advisable to use `csladm` utility in CSL Manager installed node.
-> * For more details please this command:
->        ```sh
->        $ ./csladm register artifact -h
->       ```
-
-* Load Module spec of Telegraf/InfluxDbConnector/Kapacitor/Grafana modules to CSL manager following commands using CSL admin utility.
-
-    * Telegraf
-    
-      ```sh
-      $ ./csladm register artifact --type file  --name telegraf --version 2.3 --file ./telegraf_module_spec.json 
-      ```
-    
-    * InfluxDbConnector
-    
-      ```sh
-      $ ./csladm register artifact --type file  --name influxdbconnector --version 2.3 --file ./influxdbconnector_module_spec.json 
-      ```
-    
-    * Kapacitor
-      
-      ```sh
-      $ ./csladm register artifact --type file  --name kapacitor --version 2.3 --file ./kapacitor_module_spec.json
-      ```
-
-    * Grafana
-
-      ```sh
-      $ ./csladm register artifact --type file  --name grafana --version 2.3 --file ./grafana_module_spec.json
-      `
-
-*  Update the Container Image along with Registry details in Module Spec Files.
-
-    * Build & Update the Docker Repository and Images.
-
+    For Eg:
+    *   Registering VideoIngestion Module Spec with CSL SMR.
         ```sh
-        "RuntimeOptions": {
-            "ContainerImage": "<Docker Regsitry>:ia_web_visualizer:2.3"
-        }
+        $ ./csladm register artifact --type file --name videoingestion --version 2.3 --file ./vi_module_spec.json
         ```
+  **Note** Please refer the modulename as per the appspec and also confirm both are same for proper reference by csl manager.
 
-* Update the Settings for Mounting External Devices to CSL.
+## Deploying EIS Application with CSL Using CSL Manager UI
+* Update the Appspec Execution Environment as needed by individual modules.
 
-  * Goto **CSL Manager** Machine.
-     ```sh
-     $   sudo vi /opt/csl/csl-manager/application.properties
-     ```   
-  * Set **whitelisted_mounts** property value to **/dev** directory.
-     ```sh    
-     $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images
-     ```
-  > Save the file.
+* Open CSLManager in your browser.
 
-  * Restart the **csl-manager** System Service
-    ```sh    
-    $   sudo systemctl restart csl-manager
-    ```
->**Below steps are Mandatory, should be performed in all client nodes**
-* Steps to set the **CSL Network Configuration** for Accesseing Basler Camera
+* Click on **Submit New App** button, which pop's up a window to paste the Appspec.
+
+* Copy the Appspec of EIS-CSL from 
+    [build/csl/csl_app_spec.json.json](../csl/csl_app_spec.json.json)
+    and paste it in Window & Submit.
+
+* Verify the logs of deployed application status.
+
+## Steps to enable Basler Camera.
+  * Steps to set the **CSL Network Configuration** for Accesseing Basler Camera
 
   * Create a new Network using **csladm** utility by following command in your ***client machine***
   ```sh
@@ -325,7 +214,7 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
 
   >**Note** The host network interace name should be your client machine & basler camera connected interface name.
 
-* Steps to set the Accelarator Node Affinity to CSL Client Nodes.
+## Steps to enable Accelarators
 
   * CSL has a node affinity feature and we can restrict particular module/application to deploy on specific node.
   * For HDDL/NCS2 dependenecies follow the steps for setting node affinity.
@@ -345,58 +234,53 @@ To Deploy EIS with CSL. EIS has to provisioned in "csl" mode. Please follow the 
       * For HDDL
         In *VideoAnalytics* or *VideoIngestion* based on your application usage Section of Appspec under *Modules* Update the follwing key values:
         ```sh
-           "Constraints": {
+            "Constraints": {
                 "hddl": "true"
             }
         ```
       * For NCS2
         In *VideoAnalytics* or *VideoIngestion* based on your application usage Section of Appspec under *Modules* Update the follwing key values:
         ```sh
-           "Constraints": {
+            "Constraints": {
                 "ncs2": "true"
-            },
+            }
         ``
       **Note** Make Sure that you have appended properly and validate the json.
+      
+      * For Deleting the Node Affinity Label Key/Values.
+        ```shss
+        $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
+        ```
 
->**Below steps are recommended, to use the storage feature and keep the data consistent of Video Streaming and Historical application in multinode setup across multiple deployment**
-  * Open the video_deploy.json file.
+## Recomendations for database orchestration
 
-  * Add the following section in the ImageStore and InfluxDBConnector modules in appspec.
-  ```sh
-    "Constraints": {
-	"key": "value"
-    },
-  ```
-  Adding "Constraints" to modules will tie the Pods of those modules to particular node (which have the same labels (key:value) set).
+EIS services InfluxDBConnector and ImageStore uses databases which store to disk. In an orchestrated environment, it is recommended to pin down these services to a specific node so that we get consistent data from the running service. It can be achieved by using the node labels and constraints of CSL.
 
-  * Set the labels in a Node, where InfluxDBConnector and ImageStore will run, as these containers store data in local file system
-  it is necessary to fix a Node
+Follow the steps to achieve the database orchestration. 
 
-  * It can be set during the CSL-Client installation, or it can be updated with the help of API exposed by CSL Manager
-  ```sh
-     $  curl -k -H "Content-type: applicatio/json" -u user -X PUT "https://csl-manager-host:8443/api/v1/nodes/node/metadata" -d '{"key":"value"}'
+* Open the video_deploy.json file.
 
-     where node: string representation of the client name
-  ```
+* Add the following section in the ImageStore and InfluxDBConnector modules in appspec.
+    ```sh
+        "Constraints": {
+            "key": "value"
+        }
+    ```
+Adding "Constraints" to modules will tie the Pods of those modules to particular node (which have the same labels (key:value) set).
 
-  * To delete the labels from node use the following command
-  ```sh
-     $  curl -k -H "Content-type: applicatio/json" -u user -X DELETE "https://csl-manager-host:8443/api/v1/nodes/node/metadata" -d '{"key":"value"}'
+* Set the labels in a Node, where InfluxDBConnector and ImageStore will run, as these containers store data in local file system
+it is necessary to fix a Node
 
-     where node: string representation of the client name
-  ```
+* It can be set during the CSL-Client installation, or it can be updated with the help of API exposed by CSL Manager
+```sh
+    $  curl -k -H "Content-type: applicatio/json" -u <user> -X PUT "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
 
-  >**Note** If the labels are not set in any Node, and Constraints section is added in the InfluxDBConnector and ImageStore modules in appspec. InfluxDBCOnnector and ImageStore modules will not launch.
+```
 
-* Update the Appspec Execution Environment as needed by individual modules.
+* To delete the labels from node use the following command
+```sh
+    $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
+```
 
-* Open CSLManager in your browser.
-
-* Click on **Submit New App** button, which pop's up a window to paste the Appspec.
-
-    * Copy the Appspec of EIS-CSL from 
-        [build/csl/csl_app_spec.json.json](../csl/csl_app_spec.json.json)
-        and paste it in Window & Submit.
-
-    * Verify the logs of deployed application status.
+>**Note** If the labels are not set in any Node, and Constraints section is added in the InfluxDBConnector and ImageStore modules in appspec. InfluxDBCOnnector and ImageStore modules will not launch.
 

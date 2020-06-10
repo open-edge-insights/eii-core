@@ -17,6 +17,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 5b EIS-Multinode deployment without TurtleCreek](#step-5b-eis-multinode-deployment-without-turtlecreek)
 
+[Step 6 Generate EIS bundle for CSL slave provisioning](#step-6-generate-eis-bundle-for-csl-slave-provisioning)
 
 # Step 1 Provision the Master node
 
@@ -175,3 +176,22 @@ Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node an
     $ docker-compose up -d
 
 ```
+
+# Step 6 Generate EIS bundle for CSL slave provisioning
+
+* Set `PROVISION_MODE=csl` in `build/provision/.env` file.
+* Generate EIS Bundle for CSL Slave Provisioning.
+    ```sh
+        sudo python3 ./generate_eis_bundle.py -t eiscslslavesetup
+    ```
+* Copy the `eiscslslavesetup.tar.gz` file to your provisioning machine.
+    ```sh
+        $ sudo scp <eiscslslavesetup.tar.gz> <any-directory_on-slave-Filesystem>
+        $ sudo tar -xvf <eiscslslavesetup.tar.gz>
+        $ cd <eiscslslavesetup>
+    ```
+* Provision the EIS in CSL Slave Client Node.
+    ```sh
+        $ cd provision
+        $ sudo ./provision_eis.sh
+    ```
