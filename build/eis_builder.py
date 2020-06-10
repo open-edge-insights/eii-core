@@ -25,6 +25,7 @@ import argparse
 import os
 import json
 import subprocess
+import sys
 from jsonmerge import merge
 import distutils.util as util
 
@@ -172,6 +173,19 @@ def csl_parser(app_list):
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
     source_env("./provision/.env")
+
+    # Generating module specs for all apps
+    for app in app_list:
+        app_name = app.rsplit("/", 1)[1]
+        module_spec_path = "./csl/" + app_name + "_module_spec.json"
+        app_path = app + "/module_spec.json"
+        # Substituting sourced env in module specs
+        cmnd = "envsubst < " + app_path + " > " + module_spec_path
+        try:
+            ret = subprocess.check_output(cmnd, shell=True)
+        except subprocess.CalledProcessError as e:
+            print("Subprocess error: {}, {}".format(e.returncode, e.output))
+            sys.exit(1)
 
     # Substituting sourced env in AppSpec
     csl_config_path = "./csl/csl_app_spec.json"
