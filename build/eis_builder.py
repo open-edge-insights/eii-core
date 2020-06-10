@@ -203,25 +203,40 @@ def csl_parser(app_list):
           "{}".format(csl_config_path))
 
 
-def yaml_parser():
+def yaml_parser(args):
     """Yaml parser method.
+
+    :param args: cli arguments
+    :type args: argparse
     """
 
-    # Fetching list of subdirectories
-    print("Parsing through directory to fetch required services...")
-    root_dir = os.getcwd() + '/../'
-    dir_list = [f.name for f in os.scandir(root_dir) if
-                (f.is_dir() or os.path.islink(f))]
-    dir_list = sorted(dir_list)
+    # Fetching EIS directory path
+    eis_dir = os.getcwd() + '/../'
+    dir_list = []
+    if args.config_file is not None:
+        # Fetching list of subdirectories from yaml file
+        print("Fetching required services from {}...".format(args.config_file))
+        with open(args.config_file, 'r') as fp:
+            yaml_data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+            for service in yaml_data['AppName']:
+                prefix_path = eis_dir + service
+                if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
+                    dir_list.append(service)
+    else:
+        # Fetching list of subdirectories
+        print("Parsing through directory to fetch required services...")
+        dir_list = [f.name for f in os.scandir(eis_dir) if
+                    (f.is_dir() or os.path.islink(f))]
+        dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
-    if os.path.isdir(root_dir + 'common/video'):
+    if os.path.isdir(eis_dir + 'common/video'):
         dir_list.insert(0, 'common/video')
 
     app_list = []
     csl_app_list = []
     for dir in dir_list:
-        prefix_path = root_dir + dir
+        prefix_path = eis_dir + dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         if os.path.isfile(prefix_path + '/docker-compose.yml') and \
            os.path.isfile(prefix_path + '/config.json'):
@@ -291,7 +306,21 @@ def yaml_parser():
     csl_parser(csl_app_list)
 
 
+def parse_args():
+    """Parse command line arguments.
+    """
+    ap = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument('-f', '--config_file', default=None,
+                    help='Optional config file for list of services to include'
+                         'Eg: python3.6 eis_builder.py -f video-streaming.yml')
+    return ap.parse_args()
+
+
 if __name__ == '__main__':
 
     # Parse command line arguments
-    yaml_parser()
+    args = parse_args()
+
+    # Start yaml parser
+    yaml_parser(args)

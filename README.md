@@ -140,9 +140,17 @@ The section assumes the EIS software is already downloaded from the release pack
 
   Run [eis_builder.py](build/eis_builder.py):
 
-  ```sh
-  $ python3 eis_builder.py
-  ```
+  * Running eis_builder
+    ```sh
+    $ python3 eis_builder.py
+    ```
+
+  * Running eis_builder providing a yaml file as config for list of services to include:
+    ```sh
+    $ python3 eis_builder.py -f video-streaming.yml
+    ```
+
+  
 
 # Provision EIS
 

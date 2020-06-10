@@ -1,0 +1,5 @@
+AppName:
+- Grafana
+- InfluxDBConnector
+- Kapacitor
+- Telegraf
