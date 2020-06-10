@@ -20,8 +20,11 @@ __pycache__/
 .vscode
 
 # Generated files during provisioning and composing
-# consolidated docker-compose file
+# consolidated docker-compose file and consolidated
+# app spec json for CSL
 build/docker-compose.yml
+build/csl/csl_app_spec.json
+build/csl/*_module_spec.json
 build/provision/Certificates/
 build/provision/config/eis_config.json
 build/provision/rootca/
@@ -49,3 +52,7 @@ WebVisualizer/
 EISAzureBridge/
 common/video/
 tools/
+
+# Ignore soft links created for Samples
+*Publisher
+*Subscriber
