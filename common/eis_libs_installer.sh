@@ -51,6 +51,10 @@ else
     install_go
 fi
 
+# Unsetting GOROOT since it is not required
+# with GOPATH set
+unset GOROOT
+
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigManager="$CUR_DIR/libs/ConfigManager"
 CMAKE_BUILD_TYPE="Release"
