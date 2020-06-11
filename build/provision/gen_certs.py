@@ -162,7 +162,6 @@ if __name__ == '__main__':
         else:
             generate(data, True)  # Generate new root CA
         if os.environ['PROVISION_MODE'] == "k8s":
-            subprocess.run ("kubectl create namespace kube-eis" , shell=True)
             subprocess.run ("kubectl create secret generic ca-etcd --from-file=Certificates/ca/ca_certificate.pem" , shell=True)
             subprocess.run ("kubectl get secret ca-etcd --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
             for key,value in data.items():

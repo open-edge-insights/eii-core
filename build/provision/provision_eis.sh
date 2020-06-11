@@ -186,6 +186,22 @@ function install_pip_requirements() {
     log_info "Installing dependencies.."
     pip3 install -r cert_requirements.txt
 }
+function check_k8s_secrets() {
+     echo "Checking if already exists k8s secrets, if yes-delete them"
+     secret_generic_list=$(kubectl get secrets | grep -E "cert|key" | awk '{print $1}')
+     if [ "$secret_generic_list" ] ; then
+        kubectl delete secrets $secret_generic_list
+     fi
+}
+
+function check_k8s_namespace() {
+     echo "Checking if already exists kube-eis namespace, will delete to remove all existing pods and services"
+     ns_list=$(kubectl get namespace | grep "kube-eis" | awk '{print $1}')
+     if [ "$ns_list" ] ; then
+        echo "Deleted namespace so that all existing pods and services within that namespace are deleted"
+        kubectl delete namespace kube-eis
+     fi
+}
 
 souce_env
 export_host_ip
@@ -212,6 +228,23 @@ if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
     else
 	log_fatal "Orchestration with CSL is not supported in Dev mode"
     fi
+elif [ $PROVISION_MODE = 'k8s' -a $ETCD_NAME = 'master' ]; then
+     check_k8s_secrets
+     check_k8s_namespace
+     echo "Creating a new namespace"
+     kubectl create namespace kube-eis
+     pip3 install -r cert_requirements.txt
+     echo "Clearing existing Certificates..."
+     rm -rf Certificates
+     copy_docker_compose_file
+     if [ $DEV_MODE = 'true' ]; then
+        docker-compose -f dep/docker-compose-provision.yml build
+        kubectl apply -f ../k8s/deploy_yml/etcd_devmode.yml
+     else
+        prod_mode_gen_certs
+        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
+        kubectl apply -f ../k8s/deploy_yml/etcd_prodmode.yml
+     fi
 elif [ $ETCD_NAME = 'master' ]; then
     install_pip_requirements
     log_info "Bringing down existing ETCD container"
