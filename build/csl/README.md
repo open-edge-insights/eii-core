@@ -212,6 +212,15 @@ Provisioning EIS with CSL is done in 2 steps.
   ```
   * Type ***Y*** and continue.
 
+  * Update the VideoIngestion Section CSL Appspec `build/csl/csl_app_spec.json` file.
+    **Note** The below changes should be appended below the `Resources` key in `VideoIngestion` Module section of appspec.
+    ```sh
+        "Networks": [
+                "cslhostnetworkinterface"
+        ]
+    ``` 
+  * Validate the json and save it.
+
   >**Note** The host network interace name should be your client machine & basler camera connected interface name.
 
 ## Steps to enable Accelarators
