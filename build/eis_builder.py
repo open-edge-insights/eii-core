@@ -169,6 +169,7 @@ def csl_parser(app_list):
     # Creating consolidated json
     f = open('./csl/tmp_csl_app_spec.json', "w")
     f.write(json.dumps(csl_template, sort_keys=False, indent=4))
+    f.close()
 
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
