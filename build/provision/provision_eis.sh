@@ -180,11 +180,17 @@ function check_ETCD_port() {
     done
 }
 
+function install_pip_requirements() {
+    log_info "Installing dependencies.."
+    pip3 install -r cert_requirements.txt
+}
+
 souce_env
 export_host_ip
 set_docker_host_time_zone
 create_eis_user
 create_eis_install_dir
+install_pip_requirements
 
 if [ $DEV_MODE = 'false' ]; then
     if [ -d 'Certificates' ]; then
@@ -210,8 +216,6 @@ elif [ $ETCD_NAME = 'master' ]; then
 
     copy_docker_compose_file
 
-    log_info "Installing dependencies.."
-    pip3 install -r cert_requirements.txt
     echo "Clearing existing Certificates..."
     rm -rf Certificates
 
