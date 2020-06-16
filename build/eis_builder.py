@@ -33,6 +33,11 @@ import distutils.util as util
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
 
+# config of publishers and name of required publisher endpoint
+PUBLISHER_LIST = {
+    "VideoAnalytics": "outputVA",
+    "InfluxDBConnector": "pointClsOutput"
+}
 
 def source_env(file):
     """Method to source an env file
@@ -111,8 +116,8 @@ def csl_parser(app_list):
     with open('./csl/csl_template.json', "rb") as infile:
         csl_template = json.load(infile)
 
-    # json to store all publisher endpoints
-    publisher_list = {
+    # To store the endpoint json
+    pub_endpoint_list = {
         "VideoAnalytics": {},
         "InfluxDBConnector": {}
     }
@@ -122,41 +127,66 @@ def csl_parser(app_list):
         with open(app + '/app_spec.json', "rb") as infile:
             jsonFile = json.load(infile)
             head = jsonFile["Module"]
-            if head["Name"] == list(publisher_list.keys())[0] or\
-               head["Name"] == list(publisher_list.keys())[1]:
-                publisher_list[head["Name"]] = head["Endpoints"]
+            if head["Name"] == list(PUBLISHER_LIST.keys())[0] or\
+               head["Name"] == list(PUBLISHER_LIST.keys())[1]:
+                   for end_points in head["Endpoints"]:
+                       if end_points["Name"] == list(PUBLISHER_LIST.values())[0] or\
+                               end_points["Name"] == list(PUBLISHER_LIST.values())[1]:
+                           pub_endpoint_list[head["Name"]] = end_points
 
     # Creating deploy AppSpec from individual AppSpecs
+    all_link_backend = []
     for app in app_list:
         with open(app + '/app_spec.json', "rb") as infile:
             jsonFile = json.load(infile)
             head = jsonFile["Module"]
             csl_template["Modules"].append(head)
-            # Variable to handle no publishers
-            publisher_present = False
-
+            count = 0
+            endpoint_to_remove = []
             # Fetch links from all AppSpecs & update deploy AppSpec
             for endpoint in head["Endpoints"]:
+                # Variable to handle no publishers
+                publisher_present = False
                 if "Link" in endpoint.keys():
                     csl_template["Links"].append({"Name": endpoint["Link"]})
+                    all_link_backend.append(endpoint["Link"])
                 else:
+                    pub_list = []
                     # Iterate through available publisher list
-                    for publisher in publisher_list.keys():
+                    for publisher in pub_endpoint_list.keys():
                         # Verify publiser doesn't try to fetch keys of itself
                         if publisher != head["Name"]:
-                            if publisher_list[publisher] != "{}":
-                                pub_list = publisher_list[publisher]
-                                # Iterate through publisher's multiple
-                                #  endpoints
-                                for ep in pub_list:
-                                    # Add Link if Publisher endpoint is of type
-                                    # server
-                                    if ep["Endtype"] == "server":
-                                        endpoint["Link"] = ep["Link"]
-                                        publisher_present = True
-                            # Remove link if no publishers are available
-                            if publisher_present is False:
-                                head["Endpoints"].remove(endpoint)
+                             pub_list.append(pub_endpoint_list[publisher])
+
+                    # Matching the links based on the order
+                    # [VA, InfluxDBConnector]. If a publisher is
+                    # empty (i.e VA or Influx is not present) endpoint of the
+                    # service which subscribe to VA or Influx will be removed
+                    if pub_list[count] != {}:
+                        if pub_list[count]["Endtype"] == "server":
+                            endpoint["Link"] = pub_list[count]["Link"]
+                            publisher_present = True
+                            all_link_backend.append(endpoint["Link"])
+                            count+=1
+
+                    if publisher_present is False:
+                         endpoint_to_remove.append(endpoint)
+                         count+=1
+
+            # Remove link if no publishers are available
+            for endpoint in endpoint_to_remove:
+                head["Endpoints"].remove(endpoint)
+
+            # Remove those Key-Value pair which are using the
+            # deleted endpoint in the config
+            keys_to_remove = []
+            for key, value in head["ExecutionEnv"].items():
+                for endpoint in endpoint_to_remove:
+                    if endpoint["Name"] in value:
+                        keys_to_remove.append(key)
+
+            for key in keys_to_remove:
+                del head["ExecutionEnv"][key]
 
             # Removing all duplicate links
             csl_template["Links"] = [dict(t) for t in {tuple(d.items())
@@ -165,6 +195,72 @@ def csl_parser(app_list):
             # Fetch links from all AppSpecs & update deploy AppSpec
             if "Ingress" in jsonFile.keys():
                 csl_template["Ingresses"].append(jsonFile["Ingress"])
+                all_link_backend.append(jsonFile["Ingress"]["Options"]["Backend"])
+
+    # Counting the occurance of links from all list and backends
+    open_link = {}
+    count = 1
+    all_link_backend.sort()
+    for index in range(0, len(all_link_backend)):
+        if index+1 < len(all_link_backend):
+            if all_link_backend[index] == all_link_backend[index+1]:
+                count+=1
+            else:
+                open_link[all_link_backend[index]] = count
+                if index != 0:
+                    count=1
+        else:
+            if all_link_backend[index] != all_link_backend[index-1]:
+                open_link[all_link_backend[index]] = count
+
+    # If the links, occur more than once, removing those links
+    # remaining links will be either server open link or client open link
+    links_to_del = []
+    for key, value in open_link.items():
+        if value > 1:
+            links_to_del.append(key)
+
+    for key in links_to_del:
+        del open_link[key]
+
+    # Find the client open link and save it to delete the endpoint and
+    # ExecutionEnv Key: Value to delete the config
+    links_to_del = []
+    client_link = []
+    for index in range(len(app_list)):
+        head = csl_template["Modules"][index]
+        for key in open_link.keys():
+            for endpoint in head["Endpoints"]:
+                if endpoint["Link"] == key:
+                    if endpoint["Endtype"] == "client":
+                       links_to_del.append(endpoint["Name"])
+                       client_link.append(key)
+
+        if links_to_del:
+            for link in links_to_del:
+                for endpoint in head["Endpoints"]:
+                    if endpoint["Name"] == link:
+                        index = head["Endpoints"].index(endpoint)
+                        del head["Endpoints"][index]
+
+            keys_to_remove = []
+            for key, value in head["ExecutionEnv"].items():
+                for endpoint in links_to_del:
+                    if endpoint in value:
+                        keys_to_remove.append(key)
+
+            for key in keys_to_remove:
+                del head["ExecutionEnv"][key]
+
+    # Delete the link from csl_app_spec links list
+    del_index = []
+    for index in range(0, len(csl_template["Links"])):
+        for key in client_link:
+            if key == csl_template["Links"][index]["Name"]:
+                del_index.append(index)
+
+    for index in del_index:
+        del csl_template["Links"][index]
 
     # Creating consolidated json
     f = open('./csl/tmp_csl_app_spec.json', "w")

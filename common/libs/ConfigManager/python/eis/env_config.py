@@ -68,12 +68,22 @@ class EnvConfig:
         """
         app_name = os.environ["AppName"]
         topic = topic.strip()
-
+        mode = ""
+        address = ""
         if topic_type == "server":
-            mode, address = os.environ["Server"].split(",")
+            try:
+                topic_config = os.environ["Server"]
+            except KeyError:
+                 log.error("Please set the Server config to start the server")
+                 return None
         else:
-            mode, address = os.environ[topic + "_cfg"].split(",")
+            try:
+                topic_config = os.environ[topic + "_cfg"]
+            except KeyError:
+                log.error("Please set the {}_cfg to start the publisher/Subscriber".format(topic))
+                return None
 
+        mode, address = topic_config.split(",")
         mode = mode.strip()
         address = address.strip()
         msgbus_hwm = int(os.environ.get("ZMQ_RECV_HWM", -1))

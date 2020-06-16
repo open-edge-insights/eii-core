@@ -39,9 +39,21 @@ func GetMessageBusConfig(topic string, topicType string, devMode bool, cfgMgrCon
 	}
 
 	if topicType == "server" {
-		topicConfigList = strings.Split(os.Getenv("Server"), ",")
+		topicConfig := os.Getenv("Server")
+		if len(topicConfig) == 0 {
+			glog.Errorf("Please set the Server config to start the server")
+			return nil
+		} else {
+			topicConfigList = strings.Split(topicConfig, ",")
+		}
 	} else {
-		topicConfigList = strings.Split(os.Getenv(topic+"_cfg"), ",")
+		topicConfig := os.Getenv(topic+"_cfg")
+		if len(topicConfig) == 0 {
+			glog.Errorf("Please set the %s_cfg to start the Publisher/Subscriber", topic)
+			return nil
+		} else {
+			topicConfigList = strings.Split(topicConfig, ",")
+	        }
 	}
 	var messageBusConfig map[string]interface{}
 	topicConfigList[0] = strings.TrimSpace(topicConfigList[0])
