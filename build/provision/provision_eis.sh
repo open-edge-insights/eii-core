@@ -190,7 +190,6 @@ export_host_ip
 set_docker_host_time_zone
 create_eis_user
 create_eis_install_dir
-install_pip_requirements
 
 if [ $DEV_MODE = 'false' ]; then
     if [ -d 'Certificates' ]; then
@@ -203,6 +202,7 @@ fi
 if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
     if [ $DEV_MODE = 'false' ]; then
 	log_info "Provisioning EIS with mode... "
+	install_pip_requirements
         copy_docker_compose_file
         prod_mode_gen_certs
         gen_csl_certs
@@ -211,6 +211,7 @@ if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
 	log_fatal "Orchestration with CSL is not supported in Dev mode"
     fi
 elif [ $ETCD_NAME = 'master' ]; then
+    install_pip_requirements
     log_info "Bringing down existing ETCD container"
     python3 stop_and_remove_existing_eis.py --f dep/docker-compose-provision.yml
 
