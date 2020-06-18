@@ -1,10 +1,14 @@
 # `OpenVINO FPGA toolkit installation and configuration setup guide`
 
 **Pre-requisites**:
-   * Running HDDL-F(FPGA) devices on Ubuntu 18.04 with Kernel above 5.3 is not supported by OpenVINO 2020.3 so please downgrade the kernel version
+
    * Please download and install OpenVINO FPGA toolkit version 2020.3(`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) using below links.
    * OpenVINO FPGA toolkit installation guide: https://docs.openvinotoolkit.org/2020.3/_docs_install_guides_installing_openvino_linux_fpga.html
    * FPGA configuration setup guide: https://docs.openvinotoolkit.org/2020.3/_docs_install_guides_VisionAcceleratorFPGA_Configure.html
+
+   * Running HDDL-F(FPGA) devices on Ubuntu 18.04 with Kernel above 5.3 is not supported by OpenVINO 2020.3 so please downgrade the kernel version.
+
+   **Note**: FPGA was tested with OpenVINO FPGA 2020.3 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
 
 * Download and install Intel Quartus Software lite version.
    * URL: [Click here to download the Quartus Software](https://fpgasoftware.intel.com/18.1/?edition=lite&platform=linux)

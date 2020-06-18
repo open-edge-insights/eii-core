@@ -150,7 +150,7 @@ The section assumes the EIS software is already downloaded from the release pack
     $ python3 eis_builder.py -f video-streaming.yml
     ```
 
-  
+
 
 # Provision EIS
 
@@ -286,6 +286,20 @@ key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `Vid
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](common/udfs/README.md).
 
+* For actual deployment in case USB camera is required then mount the device node of the USB camera for `ia_video_ingestion` service. When multiple USB cameras are connected to host m/c the required camera should be identified with the device node and mounted.
+
+    Eg: Mount the two USB cameras connected to the host m/c with device node as `video0` and `video1`
+    ```
+     ia_video_ingestion;
+        ...
+        devices:
+               - "/dev/dri"
+               - "/dev/video0:/dev/video0"
+               - "/dev/video1:/dev/video1"
+    ```
+
+    Note: /dev/dri is needed for Graphic drivers
+
 * **To run on HDDL devices**
 
   * Download the full package for OpenVINO toolkit for Linux version "2020.3" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
@@ -303,8 +317,19 @@ check [common/udfs/README.md](common/udfs/README.md).
 
      ```sh
      $ source /opt/intel/openvino/bin/setupvars.sh
-     $ $HDDL_INSTALL_DIR/bin/hddldaemon &
+     $ $HDDL_INSTALL_DIR/bin/hddldaemon
      ```
+
+   * For actual deployment one could choose to mount only the required devices for services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in [docker-compose.yml](build/docker-compose.yml).
+
+    Eg: Mount only the Graphics and HDDL ion device for `ia_video_anaytics` service
+    ```
+      ia_video_analytics:
+         ...
+         devices:
+                 - "/dev/dri"
+                 - "/dev/ion:/dev/ion"
+    ```
 
 * **To run on HDDLF(FGPA) devices**
 
@@ -321,6 +346,31 @@ check [common/udfs/README.md](common/udfs/README.md).
               FPGA_ENABLE: "enable"
         ...
     ```
+  * Docker bind-mount the `/opt/intel/openvino` directory for services using OpenVINO with FPGA(ia_video_analytics` or `ia_video_ingestion`) in [docker-compose.yml](build/docker-compose.yml).
+    If one is using docker-compose samples, please ensure to follow the same.
+
+    Eg: Docker bind-mount the `/opt/intel/openvino` directory for `ia_video_analytics` service
+    ```sh
+      ia_video_analytics:
+        ...
+        volumes: ...
+                 - "/opt/intel/openvino:/opt/intel/openvino"
+        ...
+    ```
+   Note: Make the corresponding changes for teh CSL app spec as well.
+
+   * For actual deployment one could choose to mount only the required devices for services using OpenVINO with FPGA in [docker-compose.yml](build/docker-compose.yml).
+
+    Eg: Mount only the Graphics and FPGA device for `ia_video_anaytics` service
+    ```
+      ia_video_analytics:
+         ...
+         devices:
+                 - "/dev/dri"
+                 - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+
+    **NOTE**: The OpenVINO FPGA toolkit version downloaded and installed should be the same version as the value of `OPENVINO_IMAGE_VERSION` key in [build/.env](build/.env). It is also the responsibility of the user to ensure the symbolic link created during installation points to the correct version in case of multiple versions of OpenVINO FPGA present in the system. The docker bind-mount will override the contents of `/opt/intel/openvino` directory inside the container.
+
   * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above.
     For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
     the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
@@ -357,11 +407,15 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3831.283439] usb 3-4: SerialNumber: 03e72485
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
-* **Troubleshooting issues for HDDL and HDDLF(FGPA) devices**
+* **Troubleshooting issues for HDDL devices**
 
-  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported. Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory. When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
+  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported so please downgrade the kernel version.
 
-    Note: HDDL was tested with OpenVINO 2020.3 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+  * Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory. When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
+
+  ** Note**: HDDL was tested with OpenVINO 2020.3 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+
+  * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
   * Please refer OpenVINO 2020.3 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-2020-3-lts-relnotes.html
@@ -369,15 +423,6 @@ check [common/udfs/README.md](common/udfs/README.md).
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
     https://docs.openvinotoolkit.org/2020.3/index.html
 
-  * The OS Kernel version shouldn't be greater than 4.18 for FPGA accelerator inference, Please follow below steps to downgrade the Kernel on host m/c.
-     ```
-    $ sudo gedit /etc/default/grub
-    ```
-    Change GRUB_TIMEOUT to -1 and run below command.
-    ```
-    $ sudo update-grub
-    ```
-    Reboot the machine with `sudo reboot`. Please select the Kernel version 4.18 or lower in the grub menu.
 ----
 
 # Time-series Analytics
