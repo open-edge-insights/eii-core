@@ -17,7 +17,9 @@ EIS Orchestration using CSL Orchestrator.
 
 7. [Steps to enable Accelarators](#steps-to-enable-accelarators)
 
-8. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
+8. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
+
+9. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
 
 
 ## CSL Setup
@@ -261,6 +263,72 @@ Provisioning EIS with CSL is done in 2 steps.
         ```shss
         $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
         ```
+
+## Steps to enable IPC mode
+
+EIS Services can be enabled as IPC mode for efficient datatransfer between modules on same node. To enable IPC Communication mode between modules please follow the steps.
+
+* Create an IPC/Socket Communication for IPC Mode under the module `Endpoints` section
+  ```sh
+  "Endpoints": [
+     {
+       "Name": "moduleAtoB",
+       "DataType": "ZeroMQ/UNIX",
+       "Endtype": "socket",
+       "MountPath": "/sockets"
+     }
+   ]
+
+  ```
+  Use the above Endpoint Name and Socket path for comuunicating to other module.
+  
+  * Example: Creating IPC Endpoints for VideoIngestion & VideoAnalytics Module.
+
+    * Update the VideoIngestion output `camera1_stream_cfg` key as follows:
+      ```sh
+          "camera1_stream_cfg": "zmq_ipc,${ep.outputsocket-vi.mountpath}"
+      ```
+    * Create socket endpoint with name `outputsocket-vi` in `Endpoints` section
+      ```sh
+          {
+              "Name": "outputsocket-vi",
+              "Endtype": "socket",
+              "DataType": "ZeroMQ/UNIX",
+              "MountPath": "/sockets",
+              "Link": "vi-va-link"
+          }
+          
+      ```
+    * Update the VideoAnalytics input `camera1_stream_cfg` key as follows:
+      ```sh
+          "camera1_stream_cfg": "zmq_ipc,${ep.inputsocket-va.mountpath}"
+      ```
+
+    * Create socket endpoint with name `inputsocket-va` in `Endpoints` section
+      ```sh
+          {
+              "Name": "inputsocket-va",
+              "Endtype": "socket",
+              "DataType": "ZeroMQ/UNIX",
+              "MountPath": "/sockets",
+              "Link": "vi-va-link"
+          }
+      ```
+    > **Note** The Above Two Module Endpoints uses the same **MountPath** to share the socket file created by the corresponding module.Also uses the same **Link**.
+
+    * Setting Module Affinity
+      * `ModuleAffinity` groups modules such that the modules in the same group run on the same node.
+      * Update ModuleAffinity in Appspec Under `RuntimeOptions` as follows
+        ```sh
+        "ModuleAffinity" : [ [moduleA,moduleB..etc]   ]
+        ```
+        Eg:
+        * Setting Module Affinity for `VideoIngestion` & `VideoAnalytics` modules for running in `same` node.
+
+        ```sh
+          "ModuleAffinity" : [ ["VideoIngestion", "VideoAnalytics"]]
+        ```
+    
 
 ## Recomendations for database orchestration
 
