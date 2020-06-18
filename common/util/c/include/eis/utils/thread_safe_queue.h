@@ -78,7 +78,14 @@ public:
     /**
      * Destructor
      */
-    ~ThreadSafeQueue() {}
+    ~ThreadSafeQueue() {
+        // Clearing queue
+        while (!this->empty()) {
+            T elem = this->front();
+            this->pop();
+            delete elem;
+        }
+    }
 
     /**
      * Push item onto the queue.
