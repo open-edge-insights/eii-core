@@ -124,15 +124,14 @@ cd $ConfigManager &&
    cd .. ; fi && \
    make install
 
+# Installing EISMessageBus C++ from DEB package
 cd $EISMessageBus &&
-   rm -rf build deps && \
-   mkdir build && \
-   cd build && \
-   cmake  -DWITH_TESTS=${RUN_TESTS} -DWITH_PYTHON=ON -DWITH_GO=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-   make && \
-   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests  && \
-   ./msgbus-tests && \
-   source ./source.sh && \
-   python3.6 msgbus_envelope.py && \
-   cd .. ; fi  && \
-   make install
+   apt install ./eis-messagebus-2.3.0-Linux.deb
+
+# Installing EISMessageBus python
+cd $EISMessageBus/python &&
+   python3 setup.py install
+
+# Installing EISMessageBus Go
+cd $EISMessageBus &&
+   cp -a go/. $GOPATH/src/

@@ -112,9 +112,7 @@ add_custom_target(cgo-config-mgr
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(eisconfigmgr SHARED
-    ${SOURCES}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../../util/cpuid/cpuid-check.c")
+add_library(eisconfigmgr SHARED ${SOURCES})
 add_dependencies(eisconfigmgr cgo-config-mgr)
 
 add_library(goconfigmanager STATIC IMPORTED)
