@@ -1,6 +1,6 @@
 # Multi-node EIS Provisioning & Deployment
 
-The provisioning where ETCD server runs on one edge(master) node & rest other nodes are slave nodes which doesn't run ETCD server, instead all the slave nodes remotely connect to the ETCD server running on the Master edge node only.
+The provisioning where ETCD server runs on one edge(master) node & rest other nodes are worker nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the Master edge node only.
 
 Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
@@ -17,7 +17,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 5b EIS-Multinode deployment without TurtleCreek](#step-5b-eis-multinode-deployment-without-turtlecreek)
 
-[Step 6 Generate EIS bundle for CSL slave provisioning](#step-6-generate-eis-bundle-for-csl-slave-provisioning)
+[Step 6 Generate EIS bundle for CSL worker node provisioning](#step-6-generate-eis-bundle-for-csl-worker-node-provisioning)
 
 # Step 1 Provision the Master node
 
@@ -112,17 +112,17 @@ For more help:
 
 # Step 4 EIS-Multi-node Provisioning
 
-This step is needed only if we are provisioning the slave node with EIS readiness for the first time.
+This step is needed only if we are provisioning the worker node with EIS readiness for the first time.
 
-Unzip this  `eis_bundle.tar.gz` generated in the step 3 to any folder on the slave node file system.
+Unzip this  `eis_bundle.tar.gz` generated in the step 3 to any folder on the worker node file system.
 
 ```
-    $ sudo scp <eis_bundle.tar.gz> <any-directory_on-slave-Filesystem>
+    $ sudo scp <eis_bundle.tar.gz> <any-directory_on-worker-node-Filesystem>
     $ sudo tar -xvf <eis_bundle.tar.gz>
     $ cd <eis_bundle>
     $ sudo vim .env
 
-    Now change the value of following fields in the .env of the slave node.
+    Now change the value of following fields in the .env of the worker node.
 
     ETCD_NAME=<any name other than `master`>
     ETCD_HOST=<IP address of master node>
@@ -131,7 +131,7 @@ Unzip this  `eis_bundle.tar.gz` generated in the step 3 to any folder on the sla
     $ sudo ./provision_eis.sh
 
 ```
-Now provisioning is done on the slave node without using ETCD Server locally on slave node. Instead all ETCD server calls connect to the remote Master's ETCD server.
+Now provisioning is done on the worker node without using ETCD Server locally on worker node. Instead all ETCD server calls connect to the remote Master's ETCD server.
 
 
 # Step 5a EIS-Multinode deployment with TurtleCreek
@@ -177,20 +177,20 @@ Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node an
 
 ```
 
-# Step 6 Generate EIS bundle for CSL slave provisioning
+# Step 6 Generate EIS bundle for CSL worker node provisioning
 
 * Set `PROVISION_MODE=csl` in `build/provision/.env` file.
-* Generate EIS Bundle for CSL Slave Provisioning.
+* Generate EIS bundle for CSL worker node provisioning.
     ```sh
-        sudo python3 ./generate_eis_bundle.py -t eiscslslavesetup
+        sudo python3 ./generate_eis_bundle.py -t eis_csl_worker_node_setup
     ```
-* Copy the `eiscslslavesetup.tar.gz` file to your provisioning machine.
+* Copy the `eis_csl_worker_node_setup.tar.gz` file to your provisioning machine.
     ```sh
-        $ sudo scp <eiscslslavesetup.tar.gz> <any-directory_on-slave-Filesystem>
-        $ sudo tar -xvf <eiscslslavesetup.tar.gz>
-        $ cd <eiscslslavesetup>
+        $ sudo scp <eis_csl_worker_node_setup.tar.gz> <any-directory_on-worker-Filesystem>
+        $ sudo tar -xvf <eis_csl_worker_node_setup.tar.gz>
+        $ cd <eis_csl_worker_node_setup>
     ```
-* Provision the EIS in CSL Slave Client Node.
+* Provision the EIS in CSL Worker Client Node.
     ```sh
         $ cd provision
         $ sudo ./provision_eis.sh

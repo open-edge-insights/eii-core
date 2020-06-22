@@ -121,14 +121,14 @@ Provisioning EIS with CSL is done in 2 steps.
 1.  [EIS Master Node Provisioning in CSL Client Node](#eis-master-node-provisioning-in-csl-client-node)
     * This is the Mandatory Provisioning step should be done atleast in **1** CSL Client node for deploying EIS.
 
-2.  [EIS Slave node Provisioning in CSL Client Node](#eis-slave-node-provisioning-in-csl-client-node)
+2.  [EIS Worker Node Provisioning in CSL Client Node](#eis-worker-node-provisioning-in-csl-client-node)
     * This Provisioning step should be done when we are deploying EIS in CSL on multiple Client nodes.
     * It should be done after master Node Provisioning is done in **1** CSL client node for deploying EIS.    
-    **Note** EIS CSL slave Provisioning should be done after master node provisioning done. 
+    **Note** EIS CSL worker node provisioning should be done after master node provisioning done. 
 
 ### EIS Master Node Provisioning in CSL Client Node
 
-  * To Deploy EIS with CSL. EIS has to provisioned in "csl" mode.
+  * To Deploy EIS with CSL, EIS has to be provisioned in "csl" mode.
 
   * Please Select the client machine where you want provision the `master eis csl node` by following below steps.
     
@@ -154,14 +154,14 @@ Provisioning EIS with CSL is done in 2 steps.
         eq. $ sudo ./provision_eis.sh ../docker-compose.yml
         ```
 
-### EIS Slave node Provisioning in CSL Client Node
+### EIS Worker Node Provisioning in CSL Client Node
 >**Note** This should be used in other than EIS master CSL Client nodes on ***Multi node scenario*** only. This is not a primary provisioning step for **Single Node**.
   * Pre requisites:
     * EIS Master Node should be provisioned in any other CSL client node.
     **Note:** EIS Master Node provision should done only in *one* system.
     
-  * Generate the EIS CSL Slave Provisioning Setup Bundle & Provision EIS CSL Slave Client node refer as follows
-     *  [EIS CSL Slave Provisioning Setup Bundle Generation](../deploy/README.md#step-6-generate-eis-bundle-for-csl-slave-provisioning)
+  * Generate the EIS CSL Worker Node Provisioning Setup Bundle & Provision EIS CSL Worker Client node refer as follows
+     *  [EIS CSL Worker Node Provisioning Setup Bundle Generation](../deploy/README.md#step-6-generate-eis-bundle-for-csl-worker-node-provisioning)
   
   **Note** Make Sure ETCD_NAME=<any name other than `master`> in [build/.env](../../build/.env).
 

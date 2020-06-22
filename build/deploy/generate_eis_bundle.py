@@ -78,7 +78,7 @@ class EisBundleGenerator:
     def generate_eis_bundle_for_csl(self):
         '''
             generate EIS Bundle helps to execute set of pre
-            commands which is required for EIS CSL Slave Setup and finally
+            commands which is required for EIS CSL worker node setup and finally
             it generates the bundle
         '''
         eis_provision_dir = "./" + self.bundle_tag_name + "/provision/"
@@ -99,7 +99,7 @@ class EisBundleGenerator:
                 subprocess.check_output(cmd, shell=True)
             env = open(self.bundle_tag_name + "/.env", "rt")
             envdata = env.read()
-            newenvdata = envdata.replace("ETCD_NAME=master","ETCD_NAME=slave")
+            newenvdata = envdata.replace("ETCD_NAME=master","ETCD_NAME=worker")
             env.close()
             newenv = open(self.bundle_tag_name + "/.env", "wt")
             newenv.write(newenvdata)
@@ -119,7 +119,7 @@ class EisBundleGenerator:
             
             for cmd in cmdlist:
                 subprocess.check_output(cmd, shell=True)
-            print("EIS CSL Slave Setup Bundle Generated Succesfully")
+            print("EIS CSL Worker Node Setup Bundle Generated Succesfully")
         except Exception as e:
             print("Exception Occured ", str(e))
 
