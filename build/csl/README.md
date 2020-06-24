@@ -184,6 +184,7 @@ Provisioning EIS with CSL is done in 2 steps.
 
 ## Deploying EIS Application with CSL Using CSL Manager UI
 * Update the Appspec Execution Environment as needed by individual modules.
+    * In case of time series, update the "MQTT_BROKER_HOST" env of telegraf module in **csl_app_spec.json**. Replace "127.0.0.1" to mosquito broker's IP address, to receive the data in telegraf.
 
 * Open CSLManager in your browser.
 
