@@ -246,7 +246,7 @@ def csl_parser(app_list):
             keys_to_remove = []
             for key, value in head["ExecutionEnv"].items():
                 for endpoint in links_to_del:
-                    if endpoint in value:
+                    if not isinstance(value, int) and endpoint in value:
                         keys_to_remove.append(key)
 
             for key in keys_to_remove:
