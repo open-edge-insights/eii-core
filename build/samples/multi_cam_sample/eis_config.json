@@ -1,0 +1,207 @@
+{
+    "/VideoIngestion1/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "ingestor": {
+            "type": "opencv",
+            "pipeline": "./test_videos/pcb_d2000.avi",
+            "loop_video": "true",
+            "queue_size": 10,
+            "poll_interval": 0.2
+        },
+        "max_jobs": 20,
+        "max_workers":4,
+        "udfs": [
+            {
+                "n_left_px": 1000,
+                "n_right_px": 1000,
+                "n_total_px": 300000,
+                "name": "pcb.pcb_filter",
+                "scale_ratio": 4,
+                "training_mode": "false",
+                "type": "python"
+            }
+        ]
+    },
+    "/VideoIngestion2/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "ingestor": {
+            "type": "opencv",
+	    "pipeline": "rtsp://admin:intel123@<RTSP CAMERA IP>:554"
+        },
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
+    },
+    "/VideoIngestion3/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "ingestor": {
+            "type": "opencv",
+            "pipeline": "/dev/video0"
+        }
+    },
+    "/VideoIngestion4/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "ingestor": {
+            "type": "gstreamer",
+             "pipeline": "rtspsrc location=\"rtsp://admin:intel123@<RTSP CAMERA IP>:554/\" latency=100 ! rtph264depay ! h264parse ! vaapih264dec ! vaapipostproc format=bgrx ! gvadetect device=CPU model=models/frozen_inference_graph.xml ! videoconvert ! video/x-raw,format=BGR ! appsink max-buffers=10 drop=TRUE"
+        }
+    },
+    "/VideoIngestion5/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "ingestor": {
+            "type": "gstreamer",
+            "pipeline": "v4l2src device=/dev/video1 ! decodebin ! videoconvert ! video/x-raw,format=BGR ! gvadetect device=GPU model=models/frozen_inference_graph.xml ! appsink"
+        }
+    },
+    "/VideoIngestion6/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "ingestor": {
+            "type": "gstreamer",
+             "pipeline": "pylonsrc imageformat=bayer8 exposureGigE=3250 interpacketdelay=1500 ! bayer2rgb ! vaapipostproc format=bgrx height=1200 width=1920 ! videoconvert ! video/x-raw,format=BGR ! appsink"
+        }
+    },
+    "/VideoAnalytics1/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "max_workers":4,
+        "udfs": [
+            {
+                "device": "CPU",
+                "model_bin": "common/udfs/python/pcb/ref/model_2.bin",
+                "model_xml": "common/udfs/python/pcb/ref/model_2.xml",
+                "name": "pcb.pcb_classifier",
+                "ref_config_roi": "common/udfs/python/pcb/ref/roi_2.json",
+                "ref_img": "common/udfs/python/pcb/ref/ref.png",
+                "type": "python"
+            }
+        ]
+    },
+    "/VideoAnalytics2/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "udfs": [
+	    {
+                "name": "safety_gear_demo",
+                "type": "native",
+                "device": "CPU",
+                "model_xml": "common/udfs/native/safety_gear_demo/ref/frozen_inference_graph.xml",
+                "model_bin": "common/udfs/native/safety_gear_demo/ref/frozen_inference_graph.bin"
+
+            }
+	]
+    },
+    "/VideoAnalytics3/config": {
+        "encoding": {
+            "type": "jpeg",
+            "level": 95
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "udfs": [{
+               "name": "sample_classification.multi_class_classifier",
+               "type": "python",
+               "device": "CPU",
+               "labels_file_path": "common/udfs/python/sample_classification/ref/squeezenet1.1.labels",
+               "model_xml": "common/udfs/python/sample_classification/ref/squeezenet1.1_FP32.xml",
+               "model_bin": "common/udfs/python/sample_classification/ref/squeezenet1.1_FP32.bin"
+
+        }]
+    },
+    "/VideoAnalytics4/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
+    },
+    "/VideoAnalytics5/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
+    },
+    "/VideoAnalytics6/config": {
+        "encoding": {
+            "type": "png",
+            "level": 3
+        },
+        "queue_size": 10,
+        "max_jobs": 20,
+        "udfs": [{
+            "name": "dummy",
+            "type": "native"
+        }]
+    },
+    "/Visualizer/config": {
+        "save_image": "false",
+        "labels" : {
+            "camera1_stream_results": {
+                "0": "MISSING",
+                "1": "SHORT"
+            },
+	    "camera2_stream_results":{
+            "1": "safety_helmet",
+            "2": "safety_jacket",
+            "3": "Safe",
+            "4": "Violation"
+           },
+           "camera4_stream_results":{
+            "1": "safety_helmet",
+            "2": "safety_jacket",
+            "3": "Safe",
+            "4": "Violation"
+           },
+           "camera5_stream_results":{
+            "1": "safety_helmet",
+            "2": "safety_jacket",
+            "3": "Safe",
+            "4": "Violation"
+           }
+        }
+    },
+    "/GlobalEnv/": {
+        "PY_LOG_LEVEL": "INFO",
+        "GO_LOG_LEVEL": "INFO",
+        "C_LOG_LEVEL" : "INFO",
+        "GO_VERBOSE": "0",
+        "ETCD_KEEPER_PORT": "7070"
+    }
+}

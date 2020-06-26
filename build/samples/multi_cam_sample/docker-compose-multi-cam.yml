@@ -24,54 +24,48 @@ services:
 
   ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
   ## Define ia_eisbase service
-  ia_common:
-    build:
-      context: $PWD/../common
-      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
-      args:
-          UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          EIS_VERSION: ${EIS_VERSION}
-    read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
-
   ia_eisbase:
-    depends_on:
-      - ia_common
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
           EIS_VERSION: ${EIS_VERSION}
-    read_only: true
+          HOST_TIME_ZONE: ${HOST_TIME_ZONE}
+          GO_VERSION: ${GO_VERSION}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
 
-  ia_openvino_base:
+  ## Define ia_common service
+  ia_common:
     depends_on:
-      - ia_eisbase
+    - ia_eisbase
     build:
-      context: $PWD/../common/video
-      dockerfile: $PWD/../common/video/Dockerfile.openvino
+      context: $PWD/../common
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
-          EIS_VERSION: ${EIS_VERSION}
+        EIS_VERSION: ${EIS_VERSION}
+          # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
-    image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
-
+    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
 
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
-
   ## Define ETCD UI service - must be included to view ETCD data over web UI
   ia_etcd_ui:
     depends_on:
-      - ia_common
+    - ia_common
     build:
       context: $PWD/../EtcdUI
       dockerfile: $PWD/../EtcdUI/Dockerfile
       args:
-        ETCD_KEEPER_VERSION: ${ETCD_KEEPER_VERSION}
+        ETCD_VERSION: ${ETCD_VERSION}
         EIS_VERSION: ${EIS_VERSION}
-    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
+        EIS_UID: ${EIS_UID}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
+    image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
     container_name: ia_etcd_ui
     hostname: ia_etcd_ui
     network_mode: host
@@ -85,20 +79,51 @@ services:
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
-      - "vol_etcd_keeper:/tmp/nginx"
+    - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
     secrets:
-      - ca_etcd
-      - etcd_root_cert
-      - etcd_root_key
+    - ca_etcd
+    - etcd_EtcdUI_cert
+    - etcd_EtcdUI_key
+    - etcd_etcduser_cert
+    - etcd_etcduser_key
+
+  ia_video_common:
+    depends_on:
+    - ia_common
+    build:
+      context: $PWD/../common/video
+      dockerfile: $PWD/../common/video/Dockerfile.videocommon
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
+        CMAKE_BUILD_TYPE: Release
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_video_common:${EIS_VERSION}
+
+  ## Define ia_openvino_base service
+  ia_openvino_base:
+    depends_on:
+    - ia_eisbase
+    build:
+      context: $PWD/../common/video
+      dockerfile: $PWD/../common/video/Dockerfile.openvino
+      args:
+        EIS_VERSION: ${EIS_VERSION}
+        OPENVINO_IMAGE_VERSION: ${OPENVINO_IMAGE_VERSION}
+        FPGA_ENABLE: "disable"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+    read_only: true
+    image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
 
   ##----Start: EIS Containers ----
   ## Define VideoIngestion1 service
   ia_video_ingestion1:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -107,6 +132,8 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion1
     hostname: ia_video_ingestion1
@@ -119,11 +146,12 @@ services:
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
+
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics1,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -133,6 +161,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -142,9 +171,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion1_cert
@@ -153,7 +186,7 @@ services:
   ## Define VideoAnalytics1 service
   ia_video_analytics1:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -161,7 +194,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics1
     hostname: ia_video_analytics1
@@ -176,9 +212,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       SubTopics: "VideoIngestion1/camera1_stream"
       camera1_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
@@ -194,9 +230,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics1_cert
@@ -205,7 +244,7 @@ services:
   ## Define VideoIngestion2 service
   ia_video_ingestion2:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: ../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
@@ -216,6 +255,7 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion2
     hostname: ia_video_ingestion2
@@ -228,11 +268,12 @@ services:
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
+
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics2,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -242,6 +283,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera2_stream"
       camera2_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -251,9 +293,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion2_cert
@@ -262,7 +308,7 @@ services:
   ## Define VideoAnalytics2 service
   ia_video_analytics2:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -270,7 +316,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics2
     hostname: ia_video_analytics2
@@ -285,9 +334,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -299,7 +348,7 @@ services:
       camera2_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera2_stream_results"
       camera2_stream_results_cfg: "zmq_tcp,127.0.0.1:65014"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera2_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -309,9 +358,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics2_cert
@@ -320,9 +372,9 @@ services:
   ## Define VideoIngestion3 service
   ia_video_ingestion3:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -331,6 +383,7 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion3
     hostname: ia_video_ingestion3
@@ -348,7 +401,7 @@ services:
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics3,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -358,6 +411,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera3_stream"
       camera3_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -367,9 +421,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion3_cert
@@ -378,7 +436,7 @@ services:
   ## Define VideoAnalytics3 service
   ia_video_analytics3:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -386,7 +444,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics3
     hostname: ia_video_analytics3
@@ -401,9 +462,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -415,7 +476,7 @@ services:
       camera3_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera3_stream_results"
       camera3_stream_results_cfg: "zmq_tcp,127.0.0.1:65015"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera3_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -425,9 +486,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics3_cert
@@ -436,9 +500,9 @@ services:
   ## Define VideoIngestion4 service
   ia_video_ingestion4:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -447,6 +511,7 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion4
     hostname: ia_video_ingestion4
@@ -464,7 +529,7 @@ services:
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics4,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -474,6 +539,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera4_stream"
       camera4_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -483,9 +549,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion4_cert
@@ -494,7 +564,7 @@ services:
   ## Define VideoAnalytics4 service
   ia_video_analytics4:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -502,7 +572,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics4
     hostname: ia_video_analytics4
@@ -517,9 +590,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -531,7 +604,7 @@ services:
       camera4_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera4_stream_results"
       camera4_stream_results_cfg: "zmq_tcp,127.0.0.1:65016"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera4_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -541,9 +614,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics4_cert
@@ -552,9 +628,9 @@ services:
   ## Define VideoIngestion5 service
   ia_video_ingestion5:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -563,6 +639,7 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion5
     hostname: ia_video_ingestion5
@@ -580,7 +657,7 @@ services:
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics5,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -590,6 +667,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera5_stream"
       camera5_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -599,9 +677,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion5_cert
@@ -610,7 +692,7 @@ services:
 ## Define VideoAnalytics5 service
   ia_video_analytics5:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -618,7 +700,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics5
     hostname: ia_video_analytics5
@@ -633,9 +718,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -647,7 +732,7 @@ services:
       camera5_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera5_stream_results"
       camera5_stream_results_cfg: "zmq_tcp,127.0.0.1:65017"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera5_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -657,9 +742,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics5_cert
@@ -670,7 +758,7 @@ services:
     depends_on:
       - ia_openvino_base
     build:
-      context: ../VideoIngestion
+      context: $PWD/../VideoIngestion
       dockerfile: $PWD/../VideoIngestion/Dockerfile
       args:
         EIS_VERSION: ${EIS_VERSION}
@@ -679,6 +767,7 @@ services:
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
         WITH_PROFILE: "OFF"
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     image: ${DOCKER_REGISTRY}ia_video_ingestion:${EIS_VERSION}
     container_name: ia_video_ingestion6
     hostname: ia_video_ingestion6
@@ -695,7 +784,7 @@ services:
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics6,Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -705,6 +794,7 @@ services:
       # TPC: zmq_tcp, <publisher_host>:<publisher_port>
       PubTopics: "camera6_stream"
       camera6_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      Server: "zmq_ipc,${SOCKET_DIR}/"
     volumes:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
@@ -714,9 +804,13 @@ services:
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
-      - "/dev/dri"
-      - "/dev/:/dev/"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # USB camera devices
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion6_cert
@@ -725,7 +819,7 @@ services:
   ## Define VideoAnalytics6 service
   ia_video_analytics6:
     depends_on:
-      - ia_openvino_base
+    - ia_openvino_base
     build:
       context: $PWD/../VideoAnalytics
       dockerfile: $PWD/../VideoAnalytics/Dockerfile
@@ -733,7 +827,10 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        RUN_TESTS: "OFF"
     image: ${DOCKER_REGISTRY}ia_video_analytics:${EIS_VERSION}
     container_name: ia_video_analytics6
     hostname: ia_video_analytics6
@@ -748,9 +845,9 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
 
       # MessageBus Endpoint Configuration
-      Clients : "Visualizer"
+      Clients: "Visualizer"
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
@@ -762,7 +859,7 @@ services:
       camera6_stream_cfg: "zmq_ipc,${SOCKET_DIR}/"
       PubTopics: "camera6_stream_results"
       camera6_stream_results_cfg: "zmq_tcp,127.0.0.1:65018"
-      # camera1_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
+      # camera6_stream_results_cfg: "zmq_ipc,${SOCKET_DIR}/"
     privileged: true
     volumes:
       - "/dev:/dev"
@@ -772,9 +869,12 @@ services:
       - "/opt/altera:/opt/altera"
       - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
-      - "/dev/dri"
-      - "/dev/ion:/dev/ion"
-      - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
+      # Following devices under /dev filesystem will be needed based on usecase
+      # dri - GPU
+      # ion - VPU
+      # acla10_1150_sg20 - FPGA
+      # Selective mount can be done for deployment
+    - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics6_cert
@@ -783,7 +883,7 @@ services:
   ## Define Visualizer service
   ia_visualizer:
     depends_on:
-      - ia_eisbase
+    - ia_common
     build:
       context: $PWD/../Visualizer
       dockerfile: $PWD/../Visualizer/Dockerfile
@@ -791,26 +891,26 @@ services:
         EIS_VERSION: ${EIS_VERSION}
         EIS_UID: ${EIS_UID}
         EIS_USER_NAME: ${EIS_USER_NAME}
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_visualizer:${EIS_VERSION}
     container_name: ia_visualizer
     hostname: ia_visualizer
     network_mode: host
-    ipc: host
     restart: unless-stopped
     environment:
       AppName: "Visualizer"
-      DISPLAY: ${DISPLAY}
+      DISPLAY: ":0"
       IMAGE_DIR: ${EIS_INSTALL_PATH}/saved_images
       DEV_MODE: ${DEV_MODE}
       PROFILING_MODE: ${PROFILING_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
-      
+
       # MessageBus Endpoint Configuration
       CertType: "zmq"
-      ZMQ_RECV_HWM: "1000"
+      ZMQ_RECV_HWM: "50"
       # For default video streaming usecase alone
       SubTopics: "VideoAnalytics1/camera1_stream_results,VideoAnalytics2/camera2_stream_results,VideoAnalytics3/camera3_stream_results,VideoAnalytics4/camera4_stream_results,VideoAnalytics5/camera5_stream_results,VideoAnalytics6/camera6_stream_results"
       camera1_stream_results_cfg : "zmq_tcp,127.0.0.1:65013"
@@ -819,7 +919,6 @@ services:
       camera4_stream_results_cfg : "zmq_tcp,127.0.0.1:65016"
       camera5_stream_results_cfg : "zmq_tcp,127.0.0.1:65017"
       camera6_stream_results_cfg : "zmq_tcp,127.0.0.1:65018"
-    privileged: true
     volumes:
       - "${EIS_INSTALL_PATH}/saved_images:${EIS_INSTALL_PATH}/saved_images"
       - "/tmp/.X11-unix:/tmp/.X11-unix"
@@ -830,18 +929,6 @@ services:
       - etcd_Visualizer_key
 
 volumes:
-  vol_influxdb_data:
-    driver: local
-    driver_opts:
-      type: local
-      o: bind
-      device: ${EIS_INSTALL_PATH}/data/influxdata
-  vol_imagestore_data:
-    driver: local
-    driver_opts:
-      type: local
-      o: bind
-      device: ${EIS_INSTALL_PATH}/data
   vol_eis_socket:
     driver: local
     driver_opts:
@@ -913,10 +1000,13 @@ secrets:
     file: provision/Certificates/Visualizer/Visualizer_client_certificate.pem
   etcd_Visualizer_key:
     file: provision/Certificates/Visualizer/Visualizer_client_key.pem
-  etcd_root_cert:
-    file: provision/Certificates/root/root_client_certificate.pem
-  etcd_root_key:
-    file: provision/Certificates/root/root_client_key.pem
   ca_etcd:
     file: provision/Certificates/ca/ca_certificate.pem
-
+  etcd_etcduser_cert:
+    file: provision/Certificates/root/root_client_certificate.pem
+  etcd_etcduser_key:
+    file: provision/Certificates/root/root_client_key.pem
+  etcd_EtcdUI_cert:
+    file: provision/Certificates/EtcdUI/EtcdUI_client_certificate.pem
+  etcd_EtcdUI_key:
+    file: provision/Certificates/EtcdUI/EtcdUI_client_key.pem
