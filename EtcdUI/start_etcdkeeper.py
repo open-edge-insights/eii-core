@@ -46,7 +46,7 @@ if __name__ == "__main__":
     etcd_prefix = os.environ["ETCD_PREFIX"]
     etcd_prefix = etcd_prefix + '/'
     if os.getenv('ETCD_HOST') is not None:
-        etcd_endpoint = os.getenv('ETCD_HOST', '127.0.0.1') + ':2379'
+        etcd_endpoint = os.getenv('ETCD_HOST', '127.0.0.1') + ':'+ os.getenv('ETCD_CLIENT_PORT','2379')
     elif os.getenv('ETCD_ENDPOINT') is not None:
         etcd_endpoint = os.environ['ETCD_ENDPOINT']
     else:
