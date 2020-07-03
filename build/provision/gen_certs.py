@@ -143,6 +143,19 @@ def clean():
             shutil.rmtree(trees)
         except FileNotFoundError:
             pass
+def generate_k8s_secrets():
+    subprocess.run ("kubectl create secret generic ca-etcd --from-file=Certificates/ca/ca_certificate.pem" , shell=True)
+    subprocess.run ("kubectl get secret ca-etcd --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
+
+    for key,value in data.items():
+        for var in value:
+            for k,v in var.items():
+                k1 = k.replace("_","-").lower()
+                cs = list(v)[0].split("_")[0]
+                subprocess.run ("kubectl create secret generic " + k1 + "-cert --from-file=Certificates/" + k + "/" + k + "_" + cs + "_certificate.pem" , shell=True)
+                subprocess.run ("kubectl create secret generic " + k1 + "-key --from-file=Certificates/" + k + "/" + k + "_" + cs + "_key.pem" , shell=True)
+                subprocess.run ("kubectl get secret " + k1 + "-cert --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
+                subprocess.run ("kubectl get secret " + k1 + "-key --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
 
 
 if __name__ == '__main__':
@@ -162,16 +175,6 @@ if __name__ == '__main__':
         else:
             generate(data, True)  # Generate new root CA
         if os.environ['PROVISION_MODE'] == "k8s":
-            subprocess.run ("kubectl create secret generic ca-etcd --from-file=Certificates/ca/ca_certificate.pem" , shell=True)
-            subprocess.run ("kubectl get secret ca-etcd --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
-            for key,value in data.items():
-                for var in value:
-                    for k,v in var.items():
-                        k1 = k.replace("_","-").lower()
-                        cs = list(v)[0].split("_")[0]
-                        subprocess.run ("kubectl create secret generic " + k1 + "-cert --from-file=Certificates/" + k + "/" + k + "_" + cs + "_certificate.pem" , shell=True)
-                        subprocess.run ("kubectl create secret generic " + k1 + "-key --from-file=Certificates/" + k + "/" + k + "_" + cs + "_key.pem" , shell=True)
-                        subprocess.run ("kubectl get secret " + k1 + "-cert --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
-                        subprocess.run ("kubectl get secret " + k1 + "-key --namespace=default --export -o yaml | kubectl apply --namespace=kube-eis -f -" , shell=True)
+           generate_k8s_secrets()
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))
