@@ -44,7 +44,7 @@ static void schema_error(void *client, const char *format, ...) {
 }
 
 bool validate_json(WJElement schema, WJElement config) {
-    char *format;
+    char *format = NULL;
     // Validate the config json against the schema
     if(WJESchemaValidate(schema, config, schema_error, NULL, schema_free, format)) {
         LOG_INFO_0("JSON schema validation passed !");
