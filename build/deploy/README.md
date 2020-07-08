@@ -112,27 +112,43 @@ For more help:
 
 # Step 4 EIS-Multi-node Provisioning
 
-This step is needed only if we are provisioning the worker node with EIS readiness for the first time.
-
-Unzip this  `eis_bundle.tar.gz` generated in the step 3 to any folder on the worker node file system.
+##  step a : installing the provisioning bundle on worker node.
 
 ```
-    $ sudo scp <eis_bundle.tar.gz> <any-directory_on-worker-node-Filesystem>
-    $ sudo tar -xvf <eis_bundle.tar.gz>
-    $ cd <eis_bundle>
+    # commands to be executed on master node.
+    $ cd build/deploy
+    $ sudo python3.6 generate_eis_bundle.py -p
+
+    This will generate the 'eis_provisioning.tar.gz'.
+    Do a manual copy of this bundle on worker node. And then follow below commands
+    on worker node.
+
+```
+
+```
+    # commands to be executed on worker node.
+    $ tar -xvzf eis_provisioning.tar.gz
+    $ cd eis_provisioning/provision/
+    $ sudo ./provision_eis.sh
+```
+
+##  step b : installing the eis bundle on worker node.
+
+```
+    # commands to be executed on master node.
     $ sudo vim .env
 
     Now change the value of following fields in the .env of the worker node.
 
     ETCD_NAME=<any name other than `master`>
     ETCD_HOST=<IP address of master node>
+    DOCKER_REGISTRY=<Docker registry details>
+    $ cd deploy
+    $ sudo python3.6 generate_eis_bundle.py
 
-    $ cd provision
-    $ sudo ./provision_eis.sh
-
+    This will generate the .tar.gz
 ```
-Now provisioning is done on the worker node without using ETCD Server locally on worker node. Instead all ETCD server calls connect to the remote Master's ETCD server.
-
+Now this bundle can be used to deploy an eis on worker node.
 
 # Step 5a EIS-Multinode deployment with TurtleCreek
 
@@ -142,7 +158,9 @@ Edge Insights Software (EIS) Deployment Bundle Generation for TurtleCreek Agent 
 
 EIS deployment will only be done the on node where TurtleCreek is installed & provisioned via Thingsboard/Telit/Azure portal.
 
-1. For TurtleCreek Agent installation, provisioning and deploying the bundle generated using Step 3 above, please refer TurtleCreek repo README.
+1. Please follow above steps 1-4 for bundle generation for master/worker node.
+
+2. For TurtleCreek Agent installation and deployment through TurtleCreek, please refer TurtleCreek repo README.
 
 
     While deploying EIS Software Stack via Telit-TurtleCreek. Visualizer UI will not pop up because of display not attached to docker container of Visualizer.
@@ -158,20 +176,19 @@ EIS deployment will only be done the on node where TurtleCreek is installed & pr
         docker-compose up ia_visualizer
         ```
 
-
 # Step 5b EIS-Multinode deployment without TurtleCreek
 
 Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node and follow below commands
-> **NOTE**: Please make sure to copy and untar the above bundle on a secure location having root only access as it container secrets.
+> **NOTE**: Please make sure to copy and untar the above bundle on a secure location having root only access as it container secrets. Please follow above steps 1-4 for bundle generation for master/worker node.
 
 ```
-    $ sudo tar -xvf <eis_bundle gz generated in step 3>
+    $ sudo tar -xvzf <eis_bundle gz generated in step 3>
     $ cd build
     $ docker-compose up -d
 
     eq.
 
-    $ sudo tar -xvf eis_bundle.tar.gz
+    $ sudo tar -xvzf eis_bundle.tar.gz
     $ cd build
     $ docker-compose up -d
 

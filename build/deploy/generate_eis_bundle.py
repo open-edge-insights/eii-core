@@ -169,16 +169,50 @@ class EisBundleGenerator:
             print("TurtleCreek Bundle Generated Succesfully")
         except Exception as e:
             print("Exception Occured ", str(e))
-   
+
+    def generate_provision_bundle(self):
+        '''
+            generate_eis_provision bundle helps to execute set of pre
+            commands which is required for provision Bundle and finally
+            it generates the bundle
+        '''
+        provision_tag_name = 'eis_provisioning'
+        eis_provision_dir = "./" + provision_tag_name + "/provision/"
+        cmdlist = []
+        cmdlist.append("rm -rf " + provision_tag_name)
+        cmdlist.append("mkdir -p " + provision_tag_name)
+        cmdlist.append("cp ../.env ./" + provision_tag_name)
+        cmdlist.append("mkdir -p " + provision_tag_name + "/provision")
+
+        cmdlist.append("sudo chmod +x ../provision/provision_eis.sh")
+        cmdlist.append("sudo cp -f " + "../provision/provision_eis.sh"
+                                       + " " + eis_provision_dir)
+        cmdlist.append("chown -R eisuser:eisuser ./" + provision_tag_name)
+        cmdlist.append("tar -czvf \
+                " + provision_tag_name + ".tar.gz ./" + provision_tag_name)
+        if self.bundle_folder is False:
+            cmdlist.append("rm -rf " + provision_tag_name + "/")
+
+        try:
+            for cmd in cmdlist:
+                subprocess.check_output(cmd, shell=True)
+            print("Provisioning Bundle Generated Succesfully")
+        except Exception as e:
+            print("Exception Occured ", str(e))
+
     def main(self, args):
         self.bundle_tag_name = args.bundle_tag_name
         self.docker_file_path = args.compose_file_path
         self.bundle_folder = args.bundle_folder
         self.generate_docker_composeyml()
-        if self.provisionenv['PROVISION_MODE'] == "csl":
-            self.generate_eis_bundle_for_csl()
+
+        if args.provisioning == True:
+            self.generate_provision_bundle()
         else:
-            self.generate_eis_bundle_for_tc()
+            if self.provisionenv['PROVISION_MODE'] == "csl":
+                self.generate_eis_bundle_for_csl()
+            else:
+                self.generate_eis_bundle_for_tc()
 
 
 if __name__ == '__main__':
@@ -198,7 +232,11 @@ if __name__ == '__main__':
                         default=False,
                         help='This Flag is set not to generate \
                         bundleName.tar.gz file.For Only Bundle folder')
-    args = parser.parse_args()
+    parser.add_argument('-p',
+                        '--provisioning',
+                        action='store_true',
+                        help='Generates provisioning bundle')
 
+    args = parser.parse_args()
     eisBundle = EisBundleGenerator()
     eisBundle.main(args)
