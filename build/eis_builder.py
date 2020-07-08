@@ -19,16 +19,17 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-import ruamel.yaml
+"""script to generate consolidated docker-compose.yml, eis_config.json
+   and AppSpec json
+"""
 import argparse
 import os
 import json
 import subprocess
 import sys
-from jsonmerge import merge
 import distutils.util as util
-
+from jsonmerge import merge
+import ruamel.yaml
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
@@ -39,6 +40,7 @@ PUBLISHER_LIST = {
     "InfluxDBConnector": "pointClsOutput"
 }
 
+
 def source_env(file):
     """Method to source an env file
 
@@ -46,15 +48,15 @@ def source_env(file):
     :type file: str
     """
     try:
-        with open(file, 'r') as fp:
-            for line in fp.readlines():
+        with open(file, 'r') as env_path:
+            for line in env_path.readlines():
                 # Checking if line has = in env
                 if "=" in line:
                     # Emulating sourcing an env
                     key, value = line.strip().split("=")
                     os.environ[key] = value
-    except Exception as e:
-        print("Exception occured {}".format(e))
+    except Exception as err:
+        print("Exception occured {}".format(err))
         return
 
 
@@ -67,9 +69,8 @@ def generate_valid_filename(path):
     :rtype: str
     """
     # List of special characters
-    escape_list = ['[','@','!','#','$','%','^','&','*','(',
-                   ')','<','>','?','|','}','{','~',':',']',
-                   ' ']
+    escape_list = ['[', '@', '!', '#', '$', '%', '^', '&', '*', '(',
+                   ')', '<', '>', '?', '|', '}', '{', '~', ':', ']', ' ']
     for k in escape_list:
         path = str(path).strip().replace(k, '\\' + k)
     return path
@@ -90,14 +91,15 @@ def json_parser(file):
         config_json = data
 
     # Fetching docker-compose.yml to retrieve required App dirs
-    with open(file, 'r') as fp:
-        data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+    with open(file, 'r') as compose_file:
+        data = ruamel.yaml.round_trip_load(compose_file, preserve_quotes=True)
 
     app_list = []
     # Replacing $PWD with relative path to EIS dir
     for key in data['services']:
-        s = data['services'][key]['build']['context'].replace('$PWD/..', '..')
-        app_list.append(s)
+        rel_dir = data['services'][key]['build']['context'].replace(
+            '$PWD/..', '..')
+        app_list.append(rel_dir)
 
     # Removing duplicates & unwanted dirs from app list
     app_list = list(dict.fromkeys(app_list))
@@ -105,21 +107,21 @@ def json_parser(file):
 
     eis_config_path = "./provision/config/eis_config.json"
     # Fetching and merging individual App configs
-    for x in app_list:
-        with open(x + '/config.json', "rb") as infile:
+    for app_config in app_list:
+        with open(app_config + '/config.json', "rb") as infile:
             data = {}
             head = json.load(infile)
-            x = x.replace('.', '')
+            app_config = app_config.replace('.', '')
             # remove trailing '/'
-            x = x.rstrip('/')
-            data[x+'/config'] = head
+            app_config = app_config.rstrip('/')
+            data[app_config + '/config'] = head
             config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
-    f = open(eis_config_path, "w")
-    f.write(json.dumps(config_json, sort_keys=True, indent=4))
-    print("Successfully created consolidated config json at {}".format(
-        eis_config_path))
+    with open(eis_config_path, "w") as json_file:
+        json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
+        print("Successfully created consolidated config json at {}".format(
+            eis_config_path))
 
 
 def csl_parser(app_list):
@@ -142,21 +144,23 @@ def csl_parser(app_list):
     # Updating publisher apps endpoints
     for app in app_list:
         with open(app + '/app_spec.json', "rb") as infile:
-            jsonFile = json.load(infile)
-            head = jsonFile["Module"]
+            json_file = json.load(infile)
+            head = json_file["Module"]
             if head["Name"] == list(PUBLISHER_LIST.keys())[0] or\
                head["Name"] == list(PUBLISHER_LIST.keys())[1]:
-                   for end_points in head["Endpoints"]:
-                       if end_points["Name"] == list(PUBLISHER_LIST.values())[0] or\
-                               end_points["Name"] == list(PUBLISHER_LIST.values())[1]:
-                           pub_endpoint_list[head["Name"]] = end_points
+                for end_points in head["Endpoints"]:
+                    if end_points[
+                            "Name"] == list(PUBLISHER_LIST.values())[0] or \
+                            end_points[
+                                "Name"] == list(PUBLISHER_LIST.values())[1]:
+                        pub_endpoint_list[head["Name"]] = end_points
 
     # Creating deploy AppSpec from individual AppSpecs
     all_link_backend = []
     for app in app_list:
         with open(app + '/app_spec.json', "rb") as infile:
-            jsonFile = json.load(infile)
-            head = jsonFile["Module"]
+            json_file = json.load(infile)
+            head = json_file["Module"]
             csl_template["Modules"].append(head)
             count = 0
             endpoint_to_remove = []
@@ -173,7 +177,7 @@ def csl_parser(app_list):
                     for publisher in pub_endpoint_list.keys():
                         # Verify publiser doesn't try to fetch keys of itself
                         if publisher != head["Name"]:
-                             pub_list.append(pub_endpoint_list[publisher])
+                            pub_list.append(pub_endpoint_list[publisher])
 
                     # Matching the links based on the order
                     # [VA, InfluxDBConnector]. If a publisher is
@@ -184,11 +188,11 @@ def csl_parser(app_list):
                             endpoint["Link"] = pub_list[count]["Link"]
                             publisher_present = True
                             all_link_backend.append(endpoint["Link"])
-                            count+=1
+                            count += 1
 
                     if publisher_present is False:
-                         endpoint_to_remove.append(endpoint)
-                         count+=1
+                        endpoint_to_remove.append(endpoint)
+                        count += 1
 
             # Remove link if no publishers are available
             for endpoint in endpoint_to_remove:
@@ -207,12 +211,14 @@ def csl_parser(app_list):
 
             # Removing all duplicate links
             csl_template["Links"] = [dict(t) for t in {tuple(d.items())
-                                     for d in csl_template["Links"]}]
+                                                       for d in csl_template[
+                                                           "Links"]}]
 
             # Fetch links from all AppSpecs & update deploy AppSpec
-            if "Ingress" in jsonFile.keys():
-                csl_template["Ingresses"].append(jsonFile["Ingress"])
-                all_link_backend.append(jsonFile["Ingress"]["Options"]["Backend"])
+            if "Ingress" in json_file.keys():
+                csl_template["Ingresses"].append(json_file["Ingress"])
+                all_link_backend.append(json_file["Ingress"]["Options"][
+                    "Backend"])
 
     # Counting the occurance of links from all list and backends
     open_link = {}
@@ -221,11 +227,11 @@ def csl_parser(app_list):
     for index in range(0, len(all_link_backend)):
         if index+1 < len(all_link_backend):
             if all_link_backend[index] == all_link_backend[index+1]:
-                count+=1
+                count += 1
             else:
                 open_link[all_link_backend[index]] = count
                 if index != 0:
-                    count=1
+                    count = 1
         else:
             if all_link_backend[index] != all_link_backend[index-1]:
                 open_link[all_link_backend[index]] = count
@@ -250,8 +256,8 @@ def csl_parser(app_list):
             for endpoint in head["Endpoints"]:
                 if endpoint["Link"] == key:
                     if endpoint["Endtype"] == "client":
-                       links_to_del.append(endpoint["Name"])
-                       client_link.append(key)
+                        links_to_del.append(endpoint["Name"])
+                        client_link.append(key)
 
         if links_to_del:
             for link in links_to_del:
@@ -280,9 +286,8 @@ def csl_parser(app_list):
         del csl_template["Links"][index]
 
     # Creating consolidated json
-    f = open('./csl/tmp_csl_app_spec.json', "w")
-    f.write(json.dumps(csl_template, sort_keys=False, indent=4))
-    f.close()
+    with open('./csl/tmp_csl_app_spec.json', "w") as json_file:
+        json_file.write(json.dumps(csl_template, sort_keys=False, indent=4))
 
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
@@ -294,21 +299,27 @@ def csl_parser(app_list):
         module_spec_path = "./csl/" + app_name + "_module_spec.json"
         app_path = app + "/module_spec.json"
         # Substituting sourced env in module specs
-        app_path = generate_valid_filename(app_path)
-        cmnd = "envsubst < " + app_path + " > " + module_spec_path
+        cmd = subprocess.run(["cat", app_path], stdout=subprocess.PIPE,
+                             check=False)
         try:
-            ret = subprocess.check_output(cmnd, shell=True)
-        except subprocess.CalledProcessError as e:
-            print("Subprocess error: {}, {}".format(e.returncode, e.output))
+            with open(module_spec_path, "w") as outfile:
+                subprocess.run(["envsubst"], input=cmd.stdout,
+                               stdout=outfile, check=False)
+        except subprocess.CalledProcessError as err:
+            print("Subprocess error: {}, {}".format(err.returncode,
+                                                    err.output))
             sys.exit(1)
 
     # Substituting sourced env in AppSpec
     csl_config_path = "./csl/csl_app_spec.json"
-    cmnd = "envsubst < ./csl/tmp_csl_app_spec.json > " + csl_config_path
+    cmnd = subprocess.run(["cat", "./csl/tmp_csl_app_spec.json"],
+                          stdout=subprocess.PIPE, check=False)
     try:
-        ret = subprocess.check_output(cmnd, shell=True)
-    except subprocess.CalledProcessError as e:
-        print("Subprocess error: {}, {}".format(e.returncode, e.output))
+        with open(csl_config_path, "w") as outfile:
+            subprocess.run(["envsubst"], input=cmnd.stdout,
+                           stdout=outfile, check=False)
+    except subprocess.CalledProcessError as err:
+        print("Subprocess error: {}, {}".format(err.returncode, err.output))
         sys.exit(1)
 
     # Removing generated temporary file
@@ -318,21 +329,22 @@ def csl_parser(app_list):
           "{}".format(csl_config_path))
 
 
-def yaml_parser(args):
+def yaml_parser(arg):
     """Yaml parser method.
 
-    :param args: cli arguments
-    :type args: argparse
+    :param arg: cli arguments
+    :type arg: argparse
     """
 
     # Fetching EIS directory path
     eis_dir = os.getcwd() + '/../'
     dir_list = []
-    if args.config_file is not None:
+    if arg.config_file is not None:
         # Fetching list of subdirectories from yaml file
-        print("Fetching required services from {}...".format(args.config_file))
-        with open(args.config_file, 'r') as fp:
-            yaml_data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+        print("Fetching required services from {}...".format(arg.config_file))
+        with open(arg.config_file, 'r') as sub_dir_file:
+            yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
+                                                    preserve_quotes=True)
             for service in yaml_data['AppName']:
                 prefix_path = eis_dir + service
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
@@ -350,8 +362,8 @@ def yaml_parser(args):
 
     app_list = []
     csl_app_list = []
-    for dir in dir_list:
-        prefix_path = eis_dir + dir
+    for app_dir in dir_list:
+        prefix_path = eis_dir + app_dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         if os.path.isfile(prefix_path + '/docker-compose.yml') and \
            os.path.isfile(prefix_path + '/config.json'):
@@ -364,55 +376,57 @@ def yaml_parser(args):
 
     # Load the common docker-compose.yml
     yaml_files_dict = []
-    with open('common-docker-compose.yml', 'r') as fp:
-        data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+    with open('common-docker-compose.yml', 'r') as docker_compose_file:
+        data = ruamel.yaml.round_trip_load(docker_compose_file,
+                                           preserve_quotes=True)
         yaml_files_dict.append(data)
 
     # Load the required yaml files
     for k in app_list:
-        with open(k + '/docker-compose.yml', 'r') as fp:
-            data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+        with open(k + '/docker-compose.yml', 'r') as docker_compose_file:
+            data = ruamel.yaml.round_trip_load(docker_compose_file,
+                                               preserve_quotes=True)
             yaml_files_dict.append(data)
 
-    x = yaml_files_dict[0]
-    for v in yaml_files_dict[1:]:
-        for k in v:
+    yaml_dict = yaml_files_dict[0]
+    for var in yaml_files_dict[1:]:
+        for k in var:
             # Update the values from current compose
             # file to previous compose file
-            for i in v[k]:
-                if(k == "version"):
+            for i in var[k]:
+                if k == "version":
                     pass
                 else:
-                    x[k].update({i: v[k][i]})
+                    yaml_dict[k].update({i: var[k][i]})
 
     # Fetching DEV_MODE from .env
-    with open(".env") as f:
-        for line in f:
+    with open(".env") as env_file:
+        for line in env_file:
             if line.startswith('DEV_MODE'):
                 dev_mode = line.strip().split('=')[1]
                 dev_mode = util.strtobool(dev_mode)
                 break
 
     if dev_mode:
-        for k, v in x.items():
+        for k, var in yaml_dict.items():
             # Deleting the main secrets section
-            if(k == "secrets"):
-                del x[k]
+            if k == "secrets":
+                del yaml_dict[k]
             # Deleting secrets section for individual services
-            elif(k == "services"):
-                for _, service_dict in v.items():
+            elif k == "services":
+                for _, service_dict in var.items():
                     for service_keys, _ in service_dict.items():
-                        if(service_keys == "secrets"):
+                        if service_keys == "secrets":
                             del service_dict[service_keys]
 
-    with open(DOCKER_COMPOSE_PATH, 'w') as fp:
-        ruamel.yaml.round_trip_dump(x, fp)
+    with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(yaml_dict, docker_compose_file)
 
-    str = "PROD"
+    dev_mode_str = "PROD"
     if dev_mode:
-        str = "DEV"
+        dev_mode_str = "DEV"
     print("Successfully created docker-compose.yml"
-          " file for {} mode".format(str))
+          " file for {} mode".format(dev_mode_str))
 
     # Starting json parser
     json_parser(DOCKER_COMPOSE_PATH)
@@ -424,12 +438,14 @@ def yaml_parser(args):
 def parse_args():
     """Parse command line arguments.
     """
-    ap = argparse.ArgumentParser(
+    arg_parse = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    ap.add_argument('-f', '--config_file', default=None,
-                    help='Optional config file for list of services to include'
-                         'Eg: python3.6 eis_builder.py -f video-streaming.yml')
-    return ap.parse_args()
+    arg_parse.add_argument('-f', '--config_file', default=None,
+                           help='Optional config file for list of services \
+                           to include'
+                           'Eg: python3.6 eis_builder.py -f \
+                            video-streaming.yml')
+    return arg_parse.parse_args()
 
 
 if __name__ == '__main__':

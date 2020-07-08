@@ -19,7 +19,6 @@
 # SOFTWARE.
 """Script to write back data from ETCD Cluster to JSON file.
 """
-
 import subprocess
 import json
 import os
@@ -27,23 +26,26 @@ from distutils.util import strtobool
 
 
 def _execute_cmd(cmd):
-    cmd_output = subprocess.check_output(cmd, shell=True)
+    cmd_output = subprocess.check_output(cmd)
     return cmd_output
 
 
 def main():
+    """ main function
+    """
 
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
 
     if dev_mode:
-        cmd = _execute_cmd("docker exec -it ia_etcd ./etcdctl get \
-                --from-key '' --keys-only")
+        cmd = _execute_cmd(["docker", "exec", "-it",
+                            "ia_etcd", "./etcdctl", "get",
+                            "--from-key", "''", "--keys-only"])
     else:
-        cmd = _execute_cmd("docker exec -it ia_etcd ./etcdctl \
-                --cacert /run/secrets/ca_etcd \
-                --cert /run/secrets/etcd_root_cert \
-                --key /run/secrets/etcd_root_key get \
-                --from-key '' --keys-only")
+        cmd = _execute_cmd(["docker", "exec", "-it", "ia_etcd", "./etcdctl",
+                            "--cacert", "/run/secrets/ca_etcd",
+                            "--cert", "/run/secrets/etcd_root_cert",
+                            "--key", "/run/secrets/etcd_root_key", "get",
+                            "--from-key", "''", "--keys-only"])
     keys = str(cmd, encoding='utf-8')
     key_list = keys.split()
     value_list = []
@@ -54,23 +56,26 @@ def main():
     for key in matching:
         if key in key_list:
             key_list.remove(key)
+
     for key in key_list:
         if dev_mode:
-            cmd = _execute_cmd("docker exec -it ia_etcd ./etcdctl get \
-                    --print-value-only {}".format(key))
+            cmd = _execute_cmd(["docker", "exec", "-it",
+                                "ia_etcd", "./etcdctl", "get",
+                                "--print-value-only", key])
         else:
-            cmd = _execute_cmd("docker exec -it ia_etcd ./etcdctl \
-                    --cacert /run/secrets/ca_etcd \
-                    --cert /run/secrets/etcd_root_cert \
-                    --key /run/secrets/etcd_root_key get \
-                    --print-value-only {}".format(key))
+            cmd = _execute_cmd(["docker", "exec", "-it",
+                                "ia_etcd", "./etcdctl",
+                                "--cacert", "/run/secrets/ca_etcd",
+                                "--cert", "/run/secrets/etcd_root_cert",
+                                "--key", "/run/secrets/etcd_root_key", "get",
+                                "--print-value-only", key])
         value = json.loads(cmd.decode('utf-8'))
         value_list.append(value)
 
     etcd_dict = dict(zip(key_list, value_list))
 
-    with open('etcd_capture_data.json', 'w') as f:
-        json.dump(etcd_dict, f, sort_keys=True, indent=4)
+    with open('etcd_capture_data.json', 'w') as json_file:
+        json.dump(etcd_dict, json_file, sort_keys=True, indent=4)
 
 
 if __name__ == "__main__":
