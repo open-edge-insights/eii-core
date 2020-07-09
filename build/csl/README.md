@@ -46,10 +46,11 @@ EIS Orchestration using CSL Orchestrator.
       ```
   > Save the file.
 
-  * Restart the **csl-manager** System Service
+  * Restart the **csl-manager** docker container
     ```sh    
-    $   sudo systemctl restart csl-manager
+    $   docker restart <csl-manager-containerid>
     ```
+
 
  
   ### Update the Container Image details in Module Spec Files.
