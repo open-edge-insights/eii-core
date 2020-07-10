@@ -58,6 +58,23 @@ def source_env(file):
         return
 
 
+def generate_valid_filename(path):
+    """Method to generate valid file name
+
+    :param path: file name
+    :type path: str
+    :return: valid file path
+    :rtype: str
+    """
+    # List of special characters
+    escape_list = ['[','@','!','#','$','%','^','&','*','(',
+                   ')','<','>','?','|','}','{','~',':',']',
+                   ' ']
+    for k in escape_list:
+        path = str(path).strip().replace(k, '\\' + k)
+    return path
+
+
 def json_parser(file):
     """Generate etcd config by parsing through
        individual app configs
@@ -277,6 +294,7 @@ def csl_parser(app_list):
         module_spec_path = "./csl/" + app_name + "_module_spec.json"
         app_path = app + "/module_spec.json"
         # Substituting sourced env in module specs
+        app_path = generate_valid_filename(app_path)
         cmnd = "envsubst < " + app_path + " > " + module_spec_path
         try:
             ret = subprocess.check_output(cmnd, shell=True)
