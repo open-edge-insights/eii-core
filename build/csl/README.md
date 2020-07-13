@@ -104,7 +104,7 @@ EIS Orchestration using CSL Orchestrator.
     * Update generated Module Manifest file based on SMR registered artifact name and version.
       ```sh
       "RuntimeOptions": {
-          "ContainerImage": "%{idx:<registered_artifactname>:EIS_VERSION}"
+          "ContainerImage": "${idx:<registered_artifactname>:EIS_VERSION}"
       }
     
 
