@@ -76,6 +76,7 @@ export PY_ETCD3_VERSION=cdc4c48bde88a795230a02aa574df84ed9ccfa52 && \
 
 # Install EISMessageBus requirements
 cd $EISMessageBus &&
+   rm -rf deps && \
    ./install.sh --cython
 
 cd $EISMessageBus/../IntelSafeString/ &&
