@@ -329,13 +329,50 @@ def csl_parser(app_list):
           "{}".format(csl_config_path))
 
 
+def update_yml_dict(args):
+    """ To pre-process data for removing extra headers
+
+    :param args: dictionary of docker files data
+    :type args: dictionary
+    """
+    temp = args[0]
+    for v in args[1:]:
+        # Update the values from current compose
+        # file to previous compose file
+        for k in v:
+            for i in v[k]:
+                if(k == "version"):
+                    pass
+                else:
+                    temp[k].update({i: v[k][i]})
+    return temp
+
+
+def create_docker_compose_override(args):
+    """Consolidated docker-compose.override.yml
+
+    :param args: List of docker-compose-dev.override.yml file
+    :type args: List
+    """
+    # Load the required override files
+    override_files_dict = []
+    for k in args:
+        with open(k + '/docker-compose-dev.override.yml', 'r')as fp:
+            data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
+            override_files_dict.append(data)
+
+    override_data = update_yml_dict(override_files_dict)
+
+    with open("./docker-compose.override.yml", 'w') as fp:
+        ruamel.yaml.round_trip_dump(override_data, fp)
+
+
 def yaml_parser(arg):
     """Yaml parser method.
 
     :param arg: cli arguments
     :type arg: argparse
     """
-
     # Fetching EIS directory path
     eis_dir = os.getcwd() + '/../'
     dir_list = []
@@ -360,6 +397,12 @@ def yaml_parser(arg):
     if os.path.isdir(eis_dir + 'common/video'):
         dir_list.insert(0, 'common/video')
 
+    # Removing the docker-compose.override.yml
+    path_override = os.getcwd()+"/docker-compose.override.yml"
+    if(os.path.exists(path_override)):
+        os.remove(path_override)
+
+    override_app_list = []
     app_list = []
     csl_app_list = []
     for app_dir in dir_list:
@@ -373,6 +416,9 @@ def yaml_parser(arg):
         if os.path.isfile(prefix_path + '/app_spec.json') and \
            os.path.isfile(prefix_path + '/module_spec.json'):
             csl_app_list.append(prefix_path)
+        # Append to override_list if dir has docker-compose-dev.override.yml
+        if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
+            override_app_list.append(prefix_path)
 
     # Load the common docker-compose.yml
     yaml_files_dict = []
@@ -388,16 +434,7 @@ def yaml_parser(arg):
                                                preserve_quotes=True)
             yaml_files_dict.append(data)
 
-    yaml_dict = yaml_files_dict[0]
-    for var in yaml_files_dict[1:]:
-        for k in var:
-            # Update the values from current compose
-            # file to previous compose file
-            for i in var[k]:
-                if k == "version":
-                    pass
-                else:
-                    yaml_dict[k].update({i: var[k][i]})
+    yaml_dict = update_yml_dict(yaml_files_dict)
 
     # Fetching DEV_MODE from .env
     with open(".env") as env_file:
@@ -425,6 +462,8 @@ def yaml_parser(arg):
     dev_mode_str = "PROD"
     if dev_mode:
         dev_mode_str = "DEV"
+        # Creating docker-compose-dev.override.yml only in DEV mode
+        create_docker_compose_override(override_app_list)
     print("Successfully created docker-compose.yml"
           " file for {} mode".format(dev_mode_str))
 
