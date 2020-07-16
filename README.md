@@ -302,15 +302,15 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2020.3" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2020.4" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2020.3/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2020.3/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
 
      When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
@@ -413,15 +413,15 @@ check [common/udfs/README.md](common/udfs/README.md).
 
   * Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory. When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
 
-  ** Note**: HDDL was tested with OpenVINO 2020.3 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+  ** Note**: HDDL was tested with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2020.3 release notes in the below link for new features and changes from the previous versions.
-    https://software.intel.com/content/www/us/en/develop/articles/openvino-2020-3-lts-relnotes.html
+  * Please refer OpenVINO 2020.4 release notes in the below link for new features and changes from the previous versions.
+    https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2020.3/index.html
+    https://docs.openvinotoolkit.org/2020.4/index.html
 
 ----
 
