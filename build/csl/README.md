@@ -17,9 +17,11 @@ EIS Orchestration using CSL Orchestrator.
 
 7. [Steps to enable Accelarators](#steps-to-enable-accelarators)
 
-8. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
+8. [Steps to enable FPGA](#steps-to-enable-fpga)
 
-9. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
+9. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
+
+10. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
 
 
 ## CSL Setup
@@ -42,7 +44,7 @@ EIS Orchestration using CSL Orchestrator.
       ```   
   * Set **whitelisted_mounts** property value as follows.
       ```sh    
-      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images
+      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/Intel/OpenCL/Boards,/opt/altera,/opt/intel/intelFPGA,/opt/intel/openvino
       ```
   > Save the file.
 
@@ -264,6 +266,51 @@ Provisioning EIS with CSL is done in 2 steps.
         ```shss
         $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
         ```
+
+## Steps to enable FPGA
+  * Pre-Requisites
+      * Please setup the FPGA using this [Readme](../../README_fpga.md)
+
+  * Update `/opt/intel/openvino` directory in `VideoIngestion` and `VideoAnalytics` modulespec `TemporaryVolumes` section.
+
+  ```sh
+    $ vi buid/csl/deploy/VideoIngestion_module_spec.json
+    $ vi buid/csl/deploy/VideoAnalytics_module_spec.json
+  ```
+
+  ```sh
+    "/opt/intel/openvino:/opt/intel/openvino"
+  ```
+
+  for eg:
+
+  ```sh
+      "TemporaryVolumes": [
+        "/dev:/dev",
+        "/var/tmp:/var/tmp",
+        "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards",
+        "/opt/altera:/opt/altera",
+        "/opt/intel/intelFPGA:/opt/intel/intelFPGA",
+        "/opt/intel/openvino:/opt/intel/openvino"
+      ]
+  ```
+  
+  * Register this Updated ModuleSpecs with SMR for reflecting changes. 
+    * For Deleting the existing module spec use following command in *CSL Manager* machine.
+    ```sh
+    $   ./csladm delete artifact --type file --name <modulepsec_name> --version EIS_VERSION
+    ```
+    
+    For Eg:
+    ```sh
+    $   ./csladm delete artifact --type file --name videoanalytics --version 2.3
+    ```
+    
+    * Re-Register the updated Module Spec by following this [steps](#registering-eis-modulespecs-with-csl-smr).
+        
+    
+
+
 
 ## Steps to enable IPC mode
 
