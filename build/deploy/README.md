@@ -183,13 +183,13 @@ Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node an
 
 ```
     $ sudo tar -xvzf <eis_bundle gz generated in step 3>
-    $ cd build
+    $ cd eis_bundle
     $ docker-compose up -d
 
     eq.
 
     $ sudo tar -xvzf eis_bundle.tar.gz
-    $ cd build
+    $ cd eis_bundle
     $ docker-compose up -d
 
 ```
