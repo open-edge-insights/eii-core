@@ -1,37 +1,38 @@
 # Multi-node EIS Provisioning & Deployment
 
-The provisioning where ETCD server runs on one edge(master) node & rest other nodes are worker nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the Master edge node only.
-
 Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 1 Provision the Master node](#step-1-provision-the-master-node)
 
 [Step 2 Set up Docker Registry URL then Build and Push Images](#step-2-set-up-docker-registry-url-then-build-and-push-images)
 
+[Step 3 Choosing the EIS services to run on worker node](#step-3-choosing-the-eis-services-to-run-on-worker-node)
 
-[Step 3 Deployment of EIS generated bundle on new node](#step-3-deployment-of-eis-generated-bundle-on-new-node)
+[Step 4 Creating the required environment on worker node](#step-4-creating-the-required-environment-on-worker-node)
 
-[Step 4 EIS-Multi-node Provisioning](#step-4-eis-multi-node-provisioning)
+[Step 5 Creating eis bundle for worker node](#step-5-creating-eis-bundle-for-worker-node)
 
-[Step 5a EIS-Multinode deployment with TurtleCreek](#step-5a-eis-multinode-deployment-with-turtlecreek)
+[Step 6 EIS-Multinode deployment with TurtleCreek](#step-6-eis-multinode-deployment-with-turtlecreek)
 
-[Step 5b EIS-Multinode deployment without TurtleCreek](#step-5b-eis-multinode-deployment-without-turtlecreek)
-
-[Step 6 Generate EIS bundle for CSL worker node provisioning](#step-6-generate-eis-bundle-for-csl-worker-node-provisioning)
+[Step 7 EIS-Multinode deployment without TurtleCreek](#step-7-eis-multinode-deployment-without-turtlecreek)
 
 # Step 1 Provision the Master node
 
-**NOTE** Please follow the EIS Pre-requisites before Provisioning.
-        [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+> **Pre-requisite**:
+> Please follow the EIS Pre-requisites before Provisioning.
+> [EIS Pre-requisites](../../README.md#eis-pre-requisites)
 
-For running EIS in multi node, we have to identify one master node to run ETCD server on one node. For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`.
+> **NOTE**:
+> * EIS services can run on master as well as worker nodes
+> * Master node should have the entire repo/source code present
+> * Master node is the primary administative node and has following attributes:
+>   1. Generating required certificates and secrets.
+>   2. Loading Initial ETCD values.
+>   3. Generating bundles to provision new nodes.
+>   4. Generating bundles to deploy EIS services on new/worker nodes.
 
-> **NOTE**: Master node is the primary administative node, which is used for following
-> * Generating Required Certificates and Secrets.
-> * Loading Initial ETCD values.
-> * Generating bundles to provision new nodes.
-> * Generating bundles to deploy EIS services on new nodes.
-> * Master node should have the entire repo present.
+
+For running EIS in multi node, we have to identify one node to run ETCD server (this node is called as `master` node). For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Master` node only.
 
 Provision the Master node using the below command,
 
@@ -62,7 +63,7 @@ Follow below steps:
 > **NOTE**: Please copy only build folder on node on which EIS is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
 > **NOTE**: Above commenting/removing build dependencies is not required if entire EIS repo is present on the node on which EIS is being launched through registry.
 
-# Step 3 Deployment of EIS generated bundle on new node
+# Step 3 Choosing the EIS services to run on worker node.
 
 >Note: This deployment bundle generated can be used to provision and also to deploy EIS stack on new node
 
@@ -81,14 +82,52 @@ Follow below steps:
     ***Note***: Please validate the json.
     Also Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
 
-3. Follow the below commands for EIS bundle Generation.
-    ```
-    sudo python3.6 generate_eis_bundle.py
-    ```
-4. EIS Bundle **eis_bundle.tar.gz** will be generated under the same directory.
+# Step 4 Creating the required environment on worker node
 
+```
+    # commands to be executed on master node.
+    $ sudo vim .env
+
+    Now change the value of following fields in the .env of the worker node.
+
+    ETCD_NAME=<any name other than `master`>
+    ETCD_HOST=<IP address of master node>
+    DOCKER_REGISTRY=<Docker registry details>
+    $ cd build/deploy
+    $ sudo python3.6 generate_eis_bundle.py -p
+
+    This will generate the 'eis_provisioning.tar.gz'.
+    This bundle has only artifact required to create environment like user/directory/..
+    Do a manual copy of this bundle on worker node. And then follow below commands
+    on worker node.
+```
+
+```
+    # commands to be executed on worker node.
+    $ tar -xvzf eis_provisioning.tar.gz
+    $ cd eis_provisioning/provision/
+    $ sudo ./provision_eis.sh
+```
+
+# Step 5 Creating eis bundle for worker node
+> **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-4.
+
+```
+    # commands to be executed on master node.
+    $ sudo vim .env
+
+    Now change the value of following fields in the .env of the worker node.
+
+    ETCD_NAME=<any name other than `master`>
+    ETCD_HOST=<IP address of master node>
+    DOCKER_REGISTRY=<Docker registry details>
+    $ cd deploy
+    $ sudo python3.6 generate_eis_bundle.py
+
+    This will generate the .tar.gz which has all the required artifacts by which eis services 
+    can be started on worker node.
+```
 ***Note***:
-
 
     1. Default Values of Bundle Name is "eis_bundle.tar.gz" and the tag name is "eis_bundle"
 
@@ -110,58 +149,18 @@ For more help:
         -t BUNDLE_TAG_NAME    Tag Name used for Bundle Generation (default:eis_bundle)
 
 
-# Step 4 EIS-Multi-node Provisioning
+Now this bundle can be used to deploy an eis on worker node. This bundle has all the required artifacts to start the eis
+services on worker node.
 
-##  step a : installing the provisioning bundle on worker node.
-
-```
-    # commands to be executed on master node.
-    $ cd build/deploy
-    $ sudo python3.6 generate_eis_bundle.py -p
-
-    This will generate the 'eis_provisioning.tar.gz'.
-    Do a manual copy of this bundle on worker node. And then follow below commands
-    on worker node.
-
-```
-
-```
-    # commands to be executed on worker node.
-    $ tar -xvzf eis_provisioning.tar.gz
-    $ cd eis_provisioning/provision/
-    $ sudo ./provision_eis.sh
-```
-
-##  step b : installing the eis bundle on worker node.
-
-```
-    # commands to be executed on master node.
-    $ sudo vim .env
-
-    Now change the value of following fields in the .env of the worker node.
-
-    ETCD_NAME=<any name other than `master`>
-    ETCD_HOST=<IP address of master node>
-    DOCKER_REGISTRY=<Docker registry details>
-    $ cd deploy
-    $ sudo python3.6 generate_eis_bundle.py
-
-    This will generate the .tar.gz
-```
-Now this bundle can be used to deploy an eis on worker node.
-
-# Step 5a EIS-Multinode deployment with TurtleCreek
-
-Edge Insights Software (EIS) Deployment Bundle Generation for TurtleCreek Agent which will be deployed via Thingsboard/Telit/Azure portal.This Utility helps you to generate deployment bundle for EIS Software deployment via Thingsboard/Telit/Azure Portal
+# Step 6 EIS-Multinode deployment with TurtleCreek
 
 ## Thingsboard/Telit/Azure - TurtleCreek:
 
-EIS deployment will only be done the on node where TurtleCreek is installed & provisioned via Thingsboard/Telit/Azure portal.
+EIS deployment will only be done on the node where TurtleCreek is installed & provisioned via Thingsboard/Telit/Azure portal.
 
-1. Please follow above steps 1-4 for bundle generation for master/worker node.
+1. Before proceeding this step, please make sure, you have followed steps 1-5.
 
 2. For TurtleCreek Agent installation and deployment through TurtleCreek, please refer TurtleCreek repo README.
-
 
     While deploying EIS Software Stack via Telit-TurtleCreek. Visualizer UI will not pop up because of display not attached to docker container of Visualizer.
 
@@ -176,10 +175,9 @@ EIS deployment will only be done the on node where TurtleCreek is installed & pr
         docker-compose up ia_visualizer
         ```
 
-# Step 5b EIS-Multinode deployment without TurtleCreek
+# Step 7 EIS-Multinode deployment without TurtleCreek
 
-Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node and follow below commands
-> **NOTE**: Please make sure to copy and untar the above bundle on a secure location having root only access as it container secrets. Please follow above steps 1-4 for bundle generation for master/worker node.
+> **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-5. Please make sure to copy and untar the above bundle on a secure location having root only access as it contains secrets.
 
 ```
     $ sudo tar -xvzf <eis_bundle gz generated in step 3>
@@ -193,22 +191,3 @@ Once EIS bundle is generated using Step 3, copy the bundle tar.gz to new node an
     $ docker-compose up -d
 
 ```
-
-# Step 6 Generate EIS bundle for CSL worker node provisioning
-
-* Set `PROVISION_MODE=csl` in `build/provision/.env` file.
-* Generate EIS bundle for CSL worker node provisioning.
-    ```sh
-        sudo python3 ./generate_eis_bundle.py -t eis_csl_worker_node_setup
-    ```
-* Copy the `eis_csl_worker_node_setup.tar.gz` file to your provisioning machine.
-    ```sh
-        $ sudo scp <eis_csl_worker_node_setup.tar.gz> <any-directory_on-worker-Filesystem>
-        $ sudo tar -xvf <eis_csl_worker_node_setup.tar.gz>
-        $ cd <eis_csl_worker_node_setup>
-    ```
-* Provision the EIS in CSL Worker Client Node.
-    ```sh
-        $ cd provision
-        $ sudo ./provision_eis.sh
-    ```

@@ -83,44 +83,45 @@ EIS Orchestration using CSL Orchestrator.
   * For Docker Registry
     ```sh
     "RuntimeOptions": {
-        "ContainerImage": "${DOCKER_REGISTRY}:${EIS_VERSION}"
+        "ContainerImage": "<DOCKER_REGISTRY>/<image_name>:<EIS_VERSION>"
     }
     ```
 
   * For SMR 
     
-    **Note** Registering docker image with SMR is optional incase of docker registry setup is not available. SMR can be used as needed.
+    > **Note**:
+    > 1. Registering docker image with SMR is optional incase of docker registry setup is not 
+    >    available. SMR can be used as needed.
+    > 2. [modulename] should be same as referred in `ManifestFile` for their respective module in
+    >    [deploy/csl_app_spec.json](deploy/csl_app_spec.json) 
+    
     * Build & Update the Docker Repository and Images.
       * For Saving Docker Images
+
         ```sh
-          $ docker save imagename:version > name.tar.gz
-        ```
-      **Note** `name` is the Reference name which you give it for each image while saving and the same used while loading in another machine docker.
-      
-      * For Registering & Loading the Saved Image with SMR
-  >   **Note** Registering docker image with SMR is optional incase of docker registry setup is not available. SMR can be used as needed.
+          $ docker save imagename:version > imagename.tar.gz
+        ``` 
+      * For Registering & Loading the Saved Image with SMR  
         
-    ```sh
-          $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./name.tar.gz --name <modulename> --version <EIS_VERSION>
-    ``` 
+        ```sh
+              $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./imagename.tar.gz --name <modulename> --version <EIS_VERSION>
+        ``` 
+
     * Update generated Module Manifest file based on SMR registered artifact name and version.
       ```sh
       "RuntimeOptions": {
           "ContainerImage": "${idx:<registered_artifactname>:EIS_VERSION}"
       }
-    
 
 ## Provisioning EIS with CSL
 
- **Note**: 
-
-1. EIS Deployment with CSL can be done only in **PROD** mode.
-
-2. For running EIS in multi node, we have to identify one master node. For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`.
-
-3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL Provisioning.
-   
-
+> **Note**: 
+> 1. EIS Deployment with CSL can be done only in **PROD** mode.
+> 2. For running EIS in multi node, we have to identify one master node. For a master node,   
+>    ETCD_NAME in [build/.env](../.env) must be set to `master`.
+> 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL    
+>    Provisioning.
+ 
 Provisioning EIS with CSL is done in 2 steps. 
 
 1.  [EIS Master Node Provisioning in CSL Client Node](#eis-master-node-provisioning-in-csl-client-node)
@@ -151,30 +152,59 @@ Provisioning EIS with CSL is done in 2 steps.
       * Under Etcd Client Settings Update ETCD_HOST=<csl manager ip address/virtual ip address>
       * Update ETCD_CLIENT_PORT if needed.
 
-    **NOTE** please make sure your CSL Manger IP address is part of eis_no_proxy for it's Communication.
-  * Provision EIS CSL Master/Single node.
-        ```sh
-        $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+    > **NOTE**: Please make sure your CSL Manger IP address is part of eis_no_proxy for its    
+    >           Communication.
 
-        eq. $ sudo ./provision_eis.sh ../docker-compose.yml
-        ```
+  * Provision EIS CSL Master/Single node.
+
+    ```sh
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    ```
 
 ### EIS Worker Node Provisioning in CSL Client Node
->**Note** This should be used in other than EIS master CSL Client nodes on ***Multi node scenario*** only. This is not a primary provisioning step for **Single Node**.
+
+>**Note**: 
+> 1. This should be executed in non EIS master CSL client nodes(aka worker nodes) in ***Multi node 
+>    scenario*** only.
+> 2. There should be only one master node where we do EIS Master Node provisioning
+> 3. This step is not required for **Single Node** deployment
+> 4. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env).
+
   * Pre requisites:
     * EIS Master Node should be provisioned in any other CSL client node.
-    **Note:** EIS Master Node provision should done only in *one* system.
-    
-  * Generate the EIS CSL Worker Node Provisioning Setup Bundle & Provision EIS CSL Worker Client node refer as follows
-     *  [EIS CSL Worker Node Provisioning Setup Bundle Generation](../deploy/README.md#step-6-generate-eis-bundle-for-csl-worker-node-provisioning)
-  
-  **Note** Make Sure ETCD_NAME=<any name other than `master`> in [build/.env](../../build/.env).
+     
+  * Set `PROVISION_MODE=csl` in [build/provision/.env](../build/provision/.env) file.
+  * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
+  * Generate EIS bundle for CSL worker node provisioning.
 
+    ```sh
+      $ sudo python3 generate_eis_bundle.py -t eis_csl_worker_node_setup
+    ```
+
+  * Copy the `eis_csl_worker_node_setup.tar.gz` file to your provisioning machine.
+
+      ```sh
+          $ sudo scp <eis_csl_worker_node_setup.tar.gz> <any-directory_on-worker-Filesystem>
+          $ sudo tar -xvf <eis_csl_worker_node_setup.tar.gz>
+          $ cd <eis_csl_worker_node_setup>
+      ```
+  * Provision the EIS in CSL Worker Client Node.
+      ```sh
+          $ cd provision
+          $ sudo ./provision_eis.sh
+      ```
+  
 ## Generating the CSL Appspec & Module Spec.
   * CSL Appspec will be auto-generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
 ## Registering EIS ModuleSpecs with CSL SMR. 
-**Note** Module Specs will be generated under `build/csl` directory based on the EIS Repo.
+
+> **Note**:
+> 1. Module Specs will be generated under `build/csl` directory based on the EIS Repo.
+> 2. Please refer the modulename as per the appspec and also confirm both are same for proper 
+>     reference by csl manager.
 
 * Please use the following command to register the module spec with CSL manager using CSL admin utility.
     ```sh
@@ -185,8 +215,7 @@ Provisioning EIS with CSL is done in 2 steps.
         ```sh
         $ ./csladm register artifact --type file --name videoingestion --version 2.3 --file ./vi_module_spec.json
         ```
-  **Note** Please refer the modulename as per the appspec and also confirm both are same for proper reference by csl manager.
-
+  
 ## Deploying EIS Application with CSL Using CSL Manager UI
 * Update the Appspec Execution Environment as needed by individual modules.
     * In case of time series, update the "MQTT_BROKER_HOST" env of telegraf module in **csl_app_spec.json**. Replace "127.0.0.1" to mosquito broker's IP address, to receive the data in telegraf.
