@@ -34,6 +34,7 @@ services:
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
           GO_VERSION: ${GO_VERSION}
     image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
+    ipc: "none"
 
   ## Define ia_common service
   ia_common:
@@ -50,6 +51,7 @@ services:
           DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+    ipc: "none"
 
   ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
 
@@ -82,6 +84,7 @@ services:
     volumes:
       - "vol_etcd_keeper:/tmp/nginx"
     user: ${EIS_UID}
+    ipc: "none"
     secrets:
       - ca_etcd
       - etcd_EtcdUI_cert

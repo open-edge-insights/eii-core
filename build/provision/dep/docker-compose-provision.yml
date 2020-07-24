@@ -48,6 +48,7 @@ services:
     volumes:
       - "vol_etcd:$ETCD_DATA_DIR"
     network_mode: host
+    ipc: "none"
     user: $EIS_UID
     
   ia_etcd_provision:
@@ -77,6 +78,7 @@ services:
       ETCD_HOST: $ETCD_HOST
       ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
     network_mode: host
+    ipc: "none"
     user: $EIS_UID
 
 volumes:
