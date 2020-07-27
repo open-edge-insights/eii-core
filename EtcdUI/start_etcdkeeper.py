@@ -32,7 +32,7 @@ import threading
 
 
 def _execute_cmd(cmd):
-    cmd_output = subprocess.check_output(cmd, shell=True)
+    cmd_output = subprocess.check_output(cmd)
     return cmd_output
 
 
@@ -58,22 +58,42 @@ if __name__ == "__main__":
 
     if etcd_user != "root":
         if devMode:
-            get_prefix_command = "./etcdctl role get {} | \
-                                    grep -A1 Read | grep prefix | \
-                                    cut -d' ' -f4 | cut -d')' -f1".format(
-                                    etcd_user)
+            get_prefix_command1 = subprocess.run(["./etcdctl", "role", "get",
+                                  etcd_user], stdout=subprocess.PIPE,
+                                  check=False)
+            get_prefix_command2 = subprocess.run(["grep", "-A1", "Read"],
+                                  input=get_prefix_command1.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command3 = subprocess.run(["grep", "prefix"],
+                                  input=get_prefix_command2.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command4 = subprocess.run(["cut", "-d", "' '", "-f4"],
+                                  input=get_prefix_command3.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command = subprocess.run(["cut", "-d", ')', "-f1"],
+                                 input=get_prefix_command4.stdout,
+                                 stdout=subprocess.PIPE, check=False)
         else:
             etcd_pwd = os.environ["ETCD_PASSWORD"]
-            get_prefix_command = "./etcdctl --user {} --password {} --cacert {} --cert {} --key \
-                                    {} --endpoints {} role get {} | grep -A1 Read | grep \
-                                    prefix | cut -d' ' -f4 | cut -d')' \
-                                    -f1".format(etcd_user,
-                                                etcd_pwd,
-                                                conf["trustFile"],
-                                                conf["certFile"],
-                                                conf["keyFile"],
-                                                etcd_endpoint,
-                                                etcd_user)
+            get_prefix_command1 = subprocess.run(["./etcdctl", "--user",
+                                  etcd_user, "--password", etcd_pwd,
+                                  "--cacert", conf["trustFile"], "--cert",
+                                  conf["certFile"], "--key", conf["keyFile"],
+                                  "--endpoints", etcd_endpoint, "role",
+                                  "get", etcd_user], stdout=subprocess.PIPE,
+                                  check=False)
+            get_prefix_command2 = subprocess.run(["grep", "-A1", "Read"],
+                                  input=get_prefix_command1.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command3 = subprocess.run(["grep", "prefix"],
+                                  input=get_prefix_command2.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command4 = subprocess.run(["cut", "-d", "' '", "-f4"],
+                                  input=get_prefix_command3.stdout,
+                                  stdout=subprocess.PIPE, check=False)
+            get_prefix_command = subprocess.run(["cut", "-d", ')', "-f1"],
+                                 input=get_prefix_command4.stdout,
+                                 stdout=subprocess.PIPE, check=False)
 
         etcd_prefix = _execute_cmd(get_prefix_command).decode(
                         'utf-8').rstrip()
@@ -89,30 +109,41 @@ if __name__ == "__main__":
 
         with open('/tmp/nginx/server_key.pem', 'w') as f:
             f.write(server_key)
-
-    cmd = _execute_cmd("hostname -I | awk '{print $1}'")
-    ip = str(cmd, encoding='utf-8').strip()
-
+    cmd1 = subprocess.run(["hostname", "-I"], stdout=subprocess.PIPE,
+                          check=False)
+    cmd2 = subprocess.run(["awk", '{print $1}'], input=cmd1.stdout,
+                          stdout=subprocess.PIPE, check=False)
+    ip = cmd2.stdout.decode('utf-8').rstrip("\n")
     port = os.environ["NGINX_PORT"]
 
+    sed_ip = 's/NGINX_HOST/{}/'.format(ip)
+
+    sed_port = 's/NGINX_PORT/{}/'.format(port)
+
     if devMode:
-        cmd1 = "sed  's/NGINX_HOST/{}/' \
-                ./eis_nginx_dev.conf > \
-                /tmp/nginx/eis_nginx_temp.conf".format(ip)
-        cmd2 = "sed  's/NGINX_PORT/{}/' \
-                /tmp/nginx/eis_nginx_temp.conf \
-                > /tmp/nginx/eis_nginx.conf".format(port)
-        _execute_cmd(cmd1)
-        _execute_cmd(cmd2)
+        try:
+            with open("/tmp/nginx/eis_nginx_temp.conf", "w") as outfile:
+                subprocess.run(["sed", sed_ip, "./eis_nginx_dev.conf"],
+                               stdout=outfile, check=False)
+            with open("/tmp/nginx/eis_nginx.conf", "w") as outfile:
+                subprocess.run(["sed", sed_port,
+                               "/tmp/nginx/eis_nginx_temp.conf"],
+                               stdout=outfile, check=False)
+        except subprocess.CalledProcessError as err:
+            print("Subprocess error: {}, {}".format(err.returncode,
+                  err.output))
     else:
-        cmd1 = "sed  's/NGINX_HOST/{}/' \
-                ./eis_nginx_prod.conf > \
-                /tmp/nginx/eis_nginx_temp.conf".format(ip)
-        cmd2 = "sed  's/NGINX_PORT/{}/' \
-                /tmp/nginx/eis_nginx_temp.conf \
-                > /tmp/nginx/eis_nginx.conf".format(port)
-        _execute_cmd(cmd1)
-        _execute_cmd(cmd2)
+        try:
+            with open("/tmp/nginx/eis_nginx_temp.conf", "w") as outfile:
+                subprocess.run(["sed", sed_ip, "./eis_nginx_prod.conf"],
+                               stdout=outfile, check=False)
+            with open("/tmp/nginx/eis_nginx.conf", "w") as outfile:
+                subprocess.run(["sed", sed_port,
+                               "/tmp/nginx/eis_nginx_temp.conf"],
+                               stdout=outfile, check=False)
+        except subprocess.CalledProcessError as err:
+            print("Subprocess error: {}, {}".format(err.returncode,
+                  err.output))
 
     try:
         if devMode:
