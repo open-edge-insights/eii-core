@@ -60,6 +60,12 @@ class EisBundleGenerator:
                 config['docker_compose_file_version']
             self.exclude_services = config['exclude_services']
             self.include_services = config['include_services']
+            
+            if "ia_etcd_ui" in self.include_services:
+                print("EtcdUI can be run only in master node")
+                print("Remove ia_etcd_ui service from config.json")
+                sys.exit(0)
+
             self.env = self.get_env_dict("../.env")
             self.provisionenv = self.get_env_dict("../provision/.env")
             if self.provisionenv['PROVISION_MODE'] != "csl":

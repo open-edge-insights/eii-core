@@ -79,9 +79,13 @@ Follow below steps:
 
         }
       ```
-    ***Note***: Please validate the json.
-    Also Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
+    ***Note***: 
+    > 1. Please validate the json.
 
+    > 2. Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
+
+    > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in master node and it can be accessed from worker nodes at: http://[master_node_ip]:7070/etcdkeeper.<br/>
+    > Follow [EtcdUI/README](../../EtcdUI/README.md) for more inofrmation.
 # Step 4 Creating the required environment on worker node
 
 ```
