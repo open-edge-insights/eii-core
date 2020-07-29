@@ -94,7 +94,6 @@ Follow below steps:
 
     Now change the value of following fields in the .env of the worker node.
 
-    ETCD_NAME=<any name other than `master`>
     ETCD_HOST=<IP address of master node>
     DOCKER_REGISTRY=<Docker registry details>
     $ cd build/deploy
@@ -122,7 +121,6 @@ Follow below steps:
 
     Now change the value of following fields in the .env of the worker node.
 
-    ETCD_NAME=<any name other than `master`>
     ETCD_HOST=<IP address of master node>
     DOCKER_REGISTRY=<Docker registry details>
     $ cd deploy

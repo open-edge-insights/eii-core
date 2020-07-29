@@ -60,7 +60,7 @@ class EisBundleGenerator:
                 config['docker_compose_file_version']
             self.exclude_services = config['exclude_services']
             self.include_services = config['include_services']
-            
+
             if "ia_etcd_ui" in self.include_services:
                 print("EtcdUI can be run only in master node")
                 print("Remove ia_etcd_ui service from config.json")
@@ -185,6 +185,13 @@ class EisBundleGenerator:
             cmdlist.append(["rm", ca_key_file])
             cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
 
+        env = open(self.bundle_tag_name + "/.env", "rw")
+        envdata = env.read()
+        newenvdata = envdata.replace("ETCD_NAME=master",
+                                     "ETCD_NAME=worker")
+        env.write(newenvdata)
+        env.close()
+
         tar_file = self.bundle_tag_name + ".tar.gz"
         cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
         if self.bundle_folder is False:
@@ -206,6 +213,12 @@ class EisBundleGenerator:
         '''
         provision_tag_name = 'eis_provisioning'
         cmdlist = create_req_dirs(provision_tag_name)
+        env = open(self.provision_tag_name + "/.env", "rw")
+        envdata = env.read()
+        newenvdata = envdata.replace("ETCD_NAME=master",
+                                     "ETCD_NAME=worker")
+        env.write(newenvdata)
+        env.close()
         tar_file = provision_tag_name + ".tar.gz"
         cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
         if self.bundle_folder is False:
