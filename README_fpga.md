@@ -6,10 +6,6 @@
    * OpenVINO FPGA toolkit installation guide: https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_installing_openvino_linux_fpga.html
    * FPGA configuration setup guide: https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_VisionAcceleratorFPGA_Configure.html
 
-   * Running HDDL-F(FPGA) devices on Ubuntu 18.04 with Kernel above 5.3 is not supported by OpenVINO 2020.4 so please downgrade the kernel version.
-
-   **Note**: FPGA was tested with OpenVINO FPGA 2020.4 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
-
 * Download and install Intel Quartus Software lite version.
    * URL: [Click here to download the Quartus Software](https://fpgasoftware.intel.com/18.1/?edition=lite&platform=linux)
    * Scroll down and select Additional Software tab then click on Stand-Alone Software download icon.
@@ -36,6 +32,4 @@
     Your output is similar to "01:00.0 Processing accelerators: Altera Corporation Device 2494 (rev 01)"
 
 2. To setup FPGA drivers on host machine please refer the guide: [Click here for FPGA driver setup guide](https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_VisionAcceleratorFPGA_Configure.html)
-
-Note: Since Intel® Arria® 10 FPGA (Mustang-F100-A10) Speed Grade 1 is not available in the OpenVINO 2020.4 package(as mentioned in the above guide) we will not be able to support this as EIS uses OpenVINO version 2020.3 which cannot be downgraded to 2020.1(as a workaround mentioned in the guide).
 

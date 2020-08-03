@@ -409,11 +409,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **Troubleshooting issues for HDDL devices**
 
-  * Running HDDL devices on Ubuntu 18.04 with Kernel version 5.3 and above is not supported so please downgrade the kernel version.
-
-  * Due to the compatibility issue, the ION driver cannot be installed on Ubuntu* with a kernel version higher than 5.0(included), falling back to use shared memory. When shared memory is made used there is a issue initializing HDDL device from within a docker container(which was the case with Kernel version 5.3)
-
-  ** Note**: HDDL was tested with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version 5.0.0-050000-generic
+  ** Note**: *HDDL was tested with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version 5.3.0-62-generic*
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
