@@ -10,8 +10,7 @@ EIS Orchestration using CSL Orchestrator.
 
 4. [Registering EIS ModuleSpecs with CSL SMR](#registering-eis-modulespecs-with-csl-smr)
 
-5. [Deploying EIS Application with CSL Using CSL Manager UI
-](#deploying-eis-application-with-csl-using-csl-manager-ui)
+5. [Deploying EIS Application with CSL Using CSL Manager UI](#deploying-eis-application-with-csl-using-csl-manager-ui)
 
 6. [Steps to enable Basler Camera](#steps-to-enable-basler-camera)
 
@@ -31,13 +30,20 @@ EIS Orchestration using CSL Orchestrator.
     * Please refer orchestrator repo.
 
       > **Note**: Installation of CSL is a pre-requisite before EIS Provisioning with CSL in following steps.
+      >           Please follow the standard proxy settings if your installation machines are behind proxy environment.
+      >           For orchestrator deployment in a proxy environment, make sure all communicating machines IP addresses
+      >           are in `no_proxy` list both in `docker` & `system` environment files as follows.
+      >                     1.  /etc/environment
+      >                     2.  /etc/systemd/system/docker.service.d/http-proxy.conf
+      >                     3.  ~/.docker/config.json
 
 ## EIS CSL Pre-Requisites
   ### EIS Pre-Requisites
   * Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) steps for generating the appspecs & module specs using EIS Builder.
 
-  ### Update the Settings for Mounting External Devices/Volumes to CSL Client Nodes.
+  ### Update the Settings for Mounting External Devices/Volumes and EIS User & Group ID for CSL Client Nodes.
   >**Note** This steps should be done in `cslmanager` machine only.
+  >         Refer `EIS_UID` in [../.env](../.env)
   * Goto **CSL Manager** Machine.
       ```sh
       $   sudo vi /opt/csl/csl-manager/application.properties
@@ -46,14 +52,20 @@ EIS Orchestration using CSL Orchestrator.
       ```sh    
       $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/Intel/OpenCL/Boards,/opt/altera,/opt/intel/intelFPGA,/opt/intel/openvino
       ```
+  * Set **whitelistedUsers** property value with `EIS_UID` as follows.
+      ```sh
+      $ whitelistedUsers=0,5319
+      ```
+  * Set **whitelistedGroups** property value with `EIS_UID` as follows.
+      ```sh
+      $ whitelistedGroups=0,5319
+      ```
   > Save the file.
 
   * Restart the **csl-manager** docker container
     ```sh    
     $   docker restart <csl-manager-containerid>
     ```
-
-
  
   ### Update the Container Image details in Module Spec Files.
 > **NOTE**:
@@ -93,7 +105,7 @@ EIS Orchestration using CSL Orchestrator.
     > 1. Registering docker image with SMR is optional incase of docker registry setup is not 
     >    available. SMR can be used as needed.
     > 2. [modulename] should be same as referred in `ManifestFile` for their respective module in
-    >    [deploy/csl_app_spec.json](deploy/csl_app_spec.json) 
+    >    [csl/csl_app_spec.json](csl/csl_app_spec.json) 
     
     * Build & Update the Docker Repository and Images.
       * For Saving Docker Images
@@ -107,11 +119,23 @@ EIS Orchestration using CSL Orchestrator.
               $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./imagename.tar.gz --name <modulename> --version <EIS_VERSION>
         ``` 
 
-    * Update generated Module Manifest file based on SMR registered artifact name and version.
+    * Update generated Module Manifest file based on SMR registered artifact name and version.    
       ```sh
       "RuntimeOptions": {
-          "ContainerImage": "${idx:<registered_artifactname>:EIS_VERSION}"
+          "ContainerImage": "${idx:<registered_artifactname>:<EIS_VERSION>}"
       }
+      ```
+
+      For Eg. 
+
+      * For registering VideoIngestion Module manifest. Use the `artifact` name as same referred in `ManifestFile` key of VideoIngestion module in [deploy/csl_app_spec.json](deploy/csl_app_spec.json)
+      
+      ```sh
+      "RuntimeOptions": {
+          "ContainerImage": "${idx:videoingestion:2.3}"
+      }
+
+      ```
 
 ## Provisioning EIS with CSL
 
@@ -134,6 +158,10 @@ Provisioning EIS with CSL is done in 2 steps.
 
 ### EIS Master Node Provisioning in CSL Client Node
 
+
+    > **NOTE**: Please make sure your CSL Manager IP, CSL Virtual IP, Client node IP address is part of eis_no_proxy for its    
+    >           Communication.
+
   * To Deploy EIS with CSL, EIS has to be provisioned in "csl" mode.
 
   * Please Select the client machine where you want provision the `master eis csl node` by following below steps.
@@ -149,11 +177,9 @@ Provisioning EIS with CSL is done in 2 steps.
 
   * Please Update following Environment Variables in [build/.env](../../build/.env)
       * ETCD_PREFIX=/csl/apps/EIS
-      * Under Etcd Client Settings Update ETCD_HOST=<csl manager ip address/virtual ip address>
+      * Under Etcd Client Settings Update ETCD_HOST=<csl virtual ip address>
       * Update ETCD_CLIENT_PORT if needed.
 
-    > **NOTE**: Please make sure your CSL Manger IP address is part of eis_no_proxy for its    
-    >           Communication.
 
   * Provision EIS CSL Master/Single node.
 
