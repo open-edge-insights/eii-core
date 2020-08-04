@@ -65,4 +65,7 @@ EIS distributed services centralized logging using ELK
   > browser as an exception. The attached certificates are sample certificates only and need to
   > be replaced for production environment.
 
+  > To access Kibana UI in external machines, replace 'localhost' in [.env](./env) with the
+  > actual IP address of the machine where kibana is running.
+
 5. After above 4 steps, please start/restart the EIS services.
