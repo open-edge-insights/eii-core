@@ -87,7 +87,7 @@ function set_docker_host_time_zone() {
 }
 
 function create_eis_user() {
-    echo "Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exits with different UID"
+    echo "Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exists with different UID"
 
     # EIS containers will be executed as eisuser
     if ! id $EIS_USER_NAME >/dev/null 2>&1; then
@@ -107,10 +107,12 @@ function create_eis_install_dir() {
         rm -rf $EIS_INSTALL_PATH/data/etcd
     fi
 
+    # Creating the required EIS dirs
     mkdir -p $EIS_INSTALL_PATH/data/influxdata
     check_error "Failed to create dir '$EIS_INSTALL_PATH/data/influxdata'"
     mkdir -p $EIS_INSTALL_PATH/data/etcd/data
     mkdir -p $EIS_INSTALL_PATH/sockets/
+    mkdir -p $EIS_INSTALL_PATH/model_repo
     chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
     chmod -R 755 $EIS_INSTALL_PATH/data/
 
