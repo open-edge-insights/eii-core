@@ -43,60 +43,20 @@ if __name__ == "__main__":
     except KeyError:
         devMode = 1
 
-    etcd_prefix = os.environ["ETCD_PREFIX"]
+    etcd_prefix = os.getenv('ETCD_PREFIX', "")
     etcd_prefix = etcd_prefix + '/'
     if os.getenv('ETCD_HOST') is not None:
-        etcd_endpoint = os.getenv('ETCD_HOST', '127.0.0.1') + ':'+ os.getenv('ETCD_CLIENT_PORT','2379')
+        etcd_endpoint = os.getenv('ETCD_HOST', '127.0.0.1') + ':' + \
+            os.getenv('ETCD_CLIENT_PORT', '2379')
     elif os.getenv('ETCD_ENDPOINT') is not None:
         etcd_endpoint = os.environ['ETCD_ENDPOINT']
     else:
-        logger.error("ETCD_HOST/ETCD_ENDPOINT envs not set or missing. Exiting!!!")
+        logger.error("ETCD_HOST/ETCD_ENDPOINT envs"
+                     "not set or missing. Exiting!!!")
         sys.exit(-1)
     etcd_user = os.getenv("ETCD_USER", "root")
     app_name = os.environ["AppName"]
     conf = Util.get_crypto_dict(app_name)
-
-    if etcd_user != "root":
-        if devMode:
-            get_prefix_command1 = subprocess.run(["./etcdctl", "role", "get",
-                                  etcd_user], stdout=subprocess.PIPE,
-                                  check=False)
-            get_prefix_command2 = subprocess.run(["grep", "-A1", "Read"],
-                                  input=get_prefix_command1.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command3 = subprocess.run(["grep", "prefix"],
-                                  input=get_prefix_command2.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command4 = subprocess.run(["cut", "-d", "' '", "-f4"],
-                                  input=get_prefix_command3.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command = subprocess.run(["cut", "-d", ')', "-f1"],
-                                 input=get_prefix_command4.stdout,
-                                 stdout=subprocess.PIPE, check=False)
-        else:
-            etcd_pwd = os.environ["ETCD_PASSWORD"]
-            get_prefix_command1 = subprocess.run(["./etcdctl", "--user",
-                                  etcd_user, "--password", etcd_pwd,
-                                  "--cacert", conf["trustFile"], "--cert",
-                                  conf["certFile"], "--key", conf["keyFile"],
-                                  "--endpoints", etcd_endpoint, "role",
-                                  "get", etcd_user], stdout=subprocess.PIPE,
-                                  check=False)
-            get_prefix_command2 = subprocess.run(["grep", "-A1", "Read"],
-                                  input=get_prefix_command1.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command3 = subprocess.run(["grep", "prefix"],
-                                  input=get_prefix_command2.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command4 = subprocess.run(["cut", "-d", "' '", "-f4"],
-                                  input=get_prefix_command3.stdout,
-                                  stdout=subprocess.PIPE, check=False)
-            get_prefix_command = subprocess.run(["cut", "-d", ')', "-f1"],
-                                 input=get_prefix_command4.stdout,
-                                 stdout=subprocess.PIPE, check=False)
-
-        etcd_prefix = _execute_cmd(get_prefix_command).decode(
-                        'utf-8').rstrip()
 
     if not devMode:
         cfg_mgr = ConfigManager()
@@ -154,6 +114,7 @@ if __name__ == "__main__":
 
         else:
             subprocess.Popen(["./etcdkeeper/etcdkeeper",
+                              "-h", "127.0.0.1",
                               "-p", "7070",
                               "-user", etcd_user,
                               "-sep", etcd_prefix,

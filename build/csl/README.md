@@ -50,7 +50,7 @@ EIS Orchestration using CSL Orchestrator.
       ```   
   * Set **whitelisted_mounts** property value as follows.
       ```sh    
-      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/Intel/OpenCL/Boards,/opt/altera,/opt/intel/intelFPGA,/opt/intel/openvino
+      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/Intel/OpenCL/Boards,/opt/altera,/opt/intel/intelFPGA,/opt/intel/openvino,/opt/intel/eis
       ```
   * Set **whitelistedUsers** property value with `EIS_UID` as follows.
       ```sh

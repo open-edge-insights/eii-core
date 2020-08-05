@@ -28,7 +28,7 @@
                 "Name": "etcdout",
                 "Endtype": "server",
                 "Protocol": "TCP",
-                "Port": "7070",
+                "Port": "7071",
                 "DataType": "messages",
                 "Link": "etcduiout"
             }
