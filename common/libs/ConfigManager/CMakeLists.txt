@@ -25,7 +25,7 @@ project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 option(WITH_GO_ENV_CONFIG "Install Go EnvConfig" OFF)
 option(WITH_PYTHON   "Compile with Py Config Manager and Py EnvConfig" OFF)
-option(WITH_EXAMPLES "Compile with examples" OFF)
+option(WITH_EXAMPLES "Compile with examples" ON)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
 # Globals
@@ -86,6 +86,8 @@ find_package(IntelSafeString REQUIRED)
 # Include header directories
 include_directories(
     include/
+    db_client/include/
+    db_client/etcd_client/include/
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
@@ -124,6 +126,7 @@ target_link_libraries(eisconfigmgr
         ${EISMsgEnv_LIBRARIES}
         ${EISUtils_LIBRARIES}
         goconfigmanager
+        eisetcdclient
     PRIVATE
         ${IntelSafeString_LIBRARIES})
 
