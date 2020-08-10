@@ -183,6 +183,7 @@ class EisBundleGenerator:
                             eis_cert_dir])
             ca_key_file = eis_cert_dir + "ca/ca_key.pem"
             cmdlist.append(["rm", ca_key_file])
+            cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
 
         tar_file = self.bundle_tag_name + ".tar.gz"
         cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
