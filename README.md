@@ -411,6 +411,8 @@ check [common/udfs/README.md](common/udfs/README.md).
 
   ** Note**: *HDDL was tested with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version 5.3.0-62-generic*
 
+  * In case one notices shared memory error with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
+
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
   * Please refer OpenVINO 2020.4 release notes in the below link for new features and changes from the previous versions.
