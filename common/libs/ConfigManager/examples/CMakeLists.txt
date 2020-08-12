@@ -21,7 +21,9 @@
 # Add config manager example
 add_executable(config_manager "config_manager.c")
 add_executable(env_config "env_config_example.c")
-add_executable(sample_app "Sample_app.cpp")
+add_executable(pub "sample_pub.cc")
+add_executable(sub "sample_sub.cc")
 target_link_libraries(config_manager eisconfigmgr pthread)
 target_link_libraries(env_config eisconfigmgr pthread)
-target_link_libraries(sample_app eisconfigmgr pthread)
+target_link_libraries(pub eismsgbus eismsgenv eisutils eisconfigmgr pthread)
+target_link_libraries(sub eismsgbus eismsgenv eisutils eisconfigmgr pthread)

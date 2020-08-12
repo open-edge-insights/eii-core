@@ -1,0 +1,25 @@
+{
+    "Server": [
+        {
+            "Name": "SW_Trigger",
+            "Type": "zmq_tcp",
+            "EndPoint": "127.0.0.1:66010",
+            "AllowedClients": [
+                "*"
+            ]
+        }
+    ],
+    "Publish": [
+        {
+            "Name": "default",
+            "Type": "zmq_ipc",
+            "EndPoint": "./socks",
+            "Topics": [
+                "camera1_stream"
+            ],
+            "AllowedClients": [
+                "*"
+            ]
+        }
+    ]
+}

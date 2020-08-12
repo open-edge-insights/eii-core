@@ -1,0 +1,38 @@
+{
+    "Subscribe": [
+        {
+            "Type": "zmq_ipc",
+            "EndPoint": "./socks",
+            "AppName": "VideoIngestion",
+            "Topics": [
+                "camera1_stream"
+            ]
+        }
+    ],
+    "Publish": [
+        {
+            "Name": "Image_Metadata",
+            "Type": "zmq_tcp",
+            "EndPoint": "127.0.0.1:65014",
+            "Topics": [
+                "camera1_stream_results",
+                "camera1_stream_results_metaonly"
+            ],
+            "AllowedClients": [
+                "Visualizer",
+                "WebVisualizer"
+            ]
+        },
+        {
+            "Name": "MetadataOnly",
+            "Type": "zmq_tcp",
+            "EndPoint": "127.0.0.1:65015",
+            "Topics": [
+                "camera1_stream_results_metaonly"
+            ],
+            "AllowedClients": [
+                "*"
+            ]
+        }
+    ]
+}
