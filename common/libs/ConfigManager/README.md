@@ -362,7 +362,21 @@ If config is needed for other topics, that is **camera2_stream and camera 3_stre
 
 Similarly for **sub_topics[]** tcp config as well.
 
-5. Destroy Env Config
+
+5. Memory de-allocation of char** varialbe.
+
+    `char** topics = env_config_client->get_topics_from_env("sub");`
+    `free_mem(topics);`
+
+    **API documentation:**
+
+    `void free_mem(char** arr);`
+    ```
+        free_mem function is to de-allocate the memory of char**.
+        @param arr - char** variable that needs memory deallocation
+    ```
+
+6. Destroy Env Config
 
     `env_config_destroy(env_config_client);`
 
