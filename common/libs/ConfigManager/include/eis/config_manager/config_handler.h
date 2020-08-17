@@ -43,7 +43,7 @@ namespace eis {
     namespace config_manager {
 
         /**
-         * ConfigHandler class derived from base class ConfigMgr
+         * ConfigHandler class
          */  
         class ConfigHandler {
             private:

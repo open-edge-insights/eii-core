@@ -35,7 +35,6 @@ ConfigHandler::ConfigHandler(config_t* app_config, config_t* app_interface, bool
 
     m_dev_mode = dev_mode;
 
-    fprintf(stderr,"in ConfigHandler constructor \n");
 }
 
 config_value_t* ConfigHandler::get_value(char* key){

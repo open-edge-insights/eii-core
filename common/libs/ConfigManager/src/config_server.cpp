@@ -30,21 +30,24 @@ using namespace eis::config_manager;
 
 ServerCfg::ServerCfg(config_value_t* server_config):ConfigHandler(NULL, NULL, NULL) {
     server_cfg = server_config;
-    fprintf(stderr,"in PublisherCfg class \n");
+    fprintf(stderr,"in ServerCfg class \n");
 }
 
 // getMsgBusConfig of ServerCfg class
 config_t* ServerCfg::getMsgBusConfig(){
+
+    fprintf(stderr,"in getMsgBusConfig method \n");
   
     config_value_t* server_type = config_value_object_get(server_cfg, "Type");
+    
     char* type = server_type->body.string;
     cJSON* json = cJSON_CreateObject(); 
     cJSON_AddStringToObject(json, "type", type);
     config_value_t* server_json_endpoint = config_value_object_get(server_cfg, "EndPoint");
     char* EndPoint = server_json_endpoint->body.string;
-
+    bool dev_mode = true;
     if(!strcmp(type, "zmq_tcp")) {
-
+        
         config_value_t* allowed_clients = config_value_object_get(server_cfg, "AllowedClients");
 
         cJSON* server_topic = cJSON_CreateObject();
@@ -57,15 +60,19 @@ config_t* ServerCfg::getMsgBusConfig(){
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(array_value->body.string));
         }
 
-        cJSON_AddItemToObject(json, "allowed_clients",  all_clients);
+        
 
-        config_value_t* name = config_value_object_get(interface_cfg, "Name");
+        config_value_t* name = config_value_object_get(server_cfg, "Name");
+        
         char* ser_name = name->body.string;
-        cJSON_AddStringToObject(server_topic, "host", EndPoint);
-        cJSON_AddNumberToObject(server_topic, "port", 123);
-        cJSON_AddStringToObject(server_topic, "server_secret_key", "Appname_secret_key");
+        cJSON_AddStringToObject(server_topic, "host", "127.0.0.1");
+        cJSON_AddNumberToObject(server_topic, "port", 8675);
+        if(!dev_mode) {
+            cJSON_AddItemToObject(json, "allowed_clients",  all_clients);
+            cJSON_AddStringToObject(server_topic, "server_secret_key", "Appname_secret_key");
+            
+        }
         cJSON_AddItemToObject(json, ser_name,  server_topic);
-
     }
     char* config_value = cJSON_Print(json);
     fprintf(stderr,"Env publish Config is : %s \n", config_value);

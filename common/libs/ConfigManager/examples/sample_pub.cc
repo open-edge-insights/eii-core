@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    setenv("DEV_MODE", "FALSE", 1);
+    setenv("DEV_MODE", "TRUE", 1);
 
     // Fetching Publisher config from
     // VideoIngestion interface
@@ -106,14 +106,6 @@ int main(int argc, char** argv) {
 
     PublisherCfg* pub_ctx = pub_ch->getPublisherByIndex(0);
     config_t* pub_config = pub_ctx->getMsgBusConfig();
-
-    // Fetching Publisher config from
-    // VideoIngestion interface
-    setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* pub_ch_va = new ConfigMgr();
-
-    PublisherCfg* pub_ctx_va = pub_ch_va->getPublisherByIndex(0);
-    config_t* pub_config_va = pub_ctx_va->getMsgBusConfig();
 
     // Initializing Publisher using pub_config obtained
     // from new ConfigManager APIs

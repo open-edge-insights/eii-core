@@ -40,7 +40,7 @@ ConfigMgr::ConfigMgr() {
     std::string str_type_name(c_type_name);
 
     // Fetching & intializing dev mode variable
-    bool dev_mode = false;
+    bool dev_mode = true;
     char* c_dev_mode = (char*)malloc(sizeof(char) * 40);
     snprintf(c_dev_mode, 40, "%s", getenv("DEV_MODE"));
     printf("DEV mode is set to %s \n", c_dev_mode);
@@ -73,7 +73,7 @@ ConfigMgr::ConfigMgr() {
         printf("AppName is %s \n", c_app_name);
         std::string str_app_name(c_app_name);
 
-        std::string str_app_interface = "/" + str_app_name + "/interfaces";
+        std::string str_app_interface = "/" + str_app_name + "/interface";
         char* interface_char = &str_app_interface[0];
 
         std::string str_app_config = "/" + str_app_name + "/config";

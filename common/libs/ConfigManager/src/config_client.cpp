@@ -45,15 +45,18 @@ config_t* ClientCfg::getMsgBusConfig(){
 
     config_value_t* client_json_endpoint = config_value_object_get(client_cfg, "EndPoint");
     char* EndPoint = client_json_endpoint->body.string;
+    bool dev_mode = true;
 
     if(!strcmp(type, "zmq_tcp")){
 
         cJSON* client_app = cJSON_CreateObject();
-        cJSON_AddStringToObject(client_app, "host", EndPoint);
-        cJSON_AddNumberToObject(client_app, "host", 1234);
-        cJSON_AddStringToObject(client_app, "server_secret_key", "appname_ privatekey");
-        cJSON_AddStringToObject(client_app, "client_secret_key", "client app privatekey");
-        cJSON_AddStringToObject(client_app, "client_public_key", "client app publickey");
+        cJSON_AddStringToObject(client_app, "host", "127.0.0.1");
+        cJSON_AddNumberToObject(client_app, "port", 8675);
+        if(!dev_mode) {
+            cJSON_AddStringToObject(client_app, "server_secret_key", "appname_ privatekey");
+            cJSON_AddStringToObject(client_app, "client_secret_key", "client app privatekey");
+            cJSON_AddStringToObject(client_app, "client_public_key", "client app publickey");
+        }
         cJSON_AddItemToObject(json, appname_, client_app);
         
     }
