@@ -102,6 +102,14 @@ spec:
       value: "$PROVISION_MODE"
     - name: ETCD_PREFIX
       value: "$ETCD_PREFIX"
+    command: ["/bin/sh"]
+    args:
+      - -c
+      - >
+        cd /EIS/etcd/
+        && python3 etcd_provision.py docker-compose.yml
+        && while true; do sleep 50000; done
+
   volumes:
   - name: "root-cert"
     secret:

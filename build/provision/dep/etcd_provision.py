@@ -31,7 +31,6 @@ import string
 import random
 import logging
 from distutils.util import strtobool
-import time
 ETCD_PREFIX = os.environ['ETCD_PREFIX']
 
 def get_appname(file):
@@ -169,7 +168,3 @@ if __name__ == "__main__":
 
     if not devMode and os.environ['provision_mode'] != "csl":
         enable_etcd_auth()
-    #etcd provision keep running if provision mode is k8s so that the pod keeps running
-    if os.environ['provision_mode'] == "k8s":
-       while True:
-          time.sleep(5)

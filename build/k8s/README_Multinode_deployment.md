@@ -47,14 +47,18 @@ $ kubectl get nodes
      E.g as below:
      spec:
      nodeName: master-node
-   * Run deployment.sh script after this change.
+   * Run the create_deploy_yml.sh script to get deploy_yml folder with env variables substituted in yml files. It will use yml files suffixed with deployment to create deployments.
+
+      ```
+      $ sudo ./create_deploy_yml.sh 
+      ```
+   * cd ../provision
    * Run below command 
       ```
       $ sudo ./provision_eis.sh ../docker-compose.yml
       ```
-   * Run the deployment.sh script to get deploy_yml folder with env variables substituted in yml files. It will use yml files suffixed with deployment to create deployments.
    * Do not make any change in yml files present in deploy_yml folder as it will be overwritten.
-   * If any change is needed, please modify in deployment ymls present in k8s directory and run deployment.sh to generate final ymls.
+   * If any change is needed, please modify in deployment ymls present in k8s directory and run create_deploy_yml.sh to generate final ymls.
    * Run below command to see all deployment details:
    ```
    $ kubectl -n kube-eis get all
