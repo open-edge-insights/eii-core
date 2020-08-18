@@ -22,9 +22,11 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 10. [DiscoveryCreek](#DiscoveryCreek)
 
-11. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+11. [List of All EIS services](#list-of-all-eis-services)
 
-12. [Debugging options](#debugging-options)
+12. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+
+13. [Debugging options](#debugging-options)
 
 
 
@@ -172,28 +174,27 @@ Following actions will be performed as part of Provisioning
  * If HOST_IP is blank in [build/.env](build/.env), then HOST_IP will be automatically detected when server certificates are generated.
 
 **Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](build/provision/volume_data_script.py). The script can be run by the command:
-```
-python3.6 volume_data_script.py
+```sh
+$ python3.6 volume_data_script.py
 ```
 
 Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
-```
-$ cd IEdgeInsights/build/provision
+```sh
+$ cd [WORKDIR]/IEdgeInsights/build/provision
 $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
-eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+# eq. $ sudo ./provision_eis.sh ../docker-compose.yml
 
 ```
 **Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
-```
-./etcd_capture.sh
+```sh
+$ ./etcd_capture.sh
 ```
 
 # Build and Run EIS PCB/timeseries use cases
 
   ---
   > **Note:**
-  > * All EIS build and run commands are to be executed from the IEdgeInsights/build/ directory.
   > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
      run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration.
      This is needed by `ia_visualizer` service to render the UI
@@ -210,29 +211,24 @@ eq. $ sudo ./provision_eis.sh ../docker-compose.yml
   >     ```
   ---
 
+All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory. Below are the main usecases supported by EIS:
 
-Below are the main usecases supported by EIS:
+* Video streaming use case
 
-* For video streaming use case only:
-  Refer our default docker-compose file at [build/docker-compose.yml](build/docker-compose.yml)
+  Only the services mentioned in [build/video-streaming.yml](build/video-streaming) will be running on EIS stack bring up
 
-    > ia_video_ingestion, ia_video_analytics, ia_visualizer
+* Video streaming and historical use case
 
-* For video streaming and historical use case:
-  Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-and-historical-usecase.yml](build/samples/docker-compose-video-streaming-and-historical-usecase.yml)
+  Only the services mentioned in [build/video-streaming-storage.yml](build/video-streaming-storage) will be running on EIS stack bring up
 
-    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_imagestore, ia_influxdbconnector
 
-* For timeseries use case only:
-  Sample docker-compose file is accessible at [build/samples/docker-compose-timeseries-usecase.yml](build/samples/docker-compose-timeseries-usecase.yml)
+* Timeseries use case
+  
+  Only the services mentioned in [build/time-series.yml](build/time-series) will be running on EIS stack bring up
 
-    > ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
-
-* For video streaming and timeseries use case:
-  Sample docker-compose file is accessible at [build/samples/docker-compose-video-streaming-timeseries-usecase.yml](build/samples/docker-compose-video-streaming-timeseries-usecase.yml)
-
-    > ia_video_ingestion, ia_video_analytics, ia_visualizer, ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc, ia_kapacitor
-
+* Video streaming and timeseries use case
+  
+  All the services will be running on EIS stack bring up
 
 To build and run EIS in one command:
 
@@ -253,7 +249,7 @@ If any of the services fails during build, it can be built using below command
 $ docker-compose build --no-cache <service name>
 ```
 
-Please note that the first time build of EIS containers may take ~70 minutes depending the n/w speed.
+Please note that the first time build of EIS containers may take ~70 minutes depending on the n/w speed.
 
 A successful run will open Visualizer UI with results of video analytics for all video usecases.
 
@@ -427,56 +423,53 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-For enabling this, different set of containers need to be built in EIS and it can be selected by modifying the docker-compose file.
-
-Please incldue following services in [docker-compose.yml](build/docker-compose.yml) for Time series analytics example.
-
-> ia_telegraf, ia_influxdbconnector, ia_kapacitor, ia_grafana
+The services mentioned in [build/time-series.yml](build/time-series) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
-For sample docker-compose file for TimeSeries analytics , refer to [build/samples/docker-compose-time-series-analytics.yml](build/samples/docker-compose-time-series-analytics.yml).
-
 # DiscoveryCreek
 
 DiscoveryCreek is a machine learning based anomaly detection engine.
 
-For enabling DiscoveryCreek, please include the following services in the [docker-compose.yml](build/docker-compose.yml) file:
-
-> ia_grafana, ia_telegraf, ia_influxdbconnector, ia_dc
+Add the `DiscoveryCreek` entry to [build/time-series.yml](build/time-series) and the services mentioned in there will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
 
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
-
-For sample docker-compose file for DiscoveryCreek analytics , refer to [build/samples/docker-compose-discovery-creek.yml](build/samples/docker-compose-discovery-creek.yml).
 
 # List of All EIS Services
 
 EIS stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
 
+## Common EIS services
+
+1. [EtcdUI](EtcdUI/README.md)
+2. [InfluxDBConnector](InfluxDBConnector/README.md)
+3. [OpcuaExport](OpcuaExport/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua clients
+4. [RestDataExport](RestDataExport/README.md) - Optional service to read the metadata and image blob from InfluxDBConnector and ImageStore services respectively
+
+## Video related services
+
 1. [VideoIngestion](VideoIngestion/README.md)
 2. [VideoAnalytics](VideoAnalytics/README.md)
 3. [Visualizer](Visualizer/README.md)
-4. [ImageStore](ImageStore/README.md)
-5. [InfluxDBConnector](InfluxDBConnector/README.md)
-6. [OpcuaExport](OpcuaExport/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua    clients
-7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants
-   to control the light based on defective/non-defective data
-8. Telegraf
-9. [Kapacitor](Kapacitor/README.md)
-10. [EtcdUI](EtcdUI/README.md)
-11. [DiscoveryCreek](DiscoveryCreek/README.md)
-12. [WebVisualizer](WebVisualizer/README.md)
-13. [Grafana](Grafana/README.md)
-14. [Rest Data Export](RestDataExport/README.md)
+4. [WebVisualizer](WebVisualizer/README.md)
+5. [ImageStore](ImageStore/README.md)
+6. [EISAzureBridge](EISAzureBridge/README.md)
+7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants to control the light based on defective/non-defective data
+
+## Timeseries related services
+
+1. [Telegraf](Telegraf/README.md)
+2. [Kapacitor](Kapacitor/README.md)
+3. [Grafana](Grafana/README.md)
+4. [DiscoveryCreek](DiscoveryCreek/README.md)
 
 # EIS multi node cluster provision and deployment using Turtlecreek
 
 By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and
 remote managibility using turtlecreek, please follow [build/deploy/README.md](build/deploy/README.md)
-
 
 # Debugging options
 
