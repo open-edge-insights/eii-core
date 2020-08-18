@@ -18,6 +18,13 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-# Add config manager example
-add_executable(etcd_client "etcd_client.cc")
-target_link_libraries(etcd_client eisdbclient)
+# Find libgrpc
+find_package(gRPC CONFIG REQUIRED)
+find_path(GRPC_INCLUDE_DIR grpc++)
+find_library(GRPC_LIBRARY NAMES grpc++)
+
+set(GRPC_LIBRARIES ${GRPC_LIBRARY} gRPC::grpc++)
+set(GRPC_INCLUDE_DIRS ${GRPC_INCLUDE_DIR} )
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GRPC DEFAULT_MSG GRPC_LIBRARY GRPC_INCLUDE_DIR)

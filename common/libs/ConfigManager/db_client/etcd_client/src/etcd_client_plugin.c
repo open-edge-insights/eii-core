@@ -1,4 +1,4 @@
-// Copyright (c) 2019 Intel Corporation.
+// Copyright (c) 2020 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -21,7 +21,7 @@
 
 /**
  * @file
- * @brief Config Manager implementation
+ * @brief Etcd Client Plugin implementation
  */
 
 #include "db_client.h"
@@ -29,9 +29,7 @@
 #include <stdlib.h>
 
 
-static int count = 0;
-
-db_client_t* create_etcd_client(char *hostname, char *port, char *cert_file, char *key_file, char *ca_cert_file){
+db_client_t* create_etcd_client(char *hostname, char *port, char *cert_file, char *key_file, char *ca_cert_file) {
     db_client_t *db_client = NULL;
     etcd_config_t *etcd_config = NULL;
     etcd_config = (etcd_config_t*)malloc(sizeof(etcd_config_t));
@@ -49,17 +47,17 @@ db_client_t* create_etcd_client(char *hostname, char *port, char *cert_file, cha
     db_client->watch = etcd_watch;
     db_client->watch_prefix = etcd_watch_prefix;
     db_client->init = etcd_init;
+    db_client->deinit = etcd_client_free;
+    // db_client->db_destroy =  etcd_client_destroy;
     return db_client;
 }
 
-void db_client_destroy(db_client_t *db_client){
+void db_client_free(db_client_t* db_client) {
     if(db_client != NULL){
-        if(db_client->db_config != NULL){
-            printf("its not NULL\n");
-            free(db_client->db_config);
+        db_client->deinit(db_client->handler);
+        if(db_client->db_config != NULL) {
+             free(db_client->db_config);
         }
         free(db_client);
     }
-    count++;
-    printf("freeing db_client count: %d\n", count);
 }

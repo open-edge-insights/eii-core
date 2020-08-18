@@ -20,9 +20,11 @@
 // IN THE SOFTWARE.
 
 #include "etcd_client.h"
+#include <unistd.h>
+
+using namespace eis::etcdcli;
 
 void watch_prefix_cb(char *key, char *value, void *user_data){
-    std::cout << "--------------------------------\n";
     std::cout << "watch_prefix callback is called..." << std::endl;
     std::cout << "PREFIX:::\n";
     std::cout << "key:" << key << " value:" << value << std::endl;
@@ -34,24 +36,27 @@ void watch_prefix_cb(char *key, char *value, void *user_data){
 void watch_cb(char *key, char *value, void *user_data){
     std::cout << "watch callback is called..." << std::endl;
     std::cout << "key:" << key << " value:" << value << std::endl;
-    char *data = (char *)user_data;
-    printf("userdata: %s\n", data);
 }
 
 int main(int argc, char** argv) {
-    std::string cert_file = "/home/vka/go/src/multi_repo/IEdgeInsights/build/provision/Certificates/root/root_client_certificate.pem";
-	std::string key_file = "/home/vka/go/src/multi_repo/IEdgeInsights/build/provision/Certificates/root/root_client_key.pem";
-	std::string root_file = "/home/vka/go/src/multi_repo/IEdgeInsights/build/provision/Certificates/ca/ca_certificate.pem";
+    // etcd certs to run in prod mode
+    std::string cert_file = "";
+	std::string key_file = "";
+	std::string root_file = "";
 
-    EtcdClient etcd_cli("localhost", "2379", cert_file, key_file, root_file);
+    // Uncomment below line to run in prod mode
+    // EtcdClient etcd_cli("localhost", "2379", cert_file, key_file, root_file);
 
-    std::string get_key = "/GlobalEnv/";
+    // To run in dev mode
+    EtcdClient etcd_cli("localhost", "2379");
+
+    std::string get_key = "/VideoIngestion/config";
     std::string get_value = etcd_cli.get(get_key);
     std::cout << "Get result:" << get_value << std::endl;
 
-    std::string key = "/Visualizer/datastore";
-
+    std::string key = "/VideoIngestion/datastore";
     std::string put_value = "hello world....";
+    
     int put_config_status = etcd_cli.put(key, put_value);
     if(put_config_status == 0) {
         std::cout << "put_config() is success" << std::endl;
@@ -61,7 +66,7 @@ int main(int argc, char** argv) {
     std::string key2 = "/Global";
 
     etcd_cli.watch_prefix(key2, watch_prefix_cb, (void*)"userdatawatch");
-    etcd_cli.watch(key, watch_cb, (void*)"userdataprefix");
+    etcd_cli.watch(key, watch_cb, NULL);
 
     sleep(20);
     return 0;

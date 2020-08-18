@@ -22,6 +22,36 @@
 #include <exception>
 #include <thread>
 
+using namespace eis::etcdcli;
+
+static std::string get_file_contents(const char *fpath) {
+  std::ifstream finstream(fpath);
+  std::string contents((std::istreambuf_iterator<char>(finstream)), std::istreambuf_iterator<char>());
+  return contents;
+}
+
+EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
+    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
+}
+
+EtcdClient::EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file, 
+                       const std::string& key_file, const std::string ca_file) {
+    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    const char* croot = ca_file.c_str();
+    const char* ckey = key_file.c_str();
+    const char* ccert = cert_file.c_str();
+
+    auto ca_pem = get_file_contents(croot);
+    auto key_pem = get_file_contents(ckey);
+    auto cert_pem = get_file_contents(ccert);
+
+    ssl_opts.pem_root_certs = ca_pem;
+    ssl_opts.pem_private_key = key_pem;
+    ssl_opts.pem_cert_chain = cert_pem;
+
+    kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::SslCredentials(ssl_opts)));
+}
 
 std::string EtcdClient::get(std::string& key_test) {
     mvccpb::KeyValue kvs;
@@ -41,7 +71,9 @@ std::string EtcdClient::get(std::string& key_test) {
 }
 
 
-void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, WatchRequest watch_req, void (*user_callback)(char *key, char *val, void *cb_user_data), void *user_data){
+void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
+                    WatchRequest watch_req, void (*user_callback)(char *key,
+                    char *val, void *cb_user_data), void *user_data) {
     WatchResponse reply;
     mvccpb::KeyValue kvs;
     ClientContext context;
@@ -80,7 +112,7 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, WatchRe
 }
 
 
-void EtcdClient::watch_prefix(std::string& key, void (*user_cb)(char *key, char *val, void *cb_user_data), void *user_data){
+void EtcdClient::watch_prefix(std::string& key, void (*user_cb)(char *key, char *val, void *cb_user_data), void *user_data) {
     WatchResponse reply;
     Status status;
     ClientContext context;
@@ -106,7 +138,7 @@ void EtcdClient::watch_prefix(std::string& key, void (*user_cb)(char *key, char 
 }
 
 
-void EtcdClient::watch(std::string& key, void (*user_cb)(char *key, char *val, void *cb_user_data), void *user_data){
+void EtcdClient::watch(std::string& key, void (*user_cb)(char *key, char *val, void *cb_user_data), void *user_data) {
     WatchResponse reply;
     Status status;
     ClientContext context;
@@ -145,4 +177,12 @@ int EtcdClient::put(std::string& key_test, std::string& value_test) {
         return -1;
     }
     return 0;
+}
+
+EtcdClient::~EtcdClient() {
+    std::cout << "Destructor is called\n";
+    if (kv_stub != NULL) {
+        std::cout << "kv_stub is not NULL\n";
+        kv_stub.reset();
+    }
 }

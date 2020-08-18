@@ -1,23 +1,9 @@
-# C++ EtcdClient
+# EtcdClient in Cpp
 
-### Install gRPC
-Make sure you have installed gRPC on your system. Follow the
-[BUILDING.md](../../../BUILDING.md) instructions.
+### Prerequisite
+Make sure you have installed gRPC and Protobuf on your system. Follow Dependency Installation instructions from the [README.md](../../README.md).
 
-### Get the tutorial source code
-
-The example code for this and our other examples lives in the `examples`
-directory. Clone this repository to your local machine by running the
-following command:
-
-
-```sh
-$ git clone -b $(curl -L https://grpc.io/release) https://github.com/grpc/grpc
-```
-
-
-
-### Install EtcdClient and build examples
+### Install C++ EtcdClient and build examples
 
 ```sh
 $ mkdir build

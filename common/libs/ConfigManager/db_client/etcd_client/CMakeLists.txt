@@ -30,15 +30,20 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
 file(GLOB SOURCES "src/*.cc" "src/*.c")
 
+# Finding libraries
+find_package(Threads REQUIRED)
+find_package(PROTOBUF REQUIRED)
+find_package(GRPC REQUIRED)
+
 include_directories(
     include/
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS})
 
-add_library(eisetcdclient SHARED
+add_library(eisdbclient SHARED
     ${SOURCES})
 
-target_link_libraries(eisetcdclient
+target_link_libraries(eisdbclient
     ${GRPC_LIBRARIES}
     ${GRPC_LIBRARIES}
     ${PROTOBUF_LIBRARIES})
@@ -47,15 +52,10 @@ if(WITH_EXAMPLES)
     add_subdirectory(examples/)
 endif()
 
-if(WITH_TESTS)
-    add_subdirectory(tests/)
-endif()
-
-
-## Configure pkg-config file to be installed for the EIS Message Bus
+## Configure pkg-config file to be installed for the EIS Etcd Client
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libetcdclient.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libetcdclient.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libdbclient.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libdbclient.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lgrpc++ -lprotobuf")
 
@@ -67,18 +67,19 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EtcdClient)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/DBClient)
 
     
-install(TARGETS eisetcdclient
-    EXPORT eisetcdclient-targets
+install(TARGETS eisdbclient
+    EXPORT eisdbclient-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisetcdclient PROPERTIES EXPORT_NAME EtcdClient)
+set_target_properties(eisdbclient PROPERTIES EXPORT_NAME DBClient)
+
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisetcdclient.pc file
+# Install pkg-config libeisdbclient.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -87,9 +88,9 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisetcdclient-targets
+install(EXPORT eisdbclient-targets
     FILE
-        EtcdClient.cmake
+        DBClient.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -97,26 +98,26 @@ install(EXPORT eisetcdclient-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EtcdClientConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EtcdClientConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EtcdClientConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/DBClientConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, config version and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EtcdClientConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EtcdClientConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisetcdclient-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/EtcdClientTargets.cmake)
+export(EXPORT eisdbclient-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/DBClientTargets.cmake)
   
 # Register package in user's package registry
-export(PACKAGE EtcdClient)
+export(PACKAGE DBClient)

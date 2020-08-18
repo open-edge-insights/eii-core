@@ -18,6 +18,13 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-# Add config manager example
-add_executable(etcd_client "etcd_client.cc")
-target_link_libraries(etcd_client eisdbclient)
+# Find libprotobuf
+find_package(Protobuf CONFIG REQUIRED)
+find_path(PROTOBUF_INCLUDE_DIR google/protobuf)
+find_library(PROTOBUF_LIBRARY NAMES protobuf)
+
+set(PROTOBUF_LIBRARIES ${PROTOBUF_LIBRARY})
+set(PROTOBUF_INCLUDE_DIRS ${PROTOBUF_INCLUDE_DIR})
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GRPC DEFAULT_MSG PROTOBUF_LIBRARY PROTOBUF_INCLUDE_DIR)

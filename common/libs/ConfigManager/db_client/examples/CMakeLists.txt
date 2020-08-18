@@ -20,4 +20,4 @@
 
 # Add config manager example
 add_executable(db_client_etcd "db_client_etcd.c")
-target_link_libraries(db_client_etcd eisetcdclient)
+target_link_libraries(db_client_etcd eisdbclient)

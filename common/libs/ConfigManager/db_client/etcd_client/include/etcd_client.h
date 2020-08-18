@@ -18,6 +18,15 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+/**
+ * @file
+ * @brief Etcd Client library provides APIs with underlying grpc calls
+ * @author Varalakshmi KA (varalakshmi.ka@intel.com)
+ */
+
+#ifndef _EIS_ETCD_CLIENT_H
+#define _EIS_ETCD_CLIENT_H
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -51,39 +60,23 @@ using etcdserverpb::WatchRequest;
 using etcdserverpb::WatchResponse;
 
 
-static std::string get_file_contents(const char *fpath)
-{
-  std::ifstream finstream(fpath);
-  std::string contents((std::istreambuf_iterator<char>(finstream)), std::istreambuf_iterator<char>());
-  return contents;
-}
+namespace eis {
+namespace etcdcli {
 
 class EtcdClient {
     public:
+ 
+        EtcdClient(const std::string& host, const std::string& port);
 
-        EtcdClient(const std::string& host, const std::string& port){
-            sprintf(address, "%s:%s", host.c_str(), port.c_str());
-            kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
-        }
-
-        EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file, const std::string& key_file, const std::string ca_file) {
-            sprintf(address, "%s:%s", host.c_str(), port.c_str());
-            const char* croot = ca_file.c_str();
-            const char* ckey = key_file.c_str();
-            const char* ccert = cert_file.c_str();
-
-            auto ca_pem = get_file_contents(croot);
-            auto key_pem = get_file_contents(ckey);
-            auto cert_pem = get_file_contents(ccert);
-
-            ssl_opts.pem_root_certs = ca_pem;
-            ssl_opts.pem_private_key = key_pem;
-            ssl_opts.pem_cert_chain = cert_pem;
-
-            kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::SslCredentials( ssl_opts )));
-        }
+        EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file, const std::string& key_file, const std::string ca_file);
        
+        /**
+        * Destructor
+        */
+        ~EtcdClient();
+        
         std::string get(std::string& key);
+        
         int put(std::string& key, std::string& value);
         void watch(std::string& key, void (*user_cb)(char *watch_key, char *value, void *cb_user_data), void *user_data);
         void watch_prefix(std::string& key, void (*user_cb)(char *watch_key, char *val, void *cb_user_data), void *user_data);
@@ -93,3 +86,8 @@ class EtcdClient {
         grpc::SslCredentialsOptions ssl_opts;
         std::unique_ptr<KV::Stub> kv_stub;
 };
+
+} // etcd_client
+} // eis
+
+#endif // _EIS_UDF_FRAME_H

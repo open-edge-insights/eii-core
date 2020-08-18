@@ -24,37 +24,36 @@ project(eis-dbclient VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" ON)
-option(WITH_TESTS "Compile with examples" OFF)
+option(WITH_TESTS "Compile with tests" OFF)
 
 # Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# Set C standard to C11
+set(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -pedantic -fstack-protector-strong -D_FORTIFY_SOURCE=2")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
 
 # Add cmake module path
-set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}")
+set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# Finding libraries
-find_package(Threads REQUIRED)
-find_package(PROTOBUF REQUIRED)
-find_package(GRPC REQUIRED)
+# EtcdClient headers
+set(EtcdClientHearders "etcd_client/include/")
 
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
-    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
-        ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
-    )
-endif()
-
-
+# Include header directories
 include_directories(
     include/
-    etcd_client/include/)
+    ${EtcdClientHearders})
+
+if(WITH_EXAMPLES)
+    add_subdirectory(examples/)
+endif()
+
+if(WITH_TESTS)
+    add_subdirectory(tests/)
+endif()
 
 add_subdirectory(etcd_client/)
 
-if(WITH_EXAMPLES)
-    add_subdirectory(examples)
-endif()
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
