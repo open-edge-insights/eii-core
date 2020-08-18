@@ -145,7 +145,8 @@ EIS Orchestration using CSL Orchestrator.
 >    ETCD_NAME in [build/.env](../.env) must be set to `master`.
 > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL    
 >    Provisioning.
- 
+> 4. Re-provisioning in CSL mode does not remove stale data if any in the etcd data store.
+
 Provisioning EIS with CSL is done in 2 steps. 
 
 1.  [EIS Master Node Provisioning in CSL Client Node](#eis-master-node-provisioning-in-csl-client-node)
