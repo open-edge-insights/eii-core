@@ -28,6 +28,7 @@
 
 using namespace eis::config_manager;
 
+// Constructor
 ServerCfg::ServerCfg(config_value_t* server_config):ConfigHandler(NULL, NULL, NULL) {
     server_cfg = server_config;
     fprintf(stderr,"in ServerCfg class \n");
@@ -87,10 +88,35 @@ config_t* ServerCfg::getMsgBusConfig(){
     return config;
 }
 
+// To fetch endpoint from config
+std::string ServerCfg::getEndpoint() {
+    config_value_t* endpoint = config_value_object_get(server_cfg, "EndPoint");
+    char* type = endpoint->body.string;
+    std::string s(type);
+    return s;
+}
+
+// To fetch list of allowed clients from config
+std::vector<std::string> ServerCfg::getAllowedClients() {
+    config_value_t* list_of_allowed_clients = config_value_object_get(server_cfg, "AllowedClients");
+    config_value_t* value;
+    std::vector<std::string> client_list;
+    for (int i =0; i < config_value_array_len(list_of_allowed_clients); i++) {
+        value = config_value_array_get(list_of_allowed_clients, i);
+        char* cli = value->body.string;
+        std::string temp(cli);
+        client_list.push_back(temp);
+    }
+    return client_list;
+}
+
+// Destructor
 ServerCfg::~ServerCfg() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(config) {
+        delete config;
+    }
+    if(server_cfg) {
+        delete server_cfg;
+    }
     LOG_INFO_0("ServerCfg destructor");
 }

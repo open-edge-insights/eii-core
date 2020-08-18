@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     msg_envelope_serialized_part_t* parts = NULL;
     int num_parts = 0;
 
-    setenv("DEV_MODE", "TRUE", 1);
+    setenv("DEV_MODE", "FALSE", 1);
 
     // Fetching Subscriber config from
     // VideoAnalytics interface
@@ -92,6 +92,16 @@ int main(int argc, char** argv) {
 
     SubscriberCfg* sub_ctx = sub_ch->getSubscriberByIndex(0);
     config_t* sub_config = sub_ctx->getMsgBusConfig();
+
+    // Testing getEndpoint API
+    std::string ep = sub_ctx->getEndpoint();
+    std::cout << ep << std::endl;
+
+    // Testing getTopics API
+    std::vector<std::string> topics = sub_ctx->getTopics();
+    for(int i = 0; i < topics.size(); i++) {
+        std::cout << topics[i] << '\n';
+    }
 
     // Initializing Subscriber using sub_config obtained
     // from new ConfigManager APIs

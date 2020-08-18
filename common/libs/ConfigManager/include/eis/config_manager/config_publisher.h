@@ -59,8 +59,32 @@ namespace eis {
                  * Overridden base class method to fetch msgbus publisher configuration
                  * for application to communicate over EIS message bus
                  * @return config_t* - JSON msg bus server config of type config_t
-                 */ 
+                 */
                 config_t* getMsgBusConfig() override;
+
+                /**
+                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * @return std::string - Endpoint of publisher config of type std::string
+                 */
+                std::string getEndpoint() override;
+
+                /**
+                 * getTopics for application to fetch the topics associated with message bus config
+                 * @return vector<string> - Topics of publisher config
+                 */
+                std::vector<std::string> getTopics() override;
+
+                /**
+                 * setTopics for application to set topics associated with message bus config
+                 * @return bool - Boolean whether topics were set
+                 */
+                bool setTopics(std::vector<std::string>) override;
+
+                /**
+                 * getAllowedClients for application to list of allowed clients associated with message bus config
+                 * @return vector<string> - Allowed client of publisher config
+                 */
+                std::vector<std::string> getAllowedClients() override;
 
                 // Destructor
                 ~PublisherCfg();

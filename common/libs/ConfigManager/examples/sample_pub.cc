@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    setenv("DEV_MODE", "TRUE", 1);
+    setenv("DEV_MODE", "FALSE", 1);
 
     // Fetching Publisher config from
     // VideoIngestion interface
@@ -106,6 +106,22 @@ int main(int argc, char** argv) {
 
     PublisherCfg* pub_ctx = pub_ch->getPublisherByIndex(0);
     config_t* pub_config = pub_ctx->getMsgBusConfig();
+
+    // Testing getEndpoint API
+    std::string ep = pub_ctx->getEndpoint();
+    std::cout << ep << std::endl;
+
+    // Testing getTopics API
+    std::vector<std::string> topics = pub_ctx->getTopics();
+    for(int i = 0; i < topics.size(); i++) {
+        std::cout << topics[i] << '\n';
+    }
+
+    // Testing getAllowedClients API
+    std::vector<std::string> clients = pub_ctx->getAllowedClients();
+    for(int i = 0; i < clients.size(); i++) {
+        std::cout << clients[i] << '\n';
+    }
 
     // Initializing Publisher using pub_config obtained
     // from new ConfigManager APIs

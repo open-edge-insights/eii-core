@@ -28,13 +28,14 @@
 
 using namespace eis::config_manager;
 
+// Constructor
 SubscriberCfg::SubscriberCfg(config_value_t* sub_config):ConfigHandler(NULL, NULL, NULL) {
     subscriber_cfg = sub_config;
     fprintf(stderr,"in PublisherCfg class \n"); 
 }
 
 // getMsgBusConfig of Subscriber class
-// Currently working for IPC mode only
+// WIP for TCP PROD mode
 config_t* SubscriberCfg::getMsgBusConfig(){
 
     config_value_t* subscribe_json_type = config_value_object_get(subscriber_cfg, "Type");
@@ -101,10 +102,42 @@ config_t* SubscriberCfg::getMsgBusConfig(){
     return config;
 }
 
+// To fetch endpoint from config
+std::string SubscriberCfg::getEndpoint() {
+    config_value_t* endpoint = config_value_object_get(subscriber_cfg, "EndPoint");
+    char* type = endpoint->body.string;
+    std::string s(type);
+    return s;
+}
+
+// To fetch topics from config
+std::vector<std::string> SubscriberCfg::getTopics() {
+    config_value_t* list_of_topics = config_value_object_get(subscriber_cfg, "Topics");
+    config_value_t* topic_value;
+    std::vector<std::string> topic_list;
+    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
+        topic_value = config_value_array_get(list_of_topics, i);
+        char* topic = topic_value->body.string;
+        std::string temp(topic);
+        topic_list.push_back(temp);
+    }
+    return topic_list;
+}
+
+// To set topics in config
+bool SubscriberCfg::setTopics(std::vector<std::string>) {
+    // TODO
+    // Implement setTopics()
+    return true;
+}
+
+// Destructor
 SubscriberCfg::~SubscriberCfg() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(config) {
+        delete config;
+    }
+    if(subscriber_cfg) {
+        delete subscriber_cfg;
+    }
     LOG_INFO_0("SubscriberCfg destructor");
 }

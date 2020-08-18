@@ -27,6 +27,7 @@
 
 using namespace eis::config_manager;
 
+// Constructor
 ClientCfg::ClientCfg(config_value_t* client_config):ConfigHandler(NULL, NULL, NULL) {
     client_cfg = client_config;
     fprintf(stderr,"in PublisherCfg class \n");
@@ -74,10 +75,21 @@ config_t* ClientCfg::getMsgBusConfig(){
     return config;
 }
 
+// To fetch endpoint from config
+std::string ClientCfg::getEndpoint() {
+    config_value_t* endpoint = config_value_object_get(client_cfg, "EndPoint");
+    char* type = endpoint->body.string;
+    std::string s(type);
+    return s;
+}
+
+// Destructor
 ClientCfg::~ClientCfg() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(config) {
+        delete config;
+    }
+    if(client_cfg) {
+        delete client_cfg;
+    }
     LOG_INFO_0("ClientCfg destructor");
 }

@@ -126,7 +126,7 @@ target_link_libraries(eisconfigmgr
         ${EISMsgEnv_LIBRARIES}
         ${EISUtils_LIBRARIES}
         goconfigmanager
-        eisetcdclient
+        eisdbclient
     PRIVATE
         ${IntelSafeString_LIBRARIES})
 

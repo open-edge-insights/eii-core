@@ -61,6 +61,12 @@ namespace eis {
                  */ 
                 config_t* getMsgBusConfig() override;
 
+                /**
+                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * @return std::string - Endpoint of client config of type std::string
+                 */
+                std::string getEndpoint() override;
+
                 // Destructor
                 ~ClientCfg();
 

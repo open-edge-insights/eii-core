@@ -40,7 +40,7 @@ ConfigMgr::ConfigMgr() {
     std::string str_type_name(c_type_name);
 
     // Fetching & intializing dev mode variable
-    bool dev_mode = true;
+    bool dev_mode = false;
     char* c_dev_mode = (char*)malloc(sizeof(char) * 40);
     snprintf(c_dev_mode, 40, "%s", getenv("DEV_MODE"));
     printf("DEV mode is set to %s \n", c_dev_mode);
@@ -73,7 +73,7 @@ ConfigMgr::ConfigMgr() {
         printf("AppName is %s \n", c_app_name);
         std::string str_app_name(c_app_name);
 
-        std::string str_app_interface = "/" + str_app_name + "/interface";
+        std::string str_app_interface = "/" + str_app_name + "/interfaces";
         char* interface_char = &str_app_interface[0];
 
         std::string str_app_config = "/" + str_app_name + "/config";
@@ -106,10 +106,10 @@ PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
     LOG_INFO_0("ConfigHandler getPublisherByIndex method");
 
     config_value_t* publisher_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Publish");
-    m_etcd_handler->interface_cfg = config_value_array_get(publisher_interface, index);
+    m_etcd_handler->m_interface_cfg = config_value_array_get(publisher_interface, index);
 
     PublisherCfg* publisher = NULL;
-    publisher = new PublisherCfg(m_etcd_handler->interface_cfg);
+    publisher = new PublisherCfg(m_etcd_handler->m_interface_cfg);
     return publisher;
 }
 
@@ -117,10 +117,10 @@ SubscriberCfg* ConfigMgr::getSubscriberByIndex(int index) {
     LOG_INFO_0("ConfigHandler getSubscriberByIndex method");
 
     config_value_t* subscriber_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Subscribe");
-    m_etcd_handler->interface_cfg = config_value_array_get(subscriber_interface, index);
+    m_etcd_handler->m_interface_cfg = config_value_array_get(subscriber_interface, index);
 
     SubscriberCfg* subscriber = NULL;
-    subscriber = new SubscriberCfg(m_etcd_handler->interface_cfg);
+    subscriber = new SubscriberCfg(m_etcd_handler->m_interface_cfg);
     return subscriber;
 }
 
@@ -128,10 +128,10 @@ ServerCfg* ConfigMgr::getServerByIndex(int index) {
     LOG_INFO_0("ConfigMgr getServerByIndex  method");
 
     config_value_t* server_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Server");
-    m_etcd_handler->interface_cfg = config_value_array_get(server_interface, index);
+    m_etcd_handler->m_interface_cfg = config_value_array_get(server_interface, index);
 
     ServerCfg* server = NULL;
-    server = new ServerCfg(m_etcd_handler->interface_cfg);
+    server = new ServerCfg(m_etcd_handler->m_interface_cfg);
     return server;
 }
 
@@ -139,17 +139,25 @@ ClientCfg* ConfigMgr::getClientByIndex(int index) {
     LOG_INFO_0("ConfigMgr getClientByIndex  method");
 
     config_value_t* client_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Client");
-    m_etcd_handler->interface_cfg = config_value_array_get(client_interface, index);
+    m_etcd_handler->m_interface_cfg = config_value_array_get(client_interface, index);
 
     ClientCfg* client = NULL;
-    client = new ClientCfg(m_etcd_handler->interface_cfg);
+    client = new ClientCfg(m_etcd_handler->m_interface_cfg);
     return client;
 }
 
 ConfigMgr::~ConfigMgr() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(m_app_config) {
+        delete m_app_config;
+    }
+    if(m_app_interface) {
+        delete m_app_interface;
+    }
+    if(m_app_datastore) {
+        delete m_app_datastore;
+    }
+    if(m_etcd_handler) {
+        delete m_etcd_handler;
+    }
     LOG_INFO_0("ConfigMgr destructor");
 }

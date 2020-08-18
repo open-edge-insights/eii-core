@@ -73,7 +73,7 @@ namespace eis {
                 ConfigHandler(config_t* app_config, config_t* app_interface, bool dev_mode);
 
                 // Interface Cfg for any publisher/subscriber/server/client
-                config_value_t* interface_cfg;
+                config_value_t* m_interface_cfg;
 
                 /**
                  * Gets value from Config
@@ -87,6 +87,30 @@ namespace eis {
                  * @return config_t* - JSON msg bus server config of type config_t
                  */ 
                 virtual config_t* getMsgBusConfig();
+
+                /**
+                 * virtual getEndpoint function implemented by child classes to fetch Endpoint
+                 * @return std::string - Endpoint of associated config of type std::string
+                 */
+                virtual std::string getEndpoint();
+
+                /**
+                 * virtual getTopics function implemented by child classes to fetch topics
+                 * @return std::string - Endpoint of associated config of type std::string
+                 */
+                virtual std::vector<std::string> getTopics();
+
+                /**
+                 * virtual setTopics function implemented by child classes to set topics
+                 * @return bool - Boolean whether topics were set
+                 */
+                virtual bool setTopics(std::vector<std::string>);
+
+                /**
+                 * virtual getTopics function implemented by child classes to fetch topics
+                 * @return std::string - Endpoint of associated config of type std::string
+                 */
+                virtual std::vector<std::string> getAllowedClients();
 
                 // Destructor
                 ~ConfigHandler();

@@ -48,6 +48,31 @@ config_t* ConfigHandler::getMsgBusConfig(){
 
 }
 
+// This virtual method is implemented
+// by sub class objects
+std::string ConfigHandler::getEndpoint() {
+
+}
+
+// This virtual method is implemented
+// by sub class objects
+std::vector<std::string> ConfigHandler::getTopics() {
+
+}
+
+// This virtual method is implemented
+// by sub class objects
+std::vector<std::string> ConfigHandler::getAllowedClients() {
+
+}
+
+// This virtual method is implemented
+// by sub class objects
+bool ConfigHandler::setTopics(std::vector<std::string>) {
+
+}
+
+// tokenizer function to split string based on delimiter
 vector<string> ConfigHandler::tokenizer(const char* str, const char* delim) {
 
     std::string line(str);
@@ -68,9 +93,17 @@ vector<string> ConfigHandler::tokenizer(const char* str, const char* delim) {
 
 
 ConfigHandler::~ConfigHandler() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(m_conf) {
+        delete m_conf;
+    }
+    if(m_intfc) {
+        delete m_intfc;
+    }
+    if(config) {
+        delete config;
+    }
+    if(db_client_handle) {
+        delete db_client_handle;
+    }
     LOG_INFO_0("ConfigMgr destructor");
 }

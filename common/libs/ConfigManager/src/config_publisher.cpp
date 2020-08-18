@@ -28,13 +28,14 @@
 
 using namespace eis::config_manager;
 
+// Constructor
 PublisherCfg::PublisherCfg(config_value_t* pub_config):ConfigHandler(NULL, NULL, NULL) {
     publisher_cfg = pub_config;
     fprintf(stderr,"in PublisherCfg class \n"); 
 }
 
 // getMsgBusConfig of Publisher class
-// Currently working for IPC mode only
+// WIP for TCP PROD mode
 config_t* PublisherCfg::getMsgBusConfig(){
 
     config_value_t* publish_json_type = config_value_object_get(publisher_cfg, "Type");
@@ -95,10 +96,56 @@ config_t* PublisherCfg::getMsgBusConfig(){
     return config;
 }
 
+// To fetch endpoint from config
+std::string PublisherCfg::getEndpoint() {
+    config_value_t* endpoint = config_value_object_get(publisher_cfg, "EndPoint");
+    char* type = endpoint->body.string;
+    std::string s(type);
+    return s;
+}
+
+// To fetch topics from config
+std::vector<std::string> PublisherCfg::getTopics() {
+    config_value_t* list_of_topics = config_value_object_get(publisher_cfg, "Topics");
+    config_value_t* topic_value;
+    std::vector<std::string> topic_list;
+    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
+        topic_value = config_value_array_get(list_of_topics, i);
+        char* topic = topic_value->body.string;
+        std::string temp(topic);
+        topic_list.push_back(temp);
+    }
+    return topic_list;
+}
+
+// To set topics in config
+bool PublisherCfg::setTopics(std::vector<std::string>) {
+    // TODO
+    // Implement setTopics()
+    return true;
+}
+
+// To fetch list of allowed clients from config
+std::vector<std::string> PublisherCfg::getAllowedClients() {
+    config_value_t* list_of_allowed_clients = config_value_object_get(publisher_cfg, "AllowedClients");
+    config_value_t* value;
+    std::vector<std::string> client_list;
+    for (int i =0; i < config_value_array_len(list_of_allowed_clients); i++) {
+        value = config_value_array_get(list_of_allowed_clients, i);
+        char* cli = value->body.string;
+        std::string temp(cli);
+        client_list.push_back(temp);
+    }
+    return client_list;
+}
+
+// Destructor
 PublisherCfg::~PublisherCfg() {
-    // if(m_app_name) {
-    //     delete m_app_name;
-    // }
-    // Stop the thread (if it is running)
+    if(config) {
+        delete config;
+    }
+    if(publisher_cfg) {
+        delete publisher_cfg;
+    }
     LOG_INFO_0("PublisherCfg destructor");
 }
