@@ -1,5 +1,10 @@
 # `OpenVINO FPGA toolkit installation and configuration setup guide`
 
+> **NOTE**:
+> In EIS, The FPGA plugin inference is not been validated with openVINO FPGA toolkit version 2020.4
+> due to the required FPGA card(Intel® Arria® 10 FPGA (Speed Grade 2) or the Intel® Programmable Acceleration Card with
+> Intel® Arria® 10 GX FPGA) unavailability.
+
 **Pre-requisites**:
 
    * Please download and install OpenVINO FPGA toolkit version 2020.4(`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) using below links.
