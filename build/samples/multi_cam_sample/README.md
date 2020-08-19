@@ -2,7 +2,7 @@
 
 1. [docker-compose-multi-cam.yml](./docker-compose-multi-cam.yml) file can be referred to launch multiple VI and VA containers. In  the sample docker-compose.yml file 6 VI and VA containers are launched using IPC mode.
 
-2. [etcd_preload_multicam.json](./etcd_preload_multicam.json) file can be referred to change the config for different VI and VA containers.
+2. [eis_config.json](./eis_config.json) file can be referred to change the config for different VI and VA containers.
 
 **Note**:
 

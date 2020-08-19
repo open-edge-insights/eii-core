@@ -105,7 +105,7 @@ EIS Orchestration using CSL Orchestrator.
     > 1. Registering docker image with SMR is optional incase of docker registry setup is not 
     >    available. SMR can be used as needed.
     > 2. [modulename] should be same as referred in `ManifestFile` for their respective module in
-    >    [csl/csl_app_spec.json](csl/csl_app_spec.json) 
+    >    [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
     
     * Build & Update the Docker Repository and Images.
       * For Saving Docker Images
@@ -128,7 +128,7 @@ EIS Orchestration using CSL Orchestrator.
 
       For Eg. 
 
-      * For registering VideoIngestion Module manifest. Use the `artifact` name as same referred in `ManifestFile` key of VideoIngestion module in [deploy/csl_app_spec.json](deploy/csl_app_spec.json)
+      * For registering VideoIngestion Module manifest. Use the `artifact` name as same referred in `ManifestFile` key of VideoIngestion module in [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
       
       ```sh
       "RuntimeOptions": {
@@ -252,7 +252,7 @@ Provisioning EIS with CSL is done in 2 steps.
 * Click on **Submit New App** button, which pop's up a window to paste the Appspec.
 
 * Copy the Appspec of EIS-CSL from 
-    [build/csl/csl_app_spec.json.json](../csl/csl_app_spec.json.json)
+    [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
     and paste it in Window & Submit.
 
 * Verify the logs of deployed application status.
@@ -440,7 +440,7 @@ EIS services InfluxDBConnector and ImageStore uses databases which store to disk
 
 Follow the steps to achieve the database orchestration. 
 
-* Open the video_deploy.json file.
+* Open the [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json) file.
 
 * Add the following section in the ImageStore and InfluxDBConnector modules in appspec.
     ```sh
@@ -455,13 +455,13 @@ it is necessary to fix a Node
 
 * It can be set during the CSL-Client installation, or it can be updated with the help of API exposed by CSL Manager
 ```sh
-    $  curl -k -H "Content-type: applicatio/json" -u <user> -X PUT "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
+    $  curl -k -H "Content-type: application/json" -u <user> -X PUT "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
 
 ```
 
 * To delete the labels from node use the following command
 ```sh
-    $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
+    $  curl -k -H "Content-type: application/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
 ```
 
 >**Note** If the labels are not set in any Node, and Constraints section is added in the InfluxDBConnector and ImageStore modules in appspec. InfluxDBCOnnector and ImageStore modules will not launch.
