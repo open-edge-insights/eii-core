@@ -20,7 +20,8 @@
 
 /**
  * @file
- * @brief ConfigMgr Implementation
+ * @brief ServerCfg Implementation
+ * Holds the implementaion of APIs supported by ServerCfg class
  */
 
 

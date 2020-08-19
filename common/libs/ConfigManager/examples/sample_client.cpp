@@ -77,7 +77,7 @@ int main() {
     setenv("AppName","VideoAnalytics", 1);
     ConfigMgr* g_ch = new ConfigMgr();  
 
-        ClientCfg* client_ctx = g_ch->getClientByIndex(0);
+        ClientCfg* client_ctx = g_ch->getClientByName("default");
     config_t* config = client_ctx->getMsgBusConfig();
 
     

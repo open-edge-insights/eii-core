@@ -20,7 +20,8 @@
 
 /**
  * @file
- * @brief ConfigMgr Implementation
+ * @brief SubscriberCfg Implementation
+ * Holds the implementaion of APIs supported by SubscriberCfg class
  */
 
 
@@ -31,69 +32,98 @@ using namespace eis::config_manager;
 // Constructor
 SubscriberCfg::SubscriberCfg(config_value_t* sub_config):AppCfg(NULL, NULL, NULL) {
     subscriber_cfg = sub_config;
-    fprintf(stderr,"in PublisherCfg class \n"); 
+    LOG_INFO_0("In SubscriberCfg class \n");
 }
 
 // getMsgBusConfig of Subscriber class
-// WIP for TCP PROD mode
 config_t* SubscriberCfg::getMsgBusConfig(){
 
-    config_value_t* subscribe_json_type = config_value_object_get(subscriber_cfg, "Type");
+    // Creating cJSON object
+    cJSON* c_json = cJSON_CreateObject();
 
+    // Fetching Type from config
+    config_value_t* subscribe_json_type = config_value_object_get(subscriber_cfg, "Type");
     char* type = subscribe_json_type->body.string;
-    cJSON* json_1 = cJSON_CreateObject(); 
-    cJSON_AddStringToObject(json_1, "type", type);
+    cJSON_AddStringToObject(c_json, "type", type);
+
+    // Fetching EndPoint from config
     config_value_t* subscribe_json_endpoint = config_value_object_get(subscriber_cfg, "EndPoint");
     char* EndPoint = subscribe_json_endpoint->body.string;
 
     if(!strcmp(type, "zmq_ipc")){
-        cJSON_AddStringToObject(json_1, "socket_dir", EndPoint);
+        // Add Endpoint directly to socket_dir if IPC mode
+        cJSON_AddStringToObject(c_json, "socket_dir", EndPoint);
     } else if(!strcmp(type, "zmq_tcp")){
 
         if(m_dev_mode) {
 
-            config_value_t* topic_Arr = config_value_object_get(subscriber_cfg, "Topics");
-            config_value_t* topic ;
+            // TCP DEV mode
+
+            // Fetching Topics from config
+            config_value_t* topic_array = config_value_object_get(subscriber_cfg, "Topics");
+            config_value_t* topic;
             
-            for (int i = 0; i < config_value_array_len(topic_Arr); i++){
+            // Create cJSON object for every topic
+            for (int i = 0; i < config_value_array_len(topic_array); i++){
                 cJSON* sub_topic = cJSON_CreateObject();
-                topic = config_value_array_get(topic_Arr, i);
+                topic = config_value_array_get(topic_array, i);
+                // Add host & port to cJSON object
                 std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
                 cJSON_AddStringToObject(sub_topic, "host", tokens[0].c_str());
                 cJSON_AddNumberToObject(sub_topic, "port", atoi(tokens[1].c_str()));
-
-                cJSON_AddItemToObject(json_1, topic->body.string, sub_topic);
+                cJSON_AddItemToObject(c_json, topic->body.string, sub_topic);
             }
-
         } else {
+            // TCP PROD mode
 
-            config_value_t* topic_Arr = config_value_object_get(subscriber_cfg, "Topics");
-            config_value_t* topic ;
-            
-            for (int i = 0; i < config_value_array_len(topic_Arr); i++){
+            // Initializing db_client handle to fetch public & private keys
+            void *handle = m_db_client_handle->init(m_db_client_handle);
+
+            // Fetching Topics from config
+            config_value_t* topic_array = config_value_object_get(subscriber_cfg, "Topics");
+            config_value_t* topic;
+
+            // Create cJSON object for every topic
+            for (int i = 0; i < config_value_array_len(topic_array); i++){
                 cJSON* sub_topic = cJSON_CreateObject();
-                topic = config_value_array_get(topic_Arr, i);
+                topic = config_value_array_get(topic_array, i);
+                // Add host & port to cJSON object
                 std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
                 cJSON_AddStringToObject(sub_topic, "host", tokens[0].c_str());
                 cJSON_AddNumberToObject(sub_topic, "port", atoi(tokens[1].c_str()));
-                // cJSON_AddStringToObject(sub_topic, "host", EndPoint);
-                // cJSON_AddNumberToObject(sub_topic, "port", 12345);
-                cJSON_AddStringToObject(sub_topic, "ServerPublicKey", "server_public_key_value");
-                cJSON_AddStringToObject(sub_topic, "ClientPublicKey", "client_public_key_value");
-                cJSON_AddStringToObject(sub_topic, "ClientPrivateKey", "client_private_key_value");
 
-                cJSON_AddItemToObject(json_1, topic->body.string, sub_topic);
+                // Fetching Publisher AppName from config
+                config_value_t* publisher_appname = config_value_object_get(subscriber_cfg, "AppName");
+                std::string pub_app_name(publisher_appname->body.string);
+
+                // Adding Publisher public key to config
+                std::string retreive_pub_app_key = "/Publickeys/" + pub_app_name;
+                const char* pub_public_key = m_db_client_handle->get(handle, &retreive_pub_app_key[0]);
+                cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
+
+                // Adding Subscriber public key to config
+                std::string s_sub_public_key = "/Publickeys/" + m_app_name;
+                const char* sub_public_key = m_db_client_handle->get(handle, &s_sub_public_key[0]);
+                cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
+
+                // Adding Subscriber private key to config
+                std::string s_sub_pri_key = "/" + m_app_name + "/private_key";
+                const char* sub_pri_key = m_db_client_handle->get(handle, &s_sub_pri_key[0]);
+                cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
+
+                // Creating the final cJSON config object
+                cJSON_AddItemToObject(c_json, topic->body.string, sub_topic);
             }
-
         }
-
     }
-    
-    char* config_value_1 = cJSON_Print(json_1);
-    fprintf(stderr,"Env Subscribe Config is : %s \n", config_value_1);
 
+    // Constructing char* object from cJSON object
+    char* config_value_cr = cJSON_Print(c_json);
+    LOG_DEBUG("Env subscriber Config is : %s \n", config_value_cr);
+
+    // Constructing config_t object from cJSON object
     config = config_new(
-            (void*) json_1, free_json, get_config_value);
+            (void*) c_json, free_json, get_config_value);
     if (config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
@@ -104,6 +134,7 @@ config_t* SubscriberCfg::getMsgBusConfig(){
 
 // To fetch endpoint from config
 std::string SubscriberCfg::getEndpoint() {
+    // Fetching EndPoint from config
     config_value_t* endpoint = config_value_object_get(subscriber_cfg, "EndPoint");
     char* type = endpoint->body.string;
     std::string s(type);
@@ -112,9 +143,11 @@ std::string SubscriberCfg::getEndpoint() {
 
 // To fetch topics from config
 std::vector<std::string> SubscriberCfg::getTopics() {
+    // Fetching Topics from config
     config_value_t* list_of_topics = config_value_object_get(subscriber_cfg, "Topics");
     config_value_t* topic_value;
     std::vector<std::string> topic_list;
+    // Iterating through Topics and adding them to topics_list vector
     for (int i =0; i < config_value_array_len(list_of_topics); i++) {
         topic_value = config_value_array_get(list_of_topics, i);
         char* topic = topic_value->body.string;
@@ -125,9 +158,38 @@ std::vector<std::string> SubscriberCfg::getTopics() {
 }
 
 // To set topics in config
-bool SubscriberCfg::setTopics(std::vector<std::string>) {
-    // TODO
-    // Implement setTopics()
+bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
+
+    // Fetching topics
+    config_value_t* list_of_topics = config_value_object_get(subscriber_cfg, "Topics");
+    config_value_t* topic_value;
+    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
+        topic_value = config_value_array_get(list_of_topics, i);
+    }
+
+    // Creating cJSON object from topics to be set
+    cJSON* obj = cJSON_CreateArray();
+    for (int i =0; i < topics_list.size(); i++) {
+        cJSON_AddItemToArray(obj, cJSON_CreateString(topics_list[i].c_str()));
+    }
+
+    // Creating config_value_t object from cJSON object
+    config_value_t* new_config_value = config_value_new_array(
+                (void*) obj, cJSON_GetArraySize(obj), get_array_item, NULL);
+
+    // Removing previously set topics
+    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
+        topic_value = config_value_array_get(list_of_topics, i);
+        topic_value->body.string = NULL;
+        list_of_topics->body.array->length = list_of_topics->body.array->length - 1;
+    }
+
+    // Setting topics
+    list_of_topics = new_config_value;
+    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
+        topic_value = config_value_array_get(list_of_topics, i);
+    }
+
     return true;
 }
 

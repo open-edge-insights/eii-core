@@ -21,8 +21,8 @@
 # Add config manager example
 add_executable(config_manager "config_manager.c")
 add_executable(env_config "env_config_example.c")
-add_executable(pub "sample_pub.cc")
-add_executable(sub "sample_sub.cc")
+add_executable(pub "sample_pub.cpp")
+add_executable(sub "sample_sub.cpp")
 add_executable(server "sample_server.cpp")
 add_executable(client "sample_client.cpp")
 add_executable(sample_app "sample_getvalue.cpp")

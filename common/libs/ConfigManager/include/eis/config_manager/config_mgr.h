@@ -81,32 +81,59 @@ namespace eis {
 
                 /**
                  * Get server interface from ConfigManager
-                 * @param index - These servers are in array for which index is sent to get the respective subscriber config.
+                 * @param index - These servers are in array for which index is sent to get the respective server config.
                  * @return ServerCfg* - ServerCfg class object
-                 */ 
+                 */
                 ServerCfg* getServerByIndex(int index);
 
                 /**
+                 * Get server interface from ConfigManager
+                 * @param name - These servers are in array for which name is sent to get the respective server config.
+                 * @return ServerCfg* - ServerCfg class object
+                 */
+                ServerCfg* getServerByName(const char* name);
+
+                /**
                  * Get client interface from ConfigManager
-                 * @param index - These clients are in array for which index is sent to get the respective subscriber config.
+                 * @param index - These clients are in array for which index is sent to get the respective client config.
                  * @return ClientCfg* - ClientCfg class object
-                 */ 
+                 */
                 ClientCfg* getClientByIndex(int index);
 
                 /**
+                 * Get client interface from ConfigManager
+                 * @param name - These clients are in array for which name is sent to get the respective client config.
+                 * @return ClientCfg* - ClientCfg class object
+                 */
+                ClientCfg* getClientByName(const char* name);
+
+                /**
                  * Get publisher interface from ConfigManager
-                 * @param index - These publishers are in array for which index is sent to get the respective subscriber config.
+                 * @param index - These publishers are in array for which index is sent to get the respective publisher config.
                  * @return PublisherCfg* - PublisherCfg class object
-                 */ 
+                 */
                 PublisherCfg* getPublisherByIndex(int index);
 
+                /**
+                 * Get publisher interface from ConfigManager
+                 * @param name - These publishers are in array for which name is sent to get the respective publisher config.
+                 * @return PublisherCfg* - PublisherCfg class object
+                 */
+                PublisherCfg* getPublisherByName(const char* name);
 
                 /**
                  * Get subscriber interface from ConfigManager
-                 * @param index - These subscribers are in array for which index is sent to get the respective subscriber config.
+                 * @param index - These subscribers are in array for which name is sent to get the respective subscriber config.
                  * @return SubscriberCfg* - SubscriberCfg class object
-                 */ 
+                 */
                 SubscriberCfg* getSubscriberByIndex(int index);
+
+                /**
+                 * Get subscriber interface from ConfigManager
+                 * @param name - These subscribers are in array for which name is sent to get the respective subscriber config.
+                 * @return SubscriberCfg* - SubscriberCfg class object
+                 */
+                SubscriberCfg* getSubscriberByName(const char* name);
                 
                 // Destructor
                 ~ConfigMgr();

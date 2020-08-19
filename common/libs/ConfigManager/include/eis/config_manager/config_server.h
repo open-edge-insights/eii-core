@@ -42,18 +42,18 @@ namespace eis {
     namespace config_manager {
 
         class ServerCfg : public AppCfg {
-            public:
-
+            private:
                 // App config
                 config_t* config;
 
                 // Subscriber config
                 config_value_t* server_cfg;
-
+            public:
                 /**
                 * ServerCfg Constructor
+                * @param server_config - The config associated with a server
                 */
-                ServerCfg(config_value_t* server_config);
+                explicit ServerCfg(config_value_t* server_config);
 
                 /**
                  * Overridden base class method to fetch msgbus server configuration

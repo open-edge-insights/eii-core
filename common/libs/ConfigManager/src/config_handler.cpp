@@ -20,7 +20,8 @@
 
 /**
  * @file
- * @brief ConfigMgr Implementation
+ * @brief AppCfg Implementation
+ * Holds the implementaion of APIs supported by AppCfg class
  */
 
 #include "eis/config_manager/config_app.h"
@@ -30,21 +31,20 @@ using namespace std;
 
 
 AppCfg::AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode) {
+    // Initializing config, interface & dev_mode variables
     m_conf = app_config;
     m_intfc = app_interface;
-
     m_dev_mode = dev_mode;
-
 }
 
-config_value_t* AppCfg::get_value(char* key){
+config_value_t* AppCfg::getValue(char* key) {
     config_value_t* value = m_conf->get_config_value(m_conf->cfg, key);
     return value;
 }
 
 // This virtual method is implemented
 // by sub class objects
-config_t* AppCfg::getMsgBusConfig(){
+config_t* AppCfg::getMsgBusConfig() {
 
 }
 
@@ -68,7 +68,7 @@ std::vector<std::string> AppCfg::getAllowedClients() {
 
 // This virtual method is implemented
 // by sub class objects
-bool AppCfg::setTopics(std::vector<std::string>) {
+bool AppCfg::setTopics(std::vector<std::string> topics_list) {
 
 }
 
@@ -76,7 +76,7 @@ bool AppCfg::setTopics(std::vector<std::string>) {
 vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
 
     std::string line(str);
-    std::stringstream check1(line);
+    std::stringstream str1(line);
 
     // Vector of string to save tokens 
     vector<std::string> tokens;
@@ -84,7 +84,7 @@ vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
     std::string temp;
 
     // Tokenizing w.r.t. delimiter
-    while(getline(check1, temp, ':')) {
+    while(getline(str1, temp, ':')) {
         tokens.push_back(temp);
     }
 
@@ -102,8 +102,11 @@ AppCfg::~AppCfg() {
     if(config) {
         delete config;
     }
-    if(db_client_handle) {
-        delete db_client_handle;
+    if(m_db_client_handle) {
+        delete m_db_client_handle;
+    }
+    if(m_interface_cfg) {
+        delete m_interface_cfg;
     }
     LOG_INFO_0("ConfigMgr destructor");
 }

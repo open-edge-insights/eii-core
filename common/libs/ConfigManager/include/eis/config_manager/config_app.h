@@ -58,29 +58,44 @@ namespace eis {
                 config_t* config;
 
             protected:
+
+                /**
+                 * Helper base class function to split string based on delimiter
+                 * @param str - string to be split
+                 * @param delim - delimiter
+                 * @return std::vector<std::string> - vector of split strings
+                 */
                 std::vector<std::string> tokenizer(const char* str,
                                                    const char* delim);
 
+                // Bool to determine whether DEV or PROD mode
                 bool m_dev_mode;
-                
-                db_client_t* db_client_handle;
 
             public:
 
-                /**
-                * AppCfg Constructor
-                */
-                AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode);
+                // db_client handle to fetch private & public keys
+                db_client_t* m_db_client_handle;
+
+                // App name of caller
+                std::string m_app_name;
 
                 // Interface Cfg for any publisher/subscriber/server/client
                 config_value_t* m_interface_cfg;
+
+                /**
+                * AppCfg Constructor
+                * @param app_config - The config associated with a service
+                * @param app_interface - The interface associated with a service
+                * @param dev_mode - bool whether dev mode is set
+                */
+                AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode);
 
                 /**
                  * Gets value from Config
                  * @param key - Key for which value is needed
                  * @return config_value_t* - config_value_t object
                  */
-                config_value_t* get_value(char* key);
+                config_value_t* getValue(char* key);
 
                 /**
                  * Get msgbus configuration for application to communicate over EIS message bus
@@ -102,9 +117,10 @@ namespace eis {
 
                 /**
                  * virtual setTopics function implemented by child classes to set topics
+                 * @param topics_list - vector of strings containing topics
                  * @return bool - Boolean whether topics were set
                  */
-                virtual bool setTopics(std::vector<std::string>);
+                virtual bool setTopics(std::vector<std::string> topics_list);
 
                 /**
                  * virtual getTopics function implemented by child classes to fetch topics
@@ -113,7 +129,7 @@ namespace eis {
                 virtual std::vector<std::string> getAllowedClients();
 
                 // Destructor
-                ~AppCfg();
+                virtual ~AppCfg();
         };
     }
 }

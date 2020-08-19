@@ -41,18 +41,18 @@ namespace eis {
     namespace config_manager {
 
         class SubscriberCfg : public AppCfg {
-            public:
-
+            private:
                 // App config
                 config_t* config;
 
                 // Subscriber config
                 config_value_t* subscriber_cfg;
-
+            public:
                 /**
                 * SubscriberCfg Constructor
+                * @param sub_config - The config associated with a subscriber
                 */
-                SubscriberCfg(config_value_t* sub_config);
+                explicit SubscriberCfg(config_value_t* sub_config);
 
                 /**
                  * Overridden base class method to fetch msgbus subscriber configuration
@@ -75,9 +75,10 @@ namespace eis {
 
                 /**
                  * setTopics for application to set topics associated with message bus config
+                 * @param topics_list - List of topics to be set
                  * @return bool - Boolean whether topics were set
                  */
-                bool setTopics(std::vector<std::string>) override;
+                bool setTopics(std::vector<std::string> topics_list) override;
 
                 // Destructor
                 ~SubscriberCfg();

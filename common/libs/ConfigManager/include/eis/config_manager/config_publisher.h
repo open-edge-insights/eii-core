@@ -42,18 +42,18 @@ namespace eis {
     namespace config_manager {
 
         class PublisherCfg : public AppCfg {
-            public:
-
+            private:
                 // App config
                 config_t* config;
 
                 // Publisher config
                 config_value_t* publisher_cfg;
-
+            public:
                 /**
                 * PublisherCfg Constructor
+                * @param pub_config - The config associated with a client
                 */
-                PublisherCfg(config_value_t* pub_config);
+                explicit PublisherCfg(config_value_t* pub_config);
 
                 /**
                  * Overridden base class method to fetch msgbus publisher configuration
@@ -76,9 +76,10 @@ namespace eis {
 
                 /**
                  * setTopics for application to set topics associated with message bus config
+                 * @param topics_list - List of topics to be set
                  * @return bool - Boolean whether topics were set
                  */
-                bool setTopics(std::vector<std::string>) override;
+                bool setTopics(std::vector<std::string> topics_list) override;
 
                 /**
                  * getAllowedClients for application to list of allowed clients associated with message bus config

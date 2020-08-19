@@ -20,7 +20,8 @@
 
 /**
  * @file
- * @brief ConfigMgr Implementation
+ * @brief ClientCfg Implementation
+ * Holds the implementaion of APIs supported by ClientCfg class
  */
 
 #include "eis/config_manager/config_client.h"

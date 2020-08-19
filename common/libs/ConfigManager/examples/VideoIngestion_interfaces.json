@@ -1,7 +1,7 @@
 {
-    "Server": [
+    "Servers": [
         {
-            "Name": "SW_Trigger",
+            "Name": "echo_service",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:66010",
             "AllowedClients": [
@@ -9,11 +9,11 @@
             ]
         }
     ],
-    "Publish": [
+    "Publishers": [
         {
             "Name": "default",
             "Type": "zmq_ipc",
-            "EndPoint": "./socks",
+            "EndPoint": ".socks",
             "Topics": [
                 "camera1_stream"
             ],
