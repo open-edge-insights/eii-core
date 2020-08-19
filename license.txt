@@ -3,6 +3,6 @@ INDUSTRIAL EDGE ENABLING (�EIS�) SOFTWARE LICENSE AGREEMENT This SOFTWARE LI
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 Any Open Source Software is subject to the respective license included in applicable source code file.
 
-All other Software is subject to the terms of the signed license agreement entered into between Intel and you.
+All other Software is subject to the terms of the license agreement entered into between Intel and you.
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
