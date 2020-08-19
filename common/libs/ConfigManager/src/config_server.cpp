@@ -29,7 +29,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-ServerCfg::ServerCfg(config_value_t* server_config):ConfigHandler(NULL, NULL, NULL) {
+ServerCfg::ServerCfg(config_value_t* server_config):AppCfg(NULL, NULL, NULL) {
     server_cfg = server_config;
     fprintf(stderr,"in ServerCfg class \n");
 }

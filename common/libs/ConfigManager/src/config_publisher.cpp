@@ -29,7 +29,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-PublisherCfg::PublisherCfg(config_value_t* pub_config):ConfigHandler(NULL, NULL, NULL) {
+PublisherCfg::PublisherCfg(config_value_t* pub_config):AppCfg(NULL, NULL, NULL) {
     publisher_cfg = pub_config;
     fprintf(stderr,"in PublisherCfg class \n"); 
 }
@@ -55,7 +55,7 @@ config_t* PublisherCfg::getMsgBusConfig(){
 
             // TCP DEV mode
             cJSON* zmq_tcp_publish = cJSON_CreateObject();
-            std::vector<std::string> tokens = ConfigHandler::tokenizer(EndPoint, ":");
+            std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
             cJSON_AddStringToObject(zmq_tcp_publish, "host", tokens[0].c_str());
             cJSON_AddNumberToObject(zmq_tcp_publish, "port", atoi(tokens[1].c_str()));
             cJSON_AddItemToObject(json_1, "zmq_tcp_publish", zmq_tcp_publish);
@@ -75,7 +75,7 @@ config_t* PublisherCfg::getMsgBusConfig(){
             cJSON_AddItemToObject(json_1, "allowed_clients",  all_clients_1);
             cJSON* zmq_tcp_publish = cJSON_CreateObject();
 
-            std::vector<std::string> tokens = ConfigHandler::tokenizer(EndPoint, ":");
+            std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
             cJSON_AddStringToObject(zmq_tcp_publish, "host", tokens[0].c_str());
             cJSON_AddNumberToObject(zmq_tcp_publish, "port", atoi(tokens[1].c_str()));
             cJSON_AddItemToObject(json_1, "zmq_tcp_publish", zmq_tcp_publish);

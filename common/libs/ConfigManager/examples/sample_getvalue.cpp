@@ -4,12 +4,13 @@ using namespace eis::config_manager;
 
 int main(){
 
+    setenv("DEV_MODE", "TRUE", 1);
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* g_ch = new ConfigMgr();    
-    ConfigHandler* handler = g_ch->getAppConfig();
+    AppCfg* cfg = g_ch->getAppConfig();
 
     printf("========================================\n");
-    config_value_t* app_config = handler->get_value("max_workers");
+    config_value_t* app_config = cfg->get_value("max_workers");
     if (app_config->type != CVT_INTEGER){
         printf("Max_worker is not integer"); 
         exit(1); 
@@ -17,7 +18,7 @@ int main(){
     int max_workers = app_config->body.integer;
     printf("max_workers value is %d\n", max_workers);
 
-    app_config = handler->get_value("max_jobs");
+    app_config = cfg->get_value("max_jobs");
     if (app_config->type != CVT_FLOATING){
         printf("max_jobs is not float"); 
         exit(1);     
@@ -25,7 +26,7 @@ int main(){
     float max_jobs = app_config->body.floating;
     printf("max_jobs value is %.2f\n", max_jobs);  
 
-    app_config = handler->get_value("string");
+    app_config = cfg->get_value("string");
     if (app_config->type != CVT_STRING){
         printf("string type is is not string"); 
         exit(1);   
@@ -33,7 +34,7 @@ int main(){
     char* string_value = app_config->body.string;
     printf("string value is %s\n", string_value); 
 
-    app_config = handler->get_value("loop_video");
+    app_config = cfg->get_value("loop_video");
     if (app_config->type != CVT_BOOLEAN){
         printf("loop_video type is is not boolean"); 
         exit(1);     
@@ -41,7 +42,7 @@ int main(){
     bool loop_video = app_config->body.boolean;
     (loop_video) ? printf("loop_video is true\n") : printf("loop_video is false\n");  
 
-    app_config = handler->get_value("ingestor");
+    app_config = cfg->get_value("ingestor");
     if (app_config->type != CVT_OBJECT){
         printf("ingestor type is is not object"); 
         exit(1);  
@@ -50,7 +51,7 @@ int main(){
     char* type = ingestor_type->body.string;
     printf("ingestor_type value is %s\n", type);  
 
-    app_config = handler->get_value("udfs");
+    app_config = cfg->get_value("udfs");
     if (app_config->type != CVT_ARRAY){
         printf("udfs type is is not array"); 
         exit(1);      

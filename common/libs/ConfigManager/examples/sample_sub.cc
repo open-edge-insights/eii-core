@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
     msg_envelope_serialized_part_t* parts = NULL;
     int num_parts = 0;
 
-    setenv("DEV_MODE", "FALSE", 1);
+    setenv("DEV_MODE", "TRUE", 1);
 
     // Fetching Subscriber config from
     // VideoAnalytics interface

@@ -89,7 +89,7 @@ ConfigMgr::ConfigMgr() {
         m_app_config = json_config_new_from_buffer(value);
         m_app_interface = json_config_new_from_buffer(interface);
 
-        m_etcd_handler = new ConfigHandler(m_app_config, m_app_interface, dev_mode);
+        m_etcd_handler = new AppCfg(m_app_config, m_app_interface, dev_mode);
     } else if (str_type_name == "VAULT") {
         printf("ConfigManager type not supported yet");
     } else {
@@ -97,15 +97,15 @@ ConfigMgr::ConfigMgr() {
     }
 }
 
-ConfigHandler* ConfigMgr::getAppConfig() {
+AppCfg* ConfigMgr::getAppConfig() {
     LOG_INFO_0("ConfigMgr getAppConfig  method");
     return m_etcd_handler;
 }
 
 PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
-    LOG_INFO_0("ConfigHandler getPublisherByIndex method");
+    LOG_INFO_0("AppCfg getPublisherByIndex method");
 
-    config_value_t* publisher_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Publish");
+    config_value_t* publisher_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Publishers");
     m_etcd_handler->m_interface_cfg = config_value_array_get(publisher_interface, index);
 
     PublisherCfg* publisher = NULL;
@@ -114,9 +114,9 @@ PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
 }
 
 SubscriberCfg* ConfigMgr::getSubscriberByIndex(int index) {
-    LOG_INFO_0("ConfigHandler getSubscriberByIndex method");
+    LOG_INFO_0("AppCfg getSubscriberByIndex method");
 
-    config_value_t* subscriber_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Subscribe");
+    config_value_t* subscriber_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Subscribers");
     m_etcd_handler->m_interface_cfg = config_value_array_get(subscriber_interface, index);
 
     SubscriberCfg* subscriber = NULL;
@@ -127,7 +127,7 @@ SubscriberCfg* ConfigMgr::getSubscriberByIndex(int index) {
 ServerCfg* ConfigMgr::getServerByIndex(int index) {
     LOG_INFO_0("ConfigMgr getServerByIndex  method");
 
-    config_value_t* server_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Server");
+    config_value_t* server_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Servers");
     m_etcd_handler->m_interface_cfg = config_value_array_get(server_interface, index);
 
     ServerCfg* server = NULL;
@@ -138,7 +138,7 @@ ServerCfg* ConfigMgr::getServerByIndex(int index) {
 ClientCfg* ConfigMgr::getClientByIndex(int index) {
     LOG_INFO_0("ConfigMgr getClientByIndex  method");
 
-    config_value_t* client_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Client");
+    config_value_t* client_interface = m_app_interface->get_config_value(m_app_interface->cfg, "Clients");
     m_etcd_handler->m_interface_cfg = config_value_array_get(client_interface, index);
 
     ClientCfg* client = NULL;

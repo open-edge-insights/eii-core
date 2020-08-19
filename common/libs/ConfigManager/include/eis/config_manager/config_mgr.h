@@ -35,7 +35,7 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "db_client.h"
-#include "eis/config_manager/config_handler.h"
+#include "eis/config_manager/config_app.h"
 #include "eis/config_manager/config_publisher.h"
 #include "eis/config_manager/config_subscriber.h"
 #include "eis/config_manager/config_server.h"
@@ -64,7 +64,7 @@ namespace eis {
                 config_t* m_app_datastore;
 
                 // ETCD config handler
-                ConfigHandler* m_etcd_handler;
+                AppCfg* m_etcd_handler;
             
             public:
 
@@ -75,9 +75,9 @@ namespace eis {
              
                 /**
                  * gets app related configs from ConfigManager
-                 * @return ConfigHandler* - ConfigHandler class object
+                 * @return AppCfg* - AppCfg class object
                  */
-                ConfigHandler* getAppConfig();
+                AppCfg* getAppConfig();
 
                 /**
                  * Get server interface from ConfigManager

@@ -35,13 +35,13 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "db_client.h"
-#include "eis/config_manager/config_handler.h"
+#include "eis/config_manager/config_app.h"
 
 
 namespace eis {
     namespace config_manager {
 
-        class ServerCfg : public ConfigHandler {
+        class ServerCfg : public AppCfg {
             public:
 
                 // App config

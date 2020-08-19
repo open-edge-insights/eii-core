@@ -29,7 +29,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-SubscriberCfg::SubscriberCfg(config_value_t* sub_config):ConfigHandler(NULL, NULL, NULL) {
+SubscriberCfg::SubscriberCfg(config_value_t* sub_config):AppCfg(NULL, NULL, NULL) {
     subscriber_cfg = sub_config;
     fprintf(stderr,"in PublisherCfg class \n"); 
 }
@@ -58,7 +58,7 @@ config_t* SubscriberCfg::getMsgBusConfig(){
             for (int i = 0; i < config_value_array_len(topic_Arr); i++){
                 cJSON* sub_topic = cJSON_CreateObject();
                 topic = config_value_array_get(topic_Arr, i);
-                std::vector<std::string> tokens = ConfigHandler::tokenizer(EndPoint, ":");
+                std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
                 cJSON_AddStringToObject(sub_topic, "host", tokens[0].c_str());
                 cJSON_AddNumberToObject(sub_topic, "port", atoi(tokens[1].c_str()));
 
@@ -73,7 +73,7 @@ config_t* SubscriberCfg::getMsgBusConfig(){
             for (int i = 0; i < config_value_array_len(topic_Arr); i++){
                 cJSON* sub_topic = cJSON_CreateObject();
                 topic = config_value_array_get(topic_Arr, i);
-                std::vector<std::string> tokens = ConfigHandler::tokenizer(EndPoint, ":");
+                std::vector<std::string> tokens = AppCfg::tokenizer(EndPoint, ":");
                 cJSON_AddStringToObject(sub_topic, "host", tokens[0].c_str());
                 cJSON_AddNumberToObject(sub_topic, "port", atoi(tokens[1].c_str()));
                 // cJSON_AddStringToObject(sub_topic, "host", EndPoint);

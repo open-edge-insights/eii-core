@@ -23,13 +23,13 @@
  * @brief ConfigMgr Implementation
  */
 
-#include "eis/config_manager/config_handler.h"
+#include "eis/config_manager/config_app.h"
 
 using namespace eis::config_manager;
 using namespace std;
 
 
-ConfigHandler::ConfigHandler(config_t* app_config, config_t* app_interface, bool dev_mode) {
+AppCfg::AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode) {
     m_conf = app_config;
     m_intfc = app_interface;
 
@@ -37,43 +37,43 @@ ConfigHandler::ConfigHandler(config_t* app_config, config_t* app_interface, bool
 
 }
 
-config_value_t* ConfigHandler::get_value(char* key){
+config_value_t* AppCfg::get_value(char* key){
     config_value_t* value = m_conf->get_config_value(m_conf->cfg, key);
     return value;
 }
 
 // This virtual method is implemented
 // by sub class objects
-config_t* ConfigHandler::getMsgBusConfig(){
+config_t* AppCfg::getMsgBusConfig(){
 
 }
 
 // This virtual method is implemented
 // by sub class objects
-std::string ConfigHandler::getEndpoint() {
+std::string AppCfg::getEndpoint() {
 
 }
 
 // This virtual method is implemented
 // by sub class objects
-std::vector<std::string> ConfigHandler::getTopics() {
+std::vector<std::string> AppCfg::getTopics() {
 
 }
 
 // This virtual method is implemented
 // by sub class objects
-std::vector<std::string> ConfigHandler::getAllowedClients() {
+std::vector<std::string> AppCfg::getAllowedClients() {
 
 }
 
 // This virtual method is implemented
 // by sub class objects
-bool ConfigHandler::setTopics(std::vector<std::string>) {
+bool AppCfg::setTopics(std::vector<std::string>) {
 
 }
 
 // tokenizer function to split string based on delimiter
-vector<string> ConfigHandler::tokenizer(const char* str, const char* delim) {
+vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
 
     std::string line(str);
     std::stringstream check1(line);
@@ -92,7 +92,7 @@ vector<string> ConfigHandler::tokenizer(const char* str, const char* delim) {
 }
 
 
-ConfigHandler::~ConfigHandler() {
+AppCfg::~AppCfg() {
     if(m_conf) {
         delete m_conf;
     }

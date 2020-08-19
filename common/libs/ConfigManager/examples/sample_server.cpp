@@ -74,6 +74,7 @@ int main() {
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
 
+    setenv("DEV_MODE", "TRUE", 1);
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* g_ch = new ConfigMgr();  
 

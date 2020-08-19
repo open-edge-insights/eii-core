@@ -43,9 +43,9 @@ namespace eis {
     namespace config_manager {
 
         /**
-         * ConfigHandler class
+         * AppCfg class
          */  
-        class ConfigHandler {
+        class AppCfg {
             private:
 
                 // App's config
@@ -68,9 +68,9 @@ namespace eis {
             public:
 
                 /**
-                * ConfigHandler Constructor
+                * AppCfg Constructor
                 */
-                ConfigHandler(config_t* app_config, config_t* app_interface, bool dev_mode);
+                AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode);
 
                 // Interface Cfg for any publisher/subscriber/server/client
                 config_value_t* m_interface_cfg;
@@ -113,7 +113,7 @@ namespace eis {
                 virtual std::vector<std::string> getAllowedClients();
 
                 // Destructor
-                ~ConfigHandler();
+                ~AppCfg();
         };
     }
 }

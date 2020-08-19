@@ -28,7 +28,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-ClientCfg::ClientCfg(config_value_t* client_config):ConfigHandler(NULL, NULL, NULL) {
+ClientCfg::ClientCfg(config_value_t* client_config):AppCfg(NULL, NULL, NULL) {
     client_cfg = client_config;
     fprintf(stderr,"in PublisherCfg class \n");
 }

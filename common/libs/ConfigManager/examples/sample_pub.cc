@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    setenv("DEV_MODE", "FALSE", 1);
+    setenv("DEV_MODE", "TRUE", 1);
 
     // Fetching Publisher config from
     // VideoIngestion interface

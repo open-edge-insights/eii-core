@@ -73,6 +73,7 @@ int main() {
     int num_parts = 0;
     msgbus_ret_t ret = MSG_SUCCESS;
 
+    setenv("DEV_MODE", "TRUE", 1);
     setenv("AppName","VideoAnalytics", 1);
     ConfigMgr* g_ch = new ConfigMgr();  
 
