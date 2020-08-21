@@ -152,7 +152,43 @@ The section assumes the EIS software is already downloaded from the release pack
     $ python3 eis_builder.py -f video-streaming.yml
     ```
 
+* Multi instance config generation in eis_builder:
 
+  * Based on the user's requirements, eis_builder can also generate multi-instance docker-compose.yml, eis_config.json, csl_app_spec.json & every module's module_spec.json respectively.
+
+  * Running eis_builder for multi-instance configs:
+
+    If the user wishes to auto-populate the subscriber **SubTopics** based on config of available publishers mentioned in **publisher_list**, the subscriber **AppName** has to be added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json).
+
+    The user needs to ensure the increment_rtsp_port is set to true/false if using multiple or single rtsp streams respectively in [eis_builder_config.json](build/eis_builder_config.json).
+
+    ```sh
+    $ python3.6 eis_builder.py -h
+    usage: eis_builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
+                      [-d OVERRIDE_DIRECTORY]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -f YML_FILE, --yml_file YML_FILE
+                            Optional config file for list of services to include.
+                            Eg: python3.6 eis_builder.py -f video-streaming.yml
+                            (default: None)
+      -v VIDEO_PIPELINE_INSTANCES, --video_pipeline_instances VIDEO_PIPELINE_INSTANCES
+                            Optional number of video pipeline instances to be
+                            created. Eg: python3.6 eis_builder.py -v 6 (default:
+                            1)
+      -d OVERRIDE_DIRECTORY, --override_directory OVERRIDE_DIRECTORY
+                            Optional directory consisting of of benchmarking
+                            configs to be present ineach app directory. Eg:
+                            python3.6 eis_builder.py -d benchmarking (default:
+                            None)
+    ```
+
+    If user wants to generate boilerplate config for 6 streams provided he has a directory specified by --override_directory argument(**benchmarking** for example), he can configure eis_builder to generate multi instance boilerplate configs by using both these arguments in the following manner:
+
+    ```sh
+    $ python3 eis_builder.py -v 6 -d benchmarking
+    ```
 
 # Provision EIS
 

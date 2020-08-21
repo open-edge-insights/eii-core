@@ -1,0 +1,32 @@
+{
+    "type": "object",
+    "required": [
+        "subscriber_list",
+        "publisher_list",
+        "csl_pub_endpoint_list",
+        "increment_rtsp_port"
+    ],
+    "properties": {
+        "subscriber_list": {
+            "type": "object",
+            "description": "List of subscribers not having SubTopics in env",
+            "additionalProperties": true
+        },
+        "publisher_list": {
+            "type": "object",
+            "description": "Common list wherein key refers to publisher and value is the CSL endpoint of that publisher which needs to be added to other subscribers",
+            "additionalProperties": true
+        },
+        "csl_pub_endpoint_list": {
+            "type": "object",
+            "description": "Dict to store csl publishers json, any key present in publisher_list should be added here",
+            "additionalProperties": true
+        },
+        "increment_rtsp_port": {
+            "type": "boolean",
+            "description": "Set this to true to increment rtsp port numbers in VideoIngestion config",
+            "default": false
+        }
+    },
+    "additionalProperties": true
+}
