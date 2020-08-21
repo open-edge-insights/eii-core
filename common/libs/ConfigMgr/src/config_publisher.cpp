@@ -32,7 +32,6 @@ using namespace eis::config_manager;
 // Constructor
 PublisherCfg::PublisherCfg(config_value_t* pub_config):AppCfg(NULL, NULL, NULL) {
     publisher_cfg = pub_config;
-    LOG_INFO_0("In PublisherCfg class \n");
 }
 
 // getMsgBusConfig of Publisher class
@@ -115,7 +114,6 @@ config_t* PublisherCfg::getMsgBusConfig(){
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
-
     return config;
 }
 

@@ -59,8 +59,6 @@ void signal_handler(int signo) {
 
 int main() {
 
-    
-
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
 
@@ -76,9 +74,9 @@ int main() {
 
     setenv("DEV_MODE", "FALSE", 1);
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* g_ch = new ConfigMgr();  
+    ConfigMgr* ch = new ConfigMgr();
 
-    ServerCfg* server_ctx = g_ch->getServerByName("echo_service");
+    ServerCfg* server_ctx = ch->getServerByName("echo_service");
     config_t* config = server_ctx->getMsgBusConfig();
 
     g_msgbus_ctx = msgbus_initialize(config);

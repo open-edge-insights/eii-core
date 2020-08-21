@@ -29,7 +29,6 @@
 
 #include <string.h>
 #include <cjson/cJSON.h>
-#include <functional> 
 #include <iostream>
 #include <string>
 #include <vector>
