@@ -18,8 +18,14 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-# Add config manager example
-add_executable(config_manager "config_manager.c")
-add_executable(env_config "env_config_example.c")
-target_link_libraries(config_manager eisconfigmgr pthread)
-target_link_libraries(env_config eisconfigmgr pthread)
+get_filename_component(EISConfigMgrNew_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${EISConfigMgrNew_CMAKE_DIR})
+
+if(NOT TARGET EISConfigMgrNew)
+    include("${EISConfigMgrNew_CMAKE_DIR}/EISConfigMgrNewTargets.cmake")
+endif()
+
+set(EISConfigMgrNew_LIBRARIES EISConfigMgrNew)
+set(EISConfigMgrNew_INCLUDE ${INSTALL_LIBDIR}/include)

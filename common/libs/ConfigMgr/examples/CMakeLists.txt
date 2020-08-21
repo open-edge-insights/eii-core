@@ -19,7 +19,13 @@
 # IN THE SOFTWARE.
 
 # Add config manager example
-add_executable(config_manager "config_manager.c")
-add_executable(env_config "env_config_example.c")
-target_link_libraries(config_manager eisconfigmgr pthread)
-target_link_libraries(env_config eisconfigmgr pthread)
+add_executable(pub "sample_pub.cpp")
+add_executable(sub "sample_sub.cpp")
+add_executable(server "sample_server.cpp")
+add_executable(client "sample_client.cpp")
+add_executable(sample_app "sample_getvalue.cpp")
+target_link_libraries(pub eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
+target_link_libraries(sub eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
+target_link_libraries(server eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
+target_link_libraries(client eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
+target_link_libraries(sample_app eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
