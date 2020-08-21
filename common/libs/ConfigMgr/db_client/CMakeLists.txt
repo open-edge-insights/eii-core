@@ -39,12 +39,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # EtcdClient headers
-set(EtcdClientHearders "etcd_client/include/")
+set(EtcdClientHeaders "etcd_client/include/")
 
 # Include header directories
 include_directories(
     include/
-    ${EtcdClientHearders})
+    ${EtcdClientHeaders})
 
 if(WITH_EXAMPLES)
     add_subdirectory(examples/)

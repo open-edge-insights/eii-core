@@ -1,4 +1,4 @@
-// // Copyright (c) 2019 Intel Corporation.
+// Copyright (c) 2020 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -19,19 +19,21 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief ConfigManager Server usage example
+ * @brief ConfigManager Client usage example
  */
 
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include "eis/config_manager/config_mgr.h"
 #include "eis/msgbus/msgbus.h"
 #include "eis/utils/logger.h"
 #include "eis/utils/json_config.h"
 
 #define SERVICE_NAME "echo_service"
+
 
 using namespace eis::config_manager;
 
@@ -58,9 +60,7 @@ void signal_handler(int signo) {
 }
 
 int main() {
-
     
-
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
 
@@ -68,18 +68,28 @@ int main() {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    msgbus_ret_t ret = MSG_SUCCESS;
-
     msg_envelope_serialized_part_t* parts = NULL;
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
+    msgbus_ret_t ret = MSG_SUCCESS;
 
-    setenv("DEV_MODE", "TRUE", 1);
-    setenv("AppName","VideoIngestion", 1);
+    setenv("DEV_MODE", "FALSE", 1);
+    setenv("AppName","VideoAnalytics", 1);
     ConfigMgr* g_ch = new ConfigMgr();  
 
-    ServerCfg* server_ctx = g_ch->getServerByName("echo_service");
-    config_t* config = server_ctx->getMsgBusConfig();
+        ClientCfg* client_ctx = g_ch->getClientByName("default");
+    config_t* config = client_ctx->getMsgBusConfig();
+
+    
+
+        // Initailize request
+    msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
+    msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
+
+    if(config == NULL) {
+        LOG_ERROR_0("Failed to load JSON configuration");
+        goto err;
+    }
 
     g_msgbus_ctx = msgbus_initialize(config);
     if(g_msgbus_ctx == NULL) {
@@ -87,48 +97,51 @@ int main() {
         goto err;
     }
 
-    ret = msgbus_service_new(
+    ret = msgbus_service_get(
             g_msgbus_ctx, SERVICE_NAME, NULL, &g_service_ctx);
     if(ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize service (errno: %d)", ret);
         goto err;
     }
 
-    LOG_INFO_0("Running...");
+    msg = msgbus_msg_envelope_new(CT_JSON);
 
-    while(g_service_ctx != NULL) {
-        ret = msgbus_recv_wait(g_msgbus_ctx, g_service_ctx, &msg);
-        if(ret != MSG_SUCCESS) {
-            // Interrupt is an acceptable error
-            if(ret == MSG_ERR_EINTR)
-                break;
-            LOG_ERROR("Failed to receive message (errno: %d)", ret);
-            goto err;
-        }
+    msgbus_msg_envelope_put(msg, "hello", integer);
+    msgbus_msg_envelope_put(msg, "world", fp);
 
-        num_parts = msgbus_msg_envelope_serialize(msg, &parts);
-        if(num_parts <= 0) {
-            LOG_ERROR_0("Failed to serialize message");
-            goto err;
-        }
-
-        LOG_INFO("Received Request: %s", parts[0].bytes);
-
-        // Responding
-        ret = msgbus_response(g_msgbus_ctx, g_service_ctx, msg);
-        if(ret != MSG_SUCCESS) {
-            LOG_ERROR("Failed to send response (errno: %d)", ret);
-            goto err;
-        }
-
-        msgbus_msg_envelope_serialize_destroy(parts, num_parts);
-        msgbus_msg_envelope_destroy(msg);
-        msg = NULL;
-        parts = NULL;
+    LOG_INFO_0("Sending request");
+    ret = msgbus_request(g_msgbus_ctx, g_service_ctx, msg);
+    if(ret != MSG_SUCCESS) {
+        LOG_ERROR("Failed to send request (errno: %d)", ret);
+        goto err;
     }
 
-    if(parts != NULL)
-        msgbus_msg_envelope_serialize_destroy(parts, num_parts);
+    msgbus_msg_envelope_destroy(msg);
+    msg = NULL;
+
+    LOG_INFO_0("Waiting for response");
+    ret = msgbus_recv_wait(g_msgbus_ctx, g_service_ctx, &msg);
+    if(ret != MSG_SUCCESS) {
+        // Interrupt is an acceptable error
+        if(ret != MSG_ERR_EINTR)
+            LOG_ERROR("Failed to receive message (errno: %d)", ret);
+        goto err;
+    }
+
+    num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+    if(num_parts <= 0) {
+        LOG_ERROR_0("Failed to serialize message");
+        goto err;
+    }
+
+    LOG_INFO("Received Response: %s", parts[0].bytes);
+
+    msgbus_msg_envelope_serialize_destroy(parts, num_parts);
+    msgbus_msg_envelope_destroy(msg);
+    msg = NULL;
+
+    msgbus_recv_ctx_destroy(g_msgbus_ctx, g_service_ctx);
+    msgbus_destroy(g_msgbus_ctx);
 
     return 0;
 

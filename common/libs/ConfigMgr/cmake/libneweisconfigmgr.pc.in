@@ -1,0 +1,12 @@
+prefix=@DEST_DIR@
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libneweisconfigmgr
+Description: EIS Config Manager 2.4 library.
+Version: @PROJECT_VERSION@
+
+Libs: -L${libdir} -lneweisconfigmgr
+Libs.private: @PRIVATE_LIBS@
+Cflags: -I${includedir}

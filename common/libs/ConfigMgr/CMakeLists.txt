@@ -23,14 +23,10 @@ project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 
-option(WITH_GO_ENV_CONFIG "Install Go EnvConfig" OFF)
-option(WITH_PYTHON   "Compile with Py Config Manager and Py EnvConfig" OFF)
-option(WITH_EXAMPLES "Compile with examples" OFF)
-option(WITH_TESTS    "Compile with unit tests" OFF)
+option(WITH_EXAMPLES "Compile with examples" ON)
 
 # Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
-set(EIS_PYTHON_CFG_MGR "${CMAKE_CURRENT_SOURCE_DIR}/python/")
 
 # Set C standard to C11
 set(CMAKE_CXX_STANDARD 11)
@@ -44,41 +40,8 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 # Add cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
-# Set EIS GO Config Manger src path 
-set(EIS_GO_CFGMGR_SRC ${CMAKE_CURRENT_SOURCE_DIR}/go/ConfigManager)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-if(EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
-    EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json
-        ${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json
-    )
-endif()
-
 # Finding libraries
 find_package(cJSON REQUIRED)
-find_package(EISUtils REQUIRED)
-find_package(IntelSafeString REQUIRED)
-
-# Install Go EnvConfig if specified to
-if(WITH_GO_ENV_CONFIG)
-    message("-- Configuring Go EnvConfig installation")
-
-    # Verify the $GOPATH environmental variable exists
-    if("$ENV{GOPATH}" STREQUAL "")
-        message(FATAL_ERROR "-- $GOPATH envronmental variable is not set")
-    endif()
-
-    # Configure install command to copy the Go EnvConfig to the
-    # user's $GOPATH
-    install(
-        DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}/go/EnvConfig
-        DESTINATION
-            $ENV{GOPATH}/src/
-    )
-endif()
-
-# Finding libraries
 find_package(EISUtils REQUIRED)
 find_package(EISMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
@@ -86,64 +49,41 @@ find_package(IntelSafeString REQUIRED)
 # Include header directories
 include_directories(
     include/
+    db_client/include/
+    db_client/etcd_client/include/
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
-
-if(WITH_PYTHON)
-    add_subdirectory("${EIS_PYTHON_CFG_MGR}")
-endif()
-
-# Genreate CGO static library
-find_program(GO_EXECUTABLE "go" DOC "Go Executable")
-
-add_custom_target(cgo-config-mgr-code
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/cgo.go)
-add_custom_target(cgo-config-mgr
-    COMMENT "Generating cgo static library"
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/cgo.go
-    COMMAND cp -rf ${EIS_GO_CFGMGR_SRC} $ENV{GOPATH}/src/
-    COMMAND ${GO_EXECUTABLE} build -buildmode=c-archive -o ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.a
-    COMMAND mv ${CMAKE_CURRENT_BINARY_DIR}/go_config_manager.h ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/cgo/
-    VERBATIM)
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(eisconfigmgr SHARED ${SOURCES})
-add_dependencies(eisconfigmgr cgo-config-mgr)
+add_library(neweisconfigmgr SHARED ${SOURCES})
 
-add_library(goconfigmanager STATIC IMPORTED)
-add_dependencies(goconfigmanager cgo-config-mgr)
-set_target_properties(goconfigmanager PROPERTIES IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/go_config_manager.a)
-target_link_libraries(eisconfigmgr
+target_link_libraries(neweisconfigmgr
     PUBLIC
         pthread
         ${EISMsgEnv_LIBRARIES}
         ${EISUtils_LIBRARIES}
-        goconfigmanager
+        eisdbclient
     PRIVATE
         ${IntelSafeString_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(eisconfigmgr PRIVATE DEBUG=1)
+    target_compile_definitions(neweisconfigmgr PRIVATE DEBUG=1)
 endif()
 
 if(WITH_EXAMPLES)
     add_subdirectory(examples/)
 endif()
-if(WITH_TESTS)
-    add_subdirectory(tests/)
-endif()
 
 ##
 ## Configure pkg-config file to be installed for the EIS ConfigMgr
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisconfigmgr.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisconfigmgr.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libneweisconfigmgr.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libneweisconfigmgr.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lzmq -lcjson")
 
@@ -155,17 +95,17 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgr)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgrNew)
 
-install(TARGETS eisconfigmgr
-    EXPORT eisconfigmgr-targets
+install(TARGETS neweisconfigmgr
+    EXPORT neweisconfigmgr-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisconfigmgr PROPERTIES EXPORT_NAME EISConfigMgr)
+set_target_properties(neweisconfigmgr PROPERTIES EXPORT_NAME EISConfigMgrNew)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisconfigmgr.pc file
+# Install pkg-config libneweisconfigmgr.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -174,9 +114,9 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisconfigmgr-targets
+install(EXPORT neweisconfigmgr-targets
     FILE
-        EISConfigMgrTargets.cmake
+        EISConfigMgrNewTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -184,26 +124,26 @@ install(EXPORT eisconfigmgr-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrNewConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisconfigmgr-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrTargets.cmake)
+export(EXPORT neweisconfigmgr-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISConfigMgr)
+export(PACKAGE EISConfigMgrNew)

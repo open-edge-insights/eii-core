@@ -4,7 +4,7 @@ using namespace eis::config_manager;
 
 int main(){
 
-    setenv("DEV_MODE", "TRUE", 1);
+    setenv("DEV_MODE", "FALSE", 1);
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* g_ch = new ConfigMgr();    
     AppCfg* cfg = g_ch->getAppConfig();
