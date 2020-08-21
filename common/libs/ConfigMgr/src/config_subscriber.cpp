@@ -32,7 +32,6 @@ using namespace eis::config_manager;
 // Constructor
 SubscriberCfg::SubscriberCfg(config_value_t* sub_config):AppCfg(NULL, NULL, NULL) {
     subscriber_cfg = sub_config;
-    LOG_INFO_0("In SubscriberCfg class \n");
 }
 
 // getMsgBusConfig of Subscriber class
@@ -84,7 +83,7 @@ config_t* SubscriberCfg::getMsgBusConfig(){
             config_value_t* topic;
 
             // Create cJSON object for every topic
-            for (int i = 0; i < config_value_array_len(topic_array); i++){
+            for (int i = 0; i < config_value_array_len(topic_array); i++) {
                 cJSON* sub_topic = cJSON_CreateObject();
                 topic = config_value_array_get(topic_array, i);
                 // Add host & port to cJSON object

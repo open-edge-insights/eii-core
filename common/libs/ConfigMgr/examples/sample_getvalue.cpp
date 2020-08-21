@@ -6,8 +6,8 @@ int main(){
 
     setenv("DEV_MODE", "FALSE", 1);
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* g_ch = new ConfigMgr();    
-    AppCfg* cfg = g_ch->getAppConfig();
+    ConfigMgr* ch = new ConfigMgr();
+    AppCfg* cfg = ch->getAppConfig();
 
     printf("========================================\n");
     config_value_t* app_config = cfg->getValue("max_workers");

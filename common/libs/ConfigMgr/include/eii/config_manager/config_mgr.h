@@ -29,7 +29,6 @@
 
 #include <string.h>
 #include <cjson/cJSON.h>
-#include <functional> 
 #include <iostream>
 #include <safe_lib.h>
 #include <eis/utils/logger.h>

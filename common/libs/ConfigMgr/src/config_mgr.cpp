@@ -32,22 +32,35 @@ using namespace eis::config_manager;
 ConfigMgr::ConfigMgr() {
 
     // TODO: This will come from env
-    setenv("ConfigManagerType", "ETCD", 1);
+    setenv("KVStore", "ETCD", 1);
 
     // Fetching ConfigManager type from env
-    char* c_type_name = (char*)malloc(sizeof(char) * 40);
-    snprintf(c_type_name, 40, "%s", getenv("ConfigManagerType"));
-    printf("ConfigManager selected is %s \n", c_type_name);
+    char* config_manager_type = getenv("KVStore");
+    if(config_manager_type == NULL) {
+        LOG_ERROR_0("KVStore env not set");
+        return;
+    }
+    size_t str_len = strlen(config_manager_type) + 1;
+    char* c_type_name = (char*)malloc(sizeof(char) * str_len);
+    snprintf(c_type_name, str_len, "%s", config_manager_type);
+    LOG_INFO("ConfigManager selected is %s", c_type_name);
     std::string str_type_name(c_type_name);
 
     // Fetching & intializing dev mode variable
-    bool dev_mode = false;
-    char* c_dev_mode = (char*)malloc(sizeof(char) * 40);
-    snprintf(c_dev_mode, 40, "%s", getenv("DEV_MODE"));
-    printf("DEV mode is set to %s \n", c_dev_mode);
+    char* dev_mode_var = getenv("DEV_MODE");
+    if(dev_mode_var == NULL) {
+        LOG_ERROR_0("DEV_MODE env not set");
+        return;
+    }
+    str_len = strlen(dev_mode_var) + 1;
+    char* c_dev_mode = (char*)malloc(sizeof(char) * str_len);
+    snprintf(c_dev_mode, str_len, "%s", dev_mode_var);
+    LOG_INFO("DEV mode is set to %s", c_dev_mode);
     std::string str_dev_mode(c_dev_mode);
 
-    if(str_dev_mode == "True" || str_dev_mode == "TRUE" || str_dev_mode == "true") {
+    bool dev_mode = false;
+    transform(str_dev_mode.begin(), str_dev_mode.end(), str_dev_mode.begin(), toupper);
+    if(str_dev_mode == "TRUE") {
         dev_mode = true;
     }
 
@@ -91,9 +104,9 @@ ConfigMgr::ConfigMgr() {
         m_etcd_handler->m_app_name = str_app_name;
         m_etcd_handler->m_db_client_handle = db_client;
     } else if (str_type_name == "VAULT") {
-        printf("ConfigManager type not supported yet");
+        LOG_ERROR_0("ConfigManager type not supported yet");
     } else {
-        printf("Invalid ConfigManager type");
+        LOG_ERROR_0("Invalid ConfigManager type");
     }
 }
 
@@ -181,8 +194,6 @@ SubscriberCfg* ConfigMgr::getSubscriberByName(const char* name) {
         config_value_t* sub_config_name = config_value_object_get(sub_config, "Name");
         std::string s_config_name(sub_config_name->body.string);
         std::string s_name(name);
-        std::cout << s_config_name << std::endl;
-        std::cout << s_name << std::endl;
         // Verifying subscriber config with name exists
         if(s_config_name == s_name) {
             m_etcd_handler->m_interface_cfg = sub_config;

@@ -31,43 +31,68 @@ using namespace eis::config_manager;
 // Constructor
 ClientCfg::ClientCfg(config_value_t* client_config):AppCfg(NULL, NULL, NULL) {
     client_cfg = client_config;
-    fprintf(stderr,"in PublisherCfg class \n");
 }
 
 // getMsgBusConfig of ClientCfg class
 config_t* ClientCfg::getMsgBusConfig(){
-    config_value_t* clientappname = config_value_object_get(client_cfg, "AppName");
-    char* appname_ = clientappname->body.string;
 
-    config_value_t* client_json_type = config_value_object_get(client_cfg, "Type");
+    // Creating cJSON object
+    cJSON* c_json = cJSON_CreateObject();
 
-    char* type = client_json_type->body.string;
-    cJSON* json = cJSON_CreateObject(); 
-    cJSON_AddStringToObject(json, "type", type);
+    // Fetching Type from config
+    config_value_t* client_type = config_value_object_get(client_cfg, "Type");
+    char* type = client_type->body.string;
+    cJSON_AddStringToObject(c_json, "type", type);
 
-    config_value_t* client_json_endpoint = config_value_object_get(client_cfg, "EndPoint");
-    char* EndPoint = client_json_endpoint->body.string;
-    bool dev_mode = true;
+    // Fetching EndPoint from config
+    config_value_t* client_endpoint = config_value_object_get(client_cfg, "EndPoint");
+    const char* end_point = client_endpoint->body.string;
 
-    if(!strcmp(type, "zmq_tcp")){
+    if(!strcmp(type, "zmq_ipc")){
+        // Add Endpoint directly to socket_dir if IPC mode
+        cJSON_AddStringToObject(c_json, "socket_dir", end_point);
+    } else if(!strcmp(type, "zmq_tcp")) {
 
-        cJSON* client_app = cJSON_CreateObject();
-        cJSON_AddStringToObject(client_app, "host", "127.0.0.1");
-        cJSON_AddNumberToObject(client_app, "port", 8675);
-        if(!dev_mode) {
-            cJSON_AddStringToObject(client_app, "server_secret_key", "appname_ privatekey");
-            cJSON_AddStringToObject(client_app, "client_secret_key", "client app privatekey");
-            cJSON_AddStringToObject(client_app, "client_public_key", "client app publickey");
+        // TCP DEV mode
+        // Add host & port to echo_service cJSON object
+        cJSON* echo_service = cJSON_CreateObject();
+        std::vector<std::string> tokens = AppCfg::tokenizer(end_point, ":");
+        cJSON_AddStringToObject(echo_service, "host", tokens[0].c_str());
+        cJSON_AddNumberToObject(echo_service, "port", atoi(tokens[1].c_str()));
+
+        if(!m_dev_mode) {
+
+            // Initializing db_client handle to fetch public & private keys
+            void *handle = m_db_client_handle->init(m_db_client_handle);
+
+             // Fetching Publisher AppName from config
+            config_value_t* server_appname = config_value_object_get(client_cfg, "AppName");
+            std::string pub_app_name(server_appname->body.string);
+
+            // Adding server public key to config
+            std::string retreive_server_pub_key = "/Publickeys/" + pub_app_name;
+            const char* server_public_key = m_db_client_handle->get(handle, &retreive_server_pub_key[0]);
+            cJSON_AddStringToObject(echo_service, "server_public_key", server_public_key);
+
+            // Adding client public key to config
+            std::string s_client_public_key = "/Publickeys/" + m_app_name;
+            const char* sub_public_key = m_db_client_handle->get(handle, &s_client_public_key[0]);
+            cJSON_AddStringToObject(echo_service, "client_public_key", sub_public_key);
+
+            // Adding client private key to config
+            std::string s_client_pri_key = "/" + m_app_name + "/private_key";
+            const char* sub_pri_key = m_db_client_handle->get(handle, &s_client_pri_key[0]);
+            cJSON_AddStringToObject(echo_service, "client_secret_key", sub_pri_key);
         }
-        cJSON_AddItemToObject(json, appname_, client_app);
-        
+        // Creating the final cJSON config object
+        cJSON_AddItemToObject(c_json, "echo_service", echo_service);
     }
 
-    char* config_value = cJSON_Print(json);
-    fprintf(stderr,"Env Config client is : %s \n", config_value);
+    char* config_value = cJSON_Print(c_json);
+    LOG_DEBUG("Env client Config is : %s \n", config_value);
 
     config = config_new(
-            (void*) json, free_json, get_config_value);
+            (void*) c_json, free_json, get_config_value);
     if (config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;

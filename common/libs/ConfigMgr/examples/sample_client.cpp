@@ -60,7 +60,7 @@ void signal_handler(int signo) {
 }
 
 int main() {
-    
+
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
 
@@ -75,14 +75,12 @@ int main() {
 
     setenv("DEV_MODE", "FALSE", 1);
     setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* g_ch = new ConfigMgr();  
+    ConfigMgr* ch = new ConfigMgr();
 
-        ClientCfg* client_ctx = g_ch->getClientByName("default");
+    ClientCfg* client_ctx = ch->getClientByName("default");
     config_t* config = client_ctx->getMsgBusConfig();
 
-    
-
-        // Initailize request
+    // Initailize request
     msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
     msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
 
