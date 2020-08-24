@@ -637,11 +637,15 @@ def create_multi_instance_yml_dict(data, i):
     return temp
 
 
-def update_yml_dict(app_list, dev_mode, args):
-    """Method to update yaml dicts
+def update_yml_dict(app_list, file_to_pick, dev_mode, args):
+    """Method to consolidate yml dicts and generate the
+       combined yml dict. Picks the yml file specified by
+       file_to_pick in the directories mentioned in app_list
 
     :param app_list: list of apps
     :type app_list: list
+    :param file_to_pick: yml file to be picked
+    :type app_file_to_picklist: str
     :param dev_mode: dev mode var
     :type dev_mode: bool
     :param args: cli args var
@@ -659,7 +663,7 @@ def update_yml_dict(app_list, dev_mode, args):
 
     # Load the required yaml files
     for k in app_list:
-        with open(k + '/docker-compose.yml', 'r') as docker_compose_file:
+        with open(k + '/' + file_to_pick, 'r') as docker_compose_file:
             data = ruamel.yaml.round_trip_load(docker_compose_file,
                                                preserve_quotes=True)
             if args.override_directory is not None:
@@ -708,13 +712,10 @@ def create_docker_compose_override(app_list, dev_mode, args):
     :type args: argparse
     """
     # Load the required override files
-    override_files_dict = []
-    for k in app_list:
-        with open(k + '/docker-compose-dev.override.yml', 'r')as fp:
-            data = ruamel.yaml.round_trip_load(fp, preserve_quotes=True)
-            override_files_dict.append(data)
-
-    override_data = update_yml_dict(override_files_dict, dev_mode, args)
+    override_data = update_yml_dict(app_list,
+                                    'docker-compose-dev.override.yml',
+                                    dev_mode,
+                                    args)
 
     with open("./docker-compose.override.yml", 'w') as fp:
         ruamel.yaml.round_trip_dump(override_data, fp)
@@ -802,7 +803,7 @@ def yaml_parser(args):
                 dev_mode = util.strtobool(dev_mode)
                 break
 
-    yml_dict = update_yml_dict(app_list, dev_mode, args)
+    yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
 
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
         ruamel.yaml.round_trip_dump(yml_dict, docker_compose_file)
