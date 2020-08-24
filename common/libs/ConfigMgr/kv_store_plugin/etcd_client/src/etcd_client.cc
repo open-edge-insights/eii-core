@@ -22,8 +22,6 @@
 #include <exception>
 #include <thread>
 
-using namespace eis::etcdcli;
-
 static std::string get_file_contents(const char *fpath) {
   std::ifstream finstream(fpath);
   std::string contents((std::istreambuf_iterator<char>(finstream)), std::istreambuf_iterator<char>());

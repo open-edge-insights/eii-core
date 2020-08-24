@@ -3,8 +3,8 @@ exec_prefix=${prefix}
 libdir=${prefix}
 includedir=${prefix}/include
 
-Name: libeismsgbus
-Description: EIS Message Bus library.
+Name: libeiskvstoreplugin
+Description: EIS DB Client library.
 Version: @PROJECT_VERSION@
 
 Libs: -L${libdir} -leismsgbus

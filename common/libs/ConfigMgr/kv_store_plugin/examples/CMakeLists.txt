@@ -19,5 +19,9 @@
 # IN THE SOFTWARE.
 
 # Add config manager example
-add_executable(etcd_client "etcd_client.cc")
-target_link_libraries(etcd_client eisdbclient)
+add_executable(kv_store_etcd "kv_store_etcd.c")
+target_link_libraries(kv_store_etcd eiskvstoreplugin eisutils)
+
+# Copy JSON configuration to run examples
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/configs/etcd_kv_store_config.json"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

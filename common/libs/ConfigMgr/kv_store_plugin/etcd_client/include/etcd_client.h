@@ -60,9 +60,6 @@ using etcdserverpb::WatchRequest;
 using etcdserverpb::WatchResponse;
 
 
-namespace eis {
-namespace etcdcli {
-
 class EtcdClient {
     public:
  
@@ -87,7 +84,4 @@ class EtcdClient {
         std::unique_ptr<KV::Stub> kv_stub;
 };
 
-} // etcd_client
-} // eis
-
-#endif // _EIS_UDF_FRAME_H
+#endif // _EIS_ETCD_CLIENT_H

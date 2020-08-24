@@ -19,8 +19,10 @@
 // IN THE SOFTWARE.
 
 #include <stdio.h>
-#include "db_client.h"
+#include "kv_store_plugin.h"
+
 #include <stdlib.h>
+#include "eis/utils/json_config.h"
 
 void watch_cb(char *key, char *value, void *user_data){
     printf("watch callback is called...\n");
@@ -36,27 +38,27 @@ void watch_prefix_cb(char *key, char *value, void *user_data){
     printf("userdata: %s", data);
 }
 
-int main(){ 
+int main(int argc, char** argv) { 
     // Running in dev mode, provide 3r param: cert_file, 4th param: key_file and 5th param: root_file to run in prod mode
-    db_client_t* db_client = create_etcd_client("localhost", "2379", "", "", "");
+    config_t* config = json_config_new(argv[1]);
+    kv_store_client_t* kv_store_client = create_kv_client(config);
 
-    void *handle = db_client->init(db_client);
+    void *handle = kv_store_client->init(kv_store_client);
 
-    char* val = db_client->get(handle, "/VideoIngestion/config");
-    printf("In main..., value: %s and len:%ld \n", val, strlen(val));
+    char* val = kv_store_client->get(handle, "/VideoIngestion/config");
+    printf("Value of key: /VideoIngestion/config is %s\n", val);
 
-    int status = db_client->put(handle, "/test", "C hello world.....");
+    int status = kv_store_client->put(handle, "/test", "hello world.....");
 
     if(status == 0){
         printf("put is successful\n");
     }
 
-    db_client->watch(handle, "/Global", watch_cb, NULL);
-    db_client->watch_prefix(handle, "/Global", watch_prefix_cb, (void*)"userdatawatchprefix");
+    kv_store_client->watch(handle, "/test", watch_cb, NULL);
+    kv_store_client->watch_prefix(handle, "/te", watch_prefix_cb, (void*)"userdatawatchprefix");
     sleep(2);
 
-    // db_client->db_destroy(handle);
-    db_client_free(db_client);
+    kv_client_free(kv_store_client);
     return 0;
 }
 

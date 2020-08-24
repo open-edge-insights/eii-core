@@ -1,4 +1,3 @@
-
 // Copyright (c) 2020 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,28 +18,36 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#ifndef ETCD_CLIENT_PLUGIN_H
-#define ETCD_CLIENT_PLUGIN_H 
+#include <stdlib.h>
+#include <stdio.h>
+#include <eis/utils/config.h>
+#include <string.h>
+
+#define KV_ETCD "etcd"
+
+#ifndef EIS_KV_STORE_CLIENT_H
+#define EIS_KV_STORE_CLIENT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-	char *hostname;
-	char *port;
-	char *cert_file;
-        char *key_file;
-        char *ca_cert_file;
-        char *storage_type;
-} etcd_config_t;
 
-void* etcd_init(void *etcd_client);
-char* etcd_get(void *handle, char *key);
-int etcd_put(void *handle, char *key, char *value);
-void etcd_watch(void *handle, char *key_test, void (*user_cb)(char* watch_key, char* val, void *cb_user_data), void *user_data);
-void etcd_watch_prefix(void *handle, char *key_test, void (*user_cb)(char *watch_key, char *val, void *cb_user_data), void *user_data);
-void etcd_client_free(void *handle);
+typedef struct {
+        void *kv_store_config;
+        void *handler;
+        void* (*init)(void *kv_store_config);
+        char* (*get) (void *handle, char *key);
+        int (*put) (void *handle, char *key, char *value);
+        void (*watch) (void *handle, char *key, void (*callback)(char *key, char *value, void *cb_user_data), void *user_data);
+        void (*watch_prefix) (void *handle, char *key, void (*callback)(char *key, char *value, void *cb_user_data), void *user_data);
+        void (*deinit)(void *handle);
+} kv_store_client_t;
+
+kv_store_client_t* create_kv_client(config_t* config);
+kv_store_client_t* create_etcd_client(config_t* config);
+
+void kv_client_free(kv_store_client_t* kv_store_client);
 
 #ifdef __cplusplus
 }

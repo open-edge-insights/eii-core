@@ -18,10 +18,10 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-get_filename_component(DBClient_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(EISKVStorePlugin_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 
-list(APPEND CMAKE_MODULE_PATH ${DBClient_CMAKE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${EISKVStorePlugin_CMAKE_DIR})
 
 # NOTE Had to use find_package because find_dependency does not support
 # COMPONENTS or MODULE until 3.8.0
@@ -33,10 +33,10 @@ include_directories(
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS})
 
-if(NOT TARGET EISDBClient)
-    include("${EISDBClient_CMAKE_DIR}/EISDBClientTargets.cmake")
+if(NOT TARGET EISKVStorePlugin)
+    include("${EISKVStorePlugin_CMAKE_DIR}/EISKVStorePluginTargets.cmake")
 endif()
 
-set(EISDBClient_LIBRARIES EISDBClient)
+set(EISKVStorePlugin_LIBRARIES EISKVStorePlugin)
 
-set(DBClient_INCLUDE ${INSTALL_LIBDIR}/include)
+set(EISKVStorePlugin_INCLUDE ${INSTALL_LIBDIR}/include)

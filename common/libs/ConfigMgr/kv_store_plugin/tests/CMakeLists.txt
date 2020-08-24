@@ -51,11 +51,10 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
-# add_executable(etcdclient-tests "etcd_client.cc")
-# target_link_libraries(etcdclient-tests eisetcdclient gtest_main)
-# add_test(NAME etcdclient-tests COMMAND etcdclient-tests)
+add_executable(kvstore_client-tests "kv_store_client_tests.cc")
+target_link_libraries(kvstore_client-tests eiskvstoreplugin gtest_main eisutils)
+add_test(NAME kvstore_client-tests COMMAND kvstore_client-tests)
 
-# have this file as a unit test file instead of test program
-add_executable(etcd_client_tests "etcd_client_plugin.cc")
-target_link_libraries(etcd_client_tests eisetcdclient gtest_main)
-add_test(NAME etcd_client_tests COMMAND etcd_client_tests)
+# Copy JSON configuration for unit-tests
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/kv_store_unittest_config.json"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

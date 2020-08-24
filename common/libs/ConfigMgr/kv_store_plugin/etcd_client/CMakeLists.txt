@@ -28,7 +28,7 @@ endif()
 # Add cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
-file(GLOB SOURCES "src/*.cc" "src/*.c")
+file(GLOB SOURCES ${SOURCES} "src/*.cc" "src/*.c")
 
 # Finding libraries
 find_package(Threads REQUIRED)
@@ -40,22 +40,18 @@ include_directories(
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS})
 
-add_library(eisdbclient SHARED
+add_library(eiskvstoreplugin SHARED
     ${SOURCES})
 
-target_link_libraries(eisdbclient
+target_link_libraries(eiskvstoreplugin
     ${GRPC_LIBRARIES}
-    ${GRPC_LIBRARIES}
-    ${PROTOBUF_LIBRARIES})
-
-if(WITH_EXAMPLES)
-    add_subdirectory(examples/)
-endif()
+    ${PROTOBUF_LIBRARIES}
+    ${EISUtils_LIBRARIES})
 
 ## Configure pkg-config file to be installed for the EIS Etcd Client
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libdbclient.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libdbclient.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libkvstoreplugin.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libkvstoreplugin.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lgrpc++ -lprotobuf")
 
@@ -67,19 +63,19 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/DBClient)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISKVStorePlugin)
 
     
-install(TARGETS eisdbclient
-    EXPORT eisdbclient-targets
+install(TARGETS eiskvstoreplugin
+    EXPORT eiskvstoreplugin-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisdbclient PROPERTIES EXPORT_NAME DBClient)
+set_target_properties(eiskvstoreplugin PROPERTIES EXPORT_NAME EISKVStorePlugin)
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisdbclient.pc file
+# Install pkg-config libeiskvstoreplugin.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -88,9 +84,9 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisdbclient-targets
+install(EXPORT eiskvstoreplugin-targets
     FILE
-        DBClient.cmake
+        EISKVStorePlugin.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -98,26 +94,27 @@ install(EXPORT eisdbclient-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISKVStorePluginConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/DBClientConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISKVStorePluginConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISKVStorePluginConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, config version and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/DBClientConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISKVStorePluginConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISKVStorePluginConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisdbclient-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/DBClientTargets.cmake)
+export(EXPORT eiskvstoreplugin-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISKVStorePluginTargets.cmake)
   
 # Register package in user's package registry
-export(PACKAGE DBClient)
+export(PACKAGE EISKVStorePlugin)
+

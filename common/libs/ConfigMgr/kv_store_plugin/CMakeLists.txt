@@ -24,7 +24,7 @@ project(eis-dbclient VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" ON)
-option(WITH_TESTS "Compile with tests" OFF)
+option(WITH_TESTS "Compile with tests" ON)
 
 # Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
@@ -39,12 +39,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # EtcdClient headers
-set(EtcdClientHeaders "etcd_client/include/")
+set(EtcdClientHearders "etcd_client/include/")
+
+file(GLOB SOURCES ${SOURCES} "src/*.cc" "src/*.c")
 
 # Include header directories
 include_directories(
     include/
-    ${EtcdClientHeaders})
+    ${EtcdClientHearders}
+    ${EISUtils_INCLUDE})
 
 if(WITH_EXAMPLES)
     add_subdirectory(examples/)
