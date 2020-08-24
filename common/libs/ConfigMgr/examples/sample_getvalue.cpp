@@ -1,10 +1,49 @@
+// Copyright (c) 2020 Intel Corporation.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+
+/**
+ * @brief ConfigManager getvalue usage example
+ */
+
 #include "eis/config_manager/config_mgr.h"
 
 using namespace eis::config_manager;
 
 int main(){
 
+    setenv("KVStore", "etcd", 1);
+
+    // In a dockerized environment,
+    // these variables are set in environment
     setenv("DEV_MODE", "FALSE", 1);
+    // Replace 2nd parameter with path to certs
+    setenv("CONFIGMGR_CERT", "", 1);
+    setenv("CONFIGMGR_KEY", "", 1);
+    setenv("CONFIGMGR_CACERT", "", 1);
+    
+    // Uncomment below lines to test DEV mode
+    // setenv("DEV_MODE", "TRUE", 1);
+    // setenv("CONFIGMGR_CERT", "", 1);
+    // setenv("CONFIGMGR_KEY", "", 1);
+    // setenv("CONFIGMGR_CACERT", "", 1);
+
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* ch = new ConfigMgr();
     AppCfg* cfg = ch->getAppConfig();

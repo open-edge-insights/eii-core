@@ -19,18 +19,17 @@
 // IN THE SOFTWARE.
 
 /**
- * @file
  * @brief ClientCfg Implementation
  * Holds the implementaion of APIs supported by ClientCfg class
  */
 
-#include "eis/config_manager/config_client.h"
+#include "eis/config_manager/client_cfg.h"
 
 using namespace eis::config_manager;
 
 // Constructor
 ClientCfg::ClientCfg(config_value_t* client_config):AppCfg(NULL, NULL, NULL) {
-    client_cfg = client_config;
+    m_client_cfg = client_config;
 }
 
 // getMsgBusConfig of ClientCfg class
@@ -40,12 +39,12 @@ config_t* ClientCfg::getMsgBusConfig(){
     cJSON* c_json = cJSON_CreateObject();
 
     // Fetching Type from config
-    config_value_t* client_type = config_value_object_get(client_cfg, "Type");
+    config_value_t* client_type = config_value_object_get(m_client_cfg, "Type");
     char* type = client_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* client_endpoint = config_value_object_get(client_cfg, "EndPoint");
+    config_value_t* client_endpoint = config_value_object_get(m_client_cfg, "EndPoint");
     const char* end_point = client_endpoint->body.string;
 
     if(!strcmp(type, "zmq_ipc")){
@@ -63,25 +62,25 @@ config_t* ClientCfg::getMsgBusConfig(){
         if(!m_dev_mode) {
 
             // Initializing db_client handle to fetch public & private keys
-            void *handle = m_db_client_handle->init(m_db_client_handle);
+            void *handle = m_kv_store_client_handle->init(m_kv_store_client_handle);
 
              // Fetching Publisher AppName from config
-            config_value_t* server_appname = config_value_object_get(client_cfg, "AppName");
+            config_value_t* server_appname = config_value_object_get(m_client_cfg, "AppName");
             std::string pub_app_name(server_appname->body.string);
 
             // Adding server public key to config
             std::string retreive_server_pub_key = "/Publickeys/" + pub_app_name;
-            const char* server_public_key = m_db_client_handle->get(handle, &retreive_server_pub_key[0]);
+            const char* server_public_key = m_kv_store_client_handle->get(handle, &retreive_server_pub_key[0]);
             cJSON_AddStringToObject(echo_service, "server_public_key", server_public_key);
 
             // Adding client public key to config
             std::string s_client_public_key = "/Publickeys/" + m_app_name;
-            const char* sub_public_key = m_db_client_handle->get(handle, &s_client_public_key[0]);
+            const char* sub_public_key = m_kv_store_client_handle->get(handle, &s_client_public_key[0]);
             cJSON_AddStringToObject(echo_service, "client_public_key", sub_public_key);
 
             // Adding client private key to config
             std::string s_client_pri_key = "/" + m_app_name + "/private_key";
-            const char* sub_pri_key = m_db_client_handle->get(handle, &s_client_pri_key[0]);
+            const char* sub_pri_key = m_kv_store_client_handle->get(handle, &s_client_pri_key[0]);
             cJSON_AddStringToObject(echo_service, "client_secret_key", sub_pri_key);
         }
         // Creating the final cJSON config object
@@ -91,19 +90,19 @@ config_t* ClientCfg::getMsgBusConfig(){
     char* config_value = cJSON_Print(c_json);
     LOG_DEBUG("Env client Config is : %s \n", config_value);
 
-    config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
-    if (config == NULL) {
+    if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
 
-    return config;
+    return m_config;
 }
 
 // To fetch endpoint from config
 std::string ClientCfg::getEndpoint() {
-    config_value_t* endpoint = config_value_object_get(client_cfg, "EndPoint");
+    config_value_t* endpoint = config_value_object_get(m_client_cfg, "EndPoint");
     char* type = endpoint->body.string;
     std::string s(type);
     return s;
@@ -111,11 +110,11 @@ std::string ClientCfg::getEndpoint() {
 
 // Destructor
 ClientCfg::~ClientCfg() {
-    if(config) {
-        delete config;
+    if(m_config) {
+        delete m_config;
     }
-    if(client_cfg) {
-        delete client_cfg;
+    if(m_client_cfg) {
+        delete m_client_cfg;
     }
     LOG_INFO_0("ClientCfg destructor");
 }

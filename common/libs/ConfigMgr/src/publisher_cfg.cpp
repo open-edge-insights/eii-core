@@ -19,19 +19,18 @@
 // IN THE SOFTWARE.
 
 /**
- * @file
  * @brief PublisherCfg Implementation
  * Holds the implementaion of APIs supported by PublisherCfg class
  */
 
 
-#include "eis/config_manager/config_publisher.h"
+#include "eis/config_manager/publisher_cfg.h"
 
 using namespace eis::config_manager;
 
 // Constructor
 PublisherCfg::PublisherCfg(config_value_t* pub_config):AppCfg(NULL, NULL, NULL) {
-    publisher_cfg = pub_config;
+    m_publisher_cfg = pub_config;
 }
 
 // getMsgBusConfig of Publisher class
@@ -41,12 +40,12 @@ config_t* PublisherCfg::getMsgBusConfig(){
     cJSON* c_json = cJSON_CreateObject();
 
     // Fetching Type from config
-    config_value_t* publish_json_type = config_value_object_get(publisher_cfg, "Type");
+    config_value_t* publish_json_type = config_value_object_get(m_publisher_cfg, "Type");
     char* type = publish_json_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* publish_json_endpoint = config_value_object_get(publisher_cfg, "EndPoint");
+    config_value_t* publish_json_endpoint = config_value_object_get(m_publisher_cfg, "EndPoint");
     const char* end_point = publish_json_endpoint->body.string;
 
     if(!strcmp(type, "zmq_ipc")){
@@ -54,6 +53,8 @@ config_t* PublisherCfg::getMsgBusConfig(){
         cJSON_AddStringToObject(c_json, "socket_dir", end_point);
     } else if(!strcmp(type, "zmq_tcp")){
 
+        // TODO
+        // To override with PUBLISHER_0_ENDPOINT / PUBLISHER__ENDPOINT for CSL usecase
         if(m_dev_mode) {
 
             // TCP DEV mode
@@ -68,10 +69,10 @@ config_t* PublisherCfg::getMsgBusConfig(){
             // TCP PROD mode
 
             // Initializing db_client handle to fetch public & private keys
-            void *handle = m_db_client_handle->init(m_db_client_handle);
+            void *handle = m_kv_store_client_handle->init(m_kv_store_client_handle);
 
             // Fetching AllowedClients from config
-            config_value_t* publish_json_clients = config_value_object_get(publisher_cfg, "AllowedClients");
+            config_value_t* publish_json_clients = config_value_object_get(m_publisher_cfg, "AllowedClients");
             config_value_t* array_value; 
             cJSON* all_clients = cJSON_CreateArray();
             for (int i =0; i < config_value_array_len(publish_json_clients); i++) {
@@ -79,7 +80,7 @@ config_t* PublisherCfg::getMsgBusConfig(){
                 array_value = config_value_array_get(publish_json_clients, i);
                 std::string sub_app_name(array_value->body.string);
                 std::string grab_public_key = "/Publickeys/" + sub_app_name;
-                const char* sub_public_key = m_db_client_handle->get(handle, &grab_public_key[0]);
+                const char* sub_public_key = m_kv_store_client_handle->get(handle, &grab_public_key[0]);
                 cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
             }
 
@@ -95,7 +96,7 @@ config_t* PublisherCfg::getMsgBusConfig(){
 
             // Fetching Publisher private key & adding it to zmq_tcp_publish object
             std::string pub_pri_key = "/" + m_app_name + "/private_key";
-            const char* publisher_secret_key = m_db_client_handle->get(handle, &pub_pri_key[0]);
+            const char* publisher_secret_key = m_kv_store_client_handle->get(handle, &pub_pri_key[0]);
             cJSON_AddStringToObject(zmq_tcp_publish, "server_secret_key", publisher_secret_key);
 
             // Creating the final cJSON config object
@@ -108,19 +109,19 @@ config_t* PublisherCfg::getMsgBusConfig(){
     LOG_DEBUG("Env publisher Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
-    config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
-    if (config == NULL) {
+    if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
-    return config;
+    return m_config;
 }
 
 // To fetch endpoint from config
 std::string PublisherCfg::getEndpoint() {
     // Fetching EndPoint from config
-    config_value_t* end_point = config_value_object_get(publisher_cfg, "EndPoint");
+    config_value_t* end_point = config_value_object_get(m_publisher_cfg, "EndPoint");
     char* type = end_point->body.string;
     std::string s(type);
     return s;
@@ -129,7 +130,7 @@ std::string PublisherCfg::getEndpoint() {
 // To fetch topics from config
 std::vector<std::string> PublisherCfg::getTopics() {
     // Fetching Topics from config
-    config_value_t* list_of_topics = config_value_object_get(publisher_cfg, "Topics");
+    config_value_t* list_of_topics = config_value_object_get(m_publisher_cfg, "Topics");
     config_value_t* topic_value;
     std::vector<std::string> topic_list;
     // Iterating through Topics and adding them to topics_list vector
@@ -146,7 +147,7 @@ std::vector<std::string> PublisherCfg::getTopics() {
 bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 
     // Fetching topics
-    config_value_t* list_of_topics = config_value_object_get(publisher_cfg, "Topics");
+    config_value_t* list_of_topics = config_value_object_get(m_publisher_cfg, "Topics");
     config_value_t* topic_value;
     for (int i =0; i < config_value_array_len(list_of_topics); i++) {
         topic_value = config_value_array_get(list_of_topics, i);
@@ -181,7 +182,7 @@ bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 // To fetch list of allowed clients from config
 std::vector<std::string> PublisherCfg::getAllowedClients() {
     // Fetching AllowedClients from config
-    config_value_t* list_of_allowed_clients = config_value_object_get(publisher_cfg, "AllowedClients");
+    config_value_t* list_of_allowed_clients = config_value_object_get(m_publisher_cfg, "AllowedClients");
     config_value_t* value;
     std::vector<std::string> client_list;
     // Iterating through AllowedClients and adding them to client_list vector
@@ -196,11 +197,11 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
 
 // Destructor
 PublisherCfg::~PublisherCfg() {
-    if(publisher_cfg) {
-        delete publisher_cfg;
+    if(m_publisher_cfg) {
+        delete m_publisher_cfg;
     }
-    if(config) {
-        delete config;
+    if(m_config) {
+        delete m_config;
     }
     LOG_INFO_0("PublisherCfg destructor");
 }

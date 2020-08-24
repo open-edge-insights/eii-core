@@ -19,12 +19,11 @@
 // IN THE SOFTWARE.
 
 /**
- * @file
  * @brief AppCfg Implementation
  * Holds the implementaion of APIs supported by AppCfg class
  */
 
-#include "eis/config_manager/config_app.h"
+#include "eis/config_manager/app_cfg.h"
 
 using namespace eis::config_manager;
 using namespace std;
@@ -99,11 +98,8 @@ AppCfg::~AppCfg() {
     if(m_intfc) {
         delete m_intfc;
     }
-    if(config) {
-        delete config;
-    }
-    if(m_db_client_handle) {
-        delete m_db_client_handle;
+    if(m_kv_store_client_handle) {
+        delete m_kv_store_client_handle;
     }
     if(m_interface_cfg) {
         delete m_interface_cfg;

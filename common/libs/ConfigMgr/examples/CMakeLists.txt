@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Intel Corporation.
+# Copyright (c) 2020 Intel Corporation.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -24,8 +24,8 @@ add_executable(sub "sample_sub.cpp")
 add_executable(server "sample_server.cpp")
 add_executable(client "sample_client.cpp")
 add_executable(sample_app "sample_getvalue.cpp")
-target_link_libraries(pub eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
-target_link_libraries(sub eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
-target_link_libraries(server eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
-target_link_libraries(client eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
-target_link_libraries(sample_app eismsgbus eismsgenv eisutils neweisconfigmgr pthread eisdbclient)
+target_link_libraries(pub eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
+target_link_libraries(sub eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
+target_link_libraries(server eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
+target_link_libraries(client eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
+target_link_libraries(sample_app eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)

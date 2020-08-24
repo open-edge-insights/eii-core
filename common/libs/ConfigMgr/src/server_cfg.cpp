@@ -19,19 +19,18 @@
 // IN THE SOFTWARE.
 
 /**
- * @file
  * @brief ServerCfg Implementation
  * Holds the implementaion of APIs supported by ServerCfg class
  */
 
 
-#include "eis/config_manager/config_server.h"
+#include "eis/config_manager/server_cfg.h"
 
 using namespace eis::config_manager;
 
 // Constructor
 ServerCfg::ServerCfg(config_value_t* server_config):AppCfg(NULL, NULL, NULL) {
-    server_cfg = server_config;
+    m_server_cfg = server_config;
 }
 
 // getMsgBusConfig of ServerCfg class
@@ -41,12 +40,12 @@ config_t* ServerCfg::getMsgBusConfig() {
     cJSON* c_json = cJSON_CreateObject();
 
     // Fetching Type from config
-    config_value_t* server_type = config_value_object_get(server_cfg, "Type");
+    config_value_t* server_type = config_value_object_get(m_server_cfg, "Type");
     char* type = server_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* server_endpoint = config_value_object_get(server_cfg, "EndPoint");
+    config_value_t* server_endpoint = config_value_object_get(m_server_cfg, "EndPoint");
     const char* end_point = server_endpoint->body.string;
 
     if(!strcmp(type, "zmq_ipc")){
@@ -64,10 +63,10 @@ config_t* ServerCfg::getMsgBusConfig() {
         if(!m_dev_mode) {
 
             // Initializing db_client handle to fetch public & private keys
-            void *handle = m_db_client_handle->init(m_db_client_handle);
+            void *handle = m_kv_store_client_handle->init(m_kv_store_client_handle);
 
             // Fetching AllowedClients from config
-            config_value_t* server_json_clients = config_value_object_get(server_cfg, "AllowedClients");
+            config_value_t* server_json_clients = config_value_object_get(m_server_cfg, "AllowedClients");
             config_value_t* array_value;
             cJSON* all_clients = cJSON_CreateArray();
             for (int i =0; i < config_value_array_len(server_json_clients); i++) {
@@ -75,7 +74,7 @@ config_t* ServerCfg::getMsgBusConfig() {
                 array_value = config_value_array_get(server_json_clients, i);
                 std::string sub_app_name(array_value->body.string);
                 std::string grab_public_key = "/Publickeys/" + sub_app_name;
-                const char* sub_public_key = m_db_client_handle->get(handle, &grab_public_key[0]);
+                const char* sub_public_key = m_kv_store_client_handle->get(handle, &grab_public_key[0]);
                 cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
             }
 
@@ -84,7 +83,7 @@ config_t* ServerCfg::getMsgBusConfig() {
 
             // Fetching Publisher private key & adding it to zmq_tcp_publish object
             std::string pub_pri_key = "/" + m_app_name + "/private_key";
-            const char* server_secret_key = m_db_client_handle->get(handle, &pub_pri_key[0]);
+            const char* server_secret_key = m_kv_store_client_handle->get(handle, &pub_pri_key[0]);
             cJSON_AddStringToObject(echo_service, "server_secret_key", server_secret_key);
         }
         // Creating the final cJSON config object
@@ -96,19 +95,19 @@ config_t* ServerCfg::getMsgBusConfig() {
     LOG_DEBUG("Env server Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
-    config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
-    if (config == NULL) {
+    if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
-    return config;
+    return m_config;
 }
 
 // To fetch endpoint from config
 std::string ServerCfg::getEndpoint() {
     // Fetching EndPoint from config
-    config_value_t* endpoint = config_value_object_get(server_cfg, "EndPoint");
+    config_value_t* endpoint = config_value_object_get(m_server_cfg, "EndPoint");
     char* type = endpoint->body.string;
     std::string s(type);
     return s;
@@ -117,7 +116,7 @@ std::string ServerCfg::getEndpoint() {
 // To fetch list of allowed clients from config
 std::vector<std::string> ServerCfg::getAllowedClients() {
     // Fetching AllowedClients from config
-    config_value_t* list_of_allowed_clients = config_value_object_get(server_cfg, "AllowedClients");
+    config_value_t* list_of_allowed_clients = config_value_object_get(m_server_cfg, "AllowedClients");
     config_value_t* value;
     std::vector<std::string> client_list;
     // Iterating through AllowedClients and adding them to client_list vector
@@ -132,11 +131,11 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
 
 // Destructor
 ServerCfg::~ServerCfg() {
-    if(config) {
-        delete config;
+    if(m_config) {
+        delete m_config;
     }
-    if(server_cfg) {
-        delete server_cfg;
+    if(m_server_cfg) {
+        delete m_server_cfg;
     }
     LOG_INFO_0("ServerCfg destructor");
 }

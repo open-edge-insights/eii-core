@@ -38,7 +38,7 @@
     "Clients": [
         {
             "Name": "default",
-            "AppName": "echo_service",
+            "AppName": "VideoIngestion",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:66010"
         }
