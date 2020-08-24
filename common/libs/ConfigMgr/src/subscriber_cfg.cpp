@@ -19,19 +19,18 @@
 // IN THE SOFTWARE.
 
 /**
- * @file
  * @brief SubscriberCfg Implementation
  * Holds the implementaion of APIs supported by SubscriberCfg class
  */
 
 
-#include "eis/config_manager/config_subscriber.h"
+#include "eis/config_manager/subscriber_cfg.h"
 
 using namespace eis::config_manager;
 
 // Constructor
 SubscriberCfg::SubscriberCfg(config_value_t* sub_config):AppCfg(NULL, NULL, NULL) {
-    subscriber_cfg = sub_config;
+    m_subscriber_cfg = sub_config;
 }
 
 // getMsgBusConfig of Subscriber class
@@ -41,12 +40,12 @@ config_t* SubscriberCfg::getMsgBusConfig(){
     cJSON* c_json = cJSON_CreateObject();
 
     // Fetching Type from config
-    config_value_t* subscribe_json_type = config_value_object_get(subscriber_cfg, "Type");
+    config_value_t* subscribe_json_type = config_value_object_get(m_subscriber_cfg, "Type");
     char* type = subscribe_json_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* subscribe_json_endpoint = config_value_object_get(subscriber_cfg, "EndPoint");
+    config_value_t* subscribe_json_endpoint = config_value_object_get(m_subscriber_cfg, "EndPoint");
     char* EndPoint = subscribe_json_endpoint->body.string;
 
     if(!strcmp(type, "zmq_ipc")){
@@ -59,7 +58,7 @@ config_t* SubscriberCfg::getMsgBusConfig(){
             // TCP DEV mode
 
             // Fetching Topics from config
-            config_value_t* topic_array = config_value_object_get(subscriber_cfg, "Topics");
+            config_value_t* topic_array = config_value_object_get(m_subscriber_cfg, "Topics");
             config_value_t* topic;
             
             // Create cJSON object for every topic
@@ -76,10 +75,10 @@ config_t* SubscriberCfg::getMsgBusConfig(){
             // TCP PROD mode
 
             // Initializing db_client handle to fetch public & private keys
-            void *handle = m_db_client_handle->init(m_db_client_handle);
+            void *handle = m_kv_store_client_handle->init(m_kv_store_client_handle);
 
             // Fetching Topics from config
-            config_value_t* topic_array = config_value_object_get(subscriber_cfg, "Topics");
+            config_value_t* topic_array = config_value_object_get(m_subscriber_cfg, "Topics");
             config_value_t* topic;
 
             // Create cJSON object for every topic
@@ -92,22 +91,22 @@ config_t* SubscriberCfg::getMsgBusConfig(){
                 cJSON_AddNumberToObject(sub_topic, "port", atoi(tokens[1].c_str()));
 
                 // Fetching Publisher AppName from config
-                config_value_t* publisher_appname = config_value_object_get(subscriber_cfg, "AppName");
+                config_value_t* publisher_appname = config_value_object_get(m_subscriber_cfg, "AppName");
                 std::string pub_app_name(publisher_appname->body.string);
 
                 // Adding Publisher public key to config
                 std::string retreive_pub_app_key = "/Publickeys/" + pub_app_name;
-                const char* pub_public_key = m_db_client_handle->get(handle, &retreive_pub_app_key[0]);
+                const char* pub_public_key = m_kv_store_client_handle->get(handle, &retreive_pub_app_key[0]);
                 cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
 
                 // Adding Subscriber public key to config
                 std::string s_sub_public_key = "/Publickeys/" + m_app_name;
-                const char* sub_public_key = m_db_client_handle->get(handle, &s_sub_public_key[0]);
+                const char* sub_public_key = m_kv_store_client_handle->get(handle, &s_sub_public_key[0]);
                 cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
 
                 // Adding Subscriber private key to config
                 std::string s_sub_pri_key = "/" + m_app_name + "/private_key";
-                const char* sub_pri_key = m_db_client_handle->get(handle, &s_sub_pri_key[0]);
+                const char* sub_pri_key = m_kv_store_client_handle->get(handle, &s_sub_pri_key[0]);
                 cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
 
                 // Creating the final cJSON config object
@@ -121,20 +120,20 @@ config_t* SubscriberCfg::getMsgBusConfig(){
     LOG_DEBUG("Env subscriber Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
-    config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
-    if (config == NULL) {
+    if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         return NULL;
     }
 
-    return config;
+    return m_config;
 }
 
 // To fetch endpoint from config
 std::string SubscriberCfg::getEndpoint() {
     // Fetching EndPoint from config
-    config_value_t* endpoint = config_value_object_get(subscriber_cfg, "EndPoint");
+    config_value_t* endpoint = config_value_object_get(m_subscriber_cfg, "EndPoint");
     char* type = endpoint->body.string;
     std::string s(type);
     return s;
@@ -143,7 +142,7 @@ std::string SubscriberCfg::getEndpoint() {
 // To fetch topics from config
 std::vector<std::string> SubscriberCfg::getTopics() {
     // Fetching Topics from config
-    config_value_t* list_of_topics = config_value_object_get(subscriber_cfg, "Topics");
+    config_value_t* list_of_topics = config_value_object_get(m_subscriber_cfg, "Topics");
     config_value_t* topic_value;
     std::vector<std::string> topic_list;
     // Iterating through Topics and adding them to topics_list vector
@@ -160,7 +159,7 @@ std::vector<std::string> SubscriberCfg::getTopics() {
 bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
 
     // Fetching topics
-    config_value_t* list_of_topics = config_value_object_get(subscriber_cfg, "Topics");
+    config_value_t* list_of_topics = config_value_object_get(m_subscriber_cfg, "Topics");
     config_value_t* topic_value;
     for (int i =0; i < config_value_array_len(list_of_topics); i++) {
         topic_value = config_value_array_get(list_of_topics, i);
@@ -194,11 +193,11 @@ bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
 
 // Destructor
 SubscriberCfg::~SubscriberCfg() {
-    if(config) {
-        delete config;
+    if(m_config) {
+        delete m_config;
     }
-    if(subscriber_cfg) {
-        delete subscriber_cfg;
+    if(m_subscriber_cfg) {
+        delete m_subscriber_cfg;
     }
     LOG_INFO_0("SubscriberCfg destructor");
 }

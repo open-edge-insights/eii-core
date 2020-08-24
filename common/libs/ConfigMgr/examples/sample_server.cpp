@@ -1,4 +1,4 @@
-// // Copyright (c) 2019 Intel Corporation.
+// // Copyright (c) 2020 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -72,7 +72,22 @@ int main() {
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
 
+    setenv("KVStore", "etcd", 1);
+
+    // In a dockerized environment,
+    // these variables are set in environment
     setenv("DEV_MODE", "FALSE", 1);
+    // Replace 2nd parameter with path to certs
+    setenv("CONFIGMGR_CERT", "", 1);
+    setenv("CONFIGMGR_KEY", "", 1);
+    setenv("CONFIGMGR_CACERT", "", 1);
+    
+    // Uncomment below lines to test DEV mode
+    // setenv("DEV_MODE", "TRUE", 1);
+    // setenv("CONFIGMGR_CERT", "", 1);
+    // setenv("CONFIGMGR_KEY", "", 1);
+    // setenv("CONFIGMGR_CACERT", "", 1);
+
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* ch = new ConfigMgr();
 

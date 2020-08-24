@@ -24,8 +24,8 @@
  * @brief ConfigMgr interface
  */
 
-#ifndef _EIS_CH_CONFIGSERVER_H
-#define _EIS_CH_CONFIGSERVER_H
+#ifndef _EIS_CH_SERVER_CFG_H
+#define _EIS_CH_SERVER_CFG_H
 
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -33,8 +33,8 @@
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
-#include "db_client.h"
-#include "eis/config_manager/config_app.h"
+#include "kv_store_plugin.h"
+#include "eis/config_manager/app_cfg.h"
 
 
 namespace eis {
@@ -43,10 +43,10 @@ namespace eis {
         class ServerCfg : public AppCfg {
             private:
                 // App config
-                config_t* config;
+                config_t* m_config;
 
                 // Subscriber config
-                config_value_t* server_cfg;
+                config_value_t* m_server_cfg;
             public:
                 /**
                 * ServerCfg Constructor
@@ -73,7 +73,9 @@ namespace eis {
                  */
                 std::vector<std::string> getAllowedClients() override;
 
-                // Destructor
+                /**
+                * Destructor
+                */
                 ~ServerCfg();
 
         };

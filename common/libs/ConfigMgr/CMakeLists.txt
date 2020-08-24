@@ -49,8 +49,8 @@ find_package(IntelSafeString REQUIRED)
 # Include header directories
 include_directories(
     include/
-    db_client/include/
-    db_client/etcd_client/include/
+    kv_store_plugin/include/
+    kv_store_plugin/etcd_client/include/
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
@@ -66,7 +66,7 @@ target_link_libraries(neweisconfigmgr
         pthread
         ${EISMsgEnv_LIBRARIES}
         ${EISUtils_LIBRARIES}
-        eisdbclient
+        eiskvstoreplugin
     PRIVATE
         ${IntelSafeString_LIBRARIES})
 

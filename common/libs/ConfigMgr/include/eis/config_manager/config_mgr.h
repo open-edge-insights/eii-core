@@ -33,12 +33,12 @@
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
-#include "db_client.h"
-#include "eis/config_manager/config_app.h"
-#include "eis/config_manager/config_publisher.h"
-#include "eis/config_manager/config_subscriber.h"
-#include "eis/config_manager/config_server.h"
-#include "eis/config_manager/config_client.h"
+#include "kv_store_plugin.h"
+#include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/publisher_cfg.h"
+#include "eis/config_manager/subscriber_cfg.h"
+#include "eis/config_manager/server_cfg.h"
+#include "eis/config_manager/client_cfg.h"
 
 
 namespace eis {
@@ -134,7 +134,9 @@ namespace eis {
                  */
                 SubscriberCfg* getSubscriberByName(const char* name);
                 
-                // Destructor
+                /**
+                * Destructor
+                */
                 ~ConfigMgr();
 
         };

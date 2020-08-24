@@ -24,8 +24,8 @@
  * @brief ConfigMgr interface
  */
 
-#ifndef _EIS_CH_CONFIGHANDLER_H
-#define _EIS_CH_CONFIGHANDLER_H
+#ifndef _EIS_CH_APP_CFG_H
+#define _EIS_CH_APP_CFG_H
 
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -36,7 +36,7 @@
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
-#include "db_client.h"
+#include "kv_store_plugin.h"
 
 namespace eis {
     namespace config_manager {
@@ -52,9 +52,6 @@ namespace eis {
 
                 // App's interface
                 config_t* m_intfc;
-
-                // Server/Client/Publish/Subscribr config
-                config_t* config;
 
             protected:
 
@@ -72,8 +69,8 @@ namespace eis {
 
             public:
 
-                // db_client handle to fetch private & public keys
-                db_client_t* m_db_client_handle;
+                // kv_store_client_t handle to fetch private & public keys
+                kv_store_client_t* m_kv_store_client_handle;
 
                 // App name of caller
                 std::string m_app_name;
@@ -127,7 +124,9 @@ namespace eis {
                  */
                 virtual std::vector<std::string> getAllowedClients();
 
-                // Destructor
+                /**
+                * Destructor
+                */
                 virtual ~AppCfg();
         };
     }

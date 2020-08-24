@@ -81,7 +81,21 @@ int main(int argc, char** argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
+    setenv("KVStore", "etcd", 1);
+
+    // In a dockerized environment,
+    // these variables are set in environment
     setenv("DEV_MODE", "FALSE", 1);
+    // Replace 2nd parameter with path to certs
+    setenv("CONFIGMGR_CERT", "", 1);
+    setenv("CONFIGMGR_KEY", "", 1);
+    setenv("CONFIGMGR_CACERT", "", 1);
+    
+    // Uncomment below lines to test DEV mode
+    // setenv("DEV_MODE", "TRUE", 1);
+    // setenv("CONFIGMGR_CERT", "", 1);
+    // setenv("CONFIGMGR_KEY", "", 1);
+    // setenv("CONFIGMGR_CACERT", "", 1);
 
     // Fetching Publisher config from
     // VideoIngestion interface
