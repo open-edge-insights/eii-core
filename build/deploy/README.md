@@ -8,7 +8,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 3 Choosing the EIS services to run on worker node](#step-3-choosing-the-eis-services-to-run-on-worker-node)
 
-[Step 4 Creating the required environment on worker node](#step-4-creating-the-required-environment-on-worker-node)
+[Step 4 Provisioning the worker node](#step-4-provisioning-the-worker-node)
 
 [Step 5 Creating eis bundle for worker node](#step-5-creating-eis-bundle-for-worker-node)
 
@@ -86,7 +86,7 @@ Follow below steps:
 
     > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in master node and it can be accessed from worker nodes at: http://[master_node_ip]:7070/etcdkeeper.<br/>
     > Follow [EtcdUI/README](../../EtcdUI/README.md) for more inofrmation.
-# Step 4 Creating the required environment on worker node
+# Step 4 Provisioning the worker node
 
 ```
     # commands to be executed on master node.
@@ -100,7 +100,6 @@ Follow below steps:
     $ sudo python3.6 generate_eis_bundle.py -p
 
     This will generate the 'eis_provisioning.tar.gz'.
-    This bundle has only artifact required to create environment like user/directory/..
     Do a manual copy of this bundle on worker node. And then follow below commands
     on worker node.
 ```

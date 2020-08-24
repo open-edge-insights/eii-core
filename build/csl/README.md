@@ -204,18 +204,18 @@ Provisioning EIS with CSL is done in 2 steps.
      
   * Set `PROVISION_MODE=csl` in [build/provision/.env](../build/provision/.env) file.
   * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
-  * Generate EIS bundle for CSL worker node provisioning.
+  * Generate Provisioning bundle for CSL worker node provisioning.
 
     ```sh
-      $ sudo python3 generate_eis_bundle.py -t eis_csl_worker_node_setup
+      $ sudo python3 generate_eis_bundle.py -p
     ```
 
-  * Copy the `eis_csl_worker_node_setup.tar.gz` file to your provisioning machine.
+  * Copy the `eis_provisioning.tar.gz` file to your provisioning machine.
 
       ```sh
-          $ sudo scp <eis_csl_worker_node_setup.tar.gz> <any-directory_on-worker-Filesystem>
-          $ sudo tar -xvf <eis_csl_worker_node_setup.tar.gz>
-          $ cd <eis_csl_worker_node_setup>
+          $ sudo scp <eis_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
+          $ sudo tar -xvf <eis_provisioning.tar.gz>
+          $ cd <eis_provisioning>
       ```
   * Provision the EIS in CSL Worker Client Node.
       ```sh

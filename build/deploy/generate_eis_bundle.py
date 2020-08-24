@@ -18,8 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """Script to generate eis bundle for worker node setup
-   and csl bundle for csl worker node setup in Multi-node
-   EIS Provisioning & Deployment scenario.
+   in Multi-node EIS Provisioning & Deployment scenario.
 """
 import subprocess
 import json
@@ -28,23 +27,6 @@ import argparse
 import yaml
 
 USER = "eisuser:eisuser"
-
-
-def create_req_dirs(tag_name):
-    eis_provision_dir = "./" + tag_name + "/provision/"
-    cmdlist = []
-    cmdlist.append(["rm", "-rf", tag_name])
-    cmdlist.append(["mkdir", "-p", tag_name])
-    cmdlist.append(["mv", "docker-compose.yml", tag_name])
-    cmdlist.append(["cp", "../.env", tag_name])
-    provision_dir = tag_name + "/provision"
-    cmdlist.append(["mkdir", "-p", provision_dir])
-    cmdlist.append(["cp", "../.env", provision_dir])
-    cmdlist.append(["chmod", "+x", "../provision/provision_eis.sh"])
-    cmdlist.append(["cp", "-f", "../provision/provision_eis.sh",
-                    eis_provision_dir])
-    cmdlist.append(["chown", "-R", USER, tag_name])
-    return cmdlist
 
 
 class EisBundleGenerator:
@@ -67,13 +49,6 @@ class EisBundleGenerator:
                 sys.exit(0)
 
             self.env = self.get_env_dict("../.env")
-            self.provisionenv = self.get_env_dict("../provision/.env")
-            if self.provisionenv['PROVISION_MODE'] != "csl":
-                if self.env['DOCKER_REGISTRY'] is '' or \
-                        "/" not in self.env['DOCKER_REGISTRY']:
-                    print("Please Check the Docker Regsitry Address in \
-                    'DOCKER_REGISTRY' env of build\\.env file")
-                    sys.exit(0)
 
     @classmethod
     def get_env_dict(cls, filepath):
@@ -125,51 +100,23 @@ class EisBundleGenerator:
         except Exception as err:
             print("Exception Occured", err)
 
-    def generate_eis_bundle_for_csl(self):
+    def generate_eis_bundle(self):
         '''
-            generate EIS Bundle helps to execute set of pre
-            commands which is required for EIS CSL worker node setup and
-            finally it generates the bundle
-        '''
-        cmdlist = create_req_dirs(self.bundle_tag_name)
-        try:
-            for cmd in cmdlist:
-                subprocess.check_output(cmd)
-            env = open(self.bundle_tag_name + "/.env", "rt")
-            envdata = env.read()
-            newenvdata = envdata.replace("ETCD_NAME=master",
-                                         "ETCD_NAME=worker")
-            env.close()
-            newenv = open(self.bundle_tag_name + "/.env", "wt")
-            newenv.write(newenvdata)
-            newenv.close()
-            cmdlist = []
-            tar_file = self.bundle_tag_name + ".tar.gz"
-            cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-            if self.bundle_folder is False:
-                cmdlist.append(["rm", "-rf", self.bundle_tag_name])
-            else:
-                pass
-
-            if self.bundle_folder is False:
-                cmdlist.append(["rm", "-rf", self.bundle_tag_name])
-            else:
-                pass
-
-            for cmd in cmdlist:
-                subprocess.check_output(cmd)
-            print("EIS CSL Worker Node Setup Bundle Generated Succesfully")
-        except Exception as err:
-            print("Exception Occured ", str(err))
-
-    def generate_eis_bundle_for_tc(self):
-        '''
-            generate_eis_bundle_for_tc helps to execute set of pre
-            commands which is required for TC Bundle and finally
+            generate_eis_bundle helps to execute set of pre
+            commands which are required for Bundle and finally
             it generates the bundle
         '''
+
+        if not self.env['DOCKER_REGISTRY'].endswith("/"):
+            print("Please Check the Docker Regsitry Address in \
+                'DOCKER_REGISTRY' env of build/.env file")
+            sys.exit(0)
         eis_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
-        cmdlist = create_req_dirs(self.bundle_tag_name)
+        cmdlist = []
+        cmdlist.append(["rm", "-rf", self.bundle_tag_name])
+        cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
+        cmdlist.append(["cp", "../.env", self.bundle_tag_name])
+        cmdlist.append(["mv", "docker-compose.yml", self.bundle_tag_name])
         if self.env["DEV_MODE"] == "false":
             for service in self.config['services'].keys():
                 servicename =\
@@ -183,48 +130,59 @@ class EisBundleGenerator:
                             eis_cert_dir])
             ca_key_file = eis_cert_dir + "ca/ca_key.pem"
             cmdlist.append(["rm", ca_key_file])
-            cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
-
-        env = open(self.bundle_tag_name + "/.env", "rw")
-        envdata = env.read()
-        newenvdata = envdata.replace("ETCD_NAME=master",
-                                     "ETCD_NAME=worker")
-        env.write(newenvdata)
-        env.close()
-
-        tar_file = self.bundle_tag_name + ".tar.gz"
-        cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-        if self.bundle_folder is False:
-            cmdlist.append(["rm", "-rf", self.bundle_tag_name])
-        else:
-            pass
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
-            print("TurtleCreek Bundle Generated Succesfully")
+            env = open(self.bundle_tag_name + "/.env", "r+")
+            envdata = env.read()
+            newenvdata = envdata.replace("ETCD_NAME=master",
+                                         "ETCD_NAME=worker")
+            env.write(newenvdata)
+            env.close()
+            cmdlist = []
+            tar_file = self.bundle_tag_name + ".tar.gz"
+            cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
+            cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
+            if self.bundle_folder is False:
+                cmdlist.append(["rm", "-rf", self.bundle_tag_name])
+
+            for cmd in cmdlist:
+                subprocess.check_output(cmd)
+            print("Bundle Generated Succesfully")
         except Exception as err:
             print("Exception Occured ", str(err))
 
     def generate_provision_bundle(self):
         '''
             generate_eis_provision bundle helps to execute set of pre
-            commands which is required for provision Bundle and finally
+            commands which are required for provision Bundle and finally
             it generates the bundle
         '''
         provision_tag_name = 'eis_provisioning'
-        cmdlist = create_req_dirs(provision_tag_name)
-        env = open(self.provision_tag_name + "/.env", "rw")
-        envdata = env.read()
-        newenvdata = envdata.replace("ETCD_NAME=master",
-                                     "ETCD_NAME=worker")
-        env.write(newenvdata)
-        env.close()
-        tar_file = provision_tag_name + ".tar.gz"
-        cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
-        if self.bundle_folder is False:
-            cmdlist.append(["rm", "-rf", provision_tag_name])
-
+        eis_provision_dir = "./" + provision_tag_name + "/provision/"
+        cmdlist = []
+        cmdlist.append(["rm", "-rf", provision_tag_name])
+        cmdlist.append(["mkdir", "-p", provision_tag_name])
+        cmdlist.append(["cp", "../.env", provision_tag_name])
+        cmdlist.append(["mkdir", "-p", eis_provision_dir])
+        cmdlist.append(["cp", "-f", "../provision/provision_eis.sh",
+                        eis_provision_dir])
+        cmdlist.append(["chmod", "+x", eis_provision_dir + "provision_eis.sh"])
         try:
+            for cmd in cmdlist:
+                subprocess.check_output(cmd)
+            env = open(provision_tag_name + "/.env", "r+")
+            envdata = env.read()
+            newenvdata = envdata.replace("ETCD_NAME=master",
+                                         "ETCD_NAME=worker")
+            env.write(newenvdata)
+            env.close()
+            cmdlist = []
+            tar_file = provision_tag_name + ".tar.gz"
+            cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
+            if self.bundle_folder is False:
+                cmdlist.append(["rm", "-rf", provision_tag_name])
+
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
             print("Provisioning Bundle Generated Succesfully")
@@ -242,10 +200,7 @@ class EisBundleGenerator:
         if args.provisioning:
             self.generate_provision_bundle()
         else:
-            if self.provisionenv['PROVISION_MODE'] == "csl":
-                self.generate_eis_bundle_for_csl()
-            else:
-                self.generate_eis_bundle_for_tc()
+            self.generate_eis_bundle()
 
 
 if __name__ == '__main__':
@@ -263,8 +218,8 @@ if __name__ == '__main__':
     parser.add_argument('-bf',
                         dest='bundle_folder',
                         default=False,
-                        help='This Flag is set not to generate \
-                        bundleName.tar.gz file.For Only Bundle folder')
+                        help='This Flag is set not to generate bundle_tag_name\
+                        folder, only bundle_tag_name.tar.gz file')
     parser.add_argument('-p',
                         '--provisioning',
                         action='store_true',
