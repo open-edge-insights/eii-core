@@ -19,7 +19,6 @@
 
 /**
  * @brief JSON Validation file utility implementation
- * @author Vishwas R (vishwas.r@intel.com)
  */
 
 #include <wjelement.h>

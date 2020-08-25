@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Utility function for validating a JSON file
- * @author Vishwas R (vishwas.r@intel.com)
  */
 
 #include <wjelement.h>
