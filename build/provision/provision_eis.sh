@@ -110,15 +110,19 @@ function create_eis_install_dir() {
     # Creating the required EIS dirs
     mkdir -p $EIS_INSTALL_PATH/data/influxdata
     check_error "Failed to create dir '$EIS_INSTALL_PATH/data/influxdata'"
+
     mkdir -p $EIS_INSTALL_PATH/data/etcd/data
+    check_error "Failed to create dir '$EIS_INSTALL_PATH/data/etcd/data'"
+
     mkdir -p $EIS_INSTALL_PATH/sockets/
+    check_error "Failed to create dir '$EIS_INSTALL_PATH/sockets'"
+    
     mkdir -p $EIS_INSTALL_PATH/model_repo
     chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
-    chmod -R 755 $EIS_INSTALL_PATH/data/
 
     if [ -d $TC_DISPATCHER_PATH ]; then
         chown -R $EIS_USER_NAME:$EIS_USER_NAME $TC_DISPATCHER_PATH
-        chmod -R 755 $TC_DISPATCHER_PATH
+        chmod -R 760 $TC_DISPATCHER_PATH
     fi
 }
 
@@ -151,15 +155,15 @@ function remove_client_server() {
 }
 
 function prod_mode_gen_certs() {
-   log_info "Generating EIS Certificates"
-   if [ -d "rootca" ]; then
-       log_warn "Making use of existing CA from ./rootca dir for generating certs..."
-       log_warn "To generate new CA, remove roootca/ from current dir.."
-       python3 gen_certs.py --f $docker_compose --capath rootca/
-   else
-       python3 gen_certs.py --f $docker_compose
-   fi
-   chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
+    log_info "Generating EIS Certificates"
+    if [ -d "rootca" ]; then
+        log_warn "Making use of existing CA from ./rootca dir for generating certs..."
+        log_warn "To generate new CA, remove roootca/ from current dir.."
+        python3 gen_certs.py --f $docker_compose --capath rootca/
+    else
+        python3 gen_certs.py --f $docker_compose
+    fi
+    chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
 }
 
 function gen_csl_certs() {
@@ -187,24 +191,24 @@ function install_pip_requirements() {
     pip3 install -r cert_requirements.txt
 }
 function check_k8s_secrets() {
-     echo "Checking if already exists k8s secrets, if yes-delete them"
-     secret_generic_list=$(kubectl get secrets | grep -E "cert|key|ca-etcd" | awk '{print $1}')
-     if [ "$secret_generic_list" ] ; then
+    echo "Checking if already exists k8s secrets, if yes-delete them"
+    secret_generic_list=$(kubectl get secrets | grep -E "cert|key|ca-etcd" | awk '{print $1}')
+    if [ "$secret_generic_list" ] ; then
         kubectl delete secrets $secret_generic_list
-     fi
+    fi
 }
 
 function check_k8s_namespace() {
-     echo "Checking if already exists eis namespace, will delete to remove all existing pods and services"
-     ns_str=$(kubectl get namespace | grep -w ^eis| awk '{print $1}' )
-     ns_list=(`echo ${ns_str}`);
-     for ns in "${ns_list[@]}"
-     do
+    echo "Checking if already exists eis namespace, will delete to remove all existing pods and services"
+    ns_str=$(kubectl get namespace | grep -w ^eis| awk '{print $1}' )
+    ns_list=(`echo ${ns_str}`);
+    for ns in "${ns_list[@]}"
+    do
 	if [[ "$ns" = "eis" ]];then
             echo "Deleting namespace so that all existing pods and services within that namespace are deleted.\nIt may take sometime."
             kubectl delete namespace eis
         fi
-     done
+    done
 }
 
 souce_env
@@ -216,7 +220,13 @@ create_eis_install_dir
 if [ $DEV_MODE = 'false' ]; then
     if [ -d 'Certificates' ]; then
         chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
+        chmod -R 760 Certificates/
     fi
+    chmod -R 760 $EIS_INSTALL_PATH/data
+    chmod -R 760 $EIS_INSTALL_PATH/sockets
+else
+    chmod -R 755 $EIS_INSTALL_PATH/data
+    chmod -R 755 $EIS_INSTALL_PATH/sockets
 fi
 
 #############################################################
