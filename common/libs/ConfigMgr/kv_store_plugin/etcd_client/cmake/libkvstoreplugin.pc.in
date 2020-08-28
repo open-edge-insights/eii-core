@@ -4,9 +4,9 @@ libdir=${prefix}
 includedir=${prefix}/include
 
 Name: libeiskvstoreplugin
-Description: EIS DB Client library.
+Description: EIS KV Store Plugin.
 Version: @PROJECT_VERSION@
 
-Libs: -L${libdir} -leismsgbus
+Libs: -L${libdir} -leiskvstoreplugin
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}

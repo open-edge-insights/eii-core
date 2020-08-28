@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Copyright (c) 2020 Intel Corporation.
 #
@@ -88,8 +88,7 @@ cd cmake/build
 check_error "Falied to change directory to cmake/build"
 
 log_info "Configuring lib grpc for building"
-cmake -DCMAKE_INSTALL_PREFIX=$grpc_install_prefix \
-      ../..
+cmake -DCMAKE_INSTALL_PREFIX=$grpc_install_prefix ../..
 
 check_error "Failed to configure lib grpc"
 

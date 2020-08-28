@@ -51,7 +51,7 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
-add_executable(kvstore_client-tests "kv_store_client_tests.cc")
+add_executable(kvstore_client-tests "kv_store_client_tests.cpp")
 target_link_libraries(kvstore_client-tests eiskvstoreplugin gtest_main eisutils)
 add_test(NAME kvstore_client-tests COMMAND kvstore_client-tests)
 

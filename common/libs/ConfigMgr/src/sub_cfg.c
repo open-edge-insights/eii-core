@@ -156,6 +156,9 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
                 size_t init_len = strlen("/Publickeys/") + strlen(publisher_appname->body.string) + 2;
                 char* grab_public_key = concat_s(init_len, 2, "/Publickeys/", publisher_appname->body.string);
                 const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+                if(pub_public_key == NULL){
+                    LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                }
 
                 // Adding Publisher public key to config
                 cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
@@ -164,12 +167,20 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
                 init_len = strlen("/Publickeys/") + strlen(app_name) + 2;
                 char* s_sub_public_key = concat_s(init_len, 2, "/Publickeys/", app_name);
                 const char* sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
+                if(sub_public_key == NULL){
+                    LOG_ERROR("Value is not found for the key: %s", s_sub_public_key);
+                }
+
                 cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
 
                 // Adding Subscriber private key to config
                 init_len = strlen("/") + strlen(app_name) + strlen("/private_key") + 2;
                 char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, "/private_key");
                 const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
+                if(sub_pri_key == NULL){
+                    LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
+                }
+
                 cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
             }
         }

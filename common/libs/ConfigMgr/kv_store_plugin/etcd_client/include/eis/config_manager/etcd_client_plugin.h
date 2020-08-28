@@ -18,39 +18,26 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <eis/utils/config.h>
-#include <string.h>
+#include <eis/utils/logger.h>
+#include <eis/config_manager/kv_store_plugin.h>
 
-#define KV_ETCD "etcd"
+#define ETCD_KV_STORE   "etcd_kv_store"
 
-#ifndef EIS_KV_STORE_CLIENT_H
-#define EIS_KV_STORE_CLIENT_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+/**
+ * Create etcd client to store key-value for the kv_store_plugin
+ *
+ * @param config - Configuration
+ * @return kv_store_client instance, or NULL
+ */
 
 typedef struct {
-        void *kv_store_config;
-        void *handler;
-        void* (*init)(void *kv_store_config);
-        char* (*get) (void *handle, char *key);
-        int (*put) (void *handle, char *key, char *value);
-        void (*watch) (void *handle, char *key, void (*callback)(char *key, char *value, void *cb_user_data), void *user_data);
-        void (*watch_prefix) (void *handle, char *key, void (*callback)(char *key, char *value, void *cb_user_data), void *user_data);
-        void (*deinit)(void *handle);
-} kv_store_client_t;
+    char *hostname;
+    char *port;
+    char *cert_file;
+    char *key_file;
+    char *ca_file;
+} etcd_config_t;
 
-kv_store_client_t* create_kv_client(config_t* config);
+typedef void (*callback)(char *key, char *value, void* cb_user_data);
+
 kv_store_client_t* create_etcd_client(config_t* config);
-
-void kv_client_free(kv_store_client_t* kv_store_client);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif

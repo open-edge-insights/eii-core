@@ -23,7 +23,7 @@ project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 
-option(WITH_EXAMPLES "Compile with examples" ON)
+option(WITH_EXAMPLES "Compile with examples" OFF)
 
 # Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
@@ -49,8 +49,7 @@ find_package(IntelSafeString REQUIRED)
 # Include header directories
 include_directories(
     include/
-    kv_store_plugin/include/
-    kv_store_plugin/etcd_client/include/
+    ${EISKVStorePlugin_INCLUDE}
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})

@@ -19,16 +19,15 @@
 // IN THE SOFTWARE.
 
 #include <stdio.h>
-#include "kv_store_plugin.h"
-
 #include <stdlib.h>
+#include <unistd.h>
+
 #include "eis/utils/json_config.h"
+#include "eis/config_manager/kv_store_plugin.h"
 
 void watch_cb(char *key, char *value, void *user_data){
     printf("watch callback is called...\n");
     printf("key: %s and value: %s \n", key, value);
-    char *data = user_data;
-    printf("userdata: %s", data);
 }
 
 void watch_prefix_cb(char *key, char *value, void *user_data){
@@ -39,24 +38,37 @@ void watch_prefix_cb(char *key, char *value, void *user_data){
 }
 
 int main(int argc, char** argv) { 
-    // Running in dev mode, provide 3r param: cert_file, 4th param: key_file and 5th param: root_file to run in prod mode
+    set_log_level(LOG_LVL_INFO);
+    
     config_t* config = json_config_new(argv[1]);
-    kv_store_client_t* kv_store_client = create_kv_client(config);
+    kv_store_client_t* kv_store_client = NULL;
+    void *handle = NULL;
 
-    void *handle = kv_store_client->init(kv_store_client);
+    kv_store_client = create_kv_client(config);
 
+    if (kv_store_client != NULL){
+        handle = kv_store_client->init(kv_store_client);
+    }
+
+    if(handle == NULL)
+        return -1;
+    
     char* val = kv_store_client->get(handle, "/VideoIngestion/config");
-    printf("Value of key: /VideoIngestion/config is %s\n", val);
+    
+    if (val != NULL)
+        printf("Value of key: /VideoIngestion/config is %s\n", val);
 
-    int status = kv_store_client->put(handle, "/test", "hello world.....");
+    int status1 = kv_store_client->put(handle, "/test", "hello world.....");
 
-    if(status == 0){
+    int status2 = kv_store_client->put(handle, "/prefix_test", "Test prefix: hello world.....");
+
+    if(status1 == 0 && status2 == 0){
         printf("put is successful\n");
     }
 
     kv_store_client->watch(handle, "/test", watch_cb, NULL);
-    kv_store_client->watch_prefix(handle, "/te", watch_prefix_cb, (void*)"userdatawatchprefix");
-    sleep(2);
+    kv_store_client->watch_prefix(handle, "/prefix", watch_prefix_cb, (void*)"hello_user_data");
+    sleep(10);
 
     kv_client_free(kv_store_client);
     return 0;

@@ -105,6 +105,9 @@ config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
                 size_t init_len = strlen("/Publickeys/") + strlen(array_value->body.string) + 2;
                 char* grab_public_key = concat_s(init_len, 2, "/Publickeys/", array_value->body.string);
                 const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+                if(sub_public_key == NULL){
+                    LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                }
                 cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
             }
 
@@ -115,6 +118,9 @@ config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
             size_t init_len = strlen("/") + strlen("/private_key") + strlen(app_name) + 2;
             char* pub_pri_key = concat_s(init_len, 3, "/", app_name, "/private_key");
             const char* server_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
+            if(server_secret_key == NULL){
+                LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
+            }
             cJSON_AddStringToObject(echo_service, "server_secret_key", server_secret_key);
         }
         // Creating the final cJSON config object

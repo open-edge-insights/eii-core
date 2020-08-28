@@ -19,59 +19,63 @@
 // IN THE SOFTWARE.
 
 #include <cstdlib>
-#include "kv_store_plugin.h"
-#include "etcd_client_plugin.h"
-#include "etcd_client.h"
+#include <stdlib.h>
+
+#include <safe_lib.h>
+#include "eis/config_manager/kv_store_plugin.h"
+#include "eis/config_manager/etcd_client_plugin.h"
+#include "eis/config_manager/etcd_client.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-    char *hostname;
-    char *port;
-    char *cert_file;
-    char *key_file;
-    char *ca_file;
-} etcd_config_t;
-
-void* etcd_init(void *etcd_client);
-char* etcd_get(void *handle, char *key);
-int etcd_put(void *handle, char *key, char *value);
-void etcd_watch(void *handle, char *key_test, void (*user_cb)(char* watch_key, char* val, void *cb_user_data), void *user_data);
-void etcd_watch_prefix(void *handle, char *key_test, void (*user_cb)(char *watch_key, char *val, void *cb_user_data), void *user_data);
-void etcd_client_free(void *handle);
-
-void* etcd_init(void *etcd_client) {
+void* etcd_init(void* etcd_client) {
     EtcdClient *etcd_cli = NULL;
     kv_store_client_t *kv_store_client = static_cast<kv_store_client_t *>(etcd_client);
     etcd_config_t *etcd_config = static_cast<etcd_config_t *>(kv_store_client->kv_store_config);
     std::string host = etcd_config->hostname;
     std::string port = etcd_config->port;
+    int cmp_cert_file, cmp_key_file, cmp_ca_file;
 
-    if(strcmp(etcd_config->cert_file, "") && strcmp(etcd_config->key_file, "") && strcmp(etcd_config->ca_file, "")){
-        std::cout << "Running in prod mode\n";
-        etcd_cli = new EtcdClient(host, port,  etcd_config->cert_file, etcd_config->key_file, etcd_config->ca_file);
-    } else{
-        std::cout << "Running in dev mode\n";
-        etcd_cli = new EtcdClient(host, port);
+    strcmp_s(etcd_config->cert_file, strlen(etcd_config->cert_file), "", &cmp_cert_file);
+    strcmp_s(etcd_config->key_file, strlen(etcd_config->key_file), "", &cmp_key_file);
+    strcmp_s(etcd_config->ca_file, strlen(etcd_config->ca_file), "", &cmp_ca_file);
+
+    try {
+        if(cmp_cert_file != 0 && cmp_key_file != 0 && cmp_ca_file != 0)
+            etcd_cli = new EtcdClient(host, port,  etcd_config->cert_file, etcd_config->key_file, etcd_config->ca_file);
+        else
+            etcd_cli = new EtcdClient(host, port);
+        kv_store_client->handler = etcd_cli;
+    }catch(std::exception const & ex) {
+            LOG_ERROR("Exception Occurred in etcd_init with error:%s", ex.what());
+            return NULL;
     }
-
-    kv_store_client->handler = etcd_cli;
     return etcd_cli;
 }
 
-char* etcd_get(void *handle, char *key) {
+char* etcd_get(void* handle, char *key) {
     std::string str_key = key;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     std::string str_val = cli->get(str_key);
     char *value = const_cast<char*>(str_val.data());
-    char *val = (char *)malloc(strlen(value) + 1);
-    strcpy(val, value);
+    int cmp_value;
+
+    strcmp_s(value, strlen(value), "(NULL)", &cmp_value);
+    if (cmp_value == 0)
+        return NULL;
+
+    size_t len = strlen(value) + 1;
+
+    // TODO: Find a way to dealloc allocated mem here
+    char *val = (char *)malloc(len);
+    memset(val, '\0', len);
+    strcpy_s(val, len, value);
     return val;
 }
 
-int etcd_put(void *handle, char *key, char *value){
+int etcd_put(void* handle, char *key, char *value){
     std::string str_key = key;
     std::string str_value = value;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
@@ -79,19 +83,19 @@ int etcd_put(void *handle, char *key, char *value){
     return status;
 }
 
-void etcd_watch(void *handle, char *key, void (*user_cb)(char* watch_key, char* val, void *cb_user_data), void *user_data) {
+void etcd_watch(void* handle, char *key, callback user_cb, void* user_data) {
     std::string str_key = key;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     cli->watch(str_key, user_cb, user_data);
 }
 
-void etcd_watch_prefix(void *handle, char *key, void (*user_cb)(char* watch_key, char* val, void *cb_user_data), void *user_data) {
+void etcd_watch_prefix(void* handle, char *key, callback user_cb, void* user_data) {
     std::string str_key = key;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     cli->watch_prefix(str_key, user_cb, user_data);
 }
 
-void etcd_client_free(void *handle){
+void etcd_client_free(void* handle){
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     cli->~EtcdClient();
 }

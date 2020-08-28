@@ -18,46 +18,50 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-
 /**
  * @file
  * @brief KV Store Plugin implementation
  */
 
-#include "kv_store_plugin.h"
+#include "eis/config_manager/kv_store_plugin.h"
+#include "eis/config_manager/etcd_client_plugin.h"
+
 #include <eis/utils/config.h>
-#include <stdlib.h>
+#include <safe_lib.h>
+
+#define KV_ETCD "etcd"
 
 kv_store_client_t* create_kv_client(config_t* config){
     kv_store_client_t* kv_store_client = NULL;
+
     config_value_t* value = config->get_config_value(config->cfg, "type");
         
     if(value == NULL) {
-        // LOG_ERROR_0("Config missing 'type' key");
+        LOG_ERROR_0("Config missing 'type' key");
         goto err;
     }
 
     if(value->type != CVT_STRING) {
-        // LOG_ERROR_0("Config 'type' value MUST be a string");
+        LOG_ERROR_0("Config 'type' value MUST be a string");
         goto err;
-    }
+    }   
 
     int ind_etcd;
-    ind_etcd = strcmp(value->body.string, KV_ETCD);
+    strcmp_s(value->body.string, strlen(KV_ETCD), KV_ETCD, &ind_etcd);
 
     if(ind_etcd == 0) {
         kv_store_client = create_etcd_client(config);
         if(kv_store_client == NULL)
             goto err;
-     } else {
-        // LOG_ERROR("Unknown protocol type: %s", value->body.string);
+     }else {
+        LOG_ERROR("Unknown KV Store type: %s", value->body.string);
         goto err;
     }
 
     return kv_store_client;
 err:
     if(value != NULL)
-        free(value);
+        config_value_destroy(value);
     return NULL;
 }
 

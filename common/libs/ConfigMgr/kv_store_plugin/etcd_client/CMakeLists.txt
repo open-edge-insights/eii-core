@@ -28,17 +28,21 @@ endif()
 # Add cmake module path
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
-file(GLOB SOURCES ${SOURCES} "src/*.cc" "src/*.c")
+file(GLOB SOURCES ${SOURCES} "src/*.cpp" "src/*.c" "src/protobuf/*.cpp")
 
 # Finding libraries
 find_package(Threads REQUIRED)
 find_package(PROTOBUF REQUIRED)
 find_package(GRPC REQUIRED)
 
+#set gRPC_FOUND to true
+set(gRPC_FOUND TRUE)
+
 include_directories(
     include/
     ${GRPC_INCLUDE_DIRS}
-    ${PROTOBUF_INCLUDE_DIRS})
+    ${PROTOBUF_INCLUDE_DIRS}
+    ${IntelSafeString_INCLUDE})
 
 add_library(eiskvstoreplugin SHARED
     ${SOURCES})
@@ -46,7 +50,8 @@ add_library(eiskvstoreplugin SHARED
 target_link_libraries(eiskvstoreplugin
     ${GRPC_LIBRARIES}
     ${PROTOBUF_LIBRARIES}
-    ${EISUtils_LIBRARIES})
+    ${EISUtils_LIBRARIES}
+    ${IntelSafeString_LIBRARIES})
 
 ## Configure pkg-config file to be installed for the EIS Etcd Client
 ##

@@ -52,8 +52,14 @@ config_t* create_kv_store_config() {
 
     // Fetching ETCD_HOST type from env
     char* etcd_host = getenv("ETCD_HOST");
-    if(etcd_host == NULL) {
+    int ind_etcd_host;
+    strcmp_s(etcd_host, strlen(etcd_host), "", &ind_etcd_host);
+
+    if(etcd_host == NULL ) {
         LOG_DEBUG_0("ETCD_HOST env not set, defaulting to localhost");
+        cJSON_AddStringToObject(etcd_kv_store, "host", "localhost");
+    } else if(ind_etcd_host == 0){
+        LOG_DEBUG_0("ETCD_HOST env is set to empty, defaulting to localhost");
         cJSON_AddStringToObject(etcd_kv_store, "host", "localhost");
     } else {
         size_t str_len = strlen(etcd_host) + 1;
@@ -409,7 +415,16 @@ app_cfg_t* app_cfg_new() {
     LOG_DEBUG("config_char: %s", config_char);
 
     char* interface = kv_store_client->get(handle, interface_char);
+    if(interface == NULL){
+        LOG_ERROR("Value is not found for the key: %s", interface_char);
+        goto err;
+    }
+
     char* value = kv_store_client->get(handle, config_char);
+    if(value == NULL){
+        LOG_ERROR("Value is not found for the key: %s", config_char);
+        goto err;
+    }
 
     config_t* app_config = json_config_new_from_buffer(value);
     config_t* app_interface = json_config_new_from_buffer(interface);

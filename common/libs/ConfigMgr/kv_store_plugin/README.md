@@ -1,10 +1,10 @@
-### EIS DataStore
+### EIS KV Store Abstraction
 
-EIS DBClient provides an abstraction over underlying Key-Value datastores
+EIS KVStorePlugin provides an abstraction over underlying Key-Value datastores(eg. etcd)
 
 ## Dependency Installation
 
-The EIS DBClient depends on CMake version 3.11+.For Ubuntu 18.04 this is not
+The EIS KVStorePlugin depends on CMake version 3.11+.For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
 of CMake, execute the following commands:
 
@@ -33,7 +33,7 @@ $ sudo -E ./install.sh
 
 ## Compilation
 
-The EIS DB Client utilizes CMake as the build tool for compiling the library.
+The EIS KVStorePlugin utilizes CMake as the build tool for compiling the library.
 The simplest sequence of commands for building the library are shown below.
 
 ```sh
@@ -44,7 +44,7 @@ $ make
 $ sudo make install
 ```
 
-To compile the DB Client C examples in addition to the library, then you can set the
+To compile the KVStorePlugin C examples in addition to the library, then you can set the
 the `WITH_EXAMPLES` to `ON` when executing the `cmake` command (as shown
 below).
 
@@ -52,7 +52,7 @@ below).
 $ cmake -DWITH_EXAMPLES=ON ..
 ```
 
-To compile the DB Client C examples in addition to the library, then you can set the
+To compile the KVStorePlugin C examples in addition to the library, then you can set the
 the `WITH_EXAMPLES` to `ON` when executing the `cmake` command (as shown
 below).
 
@@ -66,7 +66,7 @@ $ cmake -DWITH_TESTS=ON ..
 
 ```sh
 $ cd examples
-$ ./db_client
+$ ./kv_store_etcd ./etcd_kv_store_config.json
 ```
 
 ## Running Unit Tests
@@ -75,5 +75,5 @@ $ ./db_client
 
 ```sh
 $ cd tests
-$ ./db_client_tests
+$ ./kv_store_client_tests ./kv_store_unittest_config.json
 ```

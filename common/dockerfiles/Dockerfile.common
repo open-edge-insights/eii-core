@@ -39,6 +39,8 @@ COPY libs/ConfigManager ./common/libs/ConfigManager
 
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
 
+COPY libs/ConfigMgr ./common/libs/ConfigMgr
+
 COPY eis_libs_installer.sh ./common
 
 RUN cd common && \

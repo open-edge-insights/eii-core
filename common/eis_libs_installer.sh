@@ -58,6 +58,7 @@ unset GOROOT
 DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigManager="$CUR_DIR/libs/ConfigManager"
+ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 CMAKE_BUILD_TYPE="Release"
 RUN_TESTS="OFF"
 
@@ -146,3 +147,20 @@ cd $EISMessageBus/python &&
 # Installing EISMessageBus Go
 cd $EISMessageBus &&
    cp -a go/. $GOPATH/src/
+
+# Install ConfigMgr and kv_store_plugin
+cd $ConfigMgr &&
+    cd kv_store_plugin &&
+    rm -rf deps && \
+    ./install.sh && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make install && \
+    cd ../.. && \
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make install
