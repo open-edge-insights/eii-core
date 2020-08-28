@@ -19,15 +19,14 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief Etcd Client Plugin GTests unit tests
- * @author Varalakshmi KA (varalakshmi.ka@intel.com)
+ * @brief KV Store Client Plugin GTests unit tests
  */
 
 #include <gtest/gtest.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "kv_store_plugin.h"
+#include "eis/config_manager/kv_store_plugin.h"
 #include "eis/utils/json_config.h"
 
 #define KV_STORE_CONFIG "./kv_store_unittest_config.json"
@@ -47,11 +46,11 @@ void watch_prefix_callback(char* key, char* value, void *user_data){
 
 kv_store_client_t* get_kv_store_client(){
     config_t* config = json_config_new(KV_STORE_CONFIG);
-    kv_store_client_t *kv_store_client = create_etcd_client(config);
+    kv_store_client_t *kv_store_client = create_kv_client(config);
     return kv_store_client;
 }
 
-TEST(DBClientTest, create_etcd_client) {
+TEST(KVStoreClientTest, create_kv_client) {
     std::cout << "Test Case: create configmgr instance..\n";
     kv_store_client_t* kv_store_client = get_kv_store_client();
     void *handle = kv_store_client->init(kv_store_client);
@@ -60,7 +59,7 @@ TEST(DBClientTest, create_etcd_client) {
     kv_client_free(kv_store_client);
 }
 
-TEST(DBClientTest, get){
+TEST(KVStoreClientTest, get){
     std::cout << "Test Case: get()\n";
     kv_store_client_t *kv_store_client = get_kv_store_client();
     EXPECT_NE(kv_store_client, nullptr);
@@ -75,7 +74,7 @@ TEST(DBClientTest, get){
     kv_client_free(kv_store_client);
 }
 
-TEST(DBClientTest, put){
+TEST(KVStoreClientTest, put){
     std::cout << "Test Case: put()\n";
     kv_store_client_t *kv_store_client = get_kv_store_client();
     EXPECT_NE(kv_store_client, nullptr);
@@ -87,7 +86,7 @@ TEST(DBClientTest, put){
     kv_client_free(kv_store_client);
 }
 
-TEST(DBClientTest, watch){
+TEST(KVStoreClientTest, watch){
     std::cout << "Test Case: watch()\n";
     kv_store_client_t *kv_store_client = get_kv_store_client();
     EXPECT_NE(kv_store_client, nullptr);
@@ -102,7 +101,7 @@ TEST(DBClientTest, watch){
     kv_client_free(kv_store_client); 
 }
 
-TEST(DBClientTest, watch_prefix){
+TEST(KVStoreClientTest, watch_prefix){
     std::cout << "Test Case: watch_prefix()\n";
     kv_store_client_t *kv_store_client = get_kv_store_client();
     EXPECT_NE(kv_store_client, nullptr);

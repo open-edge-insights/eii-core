@@ -36,7 +36,7 @@
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
-#include "kv_store_plugin.h"
+#include "eis/config_manager/kv_store_plugin.h"
 
 namespace eis {
     namespace config_manager {

@@ -21,8 +21,7 @@
 /**
  * @file
  * @brief Etcd Client library provides APIs with underlying grpc calls
- * @author Varalakshmi KA (varalakshmi.ka@intel.com)
- */
+**/
 
 #ifndef _EIS_ETCD_CLIENT_H
 #define _EIS_ETCD_CLIENT_H
@@ -40,9 +39,10 @@
 #include <grpc++/security/credentials.h>
 #include <fstream>
 
-#include "rpc.grpc.pb.h"
-#include "kv.pb.h"
+#include "eis/config_manager/protobuf/rpc.grpc.pb.h"
+#include "eis/config_manager/protobuf/kv.pb.h"
 
+#define ADDRESS_LEN 30
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
@@ -59,6 +59,7 @@ using etcdserverpb::WatchCreateRequest;
 using etcdserverpb::WatchRequest;
 using etcdserverpb::WatchResponse;
 
+typedef void (*callback)(char *key, char *value, void* cb_user_data);
 
 class EtcdClient {
     public:
@@ -75,11 +76,11 @@ class EtcdClient {
         std::string get(std::string& key);
         
         int put(std::string& key, std::string& value);
-        void watch(std::string& key, void (*user_cb)(char *watch_key, char *value, void *cb_user_data), void *user_data);
-        void watch_prefix(std::string& key, void (*user_cb)(char *watch_key, char *val, void *cb_user_data), void *user_data);
+        void watch(std::string& key, callback user_cb, void *user_data);
+        void watch_prefix(std::string& key, callback user_cb, void *user_data);
         
     private:
-        char address[30];
+        char address[ADDRESS_LEN];
         grpc::SslCredentialsOptions ssl_opts;
         std::unique_ptr<KV::Stub> kv_stub;
 };

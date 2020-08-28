@@ -3,8 +3,8 @@
     "etcd_kv_store": {
         "host": "localhost",
         "port": "2379",
-		"cert_file": "",
-		"key_file": "",
-		"ca_file": ""
+	"cert_file": "",
+	"key_file": "",
+	"ca_file": ""
     }
 }

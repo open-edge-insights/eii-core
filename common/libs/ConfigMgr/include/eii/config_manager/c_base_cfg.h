@@ -31,7 +31,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include "eis/utils/json_config.h"
-#include "kv_store_plugin.h"
+#include "eis/config_manager/kv_store_plugin.h"
 
 #ifndef _EIS_C_BASE_CFG_H
 #define _EIS_C_BASE_CFG_H

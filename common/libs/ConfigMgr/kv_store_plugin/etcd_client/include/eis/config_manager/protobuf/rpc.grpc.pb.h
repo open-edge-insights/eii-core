@@ -4,7 +4,7 @@
 #ifndef GRPC_rpc_2eproto__INCLUDED
 #define GRPC_rpc_2eproto__INCLUDED
 
-#include "rpc.pb.h"
+#include "eis/config_manager/protobuf/rpc.pb.h"
 
 #include <functional>
 #include <grpc/impl/codegen/port_platform.h>
