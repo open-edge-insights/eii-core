@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Intel Corporation.
+# Copyright (c) 2020 Intel Corporation.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -19,23 +19,34 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.12)
-project(eis-utils VERSION 1.0.0 LANGUAGES C CXX)
+project(eis-dynlibload VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
+option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
+# Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
+# Include directory for CMake modules
+set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}")
+
+# Set C++ version
 set(CMAKE_CXX_STANDARD 14)
 
-# Include directory for CMake modules
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
+# Set C version
+set(CMAKE_C_STANDARD 11)
+
+# Set CFLAGS for C/C++
+set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -fstack-protector-strong -D_FORTIFY_SOURCE=2")
+set(CMAKE_CXX_FLAGS "-fPIE -fPIC -O2 -Wall -fstack-protector-strong -D_FORTIFY_SOURCE=2")
+
+# Set LDFLAGS
+set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 
 # Find packages
-find_package(cJSON REQUIRED)
-find_package(EISMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
-find_package(WJE REQUIRED)
+find_package(EISUtils REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -49,27 +60,23 @@ endif()
 # Include header directories
 include_directories(
     include/
-    ${CJSON_LIBRARIES}/
-    ${EISMsgEnv_INCLUDE}/
-    ${IntelSafeString_INCLUDE}/
-    ${WJE_INCLUDE_DIRS})
+    ${EISUtils_INCLUDE}
+    ${IntelSafeString_INCLUDE})
 
 # Get all source files
-file(GLOB SOURCES "src/*.c" "src/*.cpp")
+file(GLOB SOURCES "src/*.c")
 
 # Add target
-add_library(eisutils SHARED ${SOURCES})
-target_link_libraries(eisutils
+add_library(eisdynlibload SHARED ${SOURCES})
+target_link_libraries(eisdynlibload
     PRIVATE
-        ${EISMsgEnv_LIBRARIES}
-        ${CJSON_LIBRARIES}
-        ${OpenCV_LIBRARIES}
+        ${EISUtils_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
-        ${WJE_LIBRARIES})
+        ${CMAKE_DL_LIBS})
 
-# If compile in debug mode, set DEBUG flag for C code
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(eisutils PRIVATE DEBUG=1)
+# Add examples if the option was selected
+if(WITH_EXAMPLES)
+    add_subdirectory(examples/)
 endif()
 
 # Add unit tests if the option was selected
@@ -78,70 +85,47 @@ if(WITH_TESTS)
 endif()
 
 ##
-## Configure pkg-config file to be installed for the EIS Utils
-##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisutils.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisutils.pc")
-set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
-set(PRIVATE_LIBS   "-lcjson")
-
-configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
-
-##
 ## Add CMake configuration for installing the library including files for other
 ## projects finding the library using CMake
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISUtils)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/eisdynlibload)
 
-install(TARGETS eisutils
-    EXPORT eisutils-targets
+install(TARGETS eisdynlibload
+    EXPORT eisdynlibload-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisutils PROPERTIES EXPORT_NAME EISUtils)
+set_target_properties(eisdynlibload PROPERTIES EXPORT_NAME dynlibload)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisutils.pc file
-install(
-    FILES
-        ${PKG_CONFIG_OUT}
-    DESTINATION
-        ${CMAKE_INSTALL_LIBDIR}/pkgconfig
-)
-
 # Export targets to a script
-install(EXPORT eisutils-targets
-    FILE
-        EISUtilsTargets.cmake
-    DESTINATION
-        ${INSTALL_CONFIGDIR}
-)
+install(
+    EXPORT eisdynlibload-targets
+    FILE DynLibLoadTargets.cmake
+    DESTINATION ${INSTALL_CONFIGDIR})
 
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
+    COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISUtilsConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
-    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
-)
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/DynLibLoadConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
-    DESTINATION ${INSTALL_CONFIGDIR}
-)
+    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfig.cmake
+    DESTINATION ${INSTALL_CONFIGDIR})
 
-export(EXPORT eisutils-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsTargets.cmake)
+export(EXPORT eisdynlibload-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISUtils)
+export(PACKAGE eisdynlibload)

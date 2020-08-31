@@ -33,6 +33,8 @@ COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
 
 COPY util/ ./common/util/
 
+COPY libs/DynLibLoad/ ./common/libs/DynLibLoad
+
 COPY libs/ConfigManager ./common/libs/ConfigManager
 
 COPY libs/EISMessageBus ./common/libs/EISMessageBus
