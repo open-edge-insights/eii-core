@@ -29,7 +29,7 @@ install_go_dependencies () {
         cd $ETCD_GO_PATH && \
         git checkout -b $ETCD_GO_VER $ETCD_GO_VER
     fi
-    
+
 }
 
 install_go () {
@@ -55,6 +55,7 @@ fi
 # with GOPATH set
 unset GOROOT
 
+DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigManager="$CUR_DIR/libs/ConfigManager"
 CMAKE_BUILD_TYPE="Release"
@@ -112,6 +113,15 @@ cd $EISMessageBus/../../util/c/ &&
    ./tsp-tests
    cd .. ; fi  && \
    make install
+
+cd $EISMessageBus/../DynLibLoad/ && \
+    rm -rf build &&  \
+    mkdir build && \
+    cd build && \
+    cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+    make && \
+    if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
+    make install
 
 cd $ConfigManager &&
    rm -rf build && \
