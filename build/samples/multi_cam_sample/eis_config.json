@@ -76,7 +76,7 @@
         },
         "ingestor": {
             "type": "gstreamer",
-             "pipeline": "pylonsrc imageformat=bayer8 exposureGigE=3250 interpacketdelay=1500 ! bayer2rgb ! vaapipostproc format=bgrx height=1200 width=1920 ! videoconvert ! video/x-raw,format=BGR ! appsink"
+            "pipeline": "gencamsrc serial=<DEVICE_SERIAL_NUMBER> pixel-format=bayerrggb width=1920 height=1080 ! bayer2rgb ! videoconvert ! video/x-raw,format=BGR ! appsink"
         }
     },
     "/VideoAnalytics1/config": {
