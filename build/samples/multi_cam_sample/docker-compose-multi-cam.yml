@@ -780,6 +780,10 @@ services:
       no_proxy: ${eis_no_proxy},${RTSP_CAMERA_IP},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_PREFIX: ${ETCD_PREFIX}
+
+      # Setting GENICAM value to the respective camera which needs to be used
+      GENICAM: "Basler"
+
       # MessageBus Endpoint Configuration
       # Setting Visualizer as a subscriber here for FpsCalculator
       Clients: "VideoAnalytics6,Visualizer"

@@ -259,11 +259,11 @@ All the below EIS build and run commands to be executed from the [WORKDIR]/IEdge
 
 
 * Timeseries use case
-  
+
   Only the services mentioned in [build/time-series.yml](build/time-series) will be running on EIS stack bring up
 
 * Video streaming and timeseries use case
-  
+
   All the services will be running on EIS stack bring up
 
 To build and run EIS in one command:
@@ -322,7 +322,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 
     Eg: Mount the two USB cameras connected to the host m/c with device node as `video0` and `video1`
     ```
-     ia_video_ingestion;
+     ia_video_ingestion:
         ...
         devices:
                - "/dev/dri"

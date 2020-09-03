@@ -61,6 +61,8 @@ spec:
       value: '${PROVISION_MODE}'
     - name:  ETCD_PREFIX
       value: '${ETCD_PREFIX}'
+    - name: GENICAM
+      value: "Basler"
     - name: CONFIGMGR_CACERT
       value: "/run/secrets/ca_etcd/ca_certificate.pem"
     - name: CONFIGMGR_CERT
@@ -74,7 +76,7 @@ spec:
     - name: CertType
       value: "zmq"
     - name: ZMQ_RECV_HWM
-      value: "1000"
+      value: "50"
 
       # Use IPC mode (zmq_ipc) when VideoIngestion and VideoAnalytics based
       # containers are running on the same host. If they are running on diff
