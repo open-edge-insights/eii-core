@@ -36,22 +36,24 @@
 #include "kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.h"
 
+#include "eis/config_manager/c_cfg_mgr.h"
+
 namespace eis {
     namespace config_manager {
 
         class ClientCfg: public AppCfg {
             private:
-                // App config
-                config_t* m_config;
+                // client_cfg_t object
+                client_cfg_t* m_cli_cfg;
 
-                // Subscriber config
-                config_value_t* m_client_cfg;
+                // app_cfg_t object
+                app_cfg_t* m_app_cfg;
             public:
                 /**
                 * ClientCfg Constructor
                 * @param client_config - The config associated with a client
                 */
-                explicit ClientCfg(config_value_t* client_config);
+                explicit ClientCfg();
 
                 /**
                  * Overridden base class method to fetch msgbus client configuration
@@ -65,6 +67,28 @@ namespace eis {
                  * @return std::string - Endpoint of client config of type std::string
                  */
                 std::string getEndpoint() override;
+
+                /**
+                * client_cfg_t getter to get private m_pub_cfg
+                */
+                client_cfg_t* getCliCfg();
+
+                /**
+                * client_cfg_t setter
+                * @param cli_cfg - The pub_cfg to be set
+                */
+                void setCliCfg(client_cfg_t* cli_cfg);
+
+                /**
+                * app_cfg_t getter to get private m_app_cfg
+                */
+                app_cfg_t* getAppCfg();
+
+                /**
+                * app_cfg_t setter
+                * @param app_cfg - The app_cfg to be set
+                */
+                void setAppCfg(app_cfg_t* app_cfg);
 
                 /**
                 * Destructor

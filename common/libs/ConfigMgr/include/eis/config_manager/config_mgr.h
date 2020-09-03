@@ -40,6 +40,8 @@
 #include "eis/config_manager/server_cfg.h"
 #include "eis/config_manager/client_cfg.h"
 
+// #include "eis/config_manager/c_cfg_mgr.h"
+
 
 namespace eis {
     namespace config_manager {
@@ -49,22 +51,12 @@ namespace eis {
          */        
         class ConfigMgr {
             private:
-                
-                // App name
-                std::string m_app_name;
+                // AppCfg handler
+                AppCfg* m_app_cfg_handler;
 
-                // config filled using getAppConfig
-                config_t* m_app_config;
+                // app_cfg_t object
+                app_cfg_t* m_app_cfg;
 
-                // config filled using getAppConfig
-                config_t* m_app_interface;
-                                
-                // datastore filled using getAppConfig
-                config_t* m_app_datastore;
-
-                // ETCD config handler
-                AppCfg* m_etcd_handler;
-            
             public:
 
                 /**

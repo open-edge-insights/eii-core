@@ -36,22 +36,24 @@
 #include "kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.h"
 
+#include "eis/config_manager/c_cfg_mgr.h"
+
 namespace eis {
     namespace config_manager {
 
         class SubscriberCfg : public AppCfg {
             private:
-                // App config
-                config_t* m_config;
+                // sub_cfg_t object
+                sub_cfg_t* m_sub_cfg;
 
-                // Subscriber config
-                config_value_t* m_subscriber_cfg;
+                // app_cfg_t object
+                app_cfg_t* m_app_cfg;
             public:
                 /**
                 * SubscriberCfg Constructor
                 * @param sub_config - The config associated with a subscriber
                 */
-                explicit SubscriberCfg(config_value_t* sub_config);
+                explicit SubscriberCfg();
 
                 /**
                  * Overridden base class method to fetch msgbus subscriber configuration
@@ -78,6 +80,28 @@ namespace eis {
                  * @return bool - Boolean whether topics were set
                  */
                 bool setTopics(std::vector<std::string> topics_list) override;
+
+                /**
+                * pub_cfg_t getter to get private m_pub_cfg
+                */
+                sub_cfg_t* getSubCfg();
+
+                /**
+                * sub_cfg_t setter
+                * @param sub_cfg - The sub_cfg to be set
+                */
+                void setSubCfg(sub_cfg_t* sub_cfg);
+
+                /**
+                * app_cfg_t getter to get private m_app_cfg
+                */
+                app_cfg_t* getAppCfg();
+
+                /**
+                * app_cfg_t setter
+                * @param app_cfg - The app_cfg to be set
+                */
+                void setAppCfg(app_cfg_t* app_cfg);
 
                 /**
                 * Destructor

@@ -36,23 +36,28 @@
 #include "eis/utils/json_config.h"
 #include "kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/c_pub_cfg.h"
+
+#include "eis/config_manager/c_cfg_mgr.h"
 
 namespace eis {
     namespace config_manager {
 
         class PublisherCfg : public AppCfg {
             private:
-                // App config
-                config_t* m_config;
+                // pub_cfg_t object
+                pub_cfg_t* m_pub_cfg;
 
-                // Publisher config
-                config_value_t* m_publisher_cfg;
+                // app_cfg_t object
+                app_cfg_t* m_app_cfg;
+
             public:
+
                 /**
                 * PublisherCfg Constructor
                 * @param pub_config - The config associated with a client
                 */
-                explicit PublisherCfg(config_value_t* pub_config);
+                explicit PublisherCfg();
 
                 /**
                  * Overridden base class method to fetch msgbus publisher configuration
@@ -85,6 +90,28 @@ namespace eis {
                  * @return vector<string> - Allowed client of publisher config
                  */
                 std::vector<std::string> getAllowedClients() override;
+
+                /**
+                * pub_cfg_t getter to get private m_pub_cfg
+                */
+                pub_cfg_t* getPubCfg();
+
+                /**
+                * pub_cfg_t setter
+                * @param pub_cfg - The pub_cfg to be set
+                */
+                void setPubCfg(pub_cfg_t* pub_cfg);
+
+                /**
+                * app_cfg_t getter to get private m_app_cfg
+                */
+                app_cfg_t* getAppCfg();
+
+                /**
+                * app_cfg_t setter
+                * @param app_cfg - The app_cfg to be set
+                */
+                void setAppCfg(app_cfg_t* app_cfg);
 
                 /**
                 * Destructor
