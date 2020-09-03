@@ -89,9 +89,9 @@ int main() {
     // setenv("CONFIGMGR_CACERT", "", 1);
 
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* ch = new ConfigMgr();
+    ConfigMgr* config_mgr = new ConfigMgr();
 
-    ServerCfg* server_ctx = ch->getServerByName("echo_service");
+    ServerCfg* server_ctx = config_mgr->getServerByName("echo_service");
     config_t* config = server_ctx->getMsgBusConfig();
 
     g_msgbus_ctx = msgbus_initialize(config);

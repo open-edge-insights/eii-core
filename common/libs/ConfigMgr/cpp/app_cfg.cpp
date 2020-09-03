@@ -24,20 +24,26 @@
  */
 
 #include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/c_cfg_mgr.h"
 
 using namespace eis::config_manager;
 using namespace std;
 
 
-AppCfg::AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode) {
+AppCfg::AppCfg(config_t* app_config, config_t* app_interface, config_t* data_store) {
     // Initializing config, interface & dev_mode variables
     m_conf = app_config;
     m_intfc = app_interface;
-    m_dev_mode = dev_mode;
+    m_data_str = data_store;
 }
 
-config_value_t* AppCfg::getValue(char* key) {
+config_value_t* AppCfg::getConfigValue(char* key) {
     config_value_t* value = m_conf->get_config_value(m_conf->cfg, key);
+    return value;
+}
+
+config_value_t* AppCfg::getInterfaceValue(char* key) {
+    config_value_t* value = m_intfc->get_config_value(m_intfc->cfg, key);
     return value;
 }
 
@@ -98,11 +104,8 @@ AppCfg::~AppCfg() {
     if(m_intfc) {
         delete m_intfc;
     }
-    if(m_kv_store_client_handle) {
-        delete m_kv_store_client_handle;
-    }
-    if(m_interface_cfg) {
-        delete m_interface_cfg;
+    if(m_data_str) {
+        delete m_data_str;
     }
     LOG_INFO_0("ConfigMgr destructor");
 }

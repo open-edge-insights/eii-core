@@ -36,23 +36,25 @@
 #include "kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.h"
 
+#include "eis/config_manager/c_cfg_mgr.h"
+
 
 namespace eis {
     namespace config_manager {
 
         class ServerCfg : public AppCfg {
             private:
-                // App config
-                config_t* m_config;
+                // server_cfg_t object
+                server_cfg_t* m_serv_cfg;
 
-                // Subscriber config
-                config_value_t* m_server_cfg;
+                // app_cfg_t object
+                app_cfg_t* m_app_cfg;
             public:
                 /**
                 * ServerCfg Constructor
                 * @param server_config - The config associated with a server
                 */
-                explicit ServerCfg(config_value_t* server_config);
+                explicit ServerCfg();
 
                 /**
                  * Overridden base class method to fetch msgbus server configuration
@@ -72,6 +74,28 @@ namespace eis {
                  * @return vector<string> - Allowed client of server config
                  */
                 std::vector<std::string> getAllowedClients() override;
+
+                /**
+                * server_cfg_t getter to get private m_serv_cfg
+                */
+                server_cfg_t* getServCfg();
+
+                /**
+                * server_cfg_t setter
+                * @param serv_cfg - The serv_cfg to be set
+                */
+                void setServCfg(server_cfg_t* serv_cfg);
+
+                /**
+                * app_cfg_t getter to get private m_app_cfg
+                */
+                app_cfg_t* getAppCfg();
+
+                /**
+                * app_cfg_t setter
+                * @param app_cfg - The app_cfg to be set
+                */
+                void setAppCfg(app_cfg_t* app_cfg);
 
                 /**
                 * Destructor

@@ -45,61 +45,61 @@ int main(){
     // setenv("CONFIGMGR_CACERT", "", 1);
 
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* ch = new ConfigMgr();
-    AppCfg* cfg = ch->getAppConfig();
+    ConfigMgr* config_mgr = new ConfigMgr();
+    AppCfg* cfg = config_mgr->getAppConfig();
 
-    printf("========================================\n");
-    config_value_t* app_config = cfg->getValue("max_workers");
-    if (app_config->type != CVT_INTEGER){
-        printf("Max_worker is not integer"); 
-        exit(1); 
+    LOG_INFO_0("========================================\n");
+    config_value_t* app_config = cfg->getConfigValue("max_workers");
+    if (app_config->type != CVT_INTEGER) {
+        LOG_ERROR_0("Max_worker is not integer");
+        exit(1);
     }
     int max_workers = app_config->body.integer;
-    printf("max_workers value is %d\n", max_workers);
+    LOG_INFO("max_workers value is %d\n", max_workers);
 
-    app_config = cfg->getValue("max_jobs");
-    if (app_config->type != CVT_FLOATING){
-        printf("max_jobs is not float"); 
-        exit(1);     
+    app_config = cfg->getConfigValue("max_jobs");
+    if (app_config->type != CVT_FLOATING) {
+        LOG_ERROR_0("max_jobs is not float");
+        exit(1);
     }
     float max_jobs = app_config->body.floating;
-    printf("max_jobs value is %.2f\n", max_jobs);  
+    LOG_INFO("max_jobs value is %.2f\n", max_jobs);
 
-    app_config = cfg->getValue("string");
-    if (app_config->type != CVT_STRING){
-        printf("string type is is not string"); 
-        exit(1);   
-    } 
+    app_config = cfg->getConfigValue("string");
+    if (app_config->type != CVT_STRING) {
+        LOG_ERROR_0("string type is is not string");
+        exit(1);
+    }
     char* string_value = app_config->body.string;
-    printf("string value is %s\n", string_value); 
+    LOG_INFO("string value is %s\n", string_value); 
 
-    app_config = cfg->getValue("loop_video");
-    if (app_config->type != CVT_BOOLEAN){
-        printf("loop_video type is is not boolean"); 
-        exit(1);     
+    app_config = cfg->getConfigValue("loop_video");
+    if (app_config->type != CVT_BOOLEAN) {
+        LOG_ERROR_0("loop_video type is is not boolean");
+        exit(1);
     }
     bool loop_video = app_config->body.boolean;
-    (loop_video) ? printf("loop_video is true\n") : printf("loop_video is false\n");  
+    (loop_video) ? printf("loop_video is true\n") : printf("loop_video is false\n");
 
-    app_config = cfg->getValue("ingestor");
-    if (app_config->type != CVT_OBJECT){
-        printf("ingestor type is is not object"); 
-        exit(1);  
+    app_config = cfg->getConfigValue("ingestor");
+    if (app_config->type != CVT_OBJECT) {
+        LOG_ERROR_0("ingestor type is is not object");
+        exit(1);
     }
     config_value_t* ingestor_type = config_value_object_get(app_config, "type");
     char* type = ingestor_type->body.string;
-    printf("ingestor_type value is %s\n", type);  
+    LOG_INFO("ingestor_type value is %s\n", type);
 
-    app_config = cfg->getValue("udfs");
-    if (app_config->type != CVT_ARRAY){
-        printf("udfs type is is not array"); 
-        exit(1);      
+    app_config = cfg->getConfigValue("udfs");
+    if (app_config->type != CVT_ARRAY) {
+        LOG_ERROR_0("udfs type is is not array");
+        exit(1);
     }
     config_value_t* udf = config_value_array_get(app_config, 0);
     config_value_t* udf_type = config_value_object_get(udf, "type");
     type = udf_type->body.string;
-    printf("udf_type value is %s\n", type); 
+    LOG_INFO("udf_type value is %s\n", type);
 
-    printf("========================================\n");
+    LOG_INFO_0("========================================\n");
 
 }

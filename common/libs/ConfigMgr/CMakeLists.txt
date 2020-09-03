@@ -56,7 +56,7 @@ include_directories(
     ${IntelSafeString_INCLUDE})
 
 # Get all source files
-file(GLOB SOURCES "src/*.c" "src/*.cpp")
+file(GLOB SOURCES "src/*.c" "cpp/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(neweisconfigmgr SHARED ${SOURCES})
@@ -85,7 +85,6 @@ endif()
 set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libneweisconfigmgr.pc.in")
 set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libneweisconfigmgr.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
-set(PRIVATE_LIBS   "-lzmq -lcjson")
 
 configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 

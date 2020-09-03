@@ -21,7 +21,7 @@
 
 /**
  * @file
- * @brief ConfigMgr interface
+ * @brief ConfigMgr AppCfg class
  */
 
 #ifndef _EIS_CH_APP_CFG_H
@@ -53,6 +53,9 @@ namespace eis {
                 // App's interface
                 config_t* m_intfc;
 
+                // App's data store
+                config_t* m_data_str;
+
             protected:
 
                 /**
@@ -64,19 +67,7 @@ namespace eis {
                 std::vector<std::string> tokenizer(const char* str,
                                                    const char* delim);
 
-                // Bool to determine whether DEV or PROD mode
-                bool m_dev_mode;
-
             public:
-
-                // kv_store_client_t handle to fetch private & public keys
-                kv_store_client_t* m_kv_store_client_handle;
-
-                // App name of caller
-                std::string m_app_name;
-
-                // Interface Cfg for any publisher/subscriber/server/client
-                config_value_t* m_interface_cfg;
 
                 /**
                 * AppCfg Constructor
@@ -84,14 +75,21 @@ namespace eis {
                 * @param app_interface - The interface associated with a service
                 * @param dev_mode - bool whether dev mode is set
                 */
-                AppCfg(config_t* app_config, config_t* app_interface, bool dev_mode);
+                AppCfg(config_t* app_config, config_t* app_interface, config_t* data_store);
 
                 /**
-                 * Gets value from Config
+                 * Gets value from config
                  * @param key - Key for which value is needed
                  * @return config_value_t* - config_value_t object
                  */
-                config_value_t* getValue(char* key);
+                config_value_t* getConfigValue(char* key);
+
+                /**
+                 * Gets value from interface
+                 * @param key - Key for which value is needed
+                 * @return config_value_t* - config_value_t object
+                 */
+                config_value_t* getInterfaceValue(char* key);
 
                 /**
                  * Get msgbus configuration for application to communicate over EIS message bus
@@ -119,7 +117,7 @@ namespace eis {
                 virtual bool setTopics(std::vector<std::string> topics_list);
 
                 /**
-                 * virtual getTopics function implemented by child classes to fetch topics
+                 * virtual getAllowedClients function implemented by child classes to fetch topics
                  * @return std::string - Endpoint of associated config of type std::string
                  */
                 virtual std::vector<std::string> getAllowedClients();

@@ -140,11 +140,17 @@ def json_parser(file, args):
         data = {}
         with open(app_config + '/config.json', "rb") as infile:
             head = json.load(infile)
-            app_config = app_config.replace('.', '')
+            config_key = app_config.replace('.', '')
             # remove trailing '/'
-            app_config = app_config.rstrip('/')
-            data[app_config + '/config'] = head
+            config_key = config_key.rstrip('/')
+            data[config_key + '/config'] = head
             config_json = merge(config_json, data)
+            # Fetching & appending interfaces if it exists
+            if os.path.isfile(app_config + '/interface.json'):
+                with open(app_config + '/interface.json', "rb") as infile:
+                    head = json.load(infile)
+                    data[config_key + '/interfaces'] = head
+                    config_json = merge(config_json, data)
 
     # Creating multiple boiler-plate app configs
     if args.override_directory is not None:
