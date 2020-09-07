@@ -1,56 +1,91 @@
-# EIS setup with Kubernetes for single node.This Readme is for singlenode deployment only.With this deployment, both master and work loads will run on single node.
+# EIS Orchestration using k8s (a.k.a) Kuberenetes Orchestrator
 
-> **Note**: Follow below link for Multinode deployment.
+EIS Orchestration using k8s Orchestrator.
 
-[README_Multinode_deployment.md](README_Multinode_deployment.md)
+1. [k8s Setup](#k8s-setup)
 
-1. Install Kubernetes by running below command . 
+2. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
+
+3. [Deploying EIS Application with K8s](#deploying-eis-application-with-k8s)
+
+4. [Steps for Enabling Basler Camera with k8s](README_Basler_Nw.md)
+
+5. [Steps for Multinode Deployment](README_Multinode_deployment.md)
+
+
+> ***Note:*** This readme is `W.I.P`. Steps for enabling other EIS features with k8s will be integrated here soon.
+
+## K8s Setup
+
+  > **Note**:
+  > Please follow the standard proxy settings if your installation machines are behind proxy environment.
+  > For orchestrator deployment in a proxy environment, make sure all communicating machines IP addresses
+  >are in `no_proxy` list both in `docker` & `system` environment files as follows.
+  > 1.  /etc/environment
+  > 2.  /etc/systemd/system/docker.service.d/http-proxy.conf
+  > 3.  ~/.docker/config.json
+
+  * Install Kubernetes by running below command .
+      ```sh
+      $ sudo ./k8s_install.sh
+      ```
+
+## Provisioning EIS with k8s
+
+  > 1. EIS Deployment with k8s can be done in **PROD** & **DEV** mode.
+  > 2. For running EIS in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
+  > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before k8s Provisioning.
+
+  * Please Update following Environment Variables in [build/.env](../../build/.env)
+    * HOST_IP           =     [masternodeip]
+    * ETCD_HOST         =     [masternodeip]
+    * ETCD_CLIENT_PORT  =     8379
+    * ETCD_PEER_PORT    =     8380
+
+  * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
+    * EIS_LOCAL_PATH    =     [EIS Source path]
+    * PROVISION_MODE    =     k8s
+
+### Provisioning `EIS` with `k8s` in `DEV` mode
+> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
+>updated `build/k8s/k8s_eis_deploy.yml` file.
+>   Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+
+  * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
+
+  * Provision EIS with K8s.
+    ```sh
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
     ```
-    $ sudo ./k8s_install.sh
+### Provisioning `EIS` with `k8s` in `PROD` mode
+> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
+>updated `build/k8s/k8s_eis_deploy.yml` file.
+> Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+  
+  * Please Update `DEV_MODE=false` in [build/.env](../../build/.env) file.
+
+  * Provision EIS with K8s.
+    ```sh
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
     ```
-2. Add 'HOST_IP' and 'ETCD_HOST' with the value of IP Address of master node on which ETCD to be run in build/.env file.
-3. Update ETCD_CLIENT_PORT and ETCD_PEER_PORT to 8379 and 8380 respectively in build/.env file.
-4. Update EIS_LOCAL_PATH, PROVISION_MODE as k8s in provision/.env file
-5. Run the create_deploy_yml.sh script to get deploy_yml folder with env variables substituted in yml files.
+## Deploying EIS Application with K8s
+  > **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+
+  * Goto `build/k8s` directory.
+    ```sh
+    $ cd build/k8s
     ```
-    $ sudo ./create_deploy_yml.sh
+  * Deploy `k8s` using `kubectl` utility by following command
+    ```sh
+    $  kubectl -n kube-eis apply k8s_eis_deploy.yml
     ```
-6. Run provisoning by running below command.
+  * Make sure the pods are `Running` fine as per deploy yml file.
+    ```sh
+    $  kubectl -n kube-eis get pods
     ```
-    $ sudo ./provision_eis.sh ../docker-compose.yml
-    ```
-7. Do not make any change in yml files present in deploy_yml folder as it will be overwritten.
-8. If any change is needed, please modify in ymls present in k8s directory and run create_deploy_yml.sh to generate final ymls.
-9. Run below commands[ to check if any pod for the partciular apps exist]:
-```
-    $ kubectl -n kube-eis get pods
-```
-   If pods and service exists, run below command to delete them else run command mentioned in 'b.'
-  ```
- a. cd deploy_yml
-    kubectl -n kube-eis delete [appname.yml]
-    E.g. Kubectl -n kube-eis delete ia_video_ingestion.yml
-  ```
-And then run below command to get pods and services running.
-```
-b. cd deploy_yml 
-   kubectl -n kube-eis apply [appname.yml] 
-   E.g. kubectl -n kube-eis apply -f ia_video_ingestion.yml
-```
-10. Web Visualizer can be accessed through https://HOST_IP:30007
-```
- E.g. https://10.223.109.135:30007/
-```
-11. In order to run video use case in dev mode.It is needed to comment the secrets in .yml files .
-E.g. To comment below in ia_video_ingestion.yml if need to run in DEV mode:
-  ```
-  volumeMounts:
-    - name: "ca-cert"
-      mountPath: /run/secrets/ca_etcd
-    - name: "video-ingest-cert"
-      mountPath: /run/secrets/etcd_VideoIngestion_cert
-    - name: "video-ingest-key"
-      mountPath: /run/secrets/etcd_VideoIngestion_key
-  ```
-12. Follow below link for Basler camera connection.
-[README_Basler_Nw.md](README_Basler_Nw.md)
