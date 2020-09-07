@@ -33,6 +33,7 @@ import distutils.util as util
 from jsonmerge import merge
 from jsonschema import validate
 import ruamel.yaml
+import io
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
@@ -57,6 +58,31 @@ def source_env(file):
     except Exception as err:
         print("Exception occured {}".format(err))
         return
+
+
+def env_subst(input_file, output_file, input_type=None):
+    """Method to apply the env variable values to the passing file
+
+    :param input_file: Path of input_file for apply env file or cmd
+    :type input_file: str
+    :param output_file: Path of output_file to store the applied env values.
+    :type output_file: str
+    :param input_type: cmd value instead of input file path
+    :type input_type: str
+    """
+    try:
+        if input_type == 'cmd':
+            cmd = input_file
+        else:
+            cmd = subprocess.run(["cat", input_file], stdout=subprocess.PIPE,
+                                check=False)
+
+        with open(output_file, "w") as outfile:
+            subprocess.run(["envsubst"], input=cmd.stdout,
+                            stdout=outfile, check=False)
+    except subprocess.CalledProcessError as err:
+        print("Subprocess error: {}, {}".format(err.returncode, err.output))
+        sys.exit(1)
 
 
 def generate_valid_filename(path):
@@ -434,10 +460,6 @@ def csl_parser(app_list, args):
     with open('./csl/tmp_csl_app_spec.json', "w") as json_file:
         json_file.write(json.dumps(csl_template, sort_keys=False, indent=4))
 
-    # Sourcing required env from .env & provision/.env
-    source_env("./.env")
-    source_env("./provision/.env")
-
     # Generating module specs for all apps
     for app in app_list:
         if args.override_directory is not None:
@@ -464,13 +486,9 @@ def csl_parser(app_list, args):
             cmd = json.dumps(json_value).encode()
         try:
             if args.override_directory is not None:
-                with open(module_spec_path, "w") as outfile:
-                    subprocess.run(["envsubst"], input=cmd,
-                                   stdout=outfile, check=False)
+                env_subst(app_path, module_spec_path)
             else:
-                with open(module_spec_path, "w") as outfile:
-                    subprocess.run(["envsubst"], input=cmd.stdout,
-                                   stdout=outfile, check=False)
+                env_subst(cmd, module_spec_path, input_type='cmd')
         except subprocess.CalledProcessError as err:
             print("Subprocess error: {}, {}".format(err.returncode,
                                                     err.output))
@@ -478,15 +496,7 @@ def csl_parser(app_list, args):
 
     # Substituting sourced env in AppSpec
     csl_config_path = "./csl/csl_app_spec.json"
-    cmnd = subprocess.run(["cat", "./csl/tmp_csl_app_spec.json"],
-                          stdout=subprocess.PIPE, check=False)
-    try:
-        with open(csl_config_path, "w") as outfile:
-            subprocess.run(["envsubst"], input=cmnd.stdout,
-                           stdout=outfile, check=False)
-    except subprocess.CalledProcessError as err:
-        print("Subprocess error: {}, {}".format(err.returncode, err.output))
-        sys.exit(1)
+    env_subst("./csl/tmp_csl_app_spec.json", csl_config_path)
 
     # Removing generated temporary file
     os.remove("./csl/tmp_csl_app_spec.json")
@@ -494,6 +504,73 @@ def csl_parser(app_list, args):
     print("Successfully created consolidated AppSpec json at "
           "{}".format(csl_config_path))
 
+
+def k8s_yaml_remove_secrets(yaml_data):
+    """This method takes input as a yml data and removes
+       the secrets from volume mounts and envs and returns
+       non-secrets yml data of k8s yml file
+
+    :param yaml_data: Yaml value
+    :type yaml_data: str
+    """
+    string_io_data = io.StringIO(yaml_data)
+    if "---" in yaml_data:
+        yaml_data_list = yaml_data.split("---")
+        string_io_data = io.StringIO(yaml_data_list[1])
+    yaml_prod = ruamel.yaml.round_trip_load(string_io_data,preserve_quotes=True)
+    yaml_dict = dict()
+    for k, v in yaml_prod.items():
+        yaml_dict[k] = v
+
+    vol_removal_list = []
+    for d in yaml_dict['spec']['volumes']:
+        if 'cert' in d['name']:
+            vol_removal_list.append(d)
+        elif 'key' in d['name']:
+            vol_removal_list.append(d)
+
+    con_vol_removal_list = []
+    for d in yaml_dict['spec']['containers'][0]['volumeMounts']:
+        if 'cert' in d['name']:
+            con_vol_removal_list.append(d)
+        elif 'key' in d['name']:
+            con_vol_removal_list.append(d)
+
+    for r in vol_removal_list:
+        yaml_dict['spec']['volumes'].remove(r)
+    for r in con_vol_removal_list:
+        yaml_dict['spec']['containers'][0]['volumeMounts'].remove(r)
+
+    kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
+
+    if "---" in yaml_data:
+        kube_yaml = yaml_data_list[0] + "---\n" + kube_yaml
+
+    return kube_yaml
+
+def k8s_yaml_merger(app_list, dev_mode):
+    """Method merges the k8s yml files of each eis
+       modules and generates a consolidated ymlfile.
+
+    :param app_list: List of services
+    :type app_list: list
+    :param dev_mode: Dev Mode key
+    :type dev_mode: bool
+    """
+
+    merged_yaml = ""
+    for kube_yaml in app_list:
+        with open(kube_yaml) as yaml_file:
+            data = yaml_file.read()
+            if dev_mode:
+                merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
+            else:
+                merged_yaml = merged_yaml + "---\n" + data
+    k8s_service_yaml = './k8s/eis-k8s-deploy.yml'
+    with open (k8s_service_yaml, 'w') as final_yaml:
+        final_yaml.write(merged_yaml)
+    # Substituting sourced env in module specs
+    env_subst(k8s_service_yaml,k8s_service_yaml)
 
 def create_multi_instance_yml_dict(data, i):
     """Method to generate boilerplate
@@ -766,6 +843,7 @@ def yaml_parser(args):
     override_app_list = []
     app_list = []
     csl_app_list = []
+    k8s_app_list = []
     for app_dir in dir_list:
         prefix_path = eis_dir + app_dir
         # Append to app_list if dir has both docker-compose.yml and config.json
@@ -795,6 +873,9 @@ def yaml_parser(args):
         if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
             override_app_list.append(prefix_path)
 
+        # Prepare K8s Applist
+        if os.path.isfile(prefix_path + '/k8s-service.yml'):
+            k8s_app_list.append(prefix_path + '/k8s-service.yml')
     # Adding video folder manually since it's not a direct sub-directory
     # for multi instance feature
     if os.path.isdir(eis_dir + 'common/video'):
@@ -825,8 +906,20 @@ def yaml_parser(args):
     # Starting json parser
     json_parser(DOCKER_COMPOSE_PATH, args)
 
+    # Sourcing required env from .env & provision/.env
+    source_env("./.env")
+    source_env("./provision/.env")
+
     # Starting csl json parser
     csl_parser(csl_app_list, args)
+
+    # Generating Consolidated k8s yaml file for deployment
+    try:
+        k8s_yaml_merger(k8s_app_list, dev_mode)
+        print("Successfully created consolidated Kubernetes deployment yml at ./k8s/eis-k8s-deploy.yml")
+    except Exception as e:
+        print("Exception Occured at Kubernetes yml generation {}".format(e))
+        sys.exit(1)
 
 
 def parse_args():

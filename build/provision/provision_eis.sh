@@ -239,11 +239,13 @@ elif [ $PROVISION_MODE = 'k8s' -a $ETCD_NAME = 'master' ]; then
      copy_docker_compose_file
      if [ $DEV_MODE = 'true' ]; then
         docker-compose -f dep/docker-compose-provision.yml build
-        kubectl apply -f ../k8s/deploy_yml/etcd_devmode.yml
+        envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
+        kubectl apply -f dep/k8s_etcd_devmode.yml
      else
         prod_mode_gen_certs
         docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
-        kubectl apply -f ../k8s/deploy_yml/etcd_prodmode.yml
+        envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
+        kubectl apply -f dep/k8s_etcd_prodmode.yml
      fi
 elif [ $ETCD_NAME = 'master' ]; then
     install_pip_requirements
