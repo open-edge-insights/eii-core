@@ -169,7 +169,9 @@ def json_parser(file, args):
             config_key = app_config.replace('.', '')
             # remove trailing '/'
             config_key = config_key.rstrip('/')
-            data[config_key + '/config'] = head
+            # Fetching AppName & succeeding it with "/"
+            config_key = config_key.split('/')[-1]
+            data['/' + config_key + '/config'] = head
             config_json = merge(config_json, data)
             # Fetching & appending interfaces if it exists
             if os.path.isfile(app_config + '/interface.json'):
