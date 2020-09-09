@@ -1,0 +1,10 @@
+AppName:
+- VideoIngestion
+- VideoAnalytics
+- Visualizer
+- WebVisualizer
+- CustomUdfs/NativeSafetyGearAnalytics
+- CustomUdfs/NativeSafetyGearIngestion
+- CustomUdfs/PySafetyGearAnalytics
+- CustomUdfs/PySafetyGearIngestion
+- CustomUdfs/PyMultiClassificationIngestion
