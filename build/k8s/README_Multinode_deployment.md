@@ -61,7 +61,7 @@ $ kubectl get nodes
    * If any change is needed, please modify in deployment ymls present in k8s directory and run create_deploy_yml.sh to generate final ymls.
    * Run below command to see all deployment details:
    ```
-   $ kubectl -n kube-eis get all
+   $ kubectl -n eis get all
    ```
 > **Note**: In order to run video use case in dev mode. It is needed to comment the secrets in respective deployment.yml files . E.g. Comment below in video_ingestion_deployment.yml if need to run in DEV mode:
    ```

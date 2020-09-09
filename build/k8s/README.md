@@ -83,9 +83,9 @@ EIS Orchestration using k8s Orchestrator.
     ```
   * Deploy `k8s` using `kubectl` utility by following command
     ```sh
-    $  kubectl -n kube-eis apply k8s_eis_deploy.yml
+    $  kubectl -n eis apply k8s_eis_deploy.yml
     ```
   * Make sure the pods are `Running` fine as per deploy yml file.
     ```sh
-    $  kubectl -n kube-eis get pods
+    $  kubectl -n eis get pods
     ```

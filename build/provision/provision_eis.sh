@@ -188,19 +188,23 @@ function install_pip_requirements() {
 }
 function check_k8s_secrets() {
      echo "Checking if already exists k8s secrets, if yes-delete them"
-     secret_generic_list=$(kubectl get secrets | grep -E "cert|key" | awk '{print $1}')
+     secret_generic_list=$(kubectl get secrets | grep -E "cert|key|ca-etcd" | awk '{print $1}')
      if [ "$secret_generic_list" ] ; then
         kubectl delete secrets $secret_generic_list
      fi
 }
 
 function check_k8s_namespace() {
-     echo "Checking if already exists kube-eis namespace, will delete to remove all existing pods and services"
-     ns_list=$(kubectl get namespace | grep "kube-eis" | awk '{print $1}')
-     if [ "$ns_list" ] ; then
-        echo "Deleted namespace so that all existing pods and services within that namespace are deleted"
-        kubectl delete namespace kube-eis
-     fi
+     echo "Checking if already exists eis namespace, will delete to remove all existing pods and services"
+     ns_str=$(kubectl get namespace | grep -w ^eis| awk '{print $1}' )
+     ns_list=(`echo ${ns_str}`);
+     for ns in "${ns_list[@]}"
+     do
+	if [[ "$ns" = "eis" ]];then
+            echo "Deleted namespace so that all existing pods and services within that namespace are deleted"
+            kubectl delete namespace eis
+        fi
+     done
 }
 
 souce_env
@@ -232,7 +236,7 @@ elif [ $PROVISION_MODE = 'k8s' -a $ETCD_NAME = 'master' ]; then
      check_k8s_secrets
      check_k8s_namespace
      echo "Creating a new namespace"
-     kubectl create namespace kube-eis
+     kubectl create namespace eis
      pip3 install -r cert_requirements.txt
      echo "Clearing existing Certificates..."
      rm -rf Certificates

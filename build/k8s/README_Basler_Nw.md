@@ -22,13 +22,13 @@
       k8s.v1.cni.cncf.io/networks: macvlan-conf '
       Under metadata below namespace.
       E.g.
-        namespace: kube-eis
+        namespace: eis
         annotations:
         k8s.v1.cni.cncf.io/networks: macvlan-conf
 >
  8. Run below command to check pod status
   ```
-      $ kubectl -n kube-eis describe pods ia-video-ingestion
+      $ kubectl -n eis describe pods ia-video-ingestion
   ```
 > **NOTE** : If encountered any error regarding dhcp as below:
 

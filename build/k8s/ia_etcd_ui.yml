@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: etcd-ui
-  namespace: kube-eis
+  namespace: eis
 spec:
   type: NodePort
   selector:
@@ -18,7 +18,7 @@ metadata:
   labels:
     app: etcd-ui
   name: ia-etcd-ui
-  namespace: kube-eis
+  namespace: eis
 spec:
   containers:
   - name: ia-etcd-ui
