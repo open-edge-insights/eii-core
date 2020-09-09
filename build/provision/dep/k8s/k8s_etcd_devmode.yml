@@ -22,7 +22,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: etcd
-  namespace: kube-eis
+  namespace: eis
   labels:
     app: etcd
 spec:
@@ -40,7 +40,7 @@ metadata:
   labels:
     app: etcd
   name: ia-etcd
-  namespace: kube-eis
+  namespace: eis
 spec:
   restartPolicy: OnFailure
   containers:

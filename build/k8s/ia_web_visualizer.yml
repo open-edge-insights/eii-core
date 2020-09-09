@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: webvisualizer
-  namespace: kube-eis
+  namespace: eis
 spec:
   type: NodePort
   selector:
@@ -18,7 +18,7 @@ metadata:
   labels:
     app: web-vis
   name: ia-web-visualizer
-  namespace: kube-eis
+  namespace: eis
 
 spec:
   containers:

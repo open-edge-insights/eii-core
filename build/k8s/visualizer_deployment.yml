@@ -4,7 +4,7 @@ metadata:
   labels:
     app: visualizer
   name: deployment-visualizer
-  namespace: kube-eis
+  namespace: eis
 
 spec:
   replicas: 1
