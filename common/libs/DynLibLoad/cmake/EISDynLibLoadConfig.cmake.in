@@ -18,10 +18,10 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-get_filename_component(DynLibLoad_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(EISDynLibLoad_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 
-list(APPEND CMAKE_MODULE_PATH ${DynLibLoad_CMAKE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${EISDynLibLoad_CMAKE_DIR})
 
 # NOTE Had to use find_package because find_dependency does not support
 # COMPONENTS or MODULE until 3.8.0
@@ -33,9 +33,9 @@ include_directories(
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
 
-if(NOT TARGET eisdynlibload)
-    include("${DynLibLoad_CMAKE_DIR}/DynLibLoadTargets.cmake")
+if(NOT TARGET EISDynLibLoad)
+    include("${EISDynLibLoad_CMAKE_DIR}/EISDynLibLoadTargets.cmake")
 endif()
 
-set(DYNLIBLOAD_LIBRARIES eisdynlibload)
-set(DYNLIBLOAD_INCLUDE   ${INSTALL_LIBDIR}/include)
+set(EISDYNLIBLOAD_LIBRARIES eisdynlibload)
+set(EISDYNLIBLOAD_INCLUDE   ${INSTALL_LIBDIR}/include)

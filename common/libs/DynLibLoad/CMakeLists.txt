@@ -103,29 +103,29 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # Export targets to a script
 install(
     EXPORT eisdynlibload-targets
-    FILE DynLibLoadTargets.cmake
+    FILE EISDynLibLoadTargets.cmake
     DESTINATION ${INSTALL_CONFIGDIR})
 
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/DynLibLoadConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISDynLibLoadConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR})
 
 export(EXPORT eisdynlibload-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/DynLibLoadTargets.cmake)
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE eisdynlibload)
+export(PACKAGE EISDynLibLoad)
