@@ -22,7 +22,24 @@
 import subprocess
 import json
 import os
+import argparse
 from distutils.util import strtobool
+
+
+def parse_args():
+    """Parse command line arguments.
+    """
+    a_p = argparse.ArgumentParser()
+    a_p.add_argument('--ca_etcd',
+                     default='./Certificates/ca/ca_certificate.pem',
+                     help='ca Certificate')
+    a_p.add_argument('--etcd_root_cert',
+                     default="./Certificates/root/root_client_certificate.pem",
+                     help='root cert')
+    a_p.add_argument('--etcd_root_key',
+                     default="./Certificates/root/root_client_key.pem",
+                     help='root key')
+    return a_p.parse_args()
 
 
 def _execute_cmd(cmd):
@@ -35,16 +52,19 @@ def main():
     """
 
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
-
+    etcdctl_ep = os.getenv('ETCD_HOST', 'localhost') + ":" \
+        + os.getenv('ETCD_CLIENT_PORT', '2379')
+    args = parse_args()
     if dev_mode:
-        cmd = _execute_cmd(["docker", "exec", "-it",
-                            "ia_etcd", "./etcdctl", "get",
+        cmd = _execute_cmd(["./etcd/etcdctl", "get",
+                            "--endpoints", etcdctl_ep,
                             "--from-key", "''", "--keys-only"])
     else:
-        cmd = _execute_cmd(["docker", "exec", "-it", "ia_etcd", "./etcdctl",
-                            "--cacert", "/run/secrets/ca_etcd",
-                            "--cert", "/run/secrets/etcd_root_cert",
-                            "--key", "/run/secrets/etcd_root_key", "get",
+        cmd = _execute_cmd(["./etcd/etcdctl",
+                            "--endpoints", etcdctl_ep,
+                            "--cacert", args.ca_etcd,
+                            "--cert", args.etcd_root_cert,
+                            "--key", args.etcd_root_key, "get",
                             "--from-key", "''", "--keys-only"])
     keys = str(cmd, encoding='utf-8')
     key_list = keys.split()
@@ -59,15 +79,15 @@ def main():
 
     for key in key_list:
         if dev_mode:
-            cmd = _execute_cmd(["docker", "exec", "-it",
-                                "ia_etcd", "./etcdctl", "get",
+            cmd = _execute_cmd(["./etcd/etcdctl", "get",
+                                "--endpoints", etcdctl_ep,
                                 "--print-value-only", key])
         else:
-            cmd = _execute_cmd(["docker", "exec", "-it",
-                                "ia_etcd", "./etcdctl",
-                                "--cacert", "/run/secrets/ca_etcd",
-                                "--cert", "/run/secrets/etcd_root_cert",
-                                "--key", "/run/secrets/etcd_root_key", "get",
+            cmd = _execute_cmd(["./etcd/etcdctl",
+                                "--endpoints", etcdctl_ep,
+                                "--cacert", args.ca_etcd,
+                                "--cert", args.etcd_root_cert,
+                                "--key", args.etcd_root_key, "get",
                                 "--print-value-only", key])
         value = json.loads(cmd.decode('utf-8'))
         value_list.append(value)
