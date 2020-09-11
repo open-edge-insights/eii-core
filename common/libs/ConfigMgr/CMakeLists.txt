@@ -24,6 +24,7 @@ project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 # Define CMake options
 
 option(WITH_EXAMPLES "Compile with examples" OFF)
+option(WITH_GO "Compile Go Bindings" OFF)
 option(WITH_TESTS "Compile with tests" OFF)
 
 # Globals
@@ -46,6 +47,25 @@ find_package(cJSON REQUIRED)
 find_package(EISUtils REQUIRED)
 find_package(EISMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
+
+# Install Go EnvConfig if specified to
+if(WITH_GO)
+    message("-- Configuring Go ConfigMgr installation")
+
+    # Verify the $GOPATH environmental variable exists
+    if("$ENV{GOPATH}" STREQUAL "")
+        message(FATAL_ERROR "-- $GOPATH envronmental variable is not set")
+    endif()
+
+    # Configure install command to copy the Go ConfigMgr to the
+    # user's $GOPATH
+    install(
+        DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}/go/ConfigMgr
+        DESTINATION
+            $ENV{GOPATH}/src/
+    )
+endif()
 
 # Include header directories
 include_directories(
