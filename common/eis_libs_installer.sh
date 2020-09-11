@@ -162,7 +162,7 @@ cd $ConfigMgr && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake .. && \
+   cmake -DWITH_GO=ON .. && \
    make install
 
 cd $ConfigMgr/python && \
