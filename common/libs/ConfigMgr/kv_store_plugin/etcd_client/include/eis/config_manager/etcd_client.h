@@ -39,8 +39,8 @@
 #include <grpc++/security/credentials.h>
 #include <fstream>
 
-#include "eis/config_manager/protobuf/rpc.grpc.pb.h"
-#include "eis/config_manager/protobuf/kv.pb.h"
+#include <eis/config_manager/protobuf/rpc.grpc.pb.h>
+#include <eis/config_manager/protobuf/kv.pb.h>
 
 #define ADDRESS_LEN 30
 using grpc::Channel;
@@ -74,7 +74,7 @@ class EtcdClient {
         ~EtcdClient();
         
         std::string get(std::string& key);
-        
+        std::vector<std::string> get_prefix(std::string& key_prefix);
         int put(std::string& key, std::string& value);
         void watch(std::string& key, callback user_cb, void *user_data);
         void watch_prefix(std::string& key, callback user_cb, void *user_data);

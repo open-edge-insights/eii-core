@@ -22,9 +22,12 @@
 #include <stdlib.h>
 
 #include <safe_lib.h>
-#include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/etcd_client_plugin.h"
-#include "eis/config_manager/etcd_client.h"
+#include <eis/config_manager/kv_store_plugin.h>
+#include <eis/config_manager/etcd_client_plugin.h>
+#include <eis/config_manager/etcd_client.h>
+#include <eis/utils/config.h>
+#include <cjson/cJSON.h>
+#include <eis/utils/json_config.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,6 +76,29 @@ char* etcd_get(void* handle, char *key) {
     memset(val, '\0', len);
     strcpy_s(val, len, value);
     return val;
+}
+
+config_value_t* etcd_get_prefix(void* handle, char *key) {
+    std::string str_key = key;
+    config_value_t* values;
+    EtcdClient *cli = static_cast<EtcdClient *>(handle);
+    std::vector<std::string> vec = cli->get_prefix(str_key);
+
+    if(!vec.size()){
+        LOG_ERROR("Key not found %s",key);
+        return NULL;
+    }
+
+    cJSON* all_values = cJSON_CreateArray();
+
+    for(size_t i = 0; i < vec.size(); i++){
+        cJSON_AddItemToArray(all_values, cJSON_CreateString(vec[i].c_str()));
+    }
+
+    values = config_value_new_array(
+                (void*) all_values , cJSON_GetArraySize(all_values), get_array_item, NULL);
+
+    return values;
 }
 
 int etcd_put(void* handle, char *key, char *value){

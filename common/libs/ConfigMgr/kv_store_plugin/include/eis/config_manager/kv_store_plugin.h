@@ -39,6 +39,7 @@ typedef struct {
         void *handler;
         void* (*init)(void* kv_store_config);
         char* (*get) (void* handle, char *key);
+        char* (*get_prefix) (void* handle, char *key);
         int (*put) (void* handle, char *key, char *value);
         void (*watch) (void* handle, char *key, callback cb, void* user_data);
         void (*watch_prefix) (void* handle, char *key, callback cb, void* user_data);

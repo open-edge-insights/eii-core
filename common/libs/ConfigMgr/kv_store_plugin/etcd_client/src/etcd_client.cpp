@@ -24,7 +24,7 @@
 
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
-#include "eis/config_manager/etcd_client.h"
+#include <eis/config_manager/etcd_client.h>
 
 #define NO_VALUE_ERROR    "CHECK failed: (index) < (current_size_): "
 
@@ -99,7 +99,7 @@ std::string EtcdClient::get(std::string& key) {
                 status.error_message().c_str(), status.error_code());
             return "(NULL)";
         }
-    } catch(std::exception const & ex){
+    } catch(std::exception const & ex) {
         LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
         int no_val_error;
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
@@ -109,6 +109,50 @@ std::string EtcdClient::get(std::string& key) {
         return "(NULL)";
     }
     return kvs.value();
+}
+
+std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
+    LOG_DEBUG_0("In get_prefix() API");
+    LOG_DEBUG("get all values for keys starting from %s", key_prefix.c_str());
+    mvccpb::KeyValue kvs;
+    RangeRequest get_request;
+    RangeResponse reply;
+    Status status;
+    ClientContext context;
+    std::vector<std::string> values;
+    std::vector<std::string>::iterator it;
+
+    std::string& range_end = key_prefix;
+
+    try {
+        get_request.set_key(key_prefix);
+       
+        int ascii = (int)range_end[range_end.length()-1];
+        range_end.back() = ascii+1;
+
+        get_request.set_range_end(range_end);
+
+        status = kv_stub->Range(&context,get_request,&reply);
+
+        if (status.ok()) {
+            for(int i=0; i<reply.count(); i++) {
+                kvs.CopyFrom(reply.kvs(i));
+                values.push_back( kvs.value());
+            }
+        }else {
+            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
+                status.error_message().c_str(), status.error_code());
+        }
+    } catch(std::exception const & ex) {
+        int no_val_error;
+        LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
+        strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
+        if(no_val_error == 0) {
+                LOG_ERROR("Value for the key %s is not found", key_prefix.c_str());
+        }
+    }
+
+    return values;
 }
 
 void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 

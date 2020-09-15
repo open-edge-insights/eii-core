@@ -42,7 +42,8 @@ include_directories(
     include/
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS}
-    ${IntelSafeString_INCLUDE})
+    ${IntelSafeString_INCLUDE}
+    ${EISUtils_INCLUDE})
 
 add_library(eiskvstoreplugin SHARED
     ${SOURCES})

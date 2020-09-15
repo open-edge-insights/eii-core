@@ -21,8 +21,8 @@
 #include <eis/utils/config.h>
 #include <stdlib.h>
 
-#include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/etcd_client_plugin.h"
+#include <eis/config_manager/kv_store_plugin.h>
+#include <eis/config_manager/etcd_client_plugin.h>
 
 #define PORT            "port"
 #define HOST            "host"
@@ -34,6 +34,7 @@ typedef void (*callback)(char *key, char *value, void* cb_user_data);
 
 void* etcd_init(void* etcd_client);
 char* etcd_get(void * handle, char *key);
+config_value_t* etcd_get_prefix(void * handle, char *key);
 int etcd_put(void* handle, char *key, char *value);
 void etcd_watch(void* handle, char *key_test, callback cb, void* user_data);
 void etcd_watch_prefix(void* handle, char *key_test, callback cb, void* user_data);
@@ -143,6 +144,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
 
         kv_store_client->kv_store_config = etcd_config;
         kv_store_client->get = etcd_get;
+        kv_store_client->get_prefix = etcd_get_prefix;
         kv_store_client->put = etcd_put;
         kv_store_client->watch = etcd_watch;
         kv_store_client->watch_prefix = etcd_watch_prefix;
