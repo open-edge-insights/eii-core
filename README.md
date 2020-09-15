@@ -147,7 +147,7 @@ The section assumes the EIS software is already downloaded from the release pack
     $ python3 eis_builder.py
     ```
 
-  * Running eis_builder providing a yaml file as config for list of services to include:
+  * Running eis_builder providing a yaml file as config for list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service.:
     ```sh
     $ python3 eis_builder.py -f video-streaming.yml
     ```

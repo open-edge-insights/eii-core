@@ -823,7 +823,12 @@ def yaml_parser(args):
             yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
                                                     preserve_quotes=True)
             for service in yaml_data['AppName']:
-                prefix_path = eis_dir + service
+                # In case user mentions the service as full path instead of
+                # relative to IEdgeInsights.
+                if service.startswith("/"):
+                    prefix_path = service
+                else:
+                    prefix_path = eis_dir + service
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
     else:
@@ -847,7 +852,12 @@ def yaml_parser(args):
     csl_app_list = []
     k8s_app_list = []
     for app_dir in dir_list:
-        prefix_path = eis_dir + app_dir
+        # In case user mentions the service as full path instead of
+        # relative to IEdgeInsights.
+        if app_dir.startswith("/"):
+            prefix_path = app_dir
+        else:
+            prefix_path = eis_dir + app_dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
