@@ -29,7 +29,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-SubscriberCfg::SubscriberCfg():AppCfg(NULL, NULL, NULL) {
+SubscriberCfg::SubscriberCfg():AppCfg(NULL) {
 }
 
 // m_cli_cfg getter

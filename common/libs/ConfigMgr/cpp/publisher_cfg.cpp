@@ -29,7 +29,7 @@
 using namespace eis::config_manager;
 
 // Constructor
-PublisherCfg::PublisherCfg():AppCfg(NULL, NULL, NULL) {
+PublisherCfg::PublisherCfg():AppCfg(NULL) {
 }
 
 // m_pub_cfg getter

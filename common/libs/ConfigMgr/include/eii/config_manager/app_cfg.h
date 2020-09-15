@@ -37,6 +37,8 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
+#include "eis/config_manager/c_base_cfg.h"
+
 
 namespace eis {
     namespace config_manager {
@@ -52,6 +54,9 @@ namespace eis {
 
                 // App's interface
                 config_t* m_intfc;
+
+
+                base_cfg_t* m_base_cfg;
 
                 // App's data store
                 config_t* m_data_str;
@@ -75,7 +80,20 @@ namespace eis {
                 * @param app_interface - The interface associated with a service
                 * @param dev_mode - bool whether dev mode is set
                 */
-                AppCfg(config_t* app_config, config_t* app_interface, config_t* data_store);
+                AppCfg(base_cfg_t* base_cfg);
+
+                /**
+                 * Gets app config
+                 * @param key - Key for which value is needed
+                 * @return config_value_t* - config_value_t object
+                 */
+                config_t* getConfig();
+
+                /**
+                 * Gets app interface
+                 * @return config_value_t* - config_value_t object
+                 */
+                config_t* getInterface();
 
                 /**
                  * Gets value from config

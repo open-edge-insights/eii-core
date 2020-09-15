@@ -95,6 +95,43 @@ void trim(char* str_value);
 char** get_host_port(const char* end_point);
 
 /**
+ * configt_to_char function to convert config_t to char*
+ * @param config - config_t object
+ *  @return NULL for any errors occured or char* on success
+ */
+char* configt_to_char(config_t* config);
+
+/**
+ * get_app_config function to return app config
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_t* on success
+ */
+config_t* get_app_config(base_cfg_t* base_cfg);
+
+/**
+ * get_app_interface function to return app config
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_t* on success
+ */
+config_t* get_app_interface(base_cfg_t* base_cfg);
+
+/**
+ * get_app_interface function to return app config
+ * @param base_cfg - base_cfg_t object
+ * @param key - value of key to be fetched
+ *  @return NULL for any errors occured or config_value_t* on success
+ */
+config_value_t* get_app_config_value(base_cfg_t* base_cfg, char* key);
+
+/**
+ * get_app_interface function to return app config
+ * @param base_cfg - base_cfg_t object
+ * @param key - value of key to be fetched
+ *  @return NULL for any errors occured or config_value_t* on success
+ */
+config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key);
+
+/**
  * base_cfg_new function to creates a new config manager client
  *  @return NULL for any errors occured or base_cfg_t* on success
  */
