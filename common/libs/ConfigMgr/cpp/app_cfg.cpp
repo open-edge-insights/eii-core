@@ -30,20 +30,27 @@ using namespace eis::config_manager;
 using namespace std;
 
 
-AppCfg::AppCfg(config_t* app_config, config_t* app_interface, config_t* data_store) {
-    // Initializing config, interface & dev_mode variables
-    m_conf = app_config;
-    m_intfc = app_interface;
-    m_data_str = data_store;
+AppCfg::AppCfg(base_cfg_t* base_cfg) {
+    m_base_cfg = base_cfg;
+}
+
+config_t* AppCfg::getConfig() {
+    m_conf = get_app_config(m_base_cfg);
+    return m_conf;
+}
+
+config_t* AppCfg::getInterface() {
+    m_intfc = get_app_interface(m_base_cfg);
+    return m_intfc;
 }
 
 config_value_t* AppCfg::getConfigValue(char* key) {
-    config_value_t* value = m_conf->get_config_value(m_conf->cfg, key);
+    config_value_t* value = get_app_config_value(m_base_cfg, key);
     return value;
 }
 
 config_value_t* AppCfg::getInterfaceValue(char* key) {
-    config_value_t* value = m_intfc->get_config_value(m_intfc->cfg, key);
+    config_value_t* value = get_app_interface_value(m_base_cfg, key);
     return value;
 }
 

@@ -1,0 +1,95 @@
+# Copyright (c) 2020 Intel Corporation.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+"""EIS Message Bus Client wrapper object
+"""
+
+import json
+
+from .libneweisconfigmgr cimport *
+from libc.stdlib cimport malloc
+
+
+cdef class Client:
+    """EIS Message Bus Client object
+    """
+
+    def __init__(self):
+        """Constructor
+
+        :param config: Configuration object
+        :type: dict
+        """
+        pass
+
+    def __cinit__(self, *args, **kwargs):
+        """Cython base constructor
+        """
+        self.app_cfg = NULL
+        self.client_cfg = NULL
+
+    @staticmethod
+    cdef create(app_cfg_t* app_cfg, client_cfg_t* client_cfg):
+        """Helper method for initializing the client object.
+
+        :param app_cfg: Applications config struct
+        :type: struct
+        :param client_cfg: Client config struct
+        :type: struct
+        :return: Client class object
+        :rtype: obj
+        """
+        c = Client()
+        c.app_cfg = app_cfg
+        c.client_cfg = client_cfg
+        return c
+
+    def __dealloc__(self):
+        """Cython destructor
+        """
+        self.destroy()
+
+    def destroy(self):
+        """Destroy the client.
+        """
+        if self.app_cfg != NULL:
+            self.app_cfg = NULL
+        if self.client_cfg != NULL:
+            self.client_cfg = NULL
+
+    def get_msgbus_config(self):
+        """Calling the base C get_msgbus_config() API
+
+        :return: Messagebus config
+        :rtype: dict
+        """
+        cdef char* config
+        new_config_new = self.client_cfg.get_msgbus_config_client(self.app_cfg.base_cfg)
+        config = configt_to_char(new_config_new)
+        config_str = config.decode('utf-8')
+        return json.loads(config_str)
+
+    def get_endpoint(self):
+        """Calling the base C get_endpoint() API
+
+        :return: Endpoint config
+        :rtype: string
+        """
+        ep = self.client_cfg.get_endpoint_client(self.app_cfg.base_cfg)
+        return ep.decode('utf-8')

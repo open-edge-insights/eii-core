@@ -149,18 +149,21 @@ cd $EISMessageBus &&
    cp -a go/. $GOPATH/src/
 
 # Install ConfigMgr and kv_store_plugin
-cd $ConfigMgr &&
-    cd kv_store_plugin &&
-    rm -rf deps && \
-    ./install.sh && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make install && \
-    cd ../.. && \
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake .. && \
-    make install
+cd $ConfigMgr/kv_store_plugin &&
+   rm -rf deps && \
+   ./install.sh && \
+   rm -rf build && \
+   mkdir build && \
+   cd build && \
+   cmake .. && \
+   make install && \
+
+cd $ConfigMgr && \
+   rm -rf build && \
+   mkdir build && \
+   cd build && \
+   cmake .. && \
+   make install
+
+cd $ConfigMgr/python && \
+   python3 setup.py install

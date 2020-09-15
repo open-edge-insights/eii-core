@@ -95,6 +95,40 @@ char* to_lower(char* string) {
     return string;
 }
 
+// Helper function to convert config_t object to char*
+char* configt_to_char(config_t* config) {
+    cJSON* temp = (cJSON*)config->cfg;
+    if(temp == NULL) {
+        LOG_ERROR_0("cJSON temp object is NULL");
+        return NULL;
+    }
+    char* config_value_cr = cJSON_Print(temp);
+    if(config_value_cr == NULL) {
+        LOG_ERROR_0("config_value_cr object is NULL");
+        return NULL;
+    }
+}
+
+// base C function to fetch app config
+config_t* get_app_config(base_cfg_t* base_cfg) {
+    return base_cfg->m_app_config;
+}
+
+// base C function to fetch app config
+config_t* get_app_interface(base_cfg_t* base_cfg) {
+    return base_cfg->m_app_interface;
+}
+
+// base C function to fetch app config value
+config_value_t* get_app_config_value(base_cfg_t* base_cfg, char* key) {
+    return base_cfg->m_app_config->get_config_value(base_cfg->m_app_config->cfg, key);
+}
+
+// base C function to fetch app interface value
+config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key) {
+    return base_cfg->m_app_interface->get_config_value(base_cfg->m_app_interface->cfg, key);
+}
+
 // helper function to fetch host & port from endpoint
 char** get_host_port(const char* end_point) {
     char** host_port = NULL;

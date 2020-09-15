@@ -33,7 +33,7 @@ using namespace eis::config_manager;
 ConfigMgr::ConfigMgr() {
     // Initializing C app_cfg object
     app_cfg_t* app_cfg = app_cfg_new();
-    m_app_cfg_handler = new AppCfg(app_cfg->base_cfg->m_app_config, app_cfg->base_cfg->m_app_interface, NULL);
+    m_app_cfg_handler = new AppCfg(app_cfg->base_cfg);
     m_app_cfg = app_cfg;
 }
 
