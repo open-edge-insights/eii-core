@@ -22,8 +22,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/kv_store_plugin.h"
+#include <eis/utils/json_config.h>
+#include <eis/utils/config.h>
+#include <eis/config_manager/kv_store_plugin.h>
 
 void watch_cb(char *key, char *value, void *user_data){
     printf("watch callback is called...\n");
@@ -52,9 +53,22 @@ int main(int argc, char** argv) {
 
     if(handle == NULL)
         return -1;
-    
+    char *key_prefix = "/Video";
+
+    config_value_t* values = kv_store_client->get_prefix(handle, key_prefix);
+
+    if(values == NULL) {
+        printf("No value found on prfix of key:%s\n", key_prefix);
+    } else {
+        config_value_t* value;
+        for (int i = 0; i < config_value_array_len(values); i++) {
+            value = config_value_array_get(values, i);
+            printf("%s\n", value->body.string);
+        }
+        config_value_destroy(values);
+    }
     char* val = kv_store_client->get(handle, "/VideoIngestion/config");
-    
+
     if (val != NULL)
         printf("Value of key: /VideoIngestion/config is %s\n", val);
 
