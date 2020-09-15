@@ -150,9 +150,7 @@ cd $EISMessageBus &&
 
 # Install ConfigMgr and kv_store_plugin
 cd $ConfigMgr/src/kv_store_plugin &&
-   rm -rf deps && \
-   ./install.sh && \
-   rm -rf build && \
+   rm -rf build deps && \
    mkdir build && \
    cd build && \
    cmake .. && \
