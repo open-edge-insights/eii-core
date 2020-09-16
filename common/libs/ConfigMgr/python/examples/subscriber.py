@@ -31,9 +31,6 @@ msgbus = None
 subscriber = None
 
 try:
-    # Setting required end
-    os.environ["KVStore"] = "etcd"
-    
     # For DEV_MODE true tests
     # os.environ["DEV_MODE"] = "TRUE"
     # os.environ["CONFIGMGR_CERT"] = ""
@@ -50,13 +47,11 @@ try:
     ctx = cfg.ConfigMgr()
     sub_ctx = ctx.get_subscriber_by_name("Cam2_Results")
     config = sub_ctx.get_msgbus_config()
-    print('[INFO] Obtained config is {}'.format(config))
-    print('[INFO] Obtained endpoint is {}'.format(sub_ctx.get_endpoint()))
-    print('[INFO] Obtained topics is {}'.format(sub_ctx.get_topics()))
+    topics = sub_ctx.get_topics()
 
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)
-    subscriber = msgbus.new_subscriber("camera2_stream_results")
+    subscriber = msgbus.new_subscriber(topics[0])
     print('[INFO] Running...')
     while True:
         msg = subscriber.recv()

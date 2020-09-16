@@ -24,10 +24,10 @@
  */
 
 #include <ctype.h>
-#include "eis/config_manager/c_pub_cfg.h"
-#include "eis/config_manager/c_sub_cfg.h"
-#include "eis/config_manager/c_server_cfg.h"
-#include "eis/config_manager/c_client_cfg.h"
+#include "eis/config_manager/pub_cfg.h"
+#include "eis/config_manager/sub_cfg.h"
+#include "eis/config_manager/server_cfg.h"
+#include "eis/config_manager/client_cfg.h"
 
 #define PUBLISHERS "Publishers"
 #define SUBSCRIBERS "Subscribers"
@@ -50,68 +50,68 @@ typedef struct {
 } app_cfg_t;
 
 /**
- * get_publisher_by_name function to fetch a publisher config using its name
+ * cfgmgr_get_publisher_by_name function to fetch a publisher config using its name
  * @param self - app_cfg_t object
  * @param name - name of config to be fetched
  * @return NULL for any errors occured or pub_cfg_t* on success
  */
-pub_cfg_t* get_publisher_by_name(app_cfg_t* self, const char* name);
+pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* self, const char* name);
 
 /**
- * get_publisher_by_index function to fetch a publisher config using its index
+ * cfgmgr_get_publisher_by_index function to fetch a publisher config using its index
  * @param self - app_cfg_t object
  * @param index - index of config to be fetched
  * @return NULL for any errors occured or pub_cfg_t* on success
  */
-pub_cfg_t* get_publisher_by_index(app_cfg_t* app_cfg, int index);
+pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index);
 
 /**
- * get_subscriber_by_name function to fetch a subscriber config using its name
+ * cfgmgr_get_subscriber_by_name function to fetch a subscriber config using its name
  * @param self - app_cfg_t object
  * @param name - name of config to be fetched
  * @return NULL for any errors occured or sub_cfg_t* on success
  */
-sub_cfg_t* get_subscriber_by_name(app_cfg_t* self, const char* name);
+sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* self, const char* name);
 
 /**
- * get_subscriber_by_index function to fetch a subscriber config using its index
+ * cfgmgr_get_subscriber_by_index function to fetch a subscriber config using its index
  * @param self - app_cfg_t object
  * @param index - index of config to be fetched
  * @return NULL for any errors occured or sub_cfg_t* on success
  */
-sub_cfg_t* get_subscriber_by_index(app_cfg_t* app_cfg, int index);
+sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index);
 
 /**
- * get_server_by_name function to fetch a server config using its name
+ * cfgmgr_get_server_by_name function to fetch a server config using its name
  * @param self - app_cfg_t object
  * @param name - name of config to be fetched
  * @return NULL for any errors occured or server_cfg_t* on success
  */
-server_cfg_t* get_server_by_name(app_cfg_t* self, const char* name);
+server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* self, const char* name);
 
 /**
- * get_server_by_index function to fetch a server config using its index
+ * cfgmgr_get_server_by_index function to fetch a server config using its index
  * @param self - app_cfg_t object
  * @param index - index of config to be fetched
  * @return NULL for any errors occured or server_cfg_t* on success
  */
-server_cfg_t* get_server_by_index(app_cfg_t* app_cfg, int index);
+server_cfg_t* cfgmgr_get_server_by_index(app_cfg_t* app_cfg, int index);
 
 /**
- * get_client_by_name function to fetch a client config using its name
+ * cfgmgr_get_client_by_name function to fetch a client config using its name
  * @param self - app_cfg_t object
  * @param name - name of config to be fetched
  * @return NULL for any errors occured or client_cfg_t* on success
  */
-client_cfg_t* get_client_by_name(app_cfg_t* self, const char* name);
+client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* self, const char* name);
 
 /**
- * get_client_by_index function to fetch a client config using its index
+ * cfgmgr_get_client_by_index function to fetch a client config using its index
  * @param self - app_cfg_t object
  * @param index - index of config to be fetched
  * @return NULL for any errors occured or client_cfg_t* on success
  */
-client_cfg_t* get_client_by_index(app_cfg_t* app_cfg, int index);
+client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index);
 
 /**
  * app_cfg_new function to create a new app_cfg_t object

@@ -32,6 +32,7 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 /**
  * Secure helper function for concatinating a list of c-strings.
@@ -41,6 +42,40 @@ extern "C" {
  * @return Concatinated string
  */
 char* concat_s(size_t dst_len, int num_strs, ...);
+
+/**
+ * concat_s function to concat multiple strings
+ * @param string - input string
+ * @return NULL for any errors occured or char* on success
+ */
+char* to_upper(char* string);
+
+/**
+ * concat_s function to concat multiple strings
+ * @param string - input string
+ * @return NULL for any errors occured or char* on success
+ */
+char* to_lower(char* string);
+
+/**
+ * trim function to trim a given string
+ * @param str_value - string to be trimmed
+ */
+void trim(char* str_value);
+
+/**
+ * free_mem function is to de-allocate the memory of char**
+ *
+  @param arr - char** variable that needs memory deallocation
+ */
+void free_mem(char** arr);
+
+/**
+ * get_host_port function to get host & port from end_point
+ * @param end_point - endpoint
+ *  @return NULL for any errors occured or char** on success
+ */
+char** get_host_port(const char* end_point);
 
 #ifdef __cplusplus
 } // __cplusplus

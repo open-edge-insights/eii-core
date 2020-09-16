@@ -66,18 +66,18 @@ cdef class Server:
         """Destroy the server.
         """
         if self.app_cfg != NULL:
-            self.app_cfg = NULL
+            app_cfg_config_destroy(self.app_cfg)
         if self.server_cfg != NULL:
-            self.server_cfg = NULL
+            server_cfg_config_destroy(self.server_cfg)
 
     def get_msgbus_config(self):
-        """Calling the base C get_msgbus_config() API
+        """Calling the base C cfgmgr_get_msgbus_config_server() API
 
         :return: Messagebus config
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.server_cfg.get_msgbus_config_server(self.app_cfg.base_cfg)
+        new_config_new = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -88,20 +88,26 @@ cdef class Server:
         :return: Endpoint config
         :rtype: string
         """
-        # Calling the base C get_endpoint() API
-        ep = self.server_cfg.get_endpoint_server(self.app_cfg.base_cfg)
-        return ep.decode('utf-8')
+        cdef config_value_t* ep
+        ep = self.server_cfg.cfgmgr_get_endpoint_server(self.app_cfg.base_cfg)
+        endpoint = ep.body.string.decode('utf-8')
+        config_value_destroy(ep)
+        return endpoint
 
     def get_allowed_clients(self):
-        """Calling the base C get_allowed_clients() API
+        """Calling the base C cfgmgr_get_allowed_clients_server() API
         
         :return: List of clients
         :rtype: List
         """
-        topics = self.server_cfg.get_allowed_clients_server(self.app_cfg.base_cfg)
-        topics_list = []
-        i = 0
-        while topics[i] != NULL:
-            topics_list.append(topics[i].decode('utf-8'))
-            i += 1
-        return topics_list
+        # Calling the base C cfgmgr_get_allowed_clients_server() API
+        clients_list = []
+        cdef config_value_t* clients
+        clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.app_cfg.base_cfg)
+        cdef config_value_t* client_value
+        for i in range(config_value_array_len(clients)):
+            client_value = config_value_array_get(clients, i)
+            clients_list.append(client_value.body.string.decode('utf-8'))
+            config_value_destroy(client_value)
+        config_value_destroy(clients)
+        return clients_list

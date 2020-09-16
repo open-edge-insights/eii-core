@@ -4,7 +4,7 @@
             "Name": "VideoData",
             "Type": "zmq_ipc",
             "EndPoint": ".socks",
-            "AppName": "VideoIngestion",
+            "PublisherAppName": "VideoIngestion",
             "Topics": [
                 "camera1_stream"
             ]
@@ -38,7 +38,7 @@
     "Clients": [
         {
             "Name": "default",
-            "AppName": "VideoIngestion",
+            "ServerAppName": "VideoIngestion",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:66010"
         }

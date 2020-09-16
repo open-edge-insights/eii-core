@@ -15,94 +15,58 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-
 
 /**
  * @file
- * @brief ConfigMgr interface
+ * @brief Server config implmentaion
  */
 
-#ifndef _EIS_CH_SERVER_CFG_H
-#define _EIS_CH_SERVER_CFG_H
 
-#include <string.h>
-#include <cjson/cJSON.h>
-#include <iostream>
-#include <safe_lib.h>
-#include <eis/utils/logger.h>
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/base_cfg.h"
+#define TYPE "Type"
+#define ENDPOINT "EndPoint"
+#define ZMQ_RECV_HWM "zmq_recv_hwm"
+#define ALLOWED_CLIENTS "AllowedClients"
+#define PUBLIC_KEYS "/Publickeys/"
+#define PRIVATE_KEY "/private_key"
 
-#include "eis/config_manager/c_cfg_mgr.h"
+#ifndef _EIS_C_SERV_CFG_H
+#define _EIS_C_SERV_CFG_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+
+    config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg);
+
+    config_value_t* (*cfgmgr_get_endpoint_server)(base_cfg_t* base_cfg);
+
+    config_value_t* (*cfgmgr_get_allowed_clients_server)(base_cfg_t* base_cfg);
+
+    config_value_t* server_config;
+
+} server_cfg_t;
+
+/**
+ * server_cfg_new function to creates a new server_cfg_t object
+ *  @return NULL for any errors occured or server_cfg_t* on successful
+ */
+server_cfg_t* server_cfg_new();
 
 
-namespace eis {
-    namespace config_manager {
+/**
+ * Destroy server_cfg_t* object.
+ *
+ * @param server_cfg_config - configuration to destroy
+ */
+void server_cfg_config_destroy(server_cfg_t *server_cfg_config);
 
-        class ServerCfg : public AppCfg {
-            private:
-                // server_cfg_t object
-                server_cfg_t* m_serv_cfg;
-
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
-            public:
-                /**
-                * ServerCfg Constructor
-                * @param server_config - The config associated with a server
-                */
-                explicit ServerCfg();
-
-                /**
-                 * Overridden base class method to fetch msgbus server configuration
-                 * for application to communicate over EIS message bus
-                 * @return config_t* - JSON msg bus server config of type config_t
-                 */
-                config_t* getMsgBusConfig() override;
-
-                /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
-                 * @return std::string - Endpoint of server config of type std::string
-                 */
-                std::string getEndpoint() override;
-
-                /**
-                 * getAllowedClients for application to list of allowed clients associated with message bus config
-                 * @return vector<string> - Allowed client of server config
-                 */
-                std::vector<std::string> getAllowedClients() override;
-
-                /**
-                * server_cfg_t getter to get private m_serv_cfg
-                */
-                server_cfg_t* getServCfg();
-
-                /**
-                * server_cfg_t setter
-                * @param serv_cfg - The serv_cfg to be set
-                */
-                void setServCfg(server_cfg_t* serv_cfg);
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
-
-                /**
-                * app_cfg_t setter
-                * @param app_cfg - The app_cfg to be set
-                */
-                void setAppCfg(app_cfg_t* app_cfg);
-
-                /**
-                * Destructor
-                */
-                ~ServerCfg();
-
-        };
-    }
+#ifdef __cplusplus
 }
+#endif
+
 #endif

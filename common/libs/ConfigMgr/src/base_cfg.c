@@ -24,75 +24,107 @@
  */
 
 #include <stdarg.h>
-#include "eis/config_manager/c_base_cfg.h"
+#include "eis/config_manager/base_cfg.h"
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
-
-// Helper function to concatenate strings
-char* concat_s(size_t dst_len, int num_strs, ...) {
-    char* dst = (char*) malloc(sizeof(char) * dst_len);
-    if(dst == NULL) {
-        LOG_ERROR_0("Failed to initialize dest for string concat");
+// To fetch endpoint from config
+config_value_t* get_endpoint_base(base_cfg_t* base_cfg) {
+    config_value_t* pub_config = base_cfg->msgbus_config;
+    if (pub_config == NULL) {
+        LOG_ERROR_0("pub_config initialization failed");
         return NULL;
     }
-
-    va_list ap;
-    size_t curr_len = 0;
-    int ret = 0;
-
-    va_start(ap, num_strs);
-
-    // First element must be copied into dest
-    char* src = va_arg(ap, char*);
-    size_t src_len = strlen(src);
-    ret = strncpy_s(dst, dst_len, src, src_len);
-    if(ret != 0) {
-        LOG_ERROR("Concatincation failed (errno: %d)", ret);
-        free(dst);
-        va_end(ap);
+    // Fetching EndPoint from config
+    config_value_t* end_point = config_value_object_get(pub_config, "EndPoint");
+    if (end_point == NULL) {
+        LOG_ERROR_0("end_point initialization failed");
         return NULL;
     }
-    curr_len += src_len;
+    return end_point;
+}
 
-    for(int i = 1; i < num_strs; i++) {
-        src = va_arg(ap, char*);
-        src_len = strlen(src);
-        LOG_DEBUG("%s", src);
-        ret = strncat_s(dst + curr_len, dst_len, src, src_len);
-        if(ret != 0) {
-            LOG_ERROR("Concatincation failed (errno: %d)", ret);
-            free(dst);
-            dst = NULL;
-            break;
+// To fetch topics from config
+config_value_t* get_topics_base(base_cfg_t* base_cfg) {
+    config_value_t* config = base_cfg->msgbus_config;
+    if (config == NULL) {
+        LOG_ERROR_0("config initialization failed");
+        return NULL;
+    }
+    config_value_t* topics = config_value_object_get(config, "Topics");
+    if (topics == NULL) {
+        LOG_ERROR_0("topics initialization failed");
+        return NULL;
+    }
+    return topics;
+}
+
+// To fetch list of allowed clients from config
+config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
+    config_value_t* config = base_cfg->msgbus_config;
+    if (config == NULL) {
+        LOG_ERROR_0("config initialization failed");
+        return NULL;
+    }
+    config_value_t* clients = config_value_object_get(config, "AllowedClients");
+    if (clients == NULL) {
+        LOG_ERROR_0("topics initialization failed");
+        return NULL;
+    }
+    return clients;
+}
+
+// To set topics in config
+int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg) {
+
+    // Fetching the name of pub/sub interface
+    config_value_t* config_name = config_value_object_get(base_cfg->msgbus_config, "Name");
+    if (config_name == NULL) {
+        LOG_ERROR_0("config_name initialization failed");
+        return -1;
+    }
+    // Constructing cJSON object from obtained interface
+    cJSON* temp = (cJSON*)base_cfg->m_app_interface->cfg;
+    if (temp == NULL) {
+        LOG_ERROR_0("cJSON temp object is NULL");
+        return -1;
+    }
+
+    // Creating cJSON object of new topics
+    cJSON* obj = cJSON_CreateArray();
+    if (obj == NULL) {
+        LOG_ERROR_0("cJSON obj initialization failed");
+        return -1;
+    }
+    for (int i = 0; i < len; i++) {
+        cJSON_AddItemToArray(obj, cJSON_CreateString(topics_list[i]));
+    }
+
+    // Fetching list of publishers/subscribers
+    cJSON* config_list = cJSON_GetObjectItem(temp, type);
+    if (config_list == NULL) {
+        LOG_ERROR_0("cJSON config_list initialization failed");
+        return -1;
+    }
+    // Iterating & validating name
+    int config_size = cJSON_GetArraySize(config_list);
+    for (int i = 0; i < config_size; i++) {
+        cJSON* config_list_name = cJSON_GetArrayItem(config_list, i);
+        if (config_list_name == NULL) {
+            LOG_ERROR_0("config_list_name initialization failed");
+            return -1;
         }
-        curr_len += src_len;
-        dst[curr_len] = '\0';
+        char* name_to_check = cJSON_GetStringValue(cJSON_GetObjectItem(config_list_name, "Name"));
+        if (name_to_check == NULL) {
+            LOG_ERROR_0("name_to_check initialization failed");
+            return -1;
+        }
+        // Replace topics if name matches
+        if (strcmp(name_to_check, config_name->body.string) == 0) {
+            cJSON_ReplaceItemInObject(config_list_name, "Topics", obj);
+        }
     }
-    va_end(ap);
-
-    if(dst == NULL)
-        return NULL;
-    else
-        return dst;
-}
-
-// helper function to convert char* to uppercase
-char* to_upper(char* string) {
-    while (*string) {
-        *string = toupper((unsigned char) *string);
-        string++;
-    }
-    return string;
-}
-
-// helper function to convert char* to lowercase
-char* to_lower(char* string) {
-    while (*string) {
-        *string = tolower((unsigned char) *string);
-        string++;
-    }
-    return string;
+    return 0;
 }
 
 // Helper function to convert config_t object to char*
@@ -107,6 +139,7 @@ char* configt_to_char(config_t* config) {
         LOG_ERROR_0("config_value_cr object is NULL");
         return NULL;
     }
+    return config_value_cr;
 }
 
 // base C function to fetch app config
@@ -129,72 +162,14 @@ config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key) {
     return base_cfg->m_app_interface->get_config_value(base_cfg->m_app_interface->cfg, key);
 }
 
-// helper function to fetch host & port from endpoint
-char** get_host_port(const char* end_point) {
-    char** host_port = NULL;
-    char* data = NULL;
-    host_port = (char **)calloc(strlen(end_point) + 1, sizeof(char*));
-    if (host_port == NULL) {
-        LOG_ERROR_0("Calloc failed for host_port");
-    }
-    size_t data_len;
-    int i = 0;
-    char* host = NULL;
-    char* port = NULL;
-    int ret = 0;
-    while ((data = strtok_r(end_point, ":", &end_point))) {
-        data_len = strlen(data);
-        if (host_port[i] == NULL) {
-            host_port[i] = (char*) malloc(data_len + 1);
-        }
-        if (host_port[i] == NULL) {
-            LOG_ERROR_0("Malloc failed for individual host_port");
-        }
-        ret = strncpy_s(host_port[i], data_len + 1, data, data_len);
-        if (ret != 0) {
-            LOG_ERROR("String copy failed (errno: %d) : Failed to copy data \" %s \" to host_port", ret, data);
-        }
-        i++;
-    }
-    return host_port;
-}
-
-
-// Helper function to trim strings
-void trim(char* str_value) {
-    int index;
-    int i;
-
-    // Trimming leading white spaces
-    index = 0;
-    while (str_value[index] == ' ' || str_value[index] == '\t' || str_value[index] == '\n') {
-        index++;
-    }
-
-    i = 0;
-    while (str_value[i + index] != '\0') {
-        str_value[i] = str_value[i + index];
-        i++;
-    }
-    str_value[i] = '\0'; // Terminate string with NULL
-
-    // Trim trailing white spaces
-    i = 0;
-    index = -1;
-    while (str_value[i] != '\0') {
-        if (str_value[i] != ' ' && str_value[i] != '\t' && str_value[i] != '\n') {
-            index = i;
-        }
-        i++;
-    }
-    // Mark the next character to last non white space character as NULL
-    str_value[index + 1] = '\0';
-}
-
 // Function to initialize required objects & functions
 base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mode, kv_store_client_t* m_kv_store_handle) {
     base_cfg_t *base_cfg = (base_cfg_t *)malloc(sizeof(base_cfg_t));
-    base_cfg->pub_sub_config = pub_config;
+    if (base_cfg == NULL) {
+        LOG_ERROR_0("base_cfg initialization failed");
+        return NULL;
+    }
+    base_cfg->msgbus_config = pub_config;
     base_cfg->app_name = app_name;
     base_cfg->dev_mode = dev_mode;
     base_cfg->m_kv_store_handle = m_kv_store_handle;

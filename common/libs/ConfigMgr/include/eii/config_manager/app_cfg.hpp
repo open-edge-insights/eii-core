@@ -37,7 +37,7 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/c_base_cfg.h"
+#include "eis/config_manager/base_cfg.h"
 
 
 namespace eis {
@@ -50,16 +50,16 @@ namespace eis {
             private:
 
                 // App's config
-                config_t* m_conf;
+                config_t* m_app_config;
 
                 // App's interface
-                config_t* m_intfc;
+                config_t* m_app_interface;
 
-
+                // C base_cfg_t struct
                 base_cfg_t* m_base_cfg;
 
                 // App's data store
-                config_t* m_data_str;
+                config_t* m_app_data_store;
 
             protected:
 
@@ -80,7 +80,7 @@ namespace eis {
                 * @param app_interface - The interface associated with a service
                 * @param dev_mode - bool whether dev mode is set
                 */
-                AppCfg(base_cfg_t* base_cfg);
+                explicit AppCfg(base_cfg_t* base_cfg);
 
                 /**
                  * Gets app config

@@ -27,7 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "eis/config_manager/config_mgr.h"
+#include "eis/config_manager/config_mgr.hpp"
 #include "eis/msgbus/msgbus.h"
 #include "eis/utils/logger.h"
 #include "eis/utils/json_config.h"
@@ -72,8 +72,6 @@ int main() {
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
     msgbus_ret_t ret = MSG_SUCCESS;
-
-    setenv("KVStore", "etcd", 1);
 
     setenv("DEV_MODE", "FALSE", 1);
     // Replace 2nd parameter with path to certs

@@ -28,6 +28,7 @@
 #include <cjson/cJSON.h>
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
+#include <eis/utils/string.h>
 #include <stdbool.h>
 #include <ctype.h>
 #include "eis/utils/json_config.h"
@@ -54,45 +55,41 @@ typedef struct {
 
     kv_store_client_t* m_kv_store_handle;
 
-    config_value_t* pub_sub_config;
+    config_value_t* msgbus_config;
 
 } base_cfg_t;
 
 
 /**
- * concat_s function to concat multiple strings
- * @param string - input string
- * @return NULL for any errors occured or char* on success
+ * get_endpoint_base function to fetch endpoint
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_value_t* on success
  */
-char* to_upper(char* string);
+config_value_t* get_endpoint_base(base_cfg_t* base_cfg);
 
 /**
- * concat_s function to concat multiple strings
- * @param string - input string
- * @return NULL for any errors occured or char* on success
+ * get_topics_base function to fetch topics
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_value_t* on success
  */
-char* to_lower(char* string);
+config_value_t* get_topics_base(base_cfg_t* base_cfg);
 
 /**
- * concat_s function to concat multiple strings
- * @param dst_len - total length of strings to be concatenated
- * @param num_strs - total number of strings to be concatenated
- * @return NULL for any errors occured or char* on success
+ * get_allowed_clients_base function to get allowed clients
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_value_t* on success
  */
-char* concat_s(size_t dst_len, int num_strs, ...);
+config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg);
 
 /**
- * trim function to trim a given string
- * @param str_value - string to be trimmed
+ * set_topics_base function to set topics
+ * @param topics_list - list of topics to be set
+ * @param len - total number of topics
+ * @param type - Publisher/Subscriber
+ * @param base_cfg - base_cfg_t object
+ *  @return -1 for any errors occured or 0 on success
  */
-void trim(char* str_value);
-
-/**
- * get_host_port function to get host & port from end_point
- * @param end_point - endpoint
- *  @return NULL for any errors occured or char** on success
- */
-char** get_host_port(const char* end_point);
+int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg);
 
 /**
  * configt_to_char function to convert config_t to char*
@@ -109,14 +106,14 @@ char* configt_to_char(config_t* config);
 config_t* get_app_config(base_cfg_t* base_cfg);
 
 /**
- * get_app_interface function to return app config
+ * get_app_interface function to return app interface
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_t* on success
  */
 config_t* get_app_interface(base_cfg_t* base_cfg);
 
 /**
- * get_app_interface function to return app config
+ * get_app_config_value function to fetch config value
  * @param base_cfg - base_cfg_t object
  * @param key - value of key to be fetched
  *  @return NULL for any errors occured or config_value_t* on success
@@ -124,7 +121,7 @@ config_t* get_app_interface(base_cfg_t* base_cfg);
 config_value_t* get_app_config_value(base_cfg_t* base_cfg, char* key);
 
 /**
- * get_app_interface function to return app config
+ * get_app_interface_value function to fetch interface value
  * @param base_cfg - base_cfg_t object
  * @param key - value of key to be fetched
  *  @return NULL for any errors occured or config_value_t* on success

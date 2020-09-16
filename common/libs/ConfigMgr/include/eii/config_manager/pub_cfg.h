@@ -20,14 +20,21 @@
 
 /**
  * @file
- * @brief Client config implmentaion
+ * @brief Publisher config implmentaion
  */
 
 
-#include "eis/config_manager/c_base_cfg.h"
+#include "eis/config_manager/base_cfg.h"
+#define TYPE "Type"
+#define ENDPOINT "EndPoint"
+#define PUBLISHERS "Publishers"
+#define ZMQ_RECV_HWM "zmq_recv_hwm"
+#define ALLOWED_CLIENTS "AllowedClients"
+#define PUBLIC_KEYS "/Publickeys/"
+#define PRIVATE_KEY "/private_key"
 
-#ifndef _EIS_C_CLI_CFG_H
-#define _EIS_C_CLI_CFG_H
+#ifndef _EIS_C_PUB_CFG_H
+#define _EIS_C_PUB_CFG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,26 +42,32 @@ extern "C" {
 
 typedef struct {
 
-    config_t* (*get_msgbus_config_client)(base_cfg_t* base_cfg);
+    config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg);
+    
+    config_value_t* (*cfgmgr_get_endpoint_pub)(base_cfg_t* base_cfg);
 
-    char* (*get_endpoint_client)(base_cfg_t* base_cfg);
+    config_value_t* (*cfgmgr_get_topics_pub)(base_cfg_t* base_cfg);
+
+    int (*cfgmgr_set_topics_pub)(char** topics_list, int len, base_cfg_t* base_cfg);
+
+    config_value_t* (*cfgmgr_get_allowed_clients_pub)(base_cfg_t* base_cfg);
 
     config_value_t* pub_config;
 
-} client_cfg_t;
+} pub_cfg_t;
 
 /**
- * client_cfg_new function to creates a new client_cfg_t
- *  @return NULL for any errors occured or client_cfg_t* on successful
+ * pub_cfg_new function to creates a new pub_cfg_t object
+ *  @return NULL for any errors occured or pub_cfg_t* on successful
  */
-client_cfg_t* client_cfg_new();
+pub_cfg_t* pub_cfg_new();
 
 /**
- * Destroy client_cfg_t* object.
+ * Destroy pub_cfg_t* object.
  *
- * @param cli_cfg_config - configuration to destroy
+ * @param pub_cfg_config - configuration to destroy
  */
-void client_cfg_config_destroy(client_cfg_t *cli_cfg_config);
+void pub_cfg_config_destroy(pub_cfg_t *pub_cfg_config);
 
 #ifdef __cplusplus
 }

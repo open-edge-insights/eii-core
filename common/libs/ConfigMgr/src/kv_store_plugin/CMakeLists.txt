@@ -27,7 +27,7 @@ option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS "Compile with tests" OFF)
 
 # Globals
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake")
+set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../../../cmake")
 
 # Set C standard to C11
 set(CMAKE_CXX_STANDARD 11)

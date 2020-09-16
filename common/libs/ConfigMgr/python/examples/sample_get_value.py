@@ -24,11 +24,6 @@ import os
 import cfgmgr.config_manager as cfg
 
 try:
-    # Setting required end
-    os.environ["KVStore"] = "etcd"
-    os.environ["ETCD_HOST"] = "localhost"
-    # os.environ["ETCD_PORT"] = "2379"
-    
     # For DEV_MODE true tests
     # os.environ["DEV_MODE"] = "TRUE"
     # os.environ["CONFIGMGR_CERT"] = ""
@@ -40,7 +35,6 @@ try:
     os.environ["CONFIGMGR_CERT"] = ""
     os.environ["CONFIGMGR_KEY"] = ""
     os.environ["CONFIGMGR_CACERT"] = ""
-
 
     os.environ["AppName"] = "VideoIngestion"
     ctx = cfg.ConfigMgr()

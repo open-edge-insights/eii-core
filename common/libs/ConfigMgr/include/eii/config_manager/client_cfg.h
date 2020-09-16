@@ -15,87 +15,55 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-
 
 /**
  * @file
- * @brief ConfigMgr interface
+ * @brief Client config implmentaion
  */
 
-#ifndef _EIS_CH_CLIENT_CFG_H
-#define _EIS_CH_CLIENT_CFG_H
 
-#include <string.h>
-#include <cjson/cJSON.h>
-#include <iostream>
-#include <safe_lib.h>
-#include <eis/utils/logger.h>
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/base_cfg.h"
+#define TYPE "Type"
+#define ENDPOINT "EndPoint"
+#define ZMQ_RECV_HWM "zmq_recv_hwm"
+#define SERVER_APPNAME "ServerAppName"
+#define PUBLIC_KEYS "/Publickeys/"
+#define PRIVATE_KEY "/private_key"
 
-#include "eis/config_manager/c_cfg_mgr.h"
+#ifndef _EIS_C_CLI_CFG_H
+#define _EIS_C_CLI_CFG_H
 
-namespace eis {
-    namespace config_manager {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-        class ClientCfg: public AppCfg {
-            private:
-                // client_cfg_t object
-                client_cfg_t* m_cli_cfg;
+typedef struct {
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
-            public:
-                /**
-                * ClientCfg Constructor
-                * @param client_config - The config associated with a client
-                */
-                explicit ClientCfg();
+    config_t* (*cfgmgr_get_msgbus_config_client)(base_cfg_t* base_cfg);
 
-                /**
-                 * Overridden base class method to fetch msgbus client configuration
-                 * for application to communicate over EIS message bus
-                 * @return config_t* - JSON msg bus server config of type config_t
-                 */ 
-                config_t* getMsgBusConfig() override;
+    config_value_t* (*cfgmgr_get_endpoint_client)(base_cfg_t* base_cfg);
 
-                /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
-                 * @return std::string - Endpoint of client config of type std::string
-                 */
-                std::string getEndpoint() override;
+    config_value_t* pub_config;
 
-                /**
-                * client_cfg_t getter to get private m_pub_cfg
-                */
-                client_cfg_t* getCliCfg();
+} client_cfg_t;
 
-                /**
-                * client_cfg_t setter
-                * @param cli_cfg - The pub_cfg to be set
-                */
-                void setCliCfg(client_cfg_t* cli_cfg);
+/**
+ * client_cfg_new function to creates a new client_cfg_t
+ *  @return NULL for any errors occured or client_cfg_t* on successful
+ */
+client_cfg_t* client_cfg_new();
 
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+/**
+ * Destroy client_cfg_t* object.
+ *
+ * @param cli_cfg_config - configuration to destroy
+ */
+void client_cfg_config_destroy(client_cfg_t *cli_cfg_config);
 
-                /**
-                * app_cfg_t setter
-                * @param app_cfg - The app_cfg to be set
-                */
-                void setAppCfg(app_cfg_t* app_cfg);
-
-                /**
-                * Destructor
-                */
-                ~ClientCfg();
-
-        };
-    }
+#ifdef __cplusplus
 }
+#endif
+
 #endif

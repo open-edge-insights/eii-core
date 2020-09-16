@@ -24,12 +24,14 @@
  */
 
 
-#include "eis/config_manager/server_cfg.h"
+#include "eis/config_manager/server_cfg.hpp"
 
 using namespace eis::config_manager;
 
 // Constructor
-ServerCfg::ServerCfg():AppCfg(NULL) {
+ServerCfg::ServerCfg(server_cfg_t* serv_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {
+    m_serv_cfg = serv_cfg;
+    m_app_cfg = app_cfg;
 }
 
 // m_cli_cfg getter
@@ -37,33 +39,28 @@ server_cfg_t* ServerCfg::getServCfg() {
     return m_serv_cfg;
 }
 
-// m_cli_cfg setter
-void ServerCfg::setServCfg(server_cfg_t* serv_cfg) {
-    m_serv_cfg = serv_cfg;
-}
-
-// m_app_cfg getter
-app_cfg_t* ServerCfg::getAppCfg() {
-    return m_app_cfg;
-}
-
-// m_app_cfg setter
-void ServerCfg::setAppCfg(app_cfg_t* app_cfg) {
-    m_app_cfg = app_cfg;
-}
-
 // getMsgBusConfig of ServerCfg class
 config_t* ServerCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_server() API
-    config_t* server_config = m_serv_cfg->get_msgbus_config_server(m_app_cfg->base_cfg);
+    config_t* server_config = m_serv_cfg->cfgmgr_get_msgbus_config_server(m_app_cfg->base_cfg);
+    if (server_config == NULL) {
+        LOG_ERROR_0("Unable to fetch server msgbus config");
+        return NULL;
+    }
     return server_config;
 }
 
 // To fetch endpoint from config
 std::string ServerCfg::getEndpoint() {
     // Calling the base C get_endpoint_server() API
-    char* ep = m_serv_cfg->get_endpoint_server(m_app_cfg->base_cfg);
-    std::string s(ep);
+    config_value_t* ep = m_serv_cfg->cfgmgr_get_endpoint_server(m_app_cfg->base_cfg);
+    if (ep == NULL) {
+        LOG_ERROR_0("Endpoint not found");
+        return NULL;
+    }
+    std::string s(ep->body.string);
+    // Destroying ep
+    config_value_destroy(ep);
     return s;
 }
 
@@ -71,12 +68,25 @@ std::string ServerCfg::getEndpoint() {
 std::vector<std::string> ServerCfg::getAllowedClients() {
 
     std::vector<std::string> client_list;
-    // Calling the base C get_allowed_clients_server() API
-    char** clients = m_serv_cfg->get_allowed_clients_server(m_app_cfg->base_cfg);
-    for (char* c = *clients; c; c=*++clients) {
-        std::string temp(c);
-        client_list.push_back(temp);
+    // Calling the base C get_topics() API
+    config_value_t* clients = m_serv_cfg->cfgmgr_get_allowed_clients_server(m_app_cfg->base_cfg);
+    if (clients == NULL) {
+        LOG_ERROR_0("clients initialization failed");
+        return {};
     }
+    config_value_t* client_value;
+    for (int i = 0; i < config_value_array_len(clients); i++) {
+        client_value = config_value_array_get(clients, i);
+        if (client_value == NULL) {
+            LOG_ERROR_0("client_value initialization failed");
+            return {};
+        }
+        client_list.push_back(client_value->body.string);
+        // Destroying client_value
+        config_value_destroy(client_value);
+    }
+    // Destroying clients
+    config_value_destroy(clients);
     return client_list;
 }
 

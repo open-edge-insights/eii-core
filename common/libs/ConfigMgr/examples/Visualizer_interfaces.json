@@ -4,7 +4,7 @@
             "Name": "Cam1_Results",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:65014",
-            "AppName": "VideoIngestion1",
+            "PublisherAppName": "VideoIngestion1",
             "Topics": [
                 "*"
             ]
@@ -13,7 +13,7 @@
             "Name": "Cam2_Results",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:65015",
-            "AppName": "VideoAnalytics",
+            "PublisherAppName": "VideoAnalytics",
             "Topics": [
                 "camera2_stream_results"
             ]
@@ -24,14 +24,7 @@
             "Name": "VideoIngestion",
             "AppName": "VideoIngestion1",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:66010"
-        },
-        {
-            "VideoIngestion": {
-                "AppName": "VideoIngestion1",
-                "Type": "zmq_tcp",
-                "EndPoint": "127.0.0.1:66010"
-            }
+            "EndPoint": "127.0.0.1:9006"
         }
     ]
 }

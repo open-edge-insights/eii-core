@@ -24,12 +24,14 @@
  */
 
 
-#include "eis/config_manager/publisher_cfg.h"
+#include "eis/config_manager/publisher_cfg.hpp"
 
 using namespace eis::config_manager;
 
 // Constructor
-PublisherCfg::PublisherCfg():AppCfg(NULL) {
+PublisherCfg::PublisherCfg(pub_cfg_t* pub_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {
+    m_pub_cfg = pub_cfg;
+    m_app_cfg = app_cfg;
 }
 
 // m_pub_cfg getter
@@ -37,33 +39,33 @@ pub_cfg_t* PublisherCfg::getPubCfg() {
     return m_pub_cfg;
 }
 
-// m_pub_cfg setter
-void PublisherCfg::setPubCfg(pub_cfg_t* pub_cfg) {
-    m_pub_cfg = pub_cfg;
-}
-
 // m_app_cfg getter
 app_cfg_t* PublisherCfg::getAppCfg() {
     return m_app_cfg;
 }
 
-// m_app_cfg setter
-void PublisherCfg::setAppCfg(app_cfg_t* app_cfg) {
-    m_app_cfg = app_cfg;
-}
-
 // getMsgBusConfig of Publisher class
 config_t* PublisherCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config() API
-    config_t* pub_config = m_pub_cfg->get_msgbus_config(m_app_cfg->base_cfg);
+    config_t* pub_config = m_pub_cfg->cfgmgr_get_msgbus_config_pub(m_app_cfg->base_cfg);
+    if (pub_config == NULL) {
+        LOG_ERROR_0("Unable to fetch publisher msgbus config");
+        return NULL;
+    }
     return pub_config;
 }
 
 // To fetch endpoint from config
 std::string PublisherCfg::getEndpoint() {
     // Calling the base C get_endpoint() API
-    char* ep = m_pub_cfg->get_endpoint(m_app_cfg->base_cfg);
-    std::string s(ep);
+    config_value_t* ep = m_pub_cfg->cfgmgr_get_endpoint_pub(m_app_cfg->base_cfg);
+    if (ep == NULL) {
+        LOG_ERROR_0("Endpoint not found");
+        return NULL;
+    }
+    std::string s(ep->body.string);
+    // Destroying ep
+    config_value_destroy(ep);
     return s;
 }
 
@@ -72,27 +74,48 @@ std::vector<std::string> PublisherCfg::getTopics() {
 
     std::vector<std::string> topic_list;
     // Calling the base C get_topics() API
-    char** topics = m_pub_cfg->get_topics(m_app_cfg->base_cfg);
-    for (char* c = *topics; c; c=*++topics) {
-        std::string temp(c);
-        topic_list.push_back(temp);
+    config_value_t* topics = m_pub_cfg->cfgmgr_get_topics_pub(m_app_cfg->base_cfg);
+    if (topics == NULL) {
+        LOG_ERROR_0("topics initialization failed");
+        return {};
     }
+    config_value_t* topic_value;
+    for (int i = 0; i < config_value_array_len(topics); i++) {
+        topic_value = config_value_array_get(topics, i);
+        if (topic_value == NULL) {
+            LOG_ERROR_0("topic_value initialization failed");
+            return {};
+        }
+        topic_list.push_back(topic_value->body.string);
+        // Destroying topic_value
+        config_value_destroy(topic_value);
+    }
+    // Destroying topics
+    config_value_destroy(topics);
     return topic_list;
 }
 
 // To set topics in config
 bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 
-    char **topics_to_be_set = (char**)calloc(topics_list.size(), sizeof(char*));
-    for (int i =0; i < topics_list.size(); i++) {
+    int topics_length = topics_list.size();
+    char **topics_to_be_set = (char**)calloc(topics_length, sizeof(char*));
+    if (topics_to_be_set == NULL) {
+        LOG_ERROR_0("calloc failed for topics_to_be_set");
+        free_mem(topics_to_be_set);
+        return false;
+    }
+    for (int i = 0; i < topics_length; i++) {
         topics_to_be_set[i] = strdup(topics_list[i].c_str());
     }
     // Calling the base C set_topics() API
-    int topics_set = m_pub_cfg->set_topics(topics_to_be_set, m_app_cfg->base_cfg);
+    int topics_set = m_pub_cfg->cfgmgr_set_topics_pub(topics_to_be_set, topics_length, m_app_cfg->base_cfg);
     if(topics_set == 0) {
         LOG_INFO_0("Topics successfully set");
         return true;
     }
+    // Freeing topics_to_be_set
+    free_mem(topics_to_be_set);
     return false;
 }
 
@@ -100,21 +123,34 @@ bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 std::vector<std::string> PublisherCfg::getAllowedClients() {
 
     std::vector<std::string> client_list;
-    // Calling the base C get_allowed_clients() API
-    char** clients = m_pub_cfg->get_allowed_clients(m_app_cfg->base_cfg);
-    for (char* c = *clients; c; c=*++clients) {
-        std::string temp(c);
-        client_list.push_back(temp);
+    // Calling the base C get_topics() API
+    config_value_t* clients = m_pub_cfg->cfgmgr_get_allowed_clients_pub(m_app_cfg->base_cfg);
+    if (clients == NULL) {
+        LOG_ERROR_0("clients initialization failed");
+        return {};
     }
+    config_value_t* client_value;
+    for (int i = 0; i < config_value_array_len(clients); i++) {
+        client_value = config_value_array_get(clients, i);
+        if (client_value == NULL) {
+            LOG_ERROR_0("client_value initialization failed");
+            return {};
+        }
+        client_list.push_back(client_value->body.string);
+        // Destroying client_value
+        config_value_destroy(client_value);
+    }
+    // Destroying clients
+    config_value_destroy(clients);
     return client_list;
 }
 
 // Destructor
 PublisherCfg::~PublisherCfg() {
-    if(m_pub_cfg) {
+    if (m_pub_cfg) {
         delete m_pub_cfg;
     }
-    if(m_app_cfg) {
+    if (m_app_cfg) {
         delete m_app_cfg;
     }
     LOG_INFO_0("PublisherCfg destructor");

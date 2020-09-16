@@ -26,7 +26,7 @@
 #include "eis/msgbus/msgbus.h"
 #include "eis/utils/logger.h"
 #include "eis/utils/json_config.h"
-#include "eis/config_manager/config_mgr.h"
+#include "eis/config_manager/config_mgr.hpp"
 
 #define TOPIC "publish_test"
 
@@ -81,8 +81,6 @@ int main(int argc, char** argv) {
     signal(SIGINT, signal_handler);
     signal(SIGTERM, signal_handler);
 
-    setenv("KVStore", "etcd", 1);
-
     // In a dockerized environment,
     // these variables are set in environment
     setenv("DEV_MODE", "FALSE", 1);
@@ -90,7 +88,7 @@ int main(int argc, char** argv) {
     setenv("CONFIGMGR_CERT", "", 1);
     setenv("CONFIGMGR_KEY", "", 1);
     setenv("CONFIGMGR_CACERT", "", 1);
-    
+
     // Uncomment below lines to test DEV mode
     // setenv("DEV_MODE", "TRUE", 1);
     // setenv("CONFIGMGR_CERT", "", 1);
@@ -120,6 +118,11 @@ int main(int argc, char** argv) {
     newTopicsList.push_back("camera5_stream");
     newTopicsList.push_back("camera6_stream");
     bool topicsSet = pub_ctx->setTopics(newTopicsList);
+
+    std::vector<std::string> topics_new = pub_ctx->getTopics();
+    for(int i = 0; i < topics_new.size(); i++) {
+        LOG_INFO("Pub Topics : %s", topics_new[i].c_str());
+    }
 
     // Testing getAllowedClients API
     std::vector<std::string> clients = pub_ctx->getAllowedClients();

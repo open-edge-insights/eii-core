@@ -27,5 +27,5 @@ if(NOT TARGET EISConfigMgrNew)
     include("${EISConfigMgrNew_CMAKE_DIR}/EISConfigMgrNewTargets.cmake")
 endif()
 
-set(EISConfigMgrNew_LIBRARIES EISConfigMgrNew)
+set(EISConfigMgrNew_LIBRARIES neweisconfigmgr)
 set(EISConfigMgrNew_INCLUDE ${INSTALL_LIBDIR}/include)

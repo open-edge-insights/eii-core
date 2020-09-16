@@ -69,9 +69,9 @@ cdef class Client:
         """Destroy the client.
         """
         if self.app_cfg != NULL:
-            self.app_cfg = NULL
+            app_cfg_config_destroy(self.app_cfg)
         if self.client_cfg != NULL:
-            self.client_cfg = NULL
+            client_cfg_config_destroy(self.client_cfg)
 
     def get_msgbus_config(self):
         """Calling the base C get_msgbus_config() API
@@ -80,7 +80,7 @@ cdef class Client:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.client_cfg.get_msgbus_config_client(self.app_cfg.base_cfg)
+        new_config_new = self.client_cfg.cfgmgr_get_msgbus_config_client(self.app_cfg.base_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -91,5 +91,8 @@ cdef class Client:
         :return: Endpoint config
         :rtype: string
         """
-        ep = self.client_cfg.get_endpoint_client(self.app_cfg.base_cfg)
-        return ep.decode('utf-8')
+        cdef config_value_t* ep
+        ep = self.client_cfg.cfgmgr_get_endpoint_client(self.app_cfg.base_cfg)
+        endpoint = ep.body.string.decode('utf-8')
+        config_value_destroy(ep)
+        return endpoint

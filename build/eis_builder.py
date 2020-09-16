@@ -162,22 +162,22 @@ def json_parser(file, args):
 
     eis_config_path = "./provision/config/eis_config.json"
     # Fetching and merging individual App configs
-    for app_config in app_list:
+    for app_path in app_list:
         data = {}
-        with open(app_config + '/config.json', "rb") as infile:
+        with open(app_path + '/config.json', "rb") as infile:
             head = json.load(infile)
-            config_key = app_config.replace('.', '')
+            app_name = app_path.replace('.', '')
             # remove trailing '/'
-            config_key = config_key.rstrip('/')
+            app_name = app_name.rstrip('/')
             # Fetching AppName & succeeding it with "/"
-            config_key = config_key.split('/')[-1]
-            data['/' + config_key + '/config'] = head
+            app_name = app_name.split('/')[-1]
+            data['/' + app_name + '/config'] = head
             config_json = merge(config_json, data)
             # Fetching & appending interfaces if it exists
-            if os.path.isfile(app_config + '/interface.json'):
-                with open(app_config + '/interface.json', "rb") as infile:
+            if os.path.isfile(app_path + '/interface.json'):
+                with open(app_path + '/interface.json', "rb") as infile:
                     head = json.load(infile)
-                    data[config_key + '/interfaces'] = head
+                    data['/' + app_name + '/interfaces'] = head
                     config_json = merge(config_json, data)
 
     # Creating multiple boiler-plate app configs
