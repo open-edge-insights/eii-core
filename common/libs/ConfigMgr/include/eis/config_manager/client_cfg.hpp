@@ -24,8 +24,8 @@
  * @brief ConfigMgr interface
  */
 
-#ifndef _EIS_CH_SUBSCRIBER_CFG_H
-#define _EIS_CH_SUBSCRIBER_CFG_H
+#ifndef _EIS_CH_CLIENT_CFG_H
+#define _EIS_CH_CLIENT_CFG_H
 
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -34,63 +34,44 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/app_cfg.h"
+#include "eis/config_manager/app_cfg.hpp"
 
-#include "eis/config_manager/c_cfg_mgr.h"
+#include "eis/config_manager/cfg_mgr.h"
 
 namespace eis {
     namespace config_manager {
 
-        class SubscriberCfg : public AppCfg {
+        class ClientCfg: public AppCfg {
             private:
-                // sub_cfg_t object
-                sub_cfg_t* m_sub_cfg;
+                // client_cfg_t object
+                client_cfg_t* m_cli_cfg;
 
                 // app_cfg_t object
                 app_cfg_t* m_app_cfg;
             public:
                 /**
-                * SubscriberCfg Constructor
-                * @param sub_config - The config associated with a subscriber
+                * ClientCfg Constructor
+                * @param client_config - The config associated with a client
                 */
-                explicit SubscriberCfg();
+                explicit ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg);
 
                 /**
-                 * Overridden base class method to fetch msgbus subscriber configuration
+                 * Overridden base class method to fetch msgbus client configuration
                  * for application to communicate over EIS message bus
                  * @return config_t* - JSON msg bus server config of type config_t
-                 */
+                 */ 
                 config_t* getMsgBusConfig() override;
 
                 /**
                  * getEndpoint for application to fetch Endpoint associated with message bus config
-                 * @return std::string - Endpoint of subscriber config of type std::string
+                 * @return std::string - Endpoint of client config of type std::string
                  */
                 std::string getEndpoint() override;
 
                 /**
-                 * getTopics for application to fetch the topics associated with message bus config
-                 * @return vector<string> - Topics of subscriber config
-                 */
-                std::vector<std::string> getTopics() override;
-
-                /**
-                 * setTopics for application to set topics associated with message bus config
-                 * @param topics_list - List of topics to be set
-                 * @return bool - Boolean whether topics were set
-                 */
-                bool setTopics(std::vector<std::string> topics_list) override;
-
-                /**
-                * pub_cfg_t getter to get private m_pub_cfg
+                * client_cfg_t getter to get private m_pub_cfg
                 */
-                sub_cfg_t* getSubCfg();
-
-                /**
-                * sub_cfg_t setter
-                * @param sub_cfg - The sub_cfg to be set
-                */
-                void setSubCfg(sub_cfg_t* sub_cfg);
+                client_cfg_t* getCfg();
 
                 /**
                 * app_cfg_t getter to get private m_app_cfg
@@ -98,18 +79,11 @@ namespace eis {
                 app_cfg_t* getAppCfg();
 
                 /**
-                * app_cfg_t setter
-                * @param app_cfg - The app_cfg to be set
-                */
-                void setAppCfg(app_cfg_t* app_cfg);
-
-                /**
                 * Destructor
                 */
-                ~SubscriberCfg();
+                ~ClientCfg();
 
         };
-
     }
 }
 #endif

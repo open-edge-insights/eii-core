@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "eis/config_manager/config_mgr.h"
+#include "eis/config_manager/config_mgr.hpp"
 #include "eis/msgbus/msgbus.h"
 #include "eis/utils/logger.h"
 #include "eis/utils/json_config.h"
@@ -72,8 +72,6 @@ int main() {
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
 
-    setenv("KVStore", "etcd", 1);
-
     // In a dockerized environment,
     // these variables are set in environment
     setenv("DEV_MODE", "FALSE", 1);
@@ -81,7 +79,7 @@ int main() {
     setenv("CONFIGMGR_CERT", "", 1);
     setenv("CONFIGMGR_KEY", "", 1);
     setenv("CONFIGMGR_CACERT", "", 1);
-    
+
     // Uncomment below lines to test DEV mode
     // setenv("DEV_MODE", "TRUE", 1);
     // setenv("CONFIGMGR_CERT", "", 1);
@@ -91,7 +89,7 @@ int main() {
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* config_mgr = new ConfigMgr();
 
-    ServerCfg* server_ctx = config_mgr->getServerByName("echo_service");
+    ServerCfg* server_ctx = config_mgr->getServerByName("sample_server");
     config_t* config = server_ctx->getMsgBusConfig();
 
     g_msgbus_ctx = msgbus_initialize(config);

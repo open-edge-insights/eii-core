@@ -31,9 +31,6 @@ msgbus = None
 service = None
 
 try:
-    # Setting required end
-    os.environ["KVStore"] = "etcd"
-    
     # For DEV_MODE true tests
     # os.environ["DEV_MODE"] = "TRUE"
     # os.environ["CONFIGMGR_CERT"] = ""

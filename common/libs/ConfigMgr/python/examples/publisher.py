@@ -31,9 +31,6 @@ msgbus = None
 publisher = None
 
 try:
-    # Setting required end
-    os.environ["KVStore"] = "etcd"
-    
     # For DEV_MODE true tests
     # os.environ["DEV_MODE"] = "TRUE"
     # os.environ["CONFIGMGR_CERT"] = ""
@@ -53,12 +50,17 @@ try:
     config = pub_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(pub_ctx.get_endpoint()))
-    print('[INFO] Obtained topics is {}'.format(pub_ctx.get_topics()))
     print('[INFO] Obtained allowed clients is {}'.format(pub_ctx.get_allowed_clients()))
+    topics = pub_ctx.get_topics()
+    print('[INFO] Obtained topics is {}'.format(topics))
+    new_topics = ["camera2_stream_results", "camera3_stream_results", "camera4_stream_results"]
+    print('[INFO] Topics set {}'.format(pub_ctx.set_topics(new_topics)))
+    print('[INFO] Obtained new topics is {}'.format(pub_ctx.get_topics()))
     
+
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)
-    publisher = msgbus.new_publisher("camera2_stream_results")
+    publisher = msgbus.new_publisher(topics[0])
 
     print('[INFO] Running...')
     while True:

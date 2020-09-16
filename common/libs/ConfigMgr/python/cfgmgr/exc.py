@@ -21,17 +21,5 @@
 """
 
 
-class CreatingPublisherFailed(Exception):
-    pass
-
-
-class CreatingSubscriberFailed(Exception):
-    pass
-
-
-class CreatingServerFailed(Exception):
-    pass
-
-
-class CreatingClientFailed(Exception):
+class InitializationFailed(Exception):
     pass

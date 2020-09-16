@@ -23,8 +23,8 @@
  * Holds the implementaion of APIs supported by AppCfg class
  */
 
-#include "eis/config_manager/app_cfg.h"
-#include "eis/config_manager/c_cfg_mgr.h"
+#include "eis/config_manager/app_cfg.hpp"
+#include "eis/config_manager/cfg_mgr.h"
 
 using namespace eis::config_manager;
 using namespace std;
@@ -35,22 +35,38 @@ AppCfg::AppCfg(base_cfg_t* base_cfg) {
 }
 
 config_t* AppCfg::getConfig() {
-    m_conf = get_app_config(m_base_cfg);
-    return m_conf;
+    m_app_config = get_app_config(m_base_cfg);
+    if (m_app_config == NULL) {
+        LOG_ERROR_0("App Config not set");
+        return NULL;
+    }
+    return m_app_config;
 }
 
 config_t* AppCfg::getInterface() {
-    m_intfc = get_app_interface(m_base_cfg);
-    return m_intfc;
+    m_app_interface = get_app_interface(m_base_cfg);
+    if (m_app_interface == NULL) {
+        LOG_ERROR_0("App Interface not set");
+        return NULL;
+    }
+    return m_app_interface;
 }
 
 config_value_t* AppCfg::getConfigValue(char* key) {
     config_value_t* value = get_app_config_value(m_base_cfg, key);
+    if (value == NULL) {
+        LOG_ERROR_0("Unable to fetch config value");
+        return NULL;
+    }
     return value;
 }
 
 config_value_t* AppCfg::getInterfaceValue(char* key) {
     config_value_t* value = get_app_interface_value(m_base_cfg, key);
+    if (value == NULL) {
+        LOG_ERROR_0("Unable to fetch interface value");
+        return NULL;
+    }
     return value;
 }
 
@@ -90,13 +106,13 @@ vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
     std::string line(str);
     std::stringstream str1(line);
 
-    // Vector of string to save tokens 
+    // Vector of string to save tokens
     vector<std::string> tokens;
 
     std::string temp;
 
     // Tokenizing w.r.t. delimiter
-    while(getline(str1, temp, ':')) {
+    while (getline(str1, temp, ':')) {
         tokens.push_back(temp);
     }
 
@@ -105,14 +121,17 @@ vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
 
 
 AppCfg::~AppCfg() {
-    if(m_conf) {
-        delete m_conf;
+    if (m_app_config) {
+        config_destroy(m_app_config);
     }
-    if(m_intfc) {
-        delete m_intfc;
+    if (m_app_interface) {
+        config_destroy(m_app_interface);
     }
-    if(m_data_str) {
-        delete m_data_str;
+    if (m_app_data_store) {
+        config_destroy(m_app_data_store);
+    }
+    if (m_base_cfg) {
+        base_cfg_config_destroy(m_base_cfg);
     }
     LOG_INFO_0("ConfigMgr destructor");
 }

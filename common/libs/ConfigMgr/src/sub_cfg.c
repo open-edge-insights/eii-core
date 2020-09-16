@@ -24,106 +24,100 @@
  */
 
 
-#include "eis/config_manager/c_sub_cfg.h"
+#include "eis/config_manager/sub_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-char* get_endpoint_sub(base_cfg_t* base_cfg) {
-    config_value_t* sub_config = base_cfg->pub_sub_config;
-    // Fetching EndPoint from config
-    config_value_t* end_point = config_value_object_get(sub_config, "EndPoint");
-    char* ep = end_point->body.string;
+config_value_t* cfgmgr_get_endpoint_sub(base_cfg_t* base_cfg) {
+    config_value_t* ep = get_endpoint_base(base_cfg);
+    if (ep == NULL) {
+        LOG_ERROR_0("Endpoint not found");
+        return NULL;
+    }
     return ep;
 }
 
 // To fetch topics from config
-char** get_topics_sub(base_cfg_t* base_cfg) {
-    config_value_t* sub_config = base_cfg->pub_sub_config;
-    // Fetching Topics from config
-    config_value_t* list_of_topics = config_value_object_get(sub_config, "Topics");
-    config_value_t* topic_value;
-    char **topics_list = calloc(config_value_array_len(list_of_topics), sizeof(char*));
-    // Iterating through Topics and adding them to topics_list
-    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
-        topic_value = config_value_array_get(list_of_topics, i);
-        topics_list[i] = topic_value->body.string;
+config_value_t* cfgmgr_get_topics_sub(base_cfg_t* base_cfg) {
+    config_value_t* topics_list = get_topics_base(base_cfg);
+    if (topics_list == NULL) {
+        LOG_ERROR_0("topics_list initialization failed");
+        return NULL;
     }
     return topics_list;
 }
 
 // To set topics in config
-int set_topics_sub(char** topics_list, base_cfg_t* base_cfg) {
-
-    config_value_t* sub_config = base_cfg->pub_sub_config;
-
-    // Fetching topics
-    config_value_t* list_of_topics = config_value_object_get(sub_config, "Topics");
-    config_value_t* topic_value;
-    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
-        topic_value = config_value_array_get(list_of_topics, i);
-    }
-
-    // Creating cJSON object from topics to be set
-    cJSON* obj = cJSON_CreateArray();
-    for (char* c = *topics_list; c; c=*++topics_list) {
-        LOG_INFO("topic set : %s", c);
-        cJSON_AddItemToArray(obj, cJSON_CreateString(c));
-    }
-
-    // Creating config_value_t object from cJSON object
-    config_value_t* new_config_value = config_value_new_array(
-                (void*) obj, cJSON_GetArraySize(obj), get_array_item, NULL);
-
-    // Removing previously set topics
-    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
-        topic_value = config_value_array_get(list_of_topics, i);
-        topic_value->body.string = NULL;
-        list_of_topics->body.array->length = list_of_topics->body.array->length - 1;
-    }
-
-    // Setting topics
-    list_of_topics = new_config_value;
-    for (int i =0; i < config_value_array_len(list_of_topics); i++) {
-        topic_value = config_value_array_get(list_of_topics, i);
-    }
-    return 0;
+int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg) {
+    int result = set_topics_base(topics_list, len, SUBSCRIBERS, base_cfg);
+    return result;
 }
 
 // To fetch msgbus config
-config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
+config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
 
     // Initializing base_cfg variables
-    config_value_t* sub_config = base_cfg->pub_sub_config;
+    config_value_t* sub_config = base_cfg->msgbus_config;
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
+    if (c_json == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        return NULL;
+    }
 
     // Fetching Type from config
-    config_value_t* subscribe_json_type = config_value_object_get(sub_config, "Type");
+    config_value_t* subscribe_json_type = config_value_object_get(sub_config, TYPE);
+    if (subscribe_json_type == NULL) {
+        LOG_ERROR_0("subscribe_json_type initialization failed");
+        return NULL;
+    }
     char* type = subscribe_json_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* subscribe_json_endpoint = config_value_object_get(sub_config, "EndPoint");
+    config_value_t* subscribe_json_endpoint = config_value_object_get(sub_config, ENDPOINT);
+    if (subscribe_json_endpoint == NULL) {
+        LOG_ERROR_0("subscribe_json_endpoint initialization failed");
+        return NULL;
+    }
     char* end_point = subscribe_json_endpoint->body.string;
+
+    // Adding zmq_recv_hwm value
+    config_value_t* zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
+    if (zmq_recv_hwm_value != NULL) {
+        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+    }
 
     if(!strcmp(type, "zmq_ipc")){
         // Add Endpoint directly to socket_dir if IPC mode
         cJSON_AddStringToObject(c_json, "socket_dir", end_point);
-    } else if(!strcmp(type, "zmq_tcp")){
+    } else if(!strcmp(type, "zmq_tcp")) {
 
         // Fetching Topics from config
-        config_value_t* topic_array = config_value_object_get(sub_config, "Topics");
+        config_value_t* topic_array = config_value_object_get(sub_config, TOPICS);
+        if (topic_array == NULL) {
+            LOG_ERROR_0("topic_array initialization failed");
+            return NULL;
+        }
         config_value_t* topic;
             
         // Create cJSON object for every topic
         cJSON* sub_topic = cJSON_CreateObject();
+        if (sub_topic == NULL) {
+            LOG_ERROR_0("sub_topic initialization failed");
+            return NULL;
+        }
         for (int i = 0; i < config_value_array_len(topic_array); i++) {
             topic = config_value_array_get(topic_array, i);
+            if (topic == NULL) {
+                LOG_ERROR_0("topic initialization failed");
+                return NULL;
+            }
             // Add host & port to cJSON object
             char** host_port = get_host_port(end_point);
             char* host = host_port[0];
@@ -143,7 +137,11 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
             void *handle = m_kv_store_handle->init(m_kv_store_handle);
 
             // Fetching Topics from config
-            config_value_t* topic_array = config_value_object_get(sub_config, "Topics");
+            config_value_t* topic_array = config_value_object_get(sub_config, TOPICS);
+            if (topic_array == NULL) {
+                LOG_ERROR_0("topic_array initialization failed");
+                return NULL;
+            }
             config_value_t* topic;
 
             // Create cJSON object for every topic
@@ -151,10 +149,14 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
                 topic = config_value_array_get(topic_array, i);
 
                 // Fetching Publisher AppName from config
-                config_value_t* publisher_appname = config_value_object_get(sub_config, "AppName");
+                config_value_t* publisher_appname = config_value_object_get(sub_config, PUBLISHER_APPNAME);
+                if (publisher_appname == NULL) {
+                    LOG_ERROR_0("publisher_appname initialization failed");
+                    return NULL;
+                }
 
-                size_t init_len = strlen("/Publickeys/") + strlen(publisher_appname->body.string) + 2;
-                char* grab_public_key = concat_s(init_len, 2, "/Publickeys/", publisher_appname->body.string);
+                size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
+                char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);
                 const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
                 if(pub_public_key == NULL){
                     LOG_ERROR("Value is not found for the key: %s", grab_public_key);
@@ -164,8 +166,8 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
                 cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
 
                 // Adding Subscriber public key to config
-                init_len = strlen("/Publickeys/") + strlen(app_name) + 2;
-                char* s_sub_public_key = concat_s(init_len, 2, "/Publickeys/", app_name);
+                init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + 2;
+                char* s_sub_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
                 const char* sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
                 if(sub_public_key == NULL){
                     LOG_ERROR("Value is not found for the key: %s", s_sub_public_key);
@@ -174,8 +176,8 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
                 cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
 
                 // Adding Subscriber private key to config
-                init_len = strlen("/") + strlen(app_name) + strlen("/private_key") + 2;
-                char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, "/private_key");
+                init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
+                char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
                 const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
                 if(sub_pri_key == NULL){
                     LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
@@ -188,6 +190,10 @@ config_t* get_msgbus_config_sub(base_cfg_t* base_cfg) {
 
     // Constructing char* object from cJSON object
     char* config_value_cr = cJSON_Print(c_json);
+    if (config_value_cr == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        return NULL;
+    }
     LOG_DEBUG("Env subscriber Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
@@ -208,10 +214,10 @@ sub_cfg_t* sub_cfg_new() {
         LOG_ERROR_0("Malloc failed for sub_cfg_t");
         return NULL;
     }
-    sub_cfg_mgr->get_msgbus_config_sub = get_msgbus_config_sub;
-    sub_cfg_mgr->get_endpoint_sub = get_endpoint_sub;
-    sub_cfg_mgr->get_topics_sub = get_topics_sub;
-    sub_cfg_mgr->set_topics_sub = set_topics_sub;
+    sub_cfg_mgr->cfgmgr_get_msgbus_config_sub = cfgmgr_get_msgbus_config_sub;
+    sub_cfg_mgr->cfgmgr_get_endpoint_sub = cfgmgr_get_endpoint_sub;
+    sub_cfg_mgr->cfgmgr_get_topics_sub = cfgmgr_get_topics_sub;
+    sub_cfg_mgr->cfgmgr_set_topics_sub = cfgmgr_set_topics_sub;
     return sub_cfg_mgr;
 }
 

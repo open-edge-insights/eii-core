@@ -1,9 +1,9 @@
 {
     "Servers": [
         {
-            "Name": "echo_service",
+            "Name": "sample_server",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:66010",
+            "EndPoint": "127.0.0.1:9006",
             "AllowedClients": [
                 "VideoAnalytics"
             ]

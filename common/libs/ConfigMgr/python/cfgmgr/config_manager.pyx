@@ -23,6 +23,7 @@
 # Python imports
 from .exc import *
 import json
+import logging
 
 # Cython imports
 from .libneweisconfigmgr cimport *
@@ -56,15 +57,15 @@ cdef class ConfigMgr:
         """Deconstructor
         """
         if self.app_cfg != NULL:
-            self.app_cfg = NULL
+            app_cfg_config_destroy(self.app_cfg)
         if self.pub_cfg != NULL:
-            self.pub_cfg = NULL
+            pub_cfg_config_destroy(self.pub_cfg)
         if self.sub_cfg != NULL:
-            self.sub_cfg = NULL
+            sub_cfg_config_destroy(self.sub_cfg)
         if self.server_cfg != NULL:
-            self.server_cfg = NULL
+            server_cfg_config_destroy(self.server_cfg)
         if self.client_cfg != NULL:
-            self.client_cfg = NULL
+            client_cfg_config_destroy(self.client_cfg)
 
     def get_app_config(self):
         """Calling base C get_app_config in order to get the 
@@ -77,7 +78,7 @@ cdef class ConfigMgr:
         cdef char* config
 
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         conf = get_app_config(self.app_cfg.base_cfg)
         config = configt_to_char(conf)
@@ -98,7 +99,7 @@ cdef class ConfigMgr:
         cdef char* config
 
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         conf = get_app_interface(self.app_cfg.base_cfg)
         config = configt_to_char(conf)
@@ -118,12 +119,12 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         bname = bytes(name, 'utf-8')
-        self.pub_cfg = get_publisher_by_name(self.app_cfg, bname)
+        self.pub_cfg = cfgmgr_get_publisher_by_name(self.app_cfg, bname)
         if self.pub_cfg == NULL:
-            print("pub_cfg is NULL in config_manager")
+            logging.info("pub_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Publisher.create(self.app_cfg, self.pub_cfg)
@@ -138,11 +139,11 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
-        self.pub_cfg = get_publisher_by_index(self.app_cfg, index)
+        self.pub_cfg = cfgmgr_get_publisher_by_index(self.app_cfg, index)
         if self.pub_cfg == NULL:
-            print("pub_cfg is NULL in config_manager")
+            logging.info("pub_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Publisher.create(self.app_cfg, self.pub_cfg)
@@ -157,12 +158,12 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         bname = bytes(name, 'utf-8')
-        self.sub_cfg = get_subscriber_by_name(self.app_cfg, bname)
+        self.sub_cfg = cfgmgr_get_subscriber_by_name(self.app_cfg, bname)
         if self.sub_cfg == NULL:
-            print("sub_cfg is NULL in config_manager")
+            logging.info("sub_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Subscriber.create(self.app_cfg, self.sub_cfg)
@@ -177,11 +178,11 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
-        self.sub_cfg = get_subscriber_by_index(self.app_cfg, index)
+        self.sub_cfg = cfgmgr_get_subscriber_by_index(self.app_cfg, index)
         if self.sub_cfg == NULL:
-            print("sub_cfg is NULL in config_manager")
+            logging.info("sub_cfg is NULL in config_manager")
 
         # Create & return Subscriber object
         return Subscriber.create(self.app_cfg, self.sub_cfg)
@@ -196,12 +197,12 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         bname = bytes(name, 'utf-8')
-        self.server_cfg = get_server_by_name(self.app_cfg, bname)
+        self.server_cfg = cfgmgr_get_server_by_name(self.app_cfg, bname)
         if self.server_cfg == NULL:
-            print("server_cfg is NULL in config_manager")
+            logging.info("server_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Server.create(self.app_cfg, self.server_cfg)
@@ -216,11 +217,11 @@ cdef class ConfigMgr:
         :rtype : obj
         """
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
-        self.server_cfg = get_server_by_index(self.app_cfg, index)
+        self.server_cfg = cfgmgr_get_server_by_index(self.app_cfg, index)
         if self.server_cfg == NULL:
-            print("server_cfg is NULL in config_manager")
+            logging.info("server_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Server.create(self.app_cfg, self.server_cfg)
@@ -236,12 +237,12 @@ cdef class ConfigMgr:
         """
 
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
         bname = bytes(name, 'utf-8')
-        self.client_cfg = get_client_by_name(self.app_cfg, bname)
+        self.client_cfg = cfgmgr_get_client_by_name(self.app_cfg, bname)
         if self.client_cfg == NULL:
-            print("client_cfg is NULL in config_manager")
+            logging.info("client_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Client.create(self.app_cfg, self.client_cfg)
@@ -257,11 +258,11 @@ cdef class ConfigMgr:
         """
 
         if self.app_cfg == NULL:
-            print("app_cfg is NULL in config_manager")
+            logging.info("app_cfg is NULL in config_manager")
 
-        self.client_cfg = get_client_by_index(self.app_cfg, index)
+        self.client_cfg = cfgmgr_get_client_by_index(self.app_cfg, index)
         if self.client_cfg == NULL:
-            print("client_cfg is NULL in config_manager")
+            logging.info("client_cfg is NULL in config_manager")
 
         # Create & return Publisher object
         return Client.create(self.app_cfg, self.client_cfg)

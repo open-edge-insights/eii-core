@@ -24,62 +24,81 @@
  */
 
 
-#include "eis/config_manager/c_server_cfg.h"
+#include "eis/config_manager/server_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-char* get_endpoint_server(base_cfg_t* base_cfg) {
-    config_value_t* serv_config = base_cfg->pub_sub_config;
-    // Fetching EndPoint from config
-    config_value_t* end_point = config_value_object_get(serv_config, "EndPoint");
-    char* ep = end_point->body.string;
+config_value_t* cfgmgr_get_endpoint_server(base_cfg_t* base_cfg) {
+    config_value_t* ep = get_endpoint_base(base_cfg);
+    if (ep == NULL) {
+        LOG_ERROR_0("Endpoint not found");
+        return NULL;
+    }
     return ep;
 }
 
 // To fetch list of allowed clients from config
-char** get_allowed_clients_server(base_cfg_t* base_cfg) {
-    config_value_t* serv_config = base_cfg->pub_sub_config;
-    // Fetching AllowedClients from config
-    config_value_t* list_of_allowed_clients = config_value_object_get(serv_config, "AllowedClients");
-    config_value_t* value;
-    char **client_list = calloc(config_value_array_len(list_of_allowed_clients), sizeof(char*));
-    for (int i =0; i < config_value_array_len(list_of_allowed_clients); i++) {
-        value = config_value_array_get(list_of_allowed_clients, i);
-        client_list[i] = value->body.string;
+config_value_t* cfgmgr_get_allowed_clients_server(base_cfg_t* base_cfg) {
+    config_value_t* client_list = get_allowed_clients_base(base_cfg);
+    if (client_list == NULL) {
+        LOG_ERROR_0("client_list initialization failed");
+        return NULL;
     }
     return client_list;
 }
 
 // To fetch msgbus config
-config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
+config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
 
     // Initializing base_cfg variables
-    config_value_t* serv_config = base_cfg->pub_sub_config;
+    config_value_t* serv_config = base_cfg->msgbus_config;
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
+    if (c_json == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        return NULL;
+    }
 
     // Fetching Type from config
-    config_value_t* server_type = config_value_object_get(serv_config, "Type");
+    config_value_t* server_type = config_value_object_get(serv_config, TYPE);
+    if (server_type == NULL) {
+        LOG_ERROR_0("server_type initialization failed");
+        return NULL;
+    }
     char* type = server_type->body.string;
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Fetching EndPoint from config
-    config_value_t* server_endpoint = config_value_object_get(serv_config, "EndPoint");
+    config_value_t* server_endpoint = config_value_object_get(serv_config, ENDPOINT);
+    if (server_endpoint == NULL) {
+        LOG_ERROR_0("server_endpoint initialization failed");
+        return NULL;
+    }
     const char* end_point = server_endpoint->body.string;
 
-    if(!strcmp(type, "zmq_ipc")){
+    // Adding zmq_recv_hwm value
+    config_value_t* zmq_recv_hwm_value = config_value_object_get(serv_config, ZMQ_RECV_HWM);
+    if (zmq_recv_hwm_value != NULL) {
+        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+    }
+
+    if (!strcmp(type, "zmq_ipc")) {
         // Add Endpoint directly to socket_dir if IPC mode
         cJSON_AddStringToObject(c_json, "socket_dir", end_point);
-    } else if(!strcmp(type, "zmq_tcp")) {
+    } else if (!strcmp(type, "zmq_tcp")) {
 
         // Add host & port to zmq_tcp_publish cJSON object
         cJSON* echo_service = cJSON_CreateObject();
+        if (echo_service == NULL) {
+            LOG_ERROR_0("echo_service initialization failed");
+            return NULL;
+        }
         char** host_port = get_host_port(end_point);
         char* host = host_port[0];
         trim(host);
@@ -90,33 +109,78 @@ config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
         cJSON_AddStringToObject(echo_service, "host", host);
         cJSON_AddNumberToObject(echo_service, "port", i_port);
 
-        if(dev_mode != 0) {
+        if (dev_mode != 0) {
 
             // Initializing m_kv_store_handle to fetch public & private keys
             void *handle = m_kv_store_handle->init(m_kv_store_handle);
 
             // Fetching AllowedClients from config
-            config_value_t* server_json_clients = config_value_object_get(serv_config, "AllowedClients");
-            config_value_t* array_value;
-            cJSON* all_clients = cJSON_CreateArray();
-            for (int i =0; i < config_value_array_len(server_json_clients); i++) {
-                // Fetching individual public keys of all AllowedClients
-                array_value = config_value_array_get(server_json_clients, i);
-                size_t init_len = strlen("/Publickeys/") + strlen(array_value->body.string) + 2;
-                char* grab_public_key = concat_s(init_len, 2, "/Publickeys/", array_value->body.string);
-                const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
-                if(sub_public_key == NULL){
-                    LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+            config_value_t* server_json_clients = config_value_object_get(serv_config, ALLOWED_CLIENTS);
+            if (server_json_clients == NULL) {
+                LOG_ERROR_0("server_json_clients initialization failed");
+                return NULL;
+            }
+            // Fetch the first item in allowed_clients
+            config_value_t* temp_array_value = config_value_array_get(server_json_clients, 0);
+            if (temp_array_value == NULL) {
+                LOG_ERROR_0("temp_array_value initialization failed");
+                return NULL;
+            }
+            int result;
+            strcmp_s(temp_array_value->body.string, strlen(temp_array_value->body.string), "*", &result);
+            // If only one item in allowed_clients and it is *
+            // Add all available Publickeys
+            if ((config_value_array_len(server_json_clients) == 1) && (result == 0)) {
+                cJSON* all_clients = cJSON_CreateArray();
+                if (all_clients == NULL) {
+                    LOG_ERROR_0("all_clients initialization failed");
+                    return NULL;
                 }
-                cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
+                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys");
+                if (pub_key_values == NULL) {
+                    LOG_ERROR_0("pub_key_values initialization failed");
+                    return NULL;
+                }
+                config_value_t* value;
+                for (int i = 0; i < config_value_array_len(pub_key_values); i++) {
+                    value = config_value_array_get(pub_key_values, i);
+                    if (value == NULL) {
+                        LOG_ERROR_0("value initialization failed");
+                        return NULL;
+                    }
+                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
+                }
+                cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
+            } else {
+                config_value_t* array_value;
+                cJSON* all_clients = cJSON_CreateArray();
+                if (all_clients == NULL) {
+                    LOG_ERROR_0("all_clients initialization failed");
+                    return NULL;
+                }
+                for (int i =0; i < config_value_array_len(server_json_clients); i++) {
+                    // Fetching individual public keys of all AllowedClients
+                    array_value = config_value_array_get(server_json_clients, i);
+                    if (array_value == NULL) {
+                        LOG_ERROR_0("array_value initialization failed");
+                        return NULL;
+                    }
+                    size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
+                    char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+                    const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+                    if(sub_public_key == NULL){
+                        LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                    }
+
+                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
+                }
+                // Adding all public keys of clients to allowed_clients of config
+                cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
             }
 
-            // Adding all public keys of clients to allowed_clients of config
-            cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
-
             // Fetching Publisher private key & adding it to echo_service object
-            size_t init_len = strlen("/") + strlen("/private_key") + strlen(app_name) + 2;
-            char* pub_pri_key = concat_s(init_len, 3, "/", app_name, "/private_key");
+            size_t init_len = strlen("/") + strlen(PRIVATE_KEY) + strlen(app_name) + 2;
+            char* pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
             const char* server_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
             if(server_secret_key == NULL){
                 LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
@@ -129,6 +193,10 @@ config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
 
     // Constructing char* object from cJSON object
     char* config_value_cr = cJSON_Print(c_json);
+    if (config_value_cr == NULL) {
+        LOG_ERROR_0("config_value_cr initialization failed");
+        return NULL;
+    }
     LOG_DEBUG("Env server Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
@@ -145,19 +213,19 @@ config_t* get_msgbus_config_server(base_cfg_t* base_cfg) {
 server_cfg_t* server_cfg_new() {
     LOG_DEBUG_0("In server_cfg_new mthod");
     server_cfg_t *serv_cfg_mgr = (server_cfg_t *)malloc(sizeof(server_cfg_t));
-    if(serv_cfg_mgr == NULL) {
+    if (serv_cfg_mgr == NULL) {
         LOG_ERROR_0("Malloc failed for pub_cfg_t");
         return NULL;
     }
-    serv_cfg_mgr->get_msgbus_config_server = get_msgbus_config_server;
-    serv_cfg_mgr->get_endpoint_server = get_endpoint_server;
-    serv_cfg_mgr->get_allowed_clients_server = get_allowed_clients_server;
+    serv_cfg_mgr->cfgmgr_get_msgbus_config_server = cfgmgr_get_msgbus_config_server;
+    serv_cfg_mgr->cfgmgr_get_endpoint_server = cfgmgr_get_endpoint_server;
+    serv_cfg_mgr->cfgmgr_get_allowed_clients_server = cfgmgr_get_allowed_clients_server;
     return serv_cfg_mgr;
 }
 
 // function to destroy server_cfg_t
 void server_cfg_config_destroy(server_cfg_t *server_cfg_config) {
-    if(server_cfg_config != NULL) {
+    if (server_cfg_config != NULL) {
         free(server_cfg_config);
     }
 }

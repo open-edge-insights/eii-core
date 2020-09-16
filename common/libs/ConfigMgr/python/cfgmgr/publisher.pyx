@@ -21,6 +21,7 @@
 """
 
 import json
+import logging
 
 from .libneweisconfigmgr cimport *
 from libc.stdlib cimport malloc
@@ -66,9 +67,9 @@ cdef class Publisher:
         """Destroy the publisher.
         """
         if self.app_cfg != NULL:
-            self.app_cfg = NULL
+            app_cfg_config_destroy(self.app_cfg)
         if self.pub_cfg != NULL:
-            self.pub_cfg = NULL
+            pub_cfg_config_destroy(self.pub_cfg)
 
     def get_msgbus_config(self):
         """Calling the base C get_msgbus_config() API
@@ -77,32 +78,37 @@ cdef class Publisher:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.pub_cfg.get_msgbus_config(self.app_cfg.base_cfg)
+        new_config_new = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
 
     def get_endpoint(self):
-        """Calling the base C get_endpoint() API
+        """Calling the base C cfgmgr_get_endpoint_pub() API
 
         :return: Endpoint config
         :rtype: string
         """
-        # Calling the base C get_endpoint() API
-        ep = self.pub_cfg.get_endpoint(self.app_cfg.base_cfg)
-        return ep.decode('utf-8')
-    
+        cdef config_value_t* ep
+        ep = self.pub_cfg.cfgmgr_get_endpoint_pub(self.app_cfg.base_cfg)
+        endpoint = ep.body.string.decode('utf-8')
+        config_value_destroy(ep)
+        return endpoint
+        
     def get_topics(self):
-        """ Calling the base C get_topics() API
+        """ Calling the base C cfgmgr_get_topics_pub() API
         :return: List of topics
         :rtype: List
         """
-        topics = self.pub_cfg.get_topics(self.app_cfg.base_cfg)
         topics_list = []
-        i = 0
-        while topics[i] != NULL:
-            topics_list.append(topics[i].decode('utf-8'))
-            i += 1
+        cdef config_value_t* topics
+        topics = self.pub_cfg.cfgmgr_get_topics_pub(self.app_cfg.base_cfg)
+        cdef config_value_t* topic_value
+        for i in range(config_value_array_len(topics)):
+            topic_value = config_value_array_get(topics, i)
+            topics_list.append(topic_value.body.string.decode('utf-8'))
+            config_value_destroy(topic_value)
+        config_value_destroy(topics)
         return topics_list
 
     def get_allowed_clients(self):
@@ -111,27 +117,34 @@ cdef class Publisher:
         :return: List of clients
         :rtype: List
         """
-        topics = self.pub_cfg.get_allowed_clients(self.app_cfg.base_cfg)
         clients_list = []
-        i = 0
-        while topics[i] != NULL:
-            clients_list.append(topics[i].decode('utf-8'))
-            i += 1
+        cdef config_value_t* clients
+        clients = self.pub_cfg.cfgmgr_get_allowed_clients_pub(self.app_cfg.base_cfg)
+        cdef config_value_t* client_value
+        for i in range(config_value_array_len(clients)):
+            client_value = config_value_array_get(clients, i)
+            clients_list.append(client_value.body.string.decode('utf-8'))
+            config_value_destroy(client_value)
+        config_value_destroy(clients)
         return clients_list
 
-    # TODO: This API is segfaulting for unknown reasons, should be fixed soon
     def set_topics(self, topics_list):
+        """Calling the base C cfgmgr_set_topics_pub() API
+
+        :return: whether topic is set
+        :rtype: int
+        """
         cdef int topics_set
         cdef char** topics_to_be_set
         # Allocate memory
         topics_to_be_set = <char**>malloc(len(topics_list) * sizeof(char*))
         # Check if allocation went fine
         if topics_to_be_set is NULL:
-            print("Out of memory")
+            logging.info("Out of memory")
         # Convert str to char* and store it into our char**
         for i in range(len(topics_list)):
             topics_list[i] = topics_list[i].encode()
             topics_to_be_set[i] = topics_list[i]
-        # Calling the base C set_topics() API
-        topics_set = self.pub_cfg.set_topics(topics_to_be_set, self.app_cfg.base_cfg)
-        return 0
+        # Calling the base C cfgmgr_set_topics_pub() API
+        topics_set = self.pub_cfg.cfgmgr_set_topics_pub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg)
+        return topics_set

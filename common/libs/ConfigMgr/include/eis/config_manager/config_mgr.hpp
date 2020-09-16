@@ -34,11 +34,11 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
-#include "eis/config_manager/app_cfg.h"
-#include "eis/config_manager/publisher_cfg.h"
-#include "eis/config_manager/subscriber_cfg.h"
-#include "eis/config_manager/server_cfg.h"
-#include "eis/config_manager/client_cfg.h"
+#include "eis/config_manager/app_cfg.hpp"
+#include "eis/config_manager/publisher_cfg.hpp"
+#include "eis/config_manager/subscriber_cfg.hpp"
+#include "eis/config_manager/server_cfg.hpp"
+#include "eis/config_manager/client_cfg.hpp"
 
 
 namespace eis {

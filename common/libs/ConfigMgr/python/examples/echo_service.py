@@ -31,9 +31,6 @@ msgbus = None
 service = None
 
 try:
-    # Setting required end
-    os.environ["KVStore"] = "etcd"
-    
     # For DEV_MODE true tests
     # os.environ["DEV_MODE"] = "TRUE"
     # os.environ["CONFIGMGR_CERT"] = ""
@@ -48,7 +45,7 @@ try:
     os.environ["AppName"] = "VideoIngestion"
 
     ctx = cfg.ConfigMgr()
-    server_ctx = ctx.get_server_by_name("echo_service")
+    server_ctx = ctx.get_server_by_name("sample_server")
     config = server_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(server_ctx.get_endpoint()))

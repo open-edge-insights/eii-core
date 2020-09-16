@@ -22,13 +22,11 @@
  * @brief ConfigManager getvalue usage example
  */
 
-#include "eis/config_manager/config_mgr.h"
+#include "eis/config_manager/config_mgr.hpp"
 
 using namespace eis::config_manager;
 
-int main(){
-
-    setenv("KVStore", "etcd", 1);
+int main() {
 
     // In a dockerized environment,
     // these variables are set in environment
@@ -37,7 +35,7 @@ int main(){
     setenv("CONFIGMGR_CERT", "", 1);
     setenv("CONFIGMGR_KEY", "", 1);
     setenv("CONFIGMGR_CACERT", "", 1);
-    
+
     // Uncomment below lines to test DEV mode
     // setenv("DEV_MODE", "TRUE", 1);
     // setenv("CONFIGMGR_CERT", "", 1);

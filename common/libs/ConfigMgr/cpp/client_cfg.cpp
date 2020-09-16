@@ -23,22 +23,19 @@
  * Holds the implementaion of APIs supported by ClientCfg class
  */
 
-#include "eis/config_manager/client_cfg.h"
+#include "eis/config_manager/client_cfg.hpp"
 
 using namespace eis::config_manager;
 
 // Constructor
-ClientCfg::ClientCfg():AppCfg(NULL) {
+ClientCfg::ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {
+    m_cli_cfg = cli_cfg;
+    m_app_cfg = app_cfg;
 }
 
 // m_cli_cfg getter
-client_cfg_t* ClientCfg::getCliCfg() {
+client_cfg_t* ClientCfg::getCfg() {
     return m_cli_cfg;
-}
-
-// m_cli_cfg setter
-void ClientCfg::setCliCfg(client_cfg_t* cli_cfg) {
-    m_cli_cfg = cli_cfg;
 }
 
 // m_app_cfg getter
@@ -46,23 +43,28 @@ app_cfg_t* ClientCfg::getAppCfg() {
     return m_app_cfg;
 }
 
-// m_app_cfg setter
-void ClientCfg::setAppCfg(app_cfg_t* app_cfg) {
-    m_app_cfg = app_cfg;
-}
-
 // getMsgBusConfig of ClientCfg class
 config_t* ClientCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_client() API
-    config_t* cpp_client_config = m_cli_cfg->get_msgbus_config_client(m_app_cfg->base_cfg);
+    config_t* cpp_client_config = m_cli_cfg->cfgmgr_get_msgbus_config_client(m_app_cfg->base_cfg);
+    if (cpp_client_config == NULL) {
+        LOG_ERROR_0("Unable to fetch client msgbus config");
+        return NULL;
+    }
     return cpp_client_config;
 }
 
 // To fetch endpoint from config
 std::string ClientCfg::getEndpoint() {
     // Fetching EndPoint from config
-    char* ep = m_cli_cfg->get_endpoint_client(m_app_cfg->base_cfg);
-    std::string s(ep);
+    config_value_t* ep = m_cli_cfg->cfgmgr_get_endpoint_client(m_app_cfg->base_cfg);
+    if (ep == NULL) {
+        LOG_ERROR_0("Endpoint is not set");
+        return NULL;
+    }
+    std::string s(ep->body.string);
+    // Destroying ep
+    config_value_destroy(ep);
     return s;
 }
 
