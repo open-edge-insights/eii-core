@@ -165,20 +165,9 @@ def json_parser(file, args):
     for app_path in app_list:
         data = {}
         with open(app_path + '/config.json', "rb") as infile:
+            # Merging config & interfaces from all services
             head = json.load(infile)
-            app_name = app_path.replace('.', '')
-            # remove trailing '/'
-            app_name = app_name.rstrip('/')
-            # Fetching AppName & succeeding it with "/"
-            app_name = app_name.split('/')[-1]
-            data['/' + app_name + '/config'] = head
-            config_json = merge(config_json, data)
-            # Fetching & appending interfaces if it exists
-            if os.path.isfile(app_path + '/interface.json'):
-                with open(app_path + '/interface.json', "rb") as infile:
-                    head = json.load(infile)
-                    data['/' + app_name + '/interfaces'] = head
-                    config_json = merge(config_json, data)
+            config_json = merge(config_json, head)
 
     # Creating multiple boiler-plate app configs
     if args.override_directory is not None:
