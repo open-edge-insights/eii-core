@@ -138,7 +138,7 @@ cd $ConfigManager &&
 
 # Installing EISMessageBus C++ from DEB package
 cd $EISMessageBus &&
-   apt install ./eis-messagebus-2.3.0-Linux.deb
+   apt install ./eis-messagebus-2.4.0-Linux.deb
 
 # Installing EISMessageBus python
 cd $EISMessageBus/python &&
