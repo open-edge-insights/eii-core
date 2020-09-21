@@ -320,7 +320,7 @@ Provisioning EIS with CSL is done in 2 steps.
       
       * For Deleting the Node Affinity Label Key/Values.
         ```shss
-        $  curl -k -H "Content-type: applicatio/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
+        $  curl -k -H "Content-type: application/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
         ```
 
 ## Steps to enable FPGA
