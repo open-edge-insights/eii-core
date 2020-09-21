@@ -20,7 +20,6 @@
 
 /**
  * @brief EIS configuration interface unit tests
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 // NOTE: The configuration interface is tested using the JSON configuration

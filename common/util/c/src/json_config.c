@@ -19,7 +19,6 @@
 
 /**
  * @brief JSON configuration file utility implementation
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <stdio.h>

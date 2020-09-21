@@ -20,7 +20,6 @@
 
 /**
  * @brief dynlibload simple loading example
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <stdlib.h>

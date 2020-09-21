@@ -20,7 +20,6 @@
 
 /**
  * @brief dynlibload implementation
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <stdlib.h>

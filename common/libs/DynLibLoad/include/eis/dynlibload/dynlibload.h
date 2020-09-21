@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Library for dynamically loading shared libraries.
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #ifndef _EIS_DYNLIBLOAD_H

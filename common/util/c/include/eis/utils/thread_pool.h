@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Thread pool
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 #ifndef _EIS_THREAD_POOL_QUEUE_H
 #define _EIS_THREAD_POOL_QUEUE_H

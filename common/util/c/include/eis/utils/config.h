@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief EIS configuration interface
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 #ifndef _EIS_CONFIG_IFACE_H

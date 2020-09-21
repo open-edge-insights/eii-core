@@ -20,7 +20,6 @@
 
 /**
  * @brief Unit tests for logger
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <gtest/gtest.h>

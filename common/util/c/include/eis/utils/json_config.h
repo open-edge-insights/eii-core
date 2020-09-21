@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Utility function for using a JSON file as the mesage bus config
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #ifndef _EIS_UTILS_JSON_CONFIG_H

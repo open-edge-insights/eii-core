@@ -20,7 +20,6 @@
 
 /**
  * @brief EIS thread safe queue unit tests
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 #include <thread>

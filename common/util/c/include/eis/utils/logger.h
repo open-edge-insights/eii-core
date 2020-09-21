@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Logging primitives
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 #ifndef _EIS_UTIL_LOG_H

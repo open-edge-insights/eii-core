@@ -21,7 +21,6 @@
 /**
  * @file
  * @brief Thread safe queue implementation
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 #ifndef _EIS_THREAD_SAFE_QUEUE_H
 #define _EIS_THREAD_SAFE_QUEUE_H
