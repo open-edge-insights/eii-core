@@ -51,6 +51,8 @@ Visualizer/
 WebVisualizer/
 EISAzureBridge/
 common/video/
+CustomUdfs/
+EISZmqBroker/
 tools/
 Samples/
 *sample_app/
