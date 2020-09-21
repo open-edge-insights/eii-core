@@ -65,6 +65,13 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
         return NULL;
     }
 
+    // Fetching Name from name
+    config_value_t* server_name = config_value_object_get(serv_config, NAME);
+    if (server_name == NULL) {
+        LOG_ERROR_0("server_name initialization failed");
+        return NULL;
+    }
+
     // Fetching Type from config
     config_value_t* server_type = config_value_object_get(serv_config, TYPE);
     if (server_type == NULL) {
@@ -82,6 +89,27 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
     }
     const char* end_point = server_endpoint->body.string;
 
+    // // Over riding endpoint with SERVER_<Name>_ENDPOINT if set
+    size_t init_len = strlen("SERVER_") + strlen(server_name->body.string) + strlen("_ENDPOINT") + 2;
+    char* ep_override_env = concat_s(init_len, 3, "SERVER_", server_name->body.string, "_ENDPOINT");
+    char* ep_override = getenv(ep_override_env);
+    if (ep_override != NULL) {
+        if (strlen(ep_override) != 0) {
+            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            end_point = (const char*)ep_override;
+        }
+    }
+
+    // Over riding endpoint with SERVER_ENDPOINT if set
+    // Note: This overrides all the server endpoints if set
+    char* server_ep = getenv("SERVER_ENDPOINT");
+    if (server_ep != NULL) {
+        LOG_DEBUG_0("Over riding endpoint with SERVER_ENDPOINT");
+        if (strlen(server_ep) != 0) {
+            end_point = (const char*)server_ep;
+        }
+    }
+
     // Adding zmq_recv_hwm value
     config_value_t* zmq_recv_hwm_value = config_value_object_get(serv_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
@@ -94,9 +122,9 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
     } else if (!strcmp(type, "zmq_tcp")) {
 
         // Add host & port to zmq_tcp_publish cJSON object
-        cJSON* echo_service = cJSON_CreateObject();
-        if (echo_service == NULL) {
-            LOG_ERROR_0("echo_service initialization failed");
+        cJSON* server_topic = cJSON_CreateObject();
+        if (server_topic == NULL) {
+            LOG_ERROR_0("server_topic initialization failed");
             return NULL;
         }
         char** host_port = get_host_port(end_point);
@@ -106,8 +134,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
         trim(port);
         __int64_t i_port = atoi(port);
 
-        cJSON_AddStringToObject(echo_service, "host", host);
-        cJSON_AddNumberToObject(echo_service, "port", i_port);
+        cJSON_AddStringToObject(server_topic, "host", host);
+        cJSON_AddNumberToObject(server_topic, "port", i_port);
 
         if (dev_mode != 0) {
 
@@ -178,17 +206,18 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
                 cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
             }
 
-            // Fetching Publisher private key & adding it to echo_service object
+            // Fetching Publisher private key & adding it to server_topic object
             size_t init_len = strlen("/") + strlen(PRIVATE_KEY) + strlen(app_name) + 2;
             char* pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
             const char* server_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
-            if(server_secret_key == NULL){
+            if (server_secret_key == NULL) {
                 LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
             }
-            cJSON_AddStringToObject(echo_service, "server_secret_key", server_secret_key);
+            cJSON_AddStringToObject(server_topic, "server_secret_key", server_secret_key);
         }
         // Creating the final cJSON config object
-        cJSON_AddItemToObject(c_json, "echo_service", echo_service);
+        // server_name
+        cJSON_AddItemToObject(c_json, server_name->body.string, server_topic);
     }
 
     // Constructing char* object from cJSON object

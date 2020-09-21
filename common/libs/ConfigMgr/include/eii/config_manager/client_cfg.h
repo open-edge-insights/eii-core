@@ -26,6 +26,7 @@
 
 #include "eis/config_manager/base_cfg.h"
 #define TYPE "Type"
+#define NAME "Name"
 #define ENDPOINT "EndPoint"
 #define ZMQ_RECV_HWM "zmq_recv_hwm"
 #define SERVER_APPNAME "ServerAppName"

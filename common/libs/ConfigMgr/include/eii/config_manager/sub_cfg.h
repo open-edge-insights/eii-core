@@ -26,6 +26,7 @@
 
 #include "eis/config_manager/base_cfg.h"
 #define TYPE "Type"
+#define NAME "Name"
 #define ENDPOINT "EndPoint"
 #define SUBSCRIBERS "Subscribers"
 #define TOPICS "Topics"

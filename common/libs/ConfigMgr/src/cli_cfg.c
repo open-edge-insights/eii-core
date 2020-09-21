@@ -55,6 +55,13 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
         return NULL;
     }
 
+    // Fetching name from config
+    config_value_t* client_name = config_value_object_get(cli_config, NAME);
+    if (client_name == NULL) {
+        LOG_ERROR_0("client_name initialization failed");
+        return NULL;
+    }
+
     // Fetching Type from config
     config_value_t* client_type = config_value_object_get(cli_config, TYPE);
     if (client_type == NULL) {
@@ -72,6 +79,27 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
     }
     const char* end_point = client_endpoint->body.string;
 
+    // Over riding endpoint with CLIENT_<Name>_ENDPOINT if set
+    size_t init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_ENDPOINT") + 2;
+    char* ep_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_ENDPOINT");
+    char* ep_override = getenv(ep_override_env);
+    if (ep_override != NULL) {
+        if (strlen(ep_override) != 0) {
+            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            end_point = (const char*)ep_override;
+        }
+    }
+
+    // Over riding endpoint with CLIENT_ENDPOINT if set
+    // Note: This overrides all the client endpoints if set
+    char* client_ep = getenv("CLIENT_ENDPOINT");
+    if (client_ep != NULL) {
+        LOG_DEBUG_0("Over riding endpoint with CLIENT_ENDPOINT");
+        if (strlen(client_ep) != 0) {
+            end_point = (const char*)client_ep;
+        }
+    }
+
     // Adding zmq_recv_hwm value
     config_value_t* zmq_recv_hwm_value = config_value_object_get(cli_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
@@ -83,10 +111,10 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
         cJSON_AddStringToObject(c_json, "socket_dir", end_point);
     } else if (!strcmp(type, "zmq_tcp")) {
 
-        // Add host & port to echo_service cJSON object
-        cJSON* echo_service = cJSON_CreateObject();
-        if (echo_service == NULL) {
-            LOG_ERROR_0("echo_service object initialization failed");
+        // Add host & port to client_topic cJSON object
+        cJSON* client_topic = cJSON_CreateObject();
+        if (client_topic == NULL) {
+            LOG_ERROR_0("client_topic object initialization failed");
             return NULL;
         }
         char** host_port = get_host_port(end_point);
@@ -96,8 +124,8 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
         trim(port);
         __int64_t i_port = atoi(port);
 
-        cJSON_AddStringToObject(echo_service, "host", host);
-        cJSON_AddNumberToObject(echo_service, "port", i_port);
+        cJSON_AddStringToObject(client_topic, "host", host);
+        cJSON_AddNumberToObject(client_topic, "port", i_port);
 
         if(dev_mode != 0) {
 
@@ -119,7 +147,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
                 LOG_ERROR("Value is not found for the key: %s", retreive_server_pub_key);
             }
 
-            cJSON_AddStringToObject(echo_service, "server_public_key", server_public_key);
+            cJSON_AddStringToObject(client_topic, "server_public_key", server_public_key);
 
             // Adding client public key to config
             init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + strlen(app_name) + 2;
@@ -129,7 +157,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
                 LOG_ERROR("Value is not found for the key: %s", s_client_public_key);
             }
 
-            cJSON_AddStringToObject(echo_service, "client_public_key", sub_public_key);
+            cJSON_AddStringToObject(client_topic, "client_public_key", sub_public_key);
 
             // Adding client private key to config
             init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
@@ -139,10 +167,10 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
                 LOG_ERROR("Value is not found for the key: %s", s_client_pri_key);
             }
 
-            cJSON_AddStringToObject(echo_service, "client_secret_key", sub_pri_key);
+            cJSON_AddStringToObject(client_topic, "client_secret_key", sub_pri_key);
         }
         // Creating the final cJSON config object
-        cJSON_AddItemToObject(c_json, "echo_service", echo_service);
+        cJSON_AddItemToObject(c_json, client_name->body.string, client_topic);
     }
 
     char* config_value = cJSON_Print(c_json);
