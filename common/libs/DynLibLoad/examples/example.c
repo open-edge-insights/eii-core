@@ -20,7 +20,6 @@
 
 /**
  * @brief Simple example library to load
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <stdio.h>

@@ -20,7 +20,6 @@
 
 /**
  * @brief Config Manager GTests unit tests
- * @author Varalakshmi KA (varalakshmi.ka@intel.com)
  */
 
 #include <gtest/gtest.h>

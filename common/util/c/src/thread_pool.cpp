@@ -20,7 +20,6 @@
 
 /**
  * @brief @c ThreadPool implementation
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include "eis/utils/thread_pool.h"

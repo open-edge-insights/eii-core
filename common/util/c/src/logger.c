@@ -20,7 +20,6 @@
 
 /**
  * @brief EIS logger implementation
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 #include "eis/utils/logger.h"

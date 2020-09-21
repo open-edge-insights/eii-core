@@ -20,7 +20,6 @@
 
 /**
  * @brief EIS configuration interface implementation
- * @author Kevin Midkiff <kevin.midkiff@intel.com>
  */
 
 #include <string.h>

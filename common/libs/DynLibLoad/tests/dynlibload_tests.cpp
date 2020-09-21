@@ -20,7 +20,6 @@
 
 /**
  * @brief dynlibload GTests unit tests
- * @author Kevin Midkiff (kevin.midkiff@intel.com)
  */
 
 #include <gtest/gtest.h>
