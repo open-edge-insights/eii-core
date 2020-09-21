@@ -91,6 +91,12 @@ int main() {
     ClientCfg* client_ctx = ch->getClientByName("default");
     config_t* config = client_ctx->getMsgBusConfig();
 
+    AppCfg* cfg = ch->getAppConfig();
+    config_value_t* app_config = cfg->getInterfaceValue("Clients");
+    config_value_t* cli_config = config_value_array_get(app_config, 0);
+    config_value_t* cli_name = config_value_object_get(cli_config, "Name");
+    char* name = cli_name->body.string;
+
     // Initailize request
     msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
     msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
@@ -107,7 +113,7 @@ int main() {
     }
 
     ret = msgbus_service_get(
-            g_msgbus_ctx, SERVICE_NAME, NULL, &g_service_ctx);
+            g_msgbus_ctx, name, NULL, &g_service_ctx);
     if(ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize service (errno: %d)", ret);
         goto err;

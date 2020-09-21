@@ -91,6 +91,11 @@ int main() {
 
     ServerCfg* server_ctx = config_mgr->getServerByName("sample_server");
     config_t* config = server_ctx->getMsgBusConfig();
+    AppCfg* cfg = config_mgr->getAppConfig();
+    config_value_t* app_config = cfg->getInterfaceValue("Servers");
+    config_value_t* serv_config = config_value_array_get(app_config, 0);
+    config_value_t* serv_name = config_value_object_get(serv_config, "Name");
+    char* name = serv_name->body.string;
 
     g_msgbus_ctx = msgbus_initialize(config);
     if(g_msgbus_ctx == NULL) {
@@ -99,7 +104,7 @@ int main() {
     }
 
     ret = msgbus_service_new(
-            g_msgbus_ctx, SERVICE_NAME, NULL, &g_service_ctx);
+            g_msgbus_ctx, name, NULL, &g_service_ctx);
     if(ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize service (errno: %d)", ret);
         goto err;

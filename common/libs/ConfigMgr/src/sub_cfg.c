@@ -87,6 +87,34 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
     }
     char* end_point = subscribe_json_endpoint->body.string;
 
+    // Fetching Name from config
+    config_value_t* subscribe_json_name = config_value_object_get(sub_config, NAME);
+    if (subscribe_json_name == NULL) {
+        LOG_ERROR_0("subscribe_json_name initialization failed");
+        return NULL;
+    }
+
+    // Over riding endpoint with SUBSCRIBER_<Name>_ENDPOINT if set
+    size_t init_len = strlen("SUBSCRIBER_") + strlen(subscribe_json_name->body.string) + strlen("_ENDPOINT") + 2;
+    char* ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_json_name->body.string, "_ENDPOINT");
+    char* ep_override = getenv(ep_override_env);
+    if (ep_override != NULL) {
+        if (strlen(ep_override) != 0) {
+            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            end_point = (const char*)ep_override;
+        }
+    }
+
+    // Over riding endpoint with SUBSCRIBER_ENDPOINT if set
+    // Note: This overrides all the subscriber endpoints if set
+    char* subscriber_ep = getenv("SUBSCRIBER_ENDPOINT");
+    if (subscriber_ep != NULL) {
+        LOG_DEBUG_0("Over riding endpoint with SUBSCRIBER_ENDPOINT");
+        if (strlen(subscriber_ep) != 0) {
+            end_point = (const char*)subscriber_ep;
+        }
+    }
+
     // Adding zmq_recv_hwm value
     config_value_t* zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
