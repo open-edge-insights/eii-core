@@ -588,6 +588,30 @@ app_cfg_t* app_cfg_new() {
         goto err;
     }
 
+    // Fetching GlobalEnv
+    char* env_var = kv_store_client->get(handle, "/GlobalEnv/");
+    if (env_var == NULL) {
+        LOG_ERROR_0("Value is not found for the key /GlobalEnv/");
+        goto err;
+    }
+    // Creating cJSON of /GlobalEnv/ to iterate over a loop
+    cJSON* env_json = cJSON_Parse(env_var);
+    if (env_json == NULL) {
+        LOG_ERROR("Error when parsing JSON: %s", cJSON_GetErrorPtr());
+        return NULL;
+    }
+    int env_vars_count = cJSON_GetArraySize(env_json);
+    // Looping over env vars and setting them in env
+    for (int i = 0; i < env_vars_count; i++) {
+        cJSON *temp = cJSON_GetArrayItem(env_json, i);
+        int env_set = setenv(temp->string, temp->valuestring, 1);
+        if (env_set != 0) {
+            LOG_ERROR("Failed to set env %s", temp->string);
+        }
+    }
+    cJSON_Delete(env_json);
+    free(env_var);
+
     config_t* app_config = json_config_new_from_buffer(value);
     if (app_config == NULL) {
         LOG_ERROR_0("app_config initialization failed");
@@ -637,6 +661,9 @@ err:
     }
     if (value != NULL) {
         free(value);
+    }
+    if (env_var != NULL) {
+        free(env_var);
     }
     return NULL;
 }
