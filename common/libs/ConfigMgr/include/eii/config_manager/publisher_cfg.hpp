@@ -73,6 +73,14 @@ namespace eis {
                 std::string getEndpoint() override;
 
                 /**
+                 * Overridden base class method to fetch interface value
+                 * for application to communicate over EIS message bus
+                 * @param key - Key on which interface value is extracted.
+                 * @return config_value_t* - config_value_t object
+                 */
+                config_value_t* getInterfaceValue(const char* key) override;
+
+                /**
                  * getTopics for application to fetch the topics associated with message bus config
                  * @return vector<string> - Topics of publisher config
                  */

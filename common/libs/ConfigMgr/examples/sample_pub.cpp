@@ -136,6 +136,15 @@ int main(int argc, char** argv) {
 
     PublisherCfg* pub_ctx_va = pub_ch_va->getPublisherByName("Image_Metadata");
     config_t* pub_config_va = pub_ctx_va->getMsgBusConfig();
+
+    config_value_t* interface_value = pub_ctx_va->getInterfaceValue("Name");
+    if (interface_value == NULL || interface_value->type != CVT_STRING){
+        LOG_ERROR_0("Failed to get expected interface value");
+        goto err;
+    }
+    
+    LOG_INFO("interface value is %s", interface_value->body.string);
+
     topics = pub_ctx_va->getTopics();
 
     // Initializing Publisher using pub_config obtained

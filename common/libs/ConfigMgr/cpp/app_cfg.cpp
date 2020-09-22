@@ -61,43 +61,44 @@ config_value_t* AppCfg::getConfigValue(char* key) {
     return value;
 }
 
-config_value_t* AppCfg::getInterfaceValue(char* key) {
-    config_value_t* value = get_app_interface_value(m_base_cfg, key);
-    if (value == NULL) {
-        LOG_ERROR_0("Unable to fetch interface value");
-        return NULL;
-    }
-    return value;
-}
 
 // This virtual method is implemented
 // by sub class objects
 config_t* AppCfg::getMsgBusConfig() {
-
+    return NULL;
 }
 
 // This virtual method is implemented
 // by sub class objects
 std::string AppCfg::getEndpoint() {
+    return NULL;
+}
 
+// This virtual method is implemented
+// by sub class objects
+config_value_t* AppCfg::getInterfaceValue(const char* key){
+    return NULL;
 }
 
 // This virtual method is implemented
 // by sub class objects
 std::vector<std::string> AppCfg::getTopics() {
+    std::vector <std::string> temp; 
+    return temp; 
 
 }
 
 // This virtual method is implemented
 // by sub class objects
 std::vector<std::string> AppCfg::getAllowedClients() {
-
+    std::vector <std::string> temp; 
+    return temp; 
 }
 
 // This virtual method is implemented
 // by sub class objects
 bool AppCfg::setTopics(std::vector<std::string> topics_list) {
-
+    return NULL;
 }
 
 // tokenizer function to split string based on delimiter

@@ -39,6 +39,10 @@ config_value_t* cfgmgr_get_endpoint_pub(base_cfg_t* base_cfg) {
     return ep;
 }
 
+config_value_t* cfgmgr_get_interface_value_pub(base_cfg_t* base_cfg, const char* key) {
+    return config_value_object_get(base_cfg->msgbus_config, key);
+}
+
 // To fetch topics from config
 config_value_t* cfgmgr_get_topics_pub(base_cfg_t* base_cfg) {
     config_value_t* topics_list = get_topics_base(base_cfg);
@@ -252,6 +256,7 @@ pub_cfg_t* pub_cfg_new() {
         return NULL;
     }
     pub_cfg_mgr->cfgmgr_get_msgbus_config_pub = cfgmgr_get_msgbus_config_pub;
+    pub_cfg_mgr->cfgmgr_get_interface_value_pub = cfgmgr_get_interface_value_pub;
     pub_cfg_mgr->cfgmgr_get_endpoint_pub = cfgmgr_get_endpoint_pub;
     pub_cfg_mgr->cfgmgr_get_topics_pub = cfgmgr_get_topics_pub;
     pub_cfg_mgr->cfgmgr_set_topics_pub = cfgmgr_set_topics_pub;

@@ -50,6 +50,11 @@ config_t* ServerCfg::getMsgBusConfig() {
     return server_config;
 }
 
+// Get the Interface Value of Server.
+config_value_t* ServerCfg::getInterfaceValue(const char* key){
+    return m_serv_cfg->cfgmgr_get_interface_value_server(m_app_cfg->base_cfg, key);
+}
+
 // To fetch endpoint from config
 std::string ServerCfg::getEndpoint() {
     // Calling the base C get_endpoint_server() API

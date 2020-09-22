@@ -49,6 +49,10 @@ config_value_t* cfgmgr_get_topics_sub(base_cfg_t* base_cfg) {
     return topics_list;
 }
 
+config_value_t* cfgmgr_get_interface_value_sub(base_cfg_t* base_cfg, const char* key) {
+    return config_value_object_get(base_cfg->msgbus_config, key);
+}
+
 // To set topics in config
 int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg) {
     int result = set_topics_base(topics_list, len, SUBSCRIBERS, base_cfg);
@@ -244,6 +248,7 @@ sub_cfg_t* sub_cfg_new() {
     }
     sub_cfg_mgr->cfgmgr_get_msgbus_config_sub = cfgmgr_get_msgbus_config_sub;
     sub_cfg_mgr->cfgmgr_get_endpoint_sub = cfgmgr_get_endpoint_sub;
+    sub_cfg_mgr->cfgmgr_get_interface_value_sub = cfgmgr_get_interface_value_sub;
     sub_cfg_mgr->cfgmgr_get_topics_sub = cfgmgr_get_topics_sub;
     sub_cfg_mgr->cfgmgr_set_topics_sub = cfgmgr_set_topics_sub;
     return sub_cfg_mgr;
