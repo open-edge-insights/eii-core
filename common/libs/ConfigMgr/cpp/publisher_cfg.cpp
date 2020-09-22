@@ -55,6 +55,11 @@ config_t* PublisherCfg::getMsgBusConfig() {
     return pub_config;
 }
 
+// Get the Interface Value of Publisher.
+config_value_t* PublisherCfg::getInterfaceValue(const char* key){
+    return m_pub_cfg->cfgmgr_get_interface_value_pub(m_app_cfg->base_cfg, key);
+}
+
 // To fetch endpoint from config
 std::string PublisherCfg::getEndpoint() {
     // Calling the base C get_endpoint() API

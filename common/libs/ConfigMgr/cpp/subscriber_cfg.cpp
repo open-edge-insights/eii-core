@@ -55,6 +55,11 @@ config_t* SubscriberCfg::getMsgBusConfig() {
     return sub_config;
 }
 
+// Get the Interface Value of Subscriber.
+config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
+    return m_sub_cfg->cfgmgr_get_interface_value_sub(m_app_cfg->base_cfg, key);
+}
+
 // To fetch endpoint from config
 std::string SubscriberCfg::getEndpoint() {
     // Calling the base C get_endpoint_sub() API

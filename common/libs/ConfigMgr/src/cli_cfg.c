@@ -39,6 +39,10 @@ config_value_t* cfgmgr_get_endpoint_client(base_cfg_t* base_cfg) {
     return ep;
 }
 
+config_value_t* cfgmgr_get_interface_value_client(base_cfg_t* base_cfg, const char* key) {
+    return config_value_object_get(base_cfg->msgbus_config, key);
+}
+
 // function to get msgbus config for client
 config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
 
@@ -199,6 +203,7 @@ client_cfg_t* client_cfg_new() {
         return NULL;
     }
     cli_cfg_mgr->cfgmgr_get_msgbus_config_client = cfgmgr_get_msgbus_config_client;
+    cli_cfg_mgr->cfgmgr_get_interface_value_client = cfgmgr_get_interface_value_client;
     cli_cfg_mgr->cfgmgr_get_endpoint_client = cfgmgr_get_endpoint_client;
     return cli_cfg_mgr;
 }

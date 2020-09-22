@@ -49,6 +49,10 @@ config_value_t* cfgmgr_get_allowed_clients_server(base_cfg_t* base_cfg) {
     return client_list;
 }
 
+config_value_t* cfgmgr_get_interface_value_server(base_cfg_t* base_cfg, const char* key) {
+    return config_value_object_get(base_cfg->msgbus_config, key);
+}
+
 // To fetch msgbus config
 config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
 
@@ -247,6 +251,7 @@ server_cfg_t* server_cfg_new() {
         return NULL;
     }
     serv_cfg_mgr->cfgmgr_get_msgbus_config_server = cfgmgr_get_msgbus_config_server;
+    serv_cfg_mgr->cfgmgr_get_interface_value_server = cfgmgr_get_interface_value_server;
     serv_cfg_mgr->cfgmgr_get_endpoint_server = cfgmgr_get_endpoint_server;
     serv_cfg_mgr->cfgmgr_get_allowed_clients_server = cfgmgr_get_allowed_clients_server;
     return serv_cfg_mgr;

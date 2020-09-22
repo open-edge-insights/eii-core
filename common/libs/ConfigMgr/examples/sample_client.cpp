@@ -73,6 +73,10 @@ int main() {
     int num_parts = 0;
     msgbus_ret_t ret = MSG_SUCCESS;
 
+    // Initailize request
+    msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
+    msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
+
     setenv("DEV_MODE", "FALSE", 1);
     // Replace 2nd parameter with path to certs
     setenv("CONFIGMGR_CERT", "", 1);
@@ -91,15 +95,19 @@ int main() {
     ClientCfg* client_ctx = ch->getClientByName("default");
     config_t* config = client_ctx->getMsgBusConfig();
 
-    AppCfg* cfg = ch->getAppConfig();
-    config_value_t* app_config = cfg->getInterfaceValue("Clients");
-    config_value_t* cli_config = config_value_array_get(app_config, 0);
-    config_value_t* cli_name = config_value_object_get(cli_config, "Name");
-    char* name = cli_name->body.string;
-
-    // Initailize request
-    msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
-    msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
+    char* name = NULL;
+    config_value_t* interface_value = client_ctx->getInterfaceValue("Name");
+    if (interface_value == NULL || interface_value->type != CVT_STRING){
+        LOG_ERROR_0("Failed to get expected interface value");
+        goto err;
+    }
+    if (interface_value->type != CVT_STRING) {
+        LOG_ERROR_0("interface_value type is not string");
+        goto err;
+    }
+    name = interface_value->body.string;
+    
+    LOG_INFO("interface value is %s", name);
 
     if(config == NULL) {
         LOG_ERROR_0("Failed to load JSON configuration");

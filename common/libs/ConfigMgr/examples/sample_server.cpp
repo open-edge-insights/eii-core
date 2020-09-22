@@ -91,11 +91,17 @@ int main() {
 
     ServerCfg* server_ctx = config_mgr->getServerByName("sample_server");
     config_t* config = server_ctx->getMsgBusConfig();
-    AppCfg* cfg = config_mgr->getAppConfig();
-    config_value_t* app_config = cfg->getInterfaceValue("Servers");
-    config_value_t* serv_config = config_value_array_get(app_config, 0);
-    config_value_t* serv_name = config_value_object_get(serv_config, "Name");
-    char* name = serv_name->body.string;
+
+    char* name = NULL;
+    config_value_t* interface_value = server_ctx->getInterfaceValue("Name");
+    if (interface_value == NULL || interface_value->type != CVT_STRING){
+        LOG_ERROR_0("Failed to get expected interface value");
+        goto err;
+    }
+
+    name = interface_value->body.string;
+    
+    LOG_INFO("interface value is %s", name);
 
     g_msgbus_ctx = msgbus_initialize(config);
     if(g_msgbus_ctx == NULL) {

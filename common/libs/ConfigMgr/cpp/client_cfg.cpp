@@ -54,6 +54,11 @@ config_t* ClientCfg::getMsgBusConfig() {
     return cpp_client_config;
 }
 
+// Get the Interface Value of Client.
+config_value_t* ClientCfg::getInterfaceValue(const char* key){
+    return m_cli_cfg->cfgmgr_get_interface_value_client(m_app_cfg->base_cfg, key);
+}
+
 // To fetch endpoint from config
 std::string ClientCfg::getEndpoint() {
     // Fetching EndPoint from config

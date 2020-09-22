@@ -111,6 +111,15 @@ int main(int argc, char** argv) {
 
     SubscriberCfg* sub_ctx_vis = sub_ch_vis->getSubscriberByName("Cam2_Results");
     config_t* sub_config_vis = sub_ctx_vis->getMsgBusConfig();
+
+    config_value_t* interface_value = sub_ctx_vis->getInterfaceValue("Name");
+    if (interface_value == NULL || interface_value->type != CVT_STRING){
+        LOG_ERROR_0("Failed to get expected interface value");
+        goto err;
+    }
+    
+    LOG_INFO("interface value is %s", interface_value->body.string);
+
     topics = sub_ctx_vis->getTopics();
 
     // Initializing Subscriber using sub_config obtained

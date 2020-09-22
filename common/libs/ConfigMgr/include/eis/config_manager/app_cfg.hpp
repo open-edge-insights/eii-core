@@ -103,13 +103,6 @@ namespace eis {
                 config_value_t* getConfigValue(char* key);
 
                 /**
-                 * Gets value from interface
-                 * @param key - Key for which value is needed
-                 * @return config_value_t* - config_value_t object
-                 */
-                config_value_t* getInterfaceValue(char* key);
-
-                /**
                  * Get msgbus configuration for application to communicate over EIS message bus
                  * @return config_t* - JSON msg bus server config of type config_t
                  */ 
@@ -120,6 +113,13 @@ namespace eis {
                  * @return std::string - Endpoint of associated config of type std::string
                  */
                 virtual std::string getEndpoint();
+
+                /**
+                 * virtual function that gets value from interface
+                 * @param key - Key for which value is needed
+                 * @return config_value_t* - config_value_t object
+                 */
+                virtual config_value_t* getInterfaceValue(const char* key);
 
                 /**
                  * virtual getTopics function implemented by child classes to fetch topics

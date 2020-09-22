@@ -44,6 +44,8 @@ typedef struct {
 
     config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg);
 
+    config_value_t* (*cfgmgr_get_interface_value_server)(base_cfg_t* base_cfg, const char* key);
+
     config_value_t* (*cfgmgr_get_endpoint_server)(base_cfg_t* base_cfg);
 
     config_value_t* (*cfgmgr_get_allowed_clients_server)(base_cfg_t* base_cfg);
