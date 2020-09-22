@@ -169,6 +169,30 @@ config_t* get_app_interface(base_cfg_t* base_cfg) {
     return base_cfg->m_app_interface;
 }
 
+// base C function to watch on a given key
+void cfgmgr_watch(base_cfg_t* base_cfg, char* key, callback_t watch_callback, void* user_data) {
+    // Initializing kv_store_client handle
+    void *handle = base_cfg->m_kv_store_handle->init(base_cfg->m_kv_store_handle);
+    if (handle == NULL) {
+        LOG_ERROR_0("kv_store_client handle initialization failed");
+        return;
+    }
+    base_cfg->m_kv_store_handle->watch(handle, key, watch_callback, user_data);
+    return;
+}
+
+// base C function to watch on a given key prefix
+void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_callback, void* user_data) {
+    // Initializing kv_store_client handle
+    void *handle = base_cfg->m_kv_store_handle->init(base_cfg->m_kv_store_handle);
+    if (handle == NULL) {
+        LOG_ERROR_0("kv_store_client handle initialization failed");
+        return;
+    }
+    base_cfg->m_kv_store_handle->watch_prefix(handle, prefix, watch_callback, user_data);
+    return;
+}
+
 // base C function to fetch app config value
 config_value_t* get_app_config_value(base_cfg_t* base_cfg, char* key) {
     return base_cfg->m_app_config->get_config_value(base_cfg->m_app_config->cfg, key);

@@ -22,9 +22,21 @@
  * @brief ConfigManager getvalue usage example
  */
 
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include "eis/config_manager/config_mgr.hpp"
 
 using namespace eis::config_manager;
+
+void watch_config_example(char* key, char* value, void *user_data) {
+    LOG_INFO("Callback triggered for change in App config, obtained user data: %d", (int *)(user_data));
+}
+
+void watch_interface_example(char* key, char* value, void *user_data) {
+    LOG_INFO("Callback triggered for change in App interfaces, obtained user data: %d", (int *)(user_data));
+}
 
 int main() {
 
@@ -42,6 +54,9 @@ int main() {
     // setenv("CONFIGMGR_KEY", "", 1);
     // setenv("CONFIGMGR_CACERT", "", 1);
 
+    // Set log level
+    set_log_level(LOG_LVL_DEBUG);
+
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* config_mgr = new ConfigMgr();
     AppCfg* cfg = config_mgr->getAppConfig();
@@ -54,30 +69,6 @@ int main() {
     }
     int max_workers = app_config->body.integer;
     LOG_INFO("max_workers value is %d\n", max_workers);
-
-    app_config = cfg->getConfigValue("max_jobs");
-    if (app_config->type != CVT_FLOATING) {
-        LOG_ERROR_0("max_jobs is not float");
-        exit(1);
-    }
-    float max_jobs = app_config->body.floating;
-    LOG_INFO("max_jobs value is %.2f\n", max_jobs);
-
-    app_config = cfg->getConfigValue("string");
-    if (app_config->type != CVT_STRING) {
-        LOG_ERROR_0("string type is is not string");
-        exit(1);
-    }
-    char* string_value = app_config->body.string;
-    LOG_INFO("string value is %s\n", string_value); 
-
-    app_config = cfg->getConfigValue("loop_video");
-    if (app_config->type != CVT_BOOLEAN) {
-        LOG_ERROR_0("loop_video type is is not boolean");
-        exit(1);
-    }
-    bool loop_video = app_config->body.boolean;
-    (loop_video) ? printf("loop_video is true\n") : printf("loop_video is false\n");
 
     app_config = cfg->getConfigValue("ingestor");
     if (app_config->type != CVT_OBJECT) {
@@ -97,6 +88,17 @@ int main() {
     config_value_t* udf_type = config_value_object_get(udf, "type");
     type = udf_type->body.string;
     LOG_INFO("udf_type value is %s\n", type);
+
+    bool ret = cfg->watchConfig(watch_config_example, (void*)1);
+    if (!ret) {
+        LOG_ERROR_0("Failed to register callback");
+    }
+    ret = cfg->watchInterface(watch_interface_example, (void*)2);
+    if (!ret) {
+        LOG_ERROR_0("Failed to register callback");
+    }
+    LOG_INFO_0("Watching on app config & app interface for 20 seconds");
+    sleep(20);
 
     LOG_INFO_0("========================================\n");
 

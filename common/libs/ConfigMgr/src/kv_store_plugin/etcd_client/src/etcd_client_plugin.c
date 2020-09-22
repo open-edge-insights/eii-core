@@ -30,14 +30,14 @@
 #define KEY_FILE        "key_file"
 #define CA_FILE         "ca_file"
 
-typedef void (*callback)(char *key, char *value, void* cb_user_data);
+typedef void (*callback_t)(char *key, char *value, void* cb_user_data);
 
 void* etcd_init(void* etcd_client);
 char* etcd_get(void * handle, char *key);
 config_value_t* etcd_get_prefix(void * handle, char *key);
 int etcd_put(void* handle, char *key, char *value);
-void etcd_watch(void* handle, char *key_test, callback cb, void* user_data);
-void etcd_watch_prefix(void* handle, char *key_test, callback cb, void* user_data);
+void etcd_watch(void* handle, char *key_test, callback_t cb, void* user_data);
+void etcd_watch_prefix(void* handle, char *key_test, callback_t cb, void* user_data);
 void etcd_client_free(void* handle);
 
 kv_store_client_t* create_etcd_client(config_t *config) {

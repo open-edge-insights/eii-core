@@ -59,6 +59,23 @@ typedef struct {
 
 } base_cfg_t;
 
+/**
+ * function to register a callback for a specific key
+ * @param base_cfg - base_cfg_t object
+ * @param key - key to watch on
+ * @param user_data - user_data to be sent to callback
+ * @param watch_callback - callback_t object
+ */
+void cfgmgr_watch(base_cfg_t* base_cfg, char* key, callback_t watch_callback, void* user_data);
+
+/**
+ * function to register a callback for a specific key prefix
+ * @param base_cfg - base_cfg_t object
+ * @param prefix - prefix to watch on
+ * @param user_data - user_data to be sent to callback
+ * @param watch_callback - callback_t object
+ */
+void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_callback, void* user_data);
 
 /**
  * get_endpoint_base function to fetch endpoint
