@@ -59,7 +59,7 @@ using etcdserverpb::WatchCreateRequest;
 using etcdserverpb::WatchRequest;
 using etcdserverpb::WatchResponse;
 
-typedef void (*callback)(char *key, char *value, void* cb_user_data);
+typedef void (*callback_t)(char *key, char *value, void* cb_user_data);
 
 class EtcdClient {
     public:
@@ -76,8 +76,8 @@ class EtcdClient {
         std::string get(std::string& key);
         std::vector<std::string> get_prefix(std::string& key_prefix);
         int put(std::string& key, std::string& value);
-        void watch(std::string& key, callback user_cb, void *user_data);
-        void watch_prefix(std::string& key, callback user_cb, void *user_data);
+        void watch(std::string& key, callback_t user_cb, void *user_data);
+        void watch_prefix(std::string& key, callback_t user_cb, void *user_data);
         
     private:
         char address[ADDRESS_LEN];

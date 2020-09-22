@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-typedef void (*callback)(char *key, char *value, void *cb_user_data);
+typedef void (*callback_t)(char *key, char *value, void *cb_user_data);
 
 typedef struct {
         void *kv_store_config;
@@ -41,8 +41,8 @@ typedef struct {
         char* (*get) (void* handle, char *key);
         char* (*get_prefix) (void* handle, char *key);
         int (*put) (void* handle, char *key, char *value);
-        void (*watch) (void* handle, char *key, callback cb, void* user_data);
-        void (*watch_prefix) (void* handle, char *key, callback cb, void* user_data);
+        void (*watch) (void* handle, char *key, callback_t cb, void* user_data);
+        void (*watch_prefix) (void* handle, char *key, callback_t cb, void* user_data);
         void (*deinit)(void* handle);
 } kv_store_client_t;
 

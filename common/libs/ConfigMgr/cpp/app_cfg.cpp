@@ -62,6 +62,54 @@ config_value_t* AppCfg::getConfigValue(char* key) {
 }
 
 
+bool AppCfg::watch(char* key, callback_t watch_callback, void* user_data) {
+    try {
+        // Calling the base cfgmgr_watch C API
+        cfgmgr_watch(m_base_cfg, key, watch_callback, user_data);
+    } catch(std::exception const & ex) {
+        LOG_ERROR("Exception Occurred in cfgmgr_watch_prefix() API with the error: %s", ex.what());
+        return false;
+    }
+    return true;
+}
+
+bool AppCfg::watchPrefix(char* prefix, callback_t watch_callback, void* user_data) {
+    try {
+        // Calling the base cfgmgr_watch_prefix C API
+        cfgmgr_watch_prefix(m_base_cfg, prefix, watch_callback, user_data);
+    } catch(std::exception const & ex) {
+        LOG_ERROR("Exception Occurred in cfgmgr_watch_prefix() API with the error: %s", ex.what());
+        return false;
+    }
+    return true;
+}
+
+bool AppCfg::watchConfig(callback_t watch_callback, void* user_data) {
+    // Creating /<AppName>/config key
+    std::string config_key = "/" + std::string(m_base_cfg->app_name) + "/config";
+    try {
+        // Calling the base cfgmgr_watch C API
+        cfgmgr_watch(m_base_cfg, (char*)config_key.c_str(), watch_callback, user_data);
+    } catch(std::exception const & ex) {
+        LOG_ERROR("Exception Occurred in cfgmgr_watch_prefix() API with the error: %s", ex.what());
+        return false;
+    }
+    return true;
+}
+
+bool AppCfg::watchInterface(callback_t watch_callback, void* user_data) {
+    // Creating /<AppName>/interfaces key
+    std::string interface_key = "/" + std::string(m_base_cfg->app_name) + "/interfaces";
+    try {
+        // Calling the base cfgmgr_watch C API
+        cfgmgr_watch(m_base_cfg, (char*)interface_key.c_str(), watch_callback, user_data);
+    } catch(std::exception const & ex) {
+        LOG_ERROR("Exception Occurred in cfgmgr_watch_prefix() API with the error: %s", ex.what());
+        return false;
+    }
+    return true;
+}
+
 // This virtual method is implemented
 // by sub class objects
 config_t* AppCfg::getMsgBusConfig() {

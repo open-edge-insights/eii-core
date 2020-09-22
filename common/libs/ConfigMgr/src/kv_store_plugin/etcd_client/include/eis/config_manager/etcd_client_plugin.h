@@ -38,6 +38,6 @@ typedef struct {
     char *ca_file;
 } etcd_config_t;
 
-typedef void (*callback)(char *key, char *value, void* cb_user_data);
+typedef void (*callback_t)(char *key, char *value, void* cb_user_data);
 
 kv_store_client_t* create_etcd_client(config_t* config);

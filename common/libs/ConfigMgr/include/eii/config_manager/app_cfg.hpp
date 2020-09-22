@@ -103,6 +103,40 @@ namespace eis {
                 config_value_t* getConfigValue(char* key);
 
                 /**
+                 * Register a callback to watch on any given key
+                 * @param key - key to watch
+                 * @param watch_callback - callback object
+                 * @param user_data - user data to be sent to callback
+                 * @return bool - Boolean whether the callback was registered
+                 */
+                bool watch(char* key, callback_t watch_callback, void* user_data);
+
+                /**
+                 * Register a callback to watch on any given key prefix
+                 * @param prefix - key prefix to watch
+                 * @param watch_callback - callback object
+                 * @param user_data - user data to be sent to callback
+                 * @return bool - Boolean whether the callback was registered
+                 */
+                bool watchPrefix(char* prefix, callback_t watch_callback, void* user_data);
+
+                /**
+                 * Register a callback to watch on app config
+                 * @param watch_callback - callback object
+                 * @param user_data - user data to be sent to callback
+                 * @return bool - Boolean whether the callback was registered
+                 */
+                bool watchConfig(callback_t watch_callback, void* user_data);
+
+                /**
+                 * Register a callback to watch on app interface
+                 * @param watch_callback - callback object
+                 * @param user_data - user data to be sent to callback
+                 * @return bool - Boolean whether the callback was registered
+                 */
+                bool watchInterface(callback_t watch_callback, void* user_data);
+
+                /**
                  * Get msgbus configuration for application to communicate over EIS message bus
                  * @return config_t* - JSON msg bus server config of type config_t
                  */ 

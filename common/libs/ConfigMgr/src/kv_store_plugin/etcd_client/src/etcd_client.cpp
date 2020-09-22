@@ -156,7 +156,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
 }
 
 void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
-                    WatchRequest watch_req, callback user_callback, void *user_data) {
+                    WatchRequest watch_req, callback_t user_callback, void *user_data) {
     WatchResponse reply;
     mvccpb::KeyValue kvs;
     ClientContext context;
@@ -200,7 +200,7 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
 */
-void EtcdClient::watch_prefix(std::string& key, callback user_callback, void *user_data) {
+void EtcdClient::watch_prefix(std::string& key, callback_t user_callback, void *user_data) {
     LOG_DEBUG_0("In watch_prefix() API");
     LOG_DEBUG("Register the prefix of the the key %s to watch on", key.c_str());
 
@@ -239,7 +239,7 @@ void EtcdClient::watch_prefix(std::string& key, callback user_callback, void *us
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
 */
-void EtcdClient::watch(std::string& key, callback user_callback, void *user_data) {
+void EtcdClient::watch(std::string& key, callback_t user_callback, void *user_data) {
     LOG_DEBUG_0("In watch() API");
     LOG_DEBUG("Register the key %s to watch on", key.c_str());
 
