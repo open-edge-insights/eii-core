@@ -524,23 +524,23 @@ def k8s_yaml_remove_secrets(yaml_data):
         yaml_dict[k] = v
 
     vol_removal_list = []
-    for d in yaml_dict['spec']['volumes']:
+    for d in yaml_dict['spec']['template']['spec']['volumes']:
         if 'cert' in d['name']:
             vol_removal_list.append(d)
         elif 'key' in d['name']:
             vol_removal_list.append(d)
 
     con_vol_removal_list = []
-    for d in yaml_dict['spec']['containers'][0]['volumeMounts']:
+    for d in yaml_dict['spec']['template']['spec']['containers'][0]['volumeMounts']:
         if 'cert' in d['name']:
             con_vol_removal_list.append(d)
         elif 'key' in d['name']:
             con_vol_removal_list.append(d)
 
     for r in vol_removal_list:
-        yaml_dict['spec']['volumes'].remove(r)
+        yaml_dict['spec']['template']['spec']['volumes'].remove(r)
     for r in con_vol_removal_list:
-        yaml_dict['spec']['containers'][0]['volumeMounts'].remove(r)
+        yaml_dict['spec']['template']['spec']['containers'][0]['volumeMounts'].remove(r)
 
     kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
 
