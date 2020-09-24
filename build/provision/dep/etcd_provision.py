@@ -19,9 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import yaml
-import zmq
-import zmq.auth
 import sys
 import os
 import shutil
@@ -30,6 +27,9 @@ import json
 import string
 import random
 import logging
+import yaml
+import zmq
+import zmq.auth
 from distutils.util import strtobool
 ETCD_PREFIX = os.environ['ETCD_PREFIX']
 
@@ -92,10 +92,12 @@ def enable_etcd_auth():
     subprocess.run(["./etcd_enable_auth.sh", password])
 
 
-def load_data_etcd(file):
+def load_data_etcd(file, apps):
     """Parse given json file and add keys to etcd
     :param file: Full path of json file having etcd initial data
     :type file: String
+    :param apps: dict for AppName:CertType
+    :type apps: dict
     """
     with open(file, 'r') as f:
         config = json.load(f)
@@ -111,6 +113,14 @@ def load_data_etcd(file):
                            key,
                            bytes(json.dumps(value, indent=4).encode())])
         elif isinstance(value, dict):
+            # Adding ca cert, server key and cert in app config in PROD mode
+            if not devMode:
+                app_type = key[len(ETCD_PREFIX):].split('/')
+                if app_type[2] == 'config':
+                    if 'pem' in apps[app_type[1]] or 'der' in apps[app_type[1]]:
+                        server_cert_server_key = get_server_cert_key(app_type[1], apps[app_type[1]])
+                        value.update(server_cert_server_key) 
+
             subprocess.run(["./etcdctl", "put",
                             key, bytes(json.dumps(value, indent=4).encode())])
 
@@ -131,10 +141,37 @@ def create_etcd_users(appname):
     subprocess.run(["./etcd_create_user.sh", appname])
 
 
-def put_x509_certs(appname, certtype):
-    """Put required X509 certs to ETCD
+def get_server_cert_key(appname, certtype):
+    """ parse appname and certtype, returns server cert and key dict 
+    :param appname: appname
+    :type config: string
+    :param certtype: certificate type
+    :type apps: string
+    :return: server cert key dict
+    :rtype: dict
     """
-    subprocess.run(["./put_x509_certs.sh", appname, certtype, ETCD_PREFIX])
+    server_key_cert = {}
+    cert_ext = None
+    if 'pem' in certtype:
+        cert_ext = ".pem"
+    elif 'der' in certype:
+        cert_ext = ".der"
+    cert_file = "Certificates/" + appname + "_Server/" + appname \
+        + "_Server_server_certificate" + cert_ext
+    key_file =  "Certificates/" + appname + "_Server/" + appname \
+        + "_Server_server_key" + cert_ext
+    ca_certificate = "Certificates/ca/ca_certificate"  + cert_ext
+    with open(cert_file, 'r') as s_cert:
+        server_cert = s_cert.read()
+        server_key_cert["server_cert"] = server_cert
+    with open(key_file, 'r') as s_key:
+        server_key = s_key.read()
+        server_key_cert["server_key"] = server_key
+    with open(ca_certificate, 'r') as cert:
+        ca_cert = cert.read()
+        server_key_cert["ca_cert"] = ca_cert
+
+    return server_key_cert
 
 
 if __name__ == "__main__":
@@ -151,16 +188,12 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_KEY"] = os.environ.get("ETCD_ROOT_KEY" , "/run/secrets/etcd_root_key")
     
     apps = get_appname(str(sys.argv[1]))
-    load_data_etcd("./config/eis_config.json")
+    load_data_etcd("./config/eis_config.json", apps)
     for key, value in apps.items():
         try:
             if not devMode:
                 if 'zmq' in value:
                     put_zmqkeys(key)
-                if 'pem' in value:
-                    put_x509_certs(key, 'pem')
-                if 'der' in value:
-                    put_x509_certs(key, 'der')
                 if os.environ['provision_mode'] != "csl":
                     create_etcd_users(key)
         except ValueError:
