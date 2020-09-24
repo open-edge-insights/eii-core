@@ -30,7 +30,7 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "VideoAnalytics")
+	os.Setenv("AppName", "GoSubscriber")
 	os.Setenv("DEV_MODE", "True")
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
@@ -69,6 +69,14 @@ func main() {
 	for _, s := range topics2 {
 		fmt.Println(s)
 	}
+
+	interfaceStrVal, err := subCtx.GetInterfaceValue("Name")
+	if(err != nil){
+		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
+		return
+	}
+	
+	fmt.Println("Interface Value:", interfaceStrVal.Value)
 
 	client, err := eismsgbus.NewMsgbusClient(config)
 	if err != nil {

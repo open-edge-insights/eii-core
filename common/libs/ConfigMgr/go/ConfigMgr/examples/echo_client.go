@@ -32,10 +32,9 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "VideoAnalytics")
+	os.Setenv("AppName", "GoSubscriber")
 	os.Setenv("DEV_MODE", "True")
-
-	serviceName := "echo_service"
+	
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
 	// clientCtx, _ := configMgr.GetClientByName("sample_client")
@@ -45,8 +44,20 @@ func main() {
 	endpoint := clientCtx.GetEndPoints()
 	fmt.Printf("Client endpoint:%s", endpoint)
 
-	config, err := clientCtx.GetMsgbusConfig()
+	interfaceVal, err := clientCtx.GetInterfaceValue("Name")
+	if(err != nil){
+		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
+		return
+	}
 
+	fmt.Println("Interface Value:", interfaceVal.Value)
+	serviceName, err := interfaceVal.GetString()
+	if(err != nil) {
+		fmt.Printf("Error to GetString value %v\n", err)
+		return
+	}
+
+	config, err := clientCtx.GetMsgbusConfig()
 	if(err != nil) {
 		fmt.Printf("Error occured with error:%v", err)
 		return

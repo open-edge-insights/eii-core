@@ -51,3 +51,7 @@ func (subctx *SubscriberCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 func (subctx *SubscriberCfg) SetTopics(topics []string) bool {
 	return subctx.setTopics(topics)
 }
+
+func (subctx *SubscriberCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
+	return subctx.getInterfaceValue(key)
+}
