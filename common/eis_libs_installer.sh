@@ -59,8 +59,6 @@ DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigManager="$CUR_DIR/libs/ConfigManager"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
-CMAKE_BUILD_TYPE="Release"
-RUN_TESTS="OFF"
 
 # Installing cmake 3.15
 wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
