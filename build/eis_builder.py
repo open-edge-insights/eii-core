@@ -152,8 +152,13 @@ def json_parser(file, args):
     app_list = []
     # Replacing $PWD with relative path to EIS dir
     for key in data['services']:
-        rel_dir = data['services'][key]['build']['context'].replace(
-            '$PWD/..', '..')
+        try:
+            rel_dir = data['services'][key]['build']['context'].replace(
+                '$PWD/..', '..')
+        except Exception:
+            # If build isn't found, use CONTEXT set in the environment
+            rel_dir = data['services'][key]['environment']['CONTEXT'].replace(
+                '$PWD/..', '..')
         app_list.append(rel_dir)
 
     # Removing duplicates & unwanted dirs from app list
