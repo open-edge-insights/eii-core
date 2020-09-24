@@ -59,6 +59,23 @@ config_value_t* get_topics_base(base_cfg_t* base_cfg) {
     return topics;
 }
 
+// To get number of elements in interfaces
+int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg) {
+    // Fetching list of interface elements
+    config_value_t* interfaces = config_get(base_cfg->m_app_interface, type);
+    if (interfaces == NULL) {
+        LOG_ERROR_0("Failed to fetch number of elements in interface");
+        return -1;
+    }
+    if (interfaces->type != CVT_ARRAY) {
+        LOG_ERROR("%s interface is not an array type", type);
+        return -1;
+    }
+    int result = config_value_array_len(interfaces);
+    config_value_destroy(interfaces);
+    return result;
+}
+
 // To fetch list of allowed clients from config
 config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
     config_value_t* config = base_cfg->msgbus_config;

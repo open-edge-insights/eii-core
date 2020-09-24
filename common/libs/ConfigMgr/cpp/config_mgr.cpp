@@ -45,6 +45,22 @@ AppCfg* ConfigMgr::getAppConfig() {
     return m_app_cfg_handler;
 }
 
+int ConfigMgr::getNumPublishers() {
+    return cfgmgr_get_num_elements_base(PUBLISHERS, m_app_cfg->base_cfg);
+}
+
+int ConfigMgr::getNumSubscribers() {
+    return cfgmgr_get_num_elements_base(SUBSCRIBERS, m_app_cfg->base_cfg);
+}
+
+int ConfigMgr::getNumServers() {
+    return cfgmgr_get_num_elements_base(SERVERS, m_app_cfg->base_cfg);
+}
+
+int ConfigMgr::getNumClients() {
+    return cfgmgr_get_num_elements_base(CLIENTS, m_app_cfg->base_cfg);
+}
+
 PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
     LOG_INFO_0("AppCfg getPublisherByIndex method");
     // Calling the base C get_publisher_by_index API
