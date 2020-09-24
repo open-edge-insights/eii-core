@@ -82,6 +82,14 @@ config_value_t* get_topics_base(base_cfg_t* base_cfg);
 config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg);
 
 /**
+ * To fetch number of elements in an interface
+ * @param type - Publishers/Subscribers/Servers/Clients
+ * @param base_cfg - base_cfg_t object
+ *  @return number of elements if success or -1 for any errors
+ */
+int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg);
+
+/**
  * set_topics_base function to set topics
  * @param topics_list - list of topics to be set
  * @param len - total number of topics

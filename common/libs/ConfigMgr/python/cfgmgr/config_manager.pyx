@@ -266,3 +266,39 @@ cdef class ConfigMgr:
 
         # Create & return Publisher object
         return Client.create(self.app_cfg, self.client_cfg)
+
+    def get_num_publishers(self):
+        """Calling bace c cfgmgr_get_num_elements_base in order to get
+        number of publishers in interface
+
+        :return: number of publishers in interface
+        :rtype : int
+        """
+        return cfgmgr_get_num_elements_base("Publishers", self.app_cfg.base_cfg)
+
+    def get_num_subscribers(self):
+        """Calling bace c cfgmgr_get_num_elements_base in order to get
+        number of subscribers in interface
+
+        :return: number of subscribers in interface
+        :rtype : int
+        """
+        return cfgmgr_get_num_elements_base("Subscribers", self.app_cfg.base_cfg)
+
+    def get_num_servers(self):
+        """Calling bace c cfgmgr_get_num_elements_base in order to get
+        number of servers in interface
+
+        :return: number of servers in interface
+        :rtype : int
+        """
+        return cfgmgr_get_num_elements_base("Servers", self.app_cfg.base_cfg)
+
+    def get_num_clients(self):
+        """Calling bace c cfgmgr_get_num_elements_base in order to get
+        number of clients in interface
+
+        :return: number of clients in interface
+        :rtype : int
+        """
+        return cfgmgr_get_num_elements_base("Clients", self.app_cfg.base_cfg)

@@ -69,6 +69,30 @@ namespace eis {
                 AppCfg* getAppConfig();
 
                 /**
+                 * Get total number of publishers in an interface
+                 * @return ServerCfg* - ServerCfg class object
+                 */
+                int getNumPublishers();
+
+                /**
+                 * Get total number of subscribers in an interface
+                 * @return ServerCfg* - ServerCfg class object
+                 */
+                int getNumSubscribers();
+
+                /**
+                 * Get total number of servers in an interface
+                 * @return ServerCfg* - ServerCfg class object
+                 */
+                int getNumServers();
+
+                /**
+                 * Get total number of clients in an interface
+                 * @return ServerCfg* - ServerCfg class object
+                 */
+                int getNumClients();
+
+                /**
                  * Get server interface from ConfigManager
                  * @param index - These servers are in array for which index is sent to get the respective server config.
                  * @return ServerCfg* - ServerCfg class object

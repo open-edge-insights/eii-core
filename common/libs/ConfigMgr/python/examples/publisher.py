@@ -46,6 +46,12 @@ try:
 
     os.environ["AppName"] = "VideoAnalytics"
     ctx = cfg.ConfigMgr()
+    print('[INFO] Total number of publishers in interface is {}'.format(ctx.get_num_publishers()))
+    print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
+    print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))
+    ret = ctx.get_num_servers()
+    if ret == -1:
+        print('[INFO] No server interfaces found')
     pub_ctx = ctx.get_publisher_by_name("Image_Metadata")
     config = pub_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))

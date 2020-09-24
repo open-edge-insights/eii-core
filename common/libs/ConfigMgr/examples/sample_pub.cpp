@@ -100,6 +100,12 @@ int main(int argc, char** argv) {
     setenv("AppName","VideoIngestion", 1);
     ConfigMgr* pub_ch = new ConfigMgr();
 
+    int num_of_publishers = pub_ch->getNumPublishers();
+    LOG_DEBUG("Total number of publishers : %d", num_of_publishers);
+
+    int num_of_servers = pub_ch->getNumServers();
+    LOG_DEBUG("Total number of servers : %d", num_of_servers);
+
     PublisherCfg* pub_ctx = pub_ch->getPublisherByName("default");
     config_t* pub_config = pub_ctx->getMsgBusConfig();
 
@@ -133,6 +139,12 @@ int main(int argc, char** argv) {
     // Testing TCP PROD mode
     setenv("AppName","VideoAnalytics", 1);
     ConfigMgr* pub_ch_va = new ConfigMgr();
+
+    int num_of_subscribers = pub_ch_va->getNumSubscribers();
+    LOG_DEBUG("Total number of subscribers : %d", num_of_subscribers);
+
+    int num_of_clients = pub_ch_va->getNumClients();
+    LOG_DEBUG("Total number of clients : %d", num_of_clients);
 
     PublisherCfg* pub_ctx_va = pub_ch_va->getPublisherByName("Image_Metadata");
     config_t* pub_config_va = pub_ctx_va->getMsgBusConfig();
