@@ -41,13 +41,4 @@ func main() {
 	}else{
 		fmt.Println("App_config:", appConfig)
 	}
-
-	app_interface, int_err := config_mgr.GetAppInterface()
-
-	if err != nil {
-		fmt.Println("Error found:", int_err)
-	}else{
-		fmt.Println("App_config:", app_interface["Publishers"])
-	}
-	
 }

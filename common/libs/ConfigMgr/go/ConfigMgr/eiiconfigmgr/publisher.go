@@ -57,3 +57,7 @@ func (pubctx *PublisherCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 func (pubctx *PublisherCfg) SetTopics(topics []string) bool {
 	return pubctx.setTopics(topics)
 }
+
+func (pubctx *PublisherCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
+	return pubctx.getInterfaceValue(key)
+}

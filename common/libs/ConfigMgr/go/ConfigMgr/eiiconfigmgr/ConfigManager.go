@@ -43,6 +43,100 @@ typedef struct {
 	int len;
 }char_arr_t;
 
+typedef struct config_val {
+	int config_type;
+	int integer;
+	double floating;
+	char *str;
+	bool boolean;
+	char *obj;
+} config_val_t;
+
+static config_val_t* create_config_val_obj(config_value_t* value) {
+	config_val_t* cv = (config_val_t*) malloc(sizeof(config_val_t));
+	int ret;
+
+	if(cv == NULL) {
+        LOG_ERROR_0("Out of memory creating config value");
+        return NULL;
+	}
+	cv->str = NULL;
+	cv->obj = NULL;
+
+	if(value->type == CVT_INTEGER) {
+	 	cv->config_type = 0;
+		cv->integer = value->body.integer;
+	} else if(value->type == CVT_FLOATING) {
+	 	cv->config_type = 1;
+		cv->floating = value->body.floating;
+	} else if(value->type == CVT_STRING) {
+		cv->config_type = 2;
+		cv->str = (char*) malloc(strlen(value->body.string) + 1);
+		if(cv->str == NULL) {
+			LOG_ERROR_0("Out of memory creating cv str");
+			return NULL;
+		}
+		int len = strlen(value->body.string);
+
+		ret = strncpy_s(cv->str, len + 1, value->body.string, len);
+		if (ret != 0) {
+			free(cv->str);
+			LOG_ERROR_0("String copy failed for config_val");
+			return NULL;
+		}
+	} else if(value->type == CVT_BOOLEAN) {
+	 	cv->config_type = 3;
+		cv->boolean = value->body.boolean;
+	}  else if(value->type == CVT_OBJECT) {
+		cv->config_type = 4;
+		char* cvchar= cvt_to_char(value);
+		cv->obj = (char*) malloc(strlen(cvchar) + 1);
+		if(cv->obj == NULL) {
+			LOG_ERROR_0("Out of memory creating cv obj");
+			return NULL;
+		}
+
+		int len = strlen(cvchar);
+		ret = strncpy_s(cv->obj, len + 1, cvchar, len);
+		if (ret != 0) {
+			free(cv->obj);
+			LOG_ERROR_0("String copy failed for config_val");
+			return NULL;
+		}
+	} else if(value->type == CVT_ARRAY) {
+		cv->config_type = 5;
+		char* cvchar= cvt_to_char(value);
+
+		cv->obj = (char*) malloc(strlen(cvchar) + 1);
+		if(cv->obj == NULL) {
+			LOG_ERROR_0("Out of memory creating cv obj");
+			return NULL;
+		}
+
+		int len = strlen(cvchar);
+		ret = strncpy_s(cv->obj, len + 1, cvchar, len);
+		if (ret != 0) {
+			free(cv->obj);
+			LOG_ERROR_0("String copy failed for config_val");
+			return NULL;
+		}
+	} else {
+		LOG_ERROR_0("Type mismatch of Interface value");
+		free(cv);
+		return NULL;
+	}
+	return cv;
+}
+
+static inline void destroy_config_val(config_val_t* config_val) {
+	if(config_val != NULL) {
+		if(config_val->obj != NULL)
+			free(config_val->obj);
+		if(config_val->str != NULL)
+			free(config_val->str);
+		free(config_val);
+	}
+}
 
 char** parse_config_value(config_value_t* config_value, int len) {
 	char** char_config_value = (char**)malloc(len * sizeof(char*));
@@ -55,6 +149,15 @@ char** parse_config_value(config_value_t* config_value, int len) {
 		}
 
 		char_config_value[i] = (char*)malloc(strlen(config_val->body.string) + 1);
+
+		int len = strlen(config_val->body.string);
+		int ret = strncpy_s(char_config_value[i], len + 1, config_val->body.string, len);
+		if (ret != 0) {
+			free(char_config_value[i]);
+			LOG_ERROR_0("String copy failed for config_val");
+			return NULL;
+		}
+
 		strcpy(char_config_value[i], config_val->body.string);
 
 		// Destroying config_val
@@ -82,7 +185,6 @@ static inline void destroy_char_arr(char_arr_t* char_arr) {
 
 // ---------------CONFIG MANGER--------------------
 static inline void* create_new_cfg_mr(){
-	set_log_level(LOG_LVL_DEBUG);
 	app_cfg_t* app_cfg = app_cfg_new();
 	return app_cfg;
 }
@@ -146,13 +248,6 @@ static inline char* get_apps_config(void* app_cfg){
 	return c_config;
 }
 
-static inline char* get_apps_interface(void* app_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	config_t* app_interface = c_app_cfg->base_cfg->m_app_interface;
-	char* c_app_interface = configt_to_char(app_interface);
-	return c_app_interface;
-}
-
 // -----------------PUBLISHER----------------------
 static inline void* get_publisher_by_name(void* ctx, char *name){
 	pub_cfg_t* pub_cfg = NULL;
@@ -205,6 +300,7 @@ static inline char_arr_t* get_pub_end_points(void* app_cfg, void* pub_cfg){
 	int ret;
 	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
 	if (ret != 0) {
+		free(char_arr->arr);
 		LOG_ERROR_0("String copy failed for ep");
 		return NULL;
 	}
@@ -258,6 +354,17 @@ static inline string_arr_t* get_pub_allowed_clients(void* app_cfg, void* pub_cfg
 	str_arr->arr = arr_allowed_clients;
 	str_arr->len = 	clients_len;
 	return str_arr;
+}
+
+static inline config_val_t* get_pub_interface_value(void* app_cfg, void* pub_cfg, char *key) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+
+	config_value_t* value = c_pub_cfg->cfgmgr_get_interface_value_pub(c_app_cfg->base_cfg, key);
+	if(value == NULL)
+		return NULL;
+	config_val_t* cv = create_config_val_obj(value);
+    return cv;
 }
 
 //-----------------SUBSCRIBER----------------------
@@ -350,6 +457,17 @@ static inline int set_sub_topics(void* app_cfg, void* sub_cfg, char **topics, in
 	return ret;
 }
 
+static inline config_val_t* get_sub_interface_value(void* app_cfg, void* sub_cfg, char *key) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
+
+	config_value_t* value = c_sub_cfg->cfgmgr_get_interface_value_sub(c_app_cfg->base_cfg, key);
+	if(value == NULL)
+		return NULL;
+	config_val_t* cv = create_config_val_obj(value);
+    return cv;
+}
+
 //-----------------SERVER--------------------------
 
 static inline void* get_server_by_name(void* ctx, char *name){
@@ -396,6 +514,7 @@ static inline char_arr_t* get_server_end_points(void* app_cfg, void* server_cfg)
 	int ret;
 	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
 	if (ret != 0) {
+		free(char_arr->arr);
 		LOG_ERROR_0("String copy failed for ep");
 		return NULL;
 	}
@@ -431,6 +550,17 @@ static inline string_arr_t* get_allowed_clients_server(void* app_cfg, void* serv
 	str_arr->arr = arr_allowed_clients;
 	str_arr->len = 	clients_len;
 	return str_arr;
+}
+
+static inline config_val_t* get_server_interface_value(void* app_cfg, void* server_cfg, char *key) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
+
+	config_value_t* value = c_server_cfg->cfgmgr_get_interface_value_server(c_app_cfg->base_cfg, key);
+	if(value == NULL)
+		return NULL;
+	config_val_t* cv = create_config_val_obj(value);
+    return cv;
 }
 
 //-----------------CLIENT--------------------------
@@ -478,6 +608,7 @@ static inline char_arr_t* get_client_end_points(void* app_cfg, void* client_cfg)
 	int ret;
 	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
 	if (ret != 0) {
+		free(char_arr->arr);
 		LOG_ERROR_0("String copy failed for ep");
 		return NULL;
 	}
@@ -497,6 +628,16 @@ static inline char* get_msgbus_config_client(void* app_cfg, void* client_cfg){
 	return c_config;
 }
 
+static inline config_val_t* get_client_interface_value(void* app_cfg, void* client_cfg, char *key) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
+
+	config_value_t* value = c_client_cfg->cfgmgr_get_interface_value_client(c_app_cfg->base_cfg, key);
+	if(value == NULL)
+		return NULL;
+	config_val_t* cv = create_config_val_obj(value);
+    return cv;
+}
 */
 import "C"
 
@@ -506,6 +647,7 @@ import (
 	"fmt"
 	"os"
 	"unsafe"
+	"errors"
 
 	"github.com/golang/glog"
 )
@@ -518,6 +660,7 @@ type ConfigMgrContext struct {
 type ConfigMgr struct {
 	ctx *ConfigMgrContext
 }
+
 
 // Convert C char** to Go string[]
 func GoStrings(argc C.int, argv **C.char) []string {
@@ -546,6 +689,46 @@ func string_to_map_interface(str string) (map[string]interface{}, error) {
 	}
 
 	return out, nil
+}
+
+// getConfigVal based on it's type
+func getConfigVal(interfaceVal *C.config_val_t) (*ConfigValue, error) {
+	if (interfaceVal == nil) {
+		return nil, errors.New("Interface Value is not found")
+	}
+
+	configValue := new(ConfigValue)
+	if (interfaceVal.config_type == 0) {
+		configValue.Type = Int
+		configValue.Value = eval(integer(interfaceVal.integer))
+	} else if (interfaceVal.config_type == 1) {
+		configValue.Type = Float32
+		configValue.Value = eval(float(interfaceVal.floating))
+	} else if (interfaceVal.config_type == 2) {
+		configValue.Type = String
+		configValue.Value = eval(str(C.GoString(interfaceVal.str)))
+	} else if (interfaceVal.config_type == 3) {
+		configValue.Type = Boolean
+		configValue.Value = eval(boolean(interfaceVal.boolean))
+	} else if (interfaceVal.config_type == 4) {
+		configValue.Type = Json
+		str := C.GoString(interfaceVal.obj)
+		mapInt,_ := string_to_map_interface(str)
+		configValue.Value = eval(object(mapInt))
+	} else if (interfaceVal.config_type == 5) {
+		configValue.Type = Array
+		str := C.GoString(interfaceVal.obj)
+		var arr []interface{}
+		err := json.Unmarshal([]byte(str), &arr)
+		if( err != nil) {
+			glog.Errorf("Error in json unmarshal: %v", err)
+			return nil, errors.New("json unmarshal error")
+		}
+		configValue.Value = eval(array(arr))
+	} else {
+		return nil, errors.New("Type mismatch of Interface value")
+	}
+	return configValue, nil
 }
 
 // Initialize a new config manager context.
@@ -587,18 +770,6 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 		return nil, nil
 	}
 	return json_app_config, nil
-}
-
-func (ctx *ConfigMgr) GetAppInterface() (map[string]interface{}, error) {
-	app_interface := C.get_apps_interface(ctx.ctx.cfgmgrCtx)
-	json_app_interface, err := string_to_map_interface(C.GoString(app_interface))
-
-	defer C.free(unsafe.Pointer(app_interface))
-
-	if err != nil {
-		return nil, err
-	}
-	return json_app_interface, nil
 }
 
 func (ctx *ConfigMgr) GetAppName() (string, error) {
@@ -753,6 +924,13 @@ func (pubctx *PublisherCfg) setTopics(topics []string) bool {
 	}
 }
 
+func (pubctx *PublisherCfg) getInterfaceValue(key string) (*ConfigValue, error) {
+	interfaceVal := C.get_pub_interface_value(pubctx.appCfg, pubctx.pubCfg, C.CString(key))
+	defer C.destroy_config_val(interfaceVal)
+
+	return getConfigVal(interfaceVal)
+}
+
 func (subctx *SubscriberCfg) getEndPoints() string {
 	endpoints := C.get_sub_end_points(subctx.appCfg, subctx.subCfg)
 	defer C.destroy_char_arr(endpoints)
@@ -789,6 +967,13 @@ func (subctx *SubscriberCfg) setTopics(topics []string) bool {
 	}
 }
 
+func (subctx *SubscriberCfg) getInterfaceValue(key string) (*ConfigValue, error) {
+	interfaceVal := C.get_sub_interface_value(subctx.appCfg, subctx.subCfg, C.CString(key))
+	defer C.destroy_config_val(interfaceVal)
+
+	return getConfigVal(interfaceVal)
+}
+
 func (serverCtx *ServerCfg) getEndPoints() string {
 	endpoints := C.get_server_end_points(serverCtx.appCfg, serverCtx.serverCfg)
 	defer C.destroy_char_arr(endpoints)
@@ -808,6 +993,13 @@ func (serverCtx *ServerCfg) getAllowedClients() []string {
 	return allowed_clients
 }
 
+func (serverCtx *ServerCfg) getInterfaceValue(key string) (*ConfigValue, error) {
+	interfaceVal := C.get_server_interface_value(serverCtx.appCfg, serverCtx.serverCfg, C.CString(key))
+	defer C.destroy_config_val(interfaceVal)
+
+	return getConfigVal(interfaceVal)
+}
+
 func (clientCtx *ClientCfg) getEndPoints() string {
 	endpoints := C.get_client_end_points(clientCtx.appCfg, clientCtx.clientCfg)
 	defer C.destroy_char_arr(endpoints)
@@ -818,4 +1010,11 @@ func (clientCtx *ClientCfg) getEndPoints() string {
 func (clientCtx *ClientCfg) getMsgbusConfig() string {
 	conf := C.get_msgbus_config_client(clientCtx.appCfg, clientCtx.clientCfg)
 	return C.GoString(conf)
+}
+
+func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) {
+	interfaceVal := C.get_client_interface_value(clientCtx.appCfg, clientCtx.clientCfg, C.CString(key))
+	defer C.destroy_config_val(interfaceVal)
+
+	return getConfigVal(interfaceVal)
 }

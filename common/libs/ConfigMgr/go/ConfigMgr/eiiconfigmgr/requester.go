@@ -42,3 +42,7 @@ func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	}
 	return config, nil
 }
+
+func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
+	return clientctx.getInterfaceValue(key)
+}
