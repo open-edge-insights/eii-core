@@ -24,6 +24,7 @@
 from .exc import *
 import json
 import logging
+import os
 
 # Cython imports
 from .libneweisconfigmgr cimport *
@@ -46,7 +47,22 @@ cdef class ConfigMgr:
     def __init__(self):
         """Constructor
         """
+        # Initializing cdef variables
+        cdef char* env_var
+
+        # Initializing app_cfg object
         self.app_cfg = app_cfg_new()
+
+        # Setting /GlobalEnv/ env variables
+        env_var = self.app_cfg.env_var
+        # Converting c string to py string
+        config_str = env_var.decode('utf-8')
+        # Converting py string to json object
+        config_json = json.loads(config_str)
+        # Iterating through and setting key, value pairs
+        # of config_json in env
+        for key, value in config_json.items():
+            os.environ[key] = value
 
     def __cinit__(self, *args, **kwargs):
         """Basic C init

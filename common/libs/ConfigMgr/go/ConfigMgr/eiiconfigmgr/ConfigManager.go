@@ -53,10 +53,10 @@ char** parse_config_value(config_value_t* config_value, int len) {
 			free(char_config_value);
 			return NULL;
 		}
-		
+
 		char_config_value[i] = (char*)malloc(strlen(config_val->body.string) + 1);
 		strcpy(char_config_value[i], config_val->body.string);
-		
+
 		// Destroying config_val
 		config_value_destroy(config_val);
 	}
@@ -85,6 +85,11 @@ static inline void* create_new_cfg_mr(){
 	set_log_level(LOG_LVL_DEBUG);
 	app_cfg_t* app_cfg = app_cfg_new();
 	return app_cfg;
+}
+
+static inline char* get_env_var(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	return c_app_cfg->env_var;
 }
 
 // ---------------APP CONFIG-----------------------
@@ -173,7 +178,7 @@ static inline string_arr_t* get_pub_topics(void* app_cfg, void* pub_cfg){
 	config_value_t* topics = c_pub_cfg->cfgmgr_get_topics_pub(c_app_cfg->base_cfg);
 	if (topics == NULL)
         return NULL;
-	
+
 	int topics_len = config_value_array_len(topics);
 	char** arr_topics = parse_config_value(topics, topics_len);
 	str_arr->arr = arr_topics;
@@ -191,7 +196,7 @@ static inline string_arr_t* get_pub_allowed_clients(void* app_cfg, void* pub_cfg
 	config_value_t* allowed_clients = c_pub_cfg->cfgmgr_get_allowed_clients_pub(c_app_cfg->base_cfg);
 	if (allowed_clients == NULL)
         return NULL;
-	
+
 	int clients_len = config_value_array_len(allowed_clients);
 	char** arr_allowed_clients = parse_config_value(allowed_clients, clients_len);
 	str_arr->arr = arr_allowed_clients;
@@ -226,7 +231,7 @@ static inline char_arr_t* get_sub_end_points(void* app_cfg, void* sub_cfg){
 	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_app_cfg->base_cfg);
 	if (endpoints == NULL)
 		return NULL;
-	
+
 	int len = strlen(endpoints->body.string);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
@@ -234,7 +239,7 @@ static inline char_arr_t* get_sub_end_points(void* app_cfg, void* sub_cfg){
 
 	strcpy(char_arr->arr, endpoints->body.string);
 	char_arr->len = len;
-	
+
 	// Destroying endpoints
 	config_value_destroy(endpoints);
 	return char_arr;
@@ -259,7 +264,7 @@ static inline string_arr_t* get_topics_subscriber(void* app_cfg, void* sub_cfg) 
 	config_value_t* topics = c_sub_cfg->cfgmgr_get_topics_sub(c_app_cfg->base_cfg);
 	if (topics == NULL)
         return NULL;
-	
+
 	int topics_len = config_value_array_len(topics);
 	char** arr_topics = parse_config_value(topics, topics_len);
 	str_arr->arr = arr_topics;
@@ -297,16 +302,16 @@ static inline char_arr_t* get_server_end_points(void* app_cfg, void* server_cfg)
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL)
 		return NULL;
-	
+
 	config_value_t* endpoints = c_server_cfg->cfgmgr_get_endpoint_server(c_app_cfg->base_cfg);
 	if (endpoints == NULL)
 		return NULL;
-	
+
 	int len = strlen(endpoints->body.string);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
-	
+
 	strcpy(char_arr->arr, endpoints->body.string);
 	char_arr->len = len;
 
@@ -334,7 +339,7 @@ static inline string_arr_t* get_allowed_clients_server(void* app_cfg, void* serv
 	config_value_t* allowed_clients = c_server_cfg->cfgmgr_get_allowed_clients_server(c_app_cfg->base_cfg);
 	if (allowed_clients == NULL)
         return NULL;
-	
+
 	int clients_len = config_value_array_len(allowed_clients);
 	char** arr_allowed_clients = parse_config_value(allowed_clients, clients_len);
 	str_arr->arr = arr_allowed_clients;
@@ -368,12 +373,12 @@ static inline char_arr_t* get_client_end_points(void* app_cfg, void* client_cfg)
 	config_value_t* endpoints = c_client_cfg->cfgmgr_get_endpoint_client(c_app_cfg->base_cfg);
 	if (endpoints == NULL)
 		return NULL;
-	
+
 	int len = strlen(endpoints->body.string);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
-	
+
 	strcpy(char_arr->arr, endpoints->body.string);
 	char_arr->len = len;
 
@@ -396,9 +401,12 @@ import "C"
 
 import (
 	"bytes"
-	"fmt"
-	"unsafe"
 	"encoding/json"
+	"fmt"
+	"os"
+	"unsafe"
+
+	"github.com/golang/glog"
 )
 
 type ConfigMgrContext struct {
@@ -407,22 +415,22 @@ type ConfigMgrContext struct {
 
 // ConfigMgr object
 type ConfigMgr struct {
-	ctx    *ConfigMgrContext
+	ctx *ConfigMgrContext
 }
 
 // Convert C char** to Go string[]
 func GoStrings(argc C.int, argv **C.char) []string {
 	length := int(argc)
-    tmpslice := (*[1 << 30]*C.char)(unsafe.Pointer(argv))[:length:length]
-    gostrings := make([]string, length)
-    for i, s := range tmpslice {
-        gostrings[i] = C.GoString(s)
-    }
-    return gostrings
+	tmpslice := (*[1 << 30]*C.char)(unsafe.Pointer(argv))[:length:length]
+	gostrings := make([]string, length)
+	for i, s := range tmpslice {
+		gostrings[i] = C.GoString(s)
+	}
+	return gostrings
 }
 
 //  Convert string to map[string]interface{}
-func string_to_map_interface(str string) (map[string]interface{}, error){
+func string_to_map_interface(str string) (map[string]interface{}, error) {
 	var out map[string]interface{}
 
 	jsonBytes := []byte(str)
@@ -435,13 +443,29 @@ func string_to_map_interface(str string) (map[string]interface{}, error){
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return out, nil
 }
 
 // Initialize a new config manager context.
 func ConfigManager() (*ConfigMgr, error) {
+	// Fetching app_cfg object
 	app_cfg := C.create_new_cfg_mr()
+	// Fetching env_var from app_cfg object
+	c_env_var := C.get_env_var(app_cfg)
+	// Converting C string to Go string
+	go_env_var := C.GoString(c_env_var)
+	// Converting Go string to json
+	json_env_var, err := string_to_map_interface(go_env_var)
+	if err != nil {
+		glog.Errorf("Error in fetching GlobalEnv json: %v", err)
+		return nil, err
+	}
+	// Iterating through and setting env values
+	// for all items in env_var
+	for key, value := range json_env_var {
+		os.Setenv(key, value.(string))
+	}
 	cfgmgrContext := new(ConfigMgrContext)
 	cfgmgrContext.cfgmgrCtx = app_cfg
 	config_mgr := new(ConfigMgr)
@@ -449,7 +473,7 @@ func ConfigManager() (*ConfigMgr, error) {
 	return config_mgr, nil
 }
 
-func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error){
+func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 	app_cfg := C.get_apps_config(ctx.ctx.cfgmgrCtx)
 	json_app_config, err := string_to_map_interface(C.GoString(app_cfg))
 	defer C.free(unsafe.Pointer(app_cfg))
@@ -457,14 +481,14 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error){
 	if err != nil {
 		return nil, err
 	}
-	if json_app_config == nil{
+	if json_app_config == nil {
 		fmt.Println("value not found")
 		return nil, nil
 	}
 	return json_app_config, nil
 }
 
-func (ctx *ConfigMgr) GetAppInterface() (map[string]interface{}, error){
+func (ctx *ConfigMgr) GetAppInterface() (map[string]interface{}, error) {
 	app_interface := C.get_apps_interface(ctx.ctx.cfgmgrCtx)
 	json_app_interface, err := string_to_map_interface(C.GoString(app_interface))
 
@@ -554,7 +578,7 @@ func (pubctx *PublisherCfg) getTopics() []string {
 	return pubTopics
 }
 
-func (pubctx *PublisherCfg) getAllowedClients() []string{
+func (pubctx *PublisherCfg) getAllowedClients() []string {
 	allowed_clients_arr := C.get_pub_allowed_clients(pubctx.appCfg, pubctx.pubCfg)
 	defer C.destroy_string_arr(allowed_clients_arr)
 
@@ -567,7 +591,7 @@ func (pubctx *PublisherCfg) getMsgbusConfig() string {
 	return C.GoString(conf)
 }
 
-func (pubctx *PublisherCfg) setTopics(topics []string) bool{
+func (pubctx *PublisherCfg) setTopics(topics []string) bool {
 	topicsList := make([]*C.char, len(topics))
 	for i, s := range topics {
 		fmt.Println(s)
@@ -577,11 +601,11 @@ func (pubctx *PublisherCfg) setTopics(topics []string) bool{
 	}
 
 	topicsSet := C.set_pub_topics(pubctx.appCfg, pubctx.pubCfg, &topicsList[0], C.int(len(topics)))
-	if(topicsSet == 0) {
+	if topicsSet == 0 {
 		return true
 	} else {
 		return false
-	}	
+	}
 }
 
 func (subctx *SubscriberCfg) getEndPoints() string {
@@ -603,7 +627,7 @@ func (subctx *SubscriberCfg) getTopics() []string {
 	return subTopics
 }
 
-func (subctx *SubscriberCfg) setTopics(topics []string) bool{
+func (subctx *SubscriberCfg) setTopics(topics []string) bool {
 	topicsList := make([]*C.char, len(topics))
 	for i, s := range topics {
 		fmt.Println(s)
@@ -613,11 +637,11 @@ func (subctx *SubscriberCfg) setTopics(topics []string) bool{
 	}
 
 	topicsSet := C.set_sub_topics(subctx.appCfg, subctx.subCfg, &topicsList[0], C.int(len(topics)))
-	if(topicsSet == 0) {
+	if topicsSet == 0 {
 		return true
 	} else {
 		return false
-	}	
+	}
 }
 
 func (serverCtx *ServerCfg) getEndPoints() string {
