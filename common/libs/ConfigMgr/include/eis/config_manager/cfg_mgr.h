@@ -47,6 +47,8 @@ typedef struct {
 
     base_cfg_t* base_cfg;
 
+    char* env_var;
+
 } app_cfg_t;
 
 /**

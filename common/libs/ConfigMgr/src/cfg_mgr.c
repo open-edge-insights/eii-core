@@ -610,7 +610,6 @@ app_cfg_t* app_cfg_new() {
         }
     }
     cJSON_Delete(env_json);
-    free(env_var);
 
     config_t* app_config = json_config_new_from_buffer(value);
     if (app_config == NULL) {
@@ -626,7 +625,7 @@ app_cfg_t* app_cfg_new() {
     app_cfg->base_cfg = base_cfg_new();
     if (app_cfg->base_cfg != NULL) {
         if (c_app_name != NULL) {
-        app_cfg->base_cfg->app_name = c_app_name;
+            app_cfg->base_cfg->app_name = c_app_name;
         }
         if (kv_store_client != NULL) {
             app_cfg->base_cfg->m_kv_store_handle = kv_store_client;
@@ -636,6 +635,9 @@ app_cfg_t* app_cfg_new() {
         }
         if (app_interface != NULL) {
             app_cfg->base_cfg->m_app_interface = app_interface;
+        }
+        if (env_var != NULL) {
+            app_cfg->env_var = env_var;
         }
         app_cfg->base_cfg->dev_mode = result;
     }

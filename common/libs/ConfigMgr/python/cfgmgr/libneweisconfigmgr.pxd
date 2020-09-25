@@ -94,6 +94,7 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
 
     ctypedef struct app_cfg_t:
         base_cfg_t* base_cfg
+        char* env_var
 
     # base_cfg_t APIs
     char* configt_to_char(config_t* config)
