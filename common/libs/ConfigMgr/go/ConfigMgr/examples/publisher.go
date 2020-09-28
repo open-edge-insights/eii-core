@@ -26,8 +26,8 @@ import (
 	eiscfgmgr "ConfigMgr/eisconfigmgr"
 	eismsgbus "EISMessageBus/eismsgbus"
 	"fmt"
-	"time"
 	"os"
+	"time"
 )
 
 func main() {
@@ -36,16 +36,38 @@ func main() {
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
-	// pubCtx,_ := configMgr.GetPublisherByName("sample_pub")
+	devMode, _ := configMgr.IsDevMode()
+	if devMode {
+		fmt.Printf("Running in DEV mode\n")
+	} else {
+		fmt.Printf("Running in PROD mode\n")
+	}
 
-	pubCtx,_ := configMgr.GetPublisherByIndex(0)
+	appName, _ := configMgr.GetAppName()
+	fmt.Printf("AppName : %v\n", appName)
+
+	numOfPublishers, _ := configMgr.GetNumPublishers()
+	fmt.Printf("Publishers : %v\n", numOfPublishers)
+
+	numOfSubscribers, _ := configMgr.GetNumSubscribers()
+	fmt.Printf("Subscribers : %v\n", numOfSubscribers)
+
+	numOfServers, _ := configMgr.GetNumServers()
+	fmt.Printf("Servers : %v\n", numOfServers)
+
+	numOfClients, _ := configMgr.GetNumClients()
+	fmt.Printf("Clients : %v\n", numOfClients)
+
+	// pubCtx, _ := configMgr.GetPublisherByName("sample_pub")
+
+	pubCtx, _ := configMgr.GetPublisherByIndex(0)
 
 	endpoint := pubCtx.GetEndPoints()
 	fmt.Println("endpoint:", endpoint)
 
 	config, err := pubCtx.GetMsgbusConfig()
 	fmt.Println("err in main:", err)
-	if(err != nil) {
+	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
@@ -65,8 +87,8 @@ func main() {
 	}
 
 	topicsList := []string{"topic1", "topic2"}
-	topicsSet := pubCtx.SetTopics(topicsList);
-	if(topicsSet == true) {
+	topicsSet := pubCtx.SetTopics(topicsList)
+	if topicsSet == true {
 		fmt.Println("Pub topics are set succesfully")
 	} else {
 		fmt.Println("Failed to set pub topics")

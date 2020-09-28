@@ -92,6 +92,47 @@ static inline char* get_env_var(void* app_cfg) {
 	return c_app_cfg->env_var;
 }
 
+static inline char* get_app_name(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	config_value_t* appname = cfgmgr_get_appname_base(c_app_cfg->base_cfg);
+    if (appname->type != CVT_STRING) {
+        LOG_ERROR_0("appname type is not string");
+        return "";
+    } else {
+        if (appname->body.string == NULL) {
+            LOG_ERROR_0("AppName is NULL");
+            return "";
+        }
+    }
+    return appname->body.string;
+}
+
+static inline int is_dev_mode(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	int result = cfgmgr_is_dev_mode_base(c_app_cfg->base_cfg);
+	return result;
+}
+
+static inline int get_num_publihers(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	return cfgmgr_get_num_elements_base("Publishers", c_app_cfg->base_cfg);
+}
+
+static inline int get_num_subscribers(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	return cfgmgr_get_num_elements_base("Subscribers", c_app_cfg->base_cfg);
+}
+
+static inline int get_num_servers(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	return cfgmgr_get_num_elements_base("Servers", c_app_cfg->base_cfg);
+}
+
+static inline int get_num_clients(void* app_cfg) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	return cfgmgr_get_num_elements_base("Clients", c_app_cfg->base_cfg);
+}
+
 // ---------------APP CONFIG-----------------------
 static inline char* get_apps_config(void* app_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
@@ -498,6 +539,50 @@ func (ctx *ConfigMgr) GetAppInterface() (map[string]interface{}, error) {
 		return nil, err
 	}
 	return json_app_interface, nil
+}
+
+func (ctx *ConfigMgr) GetAppName() (string, error) {
+	// Fetching app_name
+	c_app_name := C.get_app_name(ctx.ctx.cfgmgrCtx)
+	// Converting c string to Go string
+	go_app_name := C.GoString(c_app_name)
+	defer C.free(unsafe.Pointer(c_app_name))
+	return go_app_name, nil
+}
+
+func (ctx *ConfigMgr) IsDevMode() (bool, error) {
+	// Fetching dev mode
+	dev_mode := C.is_dev_mode(ctx.ctx.cfgmgrCtx)
+	// Return true if dev_mode variable is 0
+	if int(dev_mode) == 0 {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func (ctx *ConfigMgr) GetNumPublishers() (int, error) {
+	// Fetching dev mode
+	num_publihers := C.get_num_publihers(ctx.ctx.cfgmgrCtx)
+	return int(num_publihers), nil
+}
+
+func (ctx *ConfigMgr) GetNumSubscribers() (int, error) {
+	// Fetching dev mode
+	num_subscribers := C.get_num_subscribers(ctx.ctx.cfgmgrCtx)
+	return int(num_subscribers), nil
+}
+
+func (ctx *ConfigMgr) GetNumServers() (int, error) {
+	// Fetching dev mode
+	num_servers := C.get_num_servers(ctx.ctx.cfgmgrCtx)
+	return int(num_servers), nil
+}
+
+func (ctx *ConfigMgr) GetNumClients() (int, error) {
+	// Fetching dev mode
+	num_clients := C.get_num_clients(ctx.ctx.cfgmgrCtx)
+	return int(num_clients), nil
 }
 
 func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {

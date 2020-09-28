@@ -98,15 +98,25 @@ int main(int argc, char** argv) {
     // Fetching Publisher config from
     // VideoIngestion interface
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* pub_ch = new ConfigMgr();
+    ConfigMgr* ctx = new ConfigMgr();
 
-    int num_of_publishers = pub_ch->getNumPublishers();
+    bool dev_mode = ctx->isDevMode();
+    if (dev_mode) {
+        LOG_INFO_0("Running in DEV mode");
+    } else {
+        LOG_INFO_0("Running in PROD mode");
+    }
+
+    std::string app_name = ctx->getAppName();
+    std::cout << "AppName :" << app_name << std::endl;
+
+    int num_of_publishers = ctx->getNumPublishers();
     LOG_DEBUG("Total number of publishers : %d", num_of_publishers);
 
-    int num_of_servers = pub_ch->getNumServers();
+    int num_of_servers = ctx->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);
 
-    PublisherCfg* pub_ctx = pub_ch->getPublisherByName("default");
+    PublisherCfg* pub_ctx = ctx->getPublisherByName("default");
     config_t* pub_config = pub_ctx->getMsgBusConfig();
 
     // Testing getEndpoint API
@@ -138,15 +148,15 @@ int main(int argc, char** argv) {
 
     // Testing TCP PROD mode
     setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* pub_ch_va = new ConfigMgr();
+    ConfigMgr* ctx_va = new ConfigMgr();
 
-    int num_of_subscribers = pub_ch_va->getNumSubscribers();
+    int num_of_subscribers = ctx_va->getNumSubscribers();
     LOG_DEBUG("Total number of subscribers : %d", num_of_subscribers);
 
-    int num_of_clients = pub_ch_va->getNumClients();
+    int num_of_clients = ctx_va->getNumClients();
     LOG_DEBUG("Total number of clients : %d", num_of_clients);
 
-    PublisherCfg* pub_ctx_va = pub_ch_va->getPublisherByName("Image_Metadata");
+    PublisherCfg* pub_ctx_va = ctx_va->getPublisherByName("Image_Metadata");
     config_t* pub_config_va = pub_ctx_va->getMsgBusConfig();
 
     config_value_t* interface_value = pub_ctx_va->getInterfaceValue("Name");

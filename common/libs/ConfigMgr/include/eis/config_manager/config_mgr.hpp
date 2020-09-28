@@ -93,6 +93,18 @@ namespace eis {
                 int getNumClients();
 
                 /**
+                 * Check whether dev mode or prod mode
+                 * @return bool - True if dev mode & false if prod mode
+                 */
+                bool isDevMode();
+
+                /**
+                 * Get the AppName for any service
+                 * @return std::string - AppName string
+                 */
+                std::string getAppName();
+
+                /**
                  * Get server interface from ConfigManager
                  * @param index - These servers are in array for which index is sent to get the respective server config.
                  * @return ServerCfg* - ServerCfg class object

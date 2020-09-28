@@ -104,6 +104,34 @@ cdef class ConfigMgr:
         obj= AppCfg(cfg)
         return obj
 
+    def is_dev_mode(self):
+        """Calling bace c cfgmgr_is_dev_mode_base in order to get
+        the dev mode variable
+        
+        :return: Whether dev mode is set
+        :rtype: bool
+        """
+        # Calling the base C API to fetch appname
+        ret = cfgmgr_is_dev_mode_base(self.app_cfg.base_cfg)
+        if ret == 0:
+            return True
+        return False
+
+    def get_app_name(self):
+        """Calling bace c cfgmgr_get_appname_base in order to get
+        the app name
+        
+        :return: App name
+        :rtype: str
+        """
+        cdef config_value_t* appname
+
+        # Calling the base C API to fetch appname
+        appname = cfgmgr_get_appname_base(self.app_cfg.base_cfg)
+        app_name = appname.body.string
+        # Returning python string of appname
+        return app_name.decode("utf-8")
+
     def get_publisher_by_name(self, name):
         """Calling bace c get_publisher_by_name in order to get
         respective publisher config

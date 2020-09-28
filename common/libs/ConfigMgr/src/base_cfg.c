@@ -76,6 +76,21 @@ int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg) {
     return result;
 }
 
+// To check whether environment is dev mode or prod mode
+int cfgmgr_is_dev_mode_base(base_cfg_t* base_cfg) {
+    // Fetching dev mode from base_cfg
+    int result = base_cfg->dev_mode;
+    return result;
+}
+
+// To fetch appname of any service
+config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg) {
+    // Fetching app name from base_cfg
+    char* appname = base_cfg->app_name;
+    config_value_t* app_name = config_value_new_string(appname);
+    return app_name;
+}
+
 // To fetch list of allowed clients from config
 config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
     config_value_t* config = base_cfg->msgbus_config;
