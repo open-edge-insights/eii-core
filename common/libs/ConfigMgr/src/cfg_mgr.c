@@ -61,14 +61,14 @@ config_t* create_kv_store_config() {
     // Fetching ETCD_HOST type from env
     char* etcd_host = getenv("ETCD_HOST");
     if (etcd_host == NULL) {
-        LOG_DEBUG_0("ETCD_HOST env not set, defaulting to localhost");
-        cJSON_AddStringToObject(etcd_kv_store, "host", "localhost");
+        LOG_DEBUG_0("ETCD_HOST env not set, defaulting to 127.0.0.1");
+        cJSON_AddStringToObject(etcd_kv_store, "host", "127.0.0.1");
     } else {
         int ind_etcd_host;
         strcmp_s(etcd_host, strlen(etcd_host), "", &ind_etcd_host);
         if (ind_etcd_host == 0) {
-            LOG_DEBUG_0("ETCD_HOST env is set to empty, defaulting to localhost");
-            cJSON_AddStringToObject(etcd_kv_store, "host", "localhost");
+            LOG_DEBUG_0("ETCD_HOST env is set to empty, defaulting to 127.0.0.1");
+            cJSON_AddStringToObject(etcd_kv_store, "host", "127.0.0.1");
         } else {
             size_t str_len = strlen(etcd_host) + 1;
             char* c_etcd_host = (char*)malloc(sizeof(char) * str_len);
