@@ -1,7 +1,7 @@
 {
     "type": "etcd",
     "etcd_kv_store": {
-        "host": "localhost",
+        "host": "127.0.0.1",
         "port": "2379",
 	"cert_file": "",
 	"key_file": "",
