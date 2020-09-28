@@ -107,6 +107,8 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
     config_t* get_app_interface(base_cfg_t* base_cfg) 
     void base_cfg_config_destroy(base_cfg_t* base_cfg_config)
     int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg)
+    int cfgmgr_is_dev_mode_base(base_cfg_t* base_cfg)
+    config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg)
 
     # pub_cfg_t APIs
     void pub_cfg_config_destroy(pub_cfg_t *pub_cfg_config)

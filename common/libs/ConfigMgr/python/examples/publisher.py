@@ -46,6 +46,13 @@ try:
 
     os.environ["AppName"] = "VideoAnalytics"
     ctx = cfg.ConfigMgr()
+    dev_mode = ctx.is_dev_mode()
+    if (dev_mode):
+        print("Running in DEV mode")
+    else:
+        print("Running in PROD mode")
+    app_name = ctx.get_app_name()
+    print('[INFO] App name {}'.format(app_name))
     print('[INFO] Total number of publishers in interface is {}'.format(ctx.get_num_publishers()))
     print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
     print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))

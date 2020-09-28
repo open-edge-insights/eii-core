@@ -114,6 +114,20 @@ int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg);
 char* cvt_to_char(config_value_t* config);
 
 /**
+ * To check whether environment is dev mode or prod mode
+ * @param base_cfg - base_cfg_t object
+ *  @return 0 if dev_mode or any errors, prod mode otherwise
+ */
+int cfgmgr_is_dev_mode_base(base_cfg_t* base_cfg);
+
+/**
+ * To fetch appname of any service
+ * @param base_cfg - base_cfg_t object
+ *  @return NULL for any errors occured or config_value_t* on success
+ */
+config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg);
+
+/**
  * set_topics_base function to set topics
  * @param topics_list - list of topics to be set
  * @param len - total number of topics

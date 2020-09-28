@@ -525,22 +525,6 @@ app_cfg_t* app_cfg_new() {
         goto err;
     }
 
-    // Fetching AppName
-    char* app_name_var = getenv("AppName");
-    if (app_name_var == NULL) {
-        LOG_ERROR_0("AppName env not set");
-        goto err;
-    }
-    size_t str_len = strlen(app_name_var) + 1;
-    char* c_app_name = (char*)malloc(sizeof(char) * str_len);
-    if (c_app_name == NULL) {
-        LOG_ERROR_0("c_app_name is NULL");
-        return NULL;
-    }
-    snprintf(c_app_name, str_len, "%s", app_name_var);
-    LOG_DEBUG("AppName: %s", c_app_name);
-    trim(c_app_name);
-
     // Fetching & intializing dev mode variable
     char* dev_mode_var = getenv("DEV_MODE");
     to_lower(dev_mode_var);
@@ -565,29 +549,6 @@ app_cfg_t* app_cfg_new() {
         return NULL;
     }
 
-    // Fetching App interfaces
-    size_t init_len = strlen("/") + strlen(c_app_name) + strlen("/interfaces") + 1;
-    char* interface_char = concat_s(init_len, 3, "/", c_app_name, "/interfaces");
-
-    // Fetching App config
-    init_len = strlen("/") + strlen(c_app_name) + strlen("/config") + 1;
-    char* config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
-
-    LOG_DEBUG("interface_char: %s", interface_char);
-    LOG_DEBUG("config_char: %s", config_char);
-
-    char* interface = kv_store_client->get(handle, interface_char);
-    if (interface == NULL) {
-        LOG_ERROR("Value is not found for the key: %s", interface_char);
-        goto err;
-    }
-
-    char* value = kv_store_client->get(handle, config_char);
-    if (value == NULL) {
-        LOG_ERROR("Value is not found for the key: %s", config_char);
-        goto err;
-    }
-
     // Fetching GlobalEnv
     char* env_var = kv_store_client->get(handle, "/GlobalEnv/");
     if (env_var == NULL) {
@@ -610,6 +571,45 @@ app_cfg_t* app_cfg_new() {
         }
     }
     cJSON_Delete(env_json);
+
+    // Fetching AppName
+    char* app_name_var = getenv("AppName");
+    if (app_name_var == NULL) {
+        LOG_ERROR_0("AppName env not set");
+        goto err;
+    }
+    size_t str_len = strlen(app_name_var) + 1;
+    char* c_app_name = (char*)malloc(sizeof(char) * str_len);
+    if (c_app_name == NULL) {
+        LOG_ERROR_0("c_app_name is NULL");
+        return NULL;
+    }
+    snprintf(c_app_name, str_len, "%s", app_name_var);
+    LOG_DEBUG("AppName: %s", c_app_name);
+    trim(c_app_name);
+
+    // Fetching App interfaces
+    size_t init_len = strlen("/") + strlen(c_app_name) + strlen("/interfaces") + 1;
+    char* interface_char = concat_s(init_len, 3, "/", c_app_name, "/interfaces");
+
+    // Fetching App config
+    init_len = strlen("/") + strlen(c_app_name) + strlen("/config") + 1;
+    char* config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
+
+    LOG_DEBUG("interface_char: %s", interface_char);
+    LOG_DEBUG("config_char: %s", config_char);
+
+    char* interface = kv_store_client->get(handle, interface_char);
+    if (interface == NULL) {
+        LOG_ERROR("Value is not found for the key: %s", interface_char);
+        goto err;
+    }
+
+    char* value = kv_store_client->get(handle, config_char);
+    if (value == NULL) {
+        LOG_ERROR("Value is not found for the key: %s", config_char);
+        goto err;
+    }
 
     config_t* app_config = json_config_new_from_buffer(value);
     if (app_config == NULL) {
