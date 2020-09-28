@@ -17,33 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus publisher example
+"""EIS ConfigManager Util class
 """
 
-import os
-import cfgmgr.config_manager as cfg
+from .libneweisconfigmgr cimport config_value_t
 
-try:
-    # For DEV_MODE true tests
-    # os.environ["DEV_MODE"] = "TRUE"
-    # os.environ["CONFIGMGR_CERT"] = ""
-    # os.environ["CONFIGMGR_KEY"] = ""
-    # os.environ["CONFIGMGR_CACERT"] = ""
-    
-    os.environ["DEV_MODE"] = "FALSE"
-    # Set path to certs here
-    os.environ["CONFIGMGR_CERT"] = ""
-    os.environ["CONFIGMGR_KEY"] = ""
-    os.environ["CONFIGMGR_CACERT"] = ""
 
-    os.environ["AppName"] = "VideoIngestion"
-    ctx = cfg.ConfigMgr()
-    
-    app_cfg = ctx.get_app_config()
-    print('app config is : {}'.format((app_cfg)))
-    print('loop_interval is : {}'.format((app_cfg["loop_interval"])))
+cdef class Util:
+    """EIS ConfigManager Publisher object
+    """
 
-except KeyboardInterrupt:
-    print('[INFO] Quitting...')
-except Exception:
-    print('Error during execution:')
+    @staticmethod
+    cdef get_cvt_data(config_value_t* cvt)

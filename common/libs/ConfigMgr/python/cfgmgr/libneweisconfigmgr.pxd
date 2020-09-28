@@ -72,6 +72,7 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
 
     ctypedef struct pub_cfg_t:
         config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg)
+        config_value_t* (*cfgmgr_get_interface_value_pub)(base_cfg_t* base_cfg, const char* key)
         config_value_t*(*cfgmgr_get_endpoint_pub)(base_cfg_t* base_cfg)
         config_value_t* (*cfgmgr_get_topics_pub)(base_cfg_t* base_cfg)
         int (*cfgmgr_set_topics_pub)(char** topics_list, int len, base_cfg_t* base_cfg)
@@ -79,17 +80,20 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
 
     ctypedef struct sub_cfg_t:
         config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg)
+        config_value_t* (*cfgmgr_get_interface_value_sub)(base_cfg_t* base_cfg, const char* key)
         config_value_t* (*cfgmgr_get_endpoint_sub)(base_cfg_t* base_cfg)
         config_value_t* (*cfgmgr_get_topics_sub)(base_cfg_t* base_cfg)
         int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg)
 
     ctypedef struct server_cfg_t:
         config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg)
+        config_value_t* (*cfgmgr_get_interface_value_server)(base_cfg_t* base_cfg, const char* key)
         config_value_t* (*cfgmgr_get_endpoint_server)(base_cfg_t* base_cfg)
         config_value_t* (*cfgmgr_get_allowed_clients_server)(base_cfg_t* base_cfg)
 
     ctypedef struct client_cfg_t:
         config_t* (*cfgmgr_get_msgbus_config_client)(base_cfg_t* base_cfg)
+        config_value_t* (*cfgmgr_get_interface_value_client)(base_cfg_t* base_cfg, const char* key)
         config_value_t* (*cfgmgr_get_endpoint_client)(base_cfg_t* base_cfg)
 
     ctypedef struct app_cfg_t:
@@ -98,6 +102,7 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
 
     # base_cfg_t APIs
     char* configt_to_char(config_t* config)
+    char* cvt_to_char(config_value_t* config)
     config_t* get_app_config(base_cfg_t* base_cfg) 
     config_t* get_app_interface(base_cfg_t* base_cfg) 
     void base_cfg_config_destroy(base_cfg_t* base_cfg_config)

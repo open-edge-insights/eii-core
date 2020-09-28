@@ -159,6 +159,24 @@ char* configt_to_char(config_t* config) {
     return config_value_cr;
 }
 
+// Helper function to convert config_value_t object to char*
+char* cvt_to_char(config_value_t* config) {
+
+    cJSON* c_json = cJSON_CreateObject();
+    if (c_json == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        return NULL;
+    }
+
+    c_json = (cJSON*)config->body.object->object;
+    char* config_value_cr = cJSON_Print(c_json);
+    if(config_value_cr == NULL) {
+        LOG_ERROR_0("config_value_cr object is NULL");
+        return NULL;
+    }
+    return config_value_cr;
+}
+
 // base C function to fetch app config
 config_t* get_app_config(base_cfg_t* base_cfg) {
     return base_cfg->m_app_config;

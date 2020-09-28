@@ -55,6 +55,10 @@ try:
     pub_ctx = ctx.get_publisher_by_name("Image_Metadata")
     config = pub_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
+
+    interface_value = pub_ctx.get_interface_value("Name")
+    print('[INFO] Obtained interface_value is {}'.format(interface_value))
+
     print('[INFO] Obtained endpoint is {}'.format(pub_ctx.get_endpoint()))
     print('[INFO] Obtained allowed clients is {}'.format(pub_ctx.get_allowed_clients()))
     topics = pub_ctx.get_topics()

@@ -50,10 +50,13 @@ try:
     config = client_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(client_ctx.get_endpoint()))
-    
+
+    interface_value = client_ctx.get_interface_value("Name")
+    print('[INFO] Obtained interface_value is {}'.format(interface_value))
+
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)
-    service = msgbus.get_service("echo_service")
+    service = msgbus.get_service(interface_value)
 
     # Request used for the example
     request = {'int': 42, 'float': 55.5, 'str': 'Hello, World!', 'bool': True}
