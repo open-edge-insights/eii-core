@@ -47,6 +47,10 @@ try:
     ctx = cfg.ConfigMgr()
     sub_ctx = ctx.get_subscriber_by_name("Cam2_Results")
     config = sub_ctx.get_msgbus_config()
+
+    interface_value = sub_ctx.get_interface_value("Name")
+    print('[INFO] Obtained interface_value is {}'.format(interface_value))
+
     topics = sub_ctx.get_topics()
 
     print('[INFO] Initializing message bus context')

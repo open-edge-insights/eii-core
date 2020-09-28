@@ -45,15 +45,18 @@ try:
     os.environ["AppName"] = "VideoIngestion"
 
     ctx = cfg.ConfigMgr()
-    server_ctx = ctx.get_server_by_name("sample_server")
+    server_ctx = ctx.get_server_by_name("default")
     config = server_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(server_ctx.get_endpoint()))
     print('[INFO] Obtained allowed clients is {}'.format(server_ctx.get_allowed_clients()))
 
+    interface_value = server_ctx.get_interface_value("Name")
+    print('[INFO] Obtained interface_value is {}'.format(interface_value))
+
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)
-    service = msgbus.new_service("echo_service")
+    service = msgbus.new_service(interface_value)
 
     print('[INFO] Running...')
     while True:

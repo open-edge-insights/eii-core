@@ -107,6 +107,13 @@ config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg);
 int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg);
 
 /**
+ * cvt_to_char function to convert config_value_t* to char*
+ * @param config_value_t* - config_value_t* object
+ *  @return NULL for any errors occured or char* on success
+ */
+char* cvt_to_char(config_value_t* config);
+
+/**
  * set_topics_base function to set topics
  * @param topics_list - list of topics to be set
  * @param len - total number of topics

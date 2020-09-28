@@ -104,27 +104,6 @@ cdef class ConfigMgr:
         obj= AppCfg(cfg)
         return obj
 
-    def get_app_interface(self):
-        """Calling bace c get_app_interface in order to get the 
-        respective applications interface
-        
-        :return: Return object of class AppCfg
-        :rtype: obj
-        """
-        cdef config_t* conf
-        cdef char* config
-
-        if self.app_cfg == NULL:
-            logging.info("app_cfg is NULL in config_manager")
-
-        conf = get_app_interface(self.app_cfg.base_cfg)
-        config = configt_to_char(conf)
-        config_str = config.decode('utf-8')
-        interface = json.loads(config_str)
-
-        obj= AppCfg(interface)
-        return obj
-
     def get_publisher_by_name(self, name):
         """Calling bace c get_publisher_by_name in order to get
         respective publisher config

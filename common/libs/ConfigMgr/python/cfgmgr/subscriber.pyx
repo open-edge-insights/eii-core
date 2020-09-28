@@ -21,10 +21,11 @@
 """
 
 import json
-import logging
+
 
 from .libneweisconfigmgr cimport *
 from libc.stdlib cimport malloc
+from .util cimport Util
 
 
 cdef class Subscriber:
@@ -83,6 +84,21 @@ cdef class Subscriber:
         config_str = config.decode('utf-8')
         return json.loads(config_str)
 
+    def get_interface_value(self, key):
+        """Calling the base C cfgmgr_get_interface_value_sub() API
+
+        :param key: Key on which interface value will be extracted
+        :type: string
+        :return: Interface value
+        :rtype: string
+        """
+        cdef config_value_t* value
+        cdef char* config
+        value = self.sub_cfg.cfgmgr_get_interface_value_sub(self.app_cfg.base_cfg, key.encode('utf-8'))
+        interface_value = Util.get_cvt_data(value)
+        config_value_destroy(value)
+        return interface_value
+
     def get_endpoint(self):
         """Calling the base C cfgmgr_get_endpoint_sub() API
 
@@ -124,7 +140,7 @@ cdef class Subscriber:
         topics_to_be_set = <char**>malloc(len(topics_list) * sizeof(char*))
         # Check if allocation went fine
         if topics_to_be_set is NULL:
-            logging.info("Out of memory")
+            raise Exception("Out of memory")
         # Convert str to char* and store it into our char**
         for i in range(len(topics_list)):
             topics_list[i] = topics_list[i].encode()
