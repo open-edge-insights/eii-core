@@ -45,6 +45,9 @@ config_value_t* get_endpoint_base(base_cfg_t* base_cfg) {
 }
 
 // To fetch topics from config
+// Get topics base returns the value mapped to Topics key in the Applications Interface.
+// If "*" is mentioned in topics, then it is replaced by empty string ,
+// as our EISMessageBus supports the prefix approach, empty prefix considers all/any the topics. 
 config_value_t* get_topics_base(base_cfg_t* base_cfg) {
     config_value_t* config = base_cfg->msgbus_config;
     if (config == NULL) {
@@ -56,6 +59,30 @@ config_value_t* get_topics_base(base_cfg_t* base_cfg) {
         LOG_ERROR_0("topics initialization failed");
         return NULL;
     }
+
+    cJSON* arr = cJSON_CreateArray();
+    int ret;
+
+    size_t arrlen = config_value_array_len(topics);
+    if (arrlen == 0){
+        LOG_ERROR_0("Empty String is not supported in Topics. Atleast one topic is required");
+        return NULL;
+    }
+
+    config_value_t* topic_value;
+    topic_value = config_value_array_get(topics, 0);
+    // If only one item in Topics and it is *,
+    // then add empty string in order to allow all clients to subscribe
+    strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
+    
+    if((arrlen == 1) && (ret == 0 )){
+        cJSON_AddItemToArray(arr, cJSON_CreateString(""));
+        config_value_destroy(topics);
+        topics = config_value_new_array(
+                (void*) arr , cJSON_GetArraySize(arr), get_array_item, NULL);
+        return topics;
+    }
+
     return topics;
 }
 
@@ -92,6 +119,9 @@ config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg) {
 }
 
 // To fetch list of allowed clients from config
+// Get Allowed Clients returns the value mapped to AllowedClients key in the Applications Interface.
+// If "*" is mentioned in the allowed clients, the return value will still be "*" notifying user
+// that all the provisioned applications are allowed to get the topics.
 config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
     config_value_t* config = base_cfg->msgbus_config;
     if (config == NULL) {

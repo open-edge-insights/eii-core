@@ -144,23 +144,46 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
             LOG_ERROR_0("sub_topic initialization failed");
             return NULL;
         }
-        for (int i = 0; i < config_value_array_len(topic_array); i++) {
-            topic = config_value_array_get(topic_array, i);
-            if (topic == NULL) {
-                LOG_ERROR_0("topic initialization failed");
-                return NULL;
-            }
-            // Add host & port to cJSON object
-            char** host_port = get_host_port(end_point);
-            char* host = host_port[0];
-            trim(host);
-            char* port = host_port[1];
-            trim(port);
-            __int64_t i_port = atoi(port);
 
+
+        size_t arr_len = config_value_array_len(topic_array);
+
+        char** host_port = get_host_port(end_point);
+        char* host = host_port[0];
+        trim(host);
+        char* port = host_port[1];
+        trim(port);
+        int64_t i_port = atoi(port);
+        
+        int ret;
+        // comparing the first topic in the array of subscribers topic with "*"
+        topic = config_value_array_get(topic_array,0);
+        strcmp_s(topic->body.string, strlen(topic->body.string), "*", &ret);
+
+        if((arr_len == 1) && (ret == 0)){
+            // Add host & port to cJSON object
             cJSON_AddStringToObject(sub_topic, "host", host);
             cJSON_AddNumberToObject(sub_topic, "port", i_port);
-            cJSON_AddItemToObject(c_json, topic->body.string, sub_topic);
+
+            // if topics lenght is 1 and that topic is "*", then we are making it as empty string
+            // to support any topics subscription.
+            cJSON_AddItemToObject(c_json, "", sub_topic);
+        } else {
+            for (int i = 0; i < config_value_array_len(topic_array); i++) {
+                topic = config_value_array_get(topic_array, i);
+                if (topic == NULL) {
+                    LOG_ERROR_0("topic initialization failed");
+                    return NULL;
+                }
+
+                // Add host & port to cJSON object
+                cJSON_AddStringToObject(sub_topic, "host", host);
+                cJSON_AddNumberToObject(sub_topic, "port", i_port);
+
+                // if topics lenght is not 1 or the topic is not equal to "*", 
+                //then we are adding that topic for subscription.
+                cJSON_AddItemToObject(c_json, topic->body.string, sub_topic);
+            }
         }
 
         if(dev_mode != 0) {
