@@ -79,6 +79,12 @@ void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_ca
 
 /**
  * get_endpoint_base function to fetch endpoint
+ * 
+ * 
+ * Get Allowed Clients returns the value mapped to AllowedClients key in the Applications Interface.
+ * If "*" is mentioned in the allowed clients, the return value will still be "*" notifying user
+ * that all the provisioned applications are allowed to get the topics.
+ * 
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_value_t* on success
  */
@@ -86,6 +92,11 @@ config_value_t* get_endpoint_base(base_cfg_t* base_cfg);
 
 /**
  * get_topics_base function to fetch topics
+ * 
+ * Get topics base returns the value mapped to Topics key in the Applications Interface.
+ * If "*" is mentioned in topics, then it is replaced by empty string ,
+ * as our EISMessageBus supports the prefix approach, empty prefix considers all/any the topics.
+ * 
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_value_t* on success
  */

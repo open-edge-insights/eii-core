@@ -163,6 +163,13 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
                 LOG_ERROR_0("publish_json_clients initialization failed");
                 return NULL;
             }
+
+            // Checking if Allowed clients is empty string
+            if (config_value_array_len(publish_json_clients) == 0){
+                LOG_ERROR_0("Empty String is not supported in AllowedClients. Atleast one allowed clients is required");
+                return NULL;
+            }
+
             // Fetch the first item in allowed_clients
             config_value_t* temp_array_value = config_value_array_get(publish_json_clients, 0);
             if (temp_array_value == NULL) {
@@ -213,6 +220,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
                     const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
                     if (sub_public_key == NULL) {
                         LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                        return NULL;
                     }
 
                     cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
