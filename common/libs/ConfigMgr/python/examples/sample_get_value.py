@@ -40,8 +40,8 @@ try:
     ctx = cfg.ConfigMgr()
     
     app_cfg = ctx.get_app_config()
-    print('app config is : {}'.format((app_cfg)))
-    print('loop_interval is : {}'.format((app_cfg["loop_interval"])))
+    print('app config is : {}'.format((app_cfg.get_dict())))
+    print('loop_video is : {}'.format((app_cfg["ingestor"]["loop_video"])))
 
 except KeyboardInterrupt:
     print('[INFO] Quitting...')

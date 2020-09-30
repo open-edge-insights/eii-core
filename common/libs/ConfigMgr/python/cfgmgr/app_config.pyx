@@ -41,3 +41,11 @@ class AppCfg:
         :rtype: string
         """
         return self.cfg[key]
+
+    def get_dict(self):
+        """ Get JSON object from the class object
+
+        :return: JSON object of AppCfg
+        :rtype: JSON
+        """
+        return self.cfg

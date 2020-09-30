@@ -87,60 +87,102 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
     }
 
     // Fetching Type from config
-    config_value_t* publish_json_type = config_value_object_get(pub_config, TYPE);
-    if (publish_json_type == NULL) {
-        LOG_ERROR_0("publish_json_type initialization failed");
+    config_value_t* publish_config_type = config_value_object_get(pub_config, TYPE);
+    if (publish_config_type == NULL) {
+        LOG_ERROR_0("publish_config_type initialization failed");
         return NULL;
     }
-    char* type = publish_json_type->body.string;
-    cJSON_AddStringToObject(c_json, "type", type);
+    char* type = publish_config_type->body.string;
 
     // Fetching EndPoint from config
-    config_value_t* publish_json_endpoint = config_value_object_get(pub_config, ENDPOINT);
-    if (publish_json_endpoint == NULL) {
-        LOG_ERROR_0("publish_json_endpoint initialization failed");
+    config_value_t* publish_config_endpoint = config_value_object_get(pub_config, ENDPOINT);
+    if (publish_config_endpoint == NULL) {
+        LOG_ERROR_0("publish_config_endpoint initialization failed");
         return NULL;
     }
 
     const char* end_point;
-    if(publish_json_endpoint->type == CVT_OBJECT){
-        end_point = cvt_to_char(publish_json_endpoint);
+    if(publish_config_endpoint->type == CVT_OBJECT){
+        end_point = cvt_to_char(publish_config_endpoint);
     }else{
-        end_point = publish_json_endpoint->body.string;
+        end_point = publish_config_endpoint->body.string;
     }
 
     // Fetching Name from config
-    config_value_t* publish_json_name = config_value_object_get(pub_config, NAME);
-    if (publish_json_name == NULL) {
-        LOG_ERROR_0("publish_json_name initialization failed");
+    config_value_t* publish_config_name = config_value_object_get(pub_config, NAME);
+    if (publish_config_name == NULL) {
+        LOG_ERROR_0("publish_config_name initialization failed");
         return NULL;
     }
 
-    // // Over riding endpoint with PUBLISHER_<Name>_ENDPOINT if set
-    size_t init_len = strlen("PUBLISHER_") + strlen(publish_json_name->body.string) + strlen("_ENDPOINT") + 2;
-    char* ep_override_env = concat_s(init_len, 3, "PUBLISHER_", publish_json_name->body.string, "_ENDPOINT");
+    // Overriding endpoint with PUBLISHER_<Name>_ENDPOINT if set
+    size_t init_len = strlen("PUBLISHER_") + strlen(publish_config_name->body.string) + strlen("_ENDPOINT") + 2;
+    char* ep_override_env = concat_s(init_len, 3, "PUBLISHER_", publish_config_name->body.string, "_ENDPOINT");
+    if (ep_override_env == NULL) {
+        LOG_ERROR_0("concatenation for ep_override_env failed");
+        return NULL;
+    }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
-            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
     }
 
-    // Over riding endpoint with PUBLISHER_ENDPOINT if set
+    // Overriding endpoint with PUBLISHER_ENDPOINT if set
     // Note: This overrides all the publisher endpoints if set
     char* publisher_ep = getenv("PUBLISHER_ENDPOINT");
     if (publisher_ep != NULL) {
-        LOG_DEBUG_0("Over riding endpoint with PUBLISHER_ENDPOINT");
+        LOG_DEBUG_0("Overriding endpoint with PUBLISHER_ENDPOINT");
         if (strlen(publisher_ep) != 0) {
             end_point = (const char*)publisher_ep;
         }
     }
 
-    // Adding zmq_recv_hwm value
+    // Overriding endpoint with PUBLISHER_<Name>_TYPE if set
+    init_len = strlen("PUBLISHER_") + strlen(publish_config_name->body.string) + strlen("_TYPE") + 2;
+    char* type_override_env = concat_s(init_len, 3, "PUBLISHER_", publish_config_name->body.string, "_TYPE");
+    if (type_override_env == NULL) {
+        LOG_ERROR_0("concatenation for type_override_env failed");
+        return NULL;
+    }
+    char* type_override = getenv(type_override_env);
+    if (type_override != NULL) {
+        if (strlen(type_override) != 0) {
+            LOG_DEBUG("Overriding endpoint with %s", type_override_env);
+            type = type_override;
+        }
+    }
+
+    // Overriding endpoint with PUBLISHER_TYPE if set
+    // Note: This overrides all the publisher type if set
+    char* publisher_type = getenv("PUBLISHER_TYPE");
+    if (publisher_type != NULL) {
+        LOG_DEBUG_0("Overriding endpoint with PUBLISHER_TYPE");
+        if (strlen(publisher_type) != 0) {
+            type = publisher_type;
+        }
+    }
+    cJSON_AddStringToObject(c_json, "type", type);
+
+    // Adding zmq_recv_hwm value if available
     config_value_t* zmq_recv_hwm_value = config_value_object_get(pub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
+        if (zmq_recv_hwm_value->type != CVT_INTEGER) {
+            LOG_ERROR_0("zmq_recv_hwm type is not integer");
+            return NULL;
+        }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+    }
+
+    // Adding brokered value if available
+    config_value_t* brokered_value = config_value_object_get(pub_config, BROKERED);
+    if (brokered_value != NULL) {
+        if (brokered_value->type != CVT_BOOLEAN) {
+            LOG_ERROR_0("brokered_value type is not boolean");
+            return NULL;
+        }
     }
 
     if (!strcmp(type, "zmq_ipc")) {
@@ -164,6 +206,13 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
         }
         cJSON_AddStringToObject(zmq_tcp_publish, "host", host);
         cJSON_AddNumberToObject(zmq_tcp_publish, "port", i_port);
+        if (brokered_value != NULL) {
+            if (brokered_value->body.boolean) {
+                cJSON_AddBoolToObject(zmq_tcp_publish, BROKERED, true);
+            } else {
+                cJSON_AddBoolToObject(zmq_tcp_publish, BROKERED, false);
+            }
+        }
         cJSON_AddItemToObject(c_json, "zmq_tcp_publish", zmq_tcp_publish);
         if (dev_mode != 0) {
             void *handle = m_kv_store_handle->init(m_kv_store_handle);
@@ -197,7 +246,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
                     LOG_ERROR_0("all_clients initialization failed");
                     return NULL;
                 }
-                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys");
+                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
                 if (pub_key_values == NULL) {
                     LOG_ERROR_0("pub_key_values initialization failed");
                     return NULL;
