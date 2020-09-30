@@ -63,7 +63,16 @@ std::string ServerCfg::getEndpoint() {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
     }
-    std::string s(ep->body.string);
+    
+    char* value;
+    value = cvt_obj_str_to_char(ep);
+    if(value == NULL){
+        LOG_ERROR_0("Endpoint object to string conversion failed");
+        return NULL;
+    }
+
+    std::string s(value);
+
     // Destroying ep
     config_value_destroy(ep);
     return s;

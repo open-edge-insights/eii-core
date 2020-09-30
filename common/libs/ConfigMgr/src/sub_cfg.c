@@ -25,6 +25,7 @@
 
 
 #include "eis/config_manager/sub_cfg.h"
+#include "eis/config_manager/util_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
@@ -89,7 +90,13 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
         LOG_ERROR_0("subscribe_json_endpoint initialization failed");
         return NULL;
     }
-    char* end_point = subscribe_json_endpoint->body.string;
+
+    const char* end_point;
+    if(subscribe_json_endpoint->type == CVT_OBJECT){
+        end_point = cvt_to_char(subscribe_json_endpoint);
+    }else{
+        end_point = subscribe_json_endpoint->body.string;
+    }
 
     // Fetching Name from config
     config_value_t* subscribe_json_name = config_value_object_get(sub_config, NAME);
@@ -126,8 +133,11 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
     }
 
     if(!strcmp(type, "zmq_ipc")){
-        // Add Endpoint directly to socket_dir if IPC mode
-        cJSON_AddStringToObject(c_json, "socket_dir", end_point);
+        c_json = get_ipc_config(c_json, sub_config, end_point);
+        if (c_json == NULL){
+            LOG_ERROR_0("IPC configuration for subscriber failed");
+            return NULL;
+        }
     } else if(!strcmp(type, "zmq_tcp")) {
 
         // Fetching Topics from config

@@ -35,7 +35,7 @@
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.hpp"
-
+#include "eis/config_manager/util_cfg.h"
 #include "eis/config_manager/cfg_mgr.h"
 
 

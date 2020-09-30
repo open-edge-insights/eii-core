@@ -24,7 +24,7 @@ package eisconfigmgr
 
 /*
 #cgo CFLAGS: -g -Wall
-#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -lneweisconfigmgr -leiskvstoreplugin
+#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -lneweisconfigmgr -leiskvstoreplugin -lsafestring
 
 
 #include <stdio.h>
@@ -187,12 +187,27 @@ static inline char_arr_t* get_pub_end_points(void* app_cfg, void* pub_cfg){
 	if (endpoints == NULL)
         return NULL;
 
-	int len = strlen(endpoints->body.string);
+	char* ep;
+	if (endpoints->type == CVT_OBJECT){
+		ep = (cvt_to_char(endpoints));
+	} else if (endpoints->type == CVT_STRING) {
+		ep = (endpoints->body.string);
+	} else {
+		LOG_ERROR("EndPoint type mismatch: It should be either string or json");
+		return NULL;
+	}
+
+	int len = strlen(ep);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
 
-	strcpy(char_arr->arr, endpoints->body.string);
+	int ret;
+	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
+	if (ret != 0) {
+		LOG_ERROR_0("String copy failed for ep");
+		return NULL;
+	}
 	char_arr->len = len;
 
 	// Destroying endpoints
@@ -272,13 +287,28 @@ static inline char_arr_t* get_sub_end_points(void* app_cfg, void* sub_cfg){
 	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_app_cfg->base_cfg);
 	if (endpoints == NULL)
 		return NULL;
+	
+	char* ep;
+	if (endpoints->type == CVT_OBJECT){
+		ep = (cvt_to_char(endpoints));
+	} else if (endpoints->type == CVT_STRING) {
+		ep = (endpoints->body.string);
+	} else {
+		LOG_ERROR("EndPoint type mismatch: It should be either string or json");
+		return NULL;
+	}
 
-	int len = strlen(endpoints->body.string);
+	int len = strlen(ep);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
 
-	strcpy(char_arr->arr, endpoints->body.string);
+	int ret;
+	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
+	if (ret != 0) {
+		LOG_ERROR_0("String copy failed for ep");
+		return NULL;
+	}
 	char_arr->len = len;
 
 	// Destroying endpoints
@@ -348,12 +378,27 @@ static inline char_arr_t* get_server_end_points(void* app_cfg, void* server_cfg)
 	if (endpoints == NULL)
 		return NULL;
 
-	int len = strlen(endpoints->body.string);
+	char* ep;
+	if (endpoints->type == CVT_OBJECT){
+		ep = (cvt_to_char(endpoints));
+	} else if (endpoints->type == CVT_STRING) {
+		ep = (endpoints->body.string);
+	} else {
+		LOG_ERROR("EndPoint type mismatch: It should be either string or json");
+		return NULL;
+	}
+
+	int len = strlen(ep);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
 
-	strcpy(char_arr->arr, endpoints->body.string);
+	int ret;
+	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
+	if (ret != 0) {
+		LOG_ERROR_0("String copy failed for ep");
+		return NULL;
+	}
 	char_arr->len = len;
 
 	// Destroying endpoints
@@ -415,12 +460,27 @@ static inline char_arr_t* get_client_end_points(void* app_cfg, void* client_cfg)
 	if (endpoints == NULL)
 		return NULL;
 
-	int len = strlen(endpoints->body.string);
+	char* ep;
+	if (endpoints->type == CVT_OBJECT){
+		ep = (cvt_to_char(endpoints));
+	} else if (endpoints->type == CVT_STRING) {
+		ep = (endpoints->body.string);
+	} else {
+		LOG_ERROR("EndPoint type mismatch: It should be either string or json");
+		return NULL;
+	}
+
+	int len = strlen(ep);
 	char_arr->arr = (char*)malloc(len + 1);
 	if(char_arr->arr == NULL)
 		return NULL;
 
-	strcpy(char_arr->arr, endpoints->body.string);
+	int ret;
+	ret = strncpy_s(char_arr->arr, len + 1, ep, len);
+	if (ret != 0) {
+		LOG_ERROR_0("String copy failed for ep");
+		return NULL;
+	}
 	char_arr->len = len;
 
 	// Destroying endpoints

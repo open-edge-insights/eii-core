@@ -109,6 +109,14 @@ cdef class Client:
         """
         cdef config_value_t* ep
         ep = self.client_cfg.cfgmgr_get_endpoint_client(self.app_cfg.base_cfg)
-        endpoint = ep.body.string.decode('utf-8')
+        if(ep.type == CVT_OBJECT):
+            config = cvt_to_char(ep);
+            config_str = config.decode('utf-8')
+            endpoint = json.loads(config_str)
+        elif(ep.type == CVT_STRING):
+            endpoint = ep.body.string.decode('utf-8')
+        else:
+            endpoint = None
+            raise TypeError("Type mismatch: EndPoint should be string or dict type")
         config_value_destroy(ep)
         return endpoint

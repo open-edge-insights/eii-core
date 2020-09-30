@@ -20,57 +20,41 @@
 
 /**
  * @file
- * @brief Subscriber config implmentaion
+ * @brief Util functions for ConfigMgr
  */
 
 
 #include "eis/config_manager/base_cfg.h"
-#define TYPE "Type"
-#define NAME "Name"
-#define ENDPOINT "EndPoint"
-#define SUBSCRIBERS "Subscribers"
-#define TOPICS "Topics"
-#define ZMQ_RECV_HWM "zmq_recv_hwm"
-#define PUBLISHER_APPNAME "PublisherAppName"
-#define PUBLIC_KEYS "/Publickeys/"
-#define PRIVATE_KEY "/private_key"
-#define SOCKET_FILE "socket_file"
 
-#ifndef _EIS_C_SUB_CFG_H
-#define _EIS_C_SUB_CFG_H
+#define SOCKET_FILE "socket_file"
+#define ENDPOINT "EndPoint"
+#define TOPICS "Topics"
+#define MAX_CONFIG_KEY_LENGTH 250
+
+
+#ifndef _EIS_C_UTIL_CFG_H
+#define _EIS_C_UTIL_CFG_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct {
-
-    config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg);
-
-    config_value_t* (*cfgmgr_get_interface_value_sub)(base_cfg_t* base_cfg, const char* key);
-
-    config_value_t* (*cfgmgr_get_endpoint_sub)(base_cfg_t* base_cfg);
-
-    config_value_t* (*cfgmgr_get_topics_sub)(base_cfg_t* base_cfg);
-
-    int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg);
-
-    config_value_t* sub_config;
-
-} sub_cfg_t;
 
 /**
- * sub_cfg_new function to creates a new sub_cfg_t object
- *  @return NULL for any errors occured or sub_cfg_t* on successful
+ * get_ipc_config function to creates json structure for ipc mode messagebus config
+ * @param c_json - cJSON object for which ipc config to be added
+ * @param config - Config from which values are extracted
+ * @param end_point - endpoint of the application
+ * @return cJSON object which consists of IPC messagebus config
  */
-sub_cfg_t* sub_cfg_new();
+cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point);
 
 /**
- * Destroy sub_cfg_t* object.
- *
- * @param sub_cfg_config - configuration to destroy
+ * cvt_obj_str_to_char function converts cvt object to char* provided for ipc
+ * @param cvt : config_value_t* object
+ * @return char* value of the cvt
  */
-void sub_cfg_config_destroy(sub_cfg_t *sub_cfg_config);
+char* cvt_obj_str_to_char(config_value_t* cvt);
 
 #ifdef __cplusplus
 }
