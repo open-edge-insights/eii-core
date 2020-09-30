@@ -25,7 +25,7 @@ import subprocess
 from distutils.util import strtobool
 import logging
 import subprocess
-from eis.config_manager import ConfigManager
+import cfgmgr.config_manager as cfg
 from util.util import Util
 import shutil
 import threading
@@ -55,14 +55,12 @@ if __name__ == "__main__":
                      "not set or missing. Exiting!!!")
         sys.exit(-1)
     etcd_user = os.getenv("ETCD_USER", "root")
-    app_name = os.environ["AppName"]
-    conf = Util.get_crypto_dict(app_name)
 
     if not devMode:
-        cfg_mgr = ConfigManager()
-        config_client = cfg_mgr.get_config_client("etcd", conf)
-        server_cert = config_client.GetConfig("/" + app_name + "/server_cert")
-        server_key = config_client.GetConfig("/" + app_name + "/server_key")
+        ctx = cfg.ConfigMgr()
+        config = ctx.get_app_config()
+        server_cert = config["server_cert"]
+        server_key = config["server_key"]
 
         with open('/tmp/nginx/server_cert.pem', 'w') as f:
             f.write(server_cert)
@@ -113,15 +111,19 @@ if __name__ == "__main__":
                              start_new_session=True)
 
         else:
+            # Setting cert paths with option to override using env for CSL/K8s
+            ca_cert = os.getenv("CONFIGMGR_CACERT", "/run/secrets/ca_etcd")
+            key = os.getenv("CONFIGMGR_KEY", "/run/secrets/etcd_EtcdUI_key")
+            cert = os.getenv("CONFIGMGR_CERT", "/run/secrets/etcd_EtcdUI_cert")
             subprocess.Popen(["./etcdkeeper/etcdkeeper",
                               "-h", "127.0.0.1",
                               "-p", "7070",
                               "-user", etcd_user,
                               "-sep", etcd_prefix,
                               "-usetls",
-                              "-cacert", conf["trustFile"],
-                              "-key", conf["keyFile"],
-                              "-cert", conf["certFile"],
+                              "-cacert", ca_cert,
+                              "-key", key,
+                              "-cert", cert,
                               "-auth"], start_new_session=True)
 
     except Exception as e:
