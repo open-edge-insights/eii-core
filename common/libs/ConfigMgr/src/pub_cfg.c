@@ -25,6 +25,7 @@
 
 
 #include "eis/config_manager/pub_cfg.h"
+#include "eis/config_manager/util_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
@@ -100,7 +101,13 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
         LOG_ERROR_0("publish_json_endpoint initialization failed");
         return NULL;
     }
-    const char* end_point = publish_json_endpoint->body.string;
+
+    const char* end_point;
+    if(publish_json_endpoint->type == CVT_OBJECT){
+        end_point = cvt_to_char(publish_json_endpoint);
+    }else{
+        end_point = publish_json_endpoint->body.string;
+    }
 
     // Fetching Name from config
     config_value_t* publish_json_name = config_value_object_get(pub_config, NAME);
@@ -135,9 +142,13 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
     if (zmq_recv_hwm_value != NULL) {
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
+
     if (!strcmp(type, "zmq_ipc")) {
-        // Add Endpoint directly to socket_dir if IPC mode
-        cJSON_AddStringToObject(c_json, "socket_dir", end_point);
+        c_json = get_ipc_config(c_json, pub_config, end_point);
+        if (c_json == NULL){
+            LOG_ERROR_0("IPC configuration for publisher failed");
+            return NULL;
+        }
     } else if (!strcmp(type, "zmq_tcp")) {
         // Add host & port to zmq_tcp_publish cJSON object
         char** host_port = get_host_port(end_point);
