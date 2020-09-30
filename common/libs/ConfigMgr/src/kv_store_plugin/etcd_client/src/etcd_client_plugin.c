@@ -19,6 +19,7 @@
 // IN THE SOFTWARE.
 
 #include <eis/utils/config.h>
+#include <eis/utils/string.h>
 #include <stdlib.h>
 
 #include <eis/config_manager/kv_store_plugin.h>
@@ -64,34 +65,52 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         config_value_destroy(conf_obj);
         goto err;
     } else {
-        config_value_t* port = config->get_config_value(conf_obj->body.object->object, PORT);
-        if(port == NULL) {
-            LOG_ERROR("Configuration for '%s' missing '%s'",
-                        ETCD_KV_STORE, PORT);
-            config_value_destroy(conf_obj);
-            goto err;
-        } else if(port->type != CVT_STRING) {
-            // TODO: Changing type of the port from string to int
-            LOG_ERROR_0("Port must be string");
-            LOG_ERROR("Configuration for '%s' missing '%s'",
-                        ETCD_KV_STORE, PORT);
-            config_value_destroy(port);
-            config_value_destroy(conf_obj);
-            goto err;
+
+        // Fetching ETCD_HOST type from env
+        char* etcd_host = getenv("ETCD_HOST");
+        if (etcd_host == NULL) {
+            LOG_DEBUG_0("ETCD_HOST env not set, defaulting to 127.0.0.1");
+            etcd_host = "127.0.0.1";
+        } else {
+            if (strlen(etcd_host) == 0) {
+                LOG_DEBUG_0("ETCD_HOST env is set to empty, defaulting to 127.0.0.1");
+                etcd_host = "127.0.0.1";
+            }
         }
 
-        config_value_t* host = config->get_config_value(conf_obj->body.object->object, HOST);
-        if(host == NULL) {
-            LOG_ERROR("Configuration for '%s' missing '%s'",
-                        ETCD_KV_STORE, HOST);
-            config_value_destroy(host);
-            config_value_destroy(conf_obj);
-            goto err;
-        } else if(host->type != CVT_STRING) {
-            LOG_ERROR_0("Host must be string");
-            config_value_destroy(host);
-            config_value_destroy(conf_obj);
-            goto err;
+        // Fetching ETCD_PORT type from env
+        char* etcd_port = getenv("ETCD_PORT");
+        if (etcd_port == NULL) {
+            LOG_DEBUG_0("ETCD_PORT env not set, defaulting to 2379");
+            etcd_port = "2379";
+        } else {
+            if (strlen(etcd_port) == 0) {
+                LOG_DEBUG_0("ETCD_PORT env is set to empty, defaulting to 2379");
+                etcd_port = "2379";
+            }
+        }
+
+        // Fetching ETCD_ENDPOINT from env for CSL
+        // If set over-rides ETCD_HOST & ETCD_PORT
+        char* etcd_endpoint = getenv("ETCD_ENDPOINT");
+        if (etcd_endpoint == NULL) {
+            LOG_DEBUG_0("ETCD_ENDPOINT env not set, using ETCD_HOST & ETCD_PORT");
+        } else {
+            if (strlen(etcd_endpoint) == 0) {
+                LOG_DEBUG_0("ETCD_ENDPOINT is empty, using ETCD_HOST & ETCD_PORT");
+            } else {
+                size_t str_len = strlen(etcd_endpoint) + 1;
+                char* c_etcd_endpoint = (char*)malloc(sizeof(char) * str_len);
+                snprintf(c_etcd_endpoint, str_len, "%s", etcd_endpoint);
+                LOG_DEBUG("ETCD endpoint: %s", c_etcd_endpoint);
+                char** host_port = get_host_port(c_etcd_endpoint);
+                char* host = host_port[0];
+                trim(host);
+                char* port = host_port[1];
+                trim(port);
+                etcd_host = host;
+                etcd_port = port;
+            }
         }
 
         config_value_t* cert_file = config->get_config_value(conf_obj->body.object->object, CERT_FILE);
@@ -136,8 +155,8 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             goto err;
         }
 
-        etcd_config->hostname = host->body.string;
-        etcd_config->port = port->body.string;
+        etcd_config->hostname = etcd_host;
+        etcd_config->port = etcd_port;
         etcd_config->cert_file = cert_file->body.string;
         etcd_config->key_file = key_file->body.string;
         etcd_config->ca_file = ca_file->body.string;

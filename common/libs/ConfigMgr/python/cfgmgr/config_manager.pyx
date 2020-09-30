@@ -101,7 +101,7 @@ cdef class ConfigMgr:
         config_str = config.decode('utf-8')
         cfg = json.loads(config_str)
 
-        obj= AppCfg(cfg)
+        obj = AppCfg(cfg)
         return obj
 
     def is_dev_mode(self):

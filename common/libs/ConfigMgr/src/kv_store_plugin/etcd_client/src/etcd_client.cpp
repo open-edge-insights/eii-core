@@ -90,6 +90,15 @@ std::string EtcdClient::get(std::string& key) {
     ClientContext context;
 
     try {
+        char* etcd_prefix = getenv("ETCD_PREFIX");
+        if (etcd_prefix == NULL) {
+            LOG_DEBUG_0("ETCD_PREFIX env not set, fetching key without ETCD_PREFIX");
+        } else {
+            if (strlen(etcd_prefix) != 0) {
+                std::string prefix(etcd_prefix);
+                key = prefix + key;
+            }
+        }
         get_request.set_key(key);
         status = kv_stub->Range(&context,get_request,&reply);
         if (status.ok()) {
@@ -125,6 +134,16 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
     std::string& range_end = key_prefix;
 
     try {
+        char* etcd_prefix = getenv("ETCD_PREFIX");
+        if (etcd_prefix == NULL) {
+            LOG_DEBUG_0("ETCD_PREFIX env not set, fetching key without ETCD_PREFIX");
+        } else {
+            if (strlen(etcd_prefix) != 0) {
+                std::string prefix(etcd_prefix);
+                key_prefix = prefix + key_prefix;
+                range_end = key_prefix;
+            }
+        }
         get_request.set_key(key_prefix);
        
         int ascii = (int)range_end[range_end.length()-1];
@@ -214,6 +233,15 @@ void EtcdClient::watch_prefix(std::string& key, callback_t user_callback, void *
     std::string& range_end = key;
     
     try{
+        char* etcd_prefix = getenv("ETCD_PREFIX");
+        if (etcd_prefix == NULL) {
+            LOG_DEBUG_0("ETCD_PREFIX env not set, fetching key without ETCD_PREFIX");
+        } else {
+            if (strlen(etcd_prefix) != 0) {
+                std::string prefix(etcd_prefix);
+                key = prefix + key;
+            }
+        }
         watch_create_req.set_key(key);
         watch_create_req.set_prev_kv(false);
 
@@ -252,6 +280,15 @@ void EtcdClient::watch(std::string& key, callback_t user_callback, void *user_da
     int revision = 0;
 
     try{
+        char* etcd_prefix = getenv("ETCD_PREFIX");
+        if (etcd_prefix == NULL) {
+            LOG_DEBUG_0("ETCD_PREFIX env not set, fetching key without ETCD_PREFIX");
+        } else {
+            if (strlen(etcd_prefix) != 0) {
+                std::string prefix(etcd_prefix);
+                key = prefix + key;
+            }
+        }
         watch_create_req.set_key(key);
         watch_create_req.set_prev_kv(false);
         watch_create_req.set_start_revision(revision);
@@ -285,6 +322,15 @@ int EtcdClient::put(std::string& key, std::string& value) {
     LOG_DEBUG("Store the value %s for the key %s", value.c_str(), key.c_str());
 
     try {
+        char* etcd_prefix = getenv("ETCD_PREFIX");
+        if (etcd_prefix == NULL) {
+            LOG_DEBUG_0("ETCD_PREFIX env not set, fetching key without ETCD_PREFIX");
+        } else {
+            if (strlen(etcd_prefix) != 0) {
+                std::string prefix(etcd_prefix);
+                key = prefix + key;
+            }
+        }
         put_request.set_key(key);
         put_request.set_value(value);
         put_request.set_prev_kv(false);

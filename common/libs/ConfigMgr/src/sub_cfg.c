@@ -76,59 +76,92 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
     }
 
     // Fetching Type from config
-    config_value_t* subscribe_json_type = config_value_object_get(sub_config, TYPE);
-    if (subscribe_json_type == NULL) {
-        LOG_ERROR_0("subscribe_json_type initialization failed");
+    config_value_t* subscribe_config_type = config_value_object_get(sub_config, TYPE);
+    if (subscribe_config_type == NULL) {
+        LOG_ERROR_0("subscribe_config_type initialization failed");
         return NULL;
     }
-    char* type = subscribe_json_type->body.string;
-    cJSON_AddStringToObject(c_json, "type", type);
+    char* type = subscribe_config_type->body.string;
 
     // Fetching EndPoint from config
-    config_value_t* subscribe_json_endpoint = config_value_object_get(sub_config, ENDPOINT);
-    if (subscribe_json_endpoint == NULL) {
-        LOG_ERROR_0("subscribe_json_endpoint initialization failed");
+    config_value_t* subscribe_config_endpoint = config_value_object_get(sub_config, ENDPOINT);
+    if (subscribe_config_endpoint == NULL) {
+        LOG_ERROR_0("subscribe_config_endpoint initialization failed");
         return NULL;
     }
 
     const char* end_point;
-    if(subscribe_json_endpoint->type == CVT_OBJECT){
-        end_point = cvt_to_char(subscribe_json_endpoint);
+    if(subscribe_config_endpoint->type == CVT_OBJECT){
+        end_point = cvt_to_char(subscribe_config_endpoint);
     }else{
-        end_point = subscribe_json_endpoint->body.string;
+        end_point = subscribe_config_endpoint->body.string;
     }
 
     // Fetching Name from config
-    config_value_t* subscribe_json_name = config_value_object_get(sub_config, NAME);
-    if (subscribe_json_name == NULL) {
-        LOG_ERROR_0("subscribe_json_name initialization failed");
+    config_value_t* subscribe_config_name = config_value_object_get(sub_config, NAME);
+    if (subscribe_config_name == NULL) {
+        LOG_ERROR_0("subscribe_config_name initialization failed");
         return NULL;
     }
 
-    // Over riding endpoint with SUBSCRIBER_<Name>_ENDPOINT if set
-    size_t init_len = strlen("SUBSCRIBER_") + strlen(subscribe_json_name->body.string) + strlen("_ENDPOINT") + 2;
-    char* ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_json_name->body.string, "_ENDPOINT");
+    // Overriding endpoint with SUBSCRIBER_<Name>_ENDPOINT if set
+    size_t init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_ENDPOINT") + 2;
+    char* ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_ENDPOINT");
+    if (ep_override_env == NULL) {
+        LOG_ERROR_0("concatenation for ep_override_env failed");
+        return NULL;
+    }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
-            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
     }
 
-    // Over riding endpoint with SUBSCRIBER_ENDPOINT if set
-    // Note: This overrides all the subscriber endpoints if set
+    // Overriding endpoint with SUBSCRIBER_ENDPOINT if set
+    // Note: This overrides all the subscriber type if set
     char* subscriber_ep = getenv("SUBSCRIBER_ENDPOINT");
     if (subscriber_ep != NULL) {
-        LOG_DEBUG_0("Over riding endpoint with SUBSCRIBER_ENDPOINT");
+        LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_ENDPOINT");
         if (strlen(subscriber_ep) != 0) {
             end_point = (const char*)subscriber_ep;
         }
     }
 
-    // Adding zmq_recv_hwm value
+    // Overriding endpoint with SUBSCRIBER_<Name>_TYPE if set
+    init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_TYPE") + 2;
+    char* type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
+    if (type_override_env == NULL) {
+        LOG_ERROR_0("concatenation for type_override_env failed");
+        return NULL;
+    }
+    char* type_override = getenv(type_override_env);
+    if (type_override != NULL) {
+        if (strlen(type_override) != 0) {
+            LOG_DEBUG("Overriding endpoint with %s", type_override_env);
+            type = type_override;
+        }
+    }
+
+    // Overriding endpoint with SUBSCRIBER_TYPE if set
+    // Note: This overrides all the subscriber endpoints if set
+    char* subscriber_type = getenv("SUBSCRIBER_TYPE");
+    if (subscriber_type != NULL) {
+        LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_TYPE");
+        if (strlen(subscriber_type) != 0) {
+            type = subscriber_type;
+        }
+    }
+    cJSON_AddStringToObject(c_json, "type", type);
+
+    // Adding zmq_recv_hwm value if available
     config_value_t* zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
+        if (zmq_recv_hwm_value->type != CVT_INTEGER) {
+            LOG_ERROR_0("zmq_recv_hwm type is not integer");
+            return NULL;
+        }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
 

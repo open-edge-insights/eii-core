@@ -138,6 +138,20 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
             topics = config_value_array_get(topics_list, i);
             cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
             cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
+            // Adding brokered value if available
+            config_value_t* brokered_value = config_value_object_get(config, BROKERED);
+            if (brokered_value != NULL) {
+                if (brokered_value->type != CVT_BOOLEAN) {
+                    LOG_ERROR_0("brokered_value type is not boolean");
+                    goto err;
+                } else {
+                    if (brokered_value->body.boolean) {
+                        cJSON_AddBoolToObject(socket_file_obj, BROKERED, true);
+                    } else {
+                        cJSON_AddBoolToObject(socket_file_obj, BROKERED, false);
+                    }
+                }
+            }
         }
     } else {
         // Socket file will be created by EIS message bus based on the topic

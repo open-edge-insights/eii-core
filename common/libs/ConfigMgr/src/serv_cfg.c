@@ -77,13 +77,12 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
     }
 
     // Fetching Type from config
-    config_value_t* server_type = config_value_object_get(serv_config, TYPE);
-    if (server_type == NULL) {
-        LOG_ERROR_0("server_type initialization failed");
+    config_value_t* server_config_type = config_value_object_get(serv_config, TYPE);
+    if (server_config_type == NULL) {
+        LOG_ERROR_0("server_config_type initialization failed");
         return NULL;
     }
-    char* type = server_type->body.string;
-    cJSON_AddStringToObject(c_json, "type", type);
+    char* type = server_config_type->body.string;
 
     // Fetching EndPoint from config
     config_value_t* server_endpoint = config_value_object_get(serv_config, ENDPOINT);
@@ -93,30 +92,64 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
     }
     const char* end_point = server_endpoint->body.string;
 
-    // // Over riding endpoint with SERVER_<Name>_ENDPOINT if set
+    // // Overriding endpoint with SERVER_<Name>_ENDPOINT if set
     size_t init_len = strlen("SERVER_") + strlen(server_name->body.string) + strlen("_ENDPOINT") + 2;
     char* ep_override_env = concat_s(init_len, 3, "SERVER_", server_name->body.string, "_ENDPOINT");
+    if (ep_override_env == NULL) {
+        LOG_ERROR_0("concatenation for ep_override_env failed");
+        return NULL;
+    }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
-            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
     }
 
-    // Over riding endpoint with SERVER_ENDPOINT if set
+    // Overriding endpoint with SERVER_ENDPOINT if set
     // Note: This overrides all the server endpoints if set
     char* server_ep = getenv("SERVER_ENDPOINT");
     if (server_ep != NULL) {
-        LOG_DEBUG_0("Over riding endpoint with SERVER_ENDPOINT");
+        LOG_DEBUG_0("Overriding endpoint with SERVER_ENDPOINT");
         if (strlen(server_ep) != 0) {
             end_point = (const char*)server_ep;
         }
     }
 
-    // Adding zmq_recv_hwm value
+    // Overriding endpoint with SERVER_<Name>_TYPE if set
+    init_len = strlen("SERVER_") + strlen(server_name->body.string) + strlen("_TYPE") + 2;
+    char* type_override_env = concat_s(init_len, 3, "SERVER_", server_name->body.string, "_TYPE");
+    if (type_override_env == NULL) {
+        LOG_ERROR_0("concatenation for type_override_env failed");
+        return NULL;
+    }
+    char* type_override = getenv(type_override_env);
+    if (type_override != NULL) {
+        if (strlen(type_override) != 0) {
+            LOG_DEBUG("Overriding endpoint with %s", type_override_env);
+            type = type_override;
+        }
+    }
+
+    // Overriding endpoint with SERVER_TYPE if set
+    // Note: This overrides all the server type if set
+    char* server_type = getenv("SERVER_TYPE");
+    if (server_type != NULL) {
+        LOG_DEBUG_0("Overriding endpoint with SERVER_TYPE");
+        if (strlen(server_type) != 0) {
+            type = server_type;
+        }
+    }
+    cJSON_AddStringToObject(c_json, "type", type);
+
+    // Adding zmq_recv_hwm value if available
     config_value_t* zmq_recv_hwm_value = config_value_object_get(serv_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
+        if (zmq_recv_hwm_value->type != CVT_INTEGER) {
+            LOG_ERROR_0("zmq_recv_hwm type is not integer");
+            return NULL;
+        }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
 
@@ -175,7 +208,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
                     LOG_ERROR_0("all_clients initialization failed");
                     return NULL;
                 }
-                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys");
+                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
                 if (pub_key_values == NULL) {
                     LOG_ERROR_0("pub_key_values initialization failed");
                     return NULL;

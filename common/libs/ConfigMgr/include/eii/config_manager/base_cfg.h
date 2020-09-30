@@ -33,6 +33,7 @@
 #include <ctype.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin.h"
+#define BROKERED "brokered"
 
 #ifndef _EIS_C_BASE_CFG_H
 #define _EIS_C_BASE_CFG_H

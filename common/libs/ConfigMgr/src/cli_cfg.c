@@ -67,13 +67,12 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
     }
 
     // Fetching Type from config
-    config_value_t* client_type = config_value_object_get(cli_config, TYPE);
-    if (client_type == NULL) {
-        LOG_ERROR_0("client_type object initialization failed");
+    config_value_t* client_config_type = config_value_object_get(cli_config, TYPE);
+    if (client_config_type == NULL) {
+        LOG_ERROR_0("client_config_type object initialization failed");
         return NULL;
     }
-    char* type = client_type->body.string;
-    cJSON_AddStringToObject(c_json, "type", type);
+    char* type = client_config_type->body.string;
 
     // Fetching EndPoint from config
     config_value_t* client_endpoint = config_value_object_get(cli_config, ENDPOINT);
@@ -83,30 +82,64 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg) {
     }
     const char* end_point = client_endpoint->body.string;
 
-    // Over riding endpoint with CLIENT_<Name>_ENDPOINT if set
+    // Overriding endpoint with CLIENT_<Name>_ENDPOINT if set
     size_t init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_ENDPOINT") + 2;
     char* ep_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_ENDPOINT");
+    if (ep_override_env == NULL) {
+        LOG_ERROR_0("concatenation for ep_override_env failed");
+        return NULL;
+    }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
-            LOG_DEBUG("Over riding endpoint with %s", ep_override_env);
+            LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
     }
 
-    // Over riding endpoint with CLIENT_ENDPOINT if set
+    // Overriding endpoint with CLIENT_ENDPOINT if set
     // Note: This overrides all the client endpoints if set
     char* client_ep = getenv("CLIENT_ENDPOINT");
     if (client_ep != NULL) {
-        LOG_DEBUG_0("Over riding endpoint with CLIENT_ENDPOINT");
+        LOG_DEBUG_0("Overriding endpoint with CLIENT_ENDPOINT");
         if (strlen(client_ep) != 0) {
             end_point = (const char*)client_ep;
         }
     }
 
-    // Adding zmq_recv_hwm value
+    // Overriding endpoint with CLIENT_<Name>_TYPE if set
+    init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_TYPE") + 2;
+    char* type_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_TYPE");
+    if (type_override_env == NULL) {
+        LOG_ERROR_0("concatenation for type_override_env failed");
+        return NULL;
+    }
+    char* type_override = getenv(type_override_env);
+    if (type_override != NULL) {
+        if (strlen(type_override) != 0) {
+            LOG_DEBUG("Overriding endpoint with %s", type_override_env);
+            type = type_override;
+        }
+    }
+
+    // Overriding endpoint with CLIENT_TYPE if set
+    // Note: This overrides all the client type if set
+    char* client_type = getenv("CLIENT_TYPE");
+    if (client_type != NULL) {
+        LOG_DEBUG_0("Overriding endpoint with CLIENT_TYPE");
+        if (strlen(client_type) != 0) {
+            type = client_type;
+        }
+    }
+    cJSON_AddStringToObject(c_json, "type", type);
+
+    // Adding zmq_recv_hwm value if available
     config_value_t* zmq_recv_hwm_value = config_value_object_get(cli_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
+        if (zmq_recv_hwm_value->type != CVT_INTEGER) {
+            LOG_ERROR_0("zmq_recv_hwm type is not integer");
+            return NULL;
+        }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
 

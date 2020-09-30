@@ -58,46 +58,6 @@ config_t* create_kv_store_config() {
     cJSON* etcd_kv_store = cJSON_CreateObject();
     cJSON_AddItemToObject(c_json, "etcd_kv_store", etcd_kv_store);
 
-    // Fetching ETCD_HOST type from env
-    char* etcd_host = getenv("ETCD_HOST");
-    if (etcd_host == NULL) {
-        LOG_DEBUG_0("ETCD_HOST env not set, defaulting to 127.0.0.1");
-        cJSON_AddStringToObject(etcd_kv_store, "host", "127.0.0.1");
-    } else {
-        int ind_etcd_host;
-        strcmp_s(etcd_host, strlen(etcd_host), "", &ind_etcd_host);
-        if (ind_etcd_host == 0) {
-            LOG_DEBUG_0("ETCD_HOST env is set to empty, defaulting to 127.0.0.1");
-            cJSON_AddStringToObject(etcd_kv_store, "host", "127.0.0.1");
-        } else {
-            size_t str_len = strlen(etcd_host) + 1;
-            char* c_etcd_host = (char*)malloc(sizeof(char) * str_len);
-            snprintf(c_etcd_host, str_len, "%s", etcd_host);
-            LOG_DEBUG("ETCD host: %s", c_etcd_host);
-            cJSON_AddStringToObject(etcd_kv_store, "host", c_etcd_host);
-        }
-    }
-
-    // Fetching ETCD_HOST type from env
-    char* etcd_port = getenv("ETCD_PORT");
-    if (etcd_port == NULL) {
-        LOG_DEBUG_0("ETCD_PORT env not set, defaulting to 2379");
-        cJSON_AddStringToObject(etcd_kv_store, "port", "2379");
-    } else {
-        int ind_etcd_port;
-        strcmp_s(etcd_port, strlen(etcd_port), "", &ind_etcd_port);
-        if (ind_etcd_port == 0) {
-            LOG_DEBUG_0("ETCD_PORT env is set to empty, defaulting to 2379");
-            cJSON_AddStringToObject(etcd_kv_store, "port", "2379");
-        } else {
-            size_t str_len = strlen(etcd_port) + 1;
-            char* c_etcd_port = (char*)malloc(sizeof(char) * str_len);
-            snprintf(c_etcd_port, str_len, "%s", etcd_port);
-            LOG_DEBUG("ETCD port: %s", c_etcd_port);
-            cJSON_AddStringToObject(etcd_kv_store, "host", c_etcd_port);
-        }
-    }
-
     // Fetching & intializing dev mode variable
     int result = 0;
     char* dev_mode_var = getenv("DEV_MODE");
@@ -207,12 +167,6 @@ config_t* create_kv_store_config() {
 err:
     if (config_manager_type != NULL) {
         free(config_manager_type);
-    }
-    if (etcd_host != NULL) {
-        free(etcd_host);
-    }
-    if (etcd_port != NULL) {
-        free(etcd_port);
     }
     if (dev_mode_var != NULL) {
         free(dev_mode_var);
