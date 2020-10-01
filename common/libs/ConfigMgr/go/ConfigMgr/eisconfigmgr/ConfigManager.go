@@ -677,7 +677,7 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	return subCtx, nil
 }
 
-func (ctx *ConfigMgr) GetSeverByName(name string) (*ServerCfg, error) {
+func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
 	server_cfg := C.get_server_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
@@ -685,7 +685,7 @@ func (ctx *ConfigMgr) GetSeverByName(name string) (*ServerCfg, error) {
 	return serverCtx, nil
 }
 
-func (ctx *ConfigMgr) GetSeverByIndex(index int) (*ServerCfg, error) {
+func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
 	server_cfg := C.get_server_by_index(ctx.ctx.cfgmgrCtx, C.int(index))

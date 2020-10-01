@@ -37,8 +37,8 @@ func main() {
 	configMgr, _ := eiscfgmgr.ConfigManager()
 	fmt.Printf("client obj: %v", configMgr)
 
-	// serverCtx,_ := configMgr.GetSeverByName("echo_service")
-	serverCtx,_ := configMgr.GetSeverByIndex(0)
+	// serverCtx,_ := configMgr.GetServerByName("echo_service")
+	serverCtx,_ := configMgr.GetServerByIndex(0)
 
 	endpoint := serverCtx.GetEndPoints()
 	fmt.Println("endpoint:", endpoint)
