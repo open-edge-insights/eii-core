@@ -22,6 +22,8 @@
  * @brief EIS thread safe queue unit tests
  */
 
+#include <stdlib.h>
+#include <cstring>
 #include <thread>
 #include <chrono>
 #include <gtest/gtest.h>
@@ -29,20 +31,39 @@
 
 using namespace eis::utils;
 
-TEST(tsp_tests, push_pop) {
-    int val = 42;
+QueueRetCode push_char_arr(
+        ThreadSafeQueue<char*>* q, const char* value, bool wait=false) {
+    QueueRetCode ret = QueueRetCode::SUCCESS;
+    size_t len = strlen(value);
+    char* val = (char*) malloc(sizeof(char) * (len + 1));
+    memcpy(val, value, len);
+    val[len] = '\0';
+    if (wait) {
+        ret = q->push_wait(val);
+    } else {
+        ret = q->push(val);
+    }
+    if (ret != QueueRetCode::SUCCESS) {
+        delete val;
+    }
+    return ret;
+}
 
-    ThreadSafeQueue<int> queue(-1);
+TEST(tsp_tests, push_pop) {
+    const char* val = "hello, world!";
+
+    ThreadSafeQueue<char*> queue(-1);
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 
-    QueueRetCode ret = queue.push(val);
+    QueueRetCode ret = push_char_arr(&queue, val);;
     ASSERT_EQ(ret, QueueRetCode::SUCCESS);
     ASSERT_EQ(queue.empty(), false);
     ASSERT_EQ(queue.size(), 1);
 
-    int val2 = queue.front();
-    ASSERT_EQ(val2, val);
+    char* val2 = queue.front();
+    EXPECT_TRUE(std::string(val2) == std::string(val));
+    delete val2;
 
     queue.pop();
     ASSERT_EQ(queue.empty(), true);
@@ -50,13 +71,13 @@ TEST(tsp_tests, push_pop) {
 }
 
 TEST(tsp_tests, wait_no_thread) {
-    int val = 42;
+    const char* val = "hello, world!";
 
-    ThreadSafeQueue<int> queue(-1);
+    ThreadSafeQueue<char*> queue(-1);
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 
-    QueueRetCode ret = queue.push(val);
+    QueueRetCode ret = push_char_arr(&queue, val);
     ASSERT_EQ(ret, QueueRetCode::SUCCESS);
     ASSERT_EQ(queue.empty(), false);
     ASSERT_EQ(queue.size(), 1);
@@ -65,23 +86,24 @@ TEST(tsp_tests, wait_no_thread) {
     auto duration = std::chrono::milliseconds(100);
     ASSERT_EQ(queue.wait_for(duration), true);
 
-    int val2 = queue.front();
-    ASSERT_EQ(val2, val);
+    char* val2 = queue.front();
+    EXPECT_TRUE(std::string(val2) == std::string(val));
+    delete val2;
 
     queue.pop();
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 }
 
-void run(ThreadSafeQueue<int>* queue) {
-    int val = 42;
-    queue->push(val);
+void run(ThreadSafeQueue<char*>* queue) {
+    const char* val = "hello, world!";
+    push_char_arr(queue, val);
 }
 
 TEST(tsp_tests, wait_thread) {
-    int val = 42;
+    const char* val = "hello, world!";
 
-    ThreadSafeQueue<int> queue(-1);
+    ThreadSafeQueue<char*> queue(-1);
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 
@@ -90,8 +112,9 @@ TEST(tsp_tests, wait_thread) {
     // Wait for the queue to have an item
     queue.wait();
 
-    int val2 = queue.front();
-    ASSERT_EQ(val2, val);
+    char* val2 = queue.front();
+    EXPECT_TRUE(std::string(val2) == std::string(val));
+    delete val2;
 
     queue.pop();
     ASSERT_EQ(queue.empty(), true);
@@ -101,7 +124,7 @@ TEST(tsp_tests, wait_thread) {
 }
 
 TEST(tsp_tests, wait_timeout) {
-    ThreadSafeQueue<int> queue(-1);
+    ThreadSafeQueue<char*> queue(-1);
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 
@@ -111,42 +134,47 @@ TEST(tsp_tests, wait_timeout) {
 }
 
 TEST(tsp_tests, max_reached) {
-    int val = 42;
+    const char* val = "hello, world!";
 
-    ThreadSafeQueue<int> queue(1);
+    ThreadSafeQueue<char*> queue(1);
     ASSERT_EQ(queue.empty(), true);
     ASSERT_EQ(queue.size(), 0);
 
-    QueueRetCode ret = queue.push(val);
+    QueueRetCode ret = push_char_arr(&queue, val);
     ASSERT_EQ(ret, QueueRetCode::SUCCESS);
     ASSERT_EQ(queue.empty(), false);
     ASSERT_EQ(queue.size(), 1);
 
-    ret = queue.push(val);
+    ret = push_char_arr(&queue, val);
     ASSERT_NE(ret, QueueRetCode::SUCCESS);
     ASSERT_EQ(queue.size(), 1);
 }
 
-void wait_pop_run(ThreadSafeQueue<int>* queue) {
+void wait_pop_run(ThreadSafeQueue<char*>* queue) {
     auto duration = std::chrono::milliseconds(500);
     std::this_thread::sleep_for(duration);
+    char* val = queue->front();
     queue->pop();
+    delete val;
 }
 
 TEST(tsp_tests, queue_full_push_wait) {
-    ThreadSafeQueue<int> queue(5);
+    const char* val = "hello, world!";
 
-    for(int i = 0; i < 5; i++) {
-        queue.push(i);
+    ThreadSafeQueue<char*> queue(5);
+    QueueRetCode ret = QueueRetCode::SUCCESS;
+
+    for(int i = 0; i < 4; i++) {
+        ret = push_char_arr(&queue, val);
+        ASSERT_EQ(ret, QueueRetCode::SUCCESS);
     }
 
-    int val = 43;
-    QueueRetCode ret = queue.push(val);
+    ret = push_char_arr(&queue, val);
     ASSERT_EQ(ret, QueueRetCode::QUEUE_FULL);
 
     std::thread th(&wait_pop_run, &queue);
 
-    ret = queue.push_wait(val);
+    ret = push_char_arr(&queue, val, true);
     ASSERT_EQ(ret, QueueRetCode::SUCCESS);
 
     th.join();
