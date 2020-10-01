@@ -78,7 +78,7 @@ cdef class Server:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg)
+        new_config_new = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg, self.server_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -93,7 +93,7 @@ cdef class Server:
         """
         cdef config_value_t* value
         cdef char* config
-        value = self.server_cfg.cfgmgr_get_interface_value_server(self.app_cfg.base_cfg, key.encode('utf-8'))
+        value = self.server_cfg.cfgmgr_get_interface_value_server(self.server_cfg, key.encode('utf-8'))
         interface_value = Util.get_cvt_data(value)
         config_value_destroy(value)
         return interface_value
@@ -105,7 +105,7 @@ cdef class Server:
         :rtype: string
         """
         cdef config_value_t* ep
-        ep = self.server_cfg.cfgmgr_get_endpoint_server(self.app_cfg.base_cfg)
+        ep = self.server_cfg.cfgmgr_get_endpoint_server(self.server_cfg)
         if(ep.type == CVT_OBJECT):
             config = cvt_to_char(ep);
             config_str = config.decode('utf-8')
@@ -127,7 +127,7 @@ cdef class Server:
         # Calling the base C cfgmgr_get_allowed_clients_server() API
         clients_list = []
         cdef config_value_t* clients
-        clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.app_cfg.base_cfg)
+        clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.server_cfg)
         cdef config_value_t* client_value
         for i in range(config_value_array_len(clients)):
             client_value = config_value_array_get(clients, i)

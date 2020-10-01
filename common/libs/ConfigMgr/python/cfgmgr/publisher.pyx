@@ -78,7 +78,7 @@ cdef class Publisher:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg)
+        new_config_new = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg, self.pub_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -93,7 +93,7 @@ cdef class Publisher:
         """
         cdef config_value_t* value
         cdef char* config        
-        value = self.pub_cfg.cfgmgr_get_interface_value_pub(self.app_cfg.base_cfg, key.encode('utf-8'))
+        value = self.pub_cfg.cfgmgr_get_interface_value_pub(self.pub_cfg, key.encode('utf-8'))
         interface_value = Util.get_cvt_data(value)
         config_value_destroy(value)
         return interface_value
@@ -105,7 +105,7 @@ cdef class Publisher:
         :rtype: string
         """
         cdef config_value_t* ep
-        ep = self.pub_cfg.cfgmgr_get_endpoint_pub(self.app_cfg.base_cfg)
+        ep = self.pub_cfg.cfgmgr_get_endpoint_pub(self.pub_cfg)
 
         if(ep.type == CVT_OBJECT):
             config = cvt_to_char(ep);
@@ -126,7 +126,7 @@ cdef class Publisher:
         """
         topics_list = []
         cdef config_value_t* topics
-        topics = self.pub_cfg.cfgmgr_get_topics_pub(self.app_cfg.base_cfg)
+        topics = self.pub_cfg.cfgmgr_get_topics_pub(self.pub_cfg)
         cdef config_value_t* topic_value
         for i in range(config_value_array_len(topics)):
             topic_value = config_value_array_get(topics, i)
@@ -143,7 +143,7 @@ cdef class Publisher:
         """
         clients_list = []
         cdef config_value_t* clients
-        clients = self.pub_cfg.cfgmgr_get_allowed_clients_pub(self.app_cfg.base_cfg)
+        clients = self.pub_cfg.cfgmgr_get_allowed_clients_pub(self.pub_cfg)
         cdef config_value_t* client_value
         for i in range(config_value_array_len(clients)):
             client_value = config_value_array_get(clients, i)
@@ -170,5 +170,5 @@ cdef class Publisher:
             topics_list[i] = topics_list[i].encode()
             topics_to_be_set[i] = topics_list[i]
         # Calling the base C cfgmgr_set_topics_pub() API
-        topics_set = self.pub_cfg.cfgmgr_set_topics_pub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg)
+        topics_set = self.pub_cfg.cfgmgr_set_topics_pub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.pub_cfg)
         return topics_set

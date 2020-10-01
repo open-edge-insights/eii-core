@@ -81,7 +81,7 @@ cdef class Client:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.client_cfg.cfgmgr_get_msgbus_config_client(self.app_cfg.base_cfg)
+        new_config_new = self.client_cfg.cfgmgr_get_msgbus_config_client(self.app_cfg.base_cfg,self.client_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -96,7 +96,7 @@ cdef class Client:
         """
         cdef config_value_t* value
         cdef char* config
-        value = self.client_cfg.cfgmgr_get_interface_value_client(self.app_cfg.base_cfg, key.encode('utf-8'))
+        value = self.client_cfg.cfgmgr_get_interface_value_client(self.client_cfg, key.encode('utf-8'))
         interface_value = Util.get_cvt_data(value)
         config_value_destroy(value)
         return interface_value
@@ -108,7 +108,7 @@ cdef class Client:
         :rtype: string
         """
         cdef config_value_t* ep
-        ep = self.client_cfg.cfgmgr_get_endpoint_client(self.app_cfg.base_cfg)
+        ep = self.client_cfg.cfgmgr_get_endpoint_client(self.client_cfg)
         if(ep.type == CVT_OBJECT):
             config = cvt_to_char(ep);
             config_str = config.decode('utf-8')

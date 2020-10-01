@@ -46,7 +46,7 @@ app_cfg_t* ClientCfg::getAppCfg() {
 // getMsgBusConfig of ClientCfg class
 config_t* ClientCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_client() API
-    config_t* cpp_client_config = m_cli_cfg->cfgmgr_get_msgbus_config_client(m_app_cfg->base_cfg);
+    config_t* cpp_client_config = m_cli_cfg->cfgmgr_get_msgbus_config_client(m_app_cfg->base_cfg, m_cli_cfg);
     if (cpp_client_config == NULL) {
         LOG_ERROR_0("Unable to fetch client msgbus config");
         return NULL;
@@ -56,13 +56,13 @@ config_t* ClientCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Client.
 config_value_t* ClientCfg::getInterfaceValue(const char* key){
-    return m_cli_cfg->cfgmgr_get_interface_value_client(m_app_cfg->base_cfg, key);
+    return m_cli_cfg->cfgmgr_get_interface_value_client(m_cli_cfg, key);
 }
 
 // To fetch endpoint from config
 std::string ClientCfg::getEndpoint() {
     // Fetching EndPoint from config
-    config_value_t* ep = m_cli_cfg->cfgmgr_get_endpoint_client(m_app_cfg->base_cfg);
+    config_value_t* ep = m_cli_cfg->cfgmgr_get_endpoint_client(m_cli_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint is not set");
         return NULL;

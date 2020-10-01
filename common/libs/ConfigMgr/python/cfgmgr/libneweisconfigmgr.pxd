@@ -71,30 +71,30 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
         config_t* m_app_interface
 
     ctypedef struct pub_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_interface_value_pub)(base_cfg_t* base_cfg, const char* key)
-        config_value_t*(*cfgmgr_get_endpoint_pub)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_topics_pub)(base_cfg_t* base_cfg)
-        int (*cfgmgr_set_topics_pub)(char** topics_list, int len, base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_allowed_clients_pub)(base_cfg_t* base_cfg)
+        config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg, void* pub_config)
+        config_value_t* (*cfgmgr_get_interface_value_pub)(void* pub_config, const char* key)
+        config_value_t*(*cfgmgr_get_endpoint_pub)(void* pub_config)
+        config_value_t* (*cfgmgr_get_topics_pub)(void* pub_config)
+        int (*cfgmgr_set_topics_pub)(char** topics_list, int len, base_cfg_t* base_cfg, void* pub_config)
+        config_value_t* (*cfgmgr_get_allowed_clients_pub)(void* pub_config)
 
     ctypedef struct sub_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_interface_value_sub)(base_cfg_t* base_cfg, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_sub)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_topics_sub)(base_cfg_t* base_cfg)
-        int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg)
+        config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg, void* sub_config)
+        config_value_t* (*cfgmgr_get_interface_value_sub)(void* sub_config, const char* key)
+        config_value_t* (*cfgmgr_get_endpoint_sub)(void* sub_config)
+        config_value_t* (*cfgmgr_get_topics_sub)(void* sub_config)
+        int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg, void* sub_config)
 
     ctypedef struct server_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_interface_value_server)(base_cfg_t* base_cfg, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_server)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_allowed_clients_server)(base_cfg_t* base_cfg)
+        config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg, void* server_config)
+        config_value_t* (*cfgmgr_get_interface_value_server)(void* server_config, const char* key)
+        config_value_t* (*cfgmgr_get_endpoint_server)(void* server_config)
+        config_value_t* (*cfgmgr_get_allowed_clients_server)(void* server_config)
 
     ctypedef struct client_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_client)(base_cfg_t* base_cfg)
-        config_value_t* (*cfgmgr_get_interface_value_client)(base_cfg_t* base_cfg, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_client)(base_cfg_t* base_cfg)
+        config_t* (*cfgmgr_get_msgbus_config_client)(base_cfg_t* base_cfg, void* cli_cfg)
+        config_value_t* (*cfgmgr_get_interface_value_client)(void* client_config, const char* key)
+        config_value_t* (*cfgmgr_get_endpoint_client)(void* client_config)
 
     ctypedef struct app_cfg_t:
         base_cfg_t* base_cfg

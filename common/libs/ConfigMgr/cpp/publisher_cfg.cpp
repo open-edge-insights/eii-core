@@ -47,7 +47,7 @@ app_cfg_t* PublisherCfg::getAppCfg() {
 // getMsgBusConfig of Publisher class
 config_t* PublisherCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config() API
-    config_t* pub_config = m_pub_cfg->cfgmgr_get_msgbus_config_pub(m_app_cfg->base_cfg);
+    config_t* pub_config = m_pub_cfg->cfgmgr_get_msgbus_config_pub(m_app_cfg->base_cfg, m_pub_cfg);
     if (pub_config == NULL) {
         LOG_ERROR_0("Unable to fetch publisher msgbus config");
         return NULL;
@@ -57,13 +57,13 @@ config_t* PublisherCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Publisher.
 config_value_t* PublisherCfg::getInterfaceValue(const char* key){
-    return m_pub_cfg->cfgmgr_get_interface_value_pub(m_app_cfg->base_cfg, key);
+    return m_pub_cfg->cfgmgr_get_interface_value_pub(m_pub_cfg, key);
 }
 
 // To fetch endpoint from config
 std::string PublisherCfg::getEndpoint() {
     // Calling the base C get_endpoint() API
-    config_value_t* ep = m_pub_cfg->cfgmgr_get_endpoint_pub(m_app_cfg->base_cfg);
+    config_value_t* ep = m_pub_cfg->cfgmgr_get_endpoint_pub(m_pub_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
@@ -87,7 +87,7 @@ std::vector<std::string> PublisherCfg::getTopics() {
 
     std::vector<std::string> topic_list;
     // Calling the base C get_topics() API
-    config_value_t* topics = m_pub_cfg->cfgmgr_get_topics_pub(m_app_cfg->base_cfg);
+    config_value_t* topics = m_pub_cfg->cfgmgr_get_topics_pub(m_pub_cfg);
     if (topics == NULL) {
         LOG_ERROR_0("topics initialization failed");
         return {};
@@ -122,7 +122,7 @@ bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
         topics_to_be_set[i] = strdup(topics_list[i].c_str());
     }
     // Calling the base C set_topics() API
-    int topics_set = m_pub_cfg->cfgmgr_set_topics_pub(topics_to_be_set, topics_length, m_app_cfg->base_cfg);
+    int topics_set = m_pub_cfg->cfgmgr_set_topics_pub(topics_to_be_set, topics_length, m_app_cfg->base_cfg, m_pub_cfg);
     if(topics_set == 0) {
         LOG_INFO_0("Topics successfully set");
         return true;
@@ -137,7 +137,7 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
 
     std::vector<std::string> client_list;
     // Calling the base C get_topics() API
-    config_value_t* clients = m_pub_cfg->cfgmgr_get_allowed_clients_pub(m_app_cfg->base_cfg);
+    config_value_t* clients = m_pub_cfg->cfgmgr_get_allowed_clients_pub(m_pub_cfg);
     if (clients == NULL) {
         LOG_ERROR_0("clients initialization failed");
         return {};

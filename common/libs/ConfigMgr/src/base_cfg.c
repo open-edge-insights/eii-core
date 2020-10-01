@@ -29,8 +29,8 @@
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-config_value_t* get_endpoint_base(base_cfg_t* base_cfg) {
-    config_value_t* pub_config = base_cfg->msgbus_config;
+config_value_t* get_endpoint_base(config_value_t* conf) {
+    config_value_t* pub_config = conf;
     if (pub_config == NULL) {
         LOG_ERROR_0("pub_config initialization failed");
         return NULL;
@@ -48,13 +48,13 @@ config_value_t* get_endpoint_base(base_cfg_t* base_cfg) {
 // Get topics base returns the value mapped to Topics key in the Applications Interface.
 // If "*" is mentioned in topics, then it is replaced by empty string ,
 // as our EISMessageBus supports the prefix approach, empty prefix considers all/any the topics. 
-config_value_t* get_topics_base(base_cfg_t* base_cfg) {
-    config_value_t* config = base_cfg->msgbus_config;
+config_value_t* get_topics_base(config_value_t* conf) {
+    config_value_t* config = conf;
     if (config == NULL) {
         LOG_ERROR_0("config initialization failed");
         return NULL;
     }
-    config_value_t* topics = config_value_object_get(config, "Topics");
+    config_value_t* topics = config_value_object_get(conf, "Topics");
     if (topics == NULL) {
         LOG_ERROR_0("topics initialization failed");
         return NULL;
@@ -122,8 +122,8 @@ config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg) {
 // Get Allowed Clients returns the value mapped to AllowedClients key in the Applications Interface.
 // If "*" is mentioned in the allowed clients, the return value will still be "*" notifying user
 // that all the provisioned applications are allowed to get the topics.
-config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
-    config_value_t* config = base_cfg->msgbus_config;
+config_value_t* get_allowed_clients_base(config_value_t* conf) {
+    config_value_t* config = conf;
     if (config == NULL) {
         LOG_ERROR_0("config initialization failed");
         return NULL;
@@ -137,10 +137,10 @@ config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg) {
 }
 
 // To set topics in config
-int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg) {
+int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg, config_value_t* conf) {
 
     // Fetching the name of pub/sub interface
-    config_value_t* config_name = config_value_object_get(base_cfg->msgbus_config, "Name");
+    config_value_t* config_name = config_value_object_get(conf, "Name");
     if (config_name == NULL) {
         LOG_ERROR_0("config_name initialization failed");
         return -1;

@@ -279,19 +279,18 @@ static inline void* get_publisher_by_index(void* ctx, int index){
 static inline int set_pub_topics(void* app_cfg, void* pub_cfg, char **topics, int len) {
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
-	int ret = c_pub_cfg->cfgmgr_set_topics_pub(topics, len, c_app_cfg->base_cfg);
+	int ret = c_pub_cfg->cfgmgr_set_topics_pub(topics, len, c_app_cfg->base_cfg, c_pub_cfg);
 	return ret;
 }
 
-static inline char_arr_t* get_pub_end_points(void* app_cfg, void* pub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline char_arr_t* get_pub_end_points(void* pub_cfg){
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL)
 		return NULL;
 
-	config_value_t* endpoints = c_pub_cfg->cfgmgr_get_endpoint_pub(c_app_cfg->base_cfg);
+	config_value_t* endpoints = c_pub_cfg->cfgmgr_get_endpoint_pub(c_pub_cfg);
 	if (endpoints == NULL)
         return NULL;
 
@@ -327,20 +326,19 @@ static inline char_arr_t* get_pub_end_points(void* app_cfg, void* pub_cfg){
 static inline char* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
-	config_t* config = c_pub_cfg->cfgmgr_get_msgbus_config_pub(c_app_cfg->base_cfg);
+	config_t* config = c_pub_cfg->cfgmgr_get_msgbus_config_pub(c_app_cfg->base_cfg, c_pub_cfg);
 	char* c_config = configt_to_char(config);
 	config_destroy(config);
 	return c_config;
 }
 
-static inline string_arr_t* get_pub_topics(void* app_cfg, void* pub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline string_arr_t* get_pub_topics(void* pub_cfg){
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL)
 		return NULL;
 
-	config_value_t* topics = c_pub_cfg->cfgmgr_get_topics_pub(c_app_cfg->base_cfg);
+	config_value_t* topics = c_pub_cfg->cfgmgr_get_topics_pub(c_pub_cfg);
 	if (topics == NULL)
         return NULL;
 
@@ -351,14 +349,13 @@ static inline string_arr_t* get_pub_topics(void* app_cfg, void* pub_cfg){
 	return str_arr;
 }
 
-static inline string_arr_t* get_pub_allowed_clients(void* app_cfg, void* pub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline string_arr_t* get_pub_allowed_clients(void* pub_cfg){
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL)
 		return NULL;
 
-	config_value_t* allowed_clients = c_pub_cfg->cfgmgr_get_allowed_clients_pub(c_app_cfg->base_cfg);
+	config_value_t* allowed_clients = c_pub_cfg->cfgmgr_get_allowed_clients_pub(c_pub_cfg);
 	if (allowed_clients == NULL)
         return NULL;
 
@@ -369,11 +366,10 @@ static inline string_arr_t* get_pub_allowed_clients(void* app_cfg, void* pub_cfg
 	return str_arr;
 }
 
-static inline config_val_t* get_pub_interface_value(void* app_cfg, void* pub_cfg, char *key) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline config_val_t* get_pub_interface_value(void* pub_cfg, char *key) {
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 
-	config_value_t* value = c_pub_cfg->cfgmgr_get_interface_value_pub(c_app_cfg->base_cfg, key);
+	config_value_t* value = c_pub_cfg->cfgmgr_get_interface_value_pub(c_pub_cfg, key);
 	if(value == NULL)
 		return NULL;
 	config_val_t* cv = create_config_val_obj(value);
@@ -396,15 +392,14 @@ static inline void* get_subscriber_by_index(void* ctx, int index){
 	return sub_cfg;
 }
 
-static inline char_arr_t* get_sub_end_points(void* app_cfg, void* sub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline char_arr_t* get_sub_end_points(void* sub_cfg){
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL)
 		return NULL;
 
-	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_app_cfg->base_cfg);
+	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_sub_cfg);
 	if (endpoints == NULL)
 		return NULL;
 	
@@ -439,20 +434,19 @@ static inline char_arr_t* get_sub_end_points(void* app_cfg, void* sub_cfg){
 static inline char* get_msgbus_config_subscriber(void* app_cfg, void* sub_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
-	config_t* config = c_sub_cfg->cfgmgr_get_msgbus_config_sub(c_app_cfg->base_cfg);
+	config_t* config = c_sub_cfg->cfgmgr_get_msgbus_config_sub(c_app_cfg->base_cfg, c_sub_cfg);
 	char* c_config = configt_to_char(config);
 	config_destroy(config);
 	return c_config;
 }
 
-static inline string_arr_t* get_topics_subscriber(void* app_cfg, void* sub_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL)
 		return NULL;
 
-	config_value_t* topics = c_sub_cfg->cfgmgr_get_topics_sub(c_app_cfg->base_cfg);
+	config_value_t* topics = c_sub_cfg->cfgmgr_get_topics_sub(c_sub_cfg);
 	if (topics == NULL)
         return NULL;
 
@@ -466,15 +460,14 @@ static inline string_arr_t* get_topics_subscriber(void* app_cfg, void* sub_cfg) 
 static inline int set_sub_topics(void* app_cfg, void* sub_cfg, char **topics, int len) {
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
-	int ret = c_sub_cfg->cfgmgr_set_topics_sub(topics, len, c_app_cfg->base_cfg);
+	int ret = c_sub_cfg->cfgmgr_set_topics_sub(topics, len, c_app_cfg->base_cfg, c_sub_cfg);
 	return ret;
 }
 
-static inline config_val_t* get_sub_interface_value(void* app_cfg, void* sub_cfg, char *key) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline config_val_t* get_sub_interface_value(void* sub_cfg, char *key) {
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
 
-	config_value_t* value = c_sub_cfg->cfgmgr_get_interface_value_sub(c_app_cfg->base_cfg, key);
+	config_value_t* value = c_sub_cfg->cfgmgr_get_interface_value_sub(c_sub_cfg, key);
 	if(value == NULL)
 		return NULL;
 	config_val_t* cv = create_config_val_obj(value);
@@ -497,15 +490,14 @@ static inline void* get_server_by_index(void* ctx, int index){
 	return server_cfg;
 }
 
-static inline char_arr_t* get_server_end_points(void* app_cfg, void* server_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline char_arr_t* get_server_end_points(void* server_cfg){
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL)
 		return NULL;
 
-	config_value_t* endpoints = c_server_cfg->cfgmgr_get_endpoint_server(c_app_cfg->base_cfg);
+	config_value_t* endpoints = c_server_cfg->cfgmgr_get_endpoint_server(c_server_cfg);
 	if (endpoints == NULL)
 		return NULL;
 
@@ -541,20 +533,19 @@ static inline char_arr_t* get_server_end_points(void* app_cfg, void* server_cfg)
 static inline char* get_msgbus_config_server(void* app_cfg, void* server_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
-	config_t* config = c_server_cfg->cfgmgr_get_msgbus_config_server(c_app_cfg->base_cfg);
+	config_t* config = c_server_cfg->cfgmgr_get_msgbus_config_server(c_app_cfg->base_cfg, c_server_cfg);
 	char* c_config = configt_to_char(config);
 	config_destroy(config);
 	return c_config;
 }
 
-static inline string_arr_t* get_allowed_clients_server(void* app_cfg, void* server_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline string_arr_t* get_allowed_clients_server(void* server_cfg){
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL)
 		return NULL;
 
-	config_value_t* allowed_clients = c_server_cfg->cfgmgr_get_allowed_clients_server(c_app_cfg->base_cfg);
+	config_value_t* allowed_clients = c_server_cfg->cfgmgr_get_allowed_clients_server(c_server_cfg);
 	if (allowed_clients == NULL)
         return NULL;
 
@@ -565,11 +556,10 @@ static inline string_arr_t* get_allowed_clients_server(void* app_cfg, void* serv
 	return str_arr;
 }
 
-static inline config_val_t* get_server_interface_value(void* app_cfg, void* server_cfg, char *key) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline config_val_t* get_server_interface_value(void* server_cfg, char *key) {
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
 
-	config_value_t* value = c_server_cfg->cfgmgr_get_interface_value_server(c_app_cfg->base_cfg, key);
+	config_value_t* value = c_server_cfg->cfgmgr_get_interface_value_server(c_server_cfg, key);
 	if(value == NULL)
 		return NULL;
 	config_val_t* cv = create_config_val_obj(value);
@@ -591,15 +581,14 @@ static inline void* get_client_by_index(void* ctx, int index){
 	return client_cfg;
 }
 
-static inline char_arr_t* get_client_end_points(void* app_cfg, void* client_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline char_arr_t* get_client_end_points(void* client_cfg){
 	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL)
 		return NULL;
 
-	config_value_t* endpoints = c_client_cfg->cfgmgr_get_endpoint_client(c_app_cfg->base_cfg);
+	config_value_t* endpoints = c_client_cfg->cfgmgr_get_endpoint_client(c_client_cfg);
 	if (endpoints == NULL)
 		return NULL;
 
@@ -635,17 +624,16 @@ static inline char_arr_t* get_client_end_points(void* app_cfg, void* client_cfg)
 static inline char* get_msgbus_config_client(void* app_cfg, void* client_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	client_cfg_t* c_client_cfg= (client_cfg_t *)client_cfg;
-	config_t* config = c_client_cfg->cfgmgr_get_msgbus_config_client(c_app_cfg->base_cfg);
+	config_t* config = c_client_cfg->cfgmgr_get_msgbus_config_client(c_app_cfg->base_cfg, c_client_cfg);
 	char* c_config = configt_to_char(config);
 	config_destroy(config);
 	return c_config;
 }
 
-static inline config_val_t* get_client_interface_value(void* app_cfg, void* client_cfg, char *key) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline config_val_t* get_client_interface_value(void* client_cfg, char *key) {
 	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
 
-	config_value_t* value = c_client_cfg->cfgmgr_get_interface_value_client(c_app_cfg->base_cfg, key);
+	config_value_t* value = c_client_cfg->cfgmgr_get_interface_value_client(c_client_cfg, key);
 	if(value == NULL)
 		return NULL;
 	config_val_t* cv = create_config_val_obj(value);
@@ -894,13 +882,13 @@ func (ctx *ConfigMgr) GetClientByIndex(index int) (*ClientCfg, error) {
 }
 
 func (pubctx *PublisherCfg) getEndPoints() string {
-	endpoints := C.get_pub_end_points(pubctx.appCfg, pubctx.pubCfg)
+	endpoints := C.get_pub_end_points(pubctx.pubCfg)
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr)
 }
 
 func (pubctx *PublisherCfg) getTopics() []string {
-	topics_arr := C.get_pub_topics(pubctx.appCfg, pubctx.pubCfg)
+	topics_arr := C.get_pub_topics(pubctx.pubCfg)
 	defer C.destroy_string_arr(topics_arr)
 
 	pubTopics := GoStrings(topics_arr.len, topics_arr.arr)
@@ -908,7 +896,7 @@ func (pubctx *PublisherCfg) getTopics() []string {
 }
 
 func (pubctx *PublisherCfg) getAllowedClients() []string {
-	allowed_clients_arr := C.get_pub_allowed_clients(pubctx.appCfg, pubctx.pubCfg)
+	allowed_clients_arr := C.get_pub_allowed_clients(pubctx.pubCfg)
 	defer C.destroy_string_arr(allowed_clients_arr)
 
 	allowed_clients := GoStrings(allowed_clients_arr.len, allowed_clients_arr.arr)
@@ -938,14 +926,14 @@ func (pubctx *PublisherCfg) setTopics(topics []string) bool {
 }
 
 func (pubctx *PublisherCfg) getInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal := C.get_pub_interface_value(pubctx.appCfg, pubctx.pubCfg, C.CString(key))
+	interfaceVal := C.get_pub_interface_value(pubctx.pubCfg, C.CString(key))
 	defer C.destroy_config_val(interfaceVal)
 
 	return getConfigVal(interfaceVal)
 }
 
 func (subctx *SubscriberCfg) getEndPoints() string {
-	endpoints := C.get_sub_end_points(subctx.appCfg, subctx.subCfg)
+	endpoints := C.get_sub_end_points(subctx.subCfg)
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr)
 }
@@ -956,7 +944,7 @@ func (subctx *SubscriberCfg) getMsgbusConfig() string {
 }
 
 func (subctx *SubscriberCfg) getTopics() []string {
-	topics_arr := C.get_topics_subscriber(subctx.appCfg, subctx.subCfg)
+	topics_arr := C.get_topics_subscriber(subctx.subCfg)
 	defer C.destroy_string_arr(topics_arr)
 
 	subTopics := GoStrings(topics_arr.len, topics_arr.arr)
@@ -981,14 +969,14 @@ func (subctx *SubscriberCfg) setTopics(topics []string) bool {
 }
 
 func (subctx *SubscriberCfg) getInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal := C.get_sub_interface_value(subctx.appCfg, subctx.subCfg, C.CString(key))
+	interfaceVal := C.get_sub_interface_value(subctx.subCfg, C.CString(key))
 	defer C.destroy_config_val(interfaceVal)
 
 	return getConfigVal(interfaceVal)
 }
 
 func (serverCtx *ServerCfg) getEndPoints() string {
-	endpoints := C.get_server_end_points(serverCtx.appCfg, serverCtx.serverCfg)
+	endpoints := C.get_server_end_points(serverCtx.serverCfg)
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr)
 }
@@ -999,7 +987,7 @@ func (serverCtx *ServerCfg) getMsgbusConfig() string {
 }
 
 func (serverCtx *ServerCfg) getAllowedClients() []string {
-	allowed_clients_arr := C.get_allowed_clients_server(serverCtx.appCfg, serverCtx.serverCfg)
+	allowed_clients_arr := C.get_allowed_clients_server(serverCtx.serverCfg)
 	defer C.destroy_string_arr(allowed_clients_arr)
 
 	allowed_clients := GoStrings(allowed_clients_arr.len, allowed_clients_arr.arr)
@@ -1007,14 +995,14 @@ func (serverCtx *ServerCfg) getAllowedClients() []string {
 }
 
 func (serverCtx *ServerCfg) getInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal := C.get_server_interface_value(serverCtx.appCfg, serverCtx.serverCfg, C.CString(key))
+	interfaceVal := C.get_server_interface_value(serverCtx.serverCfg, C.CString(key))
 	defer C.destroy_config_val(interfaceVal)
 
 	return getConfigVal(interfaceVal)
 }
 
 func (clientCtx *ClientCfg) getEndPoints() string {
-	endpoints := C.get_client_end_points(clientCtx.appCfg, clientCtx.clientCfg)
+	endpoints := C.get_client_end_points(clientCtx.clientCfg)
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr)
 
@@ -1026,7 +1014,7 @@ func (clientCtx *ClientCfg) getMsgbusConfig() string {
 }
 
 func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal := C.get_client_interface_value(clientCtx.appCfg, clientCtx.clientCfg, C.CString(key))
+	interfaceVal := C.get_client_interface_value(clientCtx.clientCfg, C.CString(key))
 	defer C.destroy_config_val(interfaceVal)
 
 	return getConfigVal(interfaceVal)
