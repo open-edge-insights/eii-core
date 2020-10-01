@@ -30,12 +30,14 @@
 
 using namespace eis::config_manager;
 
-void watch_config_example(char* key, char* value, void *user_data) {
-    LOG_INFO("Callback triggered for change in App config, obtained user data: %d", (int *)(user_data));
+void watch_config_example(const char* key, config_t* value, void *user_data) {
+    char* val = configt_to_char(value);
+    LOG_INFO("Callback triggered for change in App config, obtained user data: %d and the value is %s", (int *)(user_data), val);
 }
 
-void watch_interface_example(char* key, char* value, void *user_data) {
-    LOG_INFO("Callback triggered for change in App interfaces, obtained user data: %d", (int *)(user_data));
+void watch_interface_example(const char* key, config_t* value, void *user_data) {
+    char* val = configt_to_char(value);
+    LOG_INFO("Callback triggered for change in App interfaces, obtained user data: %d and the value is %s", (int *)(user_data), val);
 }
 
 int main() {
