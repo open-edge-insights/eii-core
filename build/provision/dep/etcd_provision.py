@@ -185,6 +185,8 @@ def get_server_cert_key(appname, certtype):
 
     return server_key_cert
 
+def etcd_health_check():
+    subprocess.run(["./etcd_health_check.sh"])
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
@@ -198,7 +200,7 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_CACERT"] = os.environ.get("ETCD_TRUSTED_CA_FILE" , "/run/secrets/ca_etcd")
         os.environ["ETCDCTL_CERT"] = os.environ.get("ETCD_ROOT_CERT" , "/run/secrets/etcd_root_cert")
         os.environ["ETCDCTL_KEY"] = os.environ.get("ETCD_ROOT_KEY" , "/run/secrets/etcd_root_key")
-    
+    etcd_health_check()
     apps = get_appname(str(sys.argv[1]))
     load_data_etcd("./config/eis_config.json", apps)
     for key, value in apps.items():
@@ -210,6 +212,6 @@ if __name__ == "__main__":
                     create_etcd_users(key)
         except ValueError:
             pass
-
     if not devMode and os.environ['provision_mode'] != "csl":
         enable_etcd_auth()
+

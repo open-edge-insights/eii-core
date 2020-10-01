@@ -23,17 +23,16 @@ kind: Service
 metadata:
   name: etcd
   namespace: eis
-  labels:
-    app: etcd
 spec:
-  ports:
-  - name: etcd
-    port: 8379
-    protocol: TCP
+  type: NodePort
   selector:
     app: etcd
-
+  ports:
+    - port: 8379
+      targetPort: 8379
+      nodePort: 30008
 ---
+
 apiVersion: v1
 kind: Pod
 metadata:
@@ -66,47 +65,7 @@ spec:
       value: "3"
     - name: ETCD_DATA_DIR
       value: "$ETCD_DATA_DIR"
-  - name: ia-etcd-provision
-    image: ia_etcd_provision:${EIS_VERSION}
-    volumeMounts:
-    - name: config
-      mountPath: /EIS/etcd/config
-    - name: docker-compose
-      mountPath: /EIS/etcd/docker-compose.yml
-    env:
-    - name: AppName
-      value: "ia-etcd-provision"
-    - name: DEV_MODE
-      value: "$DEV_MODE"
-    - name: ETCDCTL_API
-      value: "3"
-    - name: ETCD_ROOT_PASSWORD
-      value: "eis123"
-    - name: ETCD_HOST
-      value: localhost
-    - name: ETCD_CLIENT_PORT
-      value: "$ETCD_CLIENT_PORT"
-    - name: ETCD_PEER_PORT
-      value: "$ETCD_PEER_PORT"
-    - name: provision_mode
-      value: "$PROVISION_MODE"
-    - name: ETCD_PREFIX
-      value: "$ETCD_PREFIX"
-    command: ["/bin/sh"]
-    args:
-      - -c
-      - >
-        cd /EIS/etcd/
-        && python3 etcd_provision.py docker-compose.yml
-        && while true; do sleep 50000; done
-
   volumes:
   - name: "etcd-data"
     hostPath:
       path: ${EIS_INSTALL_PATH}/data/etcd/
-  - name: config
-    hostPath:
-      path: ${EIS_LOCAL_PATH}/build/provision/config
-  - name: docker-compose
-    hostPath:
-      path: ${EIS_LOCAL_PATH}/build/docker-compose.yml

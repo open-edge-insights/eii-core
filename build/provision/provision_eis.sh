@@ -201,7 +201,7 @@ function check_k8s_namespace() {
      for ns in "${ns_list[@]}"
      do
 	if [[ "$ns" = "eis" ]];then
-            echo "Deleted namespace so that all existing pods and services within that namespace are deleted"
+            echo "Deleting namespace so that all existing pods and services within that namespace are deleted.\nIt may take sometime."
             kubectl delete namespace eis
         fi
      done
@@ -235,21 +235,30 @@ if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
 elif [ $PROVISION_MODE = 'k8s' -a $ETCD_NAME = 'master' ]; then
      check_k8s_secrets
      check_k8s_namespace
+     
      echo "Creating a new namespace"
      kubectl create namespace eis
      pip3 install -r cert_requirements.txt
+     
      echo "Clearing existing Certificates..."
      rm -rf Certificates
+     
      copy_docker_compose_file
+
+     echo "Checking ETCD port..."
+     check_ETCD_port
+
      if [ $DEV_MODE = 'true' ]; then
-        docker-compose -f dep/docker-compose-provision.yml build
+	docker-compose -f dep/docker-compose-provision.yml build
         envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
         kubectl apply -f dep/k8s_etcd_devmode.yml
+        docker-compose -f dep/docker-compose-k8sprovision.yml up -d
      else
         prod_mode_gen_certs
-        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
+	docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
         envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
         kubectl apply -f dep/k8s_etcd_prodmode.yml
+        docker-compose -f dep/docker-compose-k8sprovision.yml -f dep/docker-compose-k8sprovision.override.prod.yml up -d
      fi
 elif [ $ETCD_NAME = 'master' ]; then
     install_pip_requirements

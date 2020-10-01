@@ -18,16 +18,33 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
-FROM ia_etcd:${EIS_VERSION}
-COPY dep/requirements.txt .
-RUN pip3 install -r requirements.txt && \
-    rm -rf requirements.txt
-COPY dep/etcd_provision.py .
-COPY dep/etcd_create_user.sh .
-COPY dep/etcd_enable_auth.sh .
-COPY dep/etcd_health_check.sh .
-RUN chmod +x etcd_create_user.sh && \
-    chmod +x etcd_enable_auth.sh && \
-    chmod +x etcd_health_check.sh
-ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]
+version: '3.6'
+services:
+  ia_etcd_provision:
+    build:
+       context: ../
+       dockerfile: ./dep/Dockerfile.provision
+       args:
+        EIS_VERSION: ${EIS_VERSION}
+        EIS_UID: $EIS_UID
+    container_name: ia_etcd_provision
+    read_only: true
+    image: ia_etcd_provision:$EIS_VERSION
+    volumes:
+      - "../config:/EIS/etcd/config/"
+      - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+    environment:
+      ETCDCTL_API: 3
+      DEV_MODE: ${DEV_MODE}
+      no_proxy: $eis_no_proxy
+      NO_PROXY: $eis_no_proxy
+      http_proxy: $http_proxy
+      https_proxy: $https_proxy
+      provision_mode: $PROVISION_MODE
+      ETCD_PREFIX: $ETCD_PREFIX
+      ETCD_HOST: $ETCD_HOST
+      ETCD_CLIENT_PORT: 30008 
+    network_mode: host
+    ipc: "none"
+    user: $EIS_UID
+
