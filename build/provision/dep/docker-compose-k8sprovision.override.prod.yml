@@ -18,16 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
-FROM ia_etcd:${EIS_VERSION}
-COPY dep/requirements.txt .
-RUN pip3 install -r requirements.txt && \
-    rm -rf requirements.txt
-COPY dep/etcd_provision.py .
-COPY dep/etcd_create_user.sh .
-COPY dep/etcd_enable_auth.sh .
-COPY dep/etcd_health_check.sh .
-RUN chmod +x etcd_create_user.sh && \
-    chmod +x etcd_enable_auth.sh && \
-    chmod +x etcd_health_check.sh
-ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]
+version: '3.6'
+services:
+  ia_etcd_provision:
+    read_only: true
+    secrets:
+        - ca_etcd
+        - etcd_root_cert
+        - etcd_root_key
+    volumes:
+        - "../Certificates:/EIS/etcd/Certificates"
+    environment:
+      ETCD_ROOT_PASSWORD: eis123
+
+secrets:
+  ca_etcd:
+    file: ../Certificates/ca/ca_certificate.pem
+  etcd_root_cert:
+    file:  ../Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file:  ../Certificates/root/root_client_key.pem
+

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Copyright (c) 2020 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,16 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
-FROM ia_etcd:${EIS_VERSION}
-COPY dep/requirements.txt .
-RUN pip3 install -r requirements.txt && \
-    rm -rf requirements.txt
-COPY dep/etcd_provision.py .
-COPY dep/etcd_create_user.sh .
-COPY dep/etcd_enable_auth.sh .
-COPY dep/etcd_health_check.sh .
-RUN chmod +x etcd_create_user.sh && \
-    chmod +x etcd_enable_auth.sh && \
-    chmod +x etcd_health_check.sh
-ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]
+a=0
+b=1
+echo "Checking ETCD endpoint health"
+while [ $a -lt 1 -a $b -lt 100 ]
+do
+  a=$(./etcdctl endpoint health 2>&1 | grep " healthy" | wc -l)
+  b=`expr $b + 1`
+done

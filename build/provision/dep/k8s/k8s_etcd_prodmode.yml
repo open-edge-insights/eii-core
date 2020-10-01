@@ -23,16 +23,14 @@ kind: Service
 metadata:
   name: etcd
   namespace: eis
-  labels:
-    app: etcd
 spec:
-  ports:
-  - name: etcd
-    port: 8379
-    protocol: TCP
+  type: NodePort
   selector:
     app: etcd
-
+  ports:
+    - port: 8379
+      targetPort: 8379
+      nodePort: 30008
 ---
 apiVersion: v1
 kind: Pod
@@ -82,54 +80,6 @@ spec:
       value: "/run/secrets/etcd_server_key/etcdserver_server_key.pem"
     - name: ETCD_DATA_DIR
       value: "$ETCD_DATA_DIR"
-  - name: ia-etcd-provision
-    image: ia_etcd_provision:${EIS_VERSION}
-    volumeMounts:
-    - name: "root-cert"
-      mountPath: /run/secrets/etcd_root_cert
-    - name: "root-key"
-      mountPath: /run/secrets/etcd_root_key
-    - name: "ca-cert"
-      mountPath: /run/secrets/ca_etcd
-    - name: certs
-      mountPath: /EIS/etcd/Certificates
-    - name: config
-      mountPath: /EIS/etcd/config
-    - name: docker-compose
-      mountPath: /EIS/etcd/docker-compose.yml
-    env:
-    - name: AppName
-      value: "ia-etcd-provision"
-    - name: DEV_MODE
-      value: "$DEV_MODE"
-    - name: ETCDCTL_API
-      value: "3"
-    - name: ETCD_ROOT_PASSWORD
-      value: "eis123"
-    - name: ETCD_HOST
-      value: "localhost"
-    - name: ETCD_CLIENT_PORT
-      value: "$ETCD_CLIENT_PORT"
-    - name: ETCD_PEER_PORT
-      value: "$ETCD_PEER_PORT"
-    - name: ETCD_TRUSTED_CA_FILE
-      value: "/run/secrets/ca_etcd/ca_certificate.pem"
-    - name: ETCD_ROOT_CERT
-      value: "/run/secrets/etcd_root_cert/root_client_certificate.pem"
-    - name: ETCD_ROOT_KEY
-      value: "/run/secrets/etcd_root_key/root_client_key.pem"
-    - name: provision_mode
-      value: "$PROVISION_MODE"
-    - name: ETCD_PREFIX
-      value: "$ETCD_PREFIX"
-    command: ["/bin/sh"]
-    args:
-      - -c
-      - >
-        cd /EIS/etcd/
-        && python3 etcd_provision.py docker-compose.yml
-        && while true; do sleep 50000; done
-
   volumes:
   - name: "root-cert"
     secret:
@@ -149,12 +99,3 @@ spec:
   - name: "etcd-data"
     hostPath:
       path: ${EIS_INSTALL_PATH}/data/etcd/
-  - name: "certs"
-    hostPath:
-      path: ${EIS_LOCAL_PATH}/build/provision/Certificates
-  - name: config
-    hostPath:
-      path: ${EIS_LOCAL_PATH}/build/provision/config
-  - name: docker-compose
-    hostPath:
-      path: ${EIS_LOCAL_PATH}/build/docker-compose.yml
