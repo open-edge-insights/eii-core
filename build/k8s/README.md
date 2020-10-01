@@ -8,10 +8,9 @@ EIS Orchestration using k8s Orchestrator.
 
 3. [Deploying EIS Application with K8s](#deploying-eis-application-with-k8s)
 
-4. [Steps for Enabling Basler Camera with k8s](README_Basler_Nw.md)
+4. [Steps for Enabling Basler Camera with k8s](#steps-for-enabling-basler-camera-with-k8s)
 
 5. [Steps for Multinode Deployment](README_Multinode_deployment.md)
-
 
 > ***Note:*** This readme is `W.I.P`. Steps for enabling other EIS features with k8s will be integrated here soon.
 
@@ -74,8 +73,65 @@ EIS Orchestration using k8s Orchestrator.
 
     eq. $ sudo ./provision_eis.sh ../docker-compose.yml
     ```
+## Steps for Enabling Basler Camera with k8s
+   > **Note:** For more information on `Multus` please refer this git https://github.com/intel/multus-cni
+   > Skip installing multus if it is already installed and execute others.
+
+   *  Prequisites
+      For enabling basler camera with k8s. K8s pod networks should be enabled `Multus` Network Interface
+      to attach host system network interface access by the pods for connected camera access.
+
+      >**Note**: Please follow the below steps & make sure `dhcp daemon` is running fine.If there is an error on `macvlan` container creation on accessing the socket or if socket was not running. Please execute the below steps again
+      > ```sh
+      >   $ sudo rm -f /run/cni/dhcp.sock
+      >   $ cd /opt/cni/bin
+      >   $ sudo ./dhcp daemon
+      > ```      
+
+      ### Setting up Multus CNI and Enabling it.
+      * Multus CNI is a container network interface (CNI) plugin for Kubernetes that enables attaching multiple network interfaces to pods. Typically, in Kubernetes each pod only has one network interface (apart from a loopback) -- with Multus you can create a multi-homed pod that has multiple interfaces. This is accomplished by Multus acting as a "meta-plugin", a CNI plugin that can call multiple other CNI plugins.
+
+      * Get the name of the `ethernet` interface in which basler camera & host system connected
+        >**Note**: Identify the network interface name by following command
+          ```sh
+          $ ifconfig
+          ```
+      * Execute the Following Script with Identified `ethernet` interface name as Argument for `Multus Network Setup`
+        > **Note:** Pass the `interface` name without `quotes`
+        ```sh
+        $ sudo -E sh ./k8s_multus_setup.sh <interface_name>
+        ```
+
+      * Update `macvlan` network config `VideoIngestion` deployment `yml` file in `VideoIngestion/k8s-service.yml`
+
+      ```yml
+            annotations:
+                k8s.v1.cni.cncf.io/networks: macvlan-conf
+      ```
+
+      Eg.
+      ```yml
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          labels:
+            app: video
+          name: deployment-video-ingestion
+          namespace: eis
+          annotations:
+            k8s.v1.cni.cncf.io/networks: macvlan-conf
+      ```
+
+      * Follow the [Deployment Steps](#deploying-eis-application-with-k8s)
+     
+      * Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
+
+          ```sh
+            $ kubectl exec -it <pod_name> -- ip -d address
+          ```
+
 ## Deploying EIS Application with K8s
-  > **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+  > **Note:** `eis-k8s-deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
 
   * Goto `build/k8s` directory.
     ```sh
@@ -83,9 +139,11 @@ EIS Orchestration using k8s Orchestrator.
     ```
   * Deploy `k8s` using `kubectl` utility by following command
     ```sh
-    $  kubectl -n eis apply k8s_eis_deploy.yml
+    $  kubectl apply -f ./eis-k8s-deploy.yml
     ```
   * Make sure the pods are `Running` fine as per deploy yml file.
     ```sh
     $  kubectl -n eis get pods
     ```
+
+   
