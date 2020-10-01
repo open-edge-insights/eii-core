@@ -29,6 +29,7 @@ import random
 import logging
 import yaml
 import zmq
+import base64
 import zmq.auth
 from distutils.util import strtobool
 ETCD_PREFIX = os.environ['ETCD_PREFIX']
@@ -154,22 +155,33 @@ def get_server_cert_key(appname, certtype):
     cert_ext = None
     if 'pem' in certtype:
         cert_ext = ".pem"
-    elif 'der' in certype:
+    elif 'der' in certtype:
         cert_ext = ".der"
     cert_file = "Certificates/" + appname + "_Server/" + appname \
         + "_Server_server_certificate" + cert_ext
     key_file =  "Certificates/" + appname + "_Server/" + appname \
         + "_Server_server_key" + cert_ext
     ca_certificate = "Certificates/ca/ca_certificate"  + cert_ext
-    with open(cert_file, 'r') as s_cert:
-        server_cert = s_cert.read()
-        server_key_cert["server_cert"] = server_cert
-    with open(key_file, 'r') as s_key:
-        server_key = s_key.read()
-        server_key_cert["server_key"] = server_key
-    with open(ca_certificate, 'r') as cert:
-        ca_cert = cert.read()
-        server_key_cert["ca_cert"] = ca_cert
+    if cert_ext == ".pem":
+        with open(cert_file, 'r') as s_cert:
+            server_cert = s_cert.read()
+            server_key_cert["server_cert"] = server_cert
+        with open(key_file, 'r') as s_key:
+            server_key = s_key.read()
+            server_key_cert["server_key"] = server_key
+        with open(ca_certificate, 'r') as cert:
+            ca_cert = cert.read()
+            server_key_cert["ca_cert"] = ca_cert
+    if cert_ext == ".der":
+        with open(cert_file, 'rb') as s_cert:
+            server_cert = s_cert.read()
+            server_key_cert["server_cert"] = base64.standard_b64encode(server_cert).decode("utf-8")
+        with open(key_file, 'rb') as s_key:
+            server_key = s_key.read()
+            server_key_cert["server_key"] = base64.standard_b64encode(server_key).decode("utf-8")
+        with open(ca_certificate, 'rb') as cert:
+            ca_cert = cert.read()
+            server_key_cert["ca_cert"] = base64.standard_b64encode(ca_cert).decode("utf-8")
 
     return server_key_cert
 
