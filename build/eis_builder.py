@@ -118,7 +118,7 @@ def increment_rtsp_port(appname, config, i):
     # increment_rtsp_port is set to true
     if appname == 'VideoIngestion' and \
        eis_builder_cfg['increment_rtsp_port'] is True:
-        if 'rtspsrc' in config['ingestor']['pipeline']:
+        if 'rtspsrc' in config['config']['ingestor']['pipeline']:
             port = config['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
             new_port = str(int(port) + i)
@@ -126,6 +126,69 @@ def increment_rtsp_port(appname, config, i):
                 config['ingestor']['pipeline'].\
                 replace(port, new_port)
 
+    return config
+
+
+def create_multi_instance_interfaces(config, i, bm_appnames_list):
+    """Generate multi instance interfaces for a given config
+
+    :param config: app config
+    :type config: json
+    :param i: number of instance
+    :type i: int
+    :param bm_appnames_list: multi instance required apps
+    :type bm_appnames_list: list
+    """
+    # Iterating through interfaces key, value pairs
+    for k, v in config["interfaces"].items():
+        for x in config["interfaces"][k]:
+            # Updating Name section of all interfaces
+            if "Name" in x.keys():
+                x["Name"] = x["Name"] + str(i+1)
+            # Updating Topics section of all interfaces
+            if "Topics" in x.keys():
+                for index, topic in enumerate(x["Topics"]):
+                    if bool(re.search(r'\d', x["Topics"][index])):
+                        x["Topics"][index] = re.sub(r'\d+', str(i+1),
+                                                    x["Topics"][index])
+                    else:
+                        x["Topics"][index] = x["Topics"][index] +\
+                                                str(i+1)
+            # Updating AllowedClients section of all interfaces
+            if "AllowedClients" in x.keys():
+                for index, topic in enumerate(x["AllowedClients"]):
+                    if x["AllowedClients"][index] in bm_appnames_list:
+                        if bool(re.search(r'\d', x["AllowedClients"][index])):
+                            x["AllowedClients"][index] = re.sub(r'\d+', str(i+1),
+                                                        x["AllowedClients"][index])
+                        else:
+                            x["AllowedClients"][index] = x["AllowedClients"][index] +\
+                                                    str(i+1)
+            # Updating PublisherAppName section of all interfaces
+            if "PublisherAppName" in x.keys():
+                if x["PublisherAppName"] in bm_appnames_list:
+                    if bool(re.search(r'\d', x["PublisherAppName"])):
+                        x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
+                                                    x["PublisherAppName"])
+                    else:
+                        x["PublisherAppName"] = x["PublisherAppName"] +\
+                                                      str(i+1)
+            # Updating ServerAppName section of all interfaces
+            if "ServerAppName" in x.keys():
+                if x["ServerAppName"] in bm_appnames_list:
+                    if bool(re.search(r'\d', x["ServerAppName"])):
+                        x["ServerAppName"] = re.sub(r'\d+', str(i+1),
+                                                    x["ServerAppName"])
+                    else:
+                        x["ServerAppName"] = x["ServerAppName"] +\
+                                                      str(i+1)
+            # Updating Type section of all interfaces
+            if "Type" in x.keys():
+                if "tcp" in x["Type"]:
+                    # If tcp mode, increment port numbers
+                    port = x["EndPoint"].split(':')[1]
+                    new_port = str(int(port) + (i))
+                    x["EndPoint"] = x["EndPoint"].replace(port, new_port)
     return config
 
 
@@ -165,6 +228,12 @@ def json_parser(file, args):
     app_list = list(dict.fromkeys(app_list))
     app_list.remove(SCAN_DIR + '/common')
 
+    # Creating benchmarking apps list to edit interfaces accordingly
+    bm_appnames_list = []
+    for x in benchmark_app_list:
+        bm_appname = x.split('/' + args.override_directory)[0].split('/')[-1]
+        bm_appnames_list.append(bm_appname)
+
     eis_config_path = "./provision/config/eis_config.json"
     # Fetching and merging individual App configs
     for app_path in app_list:
@@ -197,7 +266,15 @@ def json_parser(file, args):
                             head = json.load(infile)
                             # Increments rtsp port number if required
                             head = increment_rtsp_port(appname, head, i)
-                            data['/' + appname + str(i+1) + '/config'] = head
+                            # Create multi instance interfaces
+                            head = create_multi_instance_interfaces(head, i, bm_appnames_list)
+                            # merge config of multi instance config
+                            if 'config' in head.keys():
+                                data['/' + appname + str(i+1) +'/config'] = head['config']
+                            # merge interfaces of multi instance config
+                            if 'interfaces' in head.keys():
+                                data['/' + appname + str(i+1) +'/interfaces'] = head['interfaces']
+                            # merge multi instance generated json to eis config
                             config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
@@ -489,10 +566,16 @@ def csl_parser(app_list, args):
                                                                nm_val,
                                                                "Permissions":
                                                                "RO"})
-            cmd = json.dumps(json_value).encode()
+            cmd = json.dumps(json_value)
         try:
             if args.override_directory is not None:
-                env_subst(app_path, module_spec_path)
+                # Write module spec to temporary file for envsubst
+                with open("./"+app_name+"module_spec_temp.json", "w") as module_spec_file:
+                    module_spec_file.write(cmd)
+                # Execute envsubt on temp file & store output in module_spec_path
+                env_subst("./"+app_name+"module_spec_temp.json", module_spec_path)
+                # Remove temporary file
+                os.remove("./"+app_name+"module_spec_temp.json")
             else:
                 env_subst(cmd, module_spec_path, input_type='cmd')
         except subprocess.CalledProcessError as err:
