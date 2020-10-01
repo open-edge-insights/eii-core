@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-typedef void (*callback_t)(char *key, char *value, void *cb_user_data);
+typedef void (*callback_t)(const char *key, config_t* value, void *cb_user_data);
 
 typedef struct {
         void *kv_store_config;

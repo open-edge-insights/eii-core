@@ -34,7 +34,8 @@
 #include <thread>
 #include <sstream>
 #include <fstream>
-
+#include <cjson/cJSON.h>
+#include "eis/utils/json_config.h"
 #include <grpcpp/grpcpp.h>
 #include <grpc++/security/credentials.h>
 #include <fstream>
@@ -59,7 +60,7 @@ using etcdserverpb::WatchCreateRequest;
 using etcdserverpb::WatchRequest;
 using etcdserverpb::WatchResponse;
 
-typedef void (*callback_t)(char *key, char *value, void* cb_user_data);
+typedef void (*callback_t)(const char *key, config_t* value, void* cb_user_data);
 
 class EtcdClient {
     public:

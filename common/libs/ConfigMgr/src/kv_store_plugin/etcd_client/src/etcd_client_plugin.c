@@ -31,7 +31,6 @@
 #define KEY_FILE        "key_file"
 #define CA_FILE         "ca_file"
 
-typedef void (*callback_t)(char *key, char *value, void* cb_user_data);
 
 void* etcd_init(void* etcd_client);
 char* etcd_get(void * handle, char *key);

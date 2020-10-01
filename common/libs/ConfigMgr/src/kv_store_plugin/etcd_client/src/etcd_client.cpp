@@ -205,7 +205,30 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
                     char *kvs_key = const_cast<char*>(kvs.key().c_str());
                     char *kvs_value = const_cast<char*>(kvs.value().c_str());
                     LOG_DEBUG("key:%s is updated with the value %s", kvs_key, kvs_value);
-                    user_callback(kvs_key, kvs_value, user_data);         
+
+                    cJSON* val_json;
+                    // Checking if the value updated is not in Json format
+                    if (kvs_value[0] != '{'){
+                       if(strlen(kvs_value) == 0){
+                           LOG_ERROR_0("Value shouldn't be empty. Empty string is not supported");
+                           return;
+                       }
+                       // Creating the cJSON object with Key as kvs_key and value as kvs_value
+                       val_json = cJSON_CreateObject();
+                       cJSON_AddStringToObject(val_json, kvs_key, kvs_value);
+                    } else{
+                        // char* to cJSON conversion
+                        val_json = cJSON_Parse(kvs_value);
+                    }                  
+
+                    // cJSON to config_t conversion
+                    config_t* config = config_new(
+                        (void*) val_json, free_json, get_config_value);
+                    if (config == NULL) {
+                        LOG_ERROR_0("Failed to initialize configuration object");
+                        return;
+                    }
+                    user_callback(kvs_key, config, user_data);         
                 }
             }
         }
