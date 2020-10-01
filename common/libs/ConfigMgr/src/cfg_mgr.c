@@ -216,7 +216,7 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
                 LOG_ERROR_0("pub_cfg initialization failed");
                 return NULL;
             }
-            app_cfg->base_cfg->msgbus_config = pub_config;
+            pub_cfg->pub_config = pub_config;
             return pub_cfg;
         } else if(i == config_value_array_len(publisher_interface)) {
             LOG_ERROR("Publisher by name %s not found", name);
@@ -249,7 +249,7 @@ pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
         LOG_ERROR_0("pub_cfg initialization failed");
         return NULL;
     }
-    app_cfg->base_cfg->msgbus_config = pub_config_index;
+    pub_cfg->pub_config = pub_config_index;
     return pub_cfg;
 }
 
@@ -286,7 +286,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
                 LOG_ERROR_0("sub_cfg initialization failed");
                 return NULL;
             }
-            app_cfg->base_cfg->msgbus_config = sub_config;
+            sub_cfg->sub_config = sub_config;
             return sub_cfg;
         } else if(i == config_value_array_len(subscriber_interface)) {
             LOG_ERROR("Subscribers by name %s not found", name);
@@ -319,7 +319,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index) {
         LOG_ERROR_0("sub_cfg initialization failed");
         return NULL;
     }
-    app_cfg->base_cfg->msgbus_config = sub_config;
+    sub_cfg->sub_config = sub_config;
     return sub_cfg;
 }
 
@@ -356,7 +356,7 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
                 LOG_ERROR_0("serv_cfg initialization failed");
                 return NULL;
             }
-            app_cfg->base_cfg->msgbus_config = serv_config;
+            serv_cfg->server_config = serv_config;
             return serv_cfg;
         } else if(i == config_value_array_len(server_interface)) {
             LOG_ERROR("Servers by name %s not found", name);
@@ -389,7 +389,7 @@ server_cfg_t* cfgmgr_get_server_by_index(app_cfg_t* app_cfg, int index) {
         LOG_ERROR_0("serv_cfg initialization failed");
         return NULL;
     }
-    app_cfg->base_cfg->msgbus_config = server_config;
+    serv_cfg->server_config = server_config;
     return serv_cfg;
 }
 
@@ -426,7 +426,8 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
                 LOG_ERROR_0("cli_cfg initialization failed");
                 return NULL;
             }
-            app_cfg->base_cfg->msgbus_config = cli_config;
+
+            cli_cfg->client_config = cli_config;
             return cli_cfg;
         } else if (i == config_value_array_len(client_interface)) {
             LOG_ERROR("Clients by name %s not found", name);
@@ -459,7 +460,7 @@ client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index) {
         LOG_ERROR_0("cli_cfg initialization failed");
         return NULL;
     }
-    app_cfg->base_cfg->msgbus_config = cli_config;
+    cli_cfg->client_config = cli_config;
     return cli_cfg;
 }
 

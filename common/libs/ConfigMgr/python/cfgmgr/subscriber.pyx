@@ -79,7 +79,7 @@ cdef class Subscriber:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.sub_cfg.cfgmgr_get_msgbus_config_sub(self.app_cfg.base_cfg)
+        new_config_new = self.sub_cfg.cfgmgr_get_msgbus_config_sub(self.app_cfg.base_cfg, self.sub_cfg)
         config = configt_to_char(new_config_new)
         config_str = config.decode('utf-8')
         return json.loads(config_str)
@@ -94,7 +94,7 @@ cdef class Subscriber:
         """
         cdef config_value_t* value
         cdef char* config
-        value = self.sub_cfg.cfgmgr_get_interface_value_sub(self.app_cfg.base_cfg, key.encode('utf-8'))
+        value = self.sub_cfg.cfgmgr_get_interface_value_sub(self.sub_cfg, key.encode('utf-8'))
         interface_value = Util.get_cvt_data(value)
         config_value_destroy(value)
         return interface_value
@@ -106,7 +106,7 @@ cdef class Subscriber:
         :rtype: string
         """
         cdef config_value_t* ep
-        ep = self.sub_cfg.cfgmgr_get_endpoint_sub(self.app_cfg.base_cfg)
+        ep = self.sub_cfg.cfgmgr_get_endpoint_sub(self.sub_cfg)
         if(ep.type == CVT_OBJECT):
             config = cvt_to_char(ep);
             config_str = config.decode('utf-8')
@@ -127,7 +127,7 @@ cdef class Subscriber:
         """
         topics_list = []
         cdef config_value_t* topics
-        topics = self.sub_cfg.cfgmgr_get_topics_sub(self.app_cfg.base_cfg)
+        topics = self.sub_cfg.cfgmgr_get_topics_sub(self.sub_cfg)
         cdef config_value_t* topic_value
         for i in range(config_value_array_len(topics)):
             topic_value = config_value_array_get(topics, i)
@@ -154,5 +154,5 @@ cdef class Subscriber:
             topics_list[i] = topics_list[i].encode()
             topics_to_be_set[i] = topics_list[i]
         # Calling the base C cfgmgr_set_topics_sub() API
-        topics_set = self.sub_cfg.cfgmgr_set_topics_sub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg)
+        topics_set = self.sub_cfg.cfgmgr_set_topics_sub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.sub_cfg)
         return topics_set

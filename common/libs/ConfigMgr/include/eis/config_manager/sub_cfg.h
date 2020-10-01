@@ -45,15 +45,15 @@ extern "C" {
 
 typedef struct {
 
-    config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg);
+    config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg, void* sub_conf);
 
-    config_value_t* (*cfgmgr_get_interface_value_sub)(base_cfg_t* base_cfg, const char* key);
+    config_value_t* (*cfgmgr_get_interface_value_sub)(void* sub_conf, const char* key);
 
-    config_value_t* (*cfgmgr_get_endpoint_sub)(base_cfg_t* base_cfg);
+    config_value_t* (*cfgmgr_get_endpoint_sub)(void* sub_conf);
 
-    config_value_t* (*cfgmgr_get_topics_sub)(base_cfg_t* base_cfg);
+    config_value_t* (*cfgmgr_get_topics_sub)(void* sub_conf);
 
-    int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg);
+    int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg, void* sub_conf);
 
     config_value_t* sub_config;
 

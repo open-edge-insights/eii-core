@@ -31,8 +31,9 @@
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-config_value_t* cfgmgr_get_endpoint_pub(base_cfg_t* base_cfg) {
-    config_value_t* ep = get_endpoint_base(base_cfg);
+config_value_t* cfgmgr_get_endpoint_pub(void* pub_conf) {
+    pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
+    config_value_t* ep = get_endpoint_base(pub_cfg->pub_config);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
@@ -40,13 +41,15 @@ config_value_t* cfgmgr_get_endpoint_pub(base_cfg_t* base_cfg) {
     return ep;
 }
 
-config_value_t* cfgmgr_get_interface_value_pub(base_cfg_t* base_cfg, const char* key) {
-    return config_value_object_get(base_cfg->msgbus_config, key);
+config_value_t* cfgmgr_get_interface_value_pub(void* pub_conf, const char* key) {
+    pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
+    return config_value_object_get(pub_cfg->pub_config, key);
 }
 
 // To fetch topics from config
-config_value_t* cfgmgr_get_topics_pub(base_cfg_t* base_cfg) {
-    config_value_t* topics_list = get_topics_base(base_cfg);
+config_value_t* cfgmgr_get_topics_pub(void* pub_conf) {
+    pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
+    config_value_t* topics_list = get_topics_base(pub_cfg->pub_config);
     if (topics_list == NULL) {
         LOG_ERROR_0("topics_list initialization failed");
         return NULL;
@@ -55,8 +58,9 @@ config_value_t* cfgmgr_get_topics_pub(base_cfg_t* base_cfg) {
 }
 
 // To fetch list of allowed clients from config
-config_value_t* cfgmgr_get_allowed_clients_pub(base_cfg_t* base_cfg) {
-    config_value_t* client_list = get_allowed_clients_base(base_cfg);
+config_value_t* cfgmgr_get_allowed_clients_pub(void* pub_conf) {
+    pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
+    config_value_t* client_list = get_allowed_clients_base(pub_cfg->pub_config);
     if (client_list == NULL) {
         LOG_ERROR_0("client_list initialization failed");
         return NULL;
@@ -65,16 +69,18 @@ config_value_t* cfgmgr_get_allowed_clients_pub(base_cfg_t* base_cfg) {
 }
 
 // To set topics in config
-int cfgmgr_set_topics_pub(char** topics_list, int len, base_cfg_t* base_cfg) {
-    int result = set_topics_base(topics_list, len, PUBLISHERS, base_cfg);
+int cfgmgr_set_topics_pub(char** topics_list, int len, base_cfg_t* base_cfg, void* pub_conf) {
+    pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
+    int result = set_topics_base(topics_list, len, PUBLISHERS, base_cfg, pub_cfg->pub_config);
     return result;
 }
 
 // To fetch msgbus config
-config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg) {
+config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
 
     // Initializing base_cfg variables
-    config_value_t* pub_config = base_cfg->msgbus_config;
+    pub_cfg_t* pub_cfg = (pub_cfg_t*) pub_conf;
+    config_value_t* pub_config = pub_cfg->pub_config;
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
@@ -250,6 +256,7 @@ pub_cfg_t* pub_cfg_new() {
     pub_cfg_mgr->cfgmgr_get_topics_pub = cfgmgr_get_topics_pub;
     pub_cfg_mgr->cfgmgr_set_topics_pub = cfgmgr_set_topics_pub;
     pub_cfg_mgr->cfgmgr_get_allowed_clients_pub = cfgmgr_get_allowed_clients_pub;
+
     return pub_cfg_mgr;
 }
 

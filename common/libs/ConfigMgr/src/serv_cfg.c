@@ -30,8 +30,9 @@
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-config_value_t* cfgmgr_get_endpoint_server(base_cfg_t* base_cfg) {
-    config_value_t* ep = get_endpoint_base(base_cfg);
+config_value_t* cfgmgr_get_endpoint_server(void* server_conf) {
+    server_cfg_t* server_cfg = (server_cfg_t*)server_conf;
+    config_value_t* ep = get_endpoint_base(server_cfg->server_config);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
@@ -40,8 +41,9 @@ config_value_t* cfgmgr_get_endpoint_server(base_cfg_t* base_cfg) {
 }
 
 // To fetch list of allowed clients from config
-config_value_t* cfgmgr_get_allowed_clients_server(base_cfg_t* base_cfg) {
-    config_value_t* client_list = get_allowed_clients_base(base_cfg);
+config_value_t* cfgmgr_get_allowed_clients_server(void* server_conf) {
+    server_cfg_t* server_cfg = (server_cfg_t*)server_conf;
+    config_value_t* client_list = get_allowed_clients_base(server_cfg->server_config);
     if (client_list == NULL) {
         LOG_ERROR_0("client_list initialization failed");
         return NULL;
@@ -49,15 +51,17 @@ config_value_t* cfgmgr_get_allowed_clients_server(base_cfg_t* base_cfg) {
     return client_list;
 }
 
-config_value_t* cfgmgr_get_interface_value_server(base_cfg_t* base_cfg, const char* key) {
-    return config_value_object_get(base_cfg->msgbus_config, key);
+config_value_t* cfgmgr_get_interface_value_server(void* serv_conf, const char* key) {
+    server_cfg_t* server_cfg = (server_cfg_t*)serv_conf;
+    return config_value_object_get(server_cfg->server_config, key);
 }
 
 // To fetch msgbus config
-config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
+config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_conf) {
 
+    server_cfg_t* server_cfg = (server_cfg_t*)server_conf;
     // Initializing base_cfg variables
-    config_value_t* serv_config = base_cfg->msgbus_config;
+    config_value_t* serv_config = server_cfg->server_config;
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;

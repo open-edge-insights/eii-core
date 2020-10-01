@@ -42,7 +42,7 @@ server_cfg_t* ServerCfg::getServCfg() {
 // getMsgBusConfig of ServerCfg class
 config_t* ServerCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_server() API
-    config_t* server_config = m_serv_cfg->cfgmgr_get_msgbus_config_server(m_app_cfg->base_cfg);
+    config_t* server_config = m_serv_cfg->cfgmgr_get_msgbus_config_server(m_app_cfg->base_cfg, m_serv_cfg);
     if (server_config == NULL) {
         LOG_ERROR_0("Unable to fetch server msgbus config");
         return NULL;
@@ -52,13 +52,13 @@ config_t* ServerCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Server.
 config_value_t* ServerCfg::getInterfaceValue(const char* key){
-    return m_serv_cfg->cfgmgr_get_interface_value_server(m_app_cfg->base_cfg, key);
+    return m_serv_cfg->cfgmgr_get_interface_value_server(m_serv_cfg, key);
 }
 
 // To fetch endpoint from config
 std::string ServerCfg::getEndpoint() {
     // Calling the base C get_endpoint_server() API
-    config_value_t* ep = m_serv_cfg->cfgmgr_get_endpoint_server(m_app_cfg->base_cfg);
+    config_value_t* ep = m_serv_cfg->cfgmgr_get_endpoint_server(m_serv_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
@@ -83,7 +83,7 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
 
     std::vector<std::string> client_list;
     // Calling the base C get_topics() API
-    config_value_t* clients = m_serv_cfg->cfgmgr_get_allowed_clients_server(m_app_cfg->base_cfg);
+    config_value_t* clients = m_serv_cfg->cfgmgr_get_allowed_clients_server(m_serv_cfg);
     if (clients == NULL) {
         LOG_ERROR_0("clients initialization failed");
         return {};

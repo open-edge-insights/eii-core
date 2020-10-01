@@ -31,8 +31,9 @@
 #define MAX_CONFIG_KEY_LENGTH 250
 
 // To fetch endpoint from config
-config_value_t* cfgmgr_get_endpoint_sub(base_cfg_t* base_cfg) {
-    config_value_t* ep = get_endpoint_base(base_cfg);
+config_value_t* cfgmgr_get_endpoint_sub(void* sub_conf) {
+    sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
+    config_value_t* ep = get_endpoint_base(sub_cfg->sub_config);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return NULL;
@@ -41,8 +42,9 @@ config_value_t* cfgmgr_get_endpoint_sub(base_cfg_t* base_cfg) {
 }
 
 // To fetch topics from config
-config_value_t* cfgmgr_get_topics_sub(base_cfg_t* base_cfg) {
-    config_value_t* topics_list = get_topics_base(base_cfg);
+config_value_t* cfgmgr_get_topics_sub(void* sub_conf) {
+    sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
+    config_value_t* topics_list = get_topics_base(sub_cfg->sub_config);
     if (topics_list == NULL) {
         LOG_ERROR_0("topics_list initialization failed");
         return NULL;
@@ -50,21 +52,24 @@ config_value_t* cfgmgr_get_topics_sub(base_cfg_t* base_cfg) {
     return topics_list;
 }
 
-config_value_t* cfgmgr_get_interface_value_sub(base_cfg_t* base_cfg, const char* key) {
-    return config_value_object_get(base_cfg->msgbus_config, key);
+config_value_t* cfgmgr_get_interface_value_sub(void* sub_conf, const char* key) {
+    sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
+    return config_value_object_get(sub_cfg->sub_config, key);
 }
 
 // To set topics in config
-int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg) {
-    int result = set_topics_base(topics_list, len, SUBSCRIBERS, base_cfg);
+int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg, void* sub_conf) {
+    sub_cfg_t* sub_cfg = (sub_cfg_t*) sub_conf;
+    int result = set_topics_base(topics_list, len, SUBSCRIBERS, base_cfg, sub_cfg->sub_config);
     return result;
 }
 
 // To fetch msgbus config
-config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
+config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
 
+    sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
     // Initializing base_cfg variables
-    config_value_t* sub_config = base_cfg->msgbus_config;
+    config_value_t* sub_config = sub_cfg->sub_config;
     char* app_name = base_cfg->app_name;
     bool dev_mode = false;
 

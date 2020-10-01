@@ -89,7 +89,7 @@ void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_ca
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_value_t* on success
  */
-config_value_t* get_endpoint_base(base_cfg_t* base_cfg);
+config_value_t* get_endpoint_base(config_value_t* conf);
 
 /**
  * get_topics_base function to fetch topics
@@ -101,14 +101,14 @@ config_value_t* get_endpoint_base(base_cfg_t* base_cfg);
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_value_t* on success
  */
-config_value_t* get_topics_base(base_cfg_t* base_cfg);
+config_value_t* get_topics_base(config_value_t* conf);
 
 /**
  * get_allowed_clients_base function to get allowed clients
  * @param base_cfg - base_cfg_t object
  *  @return NULL for any errors occured or config_value_t* on success
  */
-config_value_t* get_allowed_clients_base(base_cfg_t* base_cfg);
+config_value_t* get_allowed_clients_base(config_value_t* conf);
 
 /**
  * To fetch number of elements in an interface
@@ -147,7 +147,7 @@ config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg);
  * @param base_cfg - base_cfg_t object
  *  @return -1 for any errors occured or 0 on success
  */
-int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg);
+int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg, config_value_t* conf);
 
 /**
  * configt_to_char function to convert config_t to char*
