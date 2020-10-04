@@ -31,35 +31,16 @@
 char** get_host_port(const char* end_point) {
     char** host_port = NULL;
     char* data = NULL;
-    char* ep = NULL;
-    size_t ep_len = strlen(end_point);
-    size_t data_len = 0;
-    int i = 0;
-    int ret = 0;
-
-    // Initialize the host_port string
-    host_port = (char**) calloc(ep_len + 1, sizeof(char*));
+    host_port = (char **)calloc(strlen(end_point) + 1, sizeof(char*));
     if (host_port == NULL) {
         LOG_ERROR_0("Calloc failed for host_port");
-        goto err;
     }
-
-    // Initialize the destination of the copy of the end_point
-    ep = (char*) malloc(sizeof(char*) * (ep_len + 1));
-    if (ep == NULL) {
-        LOG_ERROR_0("malloc() failed for endpoint copy");
-        goto err;
-    }
-
-    // Copy over the endpoint string
-    errno_t rc = memcpy_s(ep, ep_len, end_point, ep_len);
-    if (rc != EOK) {
-        LOG_ERROR("memcpy_s() failed: %d", rc);
-        goto err;
-    }
-
-    // Process the string to obtain the host:port
-    while ((data = strtok_r(ep, ":", &ep))) {
+    size_t data_len;
+    int i = 0;
+    char* host = NULL;
+    char* port = NULL;
+    int ret = 0;
+    while ((data = strtok_r(end_point, ":", &end_point))) {
         data_len = strlen(data);
         if (host_port[i] == NULL) {
             host_port[i] = (char*) malloc(data_len + 1);
@@ -69,33 +50,11 @@ char** get_host_port(const char* end_point) {
         }
         ret = strncpy_s(host_port[i], data_len + 1, data, data_len);
         if (ret != 0) {
-            LOG_ERROR("String copy failed (errno: %d) : Failed to copy "
-                      "data \" %s \" to host_port", ret, data);
+            LOG_ERROR("String copy failed (errno: %d) : Failed to copy data \" %s \" to host_port", ret, data);
         }
         i++;
     }
-
-    // Free copied endpoint string
-    free(ep);
-
     return host_port;
-err:
-    if (host_port != NULL) {
-        // Free host_port char*
-        for (int j = 0; j < i; j++) {
-            free(host_port[j]);
-        }
-
-        free(host_port);
-    }
-    if (data != NULL) {
-        free(data);
-    }
-    if (ep != NULL) {
-        free(ep);
-    }
-
-    return NULL;
 }
 
 

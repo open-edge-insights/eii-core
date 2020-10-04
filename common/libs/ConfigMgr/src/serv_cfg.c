@@ -241,8 +241,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg) {
                     char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
                     const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
                     if(sub_public_key == NULL){
-                        LOG_ERROR("Value is not found for the key: %s", grab_public_key);
-                        return NULL;
+                        // If any service isn't provisioned, ignore if key not found
+                        LOG_WARN("Value is not found for the key: %s", grab_public_key);
                     }
 
                     cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));

@@ -77,26 +77,26 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             }
         }
 
-        // Fetching ETCD_PORT type from env
-        char* etcd_port = getenv("ETCD_PORT");
+        // Fetching ETCD_CLIENT_PORT type from env
+        char* etcd_port = getenv("ETCD_CLIENT_PORT");
         if (etcd_port == NULL) {
-            LOG_DEBUG_0("ETCD_PORT env not set, defaulting to 2379");
+            LOG_DEBUG_0("ETCD_CLIENT_PORT env not set, defaulting to 2379");
             etcd_port = "2379";
         } else {
             if (strlen(etcd_port) == 0) {
-                LOG_DEBUG_0("ETCD_PORT env is set to empty, defaulting to 2379");
+                LOG_DEBUG_0("ETCD_CLIENT_PORT env is set to empty, defaulting to 2379");
                 etcd_port = "2379";
             }
         }
 
         // Fetching ETCD_ENDPOINT from env for CSL
-        // If set over-rides ETCD_HOST & ETCD_PORT
+        // If set over-rides ETCD_HOST & ETCD_CLIENT_PORT
         char* etcd_endpoint = getenv("ETCD_ENDPOINT");
         if (etcd_endpoint == NULL) {
-            LOG_DEBUG_0("ETCD_ENDPOINT env not set, using ETCD_HOST & ETCD_PORT");
+            LOG_DEBUG_0("ETCD_ENDPOINT env not set, using ETCD_HOST & ETCD_CLIENT_PORT");
         } else {
             if (strlen(etcd_endpoint) == 0) {
-                LOG_DEBUG_0("ETCD_ENDPOINT is empty, using ETCD_HOST & ETCD_PORT");
+                LOG_DEBUG_0("ETCD_ENDPOINT is empty, using ETCD_HOST & ETCD_CLIENT_PORT");
             } else {
                 size_t str_len = strlen(etcd_endpoint) + 1;
                 char* c_etcd_endpoint = (char*)malloc(sizeof(char) * str_len);
