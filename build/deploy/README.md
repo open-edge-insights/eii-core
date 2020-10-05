@@ -181,7 +181,7 @@ EIS deployment will only be done on the node where TurtleCreek is installed & pr
 > **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-5. Please make sure to copy and untar the above bundle on a secure location having root only access as it contains secrets.
 
 ```
-    $ sudo tar -xvzf <eis_bundle gz generated in step 3>
+    $ sudo tar -xvzf <eis_bundle gz generated in Step No. 5>
     $ cd eis_bundle
     $ docker-compose up -d
 
