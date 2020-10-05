@@ -231,9 +231,9 @@ fi
 
 #############################################################
 
-if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
+if [ "$PROVISION_MODE" = 'csl' -a "$ETCD_NAME" = 'master' ]; then
     if [ $DEV_MODE = 'false' ]; then
-	log_info "Provisioning EIS with mode... "
+	log_info "Provisioning EIS with CSL enabled mode... "
 	install_pip_requirements
         copy_docker_compose_file
         prod_mode_gen_certs
@@ -242,7 +242,8 @@ if [ $PROVISION_MODE = 'csl' -a $ETCD_NAME = 'master' ]; then
     else
 	log_fatal "Orchestration with CSL is not supported in Dev mode"
     fi
-elif [ $PROVISION_MODE = 'k8s' -a $ETCD_NAME = 'master' ]; then
+elif [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
+     log_info "Provisioning EIS with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
      
