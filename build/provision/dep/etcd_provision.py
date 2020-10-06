@@ -200,7 +200,10 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_CACERT"] = os.environ.get("ETCD_TRUSTED_CA_FILE" , "/run/secrets/ca_etcd")
         os.environ["ETCDCTL_CERT"] = os.environ.get("ETCD_ROOT_CERT" , "/run/secrets/etcd_root_cert")
         os.environ["ETCDCTL_KEY"] = os.environ.get("ETCD_ROOT_KEY" , "/run/secrets/etcd_root_key")
-    etcd_health_check()
+    
+    if os.environ['provision_mode'] != "csl":
+        etcd_health_check()
+    
     apps = get_appname(str(sys.argv[1]))
     load_data_etcd("./config/eis_config.json", apps)
     for key, value in apps.items():
