@@ -119,11 +119,11 @@ def increment_rtsp_port(appname, config, i):
     if appname == 'VideoIngestion' and \
        eis_builder_cfg['increment_rtsp_port'] is True:
         if 'rtspsrc' in config['config']['ingestor']['pipeline']:
-            port = config['ingestor']['pipeline'].\
+            port = config['config']['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
             new_port = str(int(port) + i)
-            config['ingestor']['pipeline'] =\
-                config['ingestor']['pipeline'].\
+            config['config']['ingestor']['pipeline'] =\
+                config['config']['ingestor']['pipeline'].\
                 replace(port, new_port)
 
     return config
