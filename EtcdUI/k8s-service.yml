@@ -28,8 +28,8 @@ spec:
   selector:
     app: etcd-ui
   ports:
-  - port: 7070
-    targetPort: 7070
+  - port: 7071
+    targetPort: 7071
     nodePort: 30010
 ---
 apiVersion: apps/v1
@@ -53,7 +53,7 @@ spec:
       nodeName: master-node
       containers:
       - name: ia-etcd-ui
-        image: ia_etcd_ui:${EIS_VERSION}
+        image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
         volumeMounts:
         - name: etcd-keeper
           mountPath: /tmp/nginx
