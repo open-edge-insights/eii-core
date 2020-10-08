@@ -33,6 +33,16 @@ func main() {
 	os.Setenv("AppName", "GoSubscriber")
 	os.Setenv("DEV_MODE", "True")
 
+	os.Setenv("CONFIGMGR_CERT", "")
+	os.Setenv("CONFIGMGR_KEY", "")
+	os.Setenv("CONFIGMGR_CACERT", "")
+
+	// os.Setenv("DEV_MODE", "False")
+	// // Give the approptiate certificates path for prod mode
+	// os.Setenv("CONFIGMGR_CERT", "")
+	// os.Setenv("CONFIGMGR_KEY", "")
+	// os.Setenv("CONFIGMGR_CACERT", "")
+
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
 	// subCtx, _ := configMgr.GetSubscriberByName("sample_sub")
@@ -51,7 +61,7 @@ func main() {
 	fmt.Printf("GetMsgbusConfig:%v", config)
 
 	topics := subCtx.GetTopics()
-	fmt.Println("Subscriber Topics:", config)
+	fmt.Println("Subscriber Topics:", topics)
 	for _, s := range topics {
 		fmt.Println(s)
 	}

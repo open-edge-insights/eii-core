@@ -34,6 +34,16 @@ func main() {
 	os.Setenv("AppName", "GoPublisher")
 	os.Setenv("DEV_MODE", "True")
 
+	os.Setenv("CONFIGMGR_CERT", "")
+	os.Setenv("CONFIGMGR_KEY", "")
+	os.Setenv("CONFIGMGR_CACERT", "")
+
+	// os.Setenv("DEV_MODE", "False")
+	// // Give the approptiate certificates path for prod mode
+	// os.Setenv("CONFIGMGR_CERT", "")
+	// os.Setenv("CONFIGMGR_KEY", "")
+	// os.Setenv("CONFIGMGR_CACERT", "")
+
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
 	devMode, _ := configMgr.IsDevMode()
@@ -206,7 +216,7 @@ func main() {
 	defer client.Close()
 
 	fmt.Printf("-- Creating publisher for topic")
-	publisher, err := client.NewPublisher("publish_test")
+	publisher, err := client.NewPublisher(topics[0])
 	if err != nil {
 		fmt.Printf("-- Error creating publisher: %v\n", err)
 		return
