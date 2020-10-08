@@ -136,7 +136,14 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
         for (int i=0; i < config_value_array_len(topics_list); ++i) {
             cJSON* socket_file_obj = cJSON_CreateObject();
             topics = config_value_array_get(topics_list, i);
-            cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
+           
+            strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
+            if(ret == 0){
+                cJSON_AddItemToObject(c_json, cJSON_CreateString(""), socket_file_obj);
+            } else {
+                cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
+            }
+
             cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
             // Adding brokered value if available
             config_value_t* brokered_value = config_value_object_get(config, BROKERED);

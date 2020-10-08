@@ -138,10 +138,10 @@ static inline void destroy_config_val(config_val_t* config_val) {
 	}
 }
 
-char** parse_config_value(config_value_t* config_value, int len) {
-	char** char_config_value = (char**)malloc(len * sizeof(char*));
+char** parse_config_value(config_value_t* config_value, int num_of_items) {
+	char** char_config_value = (char**)malloc(num_of_items * sizeof(char*));
 	config_value_t* config_val;
-	for (int i = 0; i < len; i++) {
+	for (int i = 0; i < num_of_items; i++) {
 		config_val = config_value_array_get(config_value, i);
 		if (config_val == NULL) {
 			free(char_config_value);
@@ -151,7 +151,20 @@ char** parse_config_value(config_value_t* config_value, int len) {
 		char_config_value[i] = (char*)malloc(strlen(config_val->body.string) + 1);
 
 		int len = strlen(config_val->body.string);
-		int ret = strncpy_s(char_config_value[i], len + 1, config_val->body.string, len);
+		int ret;
+		strcmp_s(config_val->body.string, strlen(config_val->body.string), "",&ret);
+
+		if (ret == 0){
+			// copying empty string amd hence copying length of 1
+			ret = strncpy_s(char_config_value[i], 1, "", 1);
+			if (ret != 0) {
+				free(char_config_value[i]);
+				LOG_ERROR_0("String copy failed for config_val");
+				return NULL;
+			}
+			return char_config_value;
+		}
+		ret = strncpy_s(char_config_value[i], len + 1, config_val->body.string, len);
 		if (ret != 0) {
 			free(char_config_value[i]);
 			LOG_ERROR_0("String copy failed for config_val");
