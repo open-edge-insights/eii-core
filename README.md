@@ -334,15 +334,15 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2020.4" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2021.1" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2021.1/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2020.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2021.1/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
 
      When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
@@ -362,53 +362,6 @@ check [common/udfs/README.md](common/udfs/README.md).
                  - "/dev/dri"
                  - "/dev/ion:/dev/ion"
     ```
-
-* **To run on HDDLF(FGPA) devices**
-
-  Please Refer the [README_fpga.md](README_fpga.md) for installing FPGA drivers. Once that is setup, please follow below steps:
-
-  * Set the argument `FPGA_ENABLE` value to `enable` to build `ia_openvino_base` service with all the required FPGA config in [docker-compose.yml](build/docker-compose.yml).
-    If one is using docker-compose samples, please ensure to follow the same.
-
-    Eg: Just set the value of `FPGA_ENABLE` to `enable` like below for `ia_openvino_base` service:
-    ```sh
-      ia_openvino_base:
-        ...
-        args: ...
-              FPGA_ENABLE: "enable"
-        ...
-    ```
-  * Docker bind-mount the `/opt/intel/openvino` directory for services using OpenVINO with FPGA(ia_video_analytics` or `ia_video_ingestion`) in [docker-compose.yml](build/docker-compose.yml).
-    If one is using docker-compose samples, please ensure to follow the same.
-
-    Eg: Docker bind-mount the `/opt/intel/openvino` directory for `ia_video_analytics` service
-    ```sh
-      ia_video_analytics:
-        ...
-        volumes: ...
-                 - "/opt/intel/openvino:/opt/intel/openvino"
-        ...
-    ```
-   Note: Make the corresponding changes for teh CSL app spec as well.
-
-   * For actual deployment one could choose to mount only the required devices for services using OpenVINO with FPGA in [docker-compose.yml](build/docker-compose.yml).
-
-    Eg: Mount only the Graphics and FPGA device for `ia_video_anaytics` service
-    ```
-      ia_video_analytics:
-         ...
-         devices:
-                 - "/dev/dri"
-                 - "/dev/acla10_1150_sg10:/dev/acla10_1150_sg10"
-
-    **NOTE**: The OpenVINO FPGA toolkit version downloaded and installed should be the same version as the value of `OPENVINO_IMAGE_VERSION` key in [build/.env](build/.env). It is also the responsibility of the user to ensure the symbolic link created during installation points to the correct version in case of multiple versions of OpenVINO FPGA present in the system. The docker bind-mount will override the contents of `/opt/intel/openvino` directory inside the container.
-
-  * Please provision, build and run the EIS stack as mentioned in the `Provision EIS` and `Build and Run EIS PCB Demo Example` sections above.
-    For `FPGA` inferencing, make sure to set `device` value to `HETERO:FPGA,CPU` or `HETERO:FPGA,GPU"` in the `udf` object configuration in
-    the `udfs` key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
-    before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
-    check [common/udfs/README.md](common/udfs/README.md).
-
 **Note**:
 ----
 
@@ -441,17 +394,15 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **Troubleshooting issues for HDDL devices**
 
-  ** Note**: *HDDL was tested with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version 5.3.0-62-generic*
-
-  * In case one notices shared memory error with OpenVINO 2020.4 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
+  * In case one notices shared memory error with OpenVINO 2021.1 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2020.4 release notes in the below link for new features and changes from the previous versions.
+  * Please refer OpenVINO 2021.1 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2020.4/index.html
+    https://docs.openvinotoolkit.org/2021.1/index.html
 
 ----
 
