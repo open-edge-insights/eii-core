@@ -50,7 +50,6 @@ spec:
       labels:
         app: etcd-ui
     spec:
-      nodeName: master-node
       containers:
       - name: ia-etcd-ui
         image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
