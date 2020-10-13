@@ -201,8 +201,9 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
     return value;
 }
 
-void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
+bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
     int ret;
+    bool ret_val = true;
     config_value_t* value = NULL;
     config_value_t* publish_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
@@ -211,12 +212,14 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
     if (publish_json_clients == NULL) {
         LOG_ERROR_0("publish_json_clients initialization failed");
+        ret_val=false;
         goto err;
     }
 
     // Checking if Allowed clients is empty string
     if (config_value_array_len(publish_json_clients) == 0){
         LOG_ERROR_0("Empty String is not supported in AllowedClients. Atleast one allowed clients is required");
+        ret_val=false;
         goto err;
     }
 
@@ -224,6 +227,7 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     config_value_t* temp_array_value = config_value_array_get(publish_json_clients, 0);
     if (temp_array_value == NULL) {
         LOG_ERROR_0("temp_array_value initialization failed");
+        ret_val=false;
         goto err;
     }
     int result;
@@ -234,11 +238,13 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         cJSON* all_clients = cJSON_CreateArray();
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
+            ret_val=false;
             goto err;
         }
         pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
         if (pub_key_values == NULL) {
             LOG_ERROR_0("pub_key_values initialization failed");
+            ret_val=false;
             goto err;
         }
         
@@ -246,6 +252,7 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             value = config_value_array_get(pub_key_values, i);
             if (value == NULL) {
                 LOG_ERROR_0("value initialization failed");
+                ret_val=false;
                 goto err;
             }
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
@@ -256,6 +263,7 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         cJSON* all_clients = cJSON_CreateArray();
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
+            ret_val=false;
             goto err;
         }
         for (int i =0; i < config_value_array_len(publish_json_clients); i++) {
@@ -263,6 +271,7 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             array_value = config_value_array_get(publish_json_clients, i);
             if (array_value == NULL) {
                 LOG_ERROR_0("array_value initialization failed");
+                ret_val=false;
                 goto err;
             }
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
@@ -270,7 +279,9 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
-                LOG_WARN("Value is not found for the key: %s", grab_public_key);
+                LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                ret_val=false;
+                goto err;
             }
 
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
@@ -284,6 +295,7 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     const char* publisher_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
     if (publisher_secret_key == NULL) {
         LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
+        ret_val=false;
         goto err;
     }
 
@@ -307,4 +319,82 @@ void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         }
         return;
                     
+}
+
+bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_kv_store_handle, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
+    bool ret_val = true;
+    size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
+    char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);
+    if (grab_public_key == NULL){
+        LOG_ERROR_0("Failed to conact PUBLIC_KEYS and PublisherAppName value");
+        ret_val=false;
+        goto err;
+    }
+
+    const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+    if(pub_public_key == NULL){
+        LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+        ret_val=false;
+        goto err;
+    }
+
+    // Adding Publisher public key to config
+    cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
+
+    // Adding Subscriber public key to config
+    init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + 2;
+    char* s_sub_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
+    if (s_sub_public_key == NULL){
+        LOG_ERROR_0("Failed to conact PUBLIC_KEYS and AppName");
+        goto err;
+    }
+    const char* sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
+    if(sub_public_key == NULL){
+        LOG_ERROR("Value is not found for the key: %s", s_sub_public_key);
+        ret_val=false;
+        goto err;
+    }
+
+    cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
+
+    // Adding Subscriber private key to config
+    init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
+    char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
+    if (s_sub_pri_key == NULL){
+        LOG_ERROR_0("Failed to conact /AppName and PRIVATE_KEY");
+        ret_val=false;
+        goto err;
+    }
+
+    const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
+    if(sub_pri_key == NULL){
+        LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
+        ret_val=false;
+        goto err;
+    }
+
+    cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
+
+
+    err:
+        if(grab_public_key != NULL) {
+            free(grab_public_key);
+        }
+        if(s_sub_public_key != NULL) {
+            free(s_sub_public_key);
+        }
+        if(s_sub_pri_key != NULL) {
+            free(s_sub_pri_key);
+        }
+        if(pub_public_key != NULL) {
+            free(pub_public_key);
+        }
+        if(sub_public_key != NULL) {
+            free(sub_public_key);
+        }
+        if(sub_pri_key != NULL) {
+            free(sub_pri_key);
+        }
+
+    return ret_val;
 }

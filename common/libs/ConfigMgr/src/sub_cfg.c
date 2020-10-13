@@ -66,7 +66,13 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
     // Initializing base_cfg variables
     config_value_t* sub_config = base_cfg->msgbus_config;
     char* app_name = base_cfg->app_name;
-    int dev_mode = base_cfg->dev_mode;
+    bool dev_mode = false;
+
+    int devmode = base_cfg->dev_mode;
+    if(devmode == 0) {
+        dev_mode = true;
+    }
+ 
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -191,6 +197,9 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
 
         size_t arr_len = config_value_array_len(topic_array);
 
+        // Initializing m_kv_store_handle to fetch public & private keys
+        void *handle = m_kv_store_handle->init(m_kv_store_handle);
+
         char** host_port = get_host_port(end_point);
         char* host = host_port[0];
         trim(host);
@@ -199,103 +208,53 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg) {
         int64_t i_port = atoi(port);
         
         int ret;
+        int topicret;
         // comparing the first topic in the array of subscribers topic with "*"
         topic = config_value_array_get(topic_array,0);
-        strcmp_s(topic->body.string, strlen(topic->body.string), "*", &ret);
-
-        if((arr_len == 1) && (ret == 0)){
-            // Add host & port to cJSON object
-            cJSON_AddStringToObject(sub_topic, "host", host);
-            cJSON_AddNumberToObject(sub_topic, "port", i_port);
-
-            // if topics lenght is 1 and that topic is "*", then we are making it as empty string
-            // to support any topics subscription.
-            cJSON_AddItemToObject(c_json, "", sub_topic);
-        } else {
-            for (int i = 0; i < config_value_array_len(topic_array); i++) {
-                topic = config_value_array_get(topic_array, i);
-                if (topic == NULL) {
-                    LOG_ERROR_0("topic initialization failed");
-                    return NULL;
-                }
-
-                // Add host & port to cJSON object
-                cJSON_AddStringToObject(sub_topic, "host", host);
-                cJSON_AddNumberToObject(sub_topic, "port", i_port);
-
-                // if topics lenght is not 1 or the topic is not equal to "*", 
-                //then we are adding that topic for subscription.
-                cJSON_AddItemToObject(c_json, topic->body.string, sub_topic);
-            }
+        strcmp_s(topic->body.string, strlen(topic->body.string), "*", &topicret);
+        config_value_t* publisher_appname = config_value_object_get(sub_config, PUBLISHER_APPNAME);
+        if (publisher_appname == NULL) {
+            LOG_ERROR("%s initialization failed", PUBLISHER_APPNAME);
+            return NULL;
         }
 
-        if(dev_mode != 0) {
+        for (int i = 0; i < arr_len; i++) {
+            cJSON* topics = cJSON_CreateObject();
+            topic = config_value_array_get(topic_array, i);
+            // Add host & port to cJSON object
+            cJSON_AddStringToObject(topics, "host", host);
+            cJSON_AddNumberToObject(topics, "port", i_port);
 
-            // Initializing m_kv_store_handle to fetch public & private keys
-            void *handle = m_kv_store_handle->init(m_kv_store_handle);
-
-            // Fetching Topics from config
-            config_value_t* topic_array = config_value_object_get(sub_config, TOPICS);
-            if (topic_array == NULL) {
-                LOG_ERROR_0("topic_array initialization failed");
-                return NULL;
-            }
-            config_value_t* topic;
-
-            // Create cJSON object for every topic
-            for (int i = 0; i < config_value_array_len(topic_array); i++) {
-                topic = config_value_array_get(topic_array, i);
-
-                // Fetching Publisher AppName from config
-                config_value_t* publisher_appname = config_value_object_get(sub_config, PUBLISHER_APPNAME);
-                if (publisher_appname == NULL) {
-                    LOG_ERROR_0("publisher_appname initialization failed");
-                    return NULL;
-                }
-                
+            // if topics lenght is not 1 or the topic is not equal to "*",
+            //then we are adding that topic for subscription.
+            if(!dev_mode) {
+                bool ret_val;
                 // This is EISZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
                 // hence comparing for "PublisherAppname" and "*"
                 strcmp_s(publisher_appname->body.string, strlen(publisher_appname->body.string), "*", &ret);
-                if(ret == 0){
-                    // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of 
+                if(ret == 0) {
+                    // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of
                     // messagebus config, hence calling "construct_tcp_publisher_prod()" function
-                    construct_tcp_publisher_prod(app_name, c_json, sub_topic, handle, sub_config, m_kv_store_handle);
-                } else {
-                    size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
-                    char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);
-                    const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
-                    if(pub_public_key == NULL){
-                        LOG_ERROR("Value is not found for the key: %s", grab_public_key);
+                    ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, handle, sub_config, m_kv_store_handle);
+                     if(!ret_val) {
+                        LOG_ERROR_0("Failed in construct_tcp_publisher_prod()");
                         return NULL;
                     }
-
-                    // Adding Publisher public key to config
-                    cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
-
-                    // Adding Subscriber public key to config
-                    init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + 2;
-                    char* s_sub_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
-                    const char* sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
-                    if(sub_public_key == NULL){
-                        LOG_ERROR("Value is not found for the key: %s", s_sub_public_key);
+                }else {
+                    ret_val = add_keys_to_config(topics, app_name, m_kv_store_handle, handle, publisher_appname, sub_config);
+                    if(!ret_val) {
+                        LOG_ERROR_0("Failed in add_keys_to_config()");
                         return NULL;
                     }
-
-                    cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
-
-                    // Adding Subscriber private key to config
-                    init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
-                    char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
-                    const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
-                    if(sub_pri_key == NULL){
-                        LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
-                        return NULL;
-                    }
-
-                    cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
                 }
             }
+            if((arr_len == 1) && (topicret == 0)) {
+                cJSON_AddItemToObject(c_json, "", topics);
+            } else {
+                cJSON_AddItemToObject(c_json, topic->body.string, topics);
+            }
         }
+        config_value_destroy(publisher_appname);
     }
 
     // Constructing char* object from cJSON object

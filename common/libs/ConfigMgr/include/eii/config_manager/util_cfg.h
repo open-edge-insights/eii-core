@@ -67,8 +67,21 @@ char* cvt_obj_str_to_char(config_value_t* cvt);
  * @param handle : kv store's handle
  * @param config : publisher's interface config
  * @param m_kv_store_handle : kv store client object
+ * @return true on sucess, false on fail
  */
-void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle);
+bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle);
+
+/**
+ * construct_tcp_publisher_prod function constructs the publisher message bus config for prod mode
+ * @param sub_topic : sub_topic cJSON object where the entire message bus config is held
+ * @param app_name : Application name
+ * @param m_kv_store_handle : kv store client object
+ * @param handle : kv store's handle
+ * @param publisher_appname: PublisherAppName value
+ * @param sub_config : subscriber's interface config
+ * @return true on sucess, false on fail
+ */
+bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_kv_store_handle, void* handle, config_value_t* publisher_appname, config_value_t* sub_config);
 
 #ifdef __cplusplus
 }
