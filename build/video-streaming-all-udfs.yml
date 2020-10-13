@@ -8,4 +8,4 @@ AppName:
 - CustomUdfs/PySafetyGearAnalytics
 - CustomUdfs/PySafetyGearIngestion
 - CustomUdfs/PyMultiClassificationIngestion
-- CustomUdfs/GVASafetyGearAnalytics
+- CustomUdfs/GVASafetyGearIngestion
