@@ -200,3 +200,111 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
 
     return value;
 }
+
+void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
+    int ret;
+    config_value_t* value = NULL;
+    config_value_t* publish_json_clients = NULL;
+    config_value_t* pub_key_values = NULL;
+    config_value_t* array_value = NULL;
+
+    publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
+    if (publish_json_clients == NULL) {
+        LOG_ERROR_0("publish_json_clients initialization failed");
+        goto err;
+    }
+
+    // Checking if Allowed clients is empty string
+    if (config_value_array_len(publish_json_clients) == 0){
+        LOG_ERROR_0("Empty String is not supported in AllowedClients. Atleast one allowed clients is required");
+        goto err;
+    }
+
+    // Fetch the first item in allowed_clients
+    config_value_t* temp_array_value = config_value_array_get(publish_json_clients, 0);
+    if (temp_array_value == NULL) {
+        LOG_ERROR_0("temp_array_value initialization failed");
+        goto err;
+    }
+    int result;
+    strcmp_s(temp_array_value->body.string, strlen(temp_array_value->body.string), "*", &result);
+    // If only one item in allowed_clients and it is *
+    // Add all available Publickeys
+    if ((config_value_array_len(publish_json_clients) == 1) && (result == 0)) {
+        cJSON* all_clients = cJSON_CreateArray();
+        if (all_clients == NULL) {
+            LOG_ERROR_0("all_clients initialization failed");
+            goto err;
+        }
+        pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
+        if (pub_key_values == NULL) {
+            LOG_ERROR_0("pub_key_values initialization failed");
+            goto err;
+        }
+        
+        for (int i = 0; i < config_value_array_len(pub_key_values); i++) {
+            value = config_value_array_get(pub_key_values, i);
+            if (value == NULL) {
+                LOG_ERROR_0("value initialization failed");
+                goto err;
+            }
+            cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
+        }
+        cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
+    } else {
+        
+        cJSON* all_clients = cJSON_CreateArray();
+        if (all_clients == NULL) {
+            LOG_ERROR_0("all_clients initialization failed");
+            goto err;
+        }
+        for (int i =0; i < config_value_array_len(publish_json_clients); i++) {
+            // Fetching individual public keys of all AllowedClients
+            array_value = config_value_array_get(publish_json_clients, i);
+            if (array_value == NULL) {
+                LOG_ERROR_0("array_value initialization failed");
+                goto err;
+            }
+            size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
+            char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+            const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+            if (sub_public_key == NULL) {
+                // If any service isn't provisioned, ignore if key not found
+                LOG_WARN("Value is not found for the key: %s", grab_public_key);
+            }
+
+            cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
+        }
+        // Adding all public keys of clients to allowed_clients of config
+        cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
+    }
+    // Fetching Publisher private key & adding it to zmq_tcp_publish object
+    size_t init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
+    char* pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
+    const char* publisher_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
+    if (publisher_secret_key == NULL) {
+        LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
+        goto err;
+    }
+
+    cJSON_AddStringToObject(inner_json, "server_secret_key", publisher_secret_key);
+
+    err:
+        if(value != NULL){
+            config_value_destroy(value);
+        }
+        if (publish_json_clients != NULL){
+            config_value_destroy(publish_json_clients);
+        }
+        if (temp_array_value != NULL){
+            config_value_destroy(temp_array_value);
+        }
+        if (pub_key_values != NULL){
+            config_value_destroy(pub_key_values);
+        }
+        if (array_value != NULL){
+            config_value_destroy(array_value);
+        }
+        return;
+                    
+}
