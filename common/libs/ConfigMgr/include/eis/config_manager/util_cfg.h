@@ -29,6 +29,9 @@
 #define SOCKET_FILE "socket_file"
 #define ENDPOINT "EndPoint"
 #define TOPICS "Topics"
+#define ALLOWED_CLIENTS "AllowedClients"
+#define PUBLIC_KEYS "/Publickeys/"
+#define PRIVATE_KEY "/private_key"
 #define MAX_CONFIG_KEY_LENGTH 250
 
 
@@ -55,6 +58,17 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
  * @return char* value of the cvt
  */
 char* cvt_obj_str_to_char(config_value_t* cvt);
+
+/**
+ * construct_tcp_publisher_prod function constructs the publisher message bus config for prod mode
+ * @param app_name : Application name 
+ * @param c_json : Main cJSON object where the entire message bus config is held
+ * @param inner_json : nested json where endpoint and certificates details are stored
+ * @param handle : kv store's handle
+ * @param config : publisher's interface config
+ * @param m_kv_store_handle : kv store client object
+ */
+void construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle);
 
 #ifdef __cplusplus
 }
