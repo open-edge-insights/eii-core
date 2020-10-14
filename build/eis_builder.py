@@ -896,14 +896,15 @@ def create_docker_compose_override(app_list, dev_mode, args):
     :param args: cli arguments
     :type args: argparse
     """
-    # Load the required override files
-    override_data = update_yml_dict(app_list,
-                                    'docker-compose-dev.override.yml',
-                                    dev_mode,
-                                    args)
+    if args.override_directory is None:
+        # Load the required override files
+        override_data = update_yml_dict(app_list,
+                                        'docker-compose-dev.override.yml',
+                                        dev_mode,
+                                        args)
 
-    with open("./docker-compose.override.yml", 'w') as fp:
-        ruamel.yaml.round_trip_dump(override_data, fp)
+        with open("./docker-compose.override.yml", 'w') as fp:
+            ruamel.yaml.round_trip_dump(override_data, fp)
 
 
 def yaml_parser(args):
