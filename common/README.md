@@ -23,8 +23,15 @@ This script installs all the EIS libraries & their respective required dependenc
         $ git clean -xdf
     ```
 
-4. Run this command to update the $LD_LIBRARY_PATH
 
+4. Please follow the below steps to set the required env variables.
+
+    a. For updating the $LD_LIBRARY_PATH env variable:
     ```sh
-        $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+    ```
+
+    b. For updating the $no_proxy env variable to connect to etcd:
+    ```sh
+        export no_proxy=$no_proxy,127.0.0.1
     ```
