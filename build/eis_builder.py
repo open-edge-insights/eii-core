@@ -39,6 +39,8 @@ DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
 benchmark_app_list = []
 benchmark_csl_app_list = []
+benchmark_k8s_app_list = []
+used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
 
 
 def source_env(file):
@@ -649,7 +651,203 @@ def k8s_yaml_remove_secrets(yaml_data):
     return kube_yaml
 
 
-def k8s_yaml_merger(app_list, dev_mode):
+def get_available_port(curr_port, ports_dict):
+    """Method to recursively check for available
+       ports in provided ports_dict
+
+    :param curr_port: port to be replaced
+    :type curr_port: str
+    :param ports_dict: dict to check available ports
+    :type ports_dict: dict
+    :return: next available port
+    :rtype: str
+    """
+    # Check if port is not available, recursively check for
+    # next available port
+    if curr_port in ports_dict:
+        return get_available_port(str(int(curr_port)+1), ports_dict)
+    # If port is available, append it to non-available ports dict
+    # and return
+    else:
+        ports_dict.append(curr_port)
+        return curr_port
+
+
+def multi_instance_k8s_deployment(yaml_dict, i):
+    """Method to update multi instance k8s yml for
+       deployment section
+
+    :param yaml_dict: k8s yaml dict
+    :type yaml_dict: dict
+    :param i: index of multi instance
+    :type i: int
+    :return: updated yml_dict
+    :rtype: dict
+    """
+    # Updating appname
+    yaml_dict["spec"]["selector"]["matchLabels"]["app"] = yaml_dict["spec"]["selector"]["matchLabels"]["app"] + str(i+1)
+    yaml_dict["spec"]["template"]["metadata"]["labels"]["app"] = yaml_dict["spec"]["template"]["metadata"]["labels"]["app"] + str(i+1)
+    yaml_dict["spec"]["template"]["spec"]["containers"][0]["name"] = yaml_dict["spec"]["template"]["spec"]["containers"][0]["name"] + str(i+1)
+
+    # Updating volume mount part of k8s yaml dict
+    volume_mount_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["volumeMounts"]
+    for v in range(len(volume_mount_dict)):
+        # Update cert section
+        if "cert" in volume_mount_dict[v]["name"] and "ca-cert" not in volume_mount_dict[v]["name"]:
+            cert_temp = volume_mount_dict[v]["mountPath"].split('_cert')[0]
+            new_cert = re.sub(r'\d+', '', cert_temp) + str(i+1) + '_cert'
+            volume_mount_dict[v]["mountPath"] = new_cert
+            volume_mount_dict[v]["name"] = volume_mount_dict[v]["name"] + str(i+1)
+        # Update key section
+        if "key" in volume_mount_dict[v]["name"] and "ca-cert" not in volume_mount_dict[v]["name"]:
+            key_temp = volume_mount_dict[v]["mountPath"].split('_key')[0]
+            new_key = re.sub(r'\d+', '', key_temp) + str(i+1) + '_key'
+            volume_mount_dict[v]["mountPath"] = new_key
+            volume_mount_dict[v]["name"] = volume_mount_dict[v]["name"] + str(i+1)
+    # Updating env part of k8s yaml dict
+    env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
+    for v in range(len(env_dict)):
+        # Update AppName
+        if env_dict[v]["name"] == "AppName":
+            env_dict[v]["value"] = env_dict[v]["value"] + str(i+1)
+        # Update CONFIGMGR_CERT & CONFIGMGR_KEY section
+        if env_dict[v]["name"] == "CONFIGMGR_CERT" or env_dict[v]["name"] == "CONFIGMGR_KEY":
+            app_name = env_dict[v]["value"].split("/")[-1].split("_")[0]
+            new_app_name = app_name + str(i+1)
+            env_dict[v]["value"] = env_dict[v]["value"].replace(app_name, new_app_name)
+        # Update tcp ports section
+        if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
+            # Updating ports for PUBLISHER/SERVER ENDPOINTS
+            if "SERVER" in env_dict[v]["name"] or "PUBLISHER" in env_dict[v]["name"]:
+                port = env_dict[v]["value"].split(":")[-1]
+                new_port = get_available_port(port, used_ports_dict["send_ports"])
+                env_dict[v]["value"] = env_dict[v]["value"].replace(port, new_port)
+            # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
+            if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
+                port = env_dict[v]["value"].split(":")[-1]
+                new_port = get_available_port(port, used_ports_dict["recv_ports"])
+                env_dict[v]["value"] = env_dict[v]["value"].replace(port, new_port)
+                # Update appnames in ENDPOINTS
+                appname = env_dict[v]["value"].split(":")[0]
+                env_dict[v]["value"] = env_dict[v]["value"].replace(appname, appname + str(i+1))
+                # Update endpoint name if it has a unique name
+                if env_dict[v]["name"].count("_") > 1:
+                    ep_name = env_dict[v]["name"].split("_")[1]
+                    env_dict[v]["name"] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
+    # Updating volumes section of k8s yaml dict
+    volume_dict = yaml_dict["spec"]["template"]["spec"]["volumes"]
+    for v in range(len(volume_dict)):
+        # Update cert section
+        if "cert" in volume_dict[v]["name"] and "ca-cert" not in volume_dict[v]["name"]:
+            volume_dict[v]["name"] = volume_dict[v]["name"] + str(i+1)
+            app_name = volume_dict[v]["secret"]["secretName"].split("-")[0]
+            new_app_name = app_name + str(i+1)
+            volume_dict[v]["secret"]["secretName"] = volume_dict[v]["secret"]["secretName"].replace(app_name, new_app_name)
+        # Update key section
+        if "key" in volume_dict[v]["name"]:
+            volume_dict[v]["name"] = volume_dict[v]["name"] + str(i+1)
+            app_name = volume_dict[v]["secret"]["secretName"].split("-")[0]
+            new_app_name = app_name + str(i+1)
+            volume_dict[v]["secret"]["secretName"] = volume_dict[v]["secret"]["secretName"].replace(app_name, new_app_name)
+    return yaml_dict
+
+
+def create_multi_instance_k8s_yml(k8s_path, dev_mode, i):
+    """Method to create multi instance k8s yml
+
+    :param k8s_path: path of yml dict
+    :type k8s_path: str
+    :param dev_mode: dev mode variable
+    :type dev_mode: bool
+    :param i: index of multi instance
+    :type i: int
+    :return: multi instance k8s yml
+    :rtype: str
+    """
+    merged_yaml = ""
+    data = ""
+    with open(k8s_path) as yaml_file:
+        file_contents = yaml_file.read()
+        string_io_data = io.StringIO(file_contents)
+        # Create multi instance if app has both service & deployment section
+        if "---" in file_contents:
+            yaml_data_list = file_contents.split("---")
+            string_io_data_one = io.StringIO(yaml_data_list[0])
+            string_io_data = io.StringIO(yaml_data_list[1])
+            yaml_prod_srvc = ruamel.yaml.round_trip_load(string_io_data_one,
+                                                        preserve_quotes=True)
+            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
+                                                    preserve_quotes=True)
+
+            # dict to update service section
+            yaml_dict_srvc = dict()
+            for k, v in yaml_prod_srvc.items():
+                yaml_dict_srvc[k] = v
+            # Updating app name
+            yaml_dict_srvc['metadata']['name'] = yaml_dict_srvc['metadata']['name'] + str(i+1)
+            yaml_dict_srvc['spec']['selector']['app'] = yaml_dict_srvc['spec']['selector']['app'] + str(i+1)
+            # Updating ports in service section
+            ports_dict = yaml_dict_srvc['spec']['ports']
+            for v in range(len(ports_dict)):
+                # Update port
+                if "port" in ports_dict[v]:
+                    port = ports_dict[v]['port']
+                    new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
+                    ports_dict[v]['port'] = int(new_port)
+                    # Update targetPort if it exists
+                    if "targetPort" in ports_dict[v]:
+                        ports_dict[v]['targetPort'] = int(new_port)
+                    # Update nodePort if it exists
+                    if "nodePort" in ports_dict[v]:
+                        port = ports_dict[v]['nodePort']
+                        new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
+                        ports_dict[v]['nodePort'] = int(new_port)
+
+            # dict to update deployment section
+            yaml_dict = dict()
+            for k, v in yaml_prod.items():
+                yaml_dict[k] = v
+
+            # Update deployment section app name
+            yaml_dict["metadata"]["labels"]["app"] = yaml_dict["metadata"]["labels"]["app"] + str(i+1)
+            yaml_dict["metadata"]["name"] = yaml_dict["metadata"]["name"] + str(i+1)
+            # Update deployment section
+            yaml_dict = multi_instance_k8s_deployment(yaml_dict, i)
+
+            # Merging deployment section updates
+            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
+            # Merging service section updates
+            kube_yml_srvc = ruamel.yaml.round_trip_dump(yaml_dict_srvc)
+            # Creating final k8s yml
+            data = kube_yml_srvc + "---\n" + kube_yaml
+        # Create multi instance if app has only deployment section
+        else:
+            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
+                                                    preserve_quotes=True)
+            # dict to update deployment section
+            yaml_dict = dict()
+            for k, v in yaml_prod.items():
+                yaml_dict[k] = v
+            # Update deployment section app name
+            yaml_dict["metadata"]["labels"]["app"] = yaml_dict["metadata"]["labels"]["app"] + str(i+1)
+            yaml_dict["metadata"]["name"] = yaml_dict["metadata"]["name"] + str(i+1)
+            # Update deployment section
+            yaml_dict = multi_instance_k8s_deployment(yaml_dict, i)
+
+            # Merging deployment section updates
+            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
+            # Creating final k8s yml
+            data = kube_yaml
+        # Updating yml based on dev_mode
+        if dev_mode:
+            merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
+        else:
+            merged_yaml = merged_yaml + "---\n" + data
+
+    return merged_yaml
+
+
+def k8s_yaml_merger(app_list, dev_mode, args):
     """Method merges the k8s yml files of each eis
        modules and generates a consolidated ymlfile.
 
@@ -658,8 +856,21 @@ def k8s_yaml_merger(app_list, dev_mode):
     :param dev_mode: Dev Mode key
     :type dev_mode: bool
     """
-
     merged_yaml = ""
+    # Iterate through & create multi instance k8s yml
+    # for apps having override directory
+    for kube_yaml in benchmark_k8s_app_list:
+        if args.override_directory is not None:
+            app_name = kube_yaml.split("/")[-3]
+            for i in range(int(args.video_pipeline_instances)):
+                multi_instance_yml = create_multi_instance_k8s_yml(kube_yaml, dev_mode, i)
+                merged_yaml = merged_yaml + "---\n" + multi_instance_yml
+            # Remove multi instance apps from k8s_app_list
+            for apps in app_list:
+                if "/" + app_name in apps:
+                    app_list.remove(apps)
+
+    # Iterate through app_list & merge k8s yaml
     for kube_yaml in app_list:
         with open(kube_yaml) as yaml_file:
             data = yaml_file.read()
@@ -670,7 +881,7 @@ def k8s_yaml_merger(app_list, dev_mode):
     k8s_service_yaml = './k8s/eis-k8s-deploy.yml'
     with open(k8s_service_yaml, 'w') as final_yaml:
         final_yaml.write(merged_yaml)
-    # Substituting sourced env in module specs
+    # Substituting sourced env in k8s_service_yaml
     env_subst(k8s_service_yaml, k8s_service_yaml)
 
 
@@ -997,13 +1208,27 @@ def yaml_parser(args):
                     csl_app_list.append(prefix_path)
             else:
                 csl_app_list.append(prefix_path)
+        # Append to isfile if dir has k8s-service.yml
+        # & append to benchmark_k8s_app_list if
+        # override_directory has k8s-service.yml
+        if args.override_directory is not None:
+            override_dir = prefix_path + '/' + args.override_directory
+            if os.path.isdir(override_dir):
+                if os.path.isfile(override_dir + '/k8s-service.yml'):
+                    benchmark_k8s_app_list.append(override_dir + '/k8s-service.yml')
+        if os.path.isfile(prefix_path + '/k8s-service.yml'):
+            if args.override_directory is not None:
+                service_name = prefix_path.rsplit("/")[-1]
+                if args.override_directory not in prefix_path and \
+                   not any(service_name in s for s in k8s_app_list):
+                    k8s_app_list.append(prefix_path + '/k8s-service.yml')
+            else:
+                k8s_app_list.append(prefix_path + '/k8s-service.yml')
+
         # Append to override_list if dir has docker-compose-dev.override.yml
         if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
             override_app_list.append(prefix_path)
 
-        # Prepare K8s Applist
-        if os.path.isfile(prefix_path + '/k8s-service.yml'):
-            k8s_app_list.append(prefix_path + '/k8s-service.yml')
     # Adding video folder manually since it's not a direct sub-directory
     # for multi instance feature
     if os.path.isdir(eis_dir + 'common/video'):
@@ -1043,7 +1268,7 @@ def yaml_parser(args):
 
     # Generating Consolidated k8s yaml file for deployment
     try:
-        k8s_yaml_merger(k8s_app_list, dev_mode)
+        k8s_yaml_merger(k8s_app_list, dev_mode, args)
         print("Successfully created consolidated Kubernetes "
               "deployment yml at ./k8s/eis-k8s-deploy.yml")
     except Exception as e:
