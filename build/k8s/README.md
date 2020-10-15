@@ -12,7 +12,8 @@ EIS Orchestration using k8s Orchestrator.
 
 5. [Steps for Multinode Deployment](README_Multinode_deployment.md)
 
-> ***Note:*** This readme is `W.I.P`. Steps for enabling other EIS features with k8s will be integrated here soon.
+6. [Steps to enable Accelarators](#steps-to-enable-accelarators)
+
 
 ## K8s Setup
 
@@ -24,10 +25,7 @@ EIS Orchestration using k8s Orchestrator.
   > 2.  /etc/systemd/system/docker.service.d/http-proxy.conf
   > 3.  ~/.docker/config.json
 
-  * Install Kubernetes by running below command .
-      ```sh
-      $ sudo ./k8s_install.sh
-      ```
+  > `K8s Master node & Worker(s) node Setup should be done as pre-requisite to continue the following deployment`
 
 ## Provisioning EIS with k8s
 
@@ -145,5 +143,79 @@ EIS Orchestration using k8s Orchestrator.
     ```sh
     $  kubectl -n eis get pods
     ```
-
    
+## Steps to enable Accelarators
+  >**Note**:
+  > `nodeSelector` is the simplest recommended form of node selection constraint.
+  > `nodeSelector` is a field of PodSpec. It specifies a map of key-value pairs. For the pod to be eligible to run on a node, the node must have each of the indicated key-value pairs as labels (it can have additional labels as well). The most common usage is one key-value pair.
+
+  * Setting the `label` for a particular node
+    ```sh
+    $ kubectl label nodes <node-name> <label-key>=<label-value>
+    ```
+
+  * For HDDL/NCS2 dependenecies follow the steps for setting `labels`.
+    * For HDDL
+        ```sh
+        kubectl label nodes <node-name> hddl=true
+        ```
+    * For NCS2
+        ```sh
+        kubectl label nodes <node-name> ncs2=true
+        ```
+    **Note** Here the node-name is your worker node machine hostname
+
+  * Updating the `yml` File.
+
+    * Open the `build/k8s/eis-k8s-deploy.yml` file.
+
+    * Based on your
+      workload preference. Add a `nodeSelector` field to your `pod` configuration for `VideoIngestion` or `VideoAnalytics` Module(s) `k8s-service.yml` yml file. 
+        ```sh
+        $   spec:
+              nodeSelector:
+                <key>: <value>
+        ```
+      * For HDDL
+          ```sh
+          .
+          .
+          .
+           spec:
+              nodeSelector:
+              hddl: "true"
+              containers:
+                - name: ia-video-ingestion
+                image: ia_video_ingestion:2.4
+          .
+          .
+          .
+          ```
+      * For NCS2
+          ```sh
+          .
+          .
+          .
+           spec:
+              nodeSelector:
+              ncs2: "true"
+              containers:
+                - name: ia-video-ingestion
+                image: ia_video_ingestion:2.4
+          .
+          .
+          .
+          ```
+    * Run the `build/eis_builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules `k8s-service.yml` files.
+     ```sh
+        cd build/
+        python3 eis_builder.py
+     ```
+
+    * Deploy the `latest` generated `yml` file
+    ```sh
+        cd build/k8s/
+        kubectl apply -f ./eis-k8s-deploy.yml
+    ```
+
+    * Verify the respecitve workloads are running based on the `nodeSelector` constraints.
