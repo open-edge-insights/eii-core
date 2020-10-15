@@ -30,17 +30,6 @@ import (
 
 func main() {
 	os.Setenv("AppName", "VideoIngestion")
-	os.Setenv("DEV_MODE", "True")
-
-	os.Setenv("CONFIGMGR_CERT", "")
-	os.Setenv("CONFIGMGR_KEY", "")
-	os.Setenv("CONFIGMGR_CACERT", "")
-
-	// os.Setenv("DEV_MODE", "False")
-	// // Give the approptiate certificates path for prod mode
-	// os.Setenv("CONFIGMGR_CERT", "")
-	// os.Setenv("CONFIGMGR_KEY", "")
-	// os.Setenv("CONFIGMGR_CACERT", "")
 
 	config_mgr, _ := eiscfgmgr.ConfigManager()
 
@@ -48,7 +37,7 @@ func main() {
 
 	if err != nil {
 		fmt.Println("Error found:", err)
-	}else{
+	} else {
 		fmt.Println("App_config:", appConfig)
 	}
 }

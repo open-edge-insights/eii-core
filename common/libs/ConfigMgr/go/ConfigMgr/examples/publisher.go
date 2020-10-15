@@ -32,17 +32,6 @@ import (
 
 func main() {
 	os.Setenv("AppName", "GoPublisher")
-	os.Setenv("DEV_MODE", "True")
-
-	os.Setenv("CONFIGMGR_CERT", "")
-	os.Setenv("CONFIGMGR_KEY", "")
-	os.Setenv("CONFIGMGR_CACERT", "")
-
-	// os.Setenv("DEV_MODE", "False")
-	// // Give the approptiate certificates path for prod mode
-	// os.Setenv("CONFIGMGR_CERT", "")
-	// os.Setenv("CONFIGMGR_KEY", "")
-	// os.Setenv("CONFIGMGR_CACERT", "")
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
@@ -109,17 +98,17 @@ func main() {
 	for _, s := range topics2 {
 		fmt.Println(s)
 	}
-	
+
 	interfaceStrVal, err := pubCtx.GetInterfaceValue("Name")
-	if(err != nil){
+	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
 		return
 	}
 
 	fmt.Println("Interface str Value:", interfaceStrVal.Value)
-	
+
 	strVal, err := interfaceStrVal.GetString()
-	if(err != nil) {
+	if err != nil {
 		fmt.Printf("Error to GetString value %v\n", err)
 		return
 	}
@@ -127,85 +116,6 @@ func main() {
 	stringVal := "Hello"
 	stringCat := stringVal + strVal
 	fmt.Println("str concatinated value", stringCat)
-
-	interfaceIntVal, err := pubCtx.GetInterfaceValue("TestInt")
-	if(err != nil) {
-		fmt.Printf("Error to GetInterfaceValue %v\n", err)
-		return
-	}
-
-	intVal, err := interfaceIntVal.GetInteger()
-	if(err != nil) {
-		fmt.Printf("Error to GetInteger value %v\n", err)
-		return
-	}
-	addInt := intVal + 100
-	fmt.Println("Interface int  Value:", addInt)
-
-	interfaceFltVal, _ := pubCtx.GetInterfaceValue("Testfloat")
-	if(err != nil) {
-		fmt.Printf("Error to GetInterfaceValue %v\n", err)
-		return
-	}
-
-	floatVal, err := interfaceFltVal.GetFloat()
-	if(err != nil) {
-		fmt.Printf("Error to GetFloat value:%v\n", err)
-		return
-	}
-
-	addFloat := floatVal + 100
-	fmt.Println("Interface float Value:", addFloat)
-
-	interfaceBoolVal, err := pubCtx.GetInterfaceValue("Testbool")
-	if(err != nil) {
-		fmt.Printf("Error to GetInterfaceValue %v\n", err)
-		return
-	}
-
-	boolVal , err := interfaceBoolVal.GetBool()
-	if(err != nil) {
-		fmt.Printf("Error to GetBool value %v\n", err)
-		return
-	}
-
-	if(boolVal) {
-		fmt.Println("Interface bool Value....:", boolVal)
-	}
-
-	interfaceObjVal, err := pubCtx.GetInterfaceValue("Testobj")
-	if(err != nil) {
-		fmt.Printf("Error to GetInterfaceValue %v\n", err)
-		return
-	}
-
-	fmt.Println("Interface obj Value:", interfaceObjVal.Value)
-
-	jsonVal, err := interfaceObjVal.GetJson()
-	
-	fmt.Println("JSON val", jsonVal["Testobj1"])
-	if(err != nil) {
-		fmt.Printf("Error to GetBool value %v\n", err)
-		return
-	}
-
-	interfaceArrVal, err := pubCtx.GetInterfaceValue("TestArray")
-	if(err != nil) {
-		fmt.Printf("Error to GetInterfaceValue %v\n", err)
-		return
-	}
-	
-	fmt.Println("IInterface array Value:", interfaceArrVal.Value)
-	
-	fmt.Println("Array elements.....")
-	arr, err := interfaceArrVal.GetArray()
-	if(err != nil) {
-		fmt.Printf("Error to GetBool value %v\n", err)
-		return
-	}
-	for _, s := range arr {
-		fmt.Println(s)
-	}
 
 	client, err := eismsgbus.NewMsgbusClient(config)
 	if err != nil {

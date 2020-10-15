@@ -31,43 +31,32 @@ import (
 
 func main() {
 	os.Setenv("AppName", "GoPublisher")
-	os.Setenv("DEV_MODE", "True")
-
-	os.Setenv("CONFIGMGR_CERT", "")
-	os.Setenv("CONFIGMGR_KEY", "")
-	os.Setenv("CONFIGMGR_CACERT", "")
-
-	// os.Setenv("DEV_MODE", "False")
-	// // Give the approptiate certificates path for prod mode
-	// os.Setenv("CONFIGMGR_CERT", "")
-	// os.Setenv("CONFIGMGR_KEY", "")
-	// os.Setenv("CONFIGMGR_CACERT", "")
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
 	fmt.Printf("client obj: %v", configMgr)
 
 	// serverCtx,_ := configMgr.GetServerByName("echo_service")
-	serverCtx,_ := configMgr.GetServerByIndex(0)
+	serverCtx, _ := configMgr.GetServerByIndex(0)
 
 	endpoint := serverCtx.GetEndPoints()
 	fmt.Println("endpoint:", endpoint)
 
 	interfaceVal, err := serverCtx.GetInterfaceValue("Name")
-	if(err != nil){
+	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
 		return
 	}
 
 	fmt.Println("Interface Value:", interfaceVal.Value)
 	serviceName, err := interfaceVal.GetString()
-	if(err != nil) {
+	if err != nil {
 		fmt.Printf("Error to GetString value %v\n", err)
 		return
 	}
 
 	config, err := serverCtx.GetMsgbusConfig()
 
-	if(err != nil) {
+	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}

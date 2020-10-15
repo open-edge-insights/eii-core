@@ -31,17 +31,6 @@ import (
 
 func main() {
 	os.Setenv("AppName", "GoSubscriber")
-	os.Setenv("DEV_MODE", "True")
-
-	os.Setenv("CONFIGMGR_CERT", "")
-	os.Setenv("CONFIGMGR_KEY", "")
-	os.Setenv("CONFIGMGR_CACERT", "")
-
-	// os.Setenv("DEV_MODE", "False")
-	// // Give the approptiate certificates path for prod mode
-	// os.Setenv("CONFIGMGR_CERT", "")
-	// os.Setenv("CONFIGMGR_KEY", "")
-	// os.Setenv("CONFIGMGR_CACERT", "")
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
@@ -53,7 +42,7 @@ func main() {
 
 	config, err := subCtx.GetMsgbusConfig()
 
-	if(err != nil) {
+	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
@@ -67,8 +56,8 @@ func main() {
 	}
 
 	topicsList := []string{"subtopic1", "subtopic2", "subtopic3"}
-	topicsSet := subCtx.SetTopics(topicsList);
-	if(topicsSet == true) {
+	topicsSet := subCtx.SetTopics(topicsList)
+	if topicsSet == true {
 		fmt.Println("Sub topics are set succesfully")
 	} else {
 		fmt.Println("Failed to set sub topics")
@@ -81,11 +70,11 @@ func main() {
 	}
 
 	interfaceStrVal, err := subCtx.GetInterfaceValue("Name")
-	if(err != nil){
+	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
 		return
 	}
-	
+
 	fmt.Println("Interface Value:", interfaceStrVal.Value)
 
 	client, err := eismsgbus.NewMsgbusClient(config)
