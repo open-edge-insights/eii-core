@@ -42,20 +42,6 @@ void watch_interface_example(const char* key, config_t* value, void *user_data) 
 
 int main() {
 
-    // In a dockerized environment,
-    // these variables are set in environment
-    setenv("DEV_MODE", "FALSE", 1);
-    // Replace 2nd parameter with path to certs
-    setenv("CONFIGMGR_CERT", "", 1);
-    setenv("CONFIGMGR_KEY", "", 1);
-    setenv("CONFIGMGR_CACERT", "", 1);
-
-    // Uncomment below lines to test DEV mode
-    // setenv("DEV_MODE", "TRUE", 1);
-    // setenv("CONFIGMGR_CERT", "", 1);
-    // setenv("CONFIGMGR_KEY", "", 1);
-    // setenv("CONFIGMGR_CACERT", "", 1);
-
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
 

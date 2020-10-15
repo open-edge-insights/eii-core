@@ -31,18 +31,6 @@ msgbus = None
 service = None
 
 try:
-    # For DEV_MODE true tests
-    # os.environ["DEV_MODE"] = "TRUE"
-    # os.environ["CONFIGMGR_CERT"] = ""
-    # os.environ["CONFIGMGR_KEY"] = ""
-    # os.environ["CONFIGMGR_CACERT"] = ""
-    
-    os.environ["DEV_MODE"] = "FALSE"
-    # Set path to certs here
-    os.environ["CONFIGMGR_CERT"] = ""
-    os.environ["CONFIGMGR_KEY"] = ""
-    os.environ["CONFIGMGR_CACERT"] = ""
-
     os.environ["AppName"] = "VideoAnalytics"
 
     ctx = cfg.ConfigMgr()

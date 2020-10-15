@@ -1,15 +1,17 @@
+#!/bin/bash -e
+
 # Copyright (c) 2020 Intel Corporation.
-#
+
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-#
+
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-#
+
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,21 +19,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus publisher example
-"""
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+export no_proxy=$no_proxy,localhost,127.0.0.1
 
-import os
-import cfgmgr.config_manager as cfg
+# Comment out below 5 lines if running in DEV mode
+export DEV_MODE=FALSE
+export CONFIGMGR_CERT=../../../../../build/provision/Certificates/root/root_client_certificate.pem
+export CONFIGMGR_KEY=../../../../../build/provision/Certificates/root/root_client_key.pem
+export CONFIGMGR_CACERT=../../../../../build/provision/Certificates/ca/ca_certificate.pem
+sudo chmod -R 777 ../../../../build/provision/Certificates/
 
-try:
-    os.environ["AppName"] = "VideoIngestion"
-    ctx = cfg.ConfigMgr()
-    
-    app_cfg = ctx.get_app_config()
-    print('app config is : {}'.format((app_cfg.get_dict())))
-    print('loop_video is : {}'.format((app_cfg["ingestor"]["loop_video"])))
-
-except KeyboardInterrupt:
-    print('[INFO] Quitting...')
-except Exception:
-    print('Error during execution:')
+# Uncomment below 4 lines if running in DEV mode
+# export DEV_MODE=TRUE
+# export CONFIGMGR_CERT=
+# export CONFIGMGR_KEY=
+# export CONFIGMGR_CACERT=

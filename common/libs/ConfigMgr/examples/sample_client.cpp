@@ -77,18 +77,6 @@ int main() {
     msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
     msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
 
-    setenv("DEV_MODE", "FALSE", 1);
-    // Replace 2nd parameter with path to certs
-    setenv("CONFIGMGR_CERT", "", 1);
-    setenv("CONFIGMGR_KEY", "", 1);
-    setenv("CONFIGMGR_CACERT", "", 1);
-    
-    // Uncomment below lines to test DEV mode
-    // setenv("DEV_MODE", "TRUE", 1);
-    // setenv("CONFIGMGR_CERT", "", 1);
-    // setenv("CONFIGMGR_KEY", "", 1);
-    // setenv("CONFIGMGR_CACERT", "", 1);
-
     setenv("AppName","VideoAnalytics", 1);
     ConfigMgr* ch = new ConfigMgr();
 
