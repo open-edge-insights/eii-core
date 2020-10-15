@@ -160,13 +160,16 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
             if "AllowedClients" in x.keys():
                 for index, topic in enumerate(x["AllowedClients"]):
                     if x["AllowedClients"][index] in bm_apps_list:
-                        if bool(re.search(r'\d', x["AllowedClients"][index])):
-                            x["AllowedClients"][index] = \
-                                re.sub(r'\d+', str(i+1),
-                                       x["AllowedClients"][index])
-                        else:
-                            x["AllowedClients"][index] = \
-                                x["AllowedClients"][index] + str(i+1)
+                        # Update AllowedClients AppName if they are not
+                        # in subscriber list
+                        if x["AllowedClients"][index] not in subscriber_list:
+                            if bool(re.search(r'\d', x["AllowedClients"][index])):
+                                x["AllowedClients"][index] = \
+                                    re.sub(r'\d+', str(i+1),
+                                        x["AllowedClients"][index])
+                            else:
+                                x["AllowedClients"][index] = \
+                                    x["AllowedClients"][index] + str(i+1)
             # Updating PublisherAppName section of all interfaces
             if "PublisherAppName" in x.keys():
                 if x["PublisherAppName"] in bm_apps_list:
@@ -193,6 +196,55 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
                     new_port = str(int(port) + (i))
                     x["EndPoint"] = x["EndPoint"].replace(port, new_port)
     return config
+
+
+def create_multi_subscribe_interface(head, temp, client_type):
+    """Generate multi subscribe config for Subscribers
+       or Clients if their appname is mentioned in
+       subscriber_list
+
+    :param head: app config
+    :type head: dict
+    :param temp: copy of app config
+    :type temp: dict
+    :param client_type: Subscribers/Clients
+    :type client_type: str
+    """
+    # Loop over all available subscribers/clients
+    for j in range(len(head["interfaces"][client_type])):
+        client = head["interfaces"][client_type][j]
+        # For every subscriber/client, create multiple instances
+        # & update required parameters
+        for i in range(int(args.video_pipeline_instances)):
+            cli_instance = copy.deepcopy(client)
+            # Updating name of subscriber/client instance
+            cli_instance["Name"] = client["Name"] + str(i+1)
+            # Updating PublisherAppName of subscriber instance
+            if "PublisherAppName" in client.keys():
+                cli_instance["PublisherAppName"] = client["PublisherAppName"] + str(i+1)
+            # Updating ServerAppName of client instance
+            if "ServerAppName" in client.keys():
+                cli_instance["ServerAppName"] = client["ServerAppName"] + str(i+1)
+            # Updating Topics of subscriber instance
+            if "Topics" in client.keys():
+                if bool(re.search(r'\d', client["Topics"][0])):
+                    cli_instance["Topics"][0] = re.sub(r'\d+', str(i+1),
+                                                client["Topics"][0])
+                else:
+                    cli_instance["Topics"][0] = client["Topics"][0] + str(i+1)
+            # Updating EndPoint if mode is tcp
+            if ":" in client["EndPoint"]:
+                port = client["EndPoint"].split(":")[1]
+                new_port = str(int(port)+i)
+                cli_instance["EndPoint"] = client["EndPoint"].replace(port, new_port)
+            # Replacing first instance & appending next
+            # instances
+            try:
+                if temp["interfaces"][client_type][i]:
+                    temp["interfaces"][client_type][i] = cli_instance
+            except IndexError:
+                temp["interfaces"][client_type].append(cli_instance)
+    return temp
 
 
 def json_parser(file, args):
@@ -264,27 +316,46 @@ def json_parser(file, args):
                 data = {}
                 if "/" + appname in k:
                     del config_json[k]
-                    for i in range(int(args.video_pipeline_instances)):
+                    if appname not in subscriber_list:
+                        for i in range(int(args.video_pipeline_instances)):
+                            with open(x + '/config.json', "rb") as infile:
+                                head = json.load(infile)
+                                # Increments rtsp port number if required
+                                head = increment_rtsp_port(appname, head, i)
+                                # Create multi instance interfaces
+                                head = \
+                                    create_multi_instance_interfaces(head,
+                                                                    i,
+                                                                    bm_apps_list)
+                                # merge config of multi instance config
+                                if 'config' in head.keys():
+                                    data['/' + appname + str(i+1) + '/config'] = \
+                                        head['config']
+                                # merge interfaces of multi instance config
+                                if 'interfaces' in head.keys():
+                                    data['/' + appname + str(i+1) +
+                                        '/interfaces'] = \
+                                        head['interfaces']
+                                # merge multi instance generated json to eis config
+                                config_json = merge(config_json, data)
+                    else:
                         with open(x + '/config.json', "rb") as infile:
                             head = json.load(infile)
-                            # Increments rtsp port number if required
-                            head = increment_rtsp_port(appname, head, i)
-                            # Create multi instance interfaces
-                            head = \
-                                create_multi_instance_interfaces(head,
-                                                                 i,
-                                                                 bm_apps_list)
-                            # merge config of multi instance config
-                            if 'config' in head.keys():
-                                data['/' + appname + str(i+1) + '/config'] = \
-                                    head['config']
+                            temp = copy.deepcopy(head)
                             # merge interfaces of multi instance config
                             if 'interfaces' in head.keys():
-                                data['/' + appname + str(i+1) +
-                                     '/interfaces'] = \
-                                    head['interfaces']
-                            # merge multi instance generated json to eis config
-                            config_json = merge(config_json, data)
+                                if "Subscribers" in head["interfaces"]:
+                                    # Generate multi subscribe interface
+                                    temp = create_multi_subscribe_interface(head, temp, "Subscribers")
+                                    data['/' + appname + '/config'] = head['config']
+                                    data['/' + appname + '/interfaces'] = temp['interfaces']
+                                    config_json = merge(config_json, data)
+                                if "Clients" in head["interfaces"]:
+                                    # Generate multi client interface
+                                    temp = create_multi_subscribe_interface(head, temp, "Clients")
+                                    data['/' + appname + '/config'] = head['config']
+                                    data['/' + appname + '/interfaces'] = temp['interfaces']
+                                    config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
     with open(eis_config_path, "w") as json_file:
@@ -1064,9 +1135,17 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                                                preserve_quotes=True)
             if args.override_directory is not None:
                 if args.override_directory in k:
-                    for i in range(int(args.video_pipeline_instances)):
-                        data_two = create_multi_instance_yml_dict(data, i+1)
-                        yaml_files_dict.append(data_two)
+                    appname = k.split("/")[-2]
+                    # If app is not in subscriber list, generate multi instance
+                    # yml to spawn multiple containers
+                    if appname not in subscriber_list.keys():
+                        for i in range(int(args.video_pipeline_instances)):
+                            data_two = create_multi_instance_yml_dict(data, i+1)
+                            yaml_files_dict.append(data_two)
+                    # If app is in subscriber_list, do not generate multi instance
+                    # yml to avoid spawning multiple containers
+                    else:
+                        yaml_files_dict.append(data)
                 else:
                     yaml_files_dict.append(data)
             else:
@@ -1199,15 +1278,9 @@ def yaml_parser(args):
                    os.path.isfile(override_dir + '/module_spec.json'):
                     csl_app_list.append(override_dir)
                     benchmark_csl_app_list.append(override_dir)
-        if os.path.isfile(prefix_path + '/app_spec.json') and\
+        elif os.path.isfile(prefix_path + '/app_spec.json') and\
                 os.path.isfile(prefix_path + '/module_spec.json'):
-            if args.override_directory is not None:
-                service_name = prefix_path.rsplit("/")[-1]
-                if args.override_directory not in prefix_path and \
-                   not any(service_name in s for s in csl_app_list):
-                    csl_app_list.append(prefix_path)
-            else:
-                csl_app_list.append(prefix_path)
+            csl_app_list.append(prefix_path)
         # Append to isfile if dir has k8s-service.yml
         # & append to benchmark_k8s_app_list if
         # override_directory has k8s-service.yml
@@ -1313,6 +1386,8 @@ if __name__ == '__main__':
             sys.exit(1)
         # list of publishers and their endpoints
         publisher_list = eis_builder_cfg['publisher_list']
+        # list of subscribers
+        subscriber_list = eis_builder_cfg['subscriber_list']
         # To store the csl endpoint json
         csl_pub_endpoint_list = eis_builder_cfg['csl_pub_endpoint_list']
         # To store the endpoint cfg

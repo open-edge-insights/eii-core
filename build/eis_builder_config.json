@@ -1,7 +1,8 @@
 {
     "subscriber_list": {
         "Visualizer": "",
-        "WebVisualizer": ""
+        "WebVisualizer": "",
+        "VideoProfiler": ""
     },
     "publisher_list": {
         "VideoAnalytics": "outputVA",
