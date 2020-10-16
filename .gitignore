@@ -23,6 +23,7 @@ __pycache__/
 # consolidated docker-compose file and consolidated
 # app spec json for CSL
 build/docker-compose.yml
+build/docker-compose.override.yml
 build/csl/csl_app_spec.json
 build/csl/*_module_spec.json
 build/provision/Certificates/
@@ -30,6 +31,7 @@ build/provision/config/eis_config.json
 build/provision/rootca/
 build/provision/server
 build/provision/client
+build/k8s/eis-k8s-deploy.yml
 
 # Adding these folder names as eis-core repo
 # is pulled onto IEdgeInsights folder making
