@@ -180,6 +180,7 @@ Provisioning EIS with CSL is done in 2 steps.
       * ETCD_PREFIX=/csl/apps/EIS
       * Under Etcd Client Settings Update ETCD_HOST=<csl virtual ip address>
       * Update ETCD_CLIENT_PORT if needed.
+      * HOST_IP = [Host machine IP address]
 
 
   * Provision EIS CSL Master/Single node.
