@@ -279,9 +279,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
-                LOG_ERROR("Value is not found for the key: %s", grab_public_key);
-                ret_val=false;
-                goto err;
+                LOG_WARN("Value is not found for the key: %s", grab_public_key);
             }
 
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
@@ -317,7 +315,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         if (array_value != NULL){
             config_value_destroy(array_value);
         }
-        return;
+        return ret_val;
                     
 }
 
@@ -333,9 +331,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
 
     const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
     if(pub_public_key == NULL){
-        LOG_ERROR("Value is not found for the key: %s", grab_public_key);
-        ret_val=false;
-        goto err;
+        LOG_WARN("Value is not found for the key: %s", grab_public_key);
     }
 
     // Adding Publisher public key to config
