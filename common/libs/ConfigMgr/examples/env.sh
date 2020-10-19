@@ -31,6 +31,6 @@ sudo chmod -R 777 ../../../../build/provision/Certificates/
 
 # Uncomment below 4 lines if running in DEV mode
 # export DEV_MODE=TRUE
-# export CONFIGMGR_CERT=
-# export CONFIGMGR_KEY=
-# export CONFIGMGR_CACERT=
+# export CONFIGMGR_CERT=""
+# export CONFIGMGR_KEY=""
+# export CONFIGMGR_CACERT=""
