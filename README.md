@@ -313,7 +313,7 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), `HDDL` and `FPGA` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"|"HETERO:FPGA,CPU"|"HETERO:FPGA,GPU"), part of the `udf` object configuration in `udfs`
+EIS supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in `udfs`
 key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](common/udfs/README.md).
