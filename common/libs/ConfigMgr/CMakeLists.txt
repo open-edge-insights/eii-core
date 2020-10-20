@@ -44,9 +44,15 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
 
 # Finding libraries
 find_package(cJSON REQUIRED)
+find_package(Threads REQUIRED)
+find_package(PROTOBUF REQUIRED)
+find_package(GRPC REQUIRED)
 find_package(EISUtils REQUIRED)
 find_package(EISMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
+
+#set gRPC_FOUND to true
+set(gRPC_FOUND TRUE)
 
 # Install Go EnvConfig if specified to
 if(WITH_GO)
@@ -70,13 +76,14 @@ endif()
 # Include header directories
 include_directories(
     include/
-    ${EISKVStorePlugin_INCLUDE}
+    ${GRPC_INCLUDE_DIRS}
+    ${PROTOBUF_INCLUDE_DIRS}
     ${EISMsgEnv_INCLUDE}
     ${EISUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
 
 # Get all source files
-file(GLOB SOURCES "src/*.c" "cpp/*.cpp")
+file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
 add_library(neweisconfigmgr SHARED ${SOURCES})
@@ -84,10 +91,10 @@ add_library(neweisconfigmgr SHARED ${SOURCES})
 target_link_libraries(neweisconfigmgr
     PUBLIC
         pthread
+        ${GRPC_LIBRARIES}
+        ${PROTOBUF_LIBRARIES}
         ${EISMsgEnv_LIBRARIES}
         ${EISUtils_LIBRARIES}
-        eiskvstoreplugin
-    PRIVATE
         ${IntelSafeString_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
@@ -109,6 +116,7 @@ endif()
 set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libneweisconfigmgr.pc.in")
 set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libneweisconfigmgr.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
+set(PRIVATE_LIBS   "-lgrpc++ -lprotobuf")
 
 configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 
