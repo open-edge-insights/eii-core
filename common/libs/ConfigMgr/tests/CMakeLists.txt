@@ -52,9 +52,16 @@ endif()
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(config_manager_unit_tests "config_manager_unit_tests.cpp")
-target_link_libraries(config_manager_unit_tests eiskvstoreplugin neweisconfigmgr eismsgbus eismsgenv eisutils gtest_main eisutils)
+add_executable(kvstore_client-tests "kv_store_client_tests.cpp")
+target_link_libraries(config_manager_unit_tests neweisconfigmgr eismsgbus eismsgenv eisutils gtest_main eisutils)
+target_link_libraries(kvstore_client-tests neweisconfigmgr gtest_main eisutils)
 add_test(NAME config_manager_unit_tests COMMAND config_manager_unit_tests)
+add_test(NAME kvstore_client-tests COMMAND kvstore_client-tests)
 
 # Copy JSON configuration for unit-tests
 #file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/kv_store_config.json"
 #     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+
+# Copy JSON configuration for unit-tests
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/kv_store_unittest_config.json"
+     DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")

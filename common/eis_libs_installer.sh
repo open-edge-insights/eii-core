@@ -147,13 +147,6 @@ cd $EISMessageBus &&
    cp -a go/. $GOPATH/src/
 
 # Install ConfigMgr and kv_store_plugin
-cd $ConfigMgr/src/kv_store_plugin &&
-   rm -rf build deps && \
-   mkdir build && \
-   cd build && \
-   cmake .. && \
-   make install && \
-
 cd $ConfigMgr && \
    rm -rf build && \
    mkdir build && \
