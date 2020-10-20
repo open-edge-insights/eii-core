@@ -56,6 +56,8 @@ typedef struct {
 
     kv_store_client_t* m_kv_store_handle;
 
+    void* cfgmgr_handle;
+
     config_value_t* msgbus_config;
 
 } base_cfg_t;

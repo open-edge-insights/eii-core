@@ -79,6 +79,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     }
  
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
+    void* cfgmgr_handle = base_cfg->cfgmgr_handle;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
     if (c_json == NULL) {
@@ -202,9 +203,6 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
 
         size_t arr_len = config_value_array_len(topic_array);
 
-        // Initializing m_kv_store_handle to fetch public & private keys
-        void *handle = m_kv_store_handle->init(m_kv_store_handle);
-
         char** host_port = get_host_port(end_point);
         char* host = host_port[0];
         trim(host);
@@ -240,13 +238,13 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
                 if(ret == 0) {
                     // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of
                     // messagebus config, hence calling "construct_tcp_publisher_prod()" function
-                    ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, handle, sub_config, m_kv_store_handle);
+                    ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, cfgmgr_handle, sub_config, m_kv_store_handle);
                      if(!ret_val) {
                         LOG_ERROR_0("Failed in construct_tcp_publisher_prod()");
                         return NULL;
                     }
                 }else {
-                    ret_val = add_keys_to_config(topics, app_name, m_kv_store_handle, handle, publisher_appname, sub_config);
+                    ret_val = add_keys_to_config(topics, app_name, m_kv_store_handle, cfgmgr_handle, publisher_appname, sub_config);
                     if(!ret_val) {
                         LOG_ERROR_0("Failed in add_keys_to_config()");
                         return NULL;

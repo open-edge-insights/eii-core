@@ -65,6 +65,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
+    void* cfgmgr_handle = base_cfg->cfgmgr_handle;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -180,9 +181,6 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
 
         if (dev_mode != 0) {
 
-            // Initializing m_kv_store_handle to fetch public & private keys
-            void *handle = m_kv_store_handle->init(m_kv_store_handle);
-
             // Fetching AllowedClients from config
             config_value_t* server_json_clients = config_value_object_get(serv_config, ALLOWED_CLIENTS);
             if (server_json_clients == NULL) {
@@ -212,7 +210,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                     LOG_ERROR_0("all_clients initialization failed");
                     return NULL;
                 }
-                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
+                config_value_t* pub_key_values = m_kv_store_handle->get_prefix(cfgmgr_handle, "/Publickeys/");
                 if (pub_key_values == NULL) {
                     LOG_ERROR_0("pub_key_values initialization failed");
                     return NULL;
@@ -243,7 +241,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                     }
                     size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
                     char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
-                    const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+                    const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
                     if(sub_public_key == NULL){
                         // If any service isn't provisioned, ignore if key not found
                         LOG_WARN("Value is not found for the key: %s", grab_public_key);
@@ -258,9 +256,10 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             // Fetching Publisher private key & adding it to server_topic object
             size_t init_len = strlen("/") + strlen(PRIVATE_KEY) + strlen(app_name) + 2;
             char* pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
-            const char* server_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
+            const char* server_secret_key = m_kv_store_handle->get(cfgmgr_handle, pub_pri_key);
             if (server_secret_key == NULL) {
                 LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
+                return NULL;
             }
             cJSON_AddStringToObject(server_topic, "server_secret_key", server_secret_key);
         }
