@@ -84,6 +84,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
+    void* cfgmgr_handle = base_cfg->cfgmgr_handle;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -221,8 +222,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         }
         cJSON_AddItemToObject(c_json, "zmq_tcp_publish", zmq_tcp_publish);
         if (dev_mode != 0) {
-            void *handle = m_kv_store_handle->init(m_kv_store_handle);
-            construct_tcp_publisher_prod(app_name, c_json, zmq_tcp_publish, handle, pub_config, m_kv_store_handle);
+            construct_tcp_publisher_prod(app_name, c_json, zmq_tcp_publish, cfgmgr_handle, pub_config, m_kv_store_handle);
         }
     }
     // Constructing char* object from cJSON object

@@ -234,25 +234,15 @@ config_t* get_app_interface(base_cfg_t* base_cfg) {
 
 // base C function to watch on a given key
 void cfgmgr_watch(base_cfg_t* base_cfg, char* key, callback_t watch_callback, void* user_data) {
-    // Initializing kv_store_client handle
-    void *handle = base_cfg->m_kv_store_handle->init(base_cfg->m_kv_store_handle);
-    if (handle == NULL) {
-        LOG_ERROR_0("kv_store_client handle initialization failed");
-        return;
-    }
-    base_cfg->m_kv_store_handle->watch(handle, key, watch_callback, user_data);
+    // Calling the base watch API
+    base_cfg->m_kv_store_handle->watch(base_cfg->cfgmgr_handle, key, watch_callback, user_data);
     return;
 }
 
 // base C function to watch on a given key prefix
 void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_callback, void* user_data) {
-    // Initializing kv_store_client handle
-    void *handle = base_cfg->m_kv_store_handle->init(base_cfg->m_kv_store_handle);
-    if (handle == NULL) {
-        LOG_ERROR_0("kv_store_client handle initialization failed");
-        return;
-    }
-    base_cfg->m_kv_store_handle->watch_prefix(handle, prefix, watch_callback, user_data);
+    // Calling the base watch_prefix API
+    base_cfg->m_kv_store_handle->watch_prefix(base_cfg->cfgmgr_handle, prefix, watch_callback, user_data);
     return;
 }
 
@@ -277,12 +267,35 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
     base_cfg->app_name = app_name;
     base_cfg->dev_mode = dev_mode;
     base_cfg->m_kv_store_handle = m_kv_store_handle;
+    // Assigining this to NULL as its currently not being used
+    base_cfg->m_data_store = NULL;
     return base_cfg;
 }
 
 // Destructor
-void base_cfg_config_destroy(base_cfg_t *base_cfg_config) {
-    if(base_cfg_config != NULL) {
-        free(base_cfg_config);
+void base_cfg_config_destroy(base_cfg_t *base_cfg) {
+    if (base_cfg->m_app_config != NULL) {
+        config_destroy(base_cfg->m_app_config);
+    }
+    if (base_cfg->m_app_interface != NULL) {
+        config_destroy(base_cfg->m_app_interface);
+    }
+    if (base_cfg->m_data_store != NULL) {
+        config_destroy(base_cfg->m_data_store);
+    }
+    if (base_cfg->msgbus_config != NULL) {
+        config_value_destroy(base_cfg->msgbus_config);
+    }
+    if (base_cfg->cfgmgr_handle != NULL) {
+        free(base_cfg->cfgmgr_handle);
+    }
+    if (base_cfg->app_name != NULL) {
+        free(base_cfg->app_name);
+    }
+    if (base_cfg->m_kv_store_handle != NULL) {
+        kv_client_free(base_cfg->m_kv_store_handle);
+    }
+    if (base_cfg != NULL) {
+        free(base_cfg);
     }
 }

@@ -591,6 +591,9 @@ app_cfg_t* app_cfg_new() {
         if (app_interface != NULL) {
             app_cfg->base_cfg->m_app_interface = app_interface;
         }
+        if (handle != NULL) {
+            app_cfg->base_cfg->cfgmgr_handle = handle;
+        }
         if (env_var != NULL) {
             app_cfg->env_var = env_var;
         }

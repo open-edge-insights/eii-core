@@ -54,6 +54,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* app_name = base_cfg->app_name;
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
+    void* cfgmgr_handle = base_cfg->cfgmgr_handle;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -169,9 +170,6 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
 
         if(dev_mode != 0) {
 
-            // Initializing m_kv_store_handle to fetch public & private keys
-            void *handle = m_kv_store_handle->init(m_kv_store_handle);
-
              // Fetching Server AppName from config
             config_value_t* server_appname = config_value_object_get(cli_config, SERVER_APPNAME);
             if (server_appname == NULL) {
@@ -182,9 +180,9 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
             // Adding server public key to config
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(server_appname->body.string) + 2;
             char* retreive_server_pub_key = concat_s(init_len, 2, PUBLIC_KEYS, server_appname->body.string);
-            const char* server_public_key = m_kv_store_handle->get(handle, retreive_server_pub_key);
+            const char* server_public_key = m_kv_store_handle->get(cfgmgr_handle, retreive_server_pub_key);
             if(server_public_key == NULL){
-                LOG_ERROR("Value is not found for the key: %s", retreive_server_pub_key);
+                LOG_WARN("Value is not found for the key: %s", retreive_server_pub_key);
             }
 
             cJSON_AddStringToObject(client_topic, "server_public_key", server_public_key);
@@ -192,9 +190,10 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
             // Adding client public key to config
             init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + strlen(app_name) + 2;
             char* s_client_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
-            const char* sub_public_key = m_kv_store_handle->get(handle, s_client_public_key);
+            const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, s_client_public_key);
             if(sub_public_key == NULL){
                 LOG_ERROR("Value is not found for the key: %s", s_client_public_key);
+                return NULL;
             }
 
             cJSON_AddStringToObject(client_topic, "client_public_key", sub_public_key);
@@ -202,9 +201,10 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
             // Adding client private key to config
             init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
             char* s_client_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
-            const char* sub_pri_key = m_kv_store_handle->get(handle, s_client_pri_key);
+            const char* sub_pri_key = m_kv_store_handle->get(cfgmgr_handle, s_client_pri_key);
             if(sub_pri_key == NULL){
                 LOG_ERROR("Value is not found for the key: %s", s_client_pri_key);
+                return NULL;
             }
 
             cJSON_AddStringToObject(client_topic, "client_secret_key", sub_pri_key);
