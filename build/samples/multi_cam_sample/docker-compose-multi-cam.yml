@@ -112,7 +112,6 @@ services:
       args:
         EIS_VERSION: ${EIS_VERSION}
         OPENVINO_IMAGE_VERSION: ${OPENVINO_IMAGE_VERSION}
-        FPGA_ENABLE: "disable"
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_openvino_base:${EIS_VERSION}
@@ -166,18 +165,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion1_cert
@@ -226,16 +221,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics1_cert
@@ -288,18 +279,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion2_cert
@@ -354,16 +341,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics2_cert
@@ -416,18 +399,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion3_cert
@@ -482,16 +461,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics3_cert
@@ -544,18 +519,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion4_cert
@@ -610,16 +581,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics4_cert
@@ -672,18 +639,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion5_cert
@@ -738,16 +701,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics5_cert
@@ -803,18 +762,14 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     privileged: true
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # USB camera devices
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoIngestion6_cert
@@ -869,16 +824,12 @@ services:
       - "/dev:/dev"
       - "vol_eis_socket:${SOCKET_DIR}"
       - "/var/tmp:/var/tmp"
-      - "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards"
-      - "/opt/altera:/opt/altera"
-      - "/opt/intel/intelFPGA:/opt/intel/intelFPGA"
     devices:
       # Following devices under /dev filesystem will be needed based on usecase
       # dri - GPU
       # ion - VPU
-      # acla10_1150_sg20 - FPGA
       # Selective mount can be done for deployment
-    - "/dev/:/dev/"
+      - "/dev/:/dev/"
     secrets:
       - ca_etcd
       - etcd_VideoAnalytics6_cert

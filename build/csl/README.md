@@ -16,11 +16,9 @@ EIS Orchestration using CSL Orchestrator.
 
 7. [Steps to enable Accelarators](#steps-to-enable-accelarators)
 
-8. [Steps to enable FPGA](#steps-to-enable-fpga)
+8. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
 
-9. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
-
-10. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
+9. [Recomendations for database orchestration](#recomendations-for-database-orchestration)
 
 
 ## CSL Setup
@@ -47,10 +45,10 @@ EIS Orchestration using CSL Orchestrator.
   * Goto **CSL Manager** Machine.
       ```sh
       $   sudo vi /opt/csl/csl-manager/application.properties
-      ```   
+      ```
   * Set **whitelisted_mounts** property value as follows.
-      ```sh    
-      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/Intel/OpenCL/Boards,/opt/altera,/opt/intel/intelFPGA,/opt/intel/openvino,/opt/intel/eis
+      ```sh
+      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/intel/eis
       ```
   * Set **whitelistedUsers** property value with `EIS_UID` as follows.
       ```sh
@@ -63,16 +61,16 @@ EIS Orchestration using CSL Orchestrator.
   > Save the file.
 
   * Restart the **csl-manager** docker container
-    ```sh    
+    ```sh
     $   docker restart <csl-manager-containerid>
     ```
- 
+
   ### Update the Container Image details in Module Spec Files.
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
 > Use the Module specs present in every app's individual folders.
 > It is advisable to use `csladm` utility in CSL Manager installed node.
-> * For more details please use this command:    
+> * For more details please use this command:
 >   ```sh
 >        $ ./csladm register artifact -h
 >   ```
@@ -85,10 +83,10 @@ EIS Orchestration using CSL Orchestrator.
 >    ```
 
 *  Pre-Requisites
-  
+
     **Note** For Running EIS Modules in a node corresponding module Container Image should be present in the docker registry / SMR.
 
- 
+
 * Updating the Module Spec files based on the Docker Regitry / Software Module Repo.
   > **Note** For EIS If you are using docker image without any registry, no need to change anything in module spec `ContainerImage` Section. by default image name will be there.
 
@@ -99,37 +97,37 @@ EIS Orchestration using CSL Orchestrator.
     }
     ```
 
-  * For SMR 
-    
+  * For SMR
+
     > **Note**:
-    > 1. Registering docker image with SMR is optional incase of docker registry setup is not 
+    > 1. Registering docker image with SMR is optional incase of docker registry setup is not
     >    available. SMR can be used as needed.
     > 2. [modulename] should be same as referred in `ManifestFile` for their respective module in
     >    [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
-    
+
     * Build & Update the Docker Repository and Images.
       * For Saving Docker Images
 
         ```sh
           $ docker save imagename:version > imagename.tar.gz
-        ``` 
-      * For Registering & Loading the Saved Image with SMR  
-        
+        ```
+      * For Registering & Loading the Saved Image with SMR
+
         ```sh
               $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./imagename.tar.gz --name <modulename> --version <EIS_VERSION>
-        ``` 
+        ```
 
-    * Update generated Module Manifest file based on SMR registered artifact name and version.    
+    * Update generated Module Manifest file based on SMR registered artifact name and version.
       ```sh
       "RuntimeOptions": {
           "ContainerImage": "${idx:<registered_artifactname>:<EIS_VERSION>}"
       }
       ```
 
-      For Eg. 
+      For Eg.
 
       * For registering VideoIngestion Module manifest. Use the `artifact` name as same referred in `ManifestFile` key of VideoIngestion module in [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
-      
+
       ```sh
       "RuntimeOptions": {
           "ContainerImage": "${idx:videoingestion:2.3}"
@@ -139,34 +137,34 @@ EIS Orchestration using CSL Orchestrator.
 
 ## Provisioning EIS with CSL
 
-> **Note**: 
+> **Note**:
 > 1. EIS Deployment with CSL can be done only in **PROD** mode.
-> 2. For running EIS in multi node, we have to identify one master node. For a master node,   
+> 2. For running EIS in multi node, we have to identify one master node. For a master node,
 >    ETCD_NAME in [build/.env](../.env) must be set to `master`.
-> 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL    
+> 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before CSL
 >    Provisioning.
 > 4. Re-provisioning in CSL mode does not remove stale data if any in the etcd data store.
 
-Provisioning EIS with CSL is done in 2 steps. 
+Provisioning EIS with CSL is done in 2 steps.
 
 1.  [EIS Master Node Provisioning in CSL Client Node](#eis-master-node-provisioning-in-csl-client-node)
     * This is the Mandatory Provisioning step should be done atleast in **1** CSL Client node for deploying EIS.
 
 2.  [EIS Worker Node Provisioning in CSL Client Node](#eis-worker-node-provisioning-in-csl-client-node)
     * This Provisioning step should be done when we are deploying EIS in CSL on multiple Client nodes.
-    * It should be done after master Node Provisioning is done in **1** CSL client node for deploying EIS.    
-    **Note** EIS CSL worker node provisioning should be done after master node provisioning done. 
+    * It should be done after master Node Provisioning is done in **1** CSL client node for deploying EIS.
+    **Note** EIS CSL worker node provisioning should be done after master node provisioning done.
 
 ### EIS Master Node Provisioning in CSL Client Node
 
 
-    > **NOTE**: Please make sure your CSL Manager IP, CSL Virtual IP, Client node IP address is part of eis_no_proxy for its    
+    > **NOTE**: Please make sure your CSL Manager IP, CSL Virtual IP, Client node IP address is part of eis_no_proxy for its
     >           Communication.
 
   * To Deploy EIS with CSL, EIS has to be provisioned in "csl" mode.
 
   * Please Select the client machine where you want provision the `master eis csl node` by following below steps.
-    
+
   * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
     Before your provisioning in CSLMode
       * PROVISION_MODE=csl
@@ -193,8 +191,8 @@ Provisioning EIS with CSL is done in 2 steps.
 
 ### EIS Worker Node Provisioning in CSL Client Node
 
->**Note**: 
-> 1. This should be executed in non EIS master CSL client nodes(aka worker nodes) in ***Multi node 
+>**Note**:
+> 1. This should be executed in non EIS master CSL client nodes(aka worker nodes) in ***Multi node
 >    scenario*** only.
 > 2. There should be only one master node where we do EIS Master Node provisioning
 > 3. This step is not required for **Single Node** deployment
@@ -202,7 +200,7 @@ Provisioning EIS with CSL is done in 2 steps.
 
   * Pre requisites:
     * EIS Master Node should be provisioned in any other CSL client node.
-     
+
   * Set `PROVISION_MODE=csl` in [build/provision/.env](../build/provision/.env) file.
   * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
   * Generate Provisioning bundle for CSL worker node provisioning.
@@ -223,15 +221,15 @@ Provisioning EIS with CSL is done in 2 steps.
           $ cd provision
           $ sudo ./provision_eis.sh
       ```
-  
+
 ## Generating the CSL Appspec & Module Spec.
   * CSL Appspec will be auto-generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
-## Registering EIS ModuleSpecs with CSL SMR. 
+## Registering EIS ModuleSpecs with CSL SMR.
 
 > **Note**:
 > 1. Module Specs will be generated under `build/csl` directory based on the EIS Repo.
-> 2. Please refer the modulename as per the appspec and also confirm both are same for proper 
+> 2. Please refer the modulename as per the appspec and also confirm both are same for proper
 >     reference by csl manager.
 
 * Please use the following command to register the module spec with CSL manager using CSL admin utility.
@@ -243,7 +241,7 @@ Provisioning EIS with CSL is done in 2 steps.
         ```sh
         $ ./csladm register artifact --type file --name videoingestion --version 2.3 --file ./vi_module_spec.json
         ```
-  
+
 ## Deploying EIS Application with CSL Using CSL Manager UI
 * Update the Appspec Execution Environment as needed by individual modules.
     * In case of time series, update the "MQTT_BROKER_HOST" env of telegraf module in **csl_app_spec.json**. Replace "127.0.0.1" to mosquito broker's IP address, to receive the data in telegraf.
@@ -252,7 +250,7 @@ Provisioning EIS with CSL is done in 2 steps.
 
 * Click on **Submit New App** button, which pop's up a window to paste the Appspec.
 
-* Copy the Appspec of EIS-CSL from 
+* Copy the Appspec of EIS-CSL from
     [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
     and paste it in Window & Submit.
 
@@ -281,7 +279,7 @@ Provisioning EIS with CSL is done in 2 steps.
         "Networks": [
                 "cslhostnetworkinterface"
         ]
-    ``` 
+    ```
   * Validate the json and save it.
 
   >**Note** The host network interace name should be your client machine & basler camera connected interface name.
@@ -318,56 +316,11 @@ Provisioning EIS with CSL is done in 2 steps.
             }
         ``
       **Note** Make Sure that you have appended properly and validate the json.
-      
+
       * For Deleting the Node Affinity Label Key/Values.
         ```shss
         $  curl -k -H "Content-type: application/json" -u <user> -X DELETE "https://csl-manager-host:8443/api/v1/nodes/<nodename>/metadata" -d '{"key":"value"}'
         ```
-
-## Steps to enable FPGA
-  * Pre-Requisites
-      * Please setup the FPGA using this [Readme](../../README_fpga.md)
-
-  * Update `/opt/intel/openvino` directory in `VideoIngestion` and `VideoAnalytics` modulespec `TemporaryVolumes` section.
-
-  ```sh
-    $ vi buid/csl/deploy/VideoIngestion_module_spec.json
-    $ vi buid/csl/deploy/VideoAnalytics_module_spec.json
-  ```
-
-  ```sh
-    "/opt/intel/openvino:/opt/intel/openvino"
-  ```
-
-  for eg:
-
-  ```sh
-      "TemporaryVolumes": [
-        "/dev:/dev",
-        "/var/tmp:/var/tmp",
-        "/opt/Intel/OpenCL/Boards:/opt/Intel/OpenCL/Boards",
-        "/opt/altera:/opt/altera",
-        "/opt/intel/intelFPGA:/opt/intel/intelFPGA",
-        "/opt/intel/openvino:/opt/intel/openvino"
-      ]
-  ```
-  
-  * Register this Updated ModuleSpecs with SMR for reflecting changes. 
-    * For Deleting the existing module spec use following command in *CSL Manager* machine.
-    ```sh
-    $   ./csladm delete artifact --type file --name <modulepsec_name> --version EIS_VERSION
-    ```
-    
-    For Eg:
-    ```sh
-    $   ./csladm delete artifact --type file --name videoanalytics --version 2.3
-    ```
-    
-    * Re-Register the updated Module Spec by following this [steps](#registering-eis-modulespecs-with-csl-smr).
-        
-    
-
-
 
 ## Steps to enable IPC mode
 
@@ -386,7 +339,7 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
 
   ```
   Use the above Endpoint Name and Socket path for comuunicating to other module.
-  
+
   * Example: Creating IPC Endpoints for VideoIngestion & VideoAnalytics Module.
 
     * Update the VideoIngestion output `camera1_stream_cfg` key as follows:
@@ -402,7 +355,7 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
               "MountPath": "/sockets",
               "Link": "vi-va-link"
           }
-          
+
       ```
     * Update the VideoAnalytics input `camera1_stream_cfg` key as follows:
       ```sh
@@ -433,13 +386,13 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
         ```sh
           "ModuleAffinity" : [ ["VideoIngestion", "VideoAnalytics"]]
         ```
-    
+
 
 ## Recomendations for database orchestration
 
 EIS services InfluxDBConnector and ImageStore uses databases which store to disk. In an orchestrated environment, it is recommended to pin down these services to a specific node so that we get consistent data from the running service. It can be achieved by using the node labels and constraints of CSL.
 
-Follow the steps to achieve the database orchestration. 
+Follow the steps to achieve the database orchestration.
 
 * Open the [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json) file.
 
