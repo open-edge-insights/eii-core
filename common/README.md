@@ -4,10 +4,10 @@ This script installs all the EIS libraries & their respective required dependenc
 
 ## Running the install script
 
-1. As a pre-requisite, please run these commands to install the necessary dependencies
+1. As a pre-requisite, please run this one-time command to install the necessary dependencies
 
     ```sh
-        $ cd libs/ConfigMgr/src/kv_store_plugin && \
+        $ cd libs/ConfigMgr && \
           sudo ./install.sh
     ```
 

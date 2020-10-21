@@ -40,8 +40,8 @@
 #include <grpc++/security/credentials.h>
 #include <fstream>
 
-#include <eis/config_manager/protobuf/rpc.grpc.pb.h>
-#include <eis/config_manager/protobuf/kv.pb.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.grpc.pb.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/protobuf/kv.pb.h>
 
 #define ADDRESS_LEN 30
 using grpc::Channel;

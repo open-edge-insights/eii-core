@@ -22,8 +22,8 @@
 #include <eis/utils/string.h>
 #include <stdlib.h>
 
-#include <eis/config_manager/kv_store_plugin.h>
-#include <eis/config_manager/etcd_client_plugin.h>
+#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
 
 #define PORT            "port"
 #define HOST            "host"
