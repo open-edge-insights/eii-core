@@ -118,10 +118,10 @@ COPY libs/EISMessageBus/install.sh ./install.sh
 
 RUN ./install.sh --cython
 
-COPY libs/ConfigMgr/src/kv_store_plugin/install.sh ./kv_store_deps_install.sh
+COPY libs/ConfigMgr/install.sh ./install.sh
 
 RUN rm -rf deps && \
-    ./kv_store_deps_install.sh && \
+    ./install.sh && \
     rm -rf deps
 
 ENV LD_LIBRARY_PATH "/usr/local/lib"

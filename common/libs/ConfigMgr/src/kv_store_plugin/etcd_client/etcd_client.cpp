@@ -24,7 +24,7 @@
 
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
-#include <eis/config_manager/etcd_client.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client.h>
 
 #define NO_VALUE_ERROR    "CHECK failed: (index) < (current_size_): "
 

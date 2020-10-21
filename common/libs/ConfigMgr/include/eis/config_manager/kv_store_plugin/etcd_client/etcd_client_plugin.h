@@ -19,7 +19,7 @@
 // IN THE SOFTWARE.
 
 #include <eis/utils/logger.h>
-#include <eis/config_manager/kv_store_plugin.h>
+#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
 
 #define ETCD_KV_STORE   "etcd_kv_store"
 

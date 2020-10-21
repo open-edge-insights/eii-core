@@ -99,4 +99,57 @@ log_info "Installing cJSON library"
 make install
 check_error "Failed to install cJSON library"
 
+# Installing grpc dependency
+# Library versions
+grpc_version="v1.29.0"
+
+# URLs
+grpc_url="https://github.com/grpc/grpc"
+
+# Dir to install grpc to
+# Here, the prefix dir is /usr/local 
+# and grpc lib gets installed to $grpc_install_prefix/lib
+grpc_install_prefix="/usr/local"
+
+# Dirs
+grpc_dir="grpc"
+
+if [ ! -d "deps" ] ; then
+    mkdir deps
+    check_error "Failed to create dependencies directory"
+fi
+
+cd deps
+check_error "Failed to change to deps directory"
+
+if [ ! -d "grpc" ] ; then
+    log_info "git clone of grpc"
+    git clone --recurse-submodules -b $grpc_version $grpc_url
+    check_error "Failed to git clone"
+fi
+
+cd grpc
+check_error "Failed to cd $grpc_dir"
+
+if [ ! -d "cmake/build" ] ; then
+    mkdir -p cmake/build
+    check_error "Failed to create cmake/build directory"
+fi
+
+cd cmake/build
+check_error "Falied to change directory to cmake/build"
+
+log_info "Configuring lib grpc for building"
+cmake -DCMAKE_INSTALL_PREFIX=$grpc_install_prefix ../..
+
+check_error "Failed to configure lib grpc"
+
+log_info "Compiling grpc library"
+make
+check_error "Failed to compile grpc library"
+
+log_info "Installing grpc library"
+make install
+check_error "Failed to install grpc library"
+
 log_info "Done."

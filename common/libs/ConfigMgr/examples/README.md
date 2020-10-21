@@ -44,3 +44,9 @@
     ```sh
         $ ./sample_app
     ```
+
+6. Running the KV store example:
+
+    ```sh
+        $ ./kv_store_etcd ./etcd_kv_store_config.json
+    ```

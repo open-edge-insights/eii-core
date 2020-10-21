@@ -22,9 +22,9 @@
 #include <stdlib.h>
 
 #include <safe_lib.h>
-#include <eis/config_manager/kv_store_plugin.h>
-#include <eis/config_manager/etcd_client_plugin.h>
-#include <eis/config_manager/etcd_client.h>
+#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
+#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client.h>
 #include <eis/utils/config.h>
 #include <cjson/cJSON.h>
 #include <eis/utils/json_config.h>
