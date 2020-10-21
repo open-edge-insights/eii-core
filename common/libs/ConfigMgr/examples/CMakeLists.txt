@@ -25,12 +25,12 @@ add_executable(server "sample_server.cpp")
 add_executable(client "sample_client.cpp")
 add_executable(sample_app "sample_getvalue.cpp")
 add_executable(kv_store_etcd "kv_store_etcd.c")
-target_link_libraries(pub eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
-target_link_libraries(sub eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
-target_link_libraries(server eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
-target_link_libraries(client eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
-target_link_libraries(sample_app eismsgbus eismsgenv eisutils neweisconfigmgr eiskvstoreplugin)
-target_link_libraries(kv_store_etcd eiskvstoreplugin eisutils)
+target_link_libraries(pub eismsgbus eismsgenv eisutils neweisconfigmgr)
+target_link_libraries(sub eismsgbus eismsgenv eisutils neweisconfigmgr)
+target_link_libraries(server eismsgbus eismsgenv eisutils neweisconfigmgr)
+target_link_libraries(client eismsgbus eismsgenv eisutils neweisconfigmgr)
+target_link_libraries(sample_app eismsgbus eismsgenv eisutils neweisconfigmgr)
+target_link_libraries(kv_store_etcd neweisconfigmgr eisutils)
 
 # Copy JSON configuration to run examples
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/configs/etcd_kv_store_config.json"

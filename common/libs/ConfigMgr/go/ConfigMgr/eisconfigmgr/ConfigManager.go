@@ -24,7 +24,7 @@ package eisconfigmgr
 
 /*
 #cgo CFLAGS: -g -Wall
-#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -lneweisconfigmgr -leiskvstoreplugin -lsafestring
+#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -lneweisconfigmgr -lsafestring
 
 
 #include <stdio.h>
@@ -402,7 +402,7 @@ static inline char_arr_t* get_sub_end_points(void* sub_cfg){
 	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_sub_cfg);
 	if (endpoints == NULL)
 		return NULL;
-	
+
 	char* ep;
 	if (endpoints->type == CVT_OBJECT){
 		ep = (cvt_to_char(endpoints));
@@ -645,10 +645,10 @@ import "C"
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"unsafe"
-	"errors"
 
 	"github.com/golang/glog"
 )
@@ -661,7 +661,6 @@ type ConfigMgrContext struct {
 type ConfigMgr struct {
 	ctx *ConfigMgrContext
 }
-
 
 // Convert C char** to Go string[]
 func GoStrings(argc C.int, argv **C.char) []string {
@@ -694,34 +693,34 @@ func string_to_map_interface(str string) (map[string]interface{}, error) {
 
 // getConfigVal based on it's type
 func getConfigVal(interfaceVal *C.config_val_t) (*ConfigValue, error) {
-	if (interfaceVal == nil) {
+	if interfaceVal == nil {
 		return nil, errors.New("Interface Value is not found")
 	}
 
 	configValue := new(ConfigValue)
-	if (interfaceVal.config_type == 0) {
+	if interfaceVal.config_type == 0 {
 		configValue.Type = Int
 		configValue.Value = eval(integer(interfaceVal.integer))
-	} else if (interfaceVal.config_type == 1) {
+	} else if interfaceVal.config_type == 1 {
 		configValue.Type = Float32
 		configValue.Value = eval(float(interfaceVal.floating))
-	} else if (interfaceVal.config_type == 2) {
+	} else if interfaceVal.config_type == 2 {
 		configValue.Type = String
 		configValue.Value = eval(str(C.GoString(interfaceVal.str)))
-	} else if (interfaceVal.config_type == 3) {
+	} else if interfaceVal.config_type == 3 {
 		configValue.Type = Boolean
 		configValue.Value = eval(boolean(interfaceVal.boolean))
-	} else if (interfaceVal.config_type == 4) {
+	} else if interfaceVal.config_type == 4 {
 		configValue.Type = Json
 		str := C.GoString(interfaceVal.obj)
-		mapInt,_ := string_to_map_interface(str)
+		mapInt, _ := string_to_map_interface(str)
 		configValue.Value = eval(object(mapInt))
-	} else if (interfaceVal.config_type == 5) {
+	} else if interfaceVal.config_type == 5 {
 		configValue.Type = Array
 		str := C.GoString(interfaceVal.obj)
 		var arr []interface{}
 		err := json.Unmarshal([]byte(str), &arr)
-		if( err != nil) {
+		if err != nil {
 			glog.Errorf("Error in json unmarshal: %v", err)
 			return nil, errors.New("json unmarshal error")
 		}
