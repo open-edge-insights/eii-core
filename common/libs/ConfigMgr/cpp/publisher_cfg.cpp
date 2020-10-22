@@ -112,7 +112,9 @@ std::vector<std::string> PublisherCfg::getTopics() {
 bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 
     int topics_length = topics_list.size();
-    char **topics_to_be_set = (char**)calloc(topics_length, sizeof(char*));
+    char **topics_to_be_set = NULL;
+    topics_to_be_set = (char**)calloc(topics_length, sizeof(char*));
+
     if (topics_to_be_set == NULL) {
         LOG_ERROR_0("calloc failed for topics_to_be_set");
         free_mem(topics_to_be_set);
@@ -124,11 +126,17 @@ bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
     // Calling the base C set_topics() API
     int topics_set = m_pub_cfg->cfgmgr_set_topics_pub(topics_to_be_set, topics_length, m_app_cfg->base_cfg, m_pub_cfg);
     if(topics_set == 0) {
-        LOG_INFO_0("Topics successfully set");
+        LOG_DEBUG_0("Topics successfully set");
+        if (topics_to_be_set != NULL){
+            free_mem(topics_to_be_set);
+        }
         return true;
     }
+
     // Freeing topics_to_be_set
-    free_mem(topics_to_be_set);
+    if (topics_to_be_set != NULL){
+        free_mem(topics_to_be_set);
+    }
     return false;
 }
 

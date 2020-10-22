@@ -48,8 +48,11 @@ config_value_t* get_endpoint_base(config_value_t* conf) {
 // Get topics base returns the value mapped to Topics key in the Applications Interface.
 // If "*" is mentioned in topics, then it is replaced by empty string ,
 // as our EISMessageBus supports the prefix approach, empty prefix considers all/any the topics. 
+
 config_value_t* get_topics_base(config_value_t* conf) {
     config_value_t* config = conf;
+    cJSON *arr = NULL;
+
     if (config == NULL) {
         LOG_ERROR_0("config initialization failed");
         return NULL;
@@ -60,7 +63,7 @@ config_value_t* get_topics_base(config_value_t* conf) {
         return NULL;
     }
 
-    cJSON* arr = cJSON_CreateArray();
+    arr = cJSON_CreateArray();
     int ret;
 
     size_t arrlen = config_value_array_len(topics);
@@ -81,6 +84,14 @@ config_value_t* get_topics_base(config_value_t* conf) {
         topics = config_value_new_array(
                 (void*) arr , cJSON_GetArraySize(arr), get_array_item, NULL);
         return topics;
+    }
+
+    if (topic_value != NULL) {
+        config_value_destroy(topic_value);
+    }
+
+    if (arr != NULL) { 
+        cJSON_free(arr);
     }
 
     return topics;
@@ -138,25 +149,27 @@ config_value_t* get_allowed_clients_base(config_value_t* conf) {
 
 // To set topics in config
 int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* base_cfg, config_value_t* conf) {
-
+    int ret_val = 0;
     // Fetching the name of pub/sub interface
     config_value_t* config_name = config_value_object_get(conf, "Name");
     if (config_name == NULL) {
         LOG_ERROR_0("config_name initialization failed");
-        return -1;
+        goto err;
     }
     // Constructing cJSON object from obtained interface
     cJSON* temp = (cJSON*)base_cfg->m_app_interface->cfg;
     if (temp == NULL) {
         LOG_ERROR_0("cJSON temp object is NULL");
-        return -1;
+        ret_val = -1;
+        goto err;
     }
 
     // Creating cJSON object of new topics
     cJSON* obj = cJSON_CreateArray();
     if (obj == NULL) {
         LOG_ERROR_0("cJSON obj initialization failed");
-        return -1;
+        ret_val = -1;
+        goto err;
     }
     for (int i = 0; i < len; i++) {
         cJSON_AddItemToArray(obj, cJSON_CreateString(topics_list[i]));
@@ -166,7 +179,8 @@ int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* b
     cJSON* config_list = cJSON_GetObjectItem(temp, type);
     if (config_list == NULL) {
         LOG_ERROR_0("cJSON config_list initialization failed");
-        return -1;
+        ret_val = -1;
+        goto err;
     }
     // Iterating & validating name
     int config_size = cJSON_GetArraySize(config_list);
@@ -174,19 +188,27 @@ int set_topics_base(char** topics_list, int len, const char* type, base_cfg_t* b
         cJSON* config_list_name = cJSON_GetArrayItem(config_list, i);
         if (config_list_name == NULL) {
             LOG_ERROR_0("config_list_name initialization failed");
-            return -1;
+            ret_val = -1;
+            goto err;
         }
         char* name_to_check = cJSON_GetStringValue(cJSON_GetObjectItem(config_list_name, "Name"));
         if (name_to_check == NULL) {
             LOG_ERROR_0("name_to_check initialization failed");
-            return -1;
+            ret_val = -1;
+            goto err;
         }
         // Replace topics if name matches
         if (strcmp(name_to_check, config_name->body.string) == 0) {
             cJSON_ReplaceItemInObject(config_list_name, "Topics", obj);
         }
     }
-    return 0;
+
+err:
+    if (config_name != NULL) {
+        config_value_destroy(config_name);
+    }
+
+    return ret_val;
 }
 
 // Helper function to convert config_t object to char*
@@ -257,7 +279,10 @@ config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key) {
 }
 
 // Function to initialize required objects & functions
-base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mode, kv_store_client_t* m_kv_store_handle) {
+base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mode,
+                        kv_store_client_t* m_kv_store_handle,
+                        config_value_t* pub_interface,
+                        config_value_t* datastore) {
     base_cfg_t *base_cfg = (base_cfg_t *)malloc(sizeof(base_cfg_t));
     if (base_cfg == NULL) {
         LOG_ERROR_0("base_cfg initialization failed");
@@ -268,12 +293,13 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
     base_cfg->dev_mode = dev_mode;
     base_cfg->m_kv_store_handle = m_kv_store_handle;
     // Assigining this to NULL as its currently not being used
-    base_cfg->m_data_store = NULL;
+    base_cfg->m_data_store = datastore;
     return base_cfg;
 }
 
 // Destructor
 void base_cfg_config_destroy(base_cfg_t *base_cfg) {
+    LOG_DEBUG_0("base_cfg_config_destroy");
     if (base_cfg->m_app_config != NULL) {
         config_destroy(base_cfg->m_app_config);
     }
@@ -298,4 +324,5 @@ void base_cfg_config_destroy(base_cfg_t *base_cfg) {
     if (base_cfg != NULL) {
         free(base_cfg);
     }
+    LOG_DEBUG_0("base_cfg_config_destroy: Done");
 }

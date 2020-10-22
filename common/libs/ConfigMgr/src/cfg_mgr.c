@@ -30,6 +30,7 @@
 
 // function to generate kv_store_config from env
 config_t* create_kv_store_config() {
+    char* c_type_name = NULL;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
 
@@ -47,7 +48,7 @@ config_t* create_kv_store_config() {
             cJSON_AddStringToObject(c_json, "type", "etcd");
         } else {
             size_t str_len = strlen(config_manager_type) + 1;
-            char* c_type_name = (char*)malloc(sizeof(char) * str_len);
+            c_type_name = (char*)malloc(sizeof(char) * str_len);
             snprintf(c_type_name, str_len, "%s", config_manager_type);
             LOG_INFO("ConfigManager selected is %s", c_type_name);
             cJSON_AddStringToObject(c_json, "type", c_type_name);
@@ -86,7 +87,7 @@ config_t* create_kv_store_config() {
     char* c_app_name = (char*)malloc(sizeof(char) * str_len);
     if (c_app_name == NULL) {
         LOG_ERROR_0("Malloc failed for c_app_name");
-        return NULL;
+        goto err;
     }
     snprintf(c_app_name, str_len, "%s", app_name_var);
     LOG_DEBUG("AppName: %s", c_app_name);
@@ -151,7 +152,7 @@ config_t* create_kv_store_config() {
     char* config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("KV Store config is NULL");
-        return NULL;
+        goto err;
     }
     LOG_DEBUG("KV store config is : %s \n", config_value_cr);
 
@@ -162,8 +163,11 @@ config_t* create_kv_store_config() {
         LOG_ERROR_0("Failed to initialize configuration object");
         goto err;
     }
-
+    if (c_app_name != NULL) {
+        free(c_app_name);
+    }
     return config;
+
 err:
     if (config_manager_type != NULL) {
         free(config_manager_type);
@@ -179,6 +183,9 @@ err:
     }
     if (config_value_cr != NULL) {
         free(config_value_cr);
+    }
+    if (c_json != NULL) {
+        cJSON_Delete(c_json);
     }
     return NULL;
 }
@@ -227,29 +234,37 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
 
 // function to get publisher by index
 pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
+    pub_cfg_t* pub_cfg = NULL;
+    config_value_t* publisher_interface = NULL;
 
     LOG_INFO_0("cfgmgr_get_publisher_by_index method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
     // Fetching list of Publisher interfaces
-    config_value_t* publisher_interface = app_interface->get_config_value(app_interface->cfg, PUBLISHERS);
+    publisher_interface = app_interface->get_config_value(app_interface->cfg, PUBLISHERS);
     if (publisher_interface == NULL) {
         LOG_ERROR_0("publisher_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetch publisher config associated with index
     config_value_t* pub_config_index = config_value_array_get(publisher_interface, index);
     if (pub_config_index == NULL) {
         LOG_ERROR_0("pub_config_index initialization failed");
-        return NULL;
+        goto err;
     }
-    pub_cfg_t* pub_cfg = pub_cfg_new();
+    pub_cfg = pub_cfg_new();
     if (pub_cfg == NULL) {
         LOG_ERROR_0("pub_cfg initialization failed");
-        return NULL;
+        goto err;
     }
+
     pub_cfg->pub_config = pub_config_index;
+ 
+err:
+    if (publisher_interface != NULL) {
+        config_value_destroy(publisher_interface);
+    }
     return pub_cfg;
 }
 
@@ -488,7 +503,7 @@ app_cfg_t* app_cfg_new() {
     config_t* kv_store_config = create_kv_store_config();
     if (kv_store_config == NULL) {
         LOG_ERROR_0("kv_store_config initialization failed");
-        return NULL;
+        goto err;
     }
     // Creating kv store client instance
     kv_store_client_t* kv_store_client = create_kv_client(kv_store_config);
@@ -501,7 +516,7 @@ app_cfg_t* app_cfg_new() {
     void *handle = kv_store_client->init(kv_store_client);
     if (handle == NULL) {
         LOG_ERROR_0("ConfigMgr handle initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetching GlobalEnv
@@ -514,7 +529,7 @@ app_cfg_t* app_cfg_new() {
     cJSON* env_json = cJSON_Parse(env_var);
     if (env_json == NULL) {
         LOG_ERROR("Error when parsing JSON: %s", cJSON_GetErrorPtr());
-        return NULL;
+        goto err;
     }
     int env_vars_count = cJSON_GetArraySize(env_json);
     // Looping over env vars and setting them in env
@@ -537,7 +552,7 @@ app_cfg_t* app_cfg_new() {
     char* c_app_name = (char*)malloc(sizeof(char) * str_len);
     if (c_app_name == NULL) {
         LOG_ERROR_0("c_app_name is NULL");
-        return NULL;
+        goto err;
     }
     snprintf(c_app_name, str_len, "%s", app_name_var);
     LOG_DEBUG("AppName: %s", c_app_name);
@@ -569,15 +584,17 @@ app_cfg_t* app_cfg_new() {
     config_t* app_config = json_config_new_from_buffer(value);
     if (app_config == NULL) {
         LOG_ERROR_0("app_config initialization failed");
-        return NULL;
+        goto err;
     }
     config_t* app_interface = json_config_new_from_buffer(interface);
     if (app_interface == NULL) {
         LOG_ERROR_0("app_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
-    app_cfg->base_cfg = base_cfg_new();
+    // As we are not using data_store, passing "NULL" as last argument
+    // TODO: get datastore from config/envs
+    app_cfg->base_cfg = base_cfg_new(app_config, c_app_name, result, kv_store_client, app_interface, NULL);
     if (app_cfg->base_cfg != NULL) {
         if (c_app_name != NULL) {
             app_cfg->base_cfg->app_name = c_app_name;
@@ -599,6 +616,14 @@ app_cfg_t* app_cfg_new() {
         }
         app_cfg->base_cfg->dev_mode = result;
     }
+
+    if (config_char != NULL) {
+        free(config_char);
+    }
+    if (interface_char != NULL) {
+        free(interface_char);
+    }
+    
     return app_cfg;
 err:
     if (app_name_var != NULL) {

@@ -207,11 +207,14 @@ ClientCfg* ConfigMgr::getClientByName(const char* name) {
 }
 
 ConfigMgr::~ConfigMgr() {
-    if(m_app_cfg) {
-        delete m_app_cfg;
-    }
+    LOG_INFO_0("ConfigMgr destructor called...");
     if(m_app_cfg_handler) {
+        LOG_DEBUG_0("ConfigMgr Destructor: Deleting m_app_cfg_handler class...");
         delete m_app_cfg_handler;
     }
-    LOG_INFO_0("ConfigMgr destructor");
+
+    if(m_app_cfg) {
+        LOG_DEBUG_0("ConfigMgr Destructor: Deleting m_app_cfg...");
+        delete m_app_cfg;
+    }
 }

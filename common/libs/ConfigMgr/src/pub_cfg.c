@@ -78,6 +78,7 @@ int cfgmgr_set_topics_pub(char** topics_list, int len, base_cfg_t* base_cfg, voi
 // To fetch msgbus config
 config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
 
+    config_t* m_config = NULL;
     // Initializing base_cfg variables
     pub_cfg_t* pub_cfg = (pub_cfg_t*) pub_conf;
     config_value_t* pub_config = pub_cfg->pub_config;
@@ -90,14 +91,14 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     cJSON* c_json = cJSON_CreateObject();
     if (c_json == NULL) {
         LOG_ERROR_0("c_json initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetching Type from config
     config_value_t* publish_config_type = config_value_object_get(pub_config, TYPE);
     if (publish_config_type == NULL) {
         LOG_ERROR_0("publish_config_type initialization failed");
-        return NULL;
+        goto err;
     }
     char* type = publish_config_type->body.string;
 
@@ -105,7 +106,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     config_value_t* publish_config_endpoint = config_value_object_get(pub_config, ENDPOINT);
     if (publish_config_endpoint == NULL) {
         LOG_ERROR_0("publish_config_endpoint initialization failed");
-        return NULL;
+        goto err;
     }
 
     const char* end_point;
@@ -119,7 +120,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     config_value_t* publish_config_name = config_value_object_get(pub_config, NAME);
     if (publish_config_name == NULL) {
         LOG_ERROR_0("publish_config_name initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Overriding endpoint with PUBLISHER_<Name>_ENDPOINT if set
@@ -127,7 +128,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     char* ep_override_env = concat_s(init_len, 3, "PUBLISHER_", publish_config_name->body.string, "_ENDPOINT");
     if (ep_override_env == NULL) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
-        return NULL;
+        goto err;
     }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
@@ -136,6 +137,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
             end_point = (const char*)ep_override;
         }
     }
+    free(ep_override_env);
 
     // Overriding endpoint with PUBLISHER_ENDPOINT if set
     // Note: This overrides all the publisher endpoints if set
@@ -152,7 +154,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     char* type_override_env = concat_s(init_len, 3, "PUBLISHER_", publish_config_name->body.string, "_TYPE");
     if (type_override_env == NULL) {
         LOG_ERROR_0("concatenation for type_override_env failed");
-        return NULL;
+        goto err;
     }
     char* type_override = getenv(type_override_env);
     if (type_override != NULL) {
@@ -161,6 +163,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
             type = type_override;
         }
     }
+
+    free(type_override_env);
 
     // Overriding endpoint with PUBLISHER_TYPE if set
     // Note: This overrides all the publisher type if set
@@ -171,14 +175,17 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
             type = publisher_type;
         }
     }
+
     cJSON_AddStringToObject(c_json, "type", type);
+    // TODO: type has to be freed in destructor
+    // free(type);
 
     // Adding zmq_recv_hwm value if available
     config_value_t* zmq_recv_hwm_value = config_value_object_get(pub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
-            return NULL;
+            goto err;
         }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
@@ -188,7 +195,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     if (brokered_value != NULL) {
         if (brokered_value->type != CVT_BOOLEAN) {
             LOG_ERROR_0("brokered_value type is not boolean");
-            return NULL;
+            goto err;
         }
     }
 
@@ -196,7 +203,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         c_json = get_ipc_config(c_json, pub_config, end_point);
         if (c_json == NULL){
             LOG_ERROR_0("IPC configuration for publisher failed");
-            return NULL;
+            goto err;
         }
     } else if (!strcmp(type, "zmq_tcp")) {
         // Add host & port to zmq_tcp_publish cJSON object
@@ -209,7 +216,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         cJSON* zmq_tcp_publish = cJSON_CreateObject();
         if (zmq_tcp_publish == NULL) {
             LOG_ERROR_0("zmq_tcp_publish initialization failed");
-            return NULL;
+            goto err;
         }
         cJSON_AddStringToObject(zmq_tcp_publish, "host", host);
         cJSON_AddNumberToObject(zmq_tcp_publish, "port", i_port);
@@ -229,15 +236,26 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     char* config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("config_value_cr initialization failed");
-        return NULL;
+        goto err;
     }
     LOG_DEBUG("Env publisher Config is : %s \n", config_value_cr);
     // Constructing config_t object from cJSON object
-    config_t* m_config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
     if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
-        return NULL;
+        goto err;
+    }
+
+err:
+    if (publish_config_type != NULL){
+        config_value_destroy(publish_config_type);
+    }
+    if (publish_config_name != NULL){
+        config_value_destroy(publish_config_name);
+    }
+    if (publish_config_endpoint != NULL){
+        config_value_destroy(publish_config_endpoint);
     }
     return m_config;
 }
