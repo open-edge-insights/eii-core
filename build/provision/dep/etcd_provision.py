@@ -125,6 +125,8 @@ def load_data_etcd(file, apps):
         config = json.load(f)
     print("=======Adding key/values to etcd========")
     for key, value in config.items():
+        if key.split("/")[1] not in apps.keys() and key != '/GlobalEnv/':
+            continue
         key = ETCD_PREFIX + key
         if isinstance(value, str):
             returncode = _execute_cmd(["./etcdctl", "put", key,
@@ -159,8 +161,10 @@ def load_data_etcd(file, apps):
                 sys.exit(-1)
         print("Added {} key successfully".format(key))
 
-    print("=======Reading key/values to etcd========")
+    print("=======Reading key/values from etcd========")
     for key in config.keys():
+        if key.split("/")[1] not in apps.keys() and key != '/GlobalEnv/':
+            continue
         key = ETCD_PREFIX + key
         retruncode = _execute_cmd(["./etcdctl", "get", key])
         if returncode != 0:
