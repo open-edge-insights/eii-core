@@ -164,12 +164,16 @@ function prod_mode_gen_certs() {
         python3 gen_certs.py --f $docker_compose
     fi
     chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
+    chmod -R 750 Certificates/
+
 }
 
 function gen_csl_certs() {
     log_info "Generating CSL Certificates"
     /bin/bash ./dep/generate_csl_certificates.sh
     chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
+    chmod -R 750 Certificates/
+
 }
 
 function check_ETCD_port() {
@@ -218,10 +222,6 @@ create_eis_user
 create_eis_install_dir
 
 if [ $DEV_MODE = 'false' ]; then
-    if [ -d 'Certificates' ]; then
-        chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
-        chmod -R 760 Certificates/
-    fi
     chmod -R 760 $EIS_INSTALL_PATH/data
     chmod -R 760 $EIS_INSTALL_PATH/sockets
 else
