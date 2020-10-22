@@ -66,8 +66,6 @@ cdef class Server:
     def destroy(self):
         """Destroy the server.
         """
-        if self.app_cfg != NULL:
-            app_cfg_config_destroy(self.app_cfg)
         if self.server_cfg != NULL:
             server_cfg_config_destroy(self.server_cfg)
 

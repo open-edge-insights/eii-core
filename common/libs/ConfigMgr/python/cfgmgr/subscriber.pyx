@@ -67,8 +67,6 @@ cdef class Subscriber:
     def destroy(self):
         """Close the subscriber.
         """
-        if self.app_cfg != NULL:
-            app_cfg_config_destroy(self.app_cfg)
         if self.sub_cfg != NULL:
             sub_cfg_config_destroy(self.sub_cfg)
 

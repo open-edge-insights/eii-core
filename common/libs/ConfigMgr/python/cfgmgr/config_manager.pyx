@@ -52,6 +52,8 @@ cdef class ConfigMgr:
 
         # Initializing app_cfg object
         self.app_cfg = app_cfg_new()
+        if self.app_cfg == NULL:
+            raise Exception("app_cfg is NULL in config_manager")
 
         # Setting /GlobalEnv/ env variables
         env_var = self.app_cfg.env_var
@@ -74,14 +76,6 @@ cdef class ConfigMgr:
         """
         if self.app_cfg != NULL:
             app_cfg_config_destroy(self.app_cfg)
-        if self.pub_cfg != NULL:
-            pub_cfg_config_destroy(self.pub_cfg)
-        if self.sub_cfg != NULL:
-            sub_cfg_config_destroy(self.sub_cfg)
-        if self.server_cfg != NULL:
-            server_cfg_config_destroy(self.server_cfg)
-        if self.client_cfg != NULL:
-            client_cfg_config_destroy(self.client_cfg)
 
     def get_app_config(self):
         """Calling base C get_app_config in order to get the 
@@ -92,12 +86,6 @@ cdef class ConfigMgr:
         """
         cdef config_t* conf
         cdef char* config
-
-        # TODO: app_cfg_new() is called in each functions. this resolved the 
-        # multiple API calls issue. Need a proper fix.
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
 
         conf = get_app_config(self.app_cfg.base_cfg)
         config = configt_to_char(conf)
@@ -114,9 +102,6 @@ cdef class ConfigMgr:
         :return: Whether dev mode is set
         :rtype: bool
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
         # Calling the base C API to fetch appname
         ret = cfgmgr_is_dev_mode_base(self.app_cfg.base_cfg)
         if ret == 0:
@@ -131,10 +116,6 @@ cdef class ConfigMgr:
         :rtype: str
         """
         cdef config_value_t* appname
-
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
 
         # Calling the base C API to fetch appname
         appname = cfgmgr_get_appname_base(self.app_cfg.base_cfg)
@@ -151,10 +132,6 @@ cdef class ConfigMgr:
         :return: Publisher class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         bname = bytes(name, 'utf-8')
         self.pub_cfg = cfgmgr_get_publisher_by_name(self.app_cfg, bname)
         if self.pub_cfg == NULL:
@@ -172,10 +149,6 @@ cdef class ConfigMgr:
         :return: Publisher class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         self.pub_cfg = cfgmgr_get_publisher_by_index(self.app_cfg, index)
         if self.pub_cfg == NULL:
             raise Exception("pub_cfg is NULL in config_manager")
@@ -192,10 +165,6 @@ cdef class ConfigMgr:
         :return: Subscriber class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         bname = bytes(name, 'utf-8')
         self.sub_cfg = cfgmgr_get_subscriber_by_name(self.app_cfg, bname)
         if self.sub_cfg == NULL:
@@ -213,10 +182,6 @@ cdef class ConfigMgr:
         :return: Subscriber class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         self.sub_cfg = cfgmgr_get_subscriber_by_index(self.app_cfg, index)
         if self.sub_cfg == NULL:
             raise Exception("sub_cfg is NULL in config_manager")
@@ -233,10 +198,6 @@ cdef class ConfigMgr:
         :return: Server class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         bname = bytes(name, 'utf-8')
         self.server_cfg = cfgmgr_get_server_by_name(self.app_cfg, bname)
         if self.server_cfg == NULL:
@@ -254,10 +215,6 @@ cdef class ConfigMgr:
         :return: Server class object
         :rtype : obj
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         self.server_cfg = cfgmgr_get_server_by_index(self.app_cfg, index)
         if self.server_cfg == NULL:
             raise Exception("server_cfg is NULL in config_manager")
@@ -274,11 +231,6 @@ cdef class ConfigMgr:
         :return: Client class object
         :rtype : obj
         """
-
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         bname = bytes(name, 'utf-8')
         self.client_cfg = cfgmgr_get_client_by_name(self.app_cfg, bname)
         if self.client_cfg == NULL:
@@ -296,11 +248,6 @@ cdef class ConfigMgr:
         :return: Client class object
         :rtype : obj
         """
-
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         self.client_cfg = cfgmgr_get_client_by_index(self.app_cfg, index)
         if self.client_cfg == NULL:
             raise Exception("client_cfg is NULL in config_manager")
@@ -315,10 +262,6 @@ cdef class ConfigMgr:
         :return: number of publishers in interface
         :rtype : int
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         return cfgmgr_get_num_elements_base("Publishers", self.app_cfg.base_cfg)
 
     def get_num_subscribers(self):
@@ -328,10 +271,6 @@ cdef class ConfigMgr:
         :return: number of subscribers in interface
         :rtype : int
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         return cfgmgr_get_num_elements_base("Subscribers", self.app_cfg.base_cfg)
 
     def get_num_servers(self):
@@ -341,10 +280,6 @@ cdef class ConfigMgr:
         :return: number of servers in interface
         :rtype : int
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         return cfgmgr_get_num_elements_base("Servers", self.app_cfg.base_cfg)
 
     def get_num_clients(self):
@@ -354,8 +289,4 @@ cdef class ConfigMgr:
         :return: number of clients in interface
         :rtype : int
         """
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
-
         return cfgmgr_get_num_elements_base("Clients", self.app_cfg.base_cfg)

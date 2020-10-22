@@ -69,8 +69,6 @@ cdef class Client:
     def destroy(self):
         """Destroy the client.
         """
-        if self.app_cfg != NULL:
-            app_cfg_config_destroy(self.app_cfg)
         if self.client_cfg != NULL:
             client_cfg_config_destroy(self.client_cfg)
 

@@ -66,8 +66,6 @@ cdef class Publisher:
     def destroy(self):
         """Destroy the publisher.
         """
-        if self.app_cfg != NULL:
-            app_cfg_config_destroy(self.app_cfg)
         if self.pub_cfg != NULL:
             pub_cfg_config_destroy(self.pub_cfg)
 
