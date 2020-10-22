@@ -40,3 +40,4 @@ typedef struct {
 
 
 kv_store_client_t* create_etcd_client(config_t* config);
+void etcd_values_destroy(kv_store_client_t* kv_store_client);

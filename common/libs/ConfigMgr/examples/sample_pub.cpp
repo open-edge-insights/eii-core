@@ -36,6 +36,7 @@ using namespace eis::config_manager;
 publisher_ctx_t* g_pub_ctx = NULL;
 msg_envelope_t* g_msg = NULL;
 void* g_msgbus_ctx = NULL;
+ConfigMgr* g_ctx = NULL;
 
 /**
  * Helper to initailize the message to be published
@@ -54,20 +55,25 @@ void initialize_message() {
  */
 void signal_handler(int signo) {
     LOG_INFO_0("Cleaning up");
-    if(g_pub_ctx != NULL) {
+
+    if (g_pub_ctx != NULL) {
         LOG_INFO_0("Freeing publisher");
         msgbus_publisher_destroy(g_msgbus_ctx, g_pub_ctx);
         g_pub_ctx = NULL;
     }
-    if(g_msg != NULL) {
+    if (g_msg != NULL) {
         LOG_INFO_0("Freeing message");
         msgbus_msg_envelope_destroy(g_msg);
         g_msg = NULL;
     }
-    if(g_msgbus_ctx != NULL) {
+    if (g_msgbus_ctx != NULL) {
         LOG_INFO_0("Freeing message bus context");
         msgbus_destroy(g_msgbus_ctx);
         g_msgbus_ctx = NULL;
+    }
+    if (g_ctx != NULL) {
+        LOG_INFO_0("Freeing ConfigManager");
+        delete g_ctx;
     }
     LOG_INFO_0("Done.");
 }
@@ -84,25 +90,25 @@ int main(int argc, char** argv) {
     // Fetching Publisher config from
     // VideoIngestion interface
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* ctx = new ConfigMgr();
+    g_ctx = new ConfigMgr();
 
-    bool dev_mode = ctx->isDevMode();
+    bool dev_mode = g_ctx->isDevMode();
     if (dev_mode) {
         LOG_INFO_0("Running in DEV mode");
     } else {
         LOG_INFO_0("Running in PROD mode");
     }
 
-    std::string app_name = ctx->getAppName();
+    std::string app_name = g_ctx->getAppName();
     std::cout << "AppName :" << app_name << std::endl;
 
-    int num_of_publishers = ctx->getNumPublishers();
+    int num_of_publishers = g_ctx->getNumPublishers();
     LOG_DEBUG("Total number of publishers : %d", num_of_publishers);
 
-    int num_of_servers = ctx->getNumServers();
+    int num_of_servers = g_ctx->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);
 
-    PublisherCfg* pub_ctx = ctx->getPublisherByName("default");
+    PublisherCfg* pub_ctx = g_ctx->getPublisherByIndex(0);
     config_t* pub_config = pub_ctx->getMsgBusConfig();
 
     // Testing getEndpoint API
@@ -111,7 +117,7 @@ int main(int argc, char** argv) {
 
     // Testing getTopics API
     std::vector<std::string> topics = pub_ctx->getTopics();
-    for(int i = 0; i < topics.size(); i++) {
+    for (int i = 0; i < topics.size(); i++) {
         LOG_INFO("Pub Topics : %s", topics[i].c_str());
     }
 
@@ -122,52 +128,29 @@ int main(int argc, char** argv) {
     bool topicsSet = pub_ctx->setTopics(newTopicsList);
 
     std::vector<std::string> topics_new = pub_ctx->getTopics();
-    for(int i = 0; i < topics_new.size(); i++) {
+    for (int i = 0; i < topics_new.size(); i++) {
         LOG_INFO("Pub Topics : %s", topics_new[i].c_str());
     }
 
     // Testing getAllowedClients API
     std::vector<std::string> clients = pub_ctx->getAllowedClients();
-    for(int i = 0; i < clients.size(); i++) {
+    for (int i = 0; i < clients.size(); i++) {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
     }
 
-    // Testing TCP PROD mode
-    setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* ctx_va = new ConfigMgr();
-
-    int num_of_subscribers = ctx_va->getNumSubscribers();
-    LOG_DEBUG("Total number of subscribers : %d", num_of_subscribers);
-
-    int num_of_clients = ctx_va->getNumClients();
-    LOG_DEBUG("Total number of clients : %d", num_of_clients);
-
-    PublisherCfg* pub_ctx_va = ctx_va->getPublisherByName("Image_Metadata");
-    config_t* pub_config_va = pub_ctx_va->getMsgBusConfig();
-
-    config_value_t* interface_value = pub_ctx_va->getInterfaceValue("Name");
-    if (interface_value == NULL || interface_value->type != CVT_STRING){
-        LOG_ERROR_0("Failed to get expected interface value");
-        goto err;
-    }
-    
-    LOG_INFO("interface value is %s", interface_value->body.string);
-
-    topics = pub_ctx_va->getTopics();
-
     // Initializing Publisher using pub_config obtained
     // from new ConfigManager APIs
-    g_msgbus_ctx = msgbus_initialize(pub_config_va);
+    g_msgbus_ctx = msgbus_initialize(pub_config);
     // Uncomment below line to test IPC mode
     // g_msgbus_ctx = msgbus_initialize(pub_config);
-    if(g_msgbus_ctx == NULL) {
+    if (g_msgbus_ctx == NULL) {
         LOG_ERROR_0("Failed to initialize message bus");
         goto err;
     }
 
     msgbus_ret_t ret;
     ret = msgbus_publisher_new(g_msgbus_ctx, topics[0].c_str(), &g_pub_ctx);
-    if(ret != MSG_SUCCESS) {
+    if (ret != MSG_SUCCESS) {
         LOG_ERROR("Failed to initialize publisher (errno: %d)", ret);
         goto err;
     }
@@ -176,10 +159,10 @@ int main(int argc, char** argv) {
     initialize_message();
 
     LOG_INFO_0("Running...");
-    while(g_pub_ctx != NULL) {
+    while (g_pub_ctx != NULL) {
         LOG_INFO_0("Publishing message");
         ret = msgbus_publisher_publish(g_msgbus_ctx, g_pub_ctx, g_msg);
-        if(ret != MSG_SUCCESS) {
+        if (ret != MSG_SUCCESS) {
             LOG_ERROR("Failed to publish message (errno: %d)", ret);
             goto err;
         }
@@ -189,9 +172,12 @@ int main(int argc, char** argv) {
     return 0;
 
 err:
-    if(g_pub_ctx != NULL)
+    if (g_pub_ctx != NULL)
         msgbus_publisher_destroy(g_msgbus_ctx, g_pub_ctx);
-    if(g_msgbus_ctx != NULL)
+    if (g_msgbus_ctx != NULL)
         msgbus_destroy(g_msgbus_ctx);
+    if (g_ctx != NULL) {
+        delete g_ctx;
+    }
     return -1;
 }

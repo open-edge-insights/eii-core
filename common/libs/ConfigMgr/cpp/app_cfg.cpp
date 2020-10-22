@@ -31,6 +31,9 @@ using namespace std;
 
 
 AppCfg::AppCfg(base_cfg_t* base_cfg) {
+    m_app_config = NULL;
+    m_app_interface = NULL;
+    m_app_data_store = NULL;
     m_base_cfg = base_cfg;
 }
 
@@ -170,6 +173,7 @@ vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
 
 
 AppCfg::~AppCfg() {
+    LOG_DEBUG_0("AppCfg destructor");
     if (m_app_config) {
         config_destroy(m_app_config);
     }
@@ -182,5 +186,5 @@ AppCfg::~AppCfg() {
     if (m_base_cfg) {
         base_cfg_config_destroy(m_base_cfg);
     }
-    LOG_INFO_0("ConfigMgr destructor");
+    LOG_DEBUG_0("AppCfg destructor: Done");
 }

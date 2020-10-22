@@ -375,7 +375,7 @@ int EtcdClient::put(std::string& key, std::string& value) {
 }
 
 EtcdClient::~EtcdClient() {
-    LOG_DEBUG_0("Destructor is called");
+    LOG_DEBUG_0("EtcdClient Destructor is called");
     if (kv_stub != NULL) {
         kv_stub.reset();
     }

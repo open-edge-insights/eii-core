@@ -58,6 +58,10 @@ kv_store_client_t* create_kv_client(config_t* config){
         goto err;
     }
 
+    if(value != NULL){
+        config_value_destroy(value);
+    }
+    
     return kv_store_client;
 err:
     if(value != NULL)
@@ -67,8 +71,9 @@ err:
 
 void kv_client_free(kv_store_client_t* kv_store_client) {
     if(kv_store_client != NULL){
-        kv_store_client->deinit(kv_store_client->handler);
+        kv_store_client->deinit(kv_store_client);
         if(kv_store_client->kv_store_config != NULL) {
+            LOG_ERROR_0("Freeing kv_store_config");
              free(kv_store_client->kv_store_config);
         }
         free(kv_store_client);

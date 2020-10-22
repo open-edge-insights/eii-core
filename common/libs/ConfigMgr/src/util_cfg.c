@@ -64,6 +64,10 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
         } else {
             sock_file = socketfile_cvt->body.string;
         }
+        
+        if (json_endpoint != NULL) {
+            config_value_destroy(json_endpoint);
+        }
     } else {
         char* data = NULL;
         char* ref_ptr = NULL;
