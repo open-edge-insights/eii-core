@@ -344,6 +344,13 @@ check [common/udfs/README.md](common/udfs/README.md).
   2. HDDL daemon setup:
      https://docs.openvinotoolkit.org/2021.1/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
+     **NOTE**: OpenVINO 2021.1 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+
+     ```sh
+     $ cd /opt/intel
+     $ sudo ln -s openvino_2021.1.110 openvino
+
+     In case there are older versions of OpenVINO installed on the host system please un-install them.
 
      When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
 
@@ -393,6 +400,7 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
 * **Troubleshooting issues for HDDL devices**
+  * ** Note:** HDDL was tested with OpenVINO 2021.1 on Ubuntu 18.04 with kernel version 5.3.0-050300-generic
 
   * In case one notices shared memory error with OpenVINO 2021.1 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
 
