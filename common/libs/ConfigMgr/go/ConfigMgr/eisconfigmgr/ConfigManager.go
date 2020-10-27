@@ -257,7 +257,10 @@ static inline char* get_apps_config(void* app_cfg){
 	}
 
 	char* c_config = configt_to_char(config);
-	config_destroy(config);
+	
+	// TODO: destroying these variables in the destructor in Go memory fix
+	// config_destroy(config);
+
 	return c_config;
 }
 
