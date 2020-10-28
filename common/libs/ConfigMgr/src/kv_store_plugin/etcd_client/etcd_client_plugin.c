@@ -41,8 +41,22 @@ int etcd_put(void* handle, char *key, char *value);
 void etcd_watch(void* handle, char *key_test, callback_t cb, void* user_data);
 void etcd_watch_prefix(void* handle, char *key_test, callback_t cb, void* user_data);
 void etcd_client_free(void* handle);
+bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len);
 
-
+bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len) {
+    *dest_cert = (char*)calloc((src_len + 1), sizeof(char));
+    if (*dest_cert == NULL){
+        LOG_ERROR_0("Failed to allocate memory for certificate string");
+        return false;
+    }
+    
+    int ret = strncpy_s(*dest_cert, src_len + 1, src_cert, src_len);
+    if (ret != 0) {
+        LOG_ERROR_0("Failed to copy certificate");
+        return false;
+    }
+    return true;
+}
 kv_store_client_t* create_etcd_client(config_t *config) {
     kv_store_client_t *kv_store_client = NULL, *ret = NULL;
     etcd_config_t *etcd_config = NULL;
@@ -192,13 +206,39 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         if (conf_obj != NULL) {
             config_value_destroy(conf_obj);
         }
+
+        unsigned int cert_file_len = strlen(cert_file->body.string);
+        int ret_cert_copy = create_cert_copy(&etcd_config->cert_file, cert_file->body.string, cert_file_len);
+        if (etcd_config->cert_file != NULL) {
+            LOG_DEBUG("Done %s", etcd_config->cert_file);
+        } else {
+            LOG_DEBUG("uit is wrong");
+        }
         
+        if (!ret_cert_copy) {
+            LOG_ERROR_0("create_etcd_client: Failed to allocated and copy cert-file");
+            goto err;
+        }
+        config_value_destroy(cert_file);
+
+        unsigned int key_file_len = strlen(key_file->body.string);
+        ret_cert_copy = create_cert_copy(&etcd_config->key_file, key_file->body.string, key_file_len);
+        if (!ret_cert_copy) {
+            LOG_ERROR_0("create_etcd_client: Failed to allocated and copy key-file");
+            goto err;
+        }
+        config_value_destroy(key_file);
+
+        unsigned int ca_file_len = strlen(ca_file->body.string);
+        ret_cert_copy = create_cert_copy(&etcd_config->ca_file, ca_file->body.string, ca_file_len);
+        if (!ret_cert_copy) {
+            LOG_ERROR_0("create_etcd_client: Failed to allocated and copy ca-file");
+            goto err;
+        }
+        config_value_destroy(ca_file);
+
         etcd_config->hostname = etcd_host;
         etcd_config->port = etcd_port;
-        etcd_config->cert_file = cert_file->body.string;
-        etcd_config->key_file = key_file->body.string;
-        etcd_config->ca_file = ca_file->body.string;
-
         kv_store_client->kv_store_config = etcd_config;
         kv_store_client->get = etcd_get;
         kv_store_client->get_prefix = etcd_get_prefix;
@@ -209,15 +249,10 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         kv_store_client->deinit = etcd_values_destroy;
         ret = kv_store_client;
     }
+
     return ret;
 
 err:
-    if (etcd_config != NULL) {
-        config_value_destroy(etcd_config);
-    }
-    if (kv_store_client != NULL) {
-        config_value_destroy(kv_store_client);
-    }
     if (host != NULL) {
         free(host);
     }
@@ -236,6 +271,12 @@ err:
     if (ca_file != NULL) {
         config_value_destroy(ca_file);
     }
+    if (etcd_config != NULL) {
+        free(etcd_config);
+    }
+    if (kv_store_client != NULL) {
+        free(kv_store_client);
+    }
     return ret;
 }
 
@@ -249,13 +290,13 @@ void etcd_values_destroy(kv_store_client_t* kv_store_client) {
         free(etcd_config->port);
     }
     if (etcd_config->cert_file != NULL) {
-        config_value_destroy(etcd_config->cert_file);
+        free(etcd_config->cert_file);
     }
     if (etcd_config->key_file != NULL) {
-        config_value_destroy(etcd_config->key_file);
+        free(etcd_config->key_file);
     }
     if (etcd_config->ca_file != NULL) {
-        config_value_destroy(etcd_config->ca_file);
+        free(etcd_config->ca_file);
     }
     if (kv_store_client->handler != NULL) {
         etcd_client_free(kv_store_client->handler);

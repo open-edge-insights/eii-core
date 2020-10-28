@@ -73,6 +73,7 @@ std::string PublisherCfg::getEndpoint() {
     value = cvt_obj_str_to_char(ep);
     if(value == NULL){
         LOG_ERROR_0("Endpoint object to string conversion failed");
+        config_value_destroy(ep);
         return NULL;
     }
 
@@ -97,6 +98,7 @@ std::vector<std::string> PublisherCfg::getTopics() {
         topic_value = config_value_array_get(topics, i);
         if (topic_value == NULL) {
             LOG_ERROR_0("topic_value initialization failed");
+            config_value_destroy(topics);
             return {};
         }
         topic_list.push_back(topic_value->body.string);
@@ -117,24 +119,27 @@ bool PublisherCfg::setTopics(std::vector<std::string> topics_list) {
 
     if (topics_to_be_set == NULL) {
         LOG_ERROR_0("calloc failed for topics_to_be_set");
-        free_mem(topics_to_be_set);
         return false;
     }
     for (int i = 0; i < topics_length; i++) {
         topics_to_be_set[i] = strdup(topics_list[i].c_str());
+        if (topics_to_be_set[i] == NULL) {
+            free(topics_to_be_set);
+            return false;
+        }
     }
     // Calling the base C set_topics() API
     int topics_set = m_pub_cfg->cfgmgr_set_topics_pub(topics_to_be_set, topics_length, m_app_cfg->base_cfg, m_pub_cfg);
-    if(topics_set == 0) {
+    if (topics_set == 0) {
         LOG_DEBUG_0("Topics successfully set");
-        if (topics_to_be_set != NULL){
+        if (topics_to_be_set != NULL) {
             free_mem(topics_to_be_set);
         }
         return true;
     }
 
     // Freeing topics_to_be_set
-    if (topics_to_be_set != NULL){
+    if (topics_to_be_set != NULL) {
         free_mem(topics_to_be_set);
     }
     return false;
@@ -169,10 +174,13 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
 // Destructor
 PublisherCfg::~PublisherCfg() {
     if (m_pub_cfg) {
-        delete m_pub_cfg;
+        if (m_pub_cfg->pub_config != NULL)
+            config_value_destroy(m_pub_cfg->pub_config);
+        free(m_pub_cfg);
     }
+
     if (m_app_cfg) {
         delete m_app_cfg;
     }
-    LOG_INFO_0("PublisherCfg destructor");
+    LOG_DEBUG_0("PublisherCfg destructor");
 }

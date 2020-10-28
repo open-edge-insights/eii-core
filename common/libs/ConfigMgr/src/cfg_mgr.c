@@ -31,6 +31,7 @@
 // function to generate kv_store_config from env
 config_t* create_kv_store_config() {
     char* c_type_name = NULL;
+    config_t* config = NULL;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
 
@@ -50,7 +51,7 @@ config_t* create_kv_store_config() {
             size_t str_len = strlen(config_manager_type) + 1;
             c_type_name = (char*)malloc(sizeof(char) * str_len);
             snprintf(c_type_name, str_len, "%s", config_manager_type);
-            LOG_INFO("ConfigManager selected is %s", c_type_name);
+            LOG_DEBUG("ConfigManager selected is %s", c_type_name);
             cJSON_AddStringToObject(c_json, "type", c_type_name);
         }
     }
@@ -157,11 +158,14 @@ config_t* create_kv_store_config() {
     LOG_DEBUG("KV store config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
-    config_t* config = config_new(
-            (void*) c_json, free_json, get_config_value);
+    config = config_new((void*) c_json, free_json, get_config_value);
     if (config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
         goto err;
+    }
+
+    if (config_value_cr != NULL) {
+        free(config_value_cr);
     }
     if (c_app_name != NULL) {
         free(c_app_name);
@@ -193,6 +197,8 @@ err:
 // function to get publisher by name
 pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
 
+    void *ret = NULL;
+    config_value_t* pub_config_name = NULL;
     LOG_INFO_0("cfgmgr_get_publisher_by_name method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
@@ -200,7 +206,7 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
     config_value_t* publisher_interface = app_interface->get_config_value(app_interface->cfg, PUBLISHERS);
     if (publisher_interface == NULL) {
         LOG_ERROR_0("publisher_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Iterating through available publisher configs
@@ -209,27 +215,38 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
         config_value_t* pub_config = config_value_array_get(publisher_interface, i);
         if (pub_config == NULL) {
             LOG_ERROR_0("pub_config initialization failed");
-            return NULL;
+            goto err;
         }
-        config_value_t* pub_config_name = config_value_object_get(pub_config, "Name");
+        pub_config_name = config_value_object_get(pub_config, "Name");
         if (pub_config_name == NULL) {
             LOG_ERROR_0("pub_config_name initialization failed");
-            return NULL;
+            goto err;
         }
         // Verifying publisher config with name exists
         if(strcmp(pub_config_name->body.string, name) == 0) {
             pub_cfg_t* pub_cfg = pub_cfg_new();
             if (pub_cfg == NULL) {
                 LOG_ERROR_0("pub_cfg initialization failed");
-                return NULL;
+                goto err;
             }
             pub_cfg->pub_config = pub_config;
-            return pub_cfg;
+            ret = pub_cfg;
         } else if(i == config_value_array_len(publisher_interface)) {
             LOG_ERROR("Publisher by name %s not found", name);
-            return NULL;
+            goto err;
+
         }
     }
+
+err:
+    if(publisher_interface != NULL) {
+        config_value_destroy(publisher_interface);
+    }
+    if (pub_config_name != NULL) {
+        config_value_destroy(pub_config_name);
+    }
+
+    return ret;
 }
 
 // function to get publisher by index
@@ -237,7 +254,7 @@ pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
     pub_cfg_t* pub_cfg = NULL;
     config_value_t* publisher_interface = NULL;
 
-    LOG_INFO_0("cfgmgr_get_publisher_by_index method");
+    LOG_DEBUG_0("cfgmgr_get_publisher_by_index method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
     // Fetching list of Publisher interfaces
@@ -260,12 +277,21 @@ pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
     }
 
     pub_cfg->pub_config = pub_config_index;
+    if (publisher_interface != NULL) {
+        config_value_destroy(publisher_interface);
+    }
+    return pub_cfg;
  
 err:
     if (publisher_interface != NULL) {
         config_value_destroy(publisher_interface);
     }
-    return pub_cfg;
+    
+    if (pub_config_index != NULL) {
+        config_value_destroy(pub_config_index);
+    }
+
+    return NULL;
 }
 
 // function to get subscriber by name
@@ -488,7 +514,7 @@ void app_cfg_config_destroy(app_cfg_t *app_cfg_config) {
 
 // function to initialize app_cfg_t
 app_cfg_t* app_cfg_new() {
-
+    int result = 0;
     app_cfg_t *app_cfg = (app_cfg_t *)malloc(sizeof(app_cfg_t));
     if (app_cfg == NULL) {
         LOG_ERROR_0("Malloc failed for app_cfg_t");
@@ -497,8 +523,13 @@ app_cfg_t* app_cfg_new() {
 
     // Fetching & intializing dev mode variable
     char* dev_mode_var = getenv("DEV_MODE");
-    to_lower(dev_mode_var);
-    int result = strcmp(dev_mode_var, "true");
+    if (dev_mode_var != NULL) {
+        to_lower(dev_mode_var);
+        strcmp_s(dev_mode_var, strlen(dev_mode_var), "true", &result);
+    } else {
+        LOG_ERROR_0("DEV_MODE variable not set")
+        goto err;
+    }
 
     config_t* kv_store_config = create_kv_store_config();
     if (kv_store_config == NULL) {
@@ -538,8 +569,13 @@ app_cfg_t* app_cfg_new() {
         int env_set = setenv(temp->string, temp->valuestring, 1);
         if (env_set != 0) {
             LOG_ERROR("Failed to set env %s", temp->string);
+            goto err;
         }
     }
+    //TODO : Go and python making use of ths variable
+    // We need to allocate and find a suitable place to
+    // free. As it is used across C++ & C APIs.
+    //free(env_var);
     cJSON_Delete(env_json);
 
     // Fetching AppName
@@ -586,6 +622,7 @@ app_cfg_t* app_cfg_new() {
         LOG_ERROR_0("app_config initialization failed");
         goto err;
     }
+
     config_t* app_interface = json_config_new_from_buffer(interface);
     if (app_interface == NULL) {
         LOG_ERROR_0("app_interface initialization failed");
@@ -623,8 +660,18 @@ app_cfg_t* app_cfg_new() {
     if (interface_char != NULL) {
         free(interface_char);
     }
-    
+    if (interface != NULL) {
+        free(interface);
+    }
+    if (kv_store_config != NULL) {
+        config_destroy(kv_store_config);
+    }
+    if (value != NULL) {
+        free(value);
+    }
+
     return app_cfg;
+
 err:
     if (app_name_var != NULL) {
         free(app_name_var);
@@ -650,5 +697,15 @@ err:
     if (env_var != NULL) {
         free(env_var);
     }
+    if (app_cfg != NULL) {
+        app_cfg_config_destroy(app_cfg);
+    }
+    if (kv_store_client != NULL) {
+        kv_client_free(kv_store_client);
+    }
+    if (kv_store_config != NULL) {
+        config_destroy(kv_store_config);
+    }
+
     return NULL;
 }

@@ -178,8 +178,8 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     }
 
     if(!strcmp(type, "zmq_ipc")){
-        c_json = get_ipc_config(c_json, sub_config, end_point);
-        if (c_json == NULL){
+        bool ret = get_ipc_config(c_json, sub_config, end_point);
+        if (ret == false){
             LOG_ERROR_0("IPC configuration for subscriber failed");
             return NULL;
         }
