@@ -82,13 +82,6 @@ RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
-ENV ETCD_GO_PATH ${GOPATH}/src/go.etcd.io/etcd
-ENV ETCD_GO_VER 0c787e26bcd102c3bb14050ac893b07ba9ea029f
-RUN mkdir -p ${ETCD_GO_PATH} && \
-    git clone https://github.com/etcd-io/etcd ${ETCD_GO_PATH} && \
-    cd ${ETCD_GO_PATH} && \
-    git checkout -b ${ETCD_GO_VER} ${ETCD_GO_VER}
-
 ENV PY_WORK_DIR /EIS
 WORKDIR ${PY_WORK_DIR}
 
@@ -105,14 +98,6 @@ RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
 
 # Installing python JSON schema validator
 RUN pip3 install jsonschema==3.2.0
-
-ENV PY_ETCD3_VERSION cdc4c48bde88a795230a02aa574df84ed9ccfa52
-RUN git clone https://github.com/kragniz/python-etcd3 && \
-    cd python-etcd3 && \
-    git checkout -b ${PY_ETCD3_VERSION} ${PY_ETCD3_VERSION} && \
-    python3.6 setup.py install && \
-    cd .. && \
-    rm -rf python-etcd3
 
 COPY libs/EISMessageBus/install.sh ./install.sh
 
