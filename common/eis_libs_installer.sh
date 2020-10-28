@@ -57,7 +57,6 @@ unset GOROOT
 
 DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
-ConfigManager="$CUR_DIR/libs/ConfigManager"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 
 # Installing cmake 3.15
@@ -65,14 +64,6 @@ wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
     tar --strip-components=1 -xz -C /usr/local
 
 apt-get install -y python3-distutils
-
-export PY_ETCD3_VERSION=cdc4c48bde88a795230a02aa574df84ed9ccfa52 && \
-    git clone https://github.com/kragniz/python-etcd3 && \
-    cd python-etcd3 && \
-    git checkout $PY_ETCD3_VERSION && \
-    python3.6 setup.py install && \
-    cd .. && \
-    rm -rf python-etcd3
 
 # Install EISMessageBus requirements
 cd $EISMessageBus &&
@@ -121,18 +112,6 @@ cd $EISMessageBus/../DynLibLoad/ && \
     make && \
     if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
     make install
-
-cd $ConfigManager &&
-   rm -rf build && \
-   mkdir build && \
-   cd build && \
-   cmake -DWITH_GO_ENV_CONFIG=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-   cmake -DWITH_TESTS=${RUN_TESTS} -DWITH_PYTHON=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-   make && \
-   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
-   ./env-config-tests && \
-   cd .. ; fi && \
-   make install
 
 # Installing EISMessageBus C++ from DEB package
 cd $EISMessageBus &&
