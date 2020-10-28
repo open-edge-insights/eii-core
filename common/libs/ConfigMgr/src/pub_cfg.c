@@ -201,8 +201,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        c_json = get_ipc_config(c_json, pub_config, end_point);
-        if (c_json == NULL){
+        bool ret = get_ipc_config(c_json, pub_config, end_point);
+        if (ret == false){
             LOG_ERROR_0("IPC configuration for publisher failed");
             goto err;
         }
@@ -265,6 +265,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         goto err;
     }
     LOG_DEBUG("Env publisher Config is : %s \n", config_value_cr);
+
     // Constructing config_t object from cJSON object
     m_config = config_new(
             (void*) c_json, free_json, get_config_value);
@@ -274,13 +275,16 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     }
 
 err:
-    if (publish_config_type != NULL){
+    if (config_value_cr != NULL) {
+        free(config_value_cr);
+    }
+    if (publish_config_type != NULL) {
         config_value_destroy(publish_config_type);
     }
-    if (publish_config_name != NULL){
+    if (publish_config_name != NULL) {
         config_value_destroy(publish_config_name);
     }
-    if (publish_config_endpoint != NULL){
+    if (publish_config_endpoint != NULL) {
         config_value_destroy(publish_config_endpoint);
     }
     if (broker_app_name != NULL){

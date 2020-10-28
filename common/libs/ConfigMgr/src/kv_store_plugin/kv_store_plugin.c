@@ -73,8 +73,8 @@ void kv_client_free(kv_store_client_t* kv_store_client) {
     if(kv_store_client != NULL){
         kv_store_client->deinit(kv_store_client);
         if(kv_store_client->kv_store_config != NULL) {
-            LOG_ERROR_0("Freeing kv_store_config");
-             free(kv_store_client->kv_store_config);
+            LOG_DEBUG_0("Freeing kv_store_config");
+            free(kv_store_client->kv_store_config);
         }
         free(kv_store_client);
     }

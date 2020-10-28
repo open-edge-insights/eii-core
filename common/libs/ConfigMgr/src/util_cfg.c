@@ -26,28 +26,24 @@
 
 #include "eis/config_manager/util_cfg.h"
 
-cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point){
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point){
 
     int ret;
+    bool result = false;
+    char *sock_file = NULL;
     char* sock_dir = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
     if (sock_dir == NULL) {
         LOG_ERROR_0("Malloc failed for sock_dir");
         goto err;
     }
     
-    char* sock_file = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
-    if (sock_file == NULL) {
-        LOG_ERROR_0("Malloc failed for sock_file");
-        goto err;
-    }
-
     config_value_t* json_endpoint = config_value_object_get(config, ENDPOINT);
     if (json_endpoint == NULL) {
         LOG_ERROR_0("json_endpoint initialization failed");
         goto err;
     }
 
-    if(json_endpoint->type == CVT_OBJECT){
+    if(json_endpoint->type == CVT_OBJECT) {
         config_value_t* topics_list = config_value_object_get(config, TOPICS);
         if (topics_list == NULL) {
             LOG_ERROR_0("topics_list initialization failed");
@@ -59,9 +55,7 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
         sock_dir = socketdir_cvt->body.string;
 
         strcmp_s(socketfile_cvt->body.string, strlen(socketfile_cvt->body.string), "*", &ret);
-        if (ret == 0) {
-            sock_file = NULL;
-        } else {
+        if (ret != 0) {
             sock_file = socketfile_cvt->body.string;
         }
         
@@ -114,13 +108,16 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
 
         if (socket_ep[1] != NULL) {
             // socket_ep[1] contains the socket file, copying it to sock_file, so that socket_ep can be freed
+            sock_file = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
+            if (sock_file == NULL) {
+                LOG_ERROR_0("Malloc failed for sock_file");
+                goto err;
+            }
             ret = strncpy_s(sock_file, strlen(socket_ep[1]) + 1, socket_ep[1], strlen(socket_ep[1]));
             if (ret != 0) {
                 LOG_ERROR("String copy failed (errno: %d): Failed to copy data \" %s \" to socket file", ret, socket_ep[1]);
                 goto err;
             }
-        } else {
-            sock_file = NULL;
         }
         // freeing up the char** socket_ep
         free_mem(socket_ep);
@@ -172,23 +169,20 @@ cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_poi
     // Add Endpoint directly to socket_dir if IPC mode
     cJSON_AddStringToObject(c_json, "socket_dir", sock_dir);
 
+    // This line should be last to execut in sucess path, Add your code above it. :-)
+    result = true;
+
+err:
     if (sock_file != NULL){
         free(sock_file);
     } 
     if (sock_dir != NULL){
         free(sock_dir);
     }
-
-    return c_json;
-
-    err:
-        if (sock_file != NULL){
-            free(sock_file);
-        } 
-        if (sock_dir != NULL){
-            free(sock_dir);
-        }
-        return NULL;
+    if (json_endpoint != NULL) {
+        config_value_destroy(json_endpoint);
+    }
+    return result;
 }
 
 char* cvt_obj_str_to_char(config_value_t* cvt){
@@ -207,7 +201,7 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
 
 bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
     int ret;
-    bool ret_val = true;
+    bool ret_val = false;
     config_value_t* value = NULL;
     config_value_t* publish_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
@@ -216,14 +210,12 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
     if (publish_json_clients == NULL) {
         LOG_ERROR_0("publish_json_clients initialization failed");
-        ret_val=false;
         goto err;
     }
 
     // Checking if Allowed clients is empty string
     if (config_value_array_len(publish_json_clients) == 0){
         LOG_ERROR_0("Empty String is not supported in AllowedClients. Atleast one allowed clients is required");
-        ret_val=false;
         goto err;
     }
 
@@ -231,7 +223,6 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     config_value_t* temp_array_value = config_value_array_get(publish_json_clients, 0);
     if (temp_array_value == NULL) {
         LOG_ERROR_0("temp_array_value initialization failed");
-        ret_val=false;
         goto err;
     }
     int result;
@@ -242,13 +233,11 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         cJSON* all_clients = cJSON_CreateArray();
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
-            ret_val=false;
             goto err;
         }
         pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
         if (pub_key_values == NULL) {
             LOG_ERROR_0("pub_key_values initialization failed");
-            ret_val=false;
             goto err;
         }
         
@@ -256,7 +245,6 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             value = config_value_array_get(pub_key_values, i);
             if (value == NULL) {
                 LOG_ERROR_0("value initialization failed");
-                ret_val=false;
                 goto err;
             }
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
@@ -267,7 +255,6 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         cJSON* all_clients = cJSON_CreateArray();
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
-            ret_val=false;
             goto err;
         }
         for (int i =0; i < config_value_array_len(publish_json_clients); i++) {
@@ -275,7 +262,6 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             array_value = config_value_array_get(publish_json_clients, i);
             if (array_value == NULL) {
                 LOG_ERROR_0("array_value initialization failed");
-                ret_val=false;
                 goto err;
             }
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
@@ -297,12 +283,13 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     const char* publisher_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
     if (publisher_secret_key == NULL) {
         LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
-        ret_val=false;
         goto err;
     }
 
     cJSON_AddStringToObject(inner_json, "server_secret_key", publisher_secret_key);
 
+    // We should add all success-path code above this line.
+    ret_val = true;
     err:
         if(value != NULL){
             config_value_destroy(value);
@@ -324,12 +311,11 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
 }
 
 bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_kv_store_handle, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
-    bool ret_val = true;
+    bool ret_val = false;
     size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
     char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);
     if (grab_public_key == NULL){
         LOG_ERROR_0("Failed to conact PUBLIC_KEYS and PublisherAppName value");
-        ret_val=false;
         goto err;
     }
 
@@ -362,20 +348,19 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
     char* s_sub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
     if (s_sub_pri_key == NULL){
         LOG_ERROR_0("Failed to conact /AppName and PRIVATE_KEY");
-        ret_val=false;
         goto err;
     }
 
     const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
     if(sub_pri_key == NULL){
         LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
-        ret_val=false;
         goto err;
     }
 
     cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
 
-
+    // Add all success-path code above this line.
+    ret_val = true;
     err:
         if(grab_public_key != NULL) {
             free(grab_public_key);

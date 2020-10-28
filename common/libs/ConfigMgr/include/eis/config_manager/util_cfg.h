@@ -48,9 +48,9 @@ extern "C" {
  * @param c_json - cJSON object for which ipc config to be added
  * @param config - Config from which values are extracted
  * @param end_point - endpoint of the application
- * @return cJSON object which consists of IPC messagebus config
+ * @return result of the function passed or failed
  */
-cJSON* get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point);
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point);
 
 /**
  * cvt_obj_str_to_char function converts cvt object to char* provided for ipc

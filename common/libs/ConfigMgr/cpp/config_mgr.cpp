@@ -41,7 +41,7 @@ ConfigMgr::ConfigMgr() {
 }
 
 AppCfg* ConfigMgr::getAppConfig() {
-    LOG_INFO_0("ConfigMgr getAppConfig  method");
+    LOG_DEBUG_0("ConfigMgr getAppConfig  method");
     return m_app_cfg_handler;
 }
 
@@ -80,13 +80,12 @@ std::string ConfigMgr::getAppName() {
     if (appname->type != CVT_STRING) {
         LOG_ERROR_0("appname type is not string");
         return "";
-    } else {
-        if (appname->body.string == NULL) {
-            LOG_ERROR_0("AppName is NULL");
-            return "";
-        }
+    } else if (appname->body.string == NULL) {
+        LOG_ERROR_0("AppName is NULL");
+        return "";
     }
     std::string app_name(appname->body.string);
+    config_value_destroy(appname);
     return app_name;
 }
 

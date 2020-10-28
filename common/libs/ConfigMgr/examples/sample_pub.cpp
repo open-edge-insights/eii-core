@@ -79,6 +79,7 @@ void signal_handler(int signo) {
 }
 
 int main(int argc, char** argv) {
+    PublisherCfg* pub_ctx;
 
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
@@ -108,12 +109,22 @@ int main(int argc, char** argv) {
     int num_of_servers = g_ctx->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);
 
-    PublisherCfg* pub_ctx = g_ctx->getPublisherByIndex(0);
+    // Uncomment this for getting Publisher using name, else
+    // user can use get publisher by index as mentioned below.
+    // pub_ctx = g_ctx->getPublisherByName("default");
+
+    pub_ctx = g_ctx->getPublisherByIndex(0);
     config_t* pub_config = pub_ctx->getMsgBusConfig();
 
     // Testing getEndpoint API
     std::string ep = pub_ctx->getEndpoint();
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
+
+    config_value_t* interface_value = pub_ctx->getInterfaceValue("Name");
+    if (interface_value == NULL || interface_value->type != CVT_STRING){
+        LOG_ERROR_0("Failed to get expected interface value");
+    }
+    LOG_INFO("Obtained interface value: %s", interface_value->body.string)
 
     // Testing getTopics API
     std::vector<std::string> topics = pub_ctx->getTopics();
@@ -158,6 +169,9 @@ int main(int argc, char** argv) {
     // Initialize message to be published
     initialize_message();
 
+    config_value_destroy(interface_value);
+    delete pub_ctx;
+
     LOG_INFO_0("Running...");
     while (g_pub_ctx != NULL) {
         LOG_INFO_0("Publishing message");
@@ -168,7 +182,6 @@ int main(int argc, char** argv) {
         }
         sleep(1);
     }
-
     return 0;
 
 err:
@@ -176,6 +189,8 @@ err:
         msgbus_publisher_destroy(g_msgbus_ctx, g_pub_ctx);
     if (g_msgbus_ctx != NULL)
         msgbus_destroy(g_msgbus_ctx);
+    else if(pub_config != NULL)
+        config_destroy(pub_config);
     if (g_ctx != NULL) {
         delete g_ctx;
     }
