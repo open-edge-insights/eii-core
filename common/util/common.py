@@ -97,7 +97,6 @@ class Visualizer:
             encoding = {"type": results['encoding_type'],
                         "level": results['encoding_level']}
         # Convert to Numpy array and reshape to frame
-        self.logger.debug('Preparing frame for visualization')
         frame = np.frombuffer(blob, dtype=np.uint8)
         if encoding is not None:
             frame = np.reshape(frame, (frame.shape))
@@ -262,11 +261,11 @@ class Visualizer:
         :param topic: Topic the message was published on
         :type: str
         """
-        self.logger.debug('Initializing message bus context')
+        self.logger.info('Initializing message bus context')
 
         msgbus = mb.MsgbusContext(msgbus_cfg)
 
-        self.logger.debug(f'Initializing subscriber for topic \'{topic}\'')
+        self.logger.info(f'Initializing subscriber for topic \'{topic}\'')
         subscriber = msgbus.new_subscriber(topic)
 
         stream_label = None
