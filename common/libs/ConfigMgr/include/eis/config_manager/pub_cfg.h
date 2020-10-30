@@ -35,6 +35,7 @@
 #define PRIVATE_KEY "/private_key"
 #define SOCKET_FILE "socket_file"
 #define TOPICS "Topics"
+#define BROKER_APPNAME "BrokerAppName"
 
 #ifndef _EIS_C_PUB_CFG_H
 #define _EIS_C_PUB_CFG_H

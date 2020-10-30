@@ -79,6 +79,7 @@ int cfgmgr_set_topics_pub(char** topics_list, int len, base_cfg_t* base_cfg, voi
 config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
 
     config_t* m_config = NULL;
+    config_value_t* broker_app_name = NULL;
     // Initializing base_cfg variables
     pub_cfg_t* pub_cfg = (pub_cfg_t*) pub_conf;
     config_value_t* pub_config = pub_cfg->pub_config;
@@ -229,7 +230,32 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         }
         cJSON_AddItemToObject(c_json, "zmq_tcp_publish", zmq_tcp_publish);
         if (dev_mode != 0) {
-            construct_tcp_publisher_prod(app_name, c_json, zmq_tcp_publish, cfgmgr_handle, pub_config, m_kv_store_handle);
+            bool ret_val;
+
+            // Checking if Publisher is using Broker to publish or not and constructing
+            // the publisher messagebus config based on the check. 
+            broker_app_name = config_value_object_get(pub_config, BROKER_APPNAME);
+            if(broker_app_name != NULL){
+
+                if(broker_app_name->type != CVT_STRING){
+                    LOG_ERROR_0("[Type Missmatch]: BrokerAppName should be of type String");
+                    goto err;
+                }
+                // If a publisher is using broker to communicate with its respective subscriber
+                // then publisher will act as a subscriber to X-SUB, hence publishers 
+                // message bus config looks like a subscriber one.  
+                ret_val = add_keys_to_config(zmq_tcp_publish, app_name, m_kv_store_handle, cfgmgr_handle, broker_app_name, pub_config);
+                if(!ret_val) {
+                    LOG_ERROR_0("Failed to add respective cert keys");
+                    goto err;
+                }
+            } else{
+                ret_val = construct_tcp_publisher_prod(app_name, c_json, zmq_tcp_publish, cfgmgr_handle, pub_config, m_kv_store_handle);
+                if(!ret_val) {
+                    LOG_ERROR_0("Failed to construct tcp config struct");
+                    goto err;
+                }
+            }
         }
     }
     // Constructing char* object from cJSON object
@@ -256,6 +282,9 @@ err:
     }
     if (publish_config_endpoint != NULL){
         config_value_destroy(publish_config_endpoint);
+    }
+    if (broker_app_name != NULL){
+        config_value_destroy(broker_app_name);
     }
     return m_config;
 }
