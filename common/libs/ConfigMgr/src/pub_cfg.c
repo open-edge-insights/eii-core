@@ -80,6 +80,9 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
 
     config_t* m_config = NULL;
     config_value_t* broker_app_name = NULL;
+    char** host_port = NULL;
+    char* host = NULL;
+    char* port = NULL;
     // Initializing base_cfg variables
     pub_cfg_t* pub_cfg = (pub_cfg_t*) pub_conf;
     config_value_t* pub_config = pub_cfg->pub_config;
@@ -208,10 +211,10 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         }
     } else if (!strcmp(type, "zmq_tcp")) {
         // Add host & port to zmq_tcp_publish cJSON object
-        char** host_port = get_host_port(end_point);
-        char* host = host_port[0];
+        host_port = get_host_port(end_point);
+        host = host_port[0];
         trim(host);
-        char* port = host_port[1];
+        port = host_port[1];
         trim(port);
         __int64_t i_port = atoi(port);
         cJSON* zmq_tcp_publish = cJSON_CreateObject();
@@ -289,6 +292,9 @@ err:
     }
     if (broker_app_name != NULL){
         config_value_destroy(broker_app_name);
+    }
+    if (host_port != NULL) {
+        free_mem(host_port);
     }
     return m_config;
 }

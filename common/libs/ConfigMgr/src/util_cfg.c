@@ -206,6 +206,8 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     config_value_t* publish_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
     config_value_t* array_value = NULL;
+    char *grab_public_key = NULL;
+    const char* sub_public_key = NULL;
 
     publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
     if (publish_json_clients == NULL) {
@@ -265,14 +267,24 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
                 goto err;
             }
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
-            char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
-            const char* sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+            grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+            sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
                 LOG_WARN("Value is not found for the key: %s", grab_public_key);
             }
 
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
+            // Before Loop iterates, release all allocated mems.
+            if (grab_public_key != NULL) {
+                free(grab_public_key);
+            }
+            if (sub_public_key != NULL) {
+                free(sub_public_key);
+            }
+            if (array_value != NULL) {
+                config_value_destroy(array_value);
+            }
         }
         // Adding all public keys of clients to allowed_clients of config
         cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
@@ -290,20 +302,27 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
 
     // We should add all success-path code above this line.
     ret_val = true;
+
     err:
-        if(value != NULL){
+        if(value != NULL) {
             config_value_destroy(value);
         }
-        if (publish_json_clients != NULL){
+        if (publisher_secret_key) {
+            free(publisher_secret_key);
+        }
+        if (pub_pri_key != NULL) {
+            free(pub_pri_key);
+        }
+        if (publish_json_clients != NULL) {
             config_value_destroy(publish_json_clients);
         }
-        if (temp_array_value != NULL){
+        if (temp_array_value != NULL) {
             config_value_destroy(temp_array_value);
         }
-        if (pub_key_values != NULL){
+        if (pub_key_values != NULL) {
             config_value_destroy(pub_key_values);
         }
-        if (array_value != NULL){
+        if (array_value != NULL) {
             config_value_destroy(array_value);
         }
         return ret_val;
