@@ -66,32 +66,39 @@ int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg, voi
 
 // To fetch msgbus config
 config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
-
+    char** host_port = NULL;
+    char* host = NULL;
+    char* port = NULL;
     sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
     // Initializing base_cfg variables
     config_value_t* sub_config = sub_cfg->sub_config;
     char* app_name = base_cfg->app_name;
     bool dev_mode = false;
+    config_t* m_config = NULL;
+    config_value_t* topic_array = NULL;
+    config_value_t* publisher_appname = NULL;
+    config_value_t* topic = NULL;
+    char* config_value_cr = NULL;
 
     int devmode = base_cfg->dev_mode;
     if(devmode == 0) {
         dev_mode = true;
     }
  
-    kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
+    kv_store_client_t* kv_store_handle = base_cfg->m_kv_store_handle;
     void* cfgmgr_handle = base_cfg->cfgmgr_handle;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
     if (c_json == NULL) {
         LOG_ERROR_0("c_json initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetching Type from config
     config_value_t* subscribe_config_type = config_value_object_get(sub_config, TYPE);
     if (subscribe_config_type == NULL) {
         LOG_ERROR_0("subscribe_config_type initialization failed");
-        return NULL;
+        goto err;
     }
     char* type = subscribe_config_type->body.string;
 
@@ -99,7 +106,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     config_value_t* subscribe_config_endpoint = config_value_object_get(sub_config, ENDPOINT);
     if (subscribe_config_endpoint == NULL) {
         LOG_ERROR_0("subscribe_config_endpoint initialization failed");
-        return NULL;
+        goto err;
     }
 
     const char* end_point;
@@ -113,7 +120,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     config_value_t* subscribe_config_name = config_value_object_get(sub_config, NAME);
     if (subscribe_config_name == NULL) {
         LOG_ERROR_0("subscribe_config_name initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Overriding endpoint with SUBSCRIBER_<Name>_ENDPOINT if set
@@ -121,7 +128,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     char* ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_ENDPOINT");
     if (ep_override_env == NULL) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
-        return NULL;
+        goto err;
     }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
@@ -146,7 +153,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     char* type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
     if (type_override_env == NULL) {
         LOG_ERROR_0("concatenation for type_override_env failed");
-        return NULL;
+        goto err;
     }
     char* type_override = getenv(type_override_env);
     if (type_override != NULL) {
@@ -172,56 +179,52 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
-            return NULL;
+            goto err;
         }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
 
-    if(!strcmp(type, "zmq_ipc")){
+    if(!strcmp(type, "zmq_ipc")) {
         bool ret = get_ipc_config(c_json, sub_config, end_point);
-        if (ret == false){
+        if (ret == false) {
             LOG_ERROR_0("IPC configuration for subscriber failed");
-            return NULL;
+            goto err;
         }
     } else if(!strcmp(type, "zmq_tcp")) {
 
         // Fetching Topics from config
-        config_value_t* topic_array = config_value_object_get(sub_config, TOPICS);
+        topic_array = config_value_object_get(sub_config, TOPICS);
         if (topic_array == NULL) {
             LOG_ERROR_0("topic_array initialization failed");
-            return NULL;
+            goto err;
         }
-        config_value_t* topic;
-            
-        // Create cJSON object for every topic
-        cJSON* sub_topic = cJSON_CreateObject();
-        if (sub_topic == NULL) {
-            LOG_ERROR_0("sub_topic initialization failed");
-            return NULL;
-        }
-
 
         size_t arr_len = config_value_array_len(topic_array);
 
-        char** host_port = get_host_port(end_point);
-        char* host = host_port[0];
+        host_port = get_host_port(end_point);
+        host = host_port[0];
         trim(host);
-        char* port = host_port[1];
+        port = host_port[1];
         trim(port);
         int64_t i_port = atoi(port);
         
         int ret;
         int topicret;
         // comparing the first topic in the array of subscribers topic with "*"
-        topic = config_value_array_get(topic_array,0);
+        topic = config_value_array_get(topic_array, 0);
         strcmp_s(topic->body.string, strlen(topic->body.string), "*", &topicret);
-        config_value_t* publisher_appname = config_value_object_get(sub_config, PUBLISHER_APPNAME);
+        if (topic != NULL) {
+            config_value_destroy(topic);
+        }
+
+        publisher_appname = config_value_object_get(sub_config, PUBLISHER_APPNAME);
         if (publisher_appname == NULL) {
             LOG_ERROR("%s initialization failed", PUBLISHER_APPNAME);
-            return NULL;
+            goto err;
         }
 
         for (int i = 0; i < arr_len; i++) {
+            // Create cJSON object for every topic
             cJSON* topics = cJSON_CreateObject();
             topic = config_value_array_get(topic_array, i);
             // Add host & port to cJSON object
@@ -238,16 +241,16 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
                 if(ret == 0) {
                     // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of
                     // messagebus config, hence calling "construct_tcp_publisher_prod()" function
-                    ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, cfgmgr_handle, sub_config, m_kv_store_handle);
+                    ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, cfgmgr_handle, sub_config, kv_store_handle);
                      if(!ret_val) {
                         LOG_ERROR_0("Failed in construct_tcp_publisher_prod()");
-                        return NULL;
+                        goto err;
                     }
                 }else {
-                    ret_val = add_keys_to_config(topics, app_name, m_kv_store_handle, cfgmgr_handle, publisher_appname, sub_config);
+                    ret_val = add_keys_to_config(topics, app_name, kv_store_handle, cfgmgr_handle, publisher_appname, sub_config);
                     if(!ret_val) {
                         LOG_ERROR_0("Failed in add_keys_to_config()");
-                        return NULL;
+                        goto err;
                     }
                 }
             }
@@ -256,24 +259,60 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
             } else {
                 cJSON_AddItemToObject(c_json, topic->body.string, topics);
             }
+            if (topic != NULL) {
+                config_value_destroy(topic);
+            }
         }
-        config_value_destroy(publisher_appname);
     }
 
     // Constructing char* object from cJSON object
-    char* config_value_cr = cJSON_Print(c_json);
+    config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("c_json initialization failed");
-        return NULL;
+        goto err;
     }
     LOG_DEBUG("Env subscriber Config is : %s \n", config_value_cr);
 
     // Constructing config_t object from cJSON object
-    config_t* m_config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
     if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
-        return NULL;
+        goto err;
+    }
+err:
+    if (host_port != NULL) {
+        free_mem(host_port);
+    }
+    if (type_override != NULL) {
+        free(type_override);
+    }
+    if(subscribe_config_type != NULL) {
+        config_value_destroy(subscribe_config_type);
+    }
+    if (subscribe_config_endpoint != NULL) {
+        config_value_destroy(subscribe_config_endpoint);
+    }
+    if (subscribe_config_name != NULL) {
+        config_value_destroy(subscribe_config_name);
+    }
+    if (ep_override_env != NULL) {
+        free(ep_override_env);
+    }
+    if (type_override_env != NULL) {
+        free(type_override_env);
+    }
+    if (zmq_recv_hwm_value != NULL) {
+        config_value_destroy(zmq_recv_hwm_value);
+    }
+    if (topic_array != NULL) {
+        config_value_destroy(topic_array);
+    }
+    if (publisher_appname != NULL) {
+        config_value_destroy(publisher_appname);
+    }
+    if (config_value_cr != NULL) {
+        free(config_value_cr);
     }
     return m_config;
 }
