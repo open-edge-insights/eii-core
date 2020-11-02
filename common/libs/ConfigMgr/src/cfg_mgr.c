@@ -296,72 +296,105 @@ err:
 
 // function to get subscriber by name
 sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
-
     LOG_INFO_0("cfgmgr_get_subscriber_by_name method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
+    sub_cfg_t* sub_cfg = NULL;
+    config_value_t* sub_config_name = NULL;
 
     // Fetching list of Subscribers interfaces
     config_value_t* subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
     if (subscriber_interface == NULL) {
         LOG_ERROR_0("subscriber_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Iterating through available subscriber configs
     for(int i=0; i<config_value_array_len(subscriber_interface); i++) {
         // Fetch name of individual subscriber config
-        config_value_t* sub_config = config_value_array_get(subscriber_interface, i);
-        if (sub_config == NULL) {
-            LOG_ERROR_0("sub_config initialization failed");
-            return NULL;
+        config_value_t* sub_config_index = config_value_array_get(subscriber_interface, i);
+        if (sub_config_index == NULL) {
+            LOG_ERROR_0("sub_config_index initialization failed");
+            goto err;
         }
-        config_value_t* sub_config_name = config_value_object_get(sub_config, "Name");
+        sub_config_name = config_value_object_get(sub_config_index, "Name");
         if (sub_config_name == NULL) {
             LOG_ERROR_0("sub_config_name initialization failed");
-            return NULL;
+            goto err;
         }
         // Verifying subscriber config with name exists
         if(strcmp(sub_config_name->body.string, name) == 0) {
-            sub_cfg_t* sub_cfg = sub_cfg_new();
+            sub_cfg = sub_cfg_new();
             if (sub_cfg == NULL) {
                 LOG_ERROR_0("sub_cfg initialization failed");
-                return NULL;
+                if (sub_config_index != NULL) {
+                    config_value_destroy(sub_config_index);
+                }
+                goto err;
             }
-            sub_cfg->sub_config = sub_config;
-            return sub_cfg;
+            sub_cfg->sub_config = sub_config_index;
         } else if(i == config_value_array_len(subscriber_interface)) {
             LOG_ERROR("Subscribers by name %s not found", name);
-            return NULL;
+            if (sub_config_index != NULL) {
+                config_value_destroy(sub_config_index);
+            }
+            goto err;
+        } else {
+            if (sub_config_name != NULL) {
+                config_value_destroy(sub_config_name);
+            }
+            if (sub_config_index != NULL) {
+                config_value_destroy(sub_config_index);
+            }
         }
     }
+
+err:
+    if (sub_config_name != NULL) {
+        config_value_destroy(sub_config_name);
+    }
+    if (subscriber_interface != NULL) {
+        config_value_destroy(subscriber_interface);
+    }
+    return sub_cfg;
 }
 
 // function to get subscriber by index
 sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index) {
-
     LOG_INFO_0("cfgmgr_get_subscriber_by_index method");
+    sub_cfg_t* sub_cfg = NULL;
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
     // Fetching list of Subscribers interfaces
     config_value_t* subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
     if (subscriber_interface == NULL) {
         LOG_ERROR_0("subscriber_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetch subscriber config associated with index
-    config_value_t* sub_config = config_value_array_get(subscriber_interface, index);
-    if (sub_config == NULL) {
-        LOG_ERROR_0("sub_config initialization failed");
-        return NULL;
+    config_value_t* sub_config_index = config_value_array_get(subscriber_interface, index);
+    if (sub_config_index == NULL) {
+        LOG_ERROR_0("sub_config_index initialization failed");
+        goto err;
     }
-    sub_cfg_t* sub_cfg = sub_cfg_new();
+    sub_cfg = sub_cfg_new();
     if (sub_cfg == NULL) {
         LOG_ERROR_0("sub_cfg initialization failed");
-        return NULL;
+        goto err;
     }
-    sub_cfg->sub_config = sub_config;
+    sub_cfg->sub_config = sub_config_index;
+    if (subscriber_interface != NULL) {
+        config_value_destroy(subscriber_interface);
+    }
     return sub_cfg;
+err:
+    if (subscriber_interface != NULL) {
+        config_value_destroy(subscriber_interface);
+    }
+    if (sub_config_index != NULL) {
+        config_value_destroy(sub_config_index);
+    }
+    return NULL;
 }
 
 // function to get server by name

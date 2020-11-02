@@ -44,12 +44,17 @@ void etcd_client_free(void* handle);
 bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len);
 
 bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len) {
+    if(src_len == 0) {
+        *dest_cert = "";
+        return true;
+    }
+    
     *dest_cert = (char*)calloc((src_len + 1), sizeof(char));
     if (*dest_cert == NULL){
         LOG_ERROR_0("Failed to allocate memory for certificate string");
         return false;
     }
-    
+
     int ret = strncpy_s(*dest_cert, src_len + 1, src_cert, src_len);
     if (ret != 0) {
         LOG_ERROR_0("Failed to copy certificate");

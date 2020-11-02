@@ -35,6 +35,8 @@ using namespace eis::config_manager;
 // Globals for cleaning up nicely
 recv_ctx_t* g_sub_ctx = NULL;
 void* g_msgbus_ctx = NULL;
+ConfigMgr* g_sub_ch = NULL;
+ConfigMgr* g_sub_ch_vis = NULL;
 
 /**
  * Signal handler
@@ -50,6 +52,14 @@ void signal_handler(int signo) {
         LOG_INFO_0("Freeing message bus context");
         msgbus_destroy(g_msgbus_ctx);
         g_msgbus_ctx = NULL;
+    }
+    if (g_sub_ch != NULL) {
+        LOG_INFO_0("Freeing g_sub_ch");
+        delete g_sub_ch;
+    }
+    if (g_sub_ch_vis != NULL) {
+        LOG_INFO_0("Freeing g_sub_ch_vis");
+        delete g_sub_ch_vis;
     }
     LOG_INFO_0("Done.");
 }
@@ -70,9 +80,11 @@ int main(int argc, char** argv) {
     // Fetching Subscriber config from
     // VideoAnalytics interface
     setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* sub_ch = new ConfigMgr();
+    g_sub_ch = new ConfigMgr();
 
-    SubscriberCfg* sub_ctx = sub_ch->getSubscriberByName("VideoData");
+    // SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByName("VideoData");
+    SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByIndex(0);
+
     config_t* sub_config = sub_ctx->getMsgBusConfig();
 
     // Testing getEndpoint API
@@ -85,34 +97,40 @@ int main(int argc, char** argv) {
         LOG_INFO("Sub Topics : %s", topics[i].c_str());
     }
 
+    // Testing getNumSubscribers()
+    int num_of_subscribers = g_sub_ch->getNumSubscribers();
+    LOG_DEBUG("Total number of subscribers: %d", num_of_subscribers );
+
     // Testing setTopics API
     std::vector<std::string> newTopicsList;
     newTopicsList.push_back("camera7_stream");
     newTopicsList.push_back("camera8_stream");
     bool topicsSet = sub_ctx->setTopics(newTopicsList);
 
+
     // Testing TCP PROD mode
     setenv("AppName","Visualizer", 1);
-    ConfigMgr* sub_ch_vis = new ConfigMgr();
+    g_sub_ch_vis = new ConfigMgr();
 
-    SubscriberCfg* sub_ctx_vis = sub_ch_vis->getSubscriberByName("Cam2_Results");
+    SubscriberCfg* sub_ctx_vis = g_sub_ch_vis->getSubscriberByName("Cam2_Results");
     config_t* sub_config_vis = sub_ctx_vis->getMsgBusConfig();
 
-    config_value_t* interface_value = sub_ctx_vis->getInterfaceValue("Name");
+    topics = sub_ctx_vis->getTopics();
+
+    // Testing getInterfaceValue()
+    config_value_t* interface_value = sub_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
         goto err;
     }
-    
     LOG_INFO("interface value is %s", interface_value->body.string);
-
-    topics = sub_ctx_vis->getTopics();
+    config_value_destroy(interface_value);
 
     // Initializing Subscriber using sub_config obtained
     // from new ConfigManager APIs
-    g_msgbus_ctx = msgbus_initialize(sub_config_vis);
+    // g_msgbus_ctx = msgbus_initialize(sub_config);
     // Uncomment below line to test IPC mode
-    // g_msgbus_ctx = msgbus_initialize(sub_config_vis);
+    g_msgbus_ctx = msgbus_initialize(sub_config_vis);
     if(g_msgbus_ctx == NULL) {
         LOG_ERROR_0("Failed to initialize message bus");
         goto err;
@@ -127,13 +145,21 @@ int main(int argc, char** argv) {
         goto err;
     }
 
+    // free sub_config
+    config_destroy(sub_config);
+    config_destroy(sub_config_vis);
+    // free sub_ctx
+    delete sub_ctx;
+    delete sub_ctx_vis;
+
     LOG_INFO_0("Running...");
     while(g_sub_ctx != NULL) {
         ret = msgbus_recv_wait(g_msgbus_ctx, g_sub_ctx, &msg);
         if(ret != MSG_SUCCESS) {
             // Interrupt is an acceptable error
-            if(ret == MSG_ERR_EINTR)
-                break;
+            if(ret == MSG_ERR_EINTR) {
+                goto err;
+            }
             LOG_ERROR("Failed to receive message (errno: %d)", ret);
             goto err;
         }
@@ -162,9 +188,20 @@ err:
         msgbus_msg_envelope_destroy(msg);
     if(parts != NULL)
         msgbus_msg_envelope_serialize_destroy(parts, num_parts);
+    if (sub_config != NULL) {
+        config_destroy(sub_config);
+    }
     if(g_sub_ctx != NULL)
         msgbus_recv_ctx_destroy(g_msgbus_ctx, g_sub_ctx);
     if(g_msgbus_ctx != NULL)
         msgbus_destroy(g_msgbus_ctx);
+    if (g_sub_ch != NULL) {
+        LOG_INFO_0("Freeing ConfigManager");
+        delete g_sub_ch;
+    }
+    if (g_sub_ch_vis != NULL) {
+        LOG_INFO_0("Freeing g_sub_ch_vis");
+        delete g_sub_ch_vis;
+    }
     return -1;
 }
