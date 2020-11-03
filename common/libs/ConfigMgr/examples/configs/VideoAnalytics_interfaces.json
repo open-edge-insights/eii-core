@@ -1,7 +1,7 @@
 {
     "Subscribers": [
         {
-            "Name": "VideoData",
+            "Name": "default",
             "Type": "zmq_ipc",
             "EndPoint": ".socks",
             "PublisherAppName": "VideoIngestion",

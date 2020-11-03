@@ -31,15 +31,24 @@ msgbus = None
 subscriber = None
 
 try:
-    os.environ["AppName"] = "Visualizer"
+    os.environ["AppName"] = "VideoAnalytics"
     ctx = cfg.ConfigMgr()
-    sub_ctx = ctx.get_subscriber_by_name("Cam2_Results")
+
+    print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
+
+    sub_ctx = ctx.get_subscriber_by_name("default")
     config = sub_ctx.get_msgbus_config()
 
     interface_value = sub_ctx.get_interface_value("Name")
     print('[INFO] Obtained interface_value is {}'.format(interface_value))
 
     topics = sub_ctx.get_topics()
+    print('[INFO] Obtained topics is {}'.format(topics))
+
+    print('[INFO] Obtained endpoint is {}'.format(sub_ctx.get_endpoint()))
+    new_topics = ["camera2_stream_results", "camera3_stream_results", "camera4_stream_results"]
+    print('[INFO] Topics set {}'.format(sub_ctx.set_topics(new_topics)))
+    print('[INFO] Obtained new topics is {}'.format(sub_ctx.get_topics()))
 
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)

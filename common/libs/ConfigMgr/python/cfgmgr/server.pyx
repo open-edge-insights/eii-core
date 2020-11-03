@@ -76,10 +76,19 @@ cdef class Server:
         :rtype: dict
         """
         cdef char* config
-        new_config_new = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg, self.server_cfg)
-        config = configt_to_char(new_config_new)
-        config_str = config.decode('utf-8')
-        return json.loads(config_str)
+        try:
+            msgbus_config = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg, self.server_cfg)
+            if msgbus_config is NULL:
+                raise Exception("[Server] Getting msgbus config from base c layer failed")
+        
+            config = configt_to_char(msgbus_config)
+            if config is NULL:
+                raise Exception("[Server] config failed to get converted to char")
+
+            config_str = config.decode('utf-8')
+            return json.loads(config_str)
+        except Exception as ex:
+            raise ex
 
     def get_interface_value(self, key):
         """Calling the base C cfgmgr_get_interface_value_server() API
@@ -91,10 +100,21 @@ cdef class Server:
         """
         cdef config_value_t* value
         cdef char* config
-        value = self.server_cfg.cfgmgr_get_interface_value_server(self.server_cfg, key.encode('utf-8'))
-        interface_value = Util.get_cvt_data(value)
-        config_value_destroy(value)
-        return interface_value
+        try:
+            interface_value = None
+            value = self.server_cfg.cfgmgr_get_interface_value_server(self.server_cfg, key.encode('utf-8'))
+            if value is NULL:
+                raise Exception("[Server] Getting interface value from base c layer failed")
+
+            interface_value = Util.get_cvt_data(value)
+            if interface_value is None:
+                config_value_destroy(value)
+                raise Exception("[Server] Getting cvt data failed")
+        
+            config_value_destroy(value)
+            return interface_value
+        except Exception as ex:
+            raise ex
 
     def get_endpoint(self):
         """Calling the base C get_endpoint() API
@@ -103,18 +123,36 @@ cdef class Server:
         :rtype: string
         """
         cdef config_value_t* ep
-        ep = self.server_cfg.cfgmgr_get_endpoint_server(self.server_cfg)
-        if(ep.type == CVT_OBJECT):
-            config = cvt_to_char(ep);
-            config_str = config.decode('utf-8')
-            endpoint = json.loads(config_str)
-        elif(ep.type == CVT_STRING):
-            endpoint = ep.body.string.decode('utf-8')
-        else:
-            endpoint = None
-            raise TypeError("Type mismatch: EndPoint should be string or dict type")
-        config_value_destroy(ep)
-        return endpoint
+        cdef char* c_endpoint
+        try:
+            ep = self.server_cfg.cfgmgr_get_endpoint_server(self.server_cfg)
+            if ep is NULL:
+                raise Exception("[Server] Getting end point from base c layer failed")
+
+            if(ep.type == CVT_OBJECT):
+                config = cvt_to_char(ep);
+                if config is NULL:
+                    config_value_destroy(ep)
+                    raise Exception("[Server] Config cvt to char conversion failed")
+
+                config_str = config.decode('utf-8')
+                endpoint = json.loads(config_str)
+            elif(ep.type == CVT_STRING):
+                c_endpoint = ep.body.string
+                if c_endpoint is NULL:
+                    raise Exception("[Server] Endpoint getting string value failed")
+                endpoint = c_endpoint.decode('utf-8')
+            else:
+                endpoint = None
+                config_value_destroy(ep)
+                raise TypeError("[Server] Type mismatch: EndPoint should be string or dict type")
+        
+            config_value_destroy(ep)
+            return endpoint
+        except TypeError as type_ex:
+            raise type_ex
+        except Exception as ex:
+            raise ex
 
     def get_allowed_clients(self):
         """Calling the base C cfgmgr_get_allowed_clients_server() API
@@ -125,11 +163,29 @@ cdef class Server:
         # Calling the base C cfgmgr_get_allowed_clients_server() API
         clients_list = []
         cdef config_value_t* clients
-        clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.server_cfg)
         cdef config_value_t* client_value
-        for i in range(config_value_array_len(clients)):
-            client_value = config_value_array_get(clients, i)
-            clients_list.append(client_value.body.string.decode('utf-8'))
-            config_value_destroy(client_value)
-        config_value_destroy(clients)
-        return clients_list
+        cdef char* c_client_value
+        try:
+            clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.server_cfg)
+            if clients is NULL:
+                raise Exception("[Server] Getting alowed clients from base c layer failed")
+
+            for i in range(config_value_array_len(clients)):
+                client_value = config_value_array_get(clients, i)
+                if client_value is NULL:
+                    config_value_destroy(clients)
+                    raise Exception("[Server] Getting array value from config for allowed clients failed.")
+
+                c_client_value = client_value.body.string
+                if c_client_value is NULL:
+                    config_value_destroy(clients)
+                    raise Exception("[Server] String value of client is NULL")
+
+                client_val = c_client_value.decode('utf-8')
+                clients_list.append(client_val)
+
+                config_value_destroy(client_value)
+            config_value_destroy(clients)
+            return clients_list
+        except Exception as ex:
+            raise ex

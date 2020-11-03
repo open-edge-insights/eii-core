@@ -51,20 +51,26 @@ cdef class ConfigMgr:
         cdef char* env_var
 
         # Initializing app_cfg object
-        self.app_cfg = app_cfg_new()
-        if self.app_cfg == NULL:
-            raise Exception("app_cfg is NULL in config_manager")
+        try:
+            self.app_cfg = app_cfg_new()
+            if self.app_cfg == NULL:
+                raise Exception("app_cfg is NULL in config_manager")
 
-        # Setting /GlobalEnv/ env variables
-        env_var = self.app_cfg.env_var
-        # Converting c string to py string
-        config_str = env_var.decode('utf-8')
-        # Converting py string to json object
-        config_json = json.loads(config_str)
-        # Iterating through and setting key, value pairs
-        # of config_json in env
-        for key, value in config_json.items():
-            os.environ[key] = value
+            # Setting /GlobalEnv/ env variables
+            env_var = self.app_cfg.env_var
+            if env_var is NULL:
+                raise Exception("env_var is NULL in config manager base c layer")
+
+            # Converting c string to py string
+            config_str = env_var.decode('utf-8')
+            # Converting py string to json object
+            config_json = json.loads(config_str)
+            # Iterating through and setting key, value pairs
+            # of config_json in env
+            for key, value in config_json.items():
+                os.environ[key] = value
+        except Exception as ex:
+            raise ex
 
     def __cinit__(self, *args, **kwargs):
         """Basic C init
@@ -86,14 +92,23 @@ cdef class ConfigMgr:
         """
         cdef config_t* conf
         cdef char* config
+        try: 
+            conf = get_app_config(self.app_cfg.base_cfg)
+            if conf is NULL:
+                raise Exception("[GetAppConfig] Conf received from base c layer is NULL")
 
-        conf = get_app_config(self.app_cfg.base_cfg)
-        config = configt_to_char(conf)
-        config_str = config.decode('utf-8')
-        cfg = json.loads(config_str)
+            config = configt_to_char(conf)
+            if config is NULL:
+                raise Exception("[GetAppConfig] Configt to char conversion failed")
+                
+            config_str = config.decode('utf-8')
+            cfg = json.loads(config_str)
 
-        obj = AppCfg(cfg)
-        return obj
+            obj = AppCfg(cfg)
+            return obj
+        except Exception as ex:
+            raise ex
+
 
     def is_dev_mode(self):
         """Calling bace c cfgmgr_is_dev_mode_base in order to get
@@ -103,10 +118,14 @@ cdef class ConfigMgr:
         :rtype: bool
         """
         # Calling the base C API to fetch appname
-        ret = cfgmgr_is_dev_mode_base(self.app_cfg.base_cfg)
-        if ret == 0:
-            return True
-        return False
+        try:
+            ret = cfgmgr_is_dev_mode_base(self.app_cfg.base_cfg)
+            if ret == 0:
+                return True
+            return False
+        except Exception as ex:
+            raise ex
+
 
     def get_app_name(self):
         """Calling bace c cfgmgr_get_appname_base in order to get
@@ -116,12 +135,21 @@ cdef class ConfigMgr:
         :rtype: str
         """
         cdef config_value_t* appname
+        try:
+            # Calling the base C API to fetch appname
+            appname = cfgmgr_get_appname_base(self.app_cfg.base_cfg)
+            if appname is NULL:
+                raise Exception("Getting AppName from base c layer failed")
 
-        # Calling the base C API to fetch appname
-        appname = cfgmgr_get_appname_base(self.app_cfg.base_cfg)
-        app_name = appname.body.string
-        # Returning python string of appname
-        return app_name.decode("utf-8")
+            app_name = appname.body.string
+            if app_name is NULL:
+                raise Exception("Extraction of string from appname cvt failed")
+
+            # Returning python string of appname
+            return app_name.decode("utf-8")
+        except Exception as ex:
+            raise ex
+
 
     def get_publisher_by_name(self, name):
         """Calling bace c get_publisher_by_name in order to get
@@ -132,13 +160,17 @@ cdef class ConfigMgr:
         :return: Publisher class object
         :rtype : obj
         """
-        bname = bytes(name, 'utf-8')
-        self.pub_cfg = cfgmgr_get_publisher_by_name(self.app_cfg, bname)
-        if self.pub_cfg == NULL:
-            raise Exception("pub_cfg is NULL in config_manager")
+        try:
+            bname = bytes(name, 'utf-8')
+            self.pub_cfg = cfgmgr_get_publisher_by_name(self.app_cfg, bname)
+            if self.pub_cfg == NULL:
+                raise Exception("pub_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Publisher.create(self.app_cfg, self.pub_cfg)
+            # Create & return Publisher object
+            return Publisher.create(self.app_cfg, self.pub_cfg)
+        except Exception as ex:
+            raise ex
+
 
     def get_publisher_by_index(self, index):
         """Calling bace c get_publisher_by_index in order to get
@@ -149,12 +181,15 @@ cdef class ConfigMgr:
         :return: Publisher class object
         :rtype : obj
         """
-        self.pub_cfg = cfgmgr_get_publisher_by_index(self.app_cfg, index)
-        if self.pub_cfg == NULL:
-            raise Exception("pub_cfg is NULL in config_manager")
+        try:
+            self.pub_cfg = cfgmgr_get_publisher_by_index(self.app_cfg, index)
+            if self.pub_cfg == NULL:
+                raise Exception("pub_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Publisher.create(self.app_cfg, self.pub_cfg)
+            # Create & return Publisher object
+            return Publisher.create(self.app_cfg, self.pub_cfg)
+        except Exception as ex:
+            raise ex
 
     def get_subscriber_by_name(self, name):
         """Calling bace c get_subscriber_by_name in order to get
@@ -165,13 +200,17 @@ cdef class ConfigMgr:
         :return: Subscriber class object
         :rtype : obj
         """
-        bname = bytes(name, 'utf-8')
-        self.sub_cfg = cfgmgr_get_subscriber_by_name(self.app_cfg, bname)
-        if self.sub_cfg == NULL:
-            raise Exception("sub_cfg is NULL in config_manager")
+        try:
+            bname = bytes(name, 'utf-8')
+            self.sub_cfg = cfgmgr_get_subscriber_by_name(self.app_cfg, bname)
+            if self.sub_cfg == NULL:
+                raise Exception("sub_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Subscriber.create(self.app_cfg, self.sub_cfg)
+            # Create & return Subscriber object
+            return Subscriber.create(self.app_cfg, self.sub_cfg)
+        except Exception as ex:
+            raise ex
+        
 
     def get_subscriber_by_index(self, index):
         """Calling bace c get_subscriber_by_index in order to get
@@ -182,12 +221,16 @@ cdef class ConfigMgr:
         :return: Subscriber class object
         :rtype : obj
         """
-        self.sub_cfg = cfgmgr_get_subscriber_by_index(self.app_cfg, index)
-        if self.sub_cfg == NULL:
-            raise Exception("sub_cfg is NULL in config_manager")
+        try:
+            self.sub_cfg = cfgmgr_get_subscriber_by_index(self.app_cfg, index)
+            if self.sub_cfg == NULL:
+                raise Exception("sub_cfg is NULL in config_manager in base c layer")
 
-        # Create & return Subscriber object
-        return Subscriber.create(self.app_cfg, self.sub_cfg)
+            # Create & return Subscriber object
+            return Subscriber.create(self.app_cfg, self.sub_cfg)
+        except Exception as ex:
+            raise ex
+
 
     def get_server_by_name(self, name):
         """Calling bace c get_server_by_name in order to get
@@ -198,13 +241,17 @@ cdef class ConfigMgr:
         :return: Server class object
         :rtype : obj
         """
-        bname = bytes(name, 'utf-8')
-        self.server_cfg = cfgmgr_get_server_by_name(self.app_cfg, bname)
-        if self.server_cfg == NULL:
-            raise Exception("server_cfg is NULL in config_manager")
+        try:
+            bname = bytes(name, 'utf-8')
+            self.server_cfg = cfgmgr_get_server_by_name(self.app_cfg, bname)
+            if self.server_cfg == NULL:
+                raise Exception("server_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Server.create(self.app_cfg, self.server_cfg)
+            # Create & return Server object
+            return Server.create(self.app_cfg, self.server_cfg)
+        except Exception as ex:
+            raise ex
+
 
     def get_server_by_index(self, index):
         """Calling bace c get_server_by_index in order to get
@@ -215,12 +262,15 @@ cdef class ConfigMgr:
         :return: Server class object
         :rtype : obj
         """
-        self.server_cfg = cfgmgr_get_server_by_index(self.app_cfg, index)
-        if self.server_cfg == NULL:
-            raise Exception("server_cfg is NULL in config_manager")
+        try:
+            self.server_cfg = cfgmgr_get_server_by_index(self.app_cfg, index)
+            if self.server_cfg == NULL:
+                raise Exception("server_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Server.create(self.app_cfg, self.server_cfg)
+            # Create & return Server object
+            return Server.create(self.app_cfg, self.server_cfg)
+        except Exception as ex:
+            raise ex
 
     def get_client_by_name(self, name):
         """Calling bace c get_server_by_name in order to get
@@ -231,13 +281,16 @@ cdef class ConfigMgr:
         :return: Client class object
         :rtype : obj
         """
-        bname = bytes(name, 'utf-8')
-        self.client_cfg = cfgmgr_get_client_by_name(self.app_cfg, bname)
-        if self.client_cfg == NULL:
-            raise Exception("client_cfg is NULL in config_manager")
+        try:
+            bname = bytes(name, 'utf-8')
+            self.client_cfg = cfgmgr_get_client_by_name(self.app_cfg, bname)
+            if self.client_cfg == NULL:
+                raise Exception("client_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Client.create(self.app_cfg, self.client_cfg)
+            # Create & return Client object
+            return Client.create(self.app_cfg, self.client_cfg)
+        except Exception as ex:
+            raise ex
 
     def get_client_by_index(self, index):
         """Calling bace c get_server_by_index in order to get
@@ -248,12 +301,15 @@ cdef class ConfigMgr:
         :return: Client class object
         :rtype : obj
         """
-        self.client_cfg = cfgmgr_get_client_by_index(self.app_cfg, index)
-        if self.client_cfg == NULL:
-            raise Exception("client_cfg is NULL in config_manager")
+        try:
+            self.client_cfg = cfgmgr_get_client_by_index(self.app_cfg, index)
+            if self.client_cfg == NULL:
+                raise Exception("client_cfg is NULL in config_manager base c layer")
 
-        # Create & return Publisher object
-        return Client.create(self.app_cfg, self.client_cfg)
+            # Create & return Client object
+            return Client.create(self.app_cfg, self.client_cfg)
+        except Exception as ex:
+            raise ex
 
     def get_num_publishers(self):
         """Calling bace c cfgmgr_get_num_elements_base in order to get
@@ -262,7 +318,10 @@ cdef class ConfigMgr:
         :return: number of publishers in interface
         :rtype : int
         """
-        return cfgmgr_get_num_elements_base("Publishers", self.app_cfg.base_cfg)
+        result = cfgmgr_get_num_elements_base("Publishers", self.app_cfg.base_cfg)
+        if result == -1:
+            raise Exception("[Publisher] Failed to get number of elements from base c layer")
+        return result
 
     def get_num_subscribers(self):
         """Calling bace c cfgmgr_get_num_elements_base in order to get
@@ -271,7 +330,10 @@ cdef class ConfigMgr:
         :return: number of subscribers in interface
         :rtype : int
         """
-        return cfgmgr_get_num_elements_base("Subscribers", self.app_cfg.base_cfg)
+        result = cfgmgr_get_num_elements_base("Subscribers", self.app_cfg.base_cfg)
+        if result == -1:
+            raise Exception("[Subscriber] Failed to get number of elements from base c layer")
+        return result
 
     def get_num_servers(self):
         """Calling bace c cfgmgr_get_num_elements_base in order to get
@@ -280,7 +342,10 @@ cdef class ConfigMgr:
         :return: number of servers in interface
         :rtype : int
         """
-        return cfgmgr_get_num_elements_base("Servers", self.app_cfg.base_cfg)
+        result = cfgmgr_get_num_elements_base("Servers", self.app_cfg.base_cfg)
+        if result == -1:
+            raise Exception("[Server] Failed to get number of elements from base c layer")
+        return result
 
     def get_num_clients(self):
         """Calling bace c cfgmgr_get_num_elements_base in order to get
@@ -289,4 +354,7 @@ cdef class ConfigMgr:
         :return: number of clients in interface
         :rtype : int
         """
-        return cfgmgr_get_num_elements_base("Clients", self.app_cfg.base_cfg)
+        result = cfgmgr_get_num_elements_base("Clients", self.app_cfg.base_cfg)
+        if result == -1:
+            raise Exception("[Client] Failed to get number of elements from base c layer")
+        return result
