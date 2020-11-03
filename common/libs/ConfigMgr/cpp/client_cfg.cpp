@@ -83,11 +83,12 @@ std::string ClientCfg::getEndpoint() {
 
 // Destructor
 ClientCfg::~ClientCfg() {
-    if(m_cli_cfg) {
-        delete m_cli_cfg;
+    if(m_cli_cfg->client_config != NULL) {
+        config_value_destroy(m_cli_cfg->client_config);
+        free(m_cli_cfg);
     }
     if(m_app_cfg) {
-        delete m_app_cfg;
+        free(m_app_cfg);
     }
     LOG_INFO_0("ClientCfg destructor");
 }

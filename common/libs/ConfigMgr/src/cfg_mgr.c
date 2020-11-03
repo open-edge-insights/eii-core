@@ -234,7 +234,6 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
         } else if(i == config_value_array_len(publisher_interface)) {
             LOG_ERROR("Publisher by name %s not found", name);
             goto err;
-
         }
     }
 
@@ -495,6 +494,8 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
 
     LOG_INFO_0("cfgmgr_get_client_by_name method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
+    config_value_t* cli_config_name = NULL;
+    client_cfg_t* cli_cfg = NULL;
 
     // Fetching list of client interfaces
     config_value_t* client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
@@ -509,56 +510,89 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
         config_value_t* cli_config = config_value_array_get(client_interface, i);
         if (cli_config == NULL) {
             LOG_ERROR_0("cli_config initialization failed");
-            return NULL;
+            goto err;
         }
-        config_value_t* cli_config_name = config_value_object_get(cli_config, "Name");
+        cli_config_name = config_value_object_get(cli_config, "Name");
         if (cli_config_name == NULL) {
             LOG_ERROR_0("cli_config_name initialization failed");
-            return NULL;
+            goto err;
         }
         // Verifying client config with name exists
         if (strcmp(cli_config_name->body.string, name) == 0) {
-            client_cfg_t* cli_cfg = client_cfg_new();
+            cli_cfg = client_cfg_new();
             if (cli_cfg == NULL) {
                 LOG_ERROR_0("cli_cfg initialization failed");
-                return NULL;
+                if (cli_config != NULL) {
+                    config_value_destroy(cli_config);
+                }
+                goto err;
             }
-
             cli_cfg->client_config = cli_config;
-            return cli_cfg;
         } else if (i == config_value_array_len(client_interface)) {
             LOG_ERROR("Clients by name %s not found", name);
-            return NULL;
+            if (cli_config != NULL) {
+                config_value_destroy(cli_config);
+            }
+            goto err;
+        } else {
+            if (cli_config_name != NULL) {
+                config_value_destroy(cli_config_name);
+            }
+            if (cli_config != NULL) {
+                config_value_destroy(cli_config);
+            }
         }
     }
+err:
+   if (cli_config_name != NULL) {
+        config_value_destroy(cli_config_name);
+    }
+    if (client_interface != NULL) {
+        config_value_destroy(client_interface);
+    }
+    return cli_cfg;
 }
 
 // function to get client by index
 client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index) {
-
     LOG_INFO_0("cfgmgr_get_client_by_index method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
+    config_value_t* client_interface = NULL;
 
     // Fetching list of Clients interfaces
-    config_value_t* client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
+    client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
     if (client_interface == NULL) {
         LOG_ERROR_0("client_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetch client config associated with index
-    config_value_t* cli_config = config_value_array_get(client_interface, index);
-    if (cli_config == NULL) {
-        LOG_ERROR_0("cli_config initialization failed");
-        return NULL;
+    config_value_t* cli_config_index = config_value_array_get(client_interface, index);
+    if (cli_config_index == NULL) {
+        LOG_ERROR_0("cli_config_index initialization failed");
+        goto err;
     }
+
     client_cfg_t* cli_cfg = client_cfg_new();
     if (cli_cfg == NULL) {
         LOG_ERROR_0("cli_cfg initialization failed");
-        return NULL;
+        goto err;
     }
-    cli_cfg->client_config = cli_config;
+    cli_cfg->client_config = cli_config_index;
+    if (client_interface != NULL) {
+        config_value_destroy(client_interface);
+    }
     return cli_cfg;
+
+err:
+    if (client_interface != NULL) {
+        config_value_destroy(client_interface);
+    }
+    if (cli_config_index != NULL) {
+        config_value_destroy(cli_config_index);
+    }
+
+    return NULL;
 }
 
 // function to destroy app_cfg_t

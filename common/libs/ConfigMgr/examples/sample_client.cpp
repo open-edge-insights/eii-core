@@ -40,6 +40,7 @@ using namespace eis::config_manager;
 // Globals for cleaning up nicely
 void* g_msgbus_ctx = NULL;
 recv_ctx_t* g_service_ctx = NULL;
+ConfigMgr* g_ch = NULL;
 
 /**
  * Signal handler
@@ -55,6 +56,10 @@ void signal_handler(int signo) {
         LOG_INFO_0("Freeing message bus context");
         msgbus_destroy(g_msgbus_ctx);
         g_msgbus_ctx = NULL;
+    }
+    if (g_ch != NULL) {
+        LOG_INFO_0("Freeing ConfigManager")
+        delete g_ch;
     }
     LOG_INFO_0("Done.");
 }
@@ -72,16 +77,20 @@ int main() {
     msg_envelope_t* msg = NULL;
     int num_parts = 0;
     msgbus_ret_t ret = MSG_SUCCESS;
+    int num_of_clients;
+    std::string ep;
 
     // Initailize request
     msg_envelope_elem_body_t* integer = msgbus_msg_envelope_new_integer(42);
     msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
 
     setenv("AppName","VideoAnalytics", 1);
-    ConfigMgr* ch = new ConfigMgr();
+    g_ch = new ConfigMgr();
 
-    ClientCfg* client_ctx = ch->getClientByName("default");
-    config_t* config = client_ctx->getMsgBusConfig();
+    // ClientCfg* client_ctx = g_ch->getClientByName("default");
+    ClientCfg* client_ctx = g_ch->getClientByIndex(0);
+    config_t* config = NULL;
+    config = client_ctx->getMsgBusConfig();
 
     char* name = NULL;
     config_value_t* interface_value = client_ctx->getInterfaceValue("Name");
@@ -96,6 +105,12 @@ int main() {
     name = interface_value->body.string;
     
     LOG_INFO("interface value is %s", name);
+
+    num_of_clients = g_ch->getNumClients();
+    LOG_DEBUG("Total number of clients : %d", num_of_clients);
+
+    ep = client_ctx->getEndpoint();
+    LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
     if(config == NULL) {
         LOG_ERROR_0("Failed to load JSON configuration");
@@ -120,6 +135,12 @@ int main() {
     msgbus_msg_envelope_put(msg, "hello", integer);
     msgbus_msg_envelope_put(msg, "world", fp);
 
+    // free interface_value
+    config_value_destroy(interface_value);
+
+    // delete client_ctx
+    delete client_ctx;
+
     LOG_INFO_0("Sending request");
     ret = msgbus_request(g_msgbus_ctx, g_service_ctx, msg);
     if(ret != MSG_SUCCESS) {
@@ -129,7 +150,7 @@ int main() {
 
     msgbus_msg_envelope_destroy(msg);
     msg = NULL;
-
+    
     LOG_INFO_0("Waiting for response");
     ret = msgbus_recv_wait(g_msgbus_ctx, g_service_ctx, &msg);
     if(ret != MSG_SUCCESS) {
@@ -140,6 +161,7 @@ int main() {
     }
 
     num_parts = msgbus_msg_envelope_serialize(msg, &parts);
+
     if(num_parts <= 0) {
         LOG_ERROR_0("Failed to serialize message");
         goto err;
@@ -150,10 +172,14 @@ int main() {
     msgbus_msg_envelope_serialize_destroy(parts, num_parts);
     msgbus_msg_envelope_destroy(msg);
     msg = NULL;
-
+  
     msgbus_recv_ctx_destroy(g_msgbus_ctx, g_service_ctx);
     msgbus_destroy(g_msgbus_ctx);
-
+ 
+    if (g_ch != NULL) {
+        LOG_INFO_0("Freeing ConfigManager")
+        delete g_ch;
+    }
     return 0;
 
 err:
@@ -165,5 +191,9 @@ err:
         msgbus_recv_ctx_destroy(g_msgbus_ctx, g_service_ctx);
     if(g_msgbus_ctx != NULL)
         msgbus_destroy(g_msgbus_ctx);
+    if (g_ch != NULL) {
+        LOG_INFO_0("Freeing ConfigManager")
+        delete g_ch;
+    }
     return -1;
 }
