@@ -160,10 +160,17 @@ public:
     /**
      * Removes the next element in the queue reducing the size by one.
      */
-    void pop() {
+    T pop() {
         std::lock_guard<std::mutex> lk(m_mtx);
+        if (m_queue.empty()) {
+            return NULL;
+        }
+
+        T value = m_queue.front();
         m_queue.pop();
         m_full_cv.notify_one();
+
+        return value;
     }
 
     /**
