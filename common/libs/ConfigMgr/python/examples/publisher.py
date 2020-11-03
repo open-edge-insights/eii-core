@@ -31,7 +31,7 @@ msgbus = None
 publisher = None
 
 try:
-    os.environ["AppName"] = "VideoAnalytics"
+    os.environ["AppName"] = "VideoIngestion"
     ctx = cfg.ConfigMgr()
     dev_mode = ctx.is_dev_mode()
     if (dev_mode):
@@ -41,12 +41,8 @@ try:
     app_name = ctx.get_app_name()
     print('[INFO] App name {}'.format(app_name))
     print('[INFO] Total number of publishers in interface is {}'.format(ctx.get_num_publishers()))
-    print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
-    print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))
-    ret = ctx.get_num_servers()
-    if ret == -1:
-        print('[INFO] No server interfaces found')
-    pub_ctx = ctx.get_publisher_by_name("Image_Metadata")
+
+    pub_ctx = ctx.get_publisher_by_name("default")
     config = pub_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
 

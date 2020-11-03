@@ -43,21 +43,32 @@ cdef class Util:
         :return: value
         :rtype: integer/subscriber/float/boolean/dict/list based on the cvt data type
         """
-        
-        if(cvt.type == CVT_INTEGER):
-            value = cvt.body.integer
-        elif(cvt.type == CVT_FLOATING):
-            value = cvt.body.floating
-        elif(cvt.type == CVT_STRING):
-            value = cvt.body.string.decode('utf-8')
-        elif(cvt.type == CVT_BOOLEAN):
-            value = cvt.body.boolean
-        elif(cvt.type == CVT_OBJECT or cvt.type == CVT_ARRAY):
-            config = cvt_to_char(cvt);
-            config_str = config.decode('utf-8')
-            value = json.loads(config_str)
-        else:
-            value = None
-            raise TypeError("Type mismatch of Interface value")
-        
-        return value
+        cdef char* c_value
+        try:
+            if(cvt.type == CVT_INTEGER):
+                value = cvt.body.integer
+            elif(cvt.type == CVT_FLOATING):
+                value = cvt.body.floating
+            elif(cvt.type == CVT_STRING):
+                c_value = cvt.body.string
+                if c_value is NULL:
+                    raise Exception("Failed to get string value from cvt in util")
+                value = c_value.decode('utf-8')
+            elif(cvt.type == CVT_BOOLEAN):
+                value = cvt.body.boolean
+            elif(cvt.type == CVT_OBJECT or cvt.type == CVT_ARRAY):
+                config = cvt_to_char(cvt);
+                if config is NULL:
+                    raise Exception("cvt to char failed in util")
+
+                config_str = config.decode('utf-8')
+                value = json.loads(config_str)
+            else:
+                value = None
+                raise TypeError("Type mismatch of Interface value")
+            
+            return value
+        except TypeError as type_ex:
+            raise type_ex
+        except Exception as ex:
+            raise ex

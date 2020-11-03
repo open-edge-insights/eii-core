@@ -34,7 +34,13 @@ try:
     os.environ["AppName"] = "VideoIngestion"
 
     ctx = cfg.ConfigMgr()
-    server_ctx = ctx.get_server_by_name("sample_server")
+    server_ctx = ctx.get_server_by_name("default")
+
+    ret = ctx.get_num_servers()
+    if ret == -1:
+        print('[INFO] No server interfaces found')
+    print('[INFO] Number of server interfaces are : {}'.format(ret))
+
     config = server_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(server_ctx.get_endpoint()))

@@ -34,6 +34,7 @@ try:
     os.environ["AppName"] = "VideoAnalytics"
 
     ctx = cfg.ConfigMgr()
+    print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))
     client_ctx = ctx.get_client_by_name("default")
     config = client_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
