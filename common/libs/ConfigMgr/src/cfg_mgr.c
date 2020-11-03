@@ -400,14 +400,19 @@ err:
 // function to get server by name
 server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
 
+    server_cfg_t* serv_cfg = NULL;
+    server_cfg_t* ret = NULL;
+    config_value_t* server_interface = NULL;
+    config_value_t* serv_config_name = NULL;
+
     LOG_INFO_0("cfgmgr_get_server_by_name method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
     // Fetching list of server interfaces
-    config_value_t* server_interface = app_interface->get_config_value(app_interface->cfg, SERVERS);
+    server_interface = app_interface->get_config_value(app_interface->cfg, SERVERS);
     if (server_interface == NULL) {
         LOG_ERROR_0("server_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Iterating through available server configs
@@ -416,32 +421,43 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
         config_value_t* serv_config = config_value_array_get(server_interface, i);
         if (serv_config == NULL) {
             LOG_ERROR_0("serv_config initialization failed");
-            return NULL;
+            goto err;
         }
-        config_value_t* serv_config_name = config_value_object_get(serv_config, "Name");
+        serv_config_name = config_value_object_get(serv_config, "Name");
         if (serv_config_name == NULL) {
             LOG_ERROR_0("serv_config_name initialization failed");
-            return NULL;
+            goto err;
         }
         // Verifying server config with name exists
         if(strcmp(serv_config_name->body.string, name) == 0) {
             server_cfg_t* serv_cfg = server_cfg_new();
             if (serv_cfg == NULL) {
                 LOG_ERROR_0("serv_cfg initialization failed");
-                return NULL;
+                goto err;
             }
             serv_cfg->server_config = serv_config;
-            return serv_cfg;
+            ret = serv_cfg;
         } else if(i == config_value_array_len(server_interface)) {
             LOG_ERROR("Servers by name %s not found", name);
-            return NULL;
+            goto err;
         }
     }
+
+err:
+    if (server_interface != NULL) {
+        config_value_destroy(server_interface);
+    }
+    if (serv_config_name != NULL) {
+        config_value_destroy(serv_config_name);
+    }
+
+    return ret;
 }
 
 // function to get server by index
 server_cfg_t* cfgmgr_get_server_by_index(app_cfg_t* app_cfg, int index) {
 
+    server_cfg_t* ret = NULL;
     LOG_INFO_0("cfgmgr_get_server_by_index method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
 
@@ -449,22 +465,29 @@ server_cfg_t* cfgmgr_get_server_by_index(app_cfg_t* app_cfg, int index) {
     config_value_t* server_interface = app_interface->get_config_value(app_interface->cfg, SERVERS);
     if (server_interface == NULL) {
         LOG_ERROR_0("server_interface initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetch Server config associated with index
     config_value_t* server_config = config_value_array_get(server_interface, index);
     if (server_config == NULL) {
         LOG_ERROR_0("server_config initialization failed");
-        return NULL;
+        goto err;
     }
     server_cfg_t* serv_cfg = server_cfg_new();
     if (serv_cfg == NULL) {
         LOG_ERROR_0("serv_cfg initialization failed");
-        return NULL;
+        goto err;
     }
     serv_cfg->server_config = server_config;
-    return serv_cfg;
+    ret = serv_cfg;
+
+err:
+    if (server_interface != NULL) {
+        config_value_destroy(server_interface);
+    }
+
+    return ret;
 }
 
 // function to get client by name

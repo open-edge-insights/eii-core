@@ -38,6 +38,8 @@ using namespace eis::config_manager;
 // Globals for cleaning up nicely
 void* g_msgbus_ctx = NULL;
 recv_ctx_t* g_service_ctx = NULL;
+ConfigMgr* g_config_mgr = NULL;
+ServerCfg* g_server_ctx = NULL;
 
 /**
  * Signal handler
@@ -54,11 +56,18 @@ void signal_handler(int signo) {
         msgbus_destroy(g_msgbus_ctx);
         g_msgbus_ctx = NULL;
     }
+    if (g_server_ctx != NULL) {
+        LOG_INFO_0("Freeing server ctx");
+        delete g_server_ctx;
+    }
+    if (g_config_mgr != NULL) {
+        LOG_INFO_0("Freeing config Mgr object")
+        delete g_config_mgr;
+    }
     LOG_INFO_0("Done.");
 }
 
 int main() {
-
     // Set log level
     set_log_level(LOG_LVL_DEBUG);
 
@@ -73,20 +82,32 @@ int main() {
     int num_parts = 0;
 
     setenv("AppName","VideoIngestion", 1);
-    ConfigMgr* config_mgr = new ConfigMgr();
+    g_config_mgr = new ConfigMgr();
 
-    ServerCfg* server_ctx = config_mgr->getServerByName("sample_server");
-    config_t* config = server_ctx->getMsgBusConfig();
+    int num_of_servers = g_config_mgr->getNumServers();
+    LOG_DEBUG("Total number of servers : %d", num_of_servers);
+
+    g_server_ctx = g_config_mgr->getServerByIndex(0);
+    //g_server_ctx = g_config_mgr->getServerByName("default");
+
+    config_t* config = g_server_ctx->getMsgBusConfig();
+    std::string ep = g_server_ctx->getEndpoint();
+    LOG_INFO("Endpoint obtained : %s", ep.c_str());
+
+    //Testing getAllowedClients API
+    std::vector<std::string> clients = g_server_ctx->getAllowedClients();
+
+    for (int i = 0; i < clients.size(); i++) {
+        LOG_INFO("Allowed clients : %s", clients[i].c_str());
+    }
 
     char* name = NULL;
-    config_value_t* interface_value = server_ctx->getInterfaceValue("Name");
+        config_value_t* interface_value = g_server_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
         goto err;
     }
-
     name = interface_value->body.string;
-    
     LOG_INFO("interface value is %s", name);
 
     g_msgbus_ctx = msgbus_initialize(config);
@@ -103,6 +124,9 @@ int main() {
     }
 
     LOG_INFO_0("Running...");
+    if (interface_value != NULL) {
+        config_value_destroy(interface_value);
+    }
 
     while(g_service_ctx != NULL) {
         ret = msgbus_recv_wait(g_msgbus_ctx, g_service_ctx, &msg);
