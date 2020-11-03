@@ -101,6 +101,7 @@ cd $EISMessageBus/../../util/c/ &&
    ./log-tests
    ./thp-tests
    ./tsp-tests
+   ./thexec-tests
    cd .. ; fi  && \
    make install
 
