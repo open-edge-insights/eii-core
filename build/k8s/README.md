@@ -10,11 +10,9 @@ EIS Orchestration using k8s Orchestrator.
 
 4. [Steps for Enabling Basler Camera with k8s](#steps-for-enabling-basler-camera-with-k8s)
 
-5. [Steps for Multinode Deployment](README_Multinode_deployment.md)
+5. [Steps for Multinode Deployment](#steps-for-multinode-deployment)
 
 6. [Steps to enable Accelarators](#steps-to-enable-accelarators)
-
-
 ## K8s Setup
 
   > **Note**:
@@ -25,10 +23,8 @@ EIS Orchestration using k8s Orchestrator.
   > 2.  /etc/systemd/system/docker.service.d/http-proxy.conf
   > 3.  ~/.docker/config.json
 
-  > `K8s Master node & Worker(s) node Setup should be done as pre-requisite to continue the following deployment`
-
+  > `K8s installation should be done as pre-requisite to continue the following deployment`
 ## Provisioning EIS with k8s
-
   > 1. EIS Deployment with k8s can be done in **PROD** & **DEV** mode.
   > 2. For running EIS in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
   > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before k8s Provisioning.
@@ -51,7 +47,7 @@ EIS Orchestration using k8s Orchestrator.
 
   * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
 
-  * Provision EIS with K8s.
+  * Provision EIS with K8s. 
     ```sh
     $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 
@@ -71,6 +67,72 @@ EIS Orchestration using k8s Orchestrator.
 
     eq. $ sudo ./provision_eis.sh ../docker-compose.yml
     ```
+## Steps for Multinode Deployment
+ > 1. `K8s Master node & Worker(s) node Setup should be done as pre-requisite to continue the following deployment`
+ > 2. `This step is not required for **Single Node** deployment`
+  * Master Node provisoning: Follow steps mentioned in below links.
+    1. [Change for Master Provision for Multinode Deployment](###change-for-master-provision-for-multinode-deployment)
+    2. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
+  * Worker Node provisoning: Follow steps mentioned in below links.
+     1. [EIS Provision Bundle creation for k8s worker node](#EIS-Provision-Bundle-creation-for-k8s-worker-node)
+     2. [EIS k8s Worker Node provisioning for MultiNode deployment](#EIS-k8s-Worker-Node-provisioning-for-MultiNode-deployment)
+
+### Change for Master Provision for Multinode Deployment.
+ * Get the master node name by running below command.
+    ```sh
+    $ kubectl get nodes
+    ```
+      It will display NAME along with ROLES. Copy the complete `name` of Node with ROLES as `master`.
+      ```
+      E.g.
+      $ kubectl get nodes
+      NAME     STATUS          ROLES    AGE   VERSION
+      coolm    Ready           master   67d   v1.18.6
+      ```
+      For example, copied `coolm` from above.
+  * Add copied master node name(e.g. coolm) with label `nodeName under spec of Pod ia-etcd as nodeName:` in below yaml based on DEV mode.
+    * If DEV mode =TRUE  [build/provision/dep/k8s/etcd_devmode.yml](../../build/provision/dep/k8s/etcd_devmode.yml)
+    * IF DEV mode=FALSE  [build/provision/dep/k8s/etcd_prodmode.yml](../../build/provision/dep/k8s/etcd_prodmode.yml)
+
+    This will enable etcd to run always on master node.
+
+    For example, added  `nodeName:coolm` in etcd_devmode.yaml or etcd_prodmode.yaml which was copied above.
+    ```
+     E.g.
+     spec:
+       restartPolicy: OnFailure
+       nodeName: coolm
+     ```
+### EIS Provision Bundle creation for k8s worker node.
+> 1. This step is not required for **Single Node** deployment
+> 2. Provisioning bundle will be generated on k8s `Master node`.
+> 3. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env) of Master node.
+> 4. Run all steps on Master node.
+  * Set `PROVISION_MODE=k8s` in [build/provision/.env](../build/provision/.env) file.
+  * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
+  * Generate Provisioning bundle for k8s worker node provisioning.
+
+    ```sh
+      $ sudo python3 generate_eis_bundle.py -p
+    ```
+### EIS `k8s Worker Node` provisioning for MultiNode deployment
+>**Note**:
+> 1. This should be executed in k8s worker nodes in ***Multi node
+>    scenario*** only.
+> 2. This step is not required for **Single Node** deployment
+> 3. Provisioning bundle generated on k8s Master node will be copied to worker node.
+  * Copy the `eis_provisioning.tar.gz` file from k8s master node to worker node(s).
+
+      ```sh
+          $ sudo scp <eis_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
+          $ sudo tar -xvf <eis_provisioning.tar.gz>
+          $ cd <eis_provisioning>
+      ```
+  * Provision the EIS in k8s Worker Node.
+      ```sh
+          $ cd provision
+          $ sudo ./provision_eis.sh
+      ```
 ## Steps for Enabling Basler Camera with k8s
    > **Note:** For more information on `Multus` please refer this git https://github.com/intel/multus-cni
    > Skip installing multus if it is already installed and execute others.
