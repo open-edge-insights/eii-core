@@ -97,6 +97,11 @@ config_value_t* etcd_get_prefix(void* handle, char *key) {
 
     values = config_value_new_array(
                 (void*) all_values , cJSON_GetArraySize(all_values), get_array_item, NULL);
+    if (values == NULL) {
+        LOG_ERROR_0("Failed to allocate memory for etcd prefix");
+        cJSON_Delete(all_values);
+        return NULL;
+    }
 
     return values;
 }
