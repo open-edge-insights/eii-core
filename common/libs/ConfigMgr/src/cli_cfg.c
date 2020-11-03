@@ -25,6 +25,7 @@
 
 
 #include "eis/config_manager/client_cfg.h"
+#include "eis/config_manager/util_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
@@ -55,6 +56,19 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
     void* cfgmgr_handle = base_cfg->cfgmgr_handle;
+    config_t* m_config = NULL;
+    config_value_t* server_appname = NULL;
+    config_value_t* zmq_recv_hwm_value = NULL;
+    config_value_t* client_endpoint = NULL;
+    config_value_t* client_config_type = NULL;
+    char** host_port = NULL;
+    char* host = NULL;
+    char* port = NULL;
+    char* s_client_pri_key = NULL;
+    char* s_client_public_key = NULL;
+    char* retreive_server_pub_key = NULL;
+    const char* sub_public_key = NULL;
+    const char* sub_pri_key = NULL;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -67,22 +81,22 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     config_value_t* client_name = config_value_object_get(cli_config, NAME);
     if (client_name == NULL) {
         LOG_ERROR_0("client_name initialization failed");
-        return NULL;
+        goto err;
     }
 
     // Fetching Type from config
-    config_value_t* client_config_type = config_value_object_get(cli_config, TYPE);
+    client_config_type = config_value_object_get(cli_config, TYPE);
     if (client_config_type == NULL) {
         LOG_ERROR_0("client_config_type object initialization failed");
-        return NULL;
+        goto err;
     }
     char* type = client_config_type->body.string;
 
     // Fetching EndPoint from config
-    config_value_t* client_endpoint = config_value_object_get(cli_config, ENDPOINT);
+    client_endpoint = config_value_object_get(cli_config, ENDPOINT);
     if (client_endpoint == NULL) {
         LOG_ERROR_0("client_endpoint object initialization failed");
-        return NULL;
+        goto err;
     }
     const char* end_point = client_endpoint->body.string;
 
@@ -91,7 +105,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* ep_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_ENDPOINT");
     if (ep_override_env == NULL) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
-        return NULL;
+        goto err;
     }
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
@@ -116,7 +130,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* type_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_TYPE");
     if (type_override_env == NULL) {
         LOG_ERROR_0("concatenation for type_override_env failed");
-        return NULL;
+        goto err;
     }
     char* type_override = getenv(type_override_env);
     if (type_override != NULL) {
@@ -138,30 +152,33 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Adding zmq_recv_hwm value if available
-    config_value_t* zmq_recv_hwm_value = config_value_object_get(cli_config, ZMQ_RECV_HWM);
+    zmq_recv_hwm_value = config_value_object_get(cli_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
-            return NULL;
+            goto err;
         }
         cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        // Add Endpoint directly to socket_dir if IPC mode
-        cJSON_AddStringToObject(c_json, "socket_dir", end_point);
+        bool ret = get_ipc_config(c_json, cli_config, end_point);
+        if (ret == false){
+            LOG_ERROR_0("IPC configuration for client failed");
+            return NULL;
+        }
     } else if (!strcmp(type, "zmq_tcp")) {
 
         // Add host & port to client_topic cJSON object
         cJSON* client_topic = cJSON_CreateObject();
         if (client_topic == NULL) {
             LOG_ERROR_0("client_topic object initialization failed");
-            return NULL;
+            goto err;
         }
-        char** host_port = get_host_port(end_point);
-        char* host = host_port[0];
+        host_port = get_host_port(end_point);
+        host = host_port[0];
         trim(host);
-        char* port = host_port[1];
+        port = host_port[1];
         trim(port);
         __int64_t i_port = atoi(port);
 
@@ -170,16 +187,16 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
 
         if(dev_mode != 0) {
 
-             // Fetching Server AppName from config
-            config_value_t* server_appname = config_value_object_get(cli_config, SERVER_APPNAME);
+            // Fetching Server AppName from config
+            server_appname = config_value_object_get(cli_config, SERVER_APPNAME);
             if (server_appname == NULL) {
                 LOG_ERROR_0("server_appname object initialization failed");
-                return NULL;
+                goto err;
             }
 
             // Adding server public key to config
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(server_appname->body.string) + 2;
-            char* retreive_server_pub_key = concat_s(init_len, 2, PUBLIC_KEYS, server_appname->body.string);
+            retreive_server_pub_key = concat_s(init_len, 2, PUBLIC_KEYS, server_appname->body.string);
             const char* server_public_key = m_kv_store_handle->get(cfgmgr_handle, retreive_server_pub_key);
             if(server_public_key == NULL){
                 LOG_WARN("Value is not found for the key: %s", retreive_server_pub_key);
@@ -187,26 +204,31 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
 
             cJSON_AddStringToObject(client_topic, "server_public_key", server_public_key);
 
+            // free server_pub_key
+            if (server_public_key != NULL) {
+                free(server_public_key);
+            }
+
             // Adding client public key to config
             init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + strlen(app_name) + 2;
-            char* s_client_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
-            const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, s_client_public_key);
+            s_client_public_key = concat_s(init_len, 2, PUBLIC_KEYS, app_name);
+            sub_public_key = m_kv_store_handle->get(cfgmgr_handle, s_client_public_key);
             if(sub_public_key == NULL){
                 LOG_ERROR("Value is not found for the key: %s", s_client_public_key);
-                return NULL;
+                goto err;
             }
 
             cJSON_AddStringToObject(client_topic, "client_public_key", sub_public_key);
 
             // Adding client private key to config
             init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
-            char* s_client_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
-            const char* sub_pri_key = m_kv_store_handle->get(cfgmgr_handle, s_client_pri_key);
+            s_client_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
+            sub_pri_key = m_kv_store_handle->get(cfgmgr_handle, s_client_pri_key);
             if(sub_pri_key == NULL){
                 LOG_ERROR("Value is not found for the key: %s", s_client_pri_key);
-                return NULL;
+                goto err;
             }
-
+            
             cJSON_AddStringToObject(client_topic, "client_secret_key", sub_pri_key);
         }
         // Creating the final cJSON config object
@@ -216,17 +238,62 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* config_value = cJSON_Print(c_json);
     if (config_value == NULL) {
         LOG_ERROR_0("config_value object initialization failed");
-        return NULL;
+        goto err;
     }
     LOG_DEBUG("Env client Config is : %s \n", config_value);
 
-    config_t* m_config = config_new(
+    m_config = config_new(
             (void*) c_json, free_json, get_config_value);
     if (m_config == NULL) {
         LOG_ERROR_0("Failed to initialize configuration object");
-        return NULL;
     }
 
+err:
+    if (s_client_pri_key != NULL) {
+        free(s_client_pri_key);
+    }
+    if (s_client_public_key != NULL) {
+        free(s_client_public_key);
+    }
+    if (retreive_server_pub_key != NULL) {
+        free(retreive_server_pub_key);
+    }
+    if (sub_public_key != NULL) {
+        free(sub_public_key);
+    }
+    if (sub_pri_key != NULL) {
+        free(sub_pri_key);
+    }
+    if (config_value != NULL) {
+        free(config_value);
+    }
+    if (host_port != NULL) {
+        free_mem(host_port);
+    }
+    if (type_override != NULL) {
+        free(type_override);
+    }
+    if(client_config_type != NULL) {
+        config_value_destroy(client_config_type);
+    }
+    if (client_endpoint  != NULL) {
+        config_value_destroy(client_endpoint);
+    }
+    if (client_name != NULL) {
+        config_value_destroy(client_name);
+    }
+    if (ep_override_env != NULL) {
+        free(ep_override_env);
+    }
+    if (type_override_env != NULL) {
+        free(type_override_env);
+    }
+    if (zmq_recv_hwm_value != NULL) {
+        config_value_destroy(zmq_recv_hwm_value);
+    }
+    if (server_appname != NULL) {
+        config_value_destroy(server_appname);
+    }
     return m_config;
 }
 
