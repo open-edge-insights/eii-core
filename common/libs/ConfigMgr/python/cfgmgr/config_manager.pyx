@@ -33,6 +33,7 @@ from .subscriber cimport Subscriber
 from .app_config import AppCfg
 from .server cimport Server
 from .client cimport Client
+from libc.stdlib cimport free
 
 
 cdef class ConfigMgr:
@@ -82,6 +83,12 @@ cdef class ConfigMgr:
         """Deconstructor
         """
         if self.app_cfg != NULL:
+            # TODO Uncommenting below lines fixes the leak but there is a 
+            # error in destructor path as invalid chunk size in malloc.
+            # needed a proper fix.
+            #if self.app_cfg.base_cfg != NULL:
+                #base_cfg_config_destroy(self.app_cfg.base_cfg)
+            free(self.app_cfg.env_var)
             app_cfg_config_destroy(self.app_cfg)
 
     def get_app_config(self):
@@ -142,12 +149,14 @@ cdef class ConfigMgr:
             if appname is NULL:
                 raise Exception("Getting AppName from base c layer failed")
 
-            app_name = appname.body.string
-            if app_name is NULL:
+            if appname.body.string is NULL:
                 raise Exception("Extraction of string from appname cvt failed")
 
+            app_name = str(appname.body.string)
+
             # Returning python string of appname
-            return app_name.decode("utf-8")
+            config_value_destroy(appname)
+            return app_name
         except Exception as ex:
             raise ex
 
