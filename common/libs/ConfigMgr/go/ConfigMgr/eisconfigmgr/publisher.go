@@ -28,6 +28,7 @@ import "unsafe"
 type PublisherCfg struct {
 	pubCfg unsafe.Pointer
 	appCfg unsafe.Pointer
+	msgBusCfg unsafe.Pointer
 }
 
 
@@ -78,4 +79,8 @@ func (pubctx *PublisherCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 		return nil, err
 	}
 	return interfaceVal, nil
+}
+
+func (pubctx *PublisherCfg) Destroy() {
+	pubctx.destroyPublisher()
 }

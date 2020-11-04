@@ -28,6 +28,7 @@ import "unsafe"
 type ClientCfg struct {
 	clientCfg unsafe.Pointer
 	appCfg unsafe.Pointer
+	msgBusCfg unsafe.Pointer
 } 
 
 func (clientctx *ClientCfg) GetEndPoints() (string, error) {
@@ -56,4 +57,8 @@ func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 		return nil, err
 	}
 	return interfaceVal, nil
+}
+
+func (clientctx *ClientCfg) Destroy() {
+	clientctx.destroyClient()
 }

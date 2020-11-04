@@ -39,6 +39,8 @@ func main() {
 		return
 	}
 
+	defer configMgr.Destroy()
+
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
 		fmt.Printf("Running in DEV mode\n")
@@ -62,6 +64,8 @@ func main() {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
+
+	defer pubCtx.Destroy()
 
 	endpoint, err:= pubCtx.GetEndPoints()
 	if err != nil {
@@ -168,7 +172,7 @@ func main() {
 		"empty": nil,
 	}
 
-	for {
+	for i := 1 ; i <= 10; i++ {
 		err = publisher.Publish(msg)
 		if err != nil {
 			fmt.Printf("-- Failed to publish message: %v\n", err)
@@ -176,5 +180,4 @@ func main() {
 		}
 		time.Sleep(1 * time.Second)
 	}
-
 }

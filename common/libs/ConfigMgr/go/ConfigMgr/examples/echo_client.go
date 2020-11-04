@@ -40,6 +40,7 @@ func main() {
 		return
 	}
 
+	defer configMgr.Destroy()
 
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
@@ -64,6 +65,8 @@ func main() {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
+
+	defer clientCtx.Destroy()
 
 	endpoint, err := clientCtx.GetEndPoints()
 	if err != nil {
@@ -140,5 +143,4 @@ func main() {
 		fmt.Printf("-- Received response: %v\n", resp)
 		time.Sleep(1)
 	}
-
 }

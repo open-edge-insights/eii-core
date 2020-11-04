@@ -31,9 +31,11 @@ import (
 func main() {
 	os.Setenv("AppName", "VideoIngestion")
 
-	config_mgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, _ := eiscfgmgr.ConfigManager()
 
-	appConfig, err := config_mgr.GetAppConfig()
+	appConfig, err := configMgr.GetAppConfig()
+
+	defer configMgr.Destroy()
 
 	if err != nil {
 		fmt.Println("Error found:", err)
