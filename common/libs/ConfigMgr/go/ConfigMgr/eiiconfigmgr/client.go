@@ -30,12 +30,19 @@ type ClientCfg struct {
 	appCfg unsafe.Pointer
 } 
 
-func (clientctx *ClientCfg) GetEndPoints() string {
-	return clientctx.getEndPoints()
+func (clientctx *ClientCfg) GetEndPoints() (string, error) {
+	endPoint, err:=  clientctx.getEndPoints()
+	if err != nil {
+		return "", err
+	}
+	return endPoint, nil
 }
 
 func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
-	conf := clientctx.getMsgbusConfig()
+	conf, err:= clientctx.getMsgbusConfig()
+	if err != nil {
+		return nil, err
+	}
 	config, err :=  string_to_map_interface(conf)
 	if err != nil {
 		return nil, err
@@ -44,5 +51,9 @@ func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 }
 
 func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
-	return clientctx.getInterfaceValue(key)
+	interfaceVal, err:= clientctx.getInterfaceValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return interfaceVal, nil
 }

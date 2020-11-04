@@ -32,15 +32,44 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "GoSubscriber")
+	os.Setenv("AppName", "VideoAnalytics")
 
-	configMgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, err := eiscfgmgr.ConfigManager()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 
-	// clientCtx, _ := configMgr.GetClientByName("sample_client")
 
-	clientCtx, _ := configMgr.GetClientByIndex(0)
+	devMode, _ := configMgr.IsDevMode()
+	if devMode {
+		fmt.Printf("Running in DEV mode\n")
+	} else {
+		fmt.Printf("Running in PROD mode\n")
+	}
 
-	endpoint := clientCtx.GetEndPoints()
+	appName, err := configMgr.GetAppName()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+	fmt.Printf("AppName : %v\n", appName)
+
+	numOfClients, _ := configMgr.GetNumClients()
+	fmt.Printf("Clients : %v\n", numOfClients)
+
+	clientCtx, err := configMgr.GetClientByName("default")
+	// clientCtx, err := configMgr.GetClientByIndex(0)
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+
+	endpoint, err := clientCtx.GetEndPoints()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Printf("Client endpoint:%s", endpoint)
 
 	interfaceVal, err := clientCtx.GetInterfaceValue("Name")

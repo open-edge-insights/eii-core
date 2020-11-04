@@ -31,9 +31,13 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "GoPublisher")
+	os.Setenv("AppName", "VideoIngestion")
 
-	configMgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, err := eiscfgmgr.ConfigManager()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
@@ -42,26 +46,28 @@ func main() {
 		fmt.Printf("Running in PROD mode\n")
 	}
 
-	appName, _ := configMgr.GetAppName()
+	appName, err := configMgr.GetAppName()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Printf("AppName : %v\n", appName)
 
 	numOfPublishers, _ := configMgr.GetNumPublishers()
 	fmt.Printf("Publishers : %v\n", numOfPublishers)
 
-	numOfSubscribers, _ := configMgr.GetNumSubscribers()
-	fmt.Printf("Subscribers : %v\n", numOfSubscribers)
+	pubCtx, err := configMgr.GetPublisherByName("default")
+	// pubCtx, err := configMgr.GetPublisherByIndex(0)
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 
-	numOfServers, _ := configMgr.GetNumServers()
-	fmt.Printf("Servers : %v\n", numOfServers)
-
-	numOfClients, _ := configMgr.GetNumClients()
-	fmt.Printf("Clients : %v\n", numOfClients)
-
-	// pubCtx, _ := configMgr.GetPublisherByName("sample_pub")
-
-	pubCtx, _ := configMgr.GetPublisherByIndex(0)
-
-	endpoint := pubCtx.GetEndPoints()
+	endpoint, err:= pubCtx.GetEndPoints()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("endpoint:", endpoint)
 
 	config, err := pubCtx.GetMsgbusConfig()
@@ -73,15 +79,24 @@ func main() {
 
 	fmt.Println("GetMsgbusConfig:", config)
 
-	topics := pubCtx.GetTopics()
+	topics, err := pubCtx.GetTopics()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+
 	fmt.Println("Publisher Topics")
 	for _, s := range topics {
 		fmt.Println(s)
 	}
 
-	allowed_clients := pubCtx.GetAllowedClients()
+	allowedClients, err := pubCtx.GetAllowedClients()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("Publiser Allowed Clients")
-	for _, s := range allowed_clients {
+	for _, s := range allowedClients {
 		fmt.Println(s)
 	}
 
@@ -93,7 +108,11 @@ func main() {
 		fmt.Println("Failed to set pub topics")
 	}
 
-	topics2 := pubCtx.GetTopics()
+	topics2, err:= pubCtx.GetTopics()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("Publisher Topics....")
 	for _, s := range topics2 {
 		fmt.Println(s)

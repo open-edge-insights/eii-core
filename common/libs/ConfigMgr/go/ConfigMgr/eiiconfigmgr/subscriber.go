@@ -30,17 +30,28 @@ type SubscriberCfg struct {
 	appCfg unsafe.Pointer
 }
 
-func (subctx *SubscriberCfg) GetEndPoints() string {
-	return subctx.getEndPoints()
+func (subctx *SubscriberCfg) GetEndPoints() (string, error) {
+	endPoint, err:=  subctx.getEndPoints()
+	if err != nil {
+		return "", err
+	}
+	return endPoint, nil
 }
 
 
-func (subctx *SubscriberCfg) GetTopics() []string {
-	return subctx.getTopics()	 
+func (subctx *SubscriberCfg) GetTopics() ([]string, error) {	 
+	topics, err:=  subctx.getTopics()
+	if err != nil {
+		return []string{""}, err
+	}
+	return topics, nil
 }
 
 func (subctx *SubscriberCfg) GetMsgbusConfig() (map[string]interface{}, error) {
-	conf := subctx.getMsgbusConfig()
+	conf, err := subctx.getMsgbusConfig()
+	if err != nil {
+		return nil, err
+	}
 	config, err :=  string_to_map_interface(conf)
 	if err != nil {
 		return nil, err
@@ -53,5 +64,9 @@ func (subctx *SubscriberCfg) SetTopics(topics []string) bool {
 }
 
 func (subctx *SubscriberCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
-	return subctx.getInterfaceValue(key)
+	interfaceVal, err:= subctx.getInterfaceValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return interfaceVal, nil
 }

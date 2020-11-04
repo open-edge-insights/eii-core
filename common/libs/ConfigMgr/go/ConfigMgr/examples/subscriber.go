@@ -30,14 +30,36 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "GoSubscriber")
+	os.Setenv("AppName", "VideoAnalytics")
 
-	configMgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, err := eiscfgmgr.ConfigManager()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 
-	// subCtx, _ := configMgr.GetSubscriberByName("sample_sub")
-	subCtx, _ := configMgr.GetSubscriberByIndex(0)
+	appName, err := configMgr.GetAppName()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+	fmt.Printf("AppName : %v\n", appName)
 
-	endpoint := subCtx.GetEndPoints()
+	numOfSubscribers, _ := configMgr.GetNumSubscribers()
+	fmt.Printf("Subscribers : %v\n", numOfSubscribers)
+
+	subCtx, err := configMgr.GetSubscriberByName("default")
+	// subCtx, err := configMgr.GetSubscriberByIndex(0)
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+
+	endpoint, err := subCtx.GetEndPoints()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Printf("Subscriber endpoint:%s", endpoint)
 
 	config, err := subCtx.GetMsgbusConfig()
@@ -49,7 +71,11 @@ func main() {
 
 	fmt.Printf("GetMsgbusConfig:%v", config)
 
-	topics := subCtx.GetTopics()
+	topics, err := subCtx.GetTopics()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("Subscriber Topics:", topics)
 	for _, s := range topics {
 		fmt.Println(s)
@@ -63,7 +89,11 @@ func main() {
 		fmt.Println("Failed to set sub topics")
 	}
 
-	topics2 := subCtx.GetTopics()
+	topics2, err := subCtx.GetTopics()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("Publisher New Topics....")
 	for _, s := range topics2 {
 		fmt.Println(s)
