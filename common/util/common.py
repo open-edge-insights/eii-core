@@ -287,7 +287,7 @@ class Visualizer:
                     self.draw_defect(metadata, frame, stream_label)
 
                 if self.save_image:
-                    self.save_images(results, frame)
+                    self.save_images(metadata, frame)
 
                 self.queue_publish(topic, frame)
             else:
