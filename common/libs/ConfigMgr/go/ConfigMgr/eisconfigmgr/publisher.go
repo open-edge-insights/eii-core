@@ -31,21 +31,35 @@ type PublisherCfg struct {
 }
 
 
-func (pubctx *PublisherCfg) GetEndPoints() string {
-	return pubctx.getEndPoints()
+func (pubctx *PublisherCfg) GetEndPoints() (string, error) {
+	endPoint, err:=  pubctx.getEndPoints()
+	if err != nil {
+		return "", err
+	}
+	return endPoint, nil
 }
 
-
-func (pubctx *PublisherCfg) GetTopics() []string {
-	return pubctx.getTopics()	 
+func (pubctx *PublisherCfg) GetTopics() ([]string, error) {
+	topics, err:=  pubctx.getTopics()
+	if err != nil {
+		return []string{""}, err
+	}
+	return topics, nil
 }
 
-func (pubctx *PublisherCfg) GetAllowedClients() []string {
-	return pubctx.getAllowedClients()
+func (pubctx *PublisherCfg) GetAllowedClients() ([]string, error) {
+	allowedClients, err:=  pubctx.getAllowedClients()
+	if err != nil {
+		return []string{""}, err
+	}
+	return allowedClients, nil
 }
 
 func (pubctx *PublisherCfg) GetMsgbusConfig() (map[string]interface{}, error) {
-	conf := pubctx.getMsgbusConfig()
+	conf, err:= pubctx.getMsgbusConfig()
+	if err != nil {
+		return nil, err
+	}
 	config, err :=  string_to_map_interface(conf)
 	if err != nil {
 		return nil, err
@@ -59,5 +73,9 @@ func (pubctx *PublisherCfg) SetTopics(topics []string) bool {
 }
 
 func (pubctx *PublisherCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
-	return pubctx.getInterfaceValue(key)
+	interfaceVal, err:= pubctx.getInterfaceValue(key)
+	if err != nil {
+		return nil, err
+	}
+	return interfaceVal, nil
 }

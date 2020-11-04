@@ -30,15 +30,44 @@ import (
 )
 
 func main() {
-	os.Setenv("AppName", "GoPublisher")
+	os.Setenv("AppName", "VideoIngestion")
 
-	configMgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, err := eiscfgmgr.ConfigManager()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Printf("client obj: %v", configMgr)
 
-	// serverCtx,_ := configMgr.GetServerByName("echo_service")
-	serverCtx, _ := configMgr.GetServerByIndex(0)
+	devMode, _ := configMgr.IsDevMode()
+	if devMode {
+		fmt.Printf("Running in DEV mode\n")
+	} else {
+		fmt.Printf("Running in PROD mode\n")
+	}
 
-	endpoint := serverCtx.GetEndPoints()
+	appName, err := configMgr.GetAppName()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+	fmt.Printf("AppName : %v\n", appName)
+
+	numOfServers, _ := configMgr.GetNumServers()
+	fmt.Printf("Servers : %v\n", numOfServers)
+
+	serverCtx, err := configMgr.GetServerByName("default")
+	// serverCtx, err := configMgr.GetServerByIndex(0)
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+
+	endpoint, err:= serverCtx.GetEndPoints()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
 	fmt.Println("endpoint:", endpoint)
 
 	interfaceVal, err := serverCtx.GetInterfaceValue("Name")
@@ -64,8 +93,12 @@ func main() {
 	fmt.Println("config:", config["echo_service"])
 
 	fmt.Println("Allowed clients for server")
-	allowed_clients := serverCtx.GetAllowedClients()
-	for _, s := range allowed_clients {
+	allowedClients, err:= serverCtx.GetAllowedClients()
+	if err != nil {
+		fmt.Printf("Error occured with error:%v", err)
+		return
+	}
+	for _, s := range allowedClients {
 		fmt.Println(s)
 	}
 
