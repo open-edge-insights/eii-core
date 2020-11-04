@@ -320,6 +320,9 @@ pub_cfg_t* pub_cfg_new() {
 // function to destroy cli_cfg_t
 void pub_cfg_config_destroy(pub_cfg_t *pub_cfg_config) {
     if(pub_cfg_config != NULL) {
+        if (pub_cfg_config->pub_config != NULL){
+            config_value_destroy(pub_cfg_config->pub_config);
+        }
         free(pub_cfg_config);
     }
 }

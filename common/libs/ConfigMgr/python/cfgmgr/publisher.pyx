@@ -24,7 +24,9 @@ import json
 
 from .libneweisconfigmgr cimport *
 from libc.stdlib cimport malloc
+from libc.stdlib cimport free
 from .util cimport Util
+import logging
 
 
 cdef class Publisher:
@@ -67,6 +69,7 @@ cdef class Publisher:
         """Destroy the publisher.
         """
         if self.pub_cfg != NULL:
+            logging.warning("going to destoryDAS ##########")
             pub_cfg_config_destroy(self.pub_cfg)
 
     def get_msgbus_config(self):
@@ -76,6 +79,7 @@ cdef class Publisher:
         :rtype: dict
         """
         cdef char* config
+        #cdef config_t* msgbus_config
         try:
             msgbus_config = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg, self.pub_cfg)
             if msgbus_config is NULL:
@@ -86,6 +90,8 @@ cdef class Publisher:
                 raise Exception("[Publisher] config failed to get converted to char")
 
             config_str = config.decode('utf-8')
+            free(config)
+            #config_destroy(msgbus_config)
             return json.loads(config_str)
         except Exception as ex:
             raise ex
@@ -252,7 +258,7 @@ cdef class Publisher:
             topics_set = self.pub_cfg.cfgmgr_set_topics_pub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.pub_cfg)
             if topics_set is not 0 :
                 raise Exception("[Publisher] Set Topics in base c layer failed")
-
+            free(topics_to_be_set)
             return topics_set
         except Exception as ex:
             raise ex
