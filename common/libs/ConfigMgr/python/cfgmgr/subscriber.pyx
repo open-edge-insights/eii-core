@@ -25,6 +25,7 @@ import json
 
 from .libneweisconfigmgr cimport *
 from libc.stdlib cimport malloc
+from libc.stdlib cimport free
 from .util cimport Util
 
 
@@ -77,6 +78,7 @@ cdef class Subscriber:
         :rtype: dict
         """
         cdef char* config
+        cdef config_t* msgbus_config
         try:
             msgbus_config = self.sub_cfg.cfgmgr_get_msgbus_config_sub(self.app_cfg.base_cfg, self.sub_cfg)
             if msgbus_config is NULL:
@@ -87,6 +89,8 @@ cdef class Subscriber:
                     raise Exception("[Subscriber] config failed to get converted to char")
 
             config_str = config.decode('utf-8')
+            free(config)
+            config_destroy(msgbus_config)
             return json.loads(config_str)
         except Exception as ex:
             raise ex
@@ -214,7 +218,7 @@ cdef class Subscriber:
             topics_set = self.sub_cfg.cfgmgr_set_topics_sub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.sub_cfg)
             if topics_set is not 0 :
                     raise Exception("[Subscriber] Set Topics in base c layer failed")
-
+            free(topics_to_be_set)
             return topics_set
         except Exception as ex:
             raise ex

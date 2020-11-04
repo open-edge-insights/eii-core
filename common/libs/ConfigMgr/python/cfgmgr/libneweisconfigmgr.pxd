@@ -138,3 +138,4 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
     size_t config_value_array_len(const config_value_t* arr)
     config_value_t* config_value_array_get(const config_value_t* arr, int idx)
     void config_value_destroy(config_value_t* value)
+    void config_destroy(config_t* config)

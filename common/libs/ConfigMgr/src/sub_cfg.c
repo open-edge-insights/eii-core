@@ -336,6 +336,9 @@ sub_cfg_t* sub_cfg_new() {
 // function to destroy sub_cfg_t
 void sub_cfg_config_destroy(sub_cfg_t *pub_cfg_config) {
     if(pub_cfg_config != NULL) {
+        if (pub_cfg_config->sub_config != NULL) {
+            config_value_destroy(pub_cfg_config->sub_config);
+        }
         free(pub_cfg_config);
     }
 }
