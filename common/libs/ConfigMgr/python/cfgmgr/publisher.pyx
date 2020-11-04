@@ -69,7 +69,6 @@ cdef class Publisher:
         """Destroy the publisher.
         """
         if self.pub_cfg != NULL:
-            logging.warning("going to destoryDAS ##########")
             pub_cfg_config_destroy(self.pub_cfg)
 
     def get_msgbus_config(self):
@@ -79,7 +78,7 @@ cdef class Publisher:
         :rtype: dict
         """
         cdef char* config
-        #cdef config_t* msgbus_config
+        cdef config_t* msgbus_config
         try:
             msgbus_config = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg, self.pub_cfg)
             if msgbus_config is NULL:
@@ -91,7 +90,9 @@ cdef class Publisher:
 
             config_str = config.decode('utf-8')
             free(config)
-            #config_destroy(msgbus_config)
+            # This also fixes a memory leak but unable to call this function from here.
+            # cython complains it to be a python object. Need more analysis.
+            config_destroy(msgbus_config)
             return json.loads(config_str)
         except Exception as ex:
             raise ex

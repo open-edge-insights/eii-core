@@ -87,7 +87,7 @@ cdef class ConfigMgr:
             # error in destructor path as invalid chunk size in malloc.
             # needed a proper fix.
             #if self.app_cfg.base_cfg != NULL:
-                #base_cfg_config_destroy(self.app_cfg.base_cfg)
+            #       base_cfg_config_destroy(self.app_cfg.base_cfg)
             free(self.app_cfg.env_var)
             app_cfg_config_destroy(self.app_cfg)
 
