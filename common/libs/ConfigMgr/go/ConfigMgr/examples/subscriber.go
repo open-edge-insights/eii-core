@@ -38,6 +38,8 @@ func main() {
 		return
 	}
 
+	defer configMgr.Destroy()
+	
 	appName, err := configMgr.GetAppName()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -48,12 +50,14 @@ func main() {
 	numOfSubscribers, _ := configMgr.GetNumSubscribers()
 	fmt.Printf("Subscribers : %v\n", numOfSubscribers)
 
-	subCtx, err := configMgr.GetSubscriberByName("default")
-	// subCtx, err := configMgr.GetSubscriberByIndex(0)
+	// subCtx, err := configMgr.GetSubscriberByName("default")
+	subCtx, err := configMgr.GetSubscriberByIndex(0)
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
+
+	defer subCtx.Destroy()
 
 	endpoint, err := subCtx.GetEndPoints()
 	if err != nil {
@@ -131,5 +135,4 @@ func main() {
 			fmt.Printf("-- Error receiving message: %v\n", err)
 		}
 	}
-
 }

@@ -28,6 +28,7 @@ import "unsafe"
 type ServerCfg struct {
 	serverCfg unsafe.Pointer
 	appCfg unsafe.Pointer
+	msgBusCfg unsafe.Pointer
 }
 
 func (serverctx *ServerCfg) GetEndPoints() (string, error) {
@@ -64,4 +65,8 @@ func (serverctx *ServerCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 		return nil, err
 	}
 	return interfaceVal, nil
+}
+
+func (serverctx *ServerCfg) Destroy() {
+	serverctx.destroyServer()
 }

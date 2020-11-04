@@ -227,7 +227,7 @@ static inline void destroy_char_arr(char_arr_t* char_arr) {
 }
 
 // ---------------CONFIG MANGER--------------------
-static inline void* create_new_cfg_mr(){
+static inline void* create_new_cfg_mr() {
 	app_cfg_t* app_cfg = app_cfg_new();
 	if (app_cfg == NULL){
 		LOG_ERROR_0("App Cfg failed in base c layer");
@@ -246,6 +246,7 @@ static inline char* get_env_var(void* app_cfg) {
 }
 
 static inline char* get_app_name(void* app_cfg) {
+	int ret;
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
 		LOG_ERROR_0("App or base config is NULL");
@@ -263,9 +264,21 @@ static inline char* get_app_name(void* app_cfg) {
         if (appname->body.string == NULL) {
             LOG_ERROR_0("AppName is NULL");
             return NULL;
-        }
+    	}
     }
-    return appname->body.string;
+    int app_len = strlen(appname->body.string);
+    char* c_appname = (char*)malloc(app_len + 1);
+    if (c_appname == NULL) {
+	LOG_ERROR_0("Failed to malloc for appname");
+    }
+    ret = strncpy_s(c_appname, app_len + 1, appname->body.string, app_len);
+    if (ret != 0) {
+	LOG_ERROR_0("String copy failed for appname");
+	free(c_appname);
+	return NULL;
+    }
+    config_value_destroy(appname);
+    return c_appname;
 }
 
 static inline int is_dev_mode(void* app_cfg) {
@@ -311,7 +324,7 @@ static inline int get_num_clients(void* app_cfg) {
 }
 
 // ---------------APP CONFIG-----------------------
-static inline char* get_apps_config(void* app_cfg){
+static inline void* get_apps_config(void* app_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
 		LOG_ERROR_0("App or base config is NULL");
@@ -322,17 +335,99 @@ static inline char* get_apps_config(void* app_cfg){
 		LOG_ERROR_0("Config value is NULL");
 		return NULL;
 	}
+	return (void*)config;
+}
 
-	char* c_config = configt_to_char(config);
-	if(c_config == NULL){
-		LOG_ERROR_0("Converting configt to char failed");
-		return NULL;
+static void destroy_cfg_mgr(void* app_cfg, void* app_config) {
+	LOG_DEBUG_0("ConfigManager: destroy_cfg_mgr");
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	config_t* c_app_config = (config_t*) app_config;
+	if (c_app_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy application specific config");
+		config_destroy(c_app_config);
 	}
-	
-	// TODO: destroying these variables in the destructor in Go memory fix
-	// config_destroy(config);
+	if (c_app_cfg->base_cfg != NULL) {
+	    LOG_DEBUG_0("ConfigManager: destroy base_cfg");
+	    // TODO: fix double_free() issue
+	    // base_cfg_config_destroy(c_app_cfg->base_cfg);
+	}
 
-	return c_config;
+	if(c_app_cfg->env_var != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy env_var");
+		free(c_app_cfg->env_var);
+	}
+	if(c_app_cfg != NULL){
+		LOG_DEBUG_0("ConfigManager: destroy app_cfg");
+		app_cfg_config_destroy(c_app_cfg);
+	}
+}
+
+static void destroy_publisher(void* pub_cfg, void* msgbus_config) {
+	LOG_DEBUG_0("ConfigManager: destroy publisher context");
+	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+	config_t* c_msgbus_config = (config_t*)msgbus_config;
+
+	if (c_msgbus_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy publisher msgbus config");
+		config_destroy(c_msgbus_config);
+	}
+
+	if (c_pub_cfg->pub_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy publisher config");
+		config_value_destroy(c_pub_cfg->pub_config);
+		free(c_pub_cfg);
+	}
+}
+
+static void destroy_subscriber(void* sub_cfg, void* msgbus_config) {
+	LOG_DEBUG_0("ConfigManager: destroy subscriber context");
+	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
+	config_t* c_msgbus_config = (config_t*)msgbus_config;
+
+	if (c_msgbus_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy subscriber msgbus config");
+		config_destroy(c_msgbus_config);
+	}
+
+	if (c_sub_cfg->sub_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy subscriber config");
+		config_value_destroy(c_sub_cfg->sub_config);
+		free(c_sub_cfg);
+	}
+}
+
+static void destroy_client(void* client_cfg, void* msgbus_config) {
+	LOG_DEBUG_0("ConfigManager: destroy client context");
+	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
+	config_t* c_msgbus_config = (config_t*)msgbus_config;
+
+	if (c_msgbus_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy client msgbus config");
+		config_destroy(c_msgbus_config);
+	}
+
+	if (c_client_cfg->client_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy client config");
+		config_value_destroy(c_client_cfg->client_config);
+		free(c_client_cfg);
+	}
+}
+
+static void destroy_server(void* server_cfg, void* msgbus_config) {
+	LOG_DEBUG_0("ConfigManager: destroy server context");
+	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
+	config_t* c_msgbus_config = (config_t*)msgbus_config;
+
+	if (c_msgbus_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy server msgbus config");
+		config_destroy(c_msgbus_config);
+	}
+
+	if (c_server_cfg->server_config != NULL) {
+		LOG_DEBUG_0("ConfigManager: destroy server config");
+		config_value_destroy(c_server_cfg->server_config);
+		free(c_server_cfg);
+	}
 }
 
 // -----------------PUBLISHER----------------------
@@ -419,7 +514,7 @@ static inline char_arr_t* get_pub_end_points(void* pub_cfg){
 	return char_arr;
 }
 
-static inline char* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
+static inline void* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 	config_t* config = c_pub_cfg->cfgmgr_get_msgbus_config_pub(c_app_cfg->base_cfg, c_pub_cfg);
@@ -427,15 +522,7 @@ static inline char* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
 		LOG_ERROR_0("[Publisher] Getting message bus config failed");
 		return NULL;
 	}
-	char* c_config = configt_to_char(config);
-	if(c_config == NULL){
-		LOG_ERROR_0("[Publisher] Converting configt to char failed");
-		return NULL;
-	}
-
-	// TODO: Needs to take care where this can be free
-	// config_destroy(config);
-	return c_config;
+	return (void*)config;
 }
 
 static inline string_arr_t* get_pub_topics(void* pub_cfg){
@@ -455,6 +542,7 @@ static inline string_arr_t* get_pub_topics(void* pub_cfg){
 
 	int topics_len = config_value_array_len(topics);
 	char** arr_topics = parse_config_value(topics, topics_len);
+	config_value_destroy(topics);
 	if (arr_topics == NULL) {
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Publisher] Parse config value failed");
@@ -487,6 +575,7 @@ static inline string_arr_t* get_pub_allowed_clients(void* pub_cfg){
 		LOG_ERROR_0("[Publisher] Parse config value failed");
 		return NULL;
 	}
+	config_value_destroy(allowed_clients);
 	str_arr->arr = arr_allowed_clients;
 	str_arr->len = 	clients_len;
 	return str_arr;
@@ -501,6 +590,8 @@ static inline config_val_t* get_pub_interface_value(void* pub_cfg, char *key) {
 		return NULL;
 	}
 	config_val_t* cv = create_config_val_obj(value);
+	config_value_destroy(value);
+
 	if(cv == NULL){
 		LOG_ERROR_0("[Publisher]: creating config value obj failed ");
 		return NULL;
@@ -586,21 +677,15 @@ static inline char_arr_t* get_sub_end_points(void* sub_cfg){
 	return char_arr;
 }
 
-static inline char* get_msgbus_config_subscriber(void* app_cfg, void* sub_cfg){
+static inline void* get_msgbus_config_subscriber(void* app_cfg, void* sub_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
 	config_t* config = c_sub_cfg->cfgmgr_get_msgbus_config_sub(c_app_cfg->base_cfg, c_sub_cfg);
 	if (config == NULL){
-		LOG_ERROR_0("[Subscriner] Getting message bus config failed");
+		LOG_ERROR_0("[Subscriber] Getting message bus config failed");
 		return NULL;
 	}
-	char* c_config = configt_to_char(config);
-	if(c_config == NULL){
-		LOG_ERROR_0("[Subscriber]:Converting configt to char failed");
-		return NULL;
-	}
-	config_destroy(config);
-	return c_config;
+	return (void*)config;
 }
 
 static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
@@ -625,6 +710,7 @@ static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
 		LOG_ERROR_0("[Subscriber] Parse config value failed");
 		return NULL;
 	}	
+	config_value_destroy(topics);
 	str_arr->arr = arr_topics;
 	str_arr->len = topics_len;
 	return str_arr;
@@ -646,6 +732,7 @@ static inline config_val_t* get_sub_interface_value(void* sub_cfg, char *key) {
 		return NULL;
 	}
 	config_val_t* cv = create_config_val_obj(value);
+	config_value_destroy(value);
 	if(cv == NULL){
 		LOG_ERROR_0("[Subscriber]: creating config value obj failed ");
 		return NULL;
@@ -731,7 +818,7 @@ static inline char_arr_t* get_server_end_points(void* server_cfg){
 	return char_arr;
 }
 
-static inline char* get_msgbus_config_server(void* app_cfg, void* server_cfg){
+static inline void* get_msgbus_config_server(void* app_cfg, void* server_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
 	config_t* config = c_server_cfg->cfgmgr_get_msgbus_config_server(c_app_cfg->base_cfg, c_server_cfg);
@@ -739,15 +826,7 @@ static inline char* get_msgbus_config_server(void* app_cfg, void* server_cfg){
 		LOG_ERROR_0("[Server] Getting message bus config failed");
 		return NULL;
 	}
-	char* c_config = configt_to_char(config);
-	if(c_config == NULL){
-		LOG_ERROR_0("[Server]: Converting configt to char failed");
-		return NULL;
-	}
-
-	// TODO: Needs to take care where this can be free
-	// config_destroy(config);
-	return c_config;
+	return (void*)config;
 }
 
 static inline string_arr_t* get_allowed_clients_server(void* server_cfg){
@@ -767,6 +846,8 @@ static inline string_arr_t* get_allowed_clients_server(void* server_cfg){
 
 	int clients_len = config_value_array_len(allowed_clients);
 	char** arr_allowed_clients = parse_config_value(allowed_clients, clients_len);
+	config_value_destroy(allowed_clients);
+
 	if (arr_allowed_clients == NULL){
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Server] Parse config value failed");
@@ -786,6 +867,8 @@ static inline config_val_t* get_server_interface_value(void* server_cfg, char *k
 		return NULL;
 	}
 	config_val_t* cv = create_config_val_obj(value);
+	config_value_destroy(value);
+
 	if(cv == NULL){
 		LOG_ERROR_0("[Server]: creating config value obj failed ");
 		return NULL;
@@ -870,7 +953,7 @@ static inline char_arr_t* get_client_end_points(void* client_cfg){
 	return char_arr;
 }
 
-static inline char* get_msgbus_config_client(void* app_cfg, void* client_cfg){
+static inline void* get_msgbus_config_client(void* app_cfg, void* client_cfg){
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	client_cfg_t* c_client_cfg= (client_cfg_t *)client_cfg;
 	config_t* config = c_client_cfg->cfgmgr_get_msgbus_config_client(c_app_cfg->base_cfg, c_client_cfg);
@@ -878,15 +961,7 @@ static inline char* get_msgbus_config_client(void* app_cfg, void* client_cfg){
 		LOG_ERROR_0("[Client] Getting message bus config failed");
 		return NULL;
 	}
-	char* c_config = configt_to_char(config);
-	if(c_config == NULL){
-		LOG_ERROR_0("[Client]: Converting configt to char failed");
-		return NULL;
-	}
-
-	// TODO: Needs to take care where this can be free
-	// config_destroy(config);
-	return c_config;
+	return (void*)config;
 }
 
 static inline config_val_t* get_client_interface_value(void* client_cfg, char *key) {
@@ -898,6 +973,8 @@ static inline config_val_t* get_client_interface_value(void* client_cfg, char *k
 		return NULL;
 	}
 	config_val_t* cv = create_config_val_obj(value);
+	config_value_destroy(value);
+
 	if(cv == NULL){
 		LOG_ERROR_0("[Client]: creating config value obj failed ");
 		return NULL;
@@ -925,6 +1002,7 @@ type ConfigMgrContext struct {
 // ConfigMgr object
 type ConfigMgr struct {
 	ctx *ConfigMgrContext
+	appConfig unsafe.Pointer
 }
 
 // Convert C char** to Go string[]
@@ -1024,17 +1102,22 @@ func ConfigManager() (*ConfigMgr, error) {
 	cfgmgrContext := new(ConfigMgrContext)
 	cfgmgrContext.cfgmgrCtx = appCfg
 	config_mgr := new(ConfigMgr)
+	config_mgr.appConfig = nil
 	config_mgr.ctx = cfgmgrContext
 	return config_mgr, nil
 }
 
 func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 	appCfg := C.get_apps_config(ctx.ctx.cfgmgrCtx)
-	if (appCfg == nil){
-		return nil, errors.New("Getting app config failed in CGO\n")
+	ctx.appConfig = appCfg
+	cAppConfig := (*C.config_t)(appCfg)
+	cAppConf := C.configt_to_char(cAppConfig);
+	if(cAppConf == nil){
+		return nil, errors.New("[AppConfig] Converting configt to char failed");
 	}
-	jsonAppConfig, err := string_to_map_interface(C.GoString(appCfg))
-	defer C.free(unsafe.Pointer(appCfg))
+
+	jsonAppConfig, err := string_to_map_interface(C.GoString(cAppConf))
+	defer C.free(unsafe.Pointer(cAppConf))
 
 	if err != nil {
 		return nil, err
@@ -1096,6 +1179,7 @@ func (ctx *ConfigMgr) GetNumClients() (int, error) {
 func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
+	pubCtx.msgBusCfg = nil
 	goPubCfg := C.get_publisher_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
 	if (goPubCfg == nil){
 		return nil, errors.New("[Publisher]: Failed to get publisher by name from CGO\n")
@@ -1107,6 +1191,7 @@ func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
+	pubCtx.msgBusCfg = nil
 	goPubCfg := C.get_publisher_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
 	if (goPubCfg == nil){
 		return nil, errors.New("[Publisher]: Failed to get publisher by index from CGO\n")
@@ -1118,6 +1203,7 @@ func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
+	subCtx.msgBusCfg = nil
 	goSubCfg := C.get_subscriber_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
 	if (goSubCfg == nil){
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by name from CGO\n")
@@ -1129,6 +1215,7 @@ func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
+	subCtx.msgBusCfg = nil
 	goSubCfg := C.get_subscriber_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
 	if (goSubCfg == nil){
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by index from CGO\n")
@@ -1140,6 +1227,7 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
+	serverCtx.msgBusCfg = nil
 	goServerCfg := C.get_server_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
 	if (goServerCfg == nil){
 		return nil, errors.New("[Server]: Failed to get publisher by name from CGO\n")
@@ -1151,6 +1239,7 @@ func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
+	serverCtx.msgBusCfg = nil
 	goServerCfg := C.get_server_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
 	if (goServerCfg == nil){
 		return nil, errors.New("[Server]: Failed to get publisher by index from CGO\n")
@@ -1162,6 +1251,7 @@ func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
 	clientCtx.appCfg = ctx.ctx.cfgmgrCtx
+	clientCtx.msgBusCfg = nil
 	goClientCfg := C.get_client_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
 	clientCtx.clientCfg = goClientCfg
 	return clientCtx, nil
@@ -1170,9 +1260,14 @@ func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 func (ctx *ConfigMgr) GetClientByIndex(index int) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
 	clientCtx.appCfg = ctx.ctx.cfgmgrCtx
+	clientCtx.msgBusCfg = nil
 	goClientCfg := C.get_client_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
 	clientCtx.clientCfg = goClientCfg
 	return clientCtx, nil
+}
+
+func (ctx *ConfigMgr) Destroy() {
+	C.destroy_cfg_mgr(ctx.ctx.cfgmgrCtx, ctx.appConfig)
 }
 
 func (pubctx *PublisherCfg) getEndPoints() (string, error) {
@@ -1210,7 +1305,17 @@ func (pubctx *PublisherCfg) getMsgbusConfig() (string, error) {
 	if (conf == nil){
 		return "", errors.New("[Publisher]: Failed to get message bus config from CGO\n")
 	}
-	return C.GoString(conf), nil
+
+	pubctx.msgBusCfg = conf
+	cConfig := (*C.config_t)(conf)
+	cConf := C.configt_to_char(cConfig);
+	if(cConf == nil){
+		return "", errors.New("[Publisher] Converting configt to char failed");
+	}
+	
+	goStr := C.GoString(cConf)
+	defer C.free(unsafe.Pointer(cConf))
+	return goStr, nil
 }
 
 func (pubctx *PublisherCfg) setTopics(topics []string) bool {
@@ -1245,6 +1350,10 @@ func (pubctx *PublisherCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 	return val, err
 }
 
+func (pubctx *PublisherCfg) destroyPublisher() {
+	C.destroy_publisher(pubctx.pubCfg, pubctx.msgBusCfg)
+}
+
 func (subctx *SubscriberCfg) getEndPoints() (string, error) {
 	endpoints := C.get_sub_end_points(subctx.subCfg)
 	if(endpoints == nil){
@@ -1259,7 +1368,17 @@ func (subctx *SubscriberCfg) getMsgbusConfig() (string, error) {
 	if (conf == nil){
 		return "", errors.New("[Subscriber]: Failed to get message bus config from CGO\n")
 	}
-	return C.GoString(conf), nil
+
+	subctx.msgBusCfg = conf
+	cConfig := (*C.config_t)(conf)
+	cConf := C.configt_to_char(cConfig);
+	if(cConf == nil){
+		return "", errors.New("[Subscriber] Converting configt to char failed");
+	}
+	
+	goStr := C.GoString(cConf)
+	defer C.free(unsafe.Pointer(cConf))
+	return goStr, nil
 }
 
 func (subctx *SubscriberCfg) getTopics() ([]string, error) {
@@ -1305,6 +1424,10 @@ func (subctx *SubscriberCfg) getInterfaceValue(key string) (*ConfigValue, error)
 	return val, err
 }
 
+func (subctx *SubscriberCfg) destroySubscriber() {
+	C.destroy_subscriber(subctx.subCfg, subctx.msgBusCfg)
+}
+
 func (serverCtx *ServerCfg) getEndPoints() (string, error) {
 	endpoints := C.get_server_end_points(serverCtx.serverCfg)
 	if(endpoints == nil){
@@ -1319,7 +1442,17 @@ func (serverCtx *ServerCfg) getMsgbusConfig() (string, error) {
 	if (conf == nil){
 		return "", errors.New("[Server]: Failed to get message bus config from CGO\n")
 	}
-	return C.GoString(conf), nil
+	
+	serverCtx.msgBusCfg = conf
+	cConfig := (*C.config_t)(conf)
+	cConf := C.configt_to_char(cConfig);
+	if(cConf == nil){
+		return "", errors.New("[Server] Converting configt to char failed");
+	}
+	
+	goStr := C.GoString(cConf)
+	defer C.free(unsafe.Pointer(cConf))
+	return goStr, nil
 }
 
 func (serverCtx *ServerCfg) getAllowedClients() ([]string, error) {
@@ -1348,6 +1481,10 @@ func (serverCtx *ServerCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 	return val, err
 }
 
+func (serverCtx *ServerCfg) destroyServer() {
+	C.destroy_server(serverCtx.serverCfg, serverCtx.msgBusCfg)
+}
+
 func (clientCtx *ClientCfg) getEndPoints() (string, error) {
 	endpoints := C.get_client_end_points(clientCtx.clientCfg)
 	if(endpoints == nil){
@@ -1355,7 +1492,6 @@ func (clientCtx *ClientCfg) getEndPoints() (string, error) {
 	}
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr), nil
-
 }
 
 func (clientCtx *ClientCfg) getMsgbusConfig() (string, error) {
@@ -1363,7 +1499,17 @@ func (clientCtx *ClientCfg) getMsgbusConfig() (string, error) {
 	if (conf == nil){
 		return "", errors.New("[Client]: Failed to get message bus config from CGO\n")
 	}
-	return C.GoString(conf), nil
+	
+	clientCtx.msgBusCfg = conf
+	cConfig := (*C.config_t)(conf)
+	cConf := C.configt_to_char(cConfig);
+	if(cConf == nil){
+		return "", errors.New("[Client] Converting configt to char failed");
+	}
+	
+	goStr := C.GoString(cConf)
+	defer C.free(unsafe.Pointer(cConf))
+	return goStr, nil
 }
 
 func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) {
@@ -1379,4 +1525,8 @@ func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 		return nil, err
 	}
 	return val, err
+}
+
+func (clientCtx *ClientCfg) destroyClient() {
+	C.destroy_client(clientCtx.clientCfg, clientCtx.msgBusCfg)
 }

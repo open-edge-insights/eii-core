@@ -79,6 +79,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     char* pub_pri_key = NULL;
     const char* server_secret_key = NULL;
     config_value_t* server_endpoint = NULL;
+    char* grab_public_key = NULL;
+    const char* sub_public_key = NULL;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -256,14 +258,16 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                         goto err;
                     }
                     size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
-                    char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
-                    const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
+                    grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+                    sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
                     if(sub_public_key == NULL){
                         // If any service isn't provisioned, ignore if key not found
                         LOG_WARN("Value is not found for the key: %s", grab_public_key);
                     }
-
+                    
+                    config_value_destroy(array_value);
                     cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
+    
                 }
                 // Adding all public keys of clients to allowed_clients of config
                 cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
@@ -338,7 +342,12 @@ err:
     if (config_value_cr != NULL) {
         free(config_value_cr);
     }
-
+    if (grab_public_key != NULL) {
+        free(grab_public_key);
+    }
+    if (sub_public_key != NULL) {
+        free(sub_public_key);
+    }
     return ret;
 }
 

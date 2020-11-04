@@ -38,6 +38,7 @@ func main() {
 		return
 	}
 	fmt.Printf("client obj: %v", configMgr)
+	defer configMgr.Destroy()
 
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
@@ -62,6 +63,8 @@ func main() {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
+
+	defer serverCtx.Destroy()
 
 	endpoint, err:= serverCtx.GetEndPoints()
 	if err != nil {
@@ -90,7 +93,7 @@ func main() {
 		return
 	}
 
-	fmt.Println("config:", config["echo_service"])
+	fmt.Println("config:", config)
 
 	fmt.Println("Allowed clients for server")
 	allowedClients, err:= serverCtx.GetAllowedClients()
@@ -119,7 +122,7 @@ func main() {
 	defer service.Close()
 
 	fmt.Println("-- Running...")
-	for {
+	for i := 0; i < 3; i++ {
 		msg, err := service.ReceiveRequest(-1)
 		if err != nil {
 			fmt.Printf("-- Error receiving request: %v\n", err)
@@ -128,5 +131,4 @@ func main() {
 		fmt.Printf("-- Received request: %v\n", msg)
 		service.Response(msg.Data)
 	}
-
 }
