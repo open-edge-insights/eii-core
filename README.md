@@ -53,30 +53,7 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 1. **Installing docker daemon and docker-compose tools with proxy settings configuration**.
 
-   This could be done in 2 ways:
-
-   * [**Recommended**] Using setup script from `EIS Installer` available in the release package
-     to auto-install and configure
-
-     Follow the below steps in `installer` repo/folder:
-     * Add below 2 entries in `installer/installation/config/config.cfg` file
-
-       ```sh
-       dockerce
-       docker_compose
-       ```
-
-     * Follow the pre-requisite section to install EIS from `installer/README.md`
-     * Run the below steps to install above binaries:
-
-       ```sh
-       $ cd installer/installation
-       $ chmod +x setup.sh
-       $ sudo ./setup.sh
-        ```
-     * Logout and log back in to manage docker as a non-root user
-
-   * If one wants to install the tools and configure it manually, please follow the steps mentioned in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md)
+  Please follow the steps mentioned in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md) for installing docker daemon and docker-compose tool
 
 2. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [build/docker_security_recommendation.md](build/docker_security_recommendation.md)
 
