@@ -37,6 +37,7 @@ try:
     print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
 
     sub_ctx = ctx.get_subscriber_by_name("default")
+    #sub_ctx = ctx.get_subscriber_by_index(0)
     config = sub_ctx.get_msgbus_config()
 
     interface_value = sub_ctx.get_interface_value("Name")

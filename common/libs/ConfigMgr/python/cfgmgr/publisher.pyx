@@ -90,8 +90,6 @@ cdef class Publisher:
 
             config_str = config.decode('utf-8')
             free(config)
-            # This also fixes a memory leak but unable to call this function from here.
-            # cython complains it to be a python object. Need more analysis.
             config_destroy(msgbus_config)
             return json.loads(config_str)
         except Exception as ex:

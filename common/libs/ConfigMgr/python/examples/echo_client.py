@@ -36,6 +36,7 @@ try:
     ctx = cfg.ConfigMgr()
     print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))
     client_ctx = ctx.get_client_by_name("default")
+    #client_ctx = ctx.get_client_by_index(0)
     config = client_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(client_ctx.get_endpoint()))

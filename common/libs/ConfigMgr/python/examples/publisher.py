@@ -43,6 +43,7 @@ try:
     print('[INFO] Total number of publishers in interface is {}'.format(ctx.get_num_publishers()))
 
     pub_ctx = ctx.get_publisher_by_name("default")
+    #pub_ctx = ctx.get_publisher_by_index(0)
     config = pub_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
 

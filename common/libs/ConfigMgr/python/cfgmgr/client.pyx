@@ -24,6 +24,7 @@ import json
 
 from .libneweisconfigmgr cimport *
 from libc.stdlib cimport malloc
+from libc.stdlib cimport free
 from .util cimport Util
 
 
@@ -79,6 +80,7 @@ cdef class Client:
         :rtype: dict
         """
         cdef char* config
+        cdef config_t* msgbus_config
         try:
             msgbus_config = self.client_cfg.cfgmgr_get_msgbus_config_client(self.app_cfg.base_cfg,self.client_cfg)
             if msgbus_config is NULL:
@@ -89,6 +91,8 @@ cdef class Client:
                 raise Exception("[Client] config failed to get converted to char")
 
             config_str = config.decode('utf-8')
+            free(config)
+            config_destroy(msgbus_config)
             return json.loads(config_str)
         except Exception as ex:
             raise ex
