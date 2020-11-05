@@ -35,6 +35,7 @@ try:
 
     ctx = cfg.ConfigMgr()
     server_ctx = ctx.get_server_by_name("default")
+    #server_ctx = ctx.get_server_by_index(0)
 
     ret = ctx.get_num_servers()
     if ret == -1:

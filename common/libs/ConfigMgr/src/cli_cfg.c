@@ -314,6 +314,9 @@ client_cfg_t* client_cfg_new() {
 // function to destroy client_cfg_t
 void client_cfg_config_destroy(client_cfg_t *cli_cfg_config) {
     if (cli_cfg_config != NULL) {
+        if (cli_cfg_config->client_config != NULL) {
+            config_value_destroy(cli_cfg_config->client_config);
+        }
         free(cli_cfg_config);
     }
 }

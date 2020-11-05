@@ -83,7 +83,7 @@ cdef class ConfigMgr:
         """Deconstructor
         """
         if self.app_cfg != NULL:
-            # TODO Uncommenting below lines fixes the leak but there is a 
+            # TODO: Uncommenting below lines fixes the leak but there is a 
             # error in destructor path as invalid chunk size in malloc.
             # needed a proper fix.
             #if self.app_cfg.base_cfg != NULL:
