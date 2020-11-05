@@ -115,8 +115,6 @@ int main(int argc, char** argv) {
     SubscriberCfg* sub_ctx_vis = g_sub_ch_vis->getSubscriberByName("Cam2_Results");
     config_t* sub_config_vis = sub_ctx_vis->getMsgBusConfig();
 
-    topics = sub_ctx_vis->getTopics();
-
     // Testing getInterfaceValue()
     config_value_t* interface_value = sub_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
@@ -128,9 +126,9 @@ int main(int argc, char** argv) {
 
     // Initializing Subscriber using sub_config obtained
     // from new ConfigManager APIs
-    // g_msgbus_ctx = msgbus_initialize(sub_config);
+    // g_msgbus_ctx = msgbus_initialize(sub_config_vis);
     // Uncomment below line to test IPC mode
-    g_msgbus_ctx = msgbus_initialize(sub_config_vis);
+    g_msgbus_ctx = msgbus_initialize(sub_config);
     if(g_msgbus_ctx == NULL) {
         LOG_ERROR_0("Failed to initialize message bus");
         goto err;
