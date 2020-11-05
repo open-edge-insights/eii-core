@@ -27,14 +27,6 @@ EIS Orchestration using CSL Orchestrator.
 
     * Please refer orchestrator repo.
 
-      > **Note**: Installation of CSL is a pre-requisite before EIS Provisioning with CSL in following steps.
-      >           Please follow the standard proxy settings if your installation machines are behind proxy environment.
-      >           For orchestrator deployment in a proxy environment, make sure all communicating machines IP addresses
-      >           are in `no_proxy` list both in `docker` & `system` environment files as follows.
-      >                     1.  /etc/environment
-      >                     2.  /etc/systemd/system/docker.service.d/http-proxy.conf
-      >                     3.  ~/.docker/config.json
-
 ## EIS CSL Pre-Requisites
   ### EIS Pre-Requisites
   * Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) steps for generating the appspecs & module specs using EIS Builder.
@@ -68,7 +60,7 @@ EIS Orchestration using CSL Orchestrator.
   ### Update the Container Image details in Module Spec Files.
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the Module specs present in every app's individual folders.
+> Use the `eis_builder` generated module specs present in the `build/csl` directory .
 > It is advisable to use `csladm` utility in CSL Manager installed node.
 > * For more details please use this command:
 >   ```sh
@@ -192,14 +184,16 @@ Provisioning EIS with CSL is done in 2 steps.
 ### EIS Worker Node Provisioning in CSL Client Node
 
 >**Note**:
-> 1. This should be executed in non EIS master CSL client nodes(aka worker nodes) in ***Multi node
->    scenario*** only.
-> 2. There should be only one master node where we do EIS Master Node provisioning
-> 3. This step is not required for **Single Node** deployment
-> 4. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env).
+> 1. There should be only one master node where we do EIS Master Node provisioning
+> 2. This step is not required for **Single Node** deployment
+
 
   * Pre requisites:
-    * EIS Master Node should be provisioned in any other CSL client node.
+    * EIS Master Node should be provisioned already in any other CSL client node.
+  
+  ### In `master` client node
+  >**Note**: 
+  > Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env).
 
   * Set `PROVISION_MODE=csl` in [build/provision/.env](../build/provision/.env) file.
   * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
@@ -209,21 +203,25 @@ Provisioning EIS with CSL is done in 2 steps.
       $ sudo python3 generate_eis_bundle.py -p
     ```
 
-  * Copy the `eis_provisioning.tar.gz` file to your provisioning machine.
+  * Copy the generated `eis_provisioning.tar.gz` bundle file from `master` node to your `worker` node.
 
       ```sh
           $ sudo scp <eis_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
-          $ sudo tar -xvf <eis_provisioning.tar.gz>
-          $ cd <eis_provisioning>
       ```
+  ### In `worker` client node
+  * Extract the provisioning bundle.
+      ```sh  
+        $ sudo tar -xvf eis_provisioning.tar.gz
+      ```
+
   * Provision the EIS in CSL Worker Client Node.
       ```sh
-          $ cd provision
+          $ cd eis_provisioning/provision
           $ sudo ./provision_eis.sh
       ```
 
 ## Generating the CSL Appspec & Module Spec.
-  * CSL Appspec will be auto-generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
+  * CSL Appspec will be generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
 ## Registering EIS ModuleSpecs with CSL SMR.
 
