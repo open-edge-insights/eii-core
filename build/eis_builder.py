@@ -37,9 +37,11 @@ import io
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
-benchmark_app_list = []
-benchmark_csl_app_list = []
-benchmark_k8s_app_list = []
+dev_mode = False
+# Initializing multi instance related variables
+num_multi_instances = 0
+override_apps_list, override_csl_apps_list, override_k8s_apps_list = ([] for _ in range(3))
+dev_override_list, app_list, csl_app_list, k8s_app_list = ([] for _ in range(4))
 used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
 
 
@@ -215,7 +217,7 @@ def create_multi_subscribe_interface(head, temp, client_type):
         client = head["interfaces"][client_type][j]
         # For every subscriber/client, create multiple instances
         # & update required parameters
-        for i in range(int(args.video_pipeline_instances)):
+        for i in range(num_multi_instances):
             cli_instance = copy.deepcopy(client)
             # Updating name of subscriber/client instance
             cli_instance["Name"] = client["Name"] + str(i+1)
@@ -237,13 +239,10 @@ def create_multi_subscribe_interface(head, temp, client_type):
                 port = client["EndPoint"].split(":")[1]
                 new_port = str(int(port)+i)
                 cli_instance["EndPoint"] = client["EndPoint"].replace(port, new_port)
-            # Replacing first instance & appending next
-            # instances
-            try:
-                if temp["interfaces"][client_type][i]:
-                    temp["interfaces"][client_type][i] = cli_instance
-            except IndexError:
-                temp["interfaces"][client_type].append(cli_instance)
+            # Appending client multi instances
+            temp["interfaces"][client_type].append(cli_instance)
+        # Remove existing instances
+        temp["interfaces"][client_type].remove(client)
     return temp
 
 
@@ -284,78 +283,96 @@ def json_parser(file, args):
     app_list.remove(SCAN_DIR + '/common')
 
     # Creating benchmarking apps list to edit interfaces accordingly
+    for x in override_apps_list:
+        appname = x.split("/")[-2]
+        # Updating app_list to exlude services with override directory
+        for y in app_list:
+            if ("/" + appname) in y:
+                app_list.remove(y)
+                app_list.append(x)
+
+    # Fetching service names for creating multi instance
     bm_apps_list = []
-    for x in benchmark_app_list:
-        bm_appname = x.split('/' + args.override_directory)[0].split('/')[-1]
+    for x in app_list:
+        bm_appname = x.split("/")[-1]
+        if args.override_directory is not None:
+            if args.override_directory in x:
+                bm_appname = x.split("/")[-2]
         bm_apps_list.append(bm_appname)
 
     eis_config_path = "./provision/config/eis_config.json"
-    # Fetching and merging individual App configs
     for app_path in app_list:
         data = {}
-        with open(app_path + '/config.json', "rb") as infile:
-            # Merging config & interfaces from all services
-            head = json.load(infile)
-            app_name = app_path.replace('.', '')
-            # remove trailing '/'
-            app_name = app_name.rstrip('/')
-            # Fetching AppName & succeeding it with "/"
-            app_name = app_name.split('/')[-1]
-            if 'config' in head.keys():
-                data['/' + app_name + '/config'] = head['config']
-            if 'interfaces' in head.keys():
-                data['/' + app_name + '/interfaces'] = head['interfaces']
-            # Merging individual app configs & interfaces into one json
-            config_json = merge(config_json, data)
-
-    # Creating multiple boiler-plate app configs
-    if args.override_directory is not None:
-        for x in benchmark_app_list:
-            appname = x.split('/' + args.override_directory)[0].split('/')[-1]
-            for k in list(config_json):
-                data = {}
-                if "/" + appname in k:
-                    del config_json[k]
-                    if appname not in subscriber_list:
-                        for i in range(int(args.video_pipeline_instances)):
-                            with open(x + '/config.json', "rb") as infile:
-                                head = json.load(infile)
-                                # Increments rtsp port number if required
-                                head = increment_rtsp_port(appname, head, i)
-                                # Create multi instance interfaces
-                                head = \
-                                    create_multi_instance_interfaces(head,
-                                                                    i,
-                                                                    bm_apps_list)
-                                # merge config of multi instance config
-                                if 'config' in head.keys():
-                                    data['/' + appname + str(i+1) + '/config'] = \
-                                        head['config']
-                                # merge interfaces of multi instance config
-                                if 'interfaces' in head.keys():
-                                    data['/' + appname + str(i+1) +
-                                        '/interfaces'] = \
-                                        head['interfaces']
-                                # merge multi instance generated json to eis config
-                                config_json = merge(config_json, data)
-                    else:
-                        with open(x + '/config.json', "rb") as infile:
-                            head = json.load(infile)
-                            temp = copy.deepcopy(head)
-                            # merge interfaces of multi instance config
-                            if 'interfaces' in head.keys():
-                                if "Subscribers" in head["interfaces"]:
-                                    # Generate multi subscribe interface
-                                    temp = create_multi_subscribe_interface(head, temp, "Subscribers")
-                                    data['/' + appname + '/config'] = head['config']
-                                    data['/' + appname + '/interfaces'] = temp['interfaces']
-                                    config_json = merge(config_json, data)
-                                if "Clients" in head["interfaces"]:
-                                    # Generate multi client interface
-                                    temp = create_multi_subscribe_interface(head, temp, "Clients")
-                                    data['/' + appname + '/config'] = head['config']
-                                    data['/' + appname + '/interfaces'] = temp['interfaces']
-                                    config_json = merge(config_json, data)
+        # Creating multi instance config if num_multi_instances > 1
+        if num_multi_instances > 1:
+            dirname = app_path.split("/")[-1]
+            if args.override_directory is not None:
+                if args.override_directory in app_path:
+                    dirname = app_path.split("/")[-2]
+            # Ignoring EtcdUI & common/video service to not create multi instance
+            # TODO: Support EISAzureBridge multi instance creation if applicable
+            if dirname not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "EISAzureBridge" not in app_path:
+                for i in range(num_multi_instances):
+                    with open(app_path + '/config.json', "rb") as infile:
+                        head = json.load(infile)
+                        # Increments rtsp port number if required
+                        head = increment_rtsp_port(dirname, head, i)
+                        # Create multi instance interfaces
+                        head = \
+                            create_multi_instance_interfaces(head,
+                                                            i,
+                                                            bm_apps_list)
+                        # merge config of multi instance config
+                        if 'config' in head.keys():
+                            data['/' + dirname + str(i+1) + '/config'] = \
+                                head['config']
+                        # merge interfaces of multi instance config
+                        if 'interfaces' in head.keys():
+                            data['/' + dirname + str(i+1) +
+                                '/interfaces'] = \
+                                head['interfaces']
+                        # merge multi instance generated json to eis config
+                        config_json = merge(config_json, data)
+            # This condition is to handle not creating multi instance for 
+            # subscriber services
+            else:
+                with open(app_path + '/config.json', "rb") as infile:
+                    head = json.load(infile)
+                    temp = copy.deepcopy(head)
+                    # merge interfaces of multi instance config
+                    if 'interfaces' in head.keys():
+                        if "Subscribers" in head["interfaces"]:
+                            # Generate multi subscribe interface
+                            temp = create_multi_subscribe_interface(head, temp, "Subscribers")
+                            data['/' + dirname + '/config'] = head['config']
+                            data['/' + dirname + '/interfaces'] = temp['interfaces']
+                            config_json = merge(config_json, data)
+                        if "Clients" in head["interfaces"]:
+                            # Generate multi client interface
+                            temp = create_multi_subscribe_interface(head, temp, "Clients")
+                            data['/' + dirname + '/config'] = head['config']
+                            data['/' + dirname + '/interfaces'] = temp['interfaces']
+                            config_json = merge(config_json, data)
+                        # This is to handle empty interfaces cases like EtcdUI
+                        data['/' + dirname + '/config'] = head['config']
+                        data['/' + dirname + '/interfaces'] = temp['interfaces']
+                        config_json = merge(config_json, data)
+        # This condition is to handle the default non multi instance flow
+        else:
+            with open(app_path + '/config.json', "rb") as infile:
+                # Merging config & interfaces from all services
+                head = json.load(infile)
+                app_name = app_path.replace('.', '')
+                # remove trailing '/'
+                app_name = app_name.rstrip('/')
+                # Fetching AppName & succeeding it with "/"
+                app_name = app_name.split('/')[-1]
+                if 'config' in head.keys():
+                    data['/' + app_name + '/config'] = head['config']
+                if 'interfaces' in head.keys():
+                    data['/' + app_name + '/interfaces'] = head['interfaces']
+                # Merging individual app configs & interfaces into one json
+                config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
     with open(eis_config_path, "w") as json_file:
@@ -374,9 +391,9 @@ def create_multi_instance_csl_app_spec(app_spec_json, args):
     :return: list of duplicated csl appspecs
     :rtype: list
     """
-    # Fetching individual app names from benchmark_app_list
+    # Fetching individual app names from override_apps_list
     bm_apps_list = []
-    for x in benchmark_app_list:
+    for x in override_apps_list:
         appname = x.split('/' + args.override_directory)[0].split('/')[-1]
         bm_apps_list.append(appname)
 
@@ -431,7 +448,8 @@ def create_multi_instance_csl_app_spec(app_spec_json, args):
                 if 'Link' in x:
                     x['Link'] = x['Link'] + '-' + str(i+1)
                 if 'Port' in x:
-                    x['Port'] = str(int(x['Port']) + i)
+                    if '$' not in x['Port']:
+                        x['Port'] = str(int(x['Port']) + i)
 
         # Append every appspec to list of appspecs
         new_list.append(temp)
@@ -452,6 +470,16 @@ def csl_parser(app_list, args):
     with open('./csl/csl_template.json', "rb") as infile:
         csl_template = json.load(infile)
 
+    # Creating benchmarking apps list to edit interfaces accordingly
+    app_list.extend(override_csl_apps_list)
+    bm_app_list = []
+    for x in app_list:
+        bm_appname = x.split("/")[-1]
+        if args.override_directory is not None:
+            if args.override_directory in x:
+                bm_appname = x.split("/")[-2]
+        bm_app_list.append(bm_appname)
+
     # Updating publisher apps endpoints
     for app in app_list:
         with open(app + '/app_spec.json', "rb") as infile:
@@ -466,26 +494,21 @@ def csl_parser(app_list, args):
                                 "Name"] == list(publisher_list.values())[1]:
                         csl_pub_endpoint_list[head["Name"]] = end_points
 
-    bm_app_list = []
-    for app in benchmark_csl_app_list:
-        app_name = app.split('/' + args.override_directory)[0].\
-            split('/')[-1]
-        bm_app_list.append(app_name)
-
     # Creating deploy AppSpec from individual AppSpecs
     all_link_backend = []
     for app in app_list:
-        if args.override_directory is not None:
-            app_name = app.split('/' + args.override_directory)[0].\
-                split('/')[-1]
+        if num_multi_instances > 1:
+            app_name = app.split('/')[-1]
+            if args.override_directory is not None:
+                if args.override_directory in app:
+                    app_name = app.split('/')[-2]
         with open(app + '/app_spec.json', "rb") as infile:
             json_file = json.load(infile)
             head = json_file["Module"]
             # Generate boilerplate config for benchmark apps
-            if args.override_directory is not None:
-                if app_name in bm_app_list:
-                    data = create_multi_instance_csl_app_spec(head, args)
-                    csl_template["Modules"].extend(data)
+            if num_multi_instances > 1 and app_name not in subscriber_list.keys():
+                data = create_multi_instance_csl_app_spec(head, args)
+                csl_template["Modules"].extend(data)
             else:
                 csl_template["Modules"].append(head)
 
@@ -505,7 +528,7 @@ def csl_parser(app_list, args):
                         # Iterate through available publisher list
                         for publisher in csl_pub_endpoint_list.keys():
                             # Verify publiser doesn't try to fetch
-                            #  keys of itself
+                            # keys of itself
                             if publisher != head["Name"]:
                                 pub_list.append(csl_pub_endpoint_list[
                                     publisher])
@@ -515,16 +538,17 @@ def csl_parser(app_list, args):
                         # empty (i.e VA or Influx is not present)
                         # endpoint of the service which subscribe to VA
                         # or Influx will be removed
-                        if pub_list[count] != {}:
-                            if pub_list[count]["Endtype"] == "server":
-                                endpoint["Link"] = pub_list[count]["Link"]
-                                publisher_present = True
-                                all_link_backend.append(endpoint["Link"])
-                                count += 1
+                        if count < len(publisher_list.keys()):
+                            if pub_list[count] != {}:
+                                if pub_list[count]["Endtype"] == "server":
+                                    endpoint["Link"] = pub_list[count]["Link"]
+                                    publisher_present = True
+                                    all_link_backend.append(endpoint["Link"])
+                                    count += 1
 
-                        if publisher_present is False:
-                            endpoint_to_remove.append(endpoint)
-                            count += 1
+                            if publisher_present is False:
+                                endpoint_to_remove.append(endpoint)
+                                count += 1
 
                 # Remove link if no publishers are available
                 for endpoint in endpoint_to_remove:
@@ -625,11 +649,10 @@ def csl_parser(app_list, args):
 
     # Generating module specs for all apps
     for app in app_list:
+        app_name = app.rsplit("/", 1)[1]
         if args.override_directory is not None:
             if args.override_directory in app:
                 app_name = app.rsplit("/", 2)[1]
-        else:
-            app_name = app.rsplit("/", 1)[1]
         module_spec_path = "./csl/" + app_name + "_module_spec.json"
         app_path = app + "/module_spec.json"
         # Substituting sourced env in module specs
@@ -637,9 +660,9 @@ def csl_parser(app_list, args):
                              check=False)
 
         # Updating module specs for multi instance
-        if args.override_directory is not None:
+        if num_multi_instances > 1:
             json_value = json.loads(cmd.stdout.decode())
-            for i in range(int(args.video_pipeline_instances)):
+            for i in range(num_multi_instances):
                 nm = json_value['DataStore']['DataBuckets'][0]['Name']
                 nm_val = nm + str(i+1)
                 json_value['DataStore']['DataBuckets'].append({"Name":
@@ -648,7 +671,7 @@ def csl_parser(app_list, args):
                                                                "RO"})
             cmd = json.dumps(json_value)
         try:
-            if args.override_directory is not None:
+            if num_multi_instances > 1:
                 # Write module spec to temporary file for envsubst
                 with open("./"+app_name+"module_spec_temp.json", "w") \
                    as module_spec_file:
@@ -862,17 +885,20 @@ def create_multi_instance_k8s_yml(k8s_path, dev_mode, i):
             for v in range(len(ports_dict)):
                 # Update port
                 if "port" in ports_dict[v]:
-                    port = ports_dict[v]['port']
-                    new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
-                    ports_dict[v]['port'] = int(new_port)
+                    if "$" not in str(ports_dict[v]['port']):
+                        port = ports_dict[v]['port']
+                        new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
+                        ports_dict[v]['port'] = int(new_port)
                     # Update targetPort if it exists
                     if "targetPort" in ports_dict[v]:
-                        ports_dict[v]['targetPort'] = int(new_port)
+                        if "$" not in str(ports_dict[v]['targetPort']):
+                            ports_dict[v]['targetPort'] = int(new_port)
                     # Update nodePort if it exists
                     if "nodePort" in ports_dict[v]:
-                        port = ports_dict[v]['nodePort']
-                        new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
-                        ports_dict[v]['nodePort'] = int(new_port)
+                        if "$" not in str(ports_dict[v]['nodePort']):
+                            port = ports_dict[v]['nodePort']
+                            new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
+                            ports_dict[v]['nodePort'] = int(new_port)
 
             # dict to update deployment section
             yaml_dict = dict()
@@ -927,19 +953,27 @@ def k8s_yaml_merger(app_list, dev_mode, args):
     :param dev_mode: Dev Mode key
     :type dev_mode: bool
     """
+    app_list.extend(override_k8s_apps_list)
     merged_yaml = ""
     # Iterate through & create multi instance k8s yml
     # for apps having override directory
-    for kube_yaml in benchmark_k8s_app_list:
+    for kube_yaml in app_list:
+        app_name = kube_yaml.split("/")[-2]
         if args.override_directory is not None:
-            app_name = kube_yaml.split("/")[-3]
-            for i in range(int(args.video_pipeline_instances)):
+            if args.override_directory in kube_yaml:
+                app_name = kube_yaml.split("/")[-3]
+        if num_multi_instances > 1 and app_name not in subscriber_list.keys():
+            for i in range(num_multi_instances):
                 multi_instance_yml = create_multi_instance_k8s_yml(kube_yaml, dev_mode, i)
                 merged_yaml = merged_yaml + "---\n" + multi_instance_yml
-            # Remove multi instance apps from k8s_app_list
-            for apps in app_list:
-                if "/" + app_name in apps:
-                    app_list.remove(apps)
+        else:
+            with open(kube_yaml) as yaml_file:
+                data = yaml_file.read()
+                if dev_mode:
+                    merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
+                else:
+                    merged_yaml = merged_yaml + "---\n" + data
+
 
     # Iterate through app_list & merge k8s yaml
     for kube_yaml in app_list:
@@ -967,9 +1001,9 @@ def create_multi_instance_yml_dict(data, i):
     :return: updated yaml dict
     :rtype: ordered dict
     """
-    # Fetching individual app names from benchmark_app_list
+    # Fetching individual app names from override_apps_list
     bm_apps_list = []
-    for x in benchmark_app_list:
+    for x in override_apps_list:
         appname = x.split('/' + args.override_directory)[0].split('/')[-1]
         bm_apps_list.append(appname)
 
@@ -1081,25 +1115,26 @@ def create_multi_instance_yml_dict(data, i):
                         v['environment'][new_cfg] = v4
 
     # Update outer secrets section
-    for k, v in list(temp['secrets'].items()):
-        if 'cert' in k:
-            cert_temp = k.split('_cert')[0]
-            new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
-            for k2 in v.items():
-                yml_map = ruamel.yaml.comments.CommentedMap()
-                yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                              new_app_name))
-            temp['secrets'][new_cert] = yml_map
-            del temp['secrets'][k]
-        if 'key' in k:
-            key_temp = k.split('_key')[0]
-            new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
-            for k2 in v.items():
-                yml_map = ruamel.yaml.comments.CommentedMap()
-                yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                              new_app_name))
-            temp['secrets'][new_key] = yml_map
-            del temp['secrets'][k]
+    if dev_mode != 0:
+        for k, v in list(temp['secrets'].items()):
+            if 'cert' in k:
+                cert_temp = k.split('_cert')[0]
+                new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
+                for k2 in v.items():
+                    yml_map = ruamel.yaml.comments.CommentedMap()
+                    yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
+                                                                new_app_name))
+                temp['secrets'][new_cert] = yml_map
+                del temp['secrets'][k]
+            if 'key' in k:
+                key_temp = k.split('_key')[0]
+                new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
+                for k2 in v.items():
+                    yml_map = ruamel.yaml.comments.CommentedMap()
+                    yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
+                                                                new_app_name))
+                temp['secrets'][new_key] = yml_map
+                del temp['secrets'][k]
 
     return temp
 
@@ -1129,28 +1164,33 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
         yaml_files_dict.append(data)
 
     # Load the required yaml files
+    app_list.extend(override_apps_list)
     for k in app_list:
         with open(k + '/' + file_to_pick, 'r') as docker_compose_file:
             data = ruamel.yaml.round_trip_load(docker_compose_file,
                                                preserve_quotes=True)
-            if args.override_directory is not None:
-                if args.override_directory in k:
-                    appname = k.split("/")[-2]
-                    # If app is not in subscriber list, generate multi instance
-                    # yml to spawn multiple containers
-                    if appname not in subscriber_list.keys():
-                        for i in range(int(args.video_pipeline_instances)):
-                            data_two = create_multi_instance_yml_dict(data, i+1)
-                            yaml_files_dict.append(data_two)
-                    # If app is in subscriber_list, do not generate multi instance
-                    # yml to avoid spawning multiple containers
-                    else:
-                        yaml_files_dict.append(data)
+
+            # Create multi instance compose if num_multi_instances is > 1
+            if num_multi_instances > 1:
+                appname = k.split("/")[-1]
+                if args.override_directory is not None:
+                    if args.override_directory in k:
+                        appname = k.split("/")[-2]
+                # Create single instance only for services in subscriber_list and 
+                # for corner case of common/video, create multi instance otherwise
+                # TODO: Support EISAzureBridge multi instance creation if applicable
+                if appname not in subscriber_list.keys() and appname != "video" and appname != "common" and appname != "EISAzureBridge":
+                    for i in range(num_multi_instances):
+                        data_two = create_multi_instance_yml_dict(data, i+1)
+                        yaml_files_dict.append(data_two)
+                # To create single instance for subscriber services
                 else:
                     yaml_files_dict.append(data)
+            # To create single instance
             else:
                 yaml_files_dict.append(data)
 
+    # Updating final yaml dict
     yaml_dict = yaml_files_dict[0]
     for var in yaml_files_dict[1:]:
         for k in var:
@@ -1162,6 +1202,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 else:
                     yaml_dict[k].update({i: var[k][i]})
 
+    # Updating yaml dict for dev mode
     if dev_mode:
         for k, v in yaml_dict.items():
             # Deleting the main secrets section
@@ -1238,10 +1279,6 @@ def yaml_parser(args):
     if(os.path.exists(path_override)):
         os.remove(path_override)
 
-    override_app_list = []
-    app_list = []
-    csl_app_list = []
-    k8s_app_list = []
     for app_dir in dir_list:
         # In case user mentions the service as full path instead of
         # relative to IEdgeInsights.
@@ -1250,57 +1287,54 @@ def yaml_parser(args):
         else:
             prefix_path = eis_dir + app_dir
         # Append to app_list if dir has both docker-compose.yml and config.json
-        # & append to benchmark_app_list if override_directory has both
+        # & append to override_apps_list if override_directory has both
         # docker-compose.yml and config.json
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
             if os.path.isdir(override_dir):
                 if os.path.isfile(override_dir + '/docker-compose.yml') and \
                    os.path.isfile(override_dir + '/config.json'):
-                    app_list.append(override_dir)
-                    benchmark_app_list.append(override_dir)
-        if os.path.isfile(prefix_path + '/docker-compose.yml') and\
-                os.path.isfile(prefix_path + '/config.json'):
-            if args.override_directory is not None:
-                service_name = prefix_path.rsplit("/")[-1]
-                if args.override_directory not in prefix_path and \
-                   not any(service_name in s for s in app_list):
-                    app_list.append(prefix_path)
-            else:
+                    override_apps_list.append(override_dir)
+            elif os.path.isfile(prefix_path + '/docker-compose.yml') and\
+                 os.path.isfile(prefix_path + '/config.json'):
+                app_list.append(prefix_path)
+        else:
+            if os.path.isfile(prefix_path + '/docker-compose.yml') and \
+               os.path.isfile(prefix_path + '/config.json'):
                 app_list.append(prefix_path)
         # Append to csl_app_list if dir has both app_spec.json and
-        # module_spec.json & append to benchmark_csl_app_list if
+        # module_spec.json & append to override_csl_apps_list if
         # override_directory has both app_spec.json & module_spec.json
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
             if os.path.isdir(override_dir):
                 if os.path.isfile(override_dir + '/app_spec.json') and \
                    os.path.isfile(override_dir + '/module_spec.json'):
-                    csl_app_list.append(override_dir)
-                    benchmark_csl_app_list.append(override_dir)
-        elif os.path.isfile(prefix_path + '/app_spec.json') and\
-                os.path.isfile(prefix_path + '/module_spec.json'):
-            csl_app_list.append(prefix_path)
-        # Append to isfile if dir has k8s-service.yml
-        # & append to benchmark_k8s_app_list if
+                    override_csl_apps_list.append(override_dir)
+            elif os.path.isfile(prefix_path + '/app_spec.json') and\
+                 os.path.isfile(prefix_path + '/module_spec.json'):
+                csl_app_list.append(prefix_path)
+        else:
+            if os.path.isfile(prefix_path + '/app_spec.json') and \
+               os.path.isfile(prefix_path + '/module_spec.json'):
+                csl_app_list.append(prefix_path)
+        # Append to k8s_app_list if dir has k8s-service.yml
+        # & append to override_k8s_apps_list if
         # override_directory has k8s-service.yml
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
             if os.path.isdir(override_dir):
                 if os.path.isfile(override_dir + '/k8s-service.yml'):
-                    benchmark_k8s_app_list.append(override_dir + '/k8s-service.yml')
-        if os.path.isfile(prefix_path + '/k8s-service.yml'):
-            if args.override_directory is not None:
-                service_name = prefix_path.rsplit("/")[-1]
-                if args.override_directory not in prefix_path and \
-                   not any(service_name in s for s in k8s_app_list):
-                    k8s_app_list.append(prefix_path + '/k8s-service.yml')
-            else:
+                    override_k8s_apps_list.append(override_dir + '/k8s-service.yml')
+            elif os.path.isfile(prefix_path + '/k8s-service.yml'):
+                k8s_app_list.append(prefix_path + '/k8s-service.yml')
+        else:
+            if os.path.isfile(prefix_path + '/k8s-service.yml'):
                 k8s_app_list.append(prefix_path + '/k8s-service.yml')
 
         # Append to override_list if dir has docker-compose-dev.override.yml
         if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
-            override_app_list.append(prefix_path)
+            dev_override_list.append(prefix_path)
 
     # Adding video folder manually since it's not a direct sub-directory
     # for multi instance feature
@@ -1325,7 +1359,7 @@ def yaml_parser(args):
     if dev_mode:
         dev_mode_str = "DEV"
         # Creating docker-compose-dev.override.yml only in DEV mode
-        create_docker_compose_override(override_app_list, True, args)
+        create_docker_compose_override(dev_override_list, True, args)
     print("Successfully created docker-compose.yml"
           " file for {} mode".format(dev_mode_str))
 
@@ -1396,6 +1430,10 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     args = parse_args()
+
+    # Setting number of multi instances variable
+    if int(args.video_pipeline_instances) > 1:
+        num_multi_instances = int(args.video_pipeline_instances)
 
     # Start yaml parser
     yaml_parser(args)
