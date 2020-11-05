@@ -56,7 +56,12 @@ config_t* ClientCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Client.
 config_value_t* ClientCfg::getInterfaceValue(const char* key){
-    return m_cli_cfg->cfgmgr_get_interface_value_client(m_cli_cfg, key);
+    config_value_t* interface_value = m_cli_cfg->cfgmgr_get_interface_value_client(m_cli_cfg, key);
+    if(interface_value == NULL){
+        LOG_ERROR_0("[Client]:Getting interface value from base c layer failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To fetch endpoint from config
@@ -65,14 +70,14 @@ std::string ClientCfg::getEndpoint() {
     config_value_t* ep = m_cli_cfg->cfgmgr_get_endpoint_client(m_cli_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint is not set");
-        return NULL;
+        return "";
     }
     
     char* value;
     value = cvt_obj_str_to_char(ep);
     if(value == NULL){
         LOG_ERROR_0("Endpoint object to string conversion failed");
-        return NULL;
+        return "";
     }
 
     std::string s(value);

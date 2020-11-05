@@ -104,12 +104,12 @@ std::string EtcdClient::get(std::string& key) {
         if (status.ok()) {
             kvs.CopyFrom(reply.kvs(0));
         }else {
-            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
             return "(NULL)";
         }
     } catch(std::exception const & ex) {
-        LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
+        LOG_DEBUG("Exception Occurred in get() API with the Error: %s", ex.what());
         int no_val_error;
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
         if(no_val_error == 0) {
@@ -159,15 +159,15 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
                 values.push_back( kvs.value());
             }
         }else {
-            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
         }
     } catch(std::exception const & ex) {
         int no_val_error;
-        LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
+        LOG_DEBUG("Exception Occurred in get() API with the Error: %s", ex.what());
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
         if(no_val_error == 0) {
-                LOG_ERROR("Value for the key %s is not found", key_prefix.c_str());
+                LOG_DEBUG("Value for the key %s is not found", key_prefix.c_str());
         }
     }
 
@@ -215,10 +215,18 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
                        }
                        // Creating the cJSON object with Key as kvs_key and value as kvs_value
                        val_json = cJSON_CreateObject();
+                       if(val_json == NULL){
+                           LOG_ERROR_0("Create json object failed");
+                           return;
+                       }
                        cJSON_AddStringToObject(val_json, kvs_key, kvs_value);
                     } else{
                         // char* to cJSON conversion
                         val_json = cJSON_Parse(kvs_value);
+                        if(val_json == NULL){
+                           LOG_ERROR_0("cJSON Parse failed");
+                           return;
+                       }
                     }                  
 
                     // cJSON to config_t conversion

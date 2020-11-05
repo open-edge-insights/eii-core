@@ -85,12 +85,12 @@ int main() {
     msg_envelope_elem_body_t* fp = msgbus_msg_envelope_new_floating(55.5);
 
     setenv("AppName","VideoAnalytics", 1);
+    config_t* config = NULL;
     g_ch = new ConfigMgr();
 
     // ClientCfg* client_ctx = g_ch->getClientByName("default");
     ClientCfg* client_ctx = g_ch->getClientByIndex(0);
-    config_t* config = NULL;
-    config = client_ctx->getMsgBusConfig();
+    
 
     char* name = NULL;
     config_value_t* interface_value = client_ctx->getInterfaceValue("Name");
@@ -110,8 +110,14 @@ int main() {
     LOG_DEBUG("Total number of clients : %d", num_of_clients);
 
     ep = client_ctx->getEndpoint();
+    if(ep.empty()){
+        LOG_ERROR_0("get endpoint failed");
+        goto err;
+    }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
+    
+    config = client_ctx->getMsgBusConfig();
     if(config == NULL) {
         LOG_ERROR_0("Failed to load JSON configuration");
         goto err;

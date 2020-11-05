@@ -43,7 +43,12 @@ config_value_t* cfgmgr_get_endpoint_pub(void* pub_conf) {
 
 config_value_t* cfgmgr_get_interface_value_pub(void* pub_conf, const char* key) {
     pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
-    return config_value_object_get(pub_cfg->pub_config, key);
+    config_value_t* interface_value = config_value_object_get(pub_cfg->pub_config, key);
+    if (interface_value == NULL){
+        LOG_ERROR_0("interface_value initialization failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To fetch topics from config
@@ -72,6 +77,9 @@ config_value_t* cfgmgr_get_allowed_clients_pub(void* pub_conf) {
 int cfgmgr_set_topics_pub(char** topics_list, int len, base_cfg_t* base_cfg, void* pub_conf) {
     pub_cfg_t* pub_cfg = (pub_cfg_t*)pub_conf;
     int result = set_topics_base(topics_list, len, PUBLISHERS, base_cfg, pub_cfg->pub_config);
+    if(result != 0){
+        LOG_ERROR_0("Error in setting new topics")
+    }
     return result;
 }
 
@@ -104,6 +112,12 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         LOG_ERROR_0("publish_config_type initialization failed");
         goto err;
     }
+
+    if(publish_config_type->type != CVT_STRING || publish_config_type->body.string == NULL){
+        LOG_ERROR_0("publish_config_type type mismatch or the string value is NULL");
+        goto err;
+    }
+
     char* type = publish_config_type->body.string;
 
     // Fetching EndPoint from config
@@ -116,14 +130,26 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     const char* end_point;
     if(publish_config_endpoint->type == CVT_OBJECT){
         end_point = cvt_to_char(publish_config_endpoint);
-    }else{
+    }else if(publish_config_endpoint->type == CVT_STRING && publish_config_endpoint->body.string != NULL){
         end_point = publish_config_endpoint->body.string;
+    } else {
+        end_point = NULL;
+    }
+
+    if(end_point == NULL){
+        LOG_ERROR_0("Failed to get endpoint, its NULL");
+        goto err;
     }
 
     // Fetching Name from config
     config_value_t* publish_config_name = config_value_object_get(pub_config, NAME);
     if (publish_config_name == NULL) {
         LOG_ERROR_0("publish_config_name initialization failed");
+        goto err;
+    }
+
+    if(publish_config_name->type != CVT_STRING || publish_config_name->body.string == NULL){
+        LOG_ERROR_0("publish_config_name type mismatch or the string value is NULL");
         goto err;
     }
 
@@ -140,6 +166,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
     }
     free(ep_override_env);
 
@@ -151,6 +179,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         if (strlen(publisher_ep) != 0) {
             end_point = (const char*)publisher_ep;
         }
+    } else {
+        LOG_DEBUG_0("env not set for overridding PUBLISHER_ENDPOINT, and hence endpoint taking from interface ");
     }
 
     // Overriding endpoint with PUBLISHER_<Name>_TYPE if set
@@ -166,6 +196,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
             LOG_DEBUG("Overriding endpoint with %s", type_override_env);
             type = type_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence type taking from interface ", type_override_env);
     }
 
     free(type_override_env);
@@ -178,6 +210,8 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         if (strlen(publisher_type) != 0) {
             type = publisher_type;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding PUBLISHER_TYPE, and hence type taking from interface ");
     }
 
     cJSON_AddStringToObject(c_json, "type", type);
@@ -212,6 +246,10 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     } else if (!strcmp(type, "zmq_tcp")) {
         // Add host & port to zmq_tcp_publish cJSON object
         host_port = get_host_port(end_point);
+        if (host_port == NULL){
+            LOG_ERROR_0("Get host and port failed");
+            goto err;
+        }
         host = host_port[0];
         trim(host);
         port = host_port[1];
@@ -260,6 +298,9 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
                 }
             }
         }
+    } else {
+        LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
+        goto err;
     }
     // Constructing char* object from cJSON object
     char* config_value_cr = cJSON_Print(c_json);

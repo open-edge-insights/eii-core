@@ -54,13 +54,21 @@ config_value_t* cfgmgr_get_topics_sub(void* sub_conf) {
 
 config_value_t* cfgmgr_get_interface_value_sub(void* sub_conf, const char* key) {
     sub_cfg_t* sub_cfg = (sub_cfg_t*)sub_conf;
-    return config_value_object_get(sub_cfg->sub_config, key);
+    config_value_t* interface_value = config_value_object_get(sub_cfg->sub_config, key);
+    if (interface_value == NULL){
+        LOG_ERROR_0("interface_value initialization failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To set topics in config
 int cfgmgr_set_topics_sub(char** topics_list, int len, base_cfg_t* base_cfg, void* sub_conf) {
     sub_cfg_t* sub_cfg = (sub_cfg_t*) sub_conf;
     int result = set_topics_base(topics_list, len, SUBSCRIBERS, base_cfg, sub_cfg->sub_config);
+    if(result != 0){
+        LOG_ERROR_0("Error in setting new topics")
+    }
     return result;
 }
 
@@ -96,8 +104,13 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
 
     // Fetching Type from config
     config_value_t* subscribe_config_type = config_value_object_get(sub_config, TYPE);
-    if (subscribe_config_type == NULL) {
+    if (subscribe_config_type == NULL || subscribe_config_type->body.string == NULL) {
         LOG_ERROR_0("subscribe_config_type initialization failed");
+        goto err;
+    }
+
+    if(subscribe_config_type->type != CVT_STRING || subscribe_config_type->body.string == NULL){
+        LOG_ERROR_0("subscribe_config_type type mismatch or the string value is NULL");
         goto err;
     }
     char* type = subscribe_config_type->body.string;
@@ -116,6 +129,11 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         end_point = subscribe_config_endpoint->body.string;
     }
 
+    if(end_point == NULL){
+        LOG_ERROR_0("Failed to get endpoint, its NULL");
+        goto err;
+    }
+
     // Fetching Name from config
     config_value_t* subscribe_config_name = config_value_object_get(sub_config, NAME);
     if (subscribe_config_name == NULL) {
@@ -130,12 +148,14 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
-    char* ep_override = getenv(ep_override_env);
+    char* ep_override = getenv(ep_override_env);   
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
     }
 
     // Overriding endpoint with SUBSCRIBER_ENDPOINT if set
@@ -146,6 +166,8 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         if (strlen(subscriber_ep) != 0) {
             end_point = (const char*)subscriber_ep;
         }
+    } else {
+        LOG_DEBUG_0("env not set for overridding SUBSCRIBER_ENDPOINT, and hence endpoint taking from interface ");
     }
 
     // Overriding endpoint with SUBSCRIBER_<Name>_TYPE if set
@@ -161,6 +183,8 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
             LOG_DEBUG("Overriding endpoint with %s", type_override_env);
             type = type_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence type taking from interface ", type_override_env);
     }
 
     // Overriding endpoint with SUBSCRIBER_TYPE if set
@@ -171,6 +195,8 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         if (strlen(subscriber_type) != 0) {
             type = subscriber_type;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding SUBSCRIBER_TYPE, and hence type taking from interface ");
     }
     cJSON_AddStringToObject(c_json, "type", type);
 
@@ -200,8 +226,16 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         }
 
         size_t arr_len = config_value_array_len(topic_array);
+        if(arr_len == 0){
+            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+            goto err;
+        }
 
         host_port = get_host_port(end_point);
+        if (host_port == NULL){
+            LOG_ERROR_0("Get host and port failed");
+            goto err;
+        }
         host = host_port[0];
         trim(host);
         port = host_port[1];
@@ -212,6 +246,10 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
         int topicret;
         // comparing the first topic in the array of subscribers topic with "*"
         topic = config_value_array_get(topic_array, 0);
+        if (topic == NULL || topic->body.string == NULL){
+            LOG_ERROR_0("topic initialization failed");
+            goto err;
+        }
         strcmp_s(topic->body.string, strlen(topic->body.string), "*", &topicret);
         if (topic != NULL) {
             config_value_destroy(topic);
@@ -223,10 +261,23 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
             goto err;
         }
 
+        if(publisher_appname->type != CVT_STRING || publisher_appname->body.string == NULL){
+            LOG_ERROR("PublisherAppName type mismatch or the string is NULL");
+            goto err;
+        }
+
         for (int i = 0; i < arr_len; i++) {
             // Create cJSON object for every topic
             cJSON* topics = cJSON_CreateObject();
+            if (topics == NULL) {
+                LOG_ERROR_0("c_json initialization failed");
+                goto err;
+            }
             topic = config_value_array_get(topic_array, i);
+            if (topic == NULL){
+                LOG_ERROR_0("topic initialization failed");
+                goto err;
+            }
             // Add host & port to cJSON object
             cJSON_AddStringToObject(topics, "host", host);
             cJSON_AddNumberToObject(topics, "port", i_port);
@@ -263,6 +314,9 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
                 config_value_destroy(topic);
             }
         }
+    } else {
+        LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
+        goto err;
     }
 
     // Constructing char* object from cJSON object

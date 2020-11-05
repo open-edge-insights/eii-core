@@ -54,7 +54,12 @@ config_value_t* cfgmgr_get_allowed_clients_server(void* server_conf) {
 
 config_value_t* cfgmgr_get_interface_value_server(void* serv_conf, const char* key) {
     server_cfg_t* server_cfg = (server_cfg_t*)serv_conf;
-    return config_value_object_get(server_cfg->server_config, key);
+    config_value_t* interface_value = config_value_object_get(server_cfg->server_config, key);
+    if (interface_value == NULL){
+        LOG_ERROR_0("interface_value initialization failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To fetch msgbus config
@@ -98,15 +103,21 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
 
     // Fetching Type from config
     server_config_type = config_value_object_get(serv_config, TYPE);
-    if (server_config_type == NULL) {
+    if (server_config_type == NULL || server_config_type->body.string == NULL) {
         LOG_ERROR_0("server_config_type initialization failed");
         goto err;
     }
+
+    if(server_config_type->type != CVT_STRING || server_config_type->body.string == NULL){
+        LOG_ERROR_0("server_config_type type mismatch or the string value is NULL");
+        goto err;
+    }
+
     char* type = server_config_type->body.string;
 
     // Fetching EndPoint from config
     server_endpoint = config_value_object_get(serv_config, ENDPOINT);
-    if (server_endpoint == NULL) {
+    if (server_endpoint == NULL || server_endpoint->body.string == NULL) {
         LOG_ERROR_0("server_endpoint initialization failed");
         goto err;
     }
@@ -125,6 +136,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
             end_point = (const char*)ep_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override);
     }
 
     // Overriding endpoint with SERVER_ENDPOINT if set
@@ -135,6 +148,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
         if (strlen(server_ep) != 0) {
             end_point = (const char*)server_ep;
         }
+    } else {
+        LOG_DEBUG_0("env not set for overridding SERVER_ENDPOINT, and hence endpoint taking from interface ");
     }
 
     // Overriding endpoint with SERVER_<Name>_TYPE if set
@@ -150,6 +165,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             LOG_DEBUG("Overriding endpoint with %s", type_override_env);
             type = type_override;
         }
+    } else {
+        LOG_DEBUG("env not set for overridding %s, and hence type taking from interface ", type_override);
     }
 
     // Overriding endpoint with SERVER_TYPE if set
@@ -160,6 +177,8 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
         if (strlen(server_type) != 0) {
             type = server_type;
         }
+    }  else {
+        LOG_DEBUG_0("env not set for overridding SERVER_TYPE, and hence type taking from interface ");
     }
     cJSON_AddStringToObject(c_json, "type", type);
 
@@ -187,6 +206,10 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             goto err;
         }
         host_port = get_host_port(end_point);
+        if (host_port == NULL){
+            LOG_ERROR_0("Get host and port failed");
+            goto err;
+        }
         char* host = host_port[0];
         trim(host);
         char* port = host_port[1];
@@ -213,7 +236,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
 
             // Fetch the first item in allowed_clients
             temp_array_value = config_value_array_get(server_json_clients, 0);
-            if (temp_array_value == NULL) {
+            if (temp_array_value == NULL || temp_array_value->body.string == NULL) {
                 LOG_ERROR_0("temp_array_value initialization failed");
                 goto err;
             }
@@ -233,7 +256,13 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                     goto err;
                 }
                 config_value_t* value;
-                for (int i = 0; i < config_value_array_len(pub_key_values); i++) {
+                size_t arr_len = config_value_array_len(pub_key_values);
+                if(arr_len == 0){
+                    LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+                    goto err;
+                }
+
+                for (int i = 0; i < arr_len; i++) {
                     value = config_value_array_get(pub_key_values, i);
                     if (value == NULL) {
                         LOG_ERROR_0("value initialization failed");
@@ -250,7 +279,12 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                     LOG_ERROR_0("all_clients initialization failed");
                     goto err;
                 }
-                for (int i =0; i < config_value_array_len(server_json_clients); i++) {
+                size_t arr_len = config_value_array_len(server_json_clients);
+                if(arr_len == 0){
+                    LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+                    goto err;
+                }
+                for (int i =0; i < arr_len; i++) {
                     // Fetching individual public keys of all AllowedClients
                     array_value = config_value_array_get(server_json_clients, i);
                     if (array_value == NULL) {
@@ -258,11 +292,15 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                         goto err;
                     }
                     size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
-                    grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
-                    sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
+                    char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+                    if (grab_public_key == NULL) {
+                        LOG_ERROR_0("concatenation for grab_public_key failed");
+                        goto err;
+                    }
+                    const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
                     if(sub_public_key == NULL){
                         // If any service isn't provisioned, ignore if key not found
-                        LOG_WARN("Value is not found for the key: %s", grab_public_key);
+                        LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
                     }
                     
                     config_value_destroy(array_value);
@@ -276,6 +314,10 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             // Fetching Publisher private key & adding it to server_topic object
             size_t init_len = strlen("/") + strlen(PRIVATE_KEY) + strlen(app_name) + 2;
             pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
+            if (pub_pri_key == NULL) {
+                LOG_ERROR_0("concatenation for pub_pri_key failed");
+                goto err;
+            }
             server_secret_key = m_kv_store_handle->get(cfgmgr_handle, pub_pri_key);
             if (server_secret_key == NULL) {
                 LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
@@ -286,6 +328,9 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
         // Creating the final cJSON config object
         // server_name
         cJSON_AddItemToObject(c_json, server_name->body.string, server_topic);
+    } else {
+        LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
+        goto err;
     }
 
     // Constructing char* object from cJSON object

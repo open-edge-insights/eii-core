@@ -52,7 +52,12 @@ config_t* ServerCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Server.
 config_value_t* ServerCfg::getInterfaceValue(const char* key){
-    return m_serv_cfg->cfgmgr_get_interface_value_server(m_serv_cfg, key);
+    config_value_t* interface_value = m_serv_cfg->cfgmgr_get_interface_value_server(m_serv_cfg, key);
+    if(interface_value == NULL){
+        LOG_ERROR_0("[Server]:Getting interface value from base c layer failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To fetch endpoint from config
@@ -61,14 +66,14 @@ std::string ServerCfg::getEndpoint() {
     config_value_t* ep = m_serv_cfg->cfgmgr_get_endpoint_server(m_serv_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
-        return NULL;
+        return "";
     }
     
     char* value;
     value = cvt_obj_str_to_char(ep);
     if(value == NULL){
         LOG_ERROR_0("Endpoint object to string conversion failed");
-        return NULL;
+        return "";
     }
 
     std::string s(value);
@@ -89,7 +94,14 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
         return {};
     }
     config_value_t* client_value;
-    for (int i = 0; i < config_value_array_len(clients); i++) {
+
+    size_t arr_len = config_value_array_len(clients);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        return {};
+    }
+
+    for (int i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
             LOG_ERROR_0("client_value initialization failed");

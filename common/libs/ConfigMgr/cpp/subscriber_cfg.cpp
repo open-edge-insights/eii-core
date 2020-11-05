@@ -57,7 +57,12 @@ config_t* SubscriberCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Subscriber.
 config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
-    return m_sub_cfg->cfgmgr_get_interface_value_sub(m_sub_cfg, key);
+    config_value_t* interface_value = m_sub_cfg->cfgmgr_get_interface_value_sub(m_sub_cfg, key);
+    if(interface_value == NULL){
+        LOG_ERROR_0("[Subscriber]:Getting interface value from base c layer failed");
+        return NULL;
+    }
+    return interface_value;
 }
 
 // To fetch endpoint from config
@@ -66,7 +71,7 @@ std::string SubscriberCfg::getEndpoint() {
     config_value_t* ep = m_sub_cfg->cfgmgr_get_endpoint_sub(m_sub_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
-        return NULL;
+        return "";
     }
     
     char* value;
@@ -74,7 +79,7 @@ std::string SubscriberCfg::getEndpoint() {
     if(value == NULL){
         LOG_ERROR_0("Endpoint object to string conversion failed");
         config_value_destroy(ep);
-        return NULL;
+        return "";
     }
 
     std::string s(value);

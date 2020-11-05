@@ -90,6 +90,10 @@ config_value_t* etcd_get_prefix(void* handle, char *key) {
     }
 
     cJSON* all_values = cJSON_CreateArray();
+    if(all_values == NULL){
+        LOG_ERROR_0("Create new json array failed");
+        return NULL;
+    }
 
     for(size_t i = 0; i < vec.size(); i++){
         cJSON_AddItemToArray(all_values, cJSON_CreateString(vec[i].c_str()));

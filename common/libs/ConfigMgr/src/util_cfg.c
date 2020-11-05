@@ -29,6 +29,7 @@
 bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point){
 
     int ret;
+    config_value_t* topics = NULL;
     bool result = false;
     char *sock_file = NULL;
     char* sock_dir = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
@@ -43,15 +44,25 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         goto err;
     }
 
+    config_value_t* topics_list = config_value_object_get(config, TOPICS);
+    if (topics_list == NULL) {
+        LOG_ERROR_0("topics_list initialization failed");
+        goto err;
+    }
+
     if(json_endpoint->type == CVT_OBJECT) {
-        config_value_t* topics_list = config_value_object_get(config, TOPICS);
-        if (topics_list == NULL) {
-            LOG_ERROR_0("topics_list initialization failed");
+        
+        config_value_t* socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
+        if (socketdir_cvt == NULL || socketdir_cvt->body.string == NULL) {
+            LOG_ERROR_0("socketdir_cvt initialization failed");
+            goto err;
+        }
+        config_value_t* socketfile_cvt = config_value_object_get(json_endpoint, "SocketFile");
+        if (socketfile_cvt == NULL || socketfile_cvt->body.string == NULL) {
+            LOG_ERROR_0("socketfile_cvt initialization failed");
             goto err;
         }
 
-        config_value_t* socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
-        config_value_t* socketfile_cvt = config_value_object_get(json_endpoint, "SocketFile");
         sock_dir = socketdir_cvt->body.string;
 
         strcmp_s(socketfile_cvt->body.string, strlen(socketfile_cvt->body.string), "*", &ret);
@@ -126,16 +137,24 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     // When Socket file is explicitly given by the user.
     if (sock_file != NULL) {
         LOG_DEBUG_0("socket_ep file explicitly given by application");
-        config_value_t* topics_list = config_value_object_get(config, "Topics");
+        topics_list = config_value_object_get(config, "Topics");
         if (topics_list == NULL) {
             LOG_ERROR_0("topics_list initialization failed");
             goto err;
         }
 
         config_value_t* topics;
+        size_t arr_len = config_value_array_len(topics_list);
+        if(arr_len == 0){
+            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        }
         // getting the topic list and mapping multiple topics to the socket file
-        for (int i=0; i < config_value_array_len(topics_list); ++i) {
+        for (int i=0; i < arr_len; ++i) {
             cJSON* socket_file_obj = cJSON_CreateObject();
+            if (socket_file_obj == NULL) {
+                LOG_ERROR_0("c_json initialization failed");
+                goto err;
+            }
             topics = config_value_array_get(topics_list, i);
            
             strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
@@ -164,6 +183,12 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     } else {
         // Socket file will be created by EIS message bus based on the topic
         LOG_DEBUG_0("socket_ep file not explicitly given by application");
+        topics = config_value_array_get(topics_list, 0);
+        strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
+        if(ret == 0){
+            LOG_ERROR_0("Topics cannot be \"*\" if socket file is not explicitly mentioned");
+            goto err;
+        }
     }
             
     // Add Endpoint directly to socket_dir if IPC mode
@@ -188,11 +213,19 @@ err:
 char* cvt_obj_str_to_char(config_value_t* cvt){
     char* value;
     if (cvt->type == CVT_OBJECT){
-        value = (cvt_to_char(cvt));
+        value = cvt_to_char(cvt);
+        if(value == NULL){
+            LOG_ERROR_0("cvt to char failed, value is NULL");
+            return NULL;
+        }
     } else if (cvt->type == CVT_STRING) {
-        value = (cvt->body.string);
+        value = cvt->body.string;
+        if(value == NULL){
+            LOG_ERROR_0("cvt string value is NULL");
+            return NULL;
+        }
     } else {
-        LOG_ERROR("EndPoint type mis match: It should be either string or json");
+        LOG_ERROR_0("EndPoint type mis match: It should be either string or json");
         return NULL;
     }
 
@@ -229,9 +262,15 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     }
     int result;
     strcmp_s(temp_array_value->body.string, strlen(temp_array_value->body.string), "*", &result);
+
+    size_t arr_len = config_value_array_len(publish_json_clients);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+    }
+
     // If only one item in allowed_clients and it is *
     // Add all available Publickeys
-    if ((config_value_array_len(publish_json_clients) == 1) && (result == 0)) {
+    if ((arr_len == 1) && (result == 0)) {
         cJSON* all_clients = cJSON_CreateArray();
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
@@ -242,8 +281,13 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             LOG_ERROR_0("pub_key_values initialization failed");
             goto err;
         }
-        
-        for (int i = 0; i < config_value_array_len(pub_key_values); i++) {
+
+        arr_len = config_value_array_len(pub_key_values);
+        if(arr_len == 0){
+            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        }
+
+        for (int i = 0; i < arr_len; i++) {
             value = config_value_array_get(pub_key_values, i);
             if (value == NULL) {
                 LOG_ERROR_0("value initialization failed");
@@ -259,7 +303,11 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             LOG_ERROR_0("all_clients initialization failed");
             goto err;
         }
-        for (int i =0; i < config_value_array_len(publish_json_clients); i++) {
+        arr_len = config_value_array_len(publish_json_clients);
+        if(arr_len == 0){
+            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        }
+        for (int i =0; i < arr_len; i++) {
             // Fetching individual public keys of all AllowedClients
             array_value = config_value_array_get(publish_json_clients, i);
             if (array_value == NULL) {
@@ -268,10 +316,14 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             }
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
             grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
+            if (grab_public_key == NULL){
+                LOG_ERROR_0("Concatenation failed for getting public keys");
+                goto err;
+            }
             sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
-                LOG_WARN("Value is not found for the key: %s", grab_public_key);
+                LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
             }
 
             cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
@@ -292,6 +344,10 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     // Fetching Publisher private key & adding it to zmq_tcp_publish object
     size_t init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
     char* pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
+    if (pub_pri_key == NULL){
+        LOG_ERROR_0("Concatenation failed for getting private keys");
+        goto err;
+    }
     const char* publisher_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
     if (publisher_secret_key == NULL) {
         LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
@@ -340,7 +396,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
 
     const char* pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
     if(pub_public_key == NULL){
-        LOG_WARN("Value is not found for the key: %s", grab_public_key);
+        LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
     }
 
     // Adding Publisher public key to config
@@ -355,7 +411,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
     }
     const char* sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
     if(sub_public_key == NULL){
-        LOG_ERROR("Value is not found for the key: %s", s_sub_public_key);
+        LOG_ERROR("Value is not found for applications own public key: %s", s_sub_public_key);
         ret_val=false;
         goto err;
     }
@@ -372,7 +428,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
 
     const char* sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
     if(sub_pri_key == NULL){
-        LOG_ERROR("Value is not found for the key: %s", s_sub_pri_key);
+        LOG_ERROR("Value is not found for applications own private key: %s", s_sub_pri_key);
         goto err;
     }
 

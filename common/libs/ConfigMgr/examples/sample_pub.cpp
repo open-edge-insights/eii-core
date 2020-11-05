@@ -91,6 +91,14 @@ int main(int argc, char** argv) {
     // Fetching Publisher config from
     // VideoIngestion interface
     setenv("AppName","VideoIngestion", 1);
+    std::string ep = "";
+    config_value_t* interface_value;
+    std::vector<std::string> topics;
+    std::vector<std::string> newTopicsList;
+    std::vector<std::string> clients;
+    std::vector<std::string> topics_new;
+    config_t* pub_config;
+    bool topicsSet;
     g_ctx = new ConfigMgr();
 
     bool dev_mode = g_ctx->isDevMode();
@@ -112,41 +120,71 @@ int main(int argc, char** argv) {
     // Uncomment this for getting Publisher using name, else
     // user can use get publisher by index as mentioned below.
     // pub_ctx = g_ctx->getPublisherByName("default");
+    // if (pub_ctx == NULL){
+    //     LOG_ERROR_0("Failed to get publisher by name");
+    //     goto err;
+    // }
 
     pub_ctx = g_ctx->getPublisherByIndex(0);
-    config_t* pub_config = pub_ctx->getMsgBusConfig();
-
+    if (pub_ctx == NULL){
+        LOG_ERROR_0("Failed to get publisher by index");
+        goto err;
+    }
+    
     // Testing getEndpoint API
-    std::string ep = pub_ctx->getEndpoint();
+    ep = pub_ctx->getEndpoint();
+    if(ep.empty()){
+        LOG_ERROR_0("Failed to get endpoint");
+        goto err;
+    }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
-    config_value_t* interface_value = pub_ctx->getInterfaceValue("Name");
-    if (interface_value == NULL || interface_value->type != CVT_STRING){
+    interface_value = pub_ctx->getInterfaceValue("Name");
+    if (interface_value == NULL) {
         LOG_ERROR_0("Failed to get expected interface value");
+        goto err;
     }
     LOG_INFO("Obtained interface value: %s", interface_value->body.string)
 
     // Testing getTopics API
-    std::vector<std::string> topics = pub_ctx->getTopics();
+    topics = pub_ctx->getTopics();
+    if(topics.empty()){
+        LOG_ERROR_0("Failed to get topics");
+        goto err;
+    }
     for (int i = 0; i < topics.size(); i++) {
         LOG_INFO("Pub Topics : %s", topics[i].c_str());
     }
 
     // Testing setTopics API
-    std::vector<std::string> newTopicsList;
+    
     newTopicsList.push_back("camera5_stream");
     newTopicsList.push_back("camera6_stream");
-    bool topicsSet = pub_ctx->setTopics(newTopicsList);
+    topicsSet = pub_ctx->setTopics(newTopicsList);
 
-    std::vector<std::string> topics_new = pub_ctx->getTopics();
+    topics_new = pub_ctx->getTopics();
+    if(topics_new.empty()){
+        LOG_ERROR_0("Failed to get topics_new");
+        goto err;
+    }
     for (int i = 0; i < topics_new.size(); i++) {
         LOG_INFO("Pub Topics : %s", topics_new[i].c_str());
     }
 
     // Testing getAllowedClients API
-    std::vector<std::string> clients = pub_ctx->getAllowedClients();
+    clients = pub_ctx->getAllowedClients();
+    if(clients.empty()){
+        LOG_ERROR_0("Failed to get getAllowedClients");
+        goto err;
+    }
     for (int i = 0; i < clients.size(); i++) {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
+    }
+
+    pub_config = pub_ctx->getMsgBusConfig();
+    if (pub_config == NULL) {
+        LOG_ERROR_0("Failed to get message bus config");
+        goto err;
     }
 
     // Initializing Publisher using pub_config obtained
