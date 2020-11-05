@@ -51,24 +51,25 @@ cdef class ConfigMgr:
         cdef char* env_var
 
         # Initializing app_cfg object
+        log = logging.getLogger('config_manager')
         try:
             self.app_cfg = app_cfg_new()
             if self.app_cfg == NULL:
                 raise Exception("app_cfg is NULL in config_manager")
-
             # Setting /GlobalEnv/ env variables
             env_var = self.app_cfg.env_var
             if env_var is NULL:
-                raise Exception("env_var is NULL in config manager base c layer")
-
-            # Converting c string to py string
-            config_str = env_var.decode('utf-8')
-            # Converting py string to json object
-            config_json = json.loads(config_str)
-            # Iterating through and setting key, value pairs
-            # of config_json in env
-            for key, value in config_json.items():
-                os.environ[key] = value
+                log.info("env_var is not set in config manager base c layer,"
+                         " continuing without setting env vars...")
+            else:
+                # Converting c string to py string
+                config_str = env_var.decode('utf-8')
+                # Converting py string to json object
+                config_json = json.loads(config_str)
+                # Iterating through and setting key, value pairs
+                # of config_json in env
+                for key, value in config_json.items():
+                    os.environ[key] = value
         except Exception as ex:
             raise ex
 

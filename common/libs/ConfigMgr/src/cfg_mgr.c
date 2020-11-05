@@ -610,6 +610,8 @@ app_cfg_t* app_cfg_new() {
         LOG_ERROR_0("Malloc failed for app_cfg_t");
         goto err;
     }
+    // Setting app_cfg->env_var to NULL initially
+    app_cfg->env_var = NULL;
 
     // Fetching & intializing dev mode variable
     char* dev_mode_var = getenv("DEV_MODE");
@@ -643,30 +645,31 @@ app_cfg_t* app_cfg_new() {
     // Fetching GlobalEnv
     char* env_var = kv_store_client->get(handle, "/GlobalEnv/");
     if (env_var == NULL) {
-        LOG_ERROR_0("Value is not found for the key /GlobalEnv/");
-        goto err;
-    }
-    // Creating cJSON of /GlobalEnv/ to iterate over a loop
-    cJSON* env_json = cJSON_Parse(env_var);
-    if (env_json == NULL) {
-        LOG_ERROR("Error when parsing JSON: %s", cJSON_GetErrorPtr());
-        goto err;
-    }
-    int env_vars_count = cJSON_GetArraySize(env_json);
-    // Looping over env vars and setting them in env
-    for (int i = 0; i < env_vars_count; i++) {
-        cJSON *temp = cJSON_GetArrayItem(env_json, i);
-        int env_set = setenv(temp->string, temp->valuestring, 1);
-        if (env_set != 0) {
-            LOG_ERROR("Failed to set env %s", temp->string);
+        LOG_WARN_0("Value is not found for the key /GlobalEnv/,"
+                   " continuing without setting GlobalEnv vars");
+    } else {
+        // Creating cJSON of /GlobalEnv/ to iterate over a loop
+        cJSON* env_json = cJSON_Parse(env_var);
+        if (env_json == NULL) {
+            LOG_ERROR("Error when parsing JSON: %s", cJSON_GetErrorPtr());
             goto err;
         }
+        int env_vars_count = cJSON_GetArraySize(env_json);
+        // Looping over env vars and setting them in env
+        for (int i = 0; i < env_vars_count; i++) {
+            cJSON *temp = cJSON_GetArrayItem(env_json, i);
+            int env_set = setenv(temp->string, temp->valuestring, 1);
+            if (env_set != 0) {
+                LOG_ERROR("Failed to set env %s", temp->string);
+                goto err;
+            }
+        }
+        //TODO : Go and python making use of ths variable
+        // We need to allocate and find a suitable place to
+        // free. As it is used across C++ & C APIs.
+        //free(env_var);
+        cJSON_Delete(env_json);
     }
-    //TODO : Go and python making use of ths variable
-    // We need to allocate and find a suitable place to
-    // free. As it is used across C++ & C APIs.
-    //free(env_var);
-    cJSON_Delete(env_json);
 
     // Fetching AppName
     char* app_name_var = getenv("AppName");
