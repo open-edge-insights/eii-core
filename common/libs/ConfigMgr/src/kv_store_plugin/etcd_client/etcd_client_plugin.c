@@ -72,10 +72,14 @@ kv_store_client_t* create_etcd_client(config_t *config) {
     cert_file = key_file = ca_file = NULL;
 
     etcd_config = (etcd_config_t*)malloc(sizeof(etcd_config_t));
-    kv_store_client = (kv_store_client_t*)malloc(sizeof(kv_store_client_t));
+    if (etcd_config == NULL) {
+        LOG_ERROR_0("Etcd config: Failed to allocate Memory");
+        goto err;
+    }
 
-    if (etcd_config == NULL && kv_store_client == NULL) {
-        LOG_ERROR_0("KV Store: Failed to allocate Memory while creating etcd client");
+    kv_store_client = (kv_store_client_t*)malloc(sizeof(kv_store_client_t));
+    if (kv_store_client == NULL) {
+        LOG_ERROR_0("KV Store Client: Failed to allocate Memory");
         goto err;
     }
 
@@ -163,10 +167,25 @@ kv_store_client_t* create_etcd_client(config_t *config) {
                 free(etcd_host);
                 free(etcd_port);
                 size_t str_len = strlen(etcd_endpoint) + 1;
+
                 char* c_etcd_endpoint = (char*)malloc(sizeof(char) * str_len);
-                snprintf(c_etcd_endpoint, str_len, "%s", etcd_endpoint);
+                if (c_etcd_endpoint == NULL){
+                    LOG_ERROR_0("Malloc failed for etcd endpoint");
+                    goto err;
+                }
+
+                int ret = snprintf(c_etcd_endpoint, str_len, "%s", etcd_endpoint);
+                if (ret < 0){
+                    LOG_ERROR_0("snprintf failed for etcd endpoint");
+                    goto err; 
+                }
                 LOG_DEBUG("ETCD endpoint: %s", c_etcd_endpoint);
+
                 char** host_port = get_host_port(c_etcd_endpoint);
+                if (host_port == NULL){
+                    LOG_ERROR_0("get_host_port failed to get host and port");
+                    goto err; 
+                }
                 host = host_port[0];
                 trim(host);
                 port = host_port[1];

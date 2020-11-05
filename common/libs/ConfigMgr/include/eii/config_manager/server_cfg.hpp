@@ -59,7 +59,8 @@ namespace eis {
                 /**
                  * Overridden base class method to fetch msgbus server configuration
                  * for application to communicate over EIS message bus
-                 * @return config_t* - JSON msg bus server config of type config_t
+                 * @return config_t* - On Success, JSON msg bus server config of type config_t
+                 *                   - On Failure, returns NULL
                  */
                 config_t* getMsgBusConfig() override;
 
@@ -67,19 +68,22 @@ namespace eis {
                  * Overridden base class method to fetch interface value
                  * for application to communicate over EIS message bus
                  * @param key - Key on which interface value is extracted.
-                 * @return config_value_t* - config_value_t object
+                 * @return config_value_t* - On Success, config_value_t object
+                 *                         - On Failure, returns NULL
                  */
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
                  * getEndpoint for application to fetch Endpoint associated with message bus config
-                 * @return std::string - Endpoint of server config of type std::string
+                 * @return std::string - On Success returns Endpoint of server config
+                 *                     - On Failure returns empty string
                  */
                 std::string getEndpoint() override;
 
                 /**
                  * getAllowedClients for application to list of allowed clients associated with message bus config
-                 * @return vector<string> - Allowed client of server config
+                 * @return vector<string> - On Success, returns Allowed client of server config
+                 *                        - On Failure, returns empty vector
                  */
                 std::vector<std::string> getAllowedClients() override;
 

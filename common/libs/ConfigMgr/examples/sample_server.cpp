@@ -82,6 +82,10 @@ int main() {
     int num_parts = 0;
 
     setenv("AppName","VideoIngestion", 1);
+    config_t* config;
+    std::vector<std::string> clients;
+    config_value_t* interface_value;
+    char* name = NULL;
     g_config_mgr = new ConfigMgr();
 
     int num_of_servers = g_config_mgr->getNumServers();
@@ -90,25 +94,39 @@ int main() {
     g_server_ctx = g_config_mgr->getServerByIndex(0);
     //g_server_ctx = g_config_mgr->getServerByName("default");
 
-    config_t* config = g_server_ctx->getMsgBusConfig();
+    
     std::string ep = g_server_ctx->getEndpoint();
+    if (ep.empty()){
+        LOG_ERROR_0(" Get endpoint failed");
+        exit(-1);
+    }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
     //Testing getAllowedClients API
-    std::vector<std::string> clients = g_server_ctx->getAllowedClients();
+    clients = g_server_ctx->getAllowedClients();
+    if (clients.empty()){
+        LOG_ERROR_0(" Get allowed clients failed");
+        exit(-1);
+    }
 
     for (int i = 0; i < clients.size(); i++) {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
     }
 
-    char* name = NULL;
-        config_value_t* interface_value = g_server_ctx->getInterfaceValue("Name");
+    
+    interface_value = g_server_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
-        goto err;
+        exit(-1);
     }
     name = interface_value->body.string;
     LOG_INFO("interface value is %s", name);
+
+    config = g_server_ctx->getMsgBusConfig();
+    if(config == NULL){
+        LOG_ERROR_0(" Get message bus config failed");
+        exit(-1);
+    }
 
     g_msgbus_ctx = msgbus_initialize(config);
     if(g_msgbus_ctx == NULL) {

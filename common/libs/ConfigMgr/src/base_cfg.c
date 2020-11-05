@@ -63,7 +63,16 @@ config_value_t* get_topics_base(config_value_t* conf) {
         return NULL;
     }
 
+    if (topics->type != CVT_ARRAY) {
+        LOG_ERROR_0("Topics type mismatch, it should be array");
+        return NULL;
+    }
+
     arr = cJSON_CreateArray();
+    if (arr == NULL) {
+        LOG_ERROR_0("arr initialization failed");
+        return NULL;
+    }
     int ret;
 
     size_t arrlen = config_value_array_len(topics);
@@ -83,6 +92,10 @@ config_value_t* get_topics_base(config_value_t* conf) {
         config_value_destroy(topics);
         topics = config_value_new_array(
                 (void*) arr , cJSON_GetArraySize(arr), get_array_item, NULL);
+        if (topics == NULL){
+            LOG_ERROR_0("config value new array for topic failed");
+            return NULL;
+        }
         return topics;
     }
 
@@ -126,6 +139,10 @@ config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg) {
     // Fetching app name from base_cfg
     char* appname = base_cfg->app_name;
     config_value_t* app_name = config_value_new_string(appname);
+    if (app_name == NULL){
+        LOG_ERROR_0("Fetching appname failed");
+        return NULL;
+    }
     return app_name;
 }
 
@@ -142,6 +159,10 @@ config_value_t* get_allowed_clients_base(config_value_t* conf) {
     config_value_t* clients = config_value_object_get(config, "AllowedClients");
     if (clients == NULL) {
         LOG_ERROR_0("topics initialization failed");
+        return NULL;
+    }
+    if (clients->type != CVT_ARRAY) {
+        LOG_ERROR_0("Allowed Clients type mismatch, it should be array");
         return NULL;
     }
     return clients;

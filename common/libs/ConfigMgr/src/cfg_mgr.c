@@ -34,6 +34,10 @@ config_t* create_kv_store_config() {
     config_t* config = NULL;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
+    if (c_json == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        goto err;
+    }
 
     // Fetching ConfigManager type from env
     char* config_manager_type = getenv("KVStore");
@@ -50,7 +54,15 @@ config_t* create_kv_store_config() {
         } else {
             size_t str_len = strlen(config_manager_type) + 1;
             c_type_name = (char*)malloc(sizeof(char) * str_len);
-            snprintf(c_type_name, str_len, "%s", config_manager_type);
+            if (c_type_name == NULL){
+                LOG_ERROR_0("Malloc failed for c_type_name");
+                goto err;
+            }
+            int ret = snprintf(c_type_name, str_len, "%s", config_manager_type);
+            if (ret < 0){
+                LOG_ERROR_0("snprintf failed for c_type_name");
+                goto err;
+            }
             LOG_DEBUG("ConfigManager selected is %s", c_type_name);
             cJSON_AddStringToObject(c_json, "type", c_type_name);
         }
@@ -58,6 +70,10 @@ config_t* create_kv_store_config() {
 
     // Creating etcd_kv_store object
     cJSON* etcd_kv_store = cJSON_CreateObject();
+    if (etcd_kv_store == NULL) {
+        LOG_ERROR_0("c_json initialization failed");
+        goto err;
+    }
     cJSON_AddItemToObject(c_json, "etcd_kv_store", etcd_kv_store);
 
     // Fetching & intializing dev mode variable
@@ -74,7 +90,7 @@ config_t* create_kv_store_config() {
             result = 0;
         } else {
             to_lower(dev_mode_var);
-            result = strcmp(dev_mode_var, "true");
+            strcmp_s(dev_mode_var, strlen(dev_mode_var), "true", &result);
         }
     }
 
@@ -90,10 +106,14 @@ config_t* create_kv_store_config() {
         LOG_ERROR_0("Malloc failed for c_app_name");
         goto err;
     }
-    snprintf(c_app_name, str_len, "%s", app_name_var);
+    int ret = snprintf(c_app_name, str_len, "%s", app_name_var);
+    if (ret < 0){
+        LOG_ERROR_0("snprintf failed for c_app_name");
+        goto err;
+    }
     LOG_DEBUG("AppName: %s", c_app_name);
 
-    int ret = 0;
+    ret = 0;
     char pub_cert_file[MAX_CONFIG_KEY_LENGTH] = "";
     char pri_key_file[MAX_CONFIG_KEY_LENGTH] = "";
     char trust_file[MAX_CONFIG_KEY_LENGTH] = "";
@@ -209,8 +229,13 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
         goto err;
     }
 
+    size_t arr_len = config_value_array_len(publisher_interface);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        goto err;
+    }
     // Iterating through available publisher configs
-    for(int i=0; i<config_value_array_len(publisher_interface); i++) {
+    for(int i=0; i<arr_len; i++) {
         // Fetch name of individual publisher config
         config_value_t* pub_config = config_value_array_get(publisher_interface, i);
         if (pub_config == NULL) {
@@ -218,12 +243,14 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         pub_config_name = config_value_object_get(pub_config, "Name");
-        if (pub_config_name == NULL) {
+        if (pub_config_name == NULL || pub_config_name->body.string == NULL) {
             LOG_ERROR_0("pub_config_name initialization failed");
             goto err;
         }
         // Verifying publisher config with name exists
-        if(strcmp(pub_config_name->body.string, name) == 0) {
+        int ret;
+        strcmp_s(pub_config_name->body.string, strlen(pub_config_name->body.string), name, &ret);
+        if(ret == 0) {
             pub_cfg_t* pub_cfg = pub_cfg_new();
             if (pub_cfg == NULL) {
                 LOG_ERROR_0("pub_cfg initialization failed");
@@ -307,8 +334,14 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
         goto err;
     }
 
+    size_t arr_len = config_value_array_len(subscriber_interface);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        goto err;
+    }
+
     // Iterating through available subscriber configs
-    for(int i=0; i<config_value_array_len(subscriber_interface); i++) {
+    for(int i=0; i<arr_len; i++) {
         // Fetch name of individual subscriber config
         config_value_t* sub_config_index = config_value_array_get(subscriber_interface, i);
         if (sub_config_index == NULL) {
@@ -316,12 +349,14 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         sub_config_name = config_value_object_get(sub_config_index, "Name");
-        if (sub_config_name == NULL) {
+        if (sub_config_name == NULL || sub_config_name->body.string == NULL) {
             LOG_ERROR_0("sub_config_name initialization failed");
             goto err;
         }
         // Verifying subscriber config with name exists
-        if(strcmp(sub_config_name->body.string, name) == 0) {
+        int ret;
+        strcmp_s(sub_config_name->body.string, strlen(sub_config_name->body.string), name, &ret);
+        if(ret == 0) {
             sub_cfg = sub_cfg_new();
             if (sub_cfg == NULL) {
                 LOG_ERROR_0("sub_cfg initialization failed");
@@ -414,8 +449,13 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
         goto err;
     }
 
+    size_t arr_len = config_value_array_len(server_interface);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        goto err;
+    }
     // Iterating through available server configs
-    for(int i=0; i<config_value_array_len(server_interface); i++) {
+    for(int i=0; i<arr_len; i++) {
         // Fetch name of individual server config
         config_value_t* serv_config = config_value_array_get(server_interface, i);
         if (serv_config == NULL) {
@@ -428,7 +468,9 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         // Verifying server config with name exists
-        if(strcmp(serv_config_name->body.string, name) == 0) {
+        int ret;
+        strcmp_s(serv_config_name->body.string, strlen(serv_config_name->body.string), name, &ret);
+        if(ret == 0) {
             server_cfg_t* serv_cfg = server_cfg_new();
             if (serv_cfg == NULL) {
                 LOG_ERROR_0("serv_cfg initialization failed");
@@ -504,8 +546,14 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
         return NULL;
     }
 
+
+    size_t arr_len = config_value_array_len(client_interface);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        goto err;
+    }
     // Iterating through available client configs
-    for (int i = 0; i < config_value_array_len(client_interface); i++) {
+    for (int i = 0; i < arr_len; i++) {
         // Fetch name of individual client config
         config_value_t* cli_config = config_value_array_get(client_interface, i);
         if (cli_config == NULL) {
@@ -518,7 +566,9 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         // Verifying client config with name exists
-        if (strcmp(cli_config_name->body.string, name) == 0) {
+        int ret;
+        strcmp_s(cli_config_name->body.string, strlen(cli_config_name->body.string), name, &ret);
+        if (ret == 0) {
             cli_cfg = client_cfg_new();
             if (cli_cfg == NULL) {
                 LOG_ERROR_0("cli_cfg initialization failed");
@@ -683,17 +733,29 @@ app_cfg_t* app_cfg_new() {
         LOG_ERROR_0("c_app_name is NULL");
         goto err;
     }
-    snprintf(c_app_name, str_len, "%s", app_name_var);
+    int ret = snprintf(c_app_name, str_len, "%s", app_name_var);
+    if (ret < 0){
+        LOG_ERROR_0("snprintf failed to c_app_name");
+        goto err;
+    }
     LOG_DEBUG("AppName: %s", c_app_name);
     trim(c_app_name);
 
     // Fetching App interfaces
     size_t init_len = strlen("/") + strlen(c_app_name) + strlen("/interfaces") + 1;
     char* interface_char = concat_s(init_len, 3, "/", c_app_name, "/interfaces");
+    if (interface_char == NULL){
+        LOG_ERROR_0("Concatenation of /appname and /interfaces failed");
+        goto err;
+    }
 
     // Fetching App config
     init_len = strlen("/") + strlen(c_app_name) + strlen("/config") + 1;
     char* config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
+    if (config_char == NULL){
+        LOG_ERROR_0("Concatenation of /appname and /config failed");
+        goto err;
+    }
 
     LOG_DEBUG("interface_char: %s", interface_char);
     LOG_DEBUG("config_char: %s", config_char);

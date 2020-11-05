@@ -63,13 +63,15 @@ namespace eis {
                 /**
                  * Overridden base class method to fetch msgbus publisher configuration
                  * for application to communicate over EIS message bus
-                 * @return config_t* - JSON msg bus server config of type config_t
+                 * @return config_t* - On Success, JSON msg bus publisher config of type config_t
+                 *                   - On failure, On success, returns NULL
                  */
                 config_t* getMsgBusConfig() override;
 
                 /**
                  * getEndpoint for application to fetch Endpoint associated with message bus config
-                 * @return std::string - Endpoint of publisher config of type std::string
+                 * @return std::string - On Success, returns Endpoint of server config
+                 *                     - On Failure, returns empty string
                  */
                 std::string getEndpoint() override;
 
@@ -77,13 +79,15 @@ namespace eis {
                  * Overridden base class method to fetch interface value
                  * for application to communicate over EIS message bus
                  * @param key - Key on which interface value is extracted.
-                 * @return config_value_t* - config_value_t object
+                 * @return config_value_t* - On Success, returns config_value_t object
+                 *                         - On Failure, returns NULL
                  */
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
                  * getTopics for application to fetch the topics associated with message bus config
-                 * @return vector<string> - Topics of publisher config
+                 * @return vector<string> - On Success, returns Topics of publisher config
+                 *                        - On Failure, returns empty vector
                  */
                 std::vector<std::string> getTopics() override;
 
@@ -96,7 +100,8 @@ namespace eis {
 
                 /**
                  * getAllowedClients for application to list of allowed clients associated with message bus config
-                 * @return vector<string> - Allowed client of publisher config
+                 * @return vector<string> - On Success, Allowed client of publisher config
+                 *                        - On Failure, returns empty vector
                  */
                 std::vector<std::string> getAllowedClients() override;
 

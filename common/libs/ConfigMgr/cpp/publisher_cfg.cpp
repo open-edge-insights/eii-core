@@ -57,7 +57,13 @@ config_t* PublisherCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Publisher.
 config_value_t* PublisherCfg::getInterfaceValue(const char* key){
-    return m_pub_cfg->cfgmgr_get_interface_value_pub(m_pub_cfg, key);
+    config_value_t* interface_value = m_pub_cfg->cfgmgr_get_interface_value_pub(m_pub_cfg, key);
+    if(interface_value == NULL){
+        LOG_ERROR_0("[Publisher]:Getting interface value from base c layer failed");
+        return NULL;
+    }
+
+    return interface_value;
 }
 
 // To fetch endpoint from config
@@ -66,7 +72,7 @@ std::string PublisherCfg::getEndpoint() {
     config_value_t* ep = m_pub_cfg->cfgmgr_get_endpoint_pub(m_pub_cfg);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
-        return NULL;
+        return "";
     }
     
     char* value;
@@ -74,7 +80,7 @@ std::string PublisherCfg::getEndpoint() {
     if(value == NULL){
         LOG_ERROR_0("Endpoint object to string conversion failed");
         config_value_destroy(ep);
-        return NULL;
+        return "";
     }
 
     std::string s(value);
@@ -94,7 +100,12 @@ std::vector<std::string> PublisherCfg::getTopics() {
         return {};
     }
     config_value_t* topic_value;
-    for (int i = 0; i < config_value_array_len(topics); i++) {
+    size_t arr_len = config_value_array_len(topics);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        return {};
+    }
+    for (int i = 0; i < arr_len; i++) {
         topic_value = config_value_array_get(topics, i);
         if (topic_value == NULL) {
             LOG_ERROR_0("topic_value initialization failed");
@@ -156,7 +167,12 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
         return {};
     }
     config_value_t* client_value;
-    for (int i = 0; i < config_value_array_len(clients); i++) {
+    size_t arr_len = config_value_array_len(clients);
+    if(arr_len == 0){
+        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        return {};
+    }
+    for (int i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
             LOG_ERROR_0("client_value initialization failed");

@@ -47,22 +47,38 @@ AppCfg* ConfigMgr::getAppConfig() {
 
 int ConfigMgr::getNumPublishers() {
     // Calling the base C cfgmgr_get_num_elements_base API
-    return cfgmgr_get_num_elements_base(PUBLISHERS, m_app_cfg->base_cfg);
+    int result = cfgmgr_get_num_elements_base(PUBLISHERS, m_app_cfg->base_cfg);
+    if (result == -1){
+        LOG_DEBUG_0("Failed to fetch number of pulishers");
+    }
+    return result;
 }
 
 int ConfigMgr::getNumSubscribers() {
     // Calling the base C cfgmgr_get_num_elements_base API
-    return cfgmgr_get_num_elements_base(SUBSCRIBERS, m_app_cfg->base_cfg);
+    int result = cfgmgr_get_num_elements_base(SUBSCRIBERS, m_app_cfg->base_cfg);
+    if (result == -1){
+        LOG_DEBUG_0("Failed to fetch number of subscribers");
+    }
+    return result;
 }
 
 int ConfigMgr::getNumServers() {
     // Calling the base C cfgmgr_get_num_elements_base API
-    return cfgmgr_get_num_elements_base(SERVERS, m_app_cfg->base_cfg);
+    int result = cfgmgr_get_num_elements_base(SERVERS, m_app_cfg->base_cfg);
+    if (result == -1){
+        LOG_DEBUG_0("Failed to fetch number of servers");
+    }
+    return result;
 }
 
 int ConfigMgr::getNumClients() {
     // Calling the base C cfgmgr_get_num_elements_base API
-    return cfgmgr_get_num_elements_base(CLIENTS, m_app_cfg->base_cfg);
+    int result = cfgmgr_get_num_elements_base(CLIENTS, m_app_cfg->base_cfg);
+    if (result == -1){
+        LOG_DEBUG_0("Failed to fetch number of clients");
+    }
+    return result;
 }
 
 bool ConfigMgr::isDevMode() {
@@ -77,12 +93,17 @@ bool ConfigMgr::isDevMode() {
 std::string ConfigMgr::getAppName() {
     // Calling the base C cfgmgr_get_appname_base API
     config_value_t* appname = cfgmgr_get_appname_base(m_app_cfg->base_cfg);
+    if(appname == NULL){
+        LOG_ERROR_0("AppName is NULL");
+        return NULL; 
+    }
+
     if (appname->type != CVT_STRING) {
         LOG_ERROR_0("appname type is not string");
-        return "";
+        return NULL;
     } else if (appname->body.string == NULL) {
         LOG_ERROR_0("AppName is NULL");
-        return "";
+        return NULL;
     }
     std::string app_name(appname->body.string);
     config_value_destroy(appname);

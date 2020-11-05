@@ -75,66 +75,77 @@ int main(int argc, char** argv) {
 
     msg_envelope_t* msg = NULL;
     msg_envelope_serialized_part_t* parts = NULL;
+    msgbus_ret_t ret;
+    bool topicsSet;
     int num_parts = 0;
 
     // Fetching Subscriber config from
     // VideoAnalytics interface
     setenv("AppName","VideoAnalytics", 1);
+    config_t* sub_config = NULL;
+    std::vector<std::string> newTopicsList; 
     g_sub_ch = new ConfigMgr();
-
-    // SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByName("VideoData");
-    SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByIndex(0);
-
-    config_t* sub_config = sub_ctx->getMsgBusConfig();
-
-    // Testing getEndpoint API
-    std::string ep = sub_ctx->getEndpoint();
-    LOG_INFO("Endpoint obtained : %s", ep.c_str());
-
-    // Testing getTopics API
-    std::vector<std::string> topics = sub_ctx->getTopics();
-    for(int i = 0; i < topics.size(); i++) {
-        LOG_INFO("Sub Topics : %s", topics[i].c_str());
-    }
 
     // Testing getNumSubscribers()
     int num_of_subscribers = g_sub_ch->getNumSubscribers();
     LOG_DEBUG("Total number of subscribers: %d", num_of_subscribers );
 
-    // Testing setTopics API
-    std::vector<std::string> newTopicsList;
-    newTopicsList.push_back("camera7_stream");
-    newTopicsList.push_back("camera8_stream");
-    bool topicsSet = sub_ctx->setTopics(newTopicsList);
+    // SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByName("default");
+    // if(sub_ctx == NULL){
+    //     LOG_ERROR_0("get subscriber by name failed");
+    // }
+    SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByIndex(0);
+    if(sub_ctx == NULL){
+        LOG_ERROR_0("get subscriber by index failed");
+        exit(-1);
+    }
 
+    // Testing getEndpoint API
+    std::string ep = sub_ctx->getEndpoint();
+    if(ep.empty()){
+        LOG_ERROR_0("get subscriber endpoints failed");
+        exit(-1);
+    }
+    LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
-    // Testing TCP PROD mode
-    setenv("AppName","Visualizer", 1);
-    g_sub_ch_vis = new ConfigMgr();
+    // Testing getTopics API
+    std::vector<std::string> topics = sub_ctx->getTopics();
+    if (topics.empty()) {
+        LOG_ERROR_0("Get topics failed");
+        exit(-1);
+    }
 
-    SubscriberCfg* sub_ctx_vis = g_sub_ch_vis->getSubscriberByName("Cam2_Results");
-    config_t* sub_config_vis = sub_ctx_vis->getMsgBusConfig();
-
+    for(int i = 0; i < topics.size(); i++) {
+        LOG_INFO("Sub Topics : %s", topics[i].c_str());
+    }
+  
     // Testing getInterfaceValue()
     config_value_t* interface_value = sub_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
-        goto err;
+        exit(-1);
     }
     LOG_INFO("interface value is %s", interface_value->body.string);
     config_value_destroy(interface_value);
 
-    // Initializing Subscriber using sub_config obtained
-    // from new ConfigManager APIs
-    // g_msgbus_ctx = msgbus_initialize(sub_config_vis);
-    // Uncomment below line to test IPC mode
+    sub_config = sub_ctx->getMsgBusConfig();
+    if(sub_config == NULL){
+        LOG_ERROR_0("get subscriber msgbus config failed");
+        exit(-1);
+    }
+
+    // Testing setTopics API
+    newTopicsList.push_back("camera7_stream");
+    newTopicsList.push_back("camera8_stream");
+    topicsSet = sub_ctx->setTopics(newTopicsList);
+
     g_msgbus_ctx = msgbus_initialize(sub_config);
     if(g_msgbus_ctx == NULL) {
         LOG_ERROR_0("Failed to initialize message bus");
         goto err;
     }
 
-    msgbus_ret_t ret;
+ 
 
     ret = msgbus_subscriber_new(g_msgbus_ctx, topics[0].c_str(), NULL, &g_sub_ctx);
 
@@ -145,10 +156,8 @@ int main(int argc, char** argv) {
 
     // free sub_config
     config_destroy(sub_config);
-    config_destroy(sub_config_vis);
     // free sub_ctx
     delete sub_ctx;
-    delete sub_ctx_vis;
 
     LOG_INFO_0("Running...");
     while(g_sub_ctx != NULL) {
