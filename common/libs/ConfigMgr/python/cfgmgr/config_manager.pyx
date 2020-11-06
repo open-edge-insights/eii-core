@@ -143,6 +143,7 @@ cdef class ConfigMgr:
         :rtype: str
         """
         cdef config_value_t* appname
+        cdef char* app_name
         try:
             # Calling the base C API to fetch appname
             appname = cfgmgr_get_appname_base(self.app_cfg.base_cfg)
@@ -152,11 +153,12 @@ cdef class ConfigMgr:
             if appname.body.string is NULL:
                 raise Exception("Extraction of string from appname cvt failed")
 
-            app_name = str(appname.body.string)
+            app_name = appname.body.string
+            py_app_name = app_name.decode()
 
             # Returning python string of appname
             config_value_destroy(appname)
-            return app_name
+            return py_app_name
         except Exception as ex:
             raise ex
 
