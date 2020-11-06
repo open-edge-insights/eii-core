@@ -1,0 +1,11 @@
+AppName:
+- VideoIngestion
+- VideoAnalytics
+- Visualizer
+- WebVisualizer
+- ImageStore
+- InfluxDBConnector
+- FactoryCtrlApp
+- OpcuaExport
+- RestDataExport
+- EISAzureBridge

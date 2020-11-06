@@ -283,7 +283,7 @@ $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 $ ./etcd_capture.sh
 ```
 
-# Build and Run EIS PCB/timeseries use cases
+# Build and Run EIS PCB video/timeseries use cases
 
   ---
   > **Note:**
@@ -303,24 +303,28 @@ $ ./etcd_capture.sh
   >     ```
   ---
 
-All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory. Below are the main usecases supported by EIS:
+All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory. 
 
-* Video streaming use case
+Below are the usecases supported by EIS to bring up the respective services mentioned in the
+yaml file.
 
-  Only the services mentioned in [build/video-streaming.yml](build/video-streaming) will be running on EIS stack bring up
+## Main usecases
 
-* Video streaming and historical use case
+| Usecase                    | yaml file                                                |               
+| :---                       | :---                                                    |
+| Video + Timeseries         | [build/video-timeseries.yml](build/video-timeseries.yml) |
+| Video                      | [build/video.yml](build/video.yml)                       |
+| Timeseries                 | [build/time-series.yml](build/time-series.yml)           |
 
-  Only the services mentioned in [build/video-streaming-storage.yml](build/video-streaming-storage) will be running on EIS stack bring up
+## Video pipeline sub-usecases
 
-
-* Timeseries use case
-
-  Only the services mentioned in [build/time-series.yml](build/time-series) will be running on EIS stack bring up
-
-* Video streaming and timeseries use case
-
-  All the services will be running on EIS stack bring up
+| Usecase                                | yaml file                                                               |
+| :---                                   | :---                                                                    |
+| Video streaming                        | [build/video-streaming.yml](build/video-streaming.yml)                  |
+| Video streaming and historical         | [build/video-streaming-storage.yml](build/video-streaming-storage.yml)  |
+| Video streaming with EISAzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
+| Video streaming with TLSRemoteAgent    | [build/video-streaming-tls.yml](build/video-streaming-tls.yml)          |    
+| Video streaming and custom udfs        | [build/video-streaming-all-udfs.yml](build/video-streaming-all-udfs.yml)|
 
 To build and run EIS in one command:
 

@@ -1,0 +1,18 @@
+AppName:
+# Common video and time-series services
+- OpcuaExport
+- RestDataExport
+- InfluxDBConnector
+# Video services
+- VideoIngestion
+- VideoAnalytics
+- Visualizer
+- WebVisualizer
+- ImageStore
+- FactoryCtrlApp
+- EISAzureBridge
+# Time-series services
+- Telegraf
+- Kapacitor
+- Grafana
+- DiscoveryCreek
