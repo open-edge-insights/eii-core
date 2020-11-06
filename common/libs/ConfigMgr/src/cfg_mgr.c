@@ -217,7 +217,8 @@ err:
 // function to get publisher by name
 pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
 
-    void *ret = NULL;
+    int result = 0;
+    pub_cfg_t* ret = NULL;
     config_value_t* pub_config_name = NULL;
     LOG_INFO_0("cfgmgr_get_publisher_by_name method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
@@ -248,9 +249,8 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         // Verifying publisher config with name exists
-        int ret;
-        strcmp_s(pub_config_name->body.string, strlen(pub_config_name->body.string), name, &ret);
-        if(ret == 0) {
+        strcmp_s(pub_config_name->body.string, strlen(pub_config_name->body.string), name, &result);
+        if(result == 0) {
             pub_cfg_t* pub_cfg = pub_cfg_new();
             if (pub_cfg == NULL) {
                 LOG_ERROR_0("pub_cfg initialization failed");
@@ -434,6 +434,7 @@ err:
 // function to get server by name
 server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
 
+    int result = 0;
     server_cfg_t* serv_cfg = NULL;
     server_cfg_t* ret = NULL;
     config_value_t* server_interface = NULL;
@@ -468,9 +469,8 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         // Verifying server config with name exists
-        int ret;
-        strcmp_s(serv_config_name->body.string, strlen(serv_config_name->body.string), name, &ret);
-        if(ret == 0) {
+        strcmp_s(serv_config_name->body.string, strlen(serv_config_name->body.string), name, &result);
+        if(result == 0) {
             server_cfg_t* serv_cfg = server_cfg_new();
             if (serv_cfg == NULL) {
                 LOG_ERROR_0("serv_cfg initialization failed");
@@ -535,6 +535,7 @@ err:
 client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
 
     LOG_INFO_0("cfgmgr_get_client_by_name method");
+    int ret;
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
     config_value_t* cli_config_name = NULL;
     client_cfg_t* cli_cfg = NULL;
@@ -566,7 +567,6 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
             goto err;
         }
         // Verifying client config with name exists
-        int ret;
         strcmp_s(cli_config_name->body.string, strlen(cli_config_name->body.string), name, &ret);
         if (ret == 0) {
             cli_cfg = client_cfg_new();
