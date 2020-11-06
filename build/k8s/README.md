@@ -73,6 +73,10 @@ EIS Orchestration using k8s Orchestrator.
 ## Steps for Multinode Deployment
  > 1. `K8s Master node & Worker(s) node Setup should be done as pre-requisite to continue the following deployment`
  > 2. `This step is not required for **Single Node** deployment`
+ *  Pre-Requisites
+
+    **Note** For Running EIS Modules in k8s multi node cluster, corresponding module Container Images should be present in the master and worker(s) nodes. The container images can be pushed to a Docker registry and pulled on the required nodes.
+
   * Master Node provisoning: Follow steps mentioned in below links.
     1. [Change for Master Provision for Multinode Deployment](###change-for-master-provision-for-multinode-deployment)
     2. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
