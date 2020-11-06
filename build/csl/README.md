@@ -343,7 +343,7 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
     * Update the VideoIngestion output `PUBLISHER_TYPE` &  `PUBLISHER_ENDPOINT` key as follows:
       ```sh
           "PUBLISHER_TYPE": "zmq_ipc",
-          "PUBLISHER_ENDPOINT": ${ep.outputsocket-vi.mountpath}
+          "PUBLISHER_ENDPOINT": "${ep.outputsocket-vi.mountpath}"
       ```
     * Create socket endpoint with name `outputsocket-vi` in `Endpoints` section
       ```sh
@@ -359,7 +359,7 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
     * Update the VideoAnalytics input `SUBSCRIBER_TYPE` and `SUBSCRIBER_ENDPOINT` key as follows:
       ```sh
           "SUBSCRIBER_TYPE": "zmq_ipc", 
-          "SUBSCRIBER_ENDPOINT": ${ep.inputsocket-va.mountpath}"
+          "SUBSCRIBER_ENDPOINT": "${ep.inputsocket-va.mountpath}"
       ```
 
     * Create socket endpoint with name `inputsocket-va` in `Endpoints` section
