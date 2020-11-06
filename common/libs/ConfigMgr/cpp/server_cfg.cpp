@@ -54,7 +54,7 @@ config_t* ServerCfg::getMsgBusConfig() {
 config_value_t* ServerCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = m_serv_cfg->cfgmgr_get_interface_value_server(m_serv_cfg, key);
     if(interface_value == NULL){
-        LOG_ERROR_0("[Server]:Getting interface value from base c layer failed");
+        LOG_DEBUG_0("[Server]:Getting interface value from base c layer failed");
         return NULL;
     }
     return interface_value;

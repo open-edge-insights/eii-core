@@ -56,7 +56,7 @@ config_value_t* cfgmgr_get_interface_value_server(void* serv_conf, const char* k
     server_cfg_t* server_cfg = (server_cfg_t*)serv_conf;
     config_value_t* interface_value = config_value_object_get(server_cfg->server_config, key);
     if (interface_value == NULL){
-        LOG_ERROR_0("interface_value initialization failed");
+        LOG_DEBUG_0("interface_value initialization failed");
         return NULL;
     }
     return interface_value;

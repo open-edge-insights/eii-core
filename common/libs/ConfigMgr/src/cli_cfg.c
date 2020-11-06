@@ -45,7 +45,7 @@ config_value_t* cfgmgr_get_interface_value_client(void* cli_conf, const char* ke
     client_cfg_t* client_cfg = (client_cfg_t*)cli_conf;
     config_value_t* interface_value = config_value_object_get(client_cfg->client_config, key);
     if (interface_value == NULL){
-        LOG_ERROR_0("interface_value initialization failed");
+        LOG_DEBUG_0("interface_value initialization failed");
         return NULL;
     }
     return interface_value;

@@ -378,9 +378,6 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         if (pub_key_values != NULL) {
             config_value_destroy(pub_key_values);
         }
-        if (array_value != NULL) {
-            config_value_destroy(array_value);
-        }
         return ret_val;
                     
 }

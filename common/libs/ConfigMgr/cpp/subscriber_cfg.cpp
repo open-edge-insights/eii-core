@@ -59,7 +59,7 @@ config_t* SubscriberCfg::getMsgBusConfig() {
 config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = m_sub_cfg->cfgmgr_get_interface_value_sub(m_sub_cfg, key);
     if(interface_value == NULL){
-        LOG_ERROR_0("[Subscriber]:Getting interface value from base c layer failed");
+        LOG_DEBUG_0("[Subscriber]:Getting interface value from base c layer failed");
         return NULL;
     }
     return interface_value;

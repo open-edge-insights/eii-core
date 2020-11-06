@@ -58,8 +58,8 @@ config_t* PublisherCfg::getMsgBusConfig() {
 // Get the Interface Value of Publisher.
 config_value_t* PublisherCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = m_pub_cfg->cfgmgr_get_interface_value_pub(m_pub_cfg, key);
-    if(interface_value == NULL){
-        LOG_ERROR_0("[Publisher]:Getting interface value from base c layer failed");
+    if(interface_value == NULL) {
+        LOG_DEBUG_0("[Publisher]:Getting interface value from base c layer failed");
         return NULL;
     }
 
