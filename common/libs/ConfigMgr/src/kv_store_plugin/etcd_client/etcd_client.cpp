@@ -113,7 +113,7 @@ std::string EtcdClient::get(std::string& key) {
         int no_val_error;
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
         if(no_val_error == 0) {
-                LOG_ERROR("Value for the key %s is not found", key.c_str());
+            LOG_DEBUG("Value for the key %s is not found", key.c_str());
         }
         return "(NULL)";
     }
@@ -167,7 +167,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
         LOG_DEBUG("Exception Occurred in get() API with the Error: %s", ex.what());
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
         if(no_val_error == 0) {
-                LOG_DEBUG("Value for the key %s is not found", key_prefix.c_str());
+            LOG_DEBUG("Value for the key %s is not found", key_prefix.c_str());
         }
     }
 
