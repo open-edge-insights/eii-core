@@ -340,9 +340,10 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
 
   * Example: Creating IPC Endpoints for VideoIngestion & VideoAnalytics Module.
 
-    * Update the VideoIngestion output `camera1_stream_cfg` key as follows:
+    * Update the VideoIngestion output `PUBLISHER_TYPE` &  `PUBLISHER_ENDPOINT` key as follows:
       ```sh
-          "camera1_stream_cfg": "zmq_ipc,${ep.outputsocket-vi.mountpath}"
+          "PUBLISHER_TYPE": "zmq_ipc",
+          "PUBLISHER_ENDPOINT": ${ep.inputsocket-va.mountpath}
       ```
     * Create socket endpoint with name `outputsocket-vi` in `Endpoints` section
       ```sh
@@ -355,9 +356,10 @@ EIS Services can be enabled as IPC mode for efficient datatransfer between modul
           }
 
       ```
-    * Update the VideoAnalytics input `camera1_stream_cfg` key as follows:
+    * Update the VideoAnalytics input `SUBSCRIBER_TYPE` and `SUBSCRIBER_ENDPOINT` key as follows:
       ```sh
-          "camera1_stream_cfg": "zmq_ipc,${ep.inputsocket-va.mountpath}"
+          "SUBSCRIBER_TYPE": "zmq_ipc", 
+          "SUBSCRIBER_ENDPOINT": ${ep.inputsocket-va.mountpath}"
       ```
 
     * Create socket endpoint with name `inputsocket-va` in `Endpoints` section
