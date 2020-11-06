@@ -1,5 +1,8 @@
 AppName:
-- Grafana
+- Telegraf
 - InfluxDBConnector
 - Kapacitor
-- Telegraf
+- Grafana
+- DiscoveryCreek
+- OpcuaExport
+- RestDataExport
