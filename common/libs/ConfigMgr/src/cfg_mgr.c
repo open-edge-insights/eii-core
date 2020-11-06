@@ -655,6 +655,17 @@ void app_cfg_config_destroy(app_cfg_t *app_cfg_config) {
 // function to initialize app_cfg_t
 app_cfg_t* app_cfg_new() {
     int result = 0;
+    config_t* app_config = NULL;
+    char* interface = NULL;
+    config_t* app_interface = NULL;
+    char* value = NULL;
+    char* c_app_name = NULL;
+    char* interface_char = NULL;
+    char* config_char = NULL;
+    char* env_var = NULL;
+    kv_store_client_t* kv_store_client = NULL;
+    config_t* kv_store_config = NULL;
+
     app_cfg_t *app_cfg = (app_cfg_t *)malloc(sizeof(app_cfg_t));
     if (app_cfg == NULL) {
         LOG_ERROR_0("Malloc failed for app_cfg_t");
@@ -669,17 +680,17 @@ app_cfg_t* app_cfg_new() {
         to_lower(dev_mode_var);
         strcmp_s(dev_mode_var, strlen(dev_mode_var), "true", &result);
     } else {
-        LOG_ERROR_0("DEV_MODE variable not set")
+        LOG_ERROR_0("DEV_MODE variable not set");
         goto err;
     }
 
-    config_t* kv_store_config = create_kv_store_config();
+    kv_store_config = create_kv_store_config();
     if (kv_store_config == NULL) {
         LOG_ERROR_0("kv_store_config initialization failed");
         goto err;
     }
     // Creating kv store client instance
-    kv_store_client_t* kv_store_client = create_kv_client(kv_store_config);
+    kv_store_client = create_kv_client(kv_store_config);
     if (kv_store_client == NULL) {
         LOG_ERROR_0("kv_store_client is NULL");
         goto err;
@@ -693,7 +704,7 @@ app_cfg_t* app_cfg_new() {
     }
 
     // Fetching GlobalEnv
-    char* env_var = kv_store_client->get(handle, "/GlobalEnv/");
+    env_var = kv_store_client->get(handle, "/GlobalEnv/");
     if (env_var == NULL) {
         LOG_WARN_0("Value is not found for the key /GlobalEnv/,"
                    " continuing without setting GlobalEnv vars");
@@ -728,7 +739,7 @@ app_cfg_t* app_cfg_new() {
         goto err;
     }
     size_t str_len = strlen(app_name_var) + 1;
-    char* c_app_name = (char*)malloc(sizeof(char) * str_len);
+    c_app_name = (char*)malloc(sizeof(char) * str_len);
     if (c_app_name == NULL) {
         LOG_ERROR_0("c_app_name is NULL");
         goto err;
@@ -743,7 +754,7 @@ app_cfg_t* app_cfg_new() {
 
     // Fetching App interfaces
     size_t init_len = strlen("/") + strlen(c_app_name) + strlen("/interfaces") + 1;
-    char* interface_char = concat_s(init_len, 3, "/", c_app_name, "/interfaces");
+    interface_char = concat_s(init_len, 3, "/", c_app_name, "/interfaces");
     if (interface_char == NULL){
         LOG_ERROR_0("Concatenation of /appname and /interfaces failed");
         goto err;
@@ -751,7 +762,7 @@ app_cfg_t* app_cfg_new() {
 
     // Fetching App config
     init_len = strlen("/") + strlen(c_app_name) + strlen("/config") + 1;
-    char* config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
+    config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
     if (config_char == NULL){
         LOG_ERROR_0("Concatenation of /appname and /config failed");
         goto err;
@@ -760,25 +771,25 @@ app_cfg_t* app_cfg_new() {
     LOG_DEBUG("interface_char: %s", interface_char);
     LOG_DEBUG("config_char: %s", config_char);
 
-    char* interface = kv_store_client->get(handle, interface_char);
+    interface = kv_store_client->get(handle, interface_char);
     if (interface == NULL) {
         LOG_ERROR("Value is not found for the key: %s", interface_char);
         goto err;
     }
 
-    char* value = kv_store_client->get(handle, config_char);
+    value = kv_store_client->get(handle, config_char);
     if (value == NULL) {
         LOG_ERROR("Value is not found for the key: %s", config_char);
         goto err;
     }
 
-    config_t* app_config = json_config_new_from_buffer(value);
+    app_config = json_config_new_from_buffer(value);
     if (app_config == NULL) {
         LOG_ERROR_0("app_config initialization failed");
         goto err;
     }
 
-    config_t* app_interface = json_config_new_from_buffer(interface);
+    app_interface = json_config_new_from_buffer(interface);
     if (app_interface == NULL) {
         LOG_ERROR_0("app_interface initialization failed");
         goto err;
@@ -828,14 +839,8 @@ app_cfg_t* app_cfg_new() {
     return app_cfg;
 
 err:
-    if (app_name_var != NULL) {
-        free(app_name_var);
-    }
     if (c_app_name != NULL) {
         free(c_app_name);
-    }
-    if (dev_mode_var != NULL) {
-        free(dev_mode_var);
     }
     if (interface != NULL) {
         free(interface);
@@ -861,6 +866,5 @@ err:
     if (kv_store_config != NULL) {
         config_destroy(kv_store_config);
     }
-
     return NULL;
 }
