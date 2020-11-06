@@ -293,7 +293,7 @@ EIS Orchestration using k8s Orchestrator.
 
   >**Note** To achieve VideoIngestion & VideoAnalytics Module run in IPC mode. Both the Services should be running in same node. By following the below steps it makes the modules to the select the same node in ipc mode based on the label & config updated in `k8s/eis-k8s-deploy.yml` file.
 
-  * Open the `build/k8s/eis-k8s-deploy.yml` file
+  * Open the `VideoIngestion/k8s-service.yml` file
 
   * Update the `PUBLISHER_TYPE` and `PUBLISHER_ENDPOINT` env value for `IPC` connection in `videoingestion` deployment yaml section like below:
       ```yml
@@ -303,6 +303,8 @@ EIS Orchestration using k8s Orchestrator.
                 value: "${SOCKET_DIR}/"
 
       ```
+  * Open the `VideoAnalytics/k8s-service.yml` file
+  
   * Update the `SUBSCRIBER_TYPE` and  `SUBSCRIBER_ENDPOINT` env value for `IPC` connection in `videoanalytics` deployment yaml section like below:
       ```yml
             - name: SUBSCRIBER_TYPE
@@ -359,8 +361,11 @@ EIS Orchestration using k8s Orchestrator.
           ```sh
           $ kubectl get nodes --show-labels <node-name> | grep ipc=enabled
           ```
-
-  * Deploy the `latest` update `yaml` file
+  * Run `eis_builder` from `build` directory to generate the updated yaml file.
+        ```sh
+           python3 ./eis_builder.py
+        ```
+  * Deploy the `latest` generated `yaml` file from `k8s` directory
       ```sh
           $ cd build/k8s/
           $ kubectl apply -f ./eis-k8s-deploy.yml
