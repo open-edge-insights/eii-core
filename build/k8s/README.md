@@ -16,6 +16,8 @@ EIS Orchestration using k8s Orchestrator.
 
 7. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
 
+8. [Accessing Web Visualizer and EtcdUI](#accessing-web-visualizer-and-etcdui)
+
 ## K8s Setup
 
   > **Note**:
@@ -371,3 +373,13 @@ EIS Orchestration using k8s Orchestrator.
           $ kubectl apply -f ./eis-k8s-deploy.yml
       ```
   * Verify the respecitve workloads are running based on the `nodeSelector` constraints with `ipc` mode.
+ 
+## Accessing Web Visualizer and EtcdUI
+  In K8s Environment EtcdUI & WebVisualizer will be running in Following port. 
+  * EtcdUI
+        EtcdUI can be accessed in port no `30010`
+  * WebVisualizer
+        WebVisualizer can be accessed in following port no's
+        *   PROD Mode --  `30007`
+        *   DEV Mode -- `30009`
+  
