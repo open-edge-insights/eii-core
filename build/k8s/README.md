@@ -4,17 +4,19 @@ EIS Orchestration using k8s Orchestrator.
 
 1. [k8s Setup](#k8s-setup)
 
-2. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
+2. [Steps for Multinode Deployment](#steps-for-multinode-deployment)
 
-3. [Deploying EIS Application with K8s](#deploying-eis-application-with-k8s)
+3. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
 
-4. [Steps for Enabling Basler Camera with k8s](#steps-for-enabling-basler-camera-with-k8s)
+4. [Deploying EIS Application with K8s](#deploying-eis-application-with-k8s)
 
-5. [Steps for Multinode Deployment](#steps-for-multinode-deployment)
+5. [Accessing Web Visualizer and EtcdUI](#Accessing-Web-Visualizer-and-EtcdUI)
 
-6. [Steps to enable Accelarators](#steps-to-enable-accelarators)
+6. [Steps for Enabling Basler Camera with k8s](#steps-for-enabling-basler-camera-with-k8s)
 
-7. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
+7. [Steps to enable Accelarators](#steps-to-enable-accelarators)
+
+8. [Steps to enable IPC Mode](#steps-to-enable-ipc-mode)
 
 8. [Accessing Web Visualizer and EtcdUI](#accessing-web-visualizer-and-etcdui)
 
@@ -29,55 +31,13 @@ EIS Orchestration using k8s Orchestrator.
   > 3.  ~/.docker/config.json
 
   > `K8s installation should be done as pre-requisite to continue the following deployment`
-## Provisioning EIS with k8s
-  > 1. EIS Deployment with k8s can be done in **PROD** & **DEV** mode.
-  > 2. For running EIS in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
-  > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before k8s Provisioning.
-
-  * Please Update following Environment Variables in [build/.env](../../build/.env)
-    * HOST_IP           =     [masternodeip]
-    * ETCD_HOST         =     [masternodeip]
-    * ETCD_CLIENT_PORT  =     8379
-    * ETCD_PEER_PORT    =     8380
-
-  * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
-    * EIS_LOCAL_PATH    =     [EIS Source path]
-    * PROVISION_MODE    =     k8s
-
-### Provisioning `EIS` with `k8s` in `DEV` mode
-> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
-> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
->updated `build/k8s/k8s_eis_deploy.yml` file.
->   Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
-
-  * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
-
-  * Provision EIS with K8s. 
-    ```sh
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
-
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
-    ```
-### Provisioning `EIS` with `k8s` in `PROD` mode
-> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
-> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
->updated `build/k8s/k8s_eis_deploy.yml` file.
-> Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
-  
-  * Please Update `DEV_MODE=false` in [build/.env](../../build/.env) file.
-
-  * Provision EIS with K8s.
-    ```sh
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
-
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
-    ```
 ## Steps for Multinode Deployment
  > 1. `K8s Master node & Worker(s) node Setup should be done as pre-requisite to continue the following deployment`
  > 2. `This step is not required for **Single Node** deployment`
  *  Pre-Requisites
 
-    **Note** For Running EIS Modules in k8s multi node cluster, corresponding module Container Images should be present in the master and worker(s) nodes. The container images can be pushed to a Docker registry and pulled on the required nodes.
+    **Note** For Running EIS Modules in k8s multi node cluster, corresponding module Container Images should be present in the master and worker(s) nodes. The container images can be pushed to a Docker registry and pulled on the required nodes. For more information on Docker registry- Kindly refer:
+    [build/deploy/README.md/#step-2-set-up-docker-registry-url-then-build-and-push-images](../../build/deploy/README.md/#step-2-set-up-docker-registry-url-then-build-and-push-images)
 
   * Master Node provisoning: Follow steps mentioned in below links.
     1. [Change for Master Provision for Multinode Deployment](###change-for-master-provision-for-multinode-deployment)
@@ -100,8 +60,8 @@ EIS Orchestration using k8s Orchestrator.
       ```
       For example, copied `coolm` from above.
   * Add copied master node name(e.g. coolm) with label `nodeName under spec of Pod ia-etcd as nodeName:` in below yaml based on DEV mode.
-    * If DEV mode =TRUE  [build/provision/dep/k8s/etcd_devmode.yml](../../build/provision/dep/k8s/etcd_devmode.yml)
-    * IF DEV mode=FALSE  [build/provision/dep/k8s/etcd_prodmode.yml](../../build/provision/dep/k8s/etcd_prodmode.yml)
+    * If DEV mode =TRUE  [build/provision/dep/k8s/k8s_etcd_devmode.yml](../../build/provision/dep/k8s/k8s_etcd_devmode.yml)
+    * IF DEV mode=FALSE  [build/provision/dep/k8s/k8s_etcd_prodmode.yml](../../build/provision/dep/k8s/k8s_etcd_prodmode.yml)
 
     This will enable etcd to run always on master node.
 
@@ -116,7 +76,7 @@ EIS Orchestration using k8s Orchestrator.
 > 1. This step is not required for **Single Node** deployment
 > 2. Provisioning bundle will be generated on k8s `Master node`.
 > 3. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env) of Master node.
-> 4. Run all steps on Master node.
+> 4. Below steps to be run on Master node.
   * Set `PROVISION_MODE=k8s` in [build/provision/.env](../build/provision/.env) file.
   * Go to `$[WORK_DIR]/IEdgeInsights/build/deploy` directory
   * Generate Provisioning bundle for k8s worker node provisioning.
@@ -137,11 +97,78 @@ EIS Orchestration using k8s Orchestrator.
           $ sudo tar -xvf <eis_provisioning.tar.gz>
           $ cd <eis_provisioning>
       ```
-  * Provision the EIS in k8s Worker Node.
+  * Provision the EIS in k8s Worker(s) Node.
       ```sh
           $ cd provision
           $ sudo ./provision_eis.sh
       ```
+## Provisioning EIS with k8s
+> **Note:** If Provisioning of EIS with k8s is already done under Multinode deployment, please skip it.
+   > 1. EIS Deployment with k8s can be done in **PROD** & **DEV** mode.
+  > 2. For running EIS in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
+  > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before k8s Provisioning.
+
+  * Please Update following Environment Variables in [build/.env](../../build/.env)
+    * HOST_IP           =     [masternodeip]
+    * ETCD_HOST         =     [masternodeip]
+    * ETCD_CLIENT_PORT  =     8379
+    * ETCD_PEER_PORT    =     8380
+
+  * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
+    * EIS_LOCAL_PATH    =     [EIS Source path]
+    * PROVISION_MODE    =     k8s
+
+### Provisioning `EIS` with `k8s` in `DEV` mode
+> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
+>updated `build/k8s/k8s_eis_deploy.yml` file.
+>   Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+
+  * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
+
+  * Provision EIS with K8s.
+    ```sh
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    ```
+### Provisioning `EIS` with `k8s` in `PROD` mode
+> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
+>updated `build/k8s/k8s_eis_deploy.yml` file.
+> Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+  * Please Update `DEV_MODE=false` in [build/.env](../../build/.env) file.
+
+  * Provision EIS with K8s.
+    ```sh
+    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+
+    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    ```
+## Deploying EIS Application with K8s
+  > **Note:** `eis-k8s-deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+
+  * Goto `build/k8s` directory.
+    ```sh
+    $ cd build/k8s
+    ```
+  * Deploy `k8s` using `kubectl` utility by following command
+    ```sh
+    $  kubectl apply -f ./eis-k8s-deploy.yml
+    ```
+  * Make sure the pods are `Running` fine as per deploy yml file.
+    ```sh
+    $  kubectl -n eis get pods
+    ```
+## Accessing Web Visualizer and EtcdUI
+  In K8s Environment EtcdUI & WebVisualizer will be running in Following ports. 
+  * EtcdUI
+     * PROD Mode --  `https://master-nodeip:30010/`
+     * DEV Mode -- `http://master-nodeip:30010/`
+  * WebVisualizer
+     * PROD Mode --  `https://master-nodeip:30007/`
+     * DEV Mode -- `http://master-nodeip:30009/`
+
 ## Steps for Enabling Basler Camera with k8s
    > **Note:** For more information on `Multus` please refer this git https://github.com/intel/multus-cni
    > Skip installing multus if it is already installed and execute others.
@@ -198,23 +225,6 @@ EIS Orchestration using k8s Orchestrator.
           ```sh
             $ kubectl exec -it <pod_name> -- ip -d address
           ```
-
-## Deploying EIS Application with K8s
-  > **Note:** `eis-k8s-deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
-
-  * Goto `build/k8s` directory.
-    ```sh
-    $ cd build/k8s
-    ```
-  * Deploy `k8s` using `kubectl` utility by following command
-    ```sh
-    $  kubectl apply -f ./eis-k8s-deploy.yml
-    ```
-  * Make sure the pods are `Running` fine as per deploy yml file.
-    ```sh
-    $  kubectl -n eis get pods
-    ```
-   
 ## Steps to enable Accelarators
   >**Note**:
   > `nodeSelector` is the simplest recommended form of node selection constraint.
