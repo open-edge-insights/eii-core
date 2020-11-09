@@ -375,11 +375,11 @@ EIS Orchestration using k8s Orchestrator.
   * Verify the respecitve workloads are running based on the `nodeSelector` constraints with `ipc` mode.
  
 ## Accessing Web Visualizer and EtcdUI
-  In K8s Environment EtcdUI & WebVisualizer will be running in Following port. 
+  In K8s Environment EtcdUI & WebVisualizer will be running in Following ports. 
   * EtcdUI
-        EtcdUI can be accessed in port no `30010`
+     * PROD Mode --  `https://master-nodeip:30010/`
+     * DEV Mode -- `http://master-nodeip:30010/`
   * WebVisualizer
-        WebVisualizer can be accessed in following port no's
-        *   PROD Mode --  `30007`
-        *   DEV Mode -- `30009`
+     * PROD Mode --  `https://master-nodeip:30007/`
+     * DEV Mode -- `http://master-nodeip:30009/`
   
