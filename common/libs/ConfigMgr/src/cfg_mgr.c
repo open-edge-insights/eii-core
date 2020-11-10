@@ -258,9 +258,17 @@ pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* app_cfg, const char* name) {
             }
             pub_cfg->pub_config = pub_config;
             ret = pub_cfg;
+            goto err;
         } else if(i == config_value_array_len(publisher_interface)) {
             LOG_ERROR("Publisher by name %s not found", name);
             goto err;
+        } else {
+            if (pub_config_name != NULL) {
+                config_value_destroy(pub_config_name);
+            }
+            if (pub_config != NULL) {
+                config_value_destroy(pub_config);
+            }
         }
     }
 
@@ -366,6 +374,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
                 goto err;
             }
             sub_cfg->sub_config = sub_config_index;
+            goto err;
         } else if(i == config_value_array_len(subscriber_interface)) {
             LOG_ERROR("Subscribers by name %s not found", name);
             if (sub_config_index != NULL) {
@@ -478,9 +487,17 @@ server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
             }
             serv_cfg->server_config = serv_config;
             ret = serv_cfg;
+            goto err;
         } else if(i == config_value_array_len(server_interface)) {
             LOG_ERROR("Servers by name %s not found", name);
             goto err;
+        } else {
+            if (serv_config_name != NULL) {
+                config_value_destroy(serv_config_name);
+            }
+            if (serv_config != NULL) {
+                config_value_destroy(serv_config);
+            }
         }
     }
 
@@ -578,6 +595,7 @@ client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* app_cfg, const char* name) {
                 goto err;
             }
             cli_cfg->client_config = cli_config;
+            goto err;
         } else if (i == config_value_array_len(client_interface)) {
             LOG_ERROR("Clients by name %s not found", name);
             if (cli_config != NULL) {
