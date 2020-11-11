@@ -17,38 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus publisher example
+"""EIS ConfigManager Watch wrapper object Cython declaration
 """
 
-import os
-import cfgmgr.config_manager as cfg
-import time
-
-def py_ex_func(key, json):
-    print("Key is {}".format(key))
-    print("json is {}".format(json))
+from .libneweisconfigmgr cimport app_cfg_t
 
 
-try:
-    os.environ["AppName"] = "VideoIngestion"
-    ctx = cfg.ConfigMgr()
-    
-    app_cfg = ctx.get_app_config()
-    print('app config is : {}'.format((app_cfg.get_dict())))
-    print('loop_video is : {}'.format((app_cfg["ingestor"]["loop_video"])))
-    watch_cfg = ctx.get_watch_obj()
-    # Watching on GlobalEnv key
-    watch_cfg.watch("/GlobalEnv/", py_ex_func)
-    # Watching on VideoAnalytics prefix
-    watch_cfg.watch_prefix("/VideoAnalytics", py_ex_func)
-    # Watching on app config
-    watch_cfg.watch_config(py_ex_func)
-    # Watching on app interface
-    watch_cfg.watch_interface(py_ex_func)
-    print("Watching on app config & app interface for 60 seconds")
-    time.sleep(60)
+cdef class Watch:
+    """EIS ConfigManager Watch class
+    """
+    cdef app_cfg_t* app_cfg
 
-except KeyboardInterrupt:
-    print('[INFO] Quitting...')
-except Exception as e:
-    print('Error during execution: {}'.format(e))
+    @staticmethod
+    cdef create(app_cfg_t* app_cfg)

@@ -31,6 +31,7 @@ from .libneweisconfigmgr cimport *
 from .publisher cimport Publisher
 from .subscriber cimport Subscriber
 from .app_config import AppCfg
+from .app_config cimport Watch
 from .server cimport Server
 from .client cimport Client
 from libc.stdlib cimport free
@@ -116,6 +117,19 @@ cdef class ConfigMgr:
             return obj
         except Exception as ex:
             raise ex
+
+
+    def get_watch_obj(self):
+        """Fetching the object to call watch APIs
+
+        :return: Watch class object
+        :rtype : obj
+        """
+        try:
+            w = Watch.create(self.app_cfg)
+            return w
+        except Exception as ex:
+            raise Exception("[Watch] Failed to fetch watch object {}".format(ex))
 
 
     def is_dev_mode(self):
