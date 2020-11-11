@@ -5,7 +5,7 @@ AppName:
 - WebVisualizer
 - ImageStore
 - InfluxDBConnector
-- FactoryCtrlApp
+- FactoryControlApp
 - OpcuaExport
 - RestDataExport
 - EISAzureBridge
