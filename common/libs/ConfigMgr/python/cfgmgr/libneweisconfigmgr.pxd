@@ -69,6 +69,7 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
     ctypedef struct base_cfg_t:
         config_t* m_app_config
         config_t* m_app_interface
+        char* app_name
 
     ctypedef struct pub_cfg_t:
         config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg, void* pub_config)
@@ -99,6 +100,13 @@ cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
     ctypedef struct app_cfg_t:
         base_cfg_t* base_cfg
         char* env_var
+
+    # C callback type definition
+    ctypedef void (*callback_t)(const char* key, config_t* value, void* cb_user_data)
+
+    # watch APIs
+    void cfgmgr_watch(base_cfg_t* base_cfg, char* key, callback_t watch_callback, void* user_data)
+    void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_callback, void* user_data)
 
     # base_cfg_t APIs
     char* configt_to_char(config_t* config)
