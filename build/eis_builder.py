@@ -1115,26 +1115,27 @@ def create_multi_instance_yml_dict(data, i):
                         v['environment'][new_cfg] = v4
 
     # Update outer secrets section
-    if dev_mode != 0:
-        for k, v in list(temp['secrets'].items()):
-            if 'cert' in k:
-                cert_temp = k.split('_cert')[0]
-                new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
-                for k2 in v.items():
-                    yml_map = ruamel.yaml.comments.CommentedMap()
-                    yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                                new_app_name))
-                temp['secrets'][new_cert] = yml_map
-                del temp['secrets'][k]
-            if 'key' in k:
-                key_temp = k.split('_key')[0]
-                new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
-                for k2 in v.items():
-                    yml_map = ruamel.yaml.comments.CommentedMap()
-                    yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                                new_app_name))
-                temp['secrets'][new_key] = yml_map
-                del temp['secrets'][k]
+    if not dev_mode:
+        if 'secrets' in temp.keys():
+            for k, v in list(temp['secrets'].items()):
+                if 'cert' in k:
+                    cert_temp = k.split('_cert')[0]
+                    new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
+                    for k2 in v.items():
+                        yml_map = ruamel.yaml.comments.CommentedMap()
+                        yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
+                                                                    new_app_name))
+                    temp['secrets'][new_cert] = yml_map
+                    del temp['secrets'][k]
+                if 'key' in k:
+                    key_temp = k.split('_key')[0]
+                    new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
+                    for k2 in v.items():
+                        yml_map = ruamel.yaml.comments.CommentedMap()
+                        yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
+                                                                    new_app_name))
+                    temp['secrets'][new_key] = yml_map
+                    del temp['secrets'][k]
 
     return temp
 
