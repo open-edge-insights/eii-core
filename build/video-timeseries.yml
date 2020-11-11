@@ -9,7 +9,7 @@ AppName:
 - Visualizer
 - WebVisualizer
 - ImageStore
-- FactoryCtrlApp
+- FactoryControlApp
 - EISAzureBridge
 # Time-series services
 - Telegraf
