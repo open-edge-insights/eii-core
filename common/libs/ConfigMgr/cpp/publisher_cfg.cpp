@@ -190,13 +190,11 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
 // Destructor
 PublisherCfg::~PublisherCfg() {
     if (m_pub_cfg) {
-        if (m_pub_cfg->pub_config != NULL)
+        if (m_pub_cfg->pub_config != NULL) {
             config_value_destroy(m_pub_cfg->pub_config);
+        }
         free(m_pub_cfg);
     }
 
-    if (m_app_cfg) {
-        delete m_app_cfg;
-    }
     LOG_DEBUG_0("PublisherCfg destructor");
 }

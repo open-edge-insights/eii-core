@@ -347,15 +347,11 @@ static void destroy_cfg_mgr(void* app_cfg, void* app_config) {
 		config_destroy(c_app_config);
 	}
 	if (c_app_cfg->base_cfg != NULL) {
-	    LOG_DEBUG_0("ConfigManager: destroy base_cfg");
-	    // TODO: fix double_free() issue
-	    // base_cfg_config_destroy(c_app_cfg->base_cfg);
+		LOG_DEBUG_0("ConfigManager: destroy base_cfg");
+		// TODO: fix double_free() issue
+		// base_cfg_config_destroy(c_app_cfg->base_cfg);
 	}
 
-	if(c_app_cfg->env_var != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy env_var");
-		free(c_app_cfg->env_var);
-	}
 	if(c_app_cfg != NULL){
 		LOG_DEBUG_0("ConfigManager: destroy app_cfg");
 		app_cfg_config_destroy(c_app_cfg);

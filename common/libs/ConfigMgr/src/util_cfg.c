@@ -189,6 +189,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
             LOG_ERROR_0("Topics cannot be \"*\" if socket file is not explicitly mentioned");
             goto err;
         }
+        config_value_destroy(topics);
     }
             
     // Add Endpoint directly to socket_dir if IPC mode
@@ -203,6 +204,9 @@ err:
     } 
     if (sock_dir != NULL){
         free(sock_dir);
+    }
+    if (topics_list != NULL) {
+        config_value_destroy(topics_list);
     }
     if (json_endpoint != NULL) {
         config_value_destroy(json_endpoint);

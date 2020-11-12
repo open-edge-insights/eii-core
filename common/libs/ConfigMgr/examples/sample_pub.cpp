@@ -99,7 +99,12 @@ int main(int argc, char** argv) {
     std::vector<std::string> topics_new;
     config_t* pub_config;
     bool topicsSet;
-    g_ctx = new ConfigMgr();
+    try {
+        g_ctx = new ConfigMgr();
+    } catch (...) {
+        LOG_ERROR_0("Exception occured");
+        return -1;
+    }
 
     bool dev_mode = g_ctx->isDevMode();
     if (dev_mode) {

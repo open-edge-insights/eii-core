@@ -83,9 +83,14 @@ int main(int argc, char** argv) {
     // VideoAnalytics interface
     setenv("AppName","VideoAnalytics", 1);
     config_t* sub_config = NULL;
-    std::vector<std::string> newTopicsList; 
-    g_sub_ch = new ConfigMgr();
+    std::vector<std::string> newTopicsList;
 
+    try {
+        g_sub_ch = new ConfigMgr();
+    } catch (...) {
+        LOG_ERROR_0("Exception occured");
+        return -1;
+    }
     // Testing getNumSubscribers()
     int num_of_subscribers = g_sub_ch->getNumSubscribers();
     LOG_DEBUG("Total number of subscribers: %d", num_of_subscribers );

@@ -302,10 +302,11 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                         // If any service isn't provisioned, ignore if key not found
                         LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
                     }
-                    
+                    free(grab_public_key);
+
                     config_value_destroy(array_value);
                     cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
-    
+                    free(sub_public_key);
                 }
                 // Adding all public keys of clients to allowed_clients of config
                 cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);

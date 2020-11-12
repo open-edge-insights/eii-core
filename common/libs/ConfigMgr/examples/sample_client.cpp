@@ -86,7 +86,13 @@ int main() {
 
     setenv("AppName","VideoAnalytics", 1);
     config_t* config = NULL;
-    g_ch = new ConfigMgr();
+
+    try {
+        g_ch = new ConfigMgr();
+    } catch (...) {
+        LOG_ERROR_0("Exception occured");
+        return -1;
+    }
 
     // ClientCfg* client_ctx = g_ch->getClientByName("default");
     ClientCfg* client_ctx = g_ch->getClientByIndex(0);
