@@ -153,7 +153,7 @@ static inline void destroy_config_val(config_val_t* config_val) {
 	}
 }
 
-char** parse_config_value(config_value_t* config_value, int num_of_items) {
+inline char** parse_config_value(config_value_t* config_value, int num_of_items) {
 	char** char_config_value = NULL;
 	char_config_value = (char**)malloc(num_of_items * sizeof(char*));
 	if(char_config_value == NULL){
@@ -338,7 +338,7 @@ static inline void* get_apps_config(void* app_cfg){
 	return (void*)config;
 }
 
-static void destroy_cfg_mgr(void* app_cfg, void* app_config) {
+static inline void destroy_cfg_mgr(void* app_cfg, void* app_config) {
 	LOG_DEBUG_0("ConfigManager: destroy_cfg_mgr");
 	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
 	config_t* c_app_config = (config_t*) app_config;
@@ -358,7 +358,7 @@ static void destroy_cfg_mgr(void* app_cfg, void* app_config) {
 	}
 }
 
-static void destroy_publisher(void* pub_cfg, void* msgbus_config) {
+static inline void destroy_publisher(void* pub_cfg, void* msgbus_config) {
 	LOG_DEBUG_0("ConfigManager: destroy publisher context");
 	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
 	config_t* c_msgbus_config = (config_t*)msgbus_config;
@@ -375,7 +375,7 @@ static void destroy_publisher(void* pub_cfg, void* msgbus_config) {
 	}
 }
 
-static void destroy_subscriber(void* sub_cfg, void* msgbus_config) {
+static inline void destroy_subscriber(void* sub_cfg, void* msgbus_config) {
 	LOG_DEBUG_0("ConfigManager: destroy subscriber context");
 	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
 	config_t* c_msgbus_config = (config_t*)msgbus_config;
@@ -392,7 +392,7 @@ static void destroy_subscriber(void* sub_cfg, void* msgbus_config) {
 	}
 }
 
-static void destroy_client(void* client_cfg, void* msgbus_config) {
+static inline void destroy_client(void* client_cfg, void* msgbus_config) {
 	LOG_DEBUG_0("ConfigManager: destroy client context");
 	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
 	config_t* c_msgbus_config = (config_t*)msgbus_config;
@@ -409,7 +409,7 @@ static void destroy_client(void* client_cfg, void* msgbus_config) {
 	}
 }
 
-static void destroy_server(void* server_cfg, void* msgbus_config) {
+static inline void destroy_server(void* server_cfg, void* msgbus_config) {
 	LOG_DEBUG_0("ConfigManager: destroy server context");
 	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
 	config_t* c_msgbus_config = (config_t*)msgbus_config;
@@ -705,7 +705,7 @@ static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Subscriber] Parse config value failed");
 		return NULL;
-	}	
+	}
 	config_value_destroy(topics);
 	str_arr->arr = arr_topics;
 	str_arr->len = topics_len;
@@ -977,6 +977,23 @@ static inline config_val_t* get_client_interface_value(void* client_cfg, char *k
 	}
     return cv;
 }
+
+//-----------------WATCH--------------------------
+
+typedef void (*callback_t)(const char *key, config_t* value, void* cb_user_data);
+void cCallback(const char *key, config_t* value, void* cb_user_data);
+
+static inline void watch(void* app_cfg, char* key, callback_t callback_fn, void* user_data) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	cfgmgr_watch(c_app_cfg->base_cfg, key, callback_fn, user_data);
+}
+
+static inline void watch_prefix(void* app_cfg, char* prefix, callback_t callback_fn, void* user_data) {
+	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+	// Calling the base cfgmgr_watch_prefix C API
+	cfgmgr_watch_prefix(c_app_cfg->base_cfg, prefix, callback_fn, user_data);
+}
+
 */
 import "C"
 
@@ -997,9 +1014,20 @@ type ConfigMgrContext struct {
 
 // ConfigMgr object
 type ConfigMgr struct {
-	ctx *ConfigMgrContext
+	ctx       *ConfigMgrContext
 	appConfig unsafe.Pointer
 }
+
+// WatchObj context
+type WatchObj struct {
+	appCfg unsafe.Pointer
+}
+
+// goCallbacktype variable to define the go Callback Type
+type goCallbacktype func(string, map[string]interface{}, interface{})
+
+// cbFunc of type goCallbacktype to call the Go Callback from C
+var cbFunc = func(key string, value map[string]interface{}, user_data interface{}) {}
 
 // Convert C char** to Go string[]
 func GoStrings(argc C.int, argv **C.char) []string {
@@ -1074,12 +1102,12 @@ func getConfigVal(interfaceVal *C.config_val_t) (*ConfigValue, error) {
 func ConfigManager() (*ConfigMgr, error) {
 	// Fetching app_cfg object
 	appCfg := C.create_new_cfg_mr()
-	if (appCfg == nil){
+	if appCfg == nil {
 		return nil, errors.New("Creating ConfigMgr instance failed in CGO\n")
 	}
 	// Fetching env_var from appCfg object
 	cEnvVar := C.get_env_var(appCfg)
-	if (cEnvVar == nil){
+	if cEnvVar == nil {
 		return nil, errors.New("Getting env var failed in CGO\n")
 	}
 	// Converting C string to Go string
@@ -1107,9 +1135,9 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 	appCfg := C.get_apps_config(ctx.ctx.cfgmgrCtx)
 	ctx.appConfig = appCfg
 	cAppConfig := (*C.config_t)(appCfg)
-	cAppConf := C.configt_to_char(cAppConfig);
-	if(cAppConf == nil){
-		return nil, errors.New("[AppConfig] Converting configt to char failed");
+	cAppConf := C.configt_to_char(cAppConfig)
+	if cAppConf == nil {
+		return nil, errors.New("[AppConfig] Converting configt to char failed")
 	}
 
 	jsonAppConfig, err := string_to_map_interface(C.GoString(cAppConf))
@@ -1128,7 +1156,7 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 func (ctx *ConfigMgr) GetAppName() (string, error) {
 	// Fetching app_name
 	cAppName := C.get_app_name(ctx.ctx.cfgmgrCtx)
-	if (cAppName == nil){
+	if cAppName == nil {
 		return "", errors.New("Getting app name failed in CGO\n")
 	}
 	// Converting c string to Go string
@@ -1146,6 +1174,126 @@ func (ctx *ConfigMgr) IsDevMode() (bool, error) {
 	} else {
 		return false, nil
 	}
+}
+
+func (configMgr *ConfigMgr) GetWatchObj() (*WatchObj, error) {
+	watchCtx := new(WatchObj)
+	watchCtx.appCfg = configMgr.ctx.cfgmgrCtx
+	return watchCtx, nil
+}
+
+//export cfgmgrGoCallback
+func cfgmgrGoCallback(key *C.char, value *C.config_t, user_data unsafe.Pointer) {
+	cConfig := (*C.config_t)(value)
+	// Converting C config_t to C String
+	cConf := C.configt_to_char(cConfig)
+	if cConf == nil {
+		glog.Error("[cfgmgrGoCallback] Failed to convert configt to char")
+		return
+	}
+	// Freeing the C config_t value
+	defer C.free(unsafe.Pointer(cConf))
+	// Converting C string to Go map[string]interface{}
+	jsonAppConfig, err := string_to_map_interface(C.GoString(cConf))
+	if err != nil {
+		glog.Errorf("Error: %v", err)
+		return
+	}
+	// Converting C string key to Go String
+	cKey := C.GoString(key)
+	// Freeing the C key string
+	defer C.free(unsafe.Pointer(key))
+	// Fetching the interface{} value associated with unsafe.Pointer user_data
+	u := Restore(user_data)
+	if u == nil {
+		glog.Errorf("interface{} for user_data not found")
+		return
+	}
+	// Freeing the unsafe.Pointer and it's associated interface{}
+	defer Unref(user_data)
+	// Calling the Go callback with the obtained values
+	cbFunc(cKey, jsonAppConfig, u)
+	return
+}
+
+func (watchCtx *WatchObj) Watch(key string, callbackFunc goCallbacktype, user_data interface{}) {
+	cbFunc = callbackFunc
+	// Storing the interface associated with an unsafe.Pointer
+	// This is required since Go doesn't allow C code to store pointers to Go data
+	ptr := Save(user_data)
+	if ptr == nil {
+		glog.Errorf("Unable to store interface{}")
+		return
+	}
+	// Calling the C watch API
+	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	return
+}
+
+func (watchCtx *WatchObj) WatchPrefix(prefix string, callbackFunc goCallbacktype, user_data interface{}) {
+	cbFunc = callbackFunc
+	// Storing the interface associated with an unsafe.Pointer
+	// This is required since Go doesn't allow C code to store pointers to Go data
+	ptr := Save(user_data)
+	if ptr == nil {
+		glog.Errorf("Unable to store interface{}")
+		return
+	}
+	// Calling the C watch_prefix API
+	C.watch_prefix(watchCtx.appCfg, C.CString(prefix), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	return
+}
+
+func (watchCtx *WatchObj) WatchConfig(callbackFunc goCallbacktype, user_data interface{}) {
+	cbFunc = callbackFunc
+	// Storing the interface associated with an unsafe.Pointer
+	// This is required since Go doesn't allow C code to store pointers to Go data
+	ptr := Save(user_data)
+	if ptr == nil {
+		glog.Errorf("Unable to store interface{}")
+		return
+	}
+	// Calling the C get_app_name API to fetch AppName
+	cAppName := C.get_app_name(watchCtx.appCfg)
+	if cAppName == nil {
+		glog.Errorf("Failed to fetch appname")
+		return
+	}
+	// Converting c string to Go string
+	goAppName := C.GoString(cAppName)
+	// Freeing the C AppName string
+	defer C.free(unsafe.Pointer(cAppName))
+	// Creating /<AppName>/config key
+	key := "/" + goAppName + "/config"
+	// Calling the C watch API
+	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	return
+}
+
+func (watchCtx *WatchObj) WatchInterface(callbackFunc goCallbacktype, user_data interface{}) {
+	cbFunc = callbackFunc
+	// Storing the interface associated with an unsafe.Pointer
+	// This is required since Go doesn't allow C code to store pointers to Go data
+	ptr := Save(user_data)
+	if ptr == nil {
+		glog.Errorf("Unable to store interface{}")
+		return
+	}
+	// Calling the C get_app_name API to fetch AppName
+	cAppName := C.get_app_name(watchCtx.appCfg)
+	if cAppName == nil {
+		glog.Errorf("Failed to fetch appname")
+		return
+	}
+	// Converting c string to Go string
+	goAppName := C.GoString(cAppName)
+	// Freeing the C AppName string
+	defer C.free(unsafe.Pointer(cAppName))
+	// Creating /<AppName>/interfaces key
+	key := "/" + goAppName + "/interfaces"
+	// Calling the C watch API
+	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	return
 }
 
 func (ctx *ConfigMgr) GetNumPublishers() (int, error) {
@@ -1177,7 +1325,7 @@ func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
 	pubCtx.msgBusCfg = nil
 	goPubCfg := C.get_publisher_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
-	if (goPubCfg == nil){
+	if goPubCfg == nil {
 		return nil, errors.New("[Publisher]: Failed to get publisher by name from CGO\n")
 	}
 	pubCtx.pubCfg = goPubCfg
@@ -1189,7 +1337,7 @@ func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
 	pubCtx.msgBusCfg = nil
 	goPubCfg := C.get_publisher_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
-	if (goPubCfg == nil){
+	if goPubCfg == nil {
 		return nil, errors.New("[Publisher]: Failed to get publisher by index from CGO\n")
 	}
 	pubCtx.pubCfg = goPubCfg
@@ -1201,7 +1349,7 @@ func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
 	subCtx.msgBusCfg = nil
 	goSubCfg := C.get_subscriber_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
-	if (goSubCfg == nil){
+	if goSubCfg == nil {
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by name from CGO\n")
 	}
 	subCtx.subCfg = goSubCfg
@@ -1213,7 +1361,7 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
 	subCtx.msgBusCfg = nil
 	goSubCfg := C.get_subscriber_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
-	if (goSubCfg == nil){
+	if goSubCfg == nil {
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by index from CGO\n")
 	}
 	subCtx.subCfg = goSubCfg
@@ -1225,7 +1373,7 @@ func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
 	serverCtx.msgBusCfg = nil
 	goServerCfg := C.get_server_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
-	if (goServerCfg == nil){
+	if goServerCfg == nil {
 		return nil, errors.New("[Server]: Failed to get publisher by name from CGO\n")
 	}
 	serverCtx.serverCfg = goServerCfg
@@ -1237,7 +1385,7 @@ func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
 	serverCtx.msgBusCfg = nil
 	goServerCfg := C.get_server_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
-	if (goServerCfg == nil){
+	if goServerCfg == nil {
 		return nil, errors.New("[Server]: Failed to get publisher by index from CGO\n")
 	}
 	serverCtx.serverCfg = goServerCfg
@@ -1268,8 +1416,8 @@ func (ctx *ConfigMgr) Destroy() {
 
 func (pubctx *PublisherCfg) getEndPoints() (string, error) {
 	endpoints := C.get_pub_end_points(pubctx.pubCfg)
-	if(endpoints == nil){
-		return "", errors.New("[Publisher]: Failed to get endpoint from CGO\n")		
+	if endpoints == nil {
+		return "", errors.New("[Publisher]: Failed to get endpoint from CGO\n")
 	}
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr), nil
@@ -1277,8 +1425,8 @@ func (pubctx *PublisherCfg) getEndPoints() (string, error) {
 
 func (pubctx *PublisherCfg) getTopics() ([]string, error) {
 	topicsArr := C.get_pub_topics(pubctx.pubCfg)
-	if(topicsArr == nil){
-		return []string {""}, errors.New("[Publisher]: Failed to get topics from CGO\n") 
+	if topicsArr == nil {
+		return []string{""}, errors.New("[Publisher]: Failed to get topics from CGO\n")
 	}
 	defer C.destroy_string_arr(topicsArr)
 
@@ -1288,8 +1436,8 @@ func (pubctx *PublisherCfg) getTopics() ([]string, error) {
 
 func (pubctx *PublisherCfg) getAllowedClients() ([]string, error) {
 	allowedClientsArr := C.get_pub_allowed_clients(pubctx.pubCfg)
-	if(allowedClientsArr == nil){
-		return []string {""}, errors.New("[Publisher]: Failed to get allowed clients from CGO\n") 
+	if allowedClientsArr == nil {
+		return []string{""}, errors.New("[Publisher]: Failed to get allowed clients from CGO\n")
 	}
 	defer C.destroy_string_arr(allowedClientsArr)
 	allowedClients := GoStrings(allowedClientsArr.len, allowedClientsArr.arr)
@@ -1298,17 +1446,17 @@ func (pubctx *PublisherCfg) getAllowedClients() ([]string, error) {
 
 func (pubctx *PublisherCfg) getMsgbusConfig() (string, error) {
 	conf := C.get_pub_msgbus_config(pubctx.appCfg, pubctx.pubCfg)
-	if (conf == nil){
+	if conf == nil {
 		return "", errors.New("[Publisher]: Failed to get message bus config from CGO\n")
 	}
 
 	pubctx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
-	cConf := C.configt_to_char(cConfig);
-	if(cConf == nil){
-		return "", errors.New("[Publisher] Converting configt to char failed");
+	cConf := C.configt_to_char(cConfig)
+	if cConf == nil {
+		return "", errors.New("[Publisher] Converting configt to char failed")
 	}
-	
+
 	goStr := C.GoString(cConf)
 	defer C.free(unsafe.Pointer(cConf))
 	return goStr, nil
@@ -1333,13 +1481,13 @@ func (pubctx *PublisherCfg) setTopics(topics []string) bool {
 
 func (pubctx *PublisherCfg) getInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal := C.get_pub_interface_value(pubctx.pubCfg, C.CString(key))
-	if(interfaceVal == nil){
+	if interfaceVal == nil {
 		return nil, errors.New("[Publisher]: Failed to get interface value from CGO\n")
 	}
 	defer C.destroy_config_val(interfaceVal)
 
 	val, err := getConfigVal(interfaceVal)
-	if (err != nil){
+	if err != nil {
 		glog.Errorf("get config val failed")
 		return nil, err
 	}
@@ -1352,8 +1500,8 @@ func (pubctx *PublisherCfg) destroyPublisher() {
 
 func (subctx *SubscriberCfg) getEndPoints() (string, error) {
 	endpoints := C.get_sub_end_points(subctx.subCfg)
-	if(endpoints == nil){
-		return "", errors.New("[Subscriber]: Failed to get endpoint from CGO\n")		
+	if endpoints == nil {
+		return "", errors.New("[Subscriber]: Failed to get endpoint from CGO\n")
 	}
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr), nil
@@ -1361,17 +1509,17 @@ func (subctx *SubscriberCfg) getEndPoints() (string, error) {
 
 func (subctx *SubscriberCfg) getMsgbusConfig() (string, error) {
 	conf := C.get_msgbus_config_subscriber(subctx.appCfg, subctx.subCfg)
-	if (conf == nil){
+	if conf == nil {
 		return "", errors.New("[Subscriber]: Failed to get message bus config from CGO\n")
 	}
 
 	subctx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
-	cConf := C.configt_to_char(cConfig);
-	if(cConf == nil){
-		return "", errors.New("[Subscriber] Converting configt to char failed");
+	cConf := C.configt_to_char(cConfig)
+	if cConf == nil {
+		return "", errors.New("[Subscriber] Converting configt to char failed")
 	}
-	
+
 	goStr := C.GoString(cConf)
 	defer C.free(unsafe.Pointer(cConf))
 	return goStr, nil
@@ -1379,8 +1527,8 @@ func (subctx *SubscriberCfg) getMsgbusConfig() (string, error) {
 
 func (subctx *SubscriberCfg) getTopics() ([]string, error) {
 	topicsArr := C.get_topics_subscriber(subctx.subCfg)
-	if(topicsArr == nil){
-		return []string {""}, errors.New("[Subscriber]: Failed to get topics from CGO\n") 
+	if topicsArr == nil {
+		return []string{""}, errors.New("[Subscriber]: Failed to get topics from CGO\n")
 	}
 	defer C.destroy_string_arr(topicsArr)
 
@@ -1407,13 +1555,13 @@ func (subctx *SubscriberCfg) setTopics(topics []string) bool {
 
 func (subctx *SubscriberCfg) getInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal := C.get_sub_interface_value(subctx.subCfg, C.CString(key))
-	if(interfaceVal == nil){
+	if interfaceVal == nil {
 		return nil, errors.New("[Subscriber]: Failed to get interface value from CGO\n")
 	}
 	defer C.destroy_config_val(interfaceVal)
 
 	val, err := getConfigVal(interfaceVal)
-	if (err != nil){
+	if err != nil {
 		glog.Errorf("get config val failed")
 		return nil, err
 	}
@@ -1426,8 +1574,8 @@ func (subctx *SubscriberCfg) destroySubscriber() {
 
 func (serverCtx *ServerCfg) getEndPoints() (string, error) {
 	endpoints := C.get_server_end_points(serverCtx.serverCfg)
-	if(endpoints == nil){
-		return "", errors.New("[Server]: Failed to get endpoint from CGO\n")		
+	if endpoints == nil {
+		return "", errors.New("[Server]: Failed to get endpoint from CGO\n")
 	}
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr), nil
@@ -1435,17 +1583,17 @@ func (serverCtx *ServerCfg) getEndPoints() (string, error) {
 
 func (serverCtx *ServerCfg) getMsgbusConfig() (string, error) {
 	conf := C.get_msgbus_config_server(serverCtx.appCfg, serverCtx.serverCfg)
-	if (conf == nil){
+	if conf == nil {
 		return "", errors.New("[Server]: Failed to get message bus config from CGO\n")
 	}
-	
+
 	serverCtx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
-	cConf := C.configt_to_char(cConfig);
-	if(cConf == nil){
-		return "", errors.New("[Server] Converting configt to char failed");
+	cConf := C.configt_to_char(cConfig)
+	if cConf == nil {
+		return "", errors.New("[Server] Converting configt to char failed")
 	}
-	
+
 	goStr := C.GoString(cConf)
 	defer C.free(unsafe.Pointer(cConf))
 	return goStr, nil
@@ -1453,8 +1601,8 @@ func (serverCtx *ServerCfg) getMsgbusConfig() (string, error) {
 
 func (serverCtx *ServerCfg) getAllowedClients() ([]string, error) {
 	allowedClientsArr := C.get_allowed_clients_server(serverCtx.serverCfg)
-	if(allowedClientsArr == nil){
-		return []string {""}, errors.New("[Server]: Failed to get allowed clients from CGO\n") 
+	if allowedClientsArr == nil {
+		return []string{""}, errors.New("[Server]: Failed to get allowed clients from CGO\n")
 	}
 	defer C.destroy_string_arr(allowedClientsArr)
 
@@ -1464,13 +1612,13 @@ func (serverCtx *ServerCfg) getAllowedClients() ([]string, error) {
 
 func (serverCtx *ServerCfg) getInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal := C.get_server_interface_value(serverCtx.serverCfg, C.CString(key))
-	if(interfaceVal == nil){
+	if interfaceVal == nil {
 		return nil, errors.New("[Server]: Failed to get interface value from CGO\n")
 	}
 	defer C.destroy_config_val(interfaceVal)
 
 	val, err := getConfigVal(interfaceVal)
-	if (err != nil){
+	if err != nil {
 		glog.Errorf("get config val failed")
 		return nil, err
 	}
@@ -1483,8 +1631,8 @@ func (serverCtx *ServerCfg) destroyServer() {
 
 func (clientCtx *ClientCfg) getEndPoints() (string, error) {
 	endpoints := C.get_client_end_points(clientCtx.clientCfg)
-	if(endpoints == nil){
-		return "", errors.New("[Client]: Failed to get endpoint from CGO\n")		
+	if endpoints == nil {
+		return "", errors.New("[Client]: Failed to get endpoint from CGO\n")
 	}
 	defer C.destroy_char_arr(endpoints)
 	return C.GoString(endpoints.arr), nil
@@ -1492,17 +1640,17 @@ func (clientCtx *ClientCfg) getEndPoints() (string, error) {
 
 func (clientCtx *ClientCfg) getMsgbusConfig() (string, error) {
 	conf := C.get_msgbus_config_client(clientCtx.appCfg, clientCtx.clientCfg)
-	if (conf == nil){
+	if conf == nil {
 		return "", errors.New("[Client]: Failed to get message bus config from CGO\n")
 	}
-	
+
 	clientCtx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
-	cConf := C.configt_to_char(cConfig);
-	if(cConf == nil){
-		return "", errors.New("[Client] Converting configt to char failed");
+	cConf := C.configt_to_char(cConfig)
+	if cConf == nil {
+		return "", errors.New("[Client] Converting configt to char failed")
 	}
-	
+
 	goStr := C.GoString(cConf)
 	defer C.free(unsafe.Pointer(cConf))
 	return goStr, nil
@@ -1510,13 +1658,13 @@ func (clientCtx *ClientCfg) getMsgbusConfig() (string, error) {
 
 func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal := C.get_client_interface_value(clientCtx.clientCfg, C.CString(key))
-	if(interfaceVal == nil){
+	if interfaceVal == nil {
 		return nil, errors.New("[Publisher]: Failed to get interface value from CGO\n")
 	}
 	defer C.destroy_config_val(interfaceVal)
 
 	val, err := getConfigVal(interfaceVal)
-	if (err != nil){
+	if err != nil {
 		glog.Errorf("get config val failed")
 		return nil, err
 	}

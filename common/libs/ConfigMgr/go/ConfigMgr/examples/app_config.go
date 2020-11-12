@@ -24,16 +24,47 @@ package main
 
 import (
 	eiscfgmgr "ConfigMgr/eisconfigmgr"
+	"flag"
 	"fmt"
 	"os"
+	"time"
 )
+import "C"
+
+func cbFunc(key string, value map[string]interface{}, user_data interface{}) {
+	fmt.Printf("Callback triggered for key %s, value obtained %v with user_data %v\n", key, value, user_data)
+}
 
 func main() {
+	flag.Parse()
+
 	os.Setenv("AppName", "VideoIngestion")
 
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
 	appConfig, err := configMgr.GetAppConfig()
+
+	// Fetching Watch object
+	watchObj, err := configMgr.GetWatchObj()
+	if err != nil {
+		fmt.Println("Failed to fetch watch object")
+	}
+
+	// Testing Watch API
+	var watchUserData interface{} = "watch"
+	watchObj.Watch("/VideoIngestion/config", cbFunc, watchUserData)
+
+	// Testing WatchPrefix API
+	var watchPrefixUserData interface{} = 1234
+	watchObj.WatchPrefix("/VideoAnalytics", cbFunc, watchPrefixUserData)
+
+	// Testing WatchConfig API
+	var watchConfigUserData interface{} = 45.67
+	watchObj.WatchConfig(cbFunc, watchConfigUserData)
+
+	// Testing WatchInterface API
+	var watchInterfaceUserData interface{} = true
+	watchObj.WatchInterface(cbFunc, watchInterfaceUserData)
 
 	defer configMgr.Destroy()
 
@@ -42,4 +73,6 @@ func main() {
 	} else {
 		fmt.Println("App_config:", appConfig)
 	}
+	fmt.Println("Watching on app config & app interface for 60 seconds")
+	time.Sleep(60 * time.Second)
 }
