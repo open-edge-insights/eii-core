@@ -665,7 +665,11 @@ err:
 
 // function to destroy app_cfg_t
 void app_cfg_config_destroy(app_cfg_t *app_cfg_config) {
-    if (app_cfg_config != NULL) {
+    if (app_cfg_config) {
+        if (app_cfg_config->env_var) {
+            LOG_DEBUG_0("CfgMgr Destructor: free env_var...");
+            free(app_cfg_config->env_var);
+        }
         free(app_cfg_config);
     }
 }

@@ -86,7 +86,13 @@ int main() {
     std::vector<std::string> clients;
     config_value_t* interface_value;
     char* name = NULL;
-    g_config_mgr = new ConfigMgr();
+
+    try {
+        g_config_mgr = new ConfigMgr();
+    } catch (...) {
+        LOG_ERROR_0("Exception occured");
+        return -1;
+    }
 
     int num_of_servers = g_config_mgr->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);

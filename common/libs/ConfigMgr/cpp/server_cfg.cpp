@@ -121,10 +121,5 @@ ServerCfg::~ServerCfg() {
     if(m_serv_cfg) {
         server_cfg_config_destroy(m_serv_cfg);
     }
-    if(m_app_cfg) {
-        // TODO: We need to free this struct same way as above
-        // That possibly can get rid of env_var issue.
-        delete m_app_cfg;
-    }
     LOG_INFO_0("ServerCfg destructor");
 }

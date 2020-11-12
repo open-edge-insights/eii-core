@@ -32,12 +32,16 @@ using namespace eis::config_manager;
 
 ConfigMgr::ConfigMgr() {
     // Initializing C app_cfg object
-    app_cfg_t* app_cfg = app_cfg_new();
-    if (app_cfg == NULL) {
+    app_cfg_t* app_cfg = NULL;
+    app_cfg = app_cfg_new();
+    if (app_cfg != NULL) {
         LOG_ERROR_0("app_cfg initialization failed");
+        m_app_cfg_handler = new AppCfg(app_cfg->base_cfg);
+        m_app_cfg = app_cfg;
+    } else {
+        LOG_ERROR_0("app_cfg initialization failed");
+        throw("app_cfg initialization failed");
     }
-    m_app_cfg_handler = new AppCfg(app_cfg->base_cfg);
-    m_app_cfg = app_cfg;
 }
 
 AppCfg* ConfigMgr::getAppConfig() {
@@ -228,13 +232,13 @@ ClientCfg* ConfigMgr::getClientByName(const char* name) {
 
 ConfigMgr::~ConfigMgr() {
     LOG_INFO_0("ConfigMgr destructor called...");
-    if(m_app_cfg_handler) {
+    if (m_app_cfg_handler) {
         LOG_DEBUG_0("ConfigMgr Destructor: Deleting m_app_cfg_handler class...");
         delete m_app_cfg_handler;
     }
 
-    if(m_app_cfg) {
+    if (m_app_cfg) {
         LOG_DEBUG_0("ConfigMgr Destructor: Deleting m_app_cfg...");
-        delete m_app_cfg;
+        app_cfg_config_destroy(m_app_cfg);
     }
 }

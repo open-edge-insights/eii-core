@@ -321,28 +321,25 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
 // Destructor
 void base_cfg_config_destroy(base_cfg_t *base_cfg) {
     LOG_DEBUG_0("base_cfg_config_destroy");
-    if (base_cfg->m_app_config != NULL) {
-        config_destroy(base_cfg->m_app_config);
-    }
-    if (base_cfg->m_app_interface != NULL) {
-        config_destroy(base_cfg->m_app_interface);
-    }
-    if (base_cfg->m_data_store != NULL) {
-        config_destroy(base_cfg->m_data_store);
-    }
-    if (base_cfg->msgbus_config != NULL) {
-        config_value_destroy(base_cfg->msgbus_config);
-    }
-    if (base_cfg->cfgmgr_handle != NULL) {
-        free(base_cfg->cfgmgr_handle);
-    }
-    if (base_cfg->app_name != NULL) {
-        free(base_cfg->app_name);
-    }
-    if (base_cfg->m_kv_store_handle != NULL) {
-        kv_client_free(base_cfg->m_kv_store_handle);
-    }
-    if (base_cfg != NULL) {
+    if (base_cfg) {
+        if (base_cfg->m_app_config) {
+            config_destroy(base_cfg->m_app_config);
+        }
+        if (base_cfg->m_app_interface) {
+            config_destroy(base_cfg->m_app_interface);
+        }
+        if (base_cfg->m_data_store) {
+            config_destroy(base_cfg->m_data_store);
+        }
+        if (base_cfg->cfgmgr_handle) {
+            free(base_cfg->cfgmgr_handle);
+        }
+        if (base_cfg->app_name) {
+            free(base_cfg->app_name);
+        }
+        if (base_cfg->m_kv_store_handle) {
+            kv_client_free(base_cfg->m_kv_store_handle);
+        }
         free(base_cfg);
     }
     LOG_DEBUG_0("base_cfg_config_destroy: Done");

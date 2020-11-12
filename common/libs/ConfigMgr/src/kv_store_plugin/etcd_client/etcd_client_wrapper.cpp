@@ -133,7 +133,7 @@ void etcd_watch_prefix(void* handle, char *key, callback_t user_cb, void* user_d
 void etcd_client_free(void* handle){
     if (handle != NULL) {
         EtcdClient *cli = static_cast<EtcdClient *>(handle);
-        cli->~EtcdClient();   
+        cli->~EtcdClient();
         free(handle);
     }
 }

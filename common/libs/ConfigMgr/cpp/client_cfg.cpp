@@ -92,8 +92,5 @@ ClientCfg::~ClientCfg() {
         config_value_destroy(m_cli_cfg->client_config);
         free(m_cli_cfg);
     }
-    if(m_app_cfg) {
-        free(m_app_cfg);
-    }
     LOG_INFO_0("ClientCfg destructor");
 }
