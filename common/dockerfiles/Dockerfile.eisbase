@@ -96,6 +96,9 @@ RUN apt-get update && \
 
 RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
 
+# Upgrading pip version
+RUN pip3 install --upgrade pip
+
 # Installing python JSON schema validator
 RUN pip3 install jsonschema==3.2.0
 
