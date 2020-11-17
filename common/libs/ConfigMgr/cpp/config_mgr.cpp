@@ -35,7 +35,6 @@ ConfigMgr::ConfigMgr() {
     app_cfg_t* app_cfg = NULL;
     app_cfg = app_cfg_new();
     if (app_cfg != NULL) {
-        LOG_ERROR_0("app_cfg initialization failed");
         m_app_cfg_handler = new AppCfg(app_cfg->base_cfg);
         m_app_cfg = app_cfg;
     } else {
