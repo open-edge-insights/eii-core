@@ -145,8 +145,6 @@ The section assumes the EIS software is already downloaded from the release pack
 
   * Running eis_builder for multi-instance configs:
 
-    If the user wishes to auto-populate the subscriber **SubTopics** based on config of available publishers mentioned in **publisher_list**, the subscriber **AppName** has to be added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json).
-
     The user needs to ensure the increment_rtsp_port is set to true/false if using multiple or single rtsp streams respectively in [eis_builder_config.json](build/eis_builder_config.json).
 
     ```sh
@@ -193,6 +191,8 @@ The section assumes the EIS software is already downloaded from the release pack
 
     > **Note:**
     > * If using the override directory feature of eis_builder, it is recommended to include set of all 5 files mentioned above. Failing to provide any of the files in the override directory results in eis_builder not including that service in the generated final config. Eg: If a user fails to provide an app_spec.json in the override directory for a particular service, the final [csl_app_spec.json](build/csl/csl_app_spec.json) will not include the app_spec of that service.
+    > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [eis_builder_config.json](build/eis_builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
+    For eg: If eis_builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
 
   * **Using eis_builder to add a new service into the EIS stack**
 
