@@ -64,6 +64,7 @@ char* etcd_get(void* handle, char *key) {
     std::string str_val = cli->get(str_key);
     char *value = const_cast<char*>(str_val.data());
     int cmp_value;
+    char *val = NULL;
 
     strcmp_s(value, strlen(value), "(NULL)", &cmp_value);
     if (cmp_value == 0)
@@ -72,9 +73,14 @@ char* etcd_get(void* handle, char *key) {
     size_t len = strlen(value) + 1;
 
     // TODO: Find a way to dealloc allocated mem here
-    char *val = (char *)malloc(len);
-    memset(val, '\0', len);
-    strcpy_s(val, len, value);
+    val = (char *)malloc(len);
+    if (val != NULL) {
+        memset(val, '\0', len);
+        strcpy_s(val, len, value);
+    } else {
+        LOG_ERROR_0("Failed to allocate memory");
+    }
+
     return val;
 }
 

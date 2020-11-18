@@ -81,12 +81,14 @@ config_value_t* get_topics_base(config_value_t* conf) {
         return NULL;
     }
 
-    config_value_t* topic_value;
+    config_value_t* topic_value = NULL;
     topic_value = config_value_array_get(topics, 0);
     // If only one item in Topics and it is *,
     // then add empty string in order to allow all clients to subscribe
-    strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
-    
+    if (topic_value != NULL) {
+        strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
+    }
+
     if((arrlen == 1) && (ret == 0 )){
         cJSON_AddItemToArray(arr, cJSON_CreateString(""));
         config_value_destroy(topics);
@@ -304,7 +306,8 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
                         kv_store_client_t* m_kv_store_handle,
                         config_value_t* pub_interface,
                         config_value_t* datastore) {
-    base_cfg_t *base_cfg = (base_cfg_t *)malloc(sizeof(base_cfg_t));
+    base_cfg_t* base_cfg = NULL;
+    base_cfg = (base_cfg_t *)malloc(sizeof(base_cfg_t));
     if (base_cfg == NULL) {
         LOG_ERROR_0("base_cfg initialization failed");
         return NULL;
@@ -321,7 +324,7 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
 // Destructor
 void base_cfg_config_destroy(base_cfg_t *base_cfg) {
     LOG_DEBUG_0("base_cfg_config_destroy");
-    if (base_cfg) {
+    if (base_cfg != NULL) {
         if (base_cfg->m_app_config) {
             config_destroy(base_cfg->m_app_config);
         }

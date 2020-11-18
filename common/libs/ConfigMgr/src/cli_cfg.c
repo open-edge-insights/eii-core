@@ -74,6 +74,10 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* retreive_server_pub_key = NULL;
     const char* sub_public_key = NULL;
     const char* sub_pri_key = NULL;
+    char* type_override_env = NULL;
+    char* type_override = NULL;
+    char* ep_override_env = NULL;
+    char* config_value = NULL;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -113,7 +117,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
 
     // Overriding endpoint with CLIENT_<Name>_ENDPOINT if set
     size_t init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_ENDPOINT") + 2;
-    char* ep_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_ENDPOINT");
+    ep_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_ENDPOINT");
     if (ep_override_env == NULL) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
@@ -142,12 +146,12 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
 
     // Overriding endpoint with CLIENT_<Name>_TYPE if set
     init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_TYPE") + 2;
-    char* type_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_TYPE");
+    type_override_env = concat_s(init_len, 3, "CLIENT_", client_name->body.string, "_TYPE");
     if (type_override_env == NULL) {
         LOG_ERROR_0("concatenation for type_override_env failed");
         goto err;
     }
-    char* type_override = getenv(type_override_env);
+    type_override = getenv(type_override_env);
     if (type_override != NULL) {
         if (strlen(type_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", type_override_env);
@@ -278,7 +282,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
         goto err;
     }
 
-    char* config_value = cJSON_Print(c_json);
+    config_value = cJSON_Print(c_json);
     if (config_value == NULL) {
         LOG_ERROR_0("config_value object initialization failed");
         goto err;

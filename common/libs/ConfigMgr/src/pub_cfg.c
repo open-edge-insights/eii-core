@@ -98,6 +98,10 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     int dev_mode = base_cfg->dev_mode;
     kv_store_client_t* m_kv_store_handle = base_cfg->m_kv_store_handle;
     void* cfgmgr_handle = base_cfg->cfgmgr_handle;
+    config_value_t* publish_config_type = NULL;
+    config_value_t* publish_config_endpoint = NULL;
+    config_value_t* publish_config_name = NULL;
+    char* config_value_cr = NULL;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -107,7 +111,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     }
 
     // Fetching Type from config
-    config_value_t* publish_config_type = config_value_object_get(pub_config, TYPE);
+    publish_config_type = config_value_object_get(pub_config, TYPE);
     if (publish_config_type == NULL) {
         LOG_ERROR_0("publish_config_type initialization failed");
         goto err;
@@ -121,7 +125,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     char* type = publish_config_type->body.string;
 
     // Fetching EndPoint from config
-    config_value_t* publish_config_endpoint = config_value_object_get(pub_config, ENDPOINT);
+    publish_config_endpoint = config_value_object_get(pub_config, ENDPOINT);
     if (publish_config_endpoint == NULL) {
         LOG_ERROR_0("publish_config_endpoint initialization failed");
         goto err;
@@ -142,7 +146,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     }
 
     // Fetching Name from config
-    config_value_t* publish_config_name = config_value_object_get(pub_config, NAME);
+    publish_config_name = config_value_object_get(pub_config, NAME);
     if (publish_config_name == NULL) {
         LOG_ERROR_0("publish_config_name initialization failed");
         goto err;
@@ -303,7 +307,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
         goto err;
     }
     // Constructing char* object from cJSON object
-    char* config_value_cr = cJSON_Print(c_json);
+    config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("config_value_cr initialization failed");
         goto err;

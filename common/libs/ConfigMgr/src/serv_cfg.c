@@ -86,6 +86,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     config_value_t* server_endpoint = NULL;
     char* grab_public_key = NULL;
     const char* sub_public_key = NULL;
+    char* config_value_cr = NULL;
 
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
@@ -137,7 +138,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             end_point = (const char*)ep_override;
         }
     } else {
-        LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override);
+        LOG_DEBUG_0("env not set for overridding endpoint, hence endpoint is taken from interface");
     }
 
     // Overriding endpoint with SERVER_ENDPOINT if set
@@ -166,7 +167,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
             type = type_override;
         }
     } else {
-        LOG_DEBUG("env not set for overridding %s, and hence type taking from interface ", type_override);
+        LOG_DEBUG_0("env not set for type overridding, and hence type is taken from interface");
     }
 
     // Overriding endpoint with SERVER_TYPE if set
@@ -335,7 +336,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     }
 
     // Constructing char* object from cJSON object
-    char* config_value_cr = cJSON_Print(c_json);
+    config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("config_value_cr initialization failed");
         goto err;

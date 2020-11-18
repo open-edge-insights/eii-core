@@ -32,6 +32,11 @@
 config_t* create_kv_store_config() {
     char* c_type_name = NULL;
     config_t* config = NULL;
+    char* config_value_cr = NULL;
+    char* c_app_name = NULL;
+    char* config_manager_type = NULL;
+    char* dev_mode_var = NULL;
+    char* app_name_var = NULL;
     // Creating cJSON object
     cJSON* c_json = cJSON_CreateObject();
     if (c_json == NULL) {
@@ -40,7 +45,7 @@ config_t* create_kv_store_config() {
     }
 
     // Fetching ConfigManager type from env
-    char* config_manager_type = getenv("KVStore");
+    config_manager_type = getenv("KVStore");
     if (config_manager_type == NULL) {
         LOG_DEBUG_0("KVStore env not set, defaulting to etcd");
         cJSON_AddStringToObject(c_json, "type", "etcd");
@@ -78,7 +83,7 @@ config_t* create_kv_store_config() {
 
     // Fetching & intializing dev mode variable
     int result = 0;
-    char* dev_mode_var = getenv("DEV_MODE");
+    dev_mode_var = getenv("DEV_MODE");
     if (dev_mode_var == NULL) {
         LOG_DEBUG_0("DEV_MODE env not set, defaulting to true");
         result = 0;
@@ -95,13 +100,13 @@ config_t* create_kv_store_config() {
     }
 
     // Fetching & intializing AppName
-    char* app_name_var = getenv("AppName");
+    app_name_var = getenv("AppName");
     if (app_name_var == NULL) {
         LOG_ERROR_0("AppName env not set");
         goto err;
     }
     size_t str_len = strlen(app_name_var) + 1;
-    char* c_app_name = (char*)malloc(sizeof(char) * str_len);
+    c_app_name = (char*)malloc(sizeof(char) * str_len);
     if (c_app_name == NULL) {
         LOG_ERROR_0("Malloc failed for c_app_name");
         goto err;
@@ -170,7 +175,7 @@ config_t* create_kv_store_config() {
     }
 
     // Constructing char* object from cJSON object
-    char* config_value_cr = cJSON_Print(c_json);
+    config_value_cr = cJSON_Print(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("KV Store config is NULL");
         goto err;
@@ -286,6 +291,7 @@ err:
 // function to get publisher by index
 pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
     pub_cfg_t* pub_cfg = NULL;
+    config_value_t* pub_config_index = NULL;
     config_value_t* publisher_interface = NULL;
 
     LOG_DEBUG_0("cfgmgr_get_publisher_by_index method");
@@ -299,7 +305,7 @@ pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index) {
     }
 
     // Fetch publisher config associated with index
-    config_value_t* pub_config_index = config_value_array_get(publisher_interface, index);
+    pub_config_index = config_value_array_get(publisher_interface, index);
     if (pub_config_index == NULL) {
         LOG_ERROR_0("pub_config_index initialization failed");
         goto err;
@@ -334,6 +340,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
     sub_cfg_t* sub_cfg = NULL;
     config_value_t* sub_config_name = NULL;
+    config_value_t* sub_config_index = NULL;
 
     // Fetching list of Subscribers interfaces
     config_value_t* subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
@@ -351,7 +358,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* app_cfg, const char* name) {
     // Iterating through available subscriber configs
     for(int i=0; i<arr_len; i++) {
         // Fetch name of individual subscriber config
-        config_value_t* sub_config_index = config_value_array_get(subscriber_interface, i);
+        sub_config_index = config_value_array_get(subscriber_interface, i);
         if (sub_config_index == NULL) {
             LOG_ERROR_0("sub_config_index initialization failed");
             goto err;
@@ -406,6 +413,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index) {
     LOG_INFO_0("cfgmgr_get_subscriber_by_index method");
     sub_cfg_t* sub_cfg = NULL;
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
+    config_value_t* sub_config_index = NULL;
 
     // Fetching list of Subscribers interfaces
     config_value_t* subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
@@ -415,7 +423,7 @@ sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index) {
     }
 
     // Fetch subscriber config associated with index
-    config_value_t* sub_config_index = config_value_array_get(subscriber_interface, index);
+    sub_config_index = config_value_array_get(subscriber_interface, index);
     if (sub_config_index == NULL) {
         LOG_ERROR_0("sub_config_index initialization failed");
         goto err;
@@ -626,6 +634,7 @@ client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index) {
     LOG_INFO_0("cfgmgr_get_client_by_index method");
     config_t* app_interface = app_cfg->base_cfg->m_app_interface;
     config_value_t* client_interface = NULL;
+    config_value_t* cli_config_index = NULL;
 
     // Fetching list of Clients interfaces
     client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
@@ -635,7 +644,7 @@ client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index) {
     }
 
     // Fetch client config associated with index
-    config_value_t* cli_config_index = config_value_array_get(client_interface, index);
+    cli_config_index = config_value_array_get(client_interface, index);
     if (cli_config_index == NULL) {
         LOG_ERROR_0("cli_config_index initialization failed");
         goto err;
@@ -687,6 +696,8 @@ app_cfg_t* app_cfg_new() {
     char* env_var = NULL;
     kv_store_client_t* kv_store_client = NULL;
     config_t* kv_store_config = NULL;
+    char* dev_mode_var = NULL;
+    char* app_name_var = NULL;
 
     app_cfg_t *app_cfg = (app_cfg_t *)malloc(sizeof(app_cfg_t));
     if (app_cfg == NULL) {
@@ -697,7 +708,7 @@ app_cfg_t* app_cfg_new() {
     app_cfg->env_var = NULL;
 
     // Fetching & intializing dev mode variable
-    char* dev_mode_var = getenv("DEV_MODE");
+    dev_mode_var = getenv("DEV_MODE");
     if (dev_mode_var != NULL) {
         to_lower(dev_mode_var);
         strcmp_s(dev_mode_var, strlen(dev_mode_var), "true", &result);
@@ -755,7 +766,7 @@ app_cfg_t* app_cfg_new() {
     }
 
     // Fetching AppName
-    char* app_name_var = getenv("AppName");
+    app_name_var = getenv("AppName");
     if (app_name_var == NULL) {
         LOG_ERROR_0("AppName env not set");
         goto err;

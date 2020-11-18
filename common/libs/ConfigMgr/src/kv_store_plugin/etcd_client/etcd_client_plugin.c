@@ -68,6 +68,8 @@ kv_store_client_t* create_etcd_client(config_t *config) {
     config_value_t *cert_file, *key_file, *ca_file;
     char *host = NULL, *port = NULL;
     char *etcd_host = NULL, *etcd_port = NULL, *src_etcd_host = NULL, *src_etcd_port = NULL;
+    config_value_t* conf_obj = NULL;
+    char* c_etcd_endpoint = NULL;
     
     cert_file = key_file = ca_file = NULL;
 
@@ -83,7 +85,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         goto err;
     }
 
-    config_value_t* conf_obj = config->get_config_value(
+    conf_obj = config->get_config_value(
                 config->cfg, ETCD_KV_STORE);
 
     if (conf_obj == NULL) {
@@ -103,7 +105,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             LOG_DEBUG_0("ETCD_HOST env not set or set to empty, defaulting to 127.0.0.1");
             etcd_host = (char*)calloc((host_len + 1), sizeof(char));
             if (etcd_host == NULL) {
-                LOG_ERROR("Failed to calloc %s", etcd_host);
+                LOG_ERROR_0("Failed to calloc etcd_host");
                 goto err;
             }
             int ret_cpy = strncpy_s(etcd_host, host_len + 1, ETCD_HOST_IP, host_len);
@@ -116,7 +118,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             size_t src_len = strlen(src_etcd_host);
             etcd_host = (char*)calloc((src_len + 1), sizeof(char));
             if (etcd_host == NULL) {
-                LOG_ERROR("Failed to calloc %s", etcd_host);
+                LOG_ERROR_0("Failed to calloc etcd_host");
                 goto err;
             }
             int ret_cpy = strncpy_s(etcd_host, src_len + 1, src_etcd_host, src_len);
@@ -132,7 +134,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             LOG_DEBUG_0("ETCD_CLIENT_PORT env not set or a empty string, defaulting to 2379");
             etcd_port = (char*)calloc((port_len + 1), sizeof(char));
             if (etcd_port == NULL) {
-                LOG_ERROR("Failed to calloc %s", etcd_port);
+                LOG_ERROR_0("Failed to calloc etcd_port");
                 goto err;
             }
             int ret_cpy = strncpy_s(etcd_port, port_len + 1, ETCD_PORT, port_len);
@@ -145,7 +147,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
             size_t src_len = strlen(src_etcd_port);
             etcd_port = (char*)calloc((src_len + 1), sizeof(char));
             if (etcd_port == NULL) {
-                LOG_ERROR("Failed to calloc %s", etcd_port);
+                LOG_ERROR_0("Failed to calloc etcd_port");
                 goto err;
             }
             int ret_cpy = strncpy_s(etcd_port, port_len + 1, src_etcd_port, src_len);
@@ -168,7 +170,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
                 free(etcd_port);
                 size_t str_len = strlen(etcd_endpoint) + 1;
 
-                char* c_etcd_endpoint = (char*)malloc(sizeof(char) * str_len);
+                c_etcd_endpoint = (char*)malloc(sizeof(char) * str_len);
                 if (c_etcd_endpoint == NULL){
                     LOG_ERROR_0("Malloc failed for etcd endpoint");
                     goto err;
@@ -300,6 +302,9 @@ err:
     }
     if (kv_store_client != NULL) {
         free(kv_store_client);
+    }
+    if (c_etcd_endpoint != NULL) {
+        free(c_etcd_endpoint);
     }
     return ret;
 }
