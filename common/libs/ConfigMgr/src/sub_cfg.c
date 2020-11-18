@@ -87,6 +87,14 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     config_value_t* publisher_appname = NULL;
     config_value_t* topic = NULL;
     char* config_value_cr = NULL;
+    config_value_t* subscribe_config_name = NULL;
+    config_value_t* subscribe_config_endpoint = NULL;
+    char* type_override_env = NULL;
+    char* type_override = NULL;
+    config_value_t* subscribe_config_type = NULL;
+    char* ep_override_env = NULL;
+    char* ep_override = NULL;
+    config_value_t* zmq_recv_hwm_value = NULL;
 
     int devmode = base_cfg->dev_mode;
     if(devmode == 0) {
@@ -103,7 +111,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     }
 
     // Fetching Type from config
-    config_value_t* subscribe_config_type = config_value_object_get(sub_config, TYPE);
+    subscribe_config_type = config_value_object_get(sub_config, TYPE);
     if (subscribe_config_type == NULL || subscribe_config_type->body.string == NULL) {
         LOG_ERROR_0("subscribe_config_type initialization failed");
         goto err;
@@ -116,13 +124,13 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     char* type = subscribe_config_type->body.string;
 
     // Fetching EndPoint from config
-    config_value_t* subscribe_config_endpoint = config_value_object_get(sub_config, ENDPOINT);
+    subscribe_config_endpoint = config_value_object_get(sub_config, ENDPOINT);
     if (subscribe_config_endpoint == NULL) {
         LOG_ERROR_0("subscribe_config_endpoint initialization failed");
         goto err;
     }
 
-    const char* end_point;
+    const char* end_point = NULL;
     if(subscribe_config_endpoint->type == CVT_OBJECT){
         end_point = cvt_to_char(subscribe_config_endpoint);
     }else{
@@ -135,7 +143,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     }
 
     // Fetching Name from config
-    config_value_t* subscribe_config_name = config_value_object_get(sub_config, NAME);
+    subscribe_config_name = config_value_object_get(sub_config, NAME);
     if (subscribe_config_name == NULL) {
         LOG_ERROR_0("subscribe_config_name initialization failed");
         goto err;
@@ -143,12 +151,12 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
 
     // Overriding endpoint with SUBSCRIBER_<Name>_ENDPOINT if set
     size_t init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_ENDPOINT") + 2;
-    char* ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_ENDPOINT");
+    ep_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_ENDPOINT");
     if (ep_override_env == NULL) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
-    char* ep_override = getenv(ep_override_env);   
+    ep_override = getenv(ep_override_env);   
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
@@ -172,12 +180,12 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
 
     // Overriding endpoint with SUBSCRIBER_<Name>_TYPE if set
     init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_TYPE") + 2;
-    char* type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
+    type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
     if (type_override_env == NULL) {
         LOG_ERROR_0("concatenation for type_override_env failed");
         goto err;
     }
-    char* type_override = getenv(type_override_env);
+    type_override = getenv(type_override_env);
     if (type_override != NULL) {
         if (strlen(type_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", type_override_env);
@@ -201,7 +209,7 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
     cJSON_AddStringToObject(c_json, "type", type);
 
     // Adding zmq_recv_hwm value if available
-    config_value_t* zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
+    zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
