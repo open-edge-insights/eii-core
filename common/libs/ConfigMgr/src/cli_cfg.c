@@ -313,10 +313,7 @@ err:
     if (host_port != NULL) {
         free_mem(host_port);
     }
-    if (type_override != NULL) {
-        free(type_override);
-    }
-    if(client_config_type != NULL) {
+    if (client_config_type != NULL) {
         config_value_destroy(client_config_type);
     }
     if (client_endpoint  != NULL) {
