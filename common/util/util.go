@@ -126,6 +126,11 @@ func ValidateJSON(schema string, config string) bool {
 	}
 
 	if !result.Valid() {
+                if len(result.Errors()) > 100 {
+                    glog.Error("Too many errors in JSON validation. JSON schema validation failed !")
+                    return false
+                }
+
 		for _, desc := range result.Errors() {
 			glog.Errorf("- %s\n", desc)
 		}
