@@ -338,10 +338,7 @@ err:
     if (host_port != NULL) {
         free_mem(host_port);
     }
-    if (type_override != NULL) {
-        free(type_override);
-    }
-    if(subscribe_config_type != NULL) {
+    if (subscribe_config_type != NULL) {
         config_value_destroy(subscribe_config_type);
     }
     if (subscribe_config_endpoint != NULL) {
