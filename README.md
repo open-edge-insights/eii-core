@@ -12,21 +12,23 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
 
-6. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-messagebus-endpoint-configuration)
+6. [Custom Udfs](#custom-udfs)
 
-7. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+7. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-messagebus-endpoint-configuration)
 
-8. [Using video accelerators](#using-video-accelerators)
+8. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-9. [Time-series Analytics](#time-series-analytics)
+9. [Using video accelerators](#using-video-accelerators)
 
-10. [DiscoveryCreek](#DiscoveryCreek)
+10. [Time-series Analytics](#time-series-analytics)
 
-11. [List of All EIS services](#list-of-all-eis-services)
+11. [DiscoveryCreek](#DiscoveryCreek)
 
-12. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+12. [List of All EIS services](#list-of-all-eis-services)
 
-13. [Debugging options](#debugging-options)
+13. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+
+14. [Debugging options](#debugging-options)
 
 
 
@@ -303,14 +305,14 @@ $ ./etcd_capture.sh
   >     ```
   ---
 
-All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory. 
+All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory.
 
 Below are the usecases supported by EIS to bring up the respective services mentioned in the
 yaml file.
 
 ## Main usecases
 
-| Usecase                    | yaml file                                                |               
+| Usecase                    | yaml file                                                |
 | :---                       | :---                                                    |
 | Video + Timeseries         | [build/video-timeseries.yml](build/video-timeseries.yml) |
 | Video                      | [build/video.yml](build/video.yml)                       |
@@ -323,7 +325,7 @@ yaml file.
 | Video streaming                        | [build/video-streaming.yml](build/video-streaming.yml)                  |
 | Video streaming and historical         | [build/video-streaming-storage.yml](build/video-streaming-storage.yml)  |
 | Video streaming with EISAzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
-| Video streaming with TLSRemoteAgent    | [build/video-streaming-tls.yml](build/video-streaming-tls.yml)          |    
+| Video streaming with TLSRemoteAgent    | [build/video-streaming-tls.yml](build/video-streaming-tls.yml)          |
 | Video streaming and custom udfs        | [build/video-streaming-all-udfs.yml](build/video-streaming-all-udfs.yml)|
 
 To build and run EIS in one command:
@@ -348,6 +350,18 @@ $ docker-compose build --no-cache <service name>
 Please note that the first time build of EIS containers may take ~70 minutes depending on the n/w speed.
 
 A successful run will open Visualizer UI with results of video analytics for all video usecases.
+
+# Custom Udfs
+
+The following are the two Custom Udfs workflow which EIS supports:
+
+1. Build / Run custom udfs as standalone applications
+
+   For running custom udfs as standalone application one must download the video-custom-udfs repo and refer [CustomUdfs/README.md](CustomUdfs/README.md)
+
+2. Build / Run custom udfs in VI or VA
+
+   For running custom udfs either in VI or VA one must refer [VideoIngestion/docs/custom_udfs_doc.md](VideoIngestion/docs/custom_udfs_doc.md)
 
 # Etcd Secrets and MessageBus Endpoint Configuration
 
