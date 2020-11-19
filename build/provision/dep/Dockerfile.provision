@@ -30,4 +30,7 @@ COPY dep/etcd_health_check.sh .
 RUN chmod +x etcd_create_user.sh && \
     chmod +x etcd_enable_auth.sh && \
     chmod +x etcd_health_check.sh
+
+HEALTHCHECK NONE
+
 ENTRYPOINT ["python3", "etcd_provision.py", "docker-compose.yml"]
