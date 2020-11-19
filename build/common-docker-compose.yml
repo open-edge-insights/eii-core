@@ -73,6 +73,11 @@ services:
     hostname: ia_etcd_ui
     network_mode: host
     restart: unless-stopped
+    security_opt:
+    - no-new-privileges
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m    
     environment:
       AppName: "EtcdUI"
       DEV_MODE: ${DEV_MODE}
