@@ -73,4 +73,6 @@ RUN chown -R ${EIS_UID}:${EIS_UID} /run/nginx.pid && \
     rm -rf /var/lib/nginx && ln -sf /tmp/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 
+HEALTHCHECK NONE
+
 ENTRYPOINT ["python3.6", "start_etcdkeeper.py"]

@@ -30,6 +30,11 @@ services:
         EIS_UID: $EIS_UID
     container_name: ia_csl_etcd_provision
     read_only: true
+    security_opt:
+    - no-new-privileges    
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m 
     image: ia_csl_etcd_provision:$EIS_VERSION    
     volumes:
       - "../config:/EIS/etcd/config/"

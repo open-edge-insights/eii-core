@@ -29,4 +29,5 @@ RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etc
 WORKDIR /EIS/etcd/
 COPY dep/start_etcd.sh .
 RUN chmod +x start_etcd.sh
+HEALTHCHECK NONE
 ENTRYPOINT ["./start_etcd.sh"]
