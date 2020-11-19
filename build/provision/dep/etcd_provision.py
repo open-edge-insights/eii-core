@@ -239,10 +239,13 @@ def etcd_health_check():
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
-    if os.environ['ETCD_HOST'] and os.environ['ETCD_CLIENT_PORT']:
-        os.environ["ETCDCTL_ENDPOINTS"] = \
-           os.environ['ETCD_HOST'] + ":" + os.environ['ETCD_CLIENT_PORT']
+    if not os.environ['ETCD_HOST']:
+        os.environ['ETCD_HOST'] = 'localhost'
+    if not os.environ['ETCD_CLIENT_PORT']:
+        os.environ['ETCD_CLIENT_PORT'] = '2379'
 
+    os.environ['ETCDCTL_ENDPOINTS'] = os.getenv('ETCD_HOST') \
+        + ':' + os.getenv('ETCD_CLIENT_PORT')
     if not devMode:
         os.environ["ETCD_CERT_FILE"] = \
             os.environ.get("ETCD_CERT_FILE", "/run/secrets/etcd_server_cert")
