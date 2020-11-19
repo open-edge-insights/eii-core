@@ -22,6 +22,11 @@ version: '3.6'
 services:
   ia_etcd:
     read_only: true
+    security_opt:
+    - no-new-privileges    
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m 
     secrets:
         - ca_etcd
         - etcd_server_cert
