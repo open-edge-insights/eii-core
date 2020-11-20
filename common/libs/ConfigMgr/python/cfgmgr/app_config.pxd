@@ -20,7 +20,7 @@
 """EIS ConfigManager Watch wrapper object Cython declaration
 """
 
-from .libneweisconfigmgr cimport app_cfg_t
+from .libeisconfigmanager cimport app_cfg_t
 
 
 cdef class Watch:

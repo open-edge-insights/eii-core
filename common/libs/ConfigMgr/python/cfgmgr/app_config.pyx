@@ -20,7 +20,7 @@
 """EIS Message Bus Publisher wrapper object
 """
 
-from .libneweisconfigmgr cimport *
+from .libeisconfigmanager cimport *
 
 
 cdef void watch_callback_fn(const char* key, config_t* value, void* func) with gil:

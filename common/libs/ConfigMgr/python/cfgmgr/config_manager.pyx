@@ -27,7 +27,7 @@ import logging
 import os
 
 # Cython imports
-from .libneweisconfigmgr cimport *
+from .libeisconfigmanager cimport *
 from .publisher cimport Publisher
 from .subscriber cimport Subscriber
 from .app_config import AppCfg

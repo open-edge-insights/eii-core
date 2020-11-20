@@ -20,7 +20,7 @@
 """EIS ConfigManager Util class
 """
 
-from .libneweisconfigmgr cimport config_value_t
+from .libeisconfigmanager cimport config_value_t
 
 
 cdef class Util:

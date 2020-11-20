@@ -22,7 +22,7 @@
 
 import json
 
-from .libneweisconfigmgr cimport *
+from .libeisconfigmanager cimport *
 from libc.stdlib cimport malloc
 
 cdef class Util:

@@ -3,7 +3,7 @@ package eisconfigmgr
 /*
 #include <stdio.h>
 #cgo CFLAGS: -g -Wall
-#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -lneweisconfigmgr -lsafestring
+#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -leisconfigmanager -lsafestring
 
 
 #include <stdio.h>
