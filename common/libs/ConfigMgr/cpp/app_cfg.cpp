@@ -174,15 +174,6 @@ vector<string> AppCfg::tokenizer(const char* str, const char* delim) {
 
 AppCfg::~AppCfg() {
     LOG_DEBUG_0("AppCfg destructor");
-    if (m_app_config) {
-        config_destroy(m_app_config);
-    }
-    if (m_app_interface) {
-        config_destroy(m_app_interface);
-    }
-    if (m_app_data_store) {
-        config_destroy(m_app_data_store);
-    }
     if (m_base_cfg) {
         base_cfg_config_destroy(m_base_cfg);
     }

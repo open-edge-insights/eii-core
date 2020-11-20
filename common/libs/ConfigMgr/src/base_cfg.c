@@ -83,11 +83,14 @@ config_value_t* get_topics_base(config_value_t* conf) {
 
     config_value_t* topic_value = NULL;
     topic_value = config_value_array_get(topics, 0);
+    if (topic_value == NULL) {
+        LOG_ERROR_0("Extracting first topic from topics array failed ");
+        return NULL;
+    }
+
     // If only one item in Topics and it is *,
     // then add empty string in order to allow all clients to subscribe
-    if (topic_value != NULL) {
-        strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
-    }
+    strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
 
     if((arrlen == 1) && (ret == 0 )){
         cJSON_AddItemToArray(arr, cJSON_CreateString(""));
