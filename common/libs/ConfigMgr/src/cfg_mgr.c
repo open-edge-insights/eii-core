@@ -198,17 +198,8 @@ config_t* create_kv_store_config() {
     return config;
 
 err:
-    if (config_manager_type != NULL) {
-        free(config_manager_type);
-    }
-    if (dev_mode_var != NULL) {
-        free(dev_mode_var);
-    }
     if (c_app_name != NULL) {
         free(c_app_name);
-    }
-    if (app_name_var != NULL) {
-        free(app_name_var);
     }
     if (config_value_cr != NULL) {
         free(config_value_cr);

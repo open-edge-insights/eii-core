@@ -311,6 +311,7 @@ err:
 
 void etcd_values_destroy(kv_store_client_t* kv_store_client) {
     LOG_DEBUG_0("etcd_values_destroy function...");
+    int ret = 0;
     etcd_config_t* etcd_config = (etcd_config_t*)(kv_store_client->kv_store_config);
     if (etcd_config->hostname != NULL) {
         free(etcd_config->hostname);
@@ -319,13 +320,22 @@ void etcd_values_destroy(kv_store_client_t* kv_store_client) {
         free(etcd_config->port);
     }
     if (etcd_config->cert_file != NULL) {
-        free(etcd_config->cert_file);
+        strcmp_s(etcd_config->cert_file, strlen(etcd_config->cert_file), "", &ret);
+        if(ret != 0){
+            free(etcd_config->cert_file);
+        }
     }
     if (etcd_config->key_file != NULL) {
-        free(etcd_config->key_file);
+        strcmp_s(etcd_config->key_file, strlen(etcd_config->key_file), "", &ret);
+        if(ret != 0){
+            free(etcd_config->key_file);
+        }
     }
     if (etcd_config->ca_file != NULL) {
-        free(etcd_config->ca_file);
+        strcmp_s(etcd_config->ca_file, strlen(etcd_config->ca_file), "", &ret);
+        if(ret != 0){
+            free(etcd_config->ca_file);
+        }
     }
     if (kv_store_client->handler != NULL) {
         etcd_client_free(kv_store_client->handler);
