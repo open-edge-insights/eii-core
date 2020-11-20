@@ -40,6 +40,12 @@ RUN chown -R ${EIS_UID}:${EIS_UID} /var/log/nginx/ && \
     chown -R ${EIS_UID}:${EIS_UID} /var/lib/nginx/
 
 
+COPY etcdkeeper ./etcdkeeper/
+
+RUN cd ./etcdkeeper/src/etcdkeeper \
+    && go build -o etcdkeeper main.go \
+    && mv etcdkeeper ../../
+
 FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
 
 FROM eisbase
@@ -50,13 +56,6 @@ COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
 COPY --from=common /usr/local/include /usr/local/include
 COPY --from=common /usr/local/lib /usr/local/lib
 COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
-
-
-COPY etcdkeeper ./etcdkeeper/
-
-RUN cd ./etcdkeeper/src/etcdkeeper \
-    && go build -o etcdkeeper main.go \
-    && mv etcdkeeper ../../
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./
