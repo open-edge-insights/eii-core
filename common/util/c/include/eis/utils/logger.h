@@ -63,20 +63,43 @@ log_lvl_t get_log_level();
 #define LOG(lvl, fmt, ...) { \
     time_t ltime; \
     ltime = time(NULL); \
-    char* t = asctime(localtime(&ltime)); \
-    if (t != NULL) { \
-        t[24] = '\0'; \
-        fprintf(stderr, "[%s] %5s:%s:%d: " fmt "\n", t, \
-                lvl, __func__, __LINE__, ##__VA_ARGS__); \
+    struct tm* lt = localtime(&ltime); \
+    if (lt != NULL) { \
+        char* t = asctime(lt); \
+        if (t != NULL) { \
+            t[24] = '\0'; \
+            fprintf(stderr, "[%s] %5s:%s:%d: " fmt "\n", t, \
+                    lvl, __func__, __LINE__, ##__VA_ARGS__); \
+        } else { \
+            fprintf(stderr, "%5s:%s:%d: " \
+                    "Failed to fetch TIMER asctime" "\n", \
+                    lvl, __func__, __LINE__); \
+        } \
+    } else { \
+        fprintf(stderr, "%5s:%s:%d: " \
+                "Failed to fetch TIMER localtime" "\n", \
+                lvl, __func__, __LINE__); \
     } \
 }
+
 #define LOG_0(lvl, msg) { \
     time_t ltime; \
     ltime = time(NULL); \
-    char* t = asctime(localtime(&ltime)); \
-    if (t != NULL) { \
-        t[24] = '\0'; \
-        fprintf(stderr, "[%s] %5s:%s:%d: " msg "\n", t, \
+    struct tm* lt = localtime(&ltime); \
+    if (lt != NULL) { \
+        char* t = asctime(lt); \
+        if (t != NULL) { \
+            t[24] = '\0'; \
+            fprintf(stderr, "[%s] %5s:%s:%d: " msg "\n", t, \
+                    lvl, __func__, __LINE__); \
+        } else { \
+            fprintf(stderr, "%5s:%s:%d: " \
+                    "Failed to fetch TIMER asctime" "\n", \
+                    lvl, __func__, __LINE__); \
+        } \
+    } else { \
+        fprintf(stderr, "%5s:%s:%d: "\
+                "Failed to fetch TIMER localtime" "\n", \
                 lvl, __func__, __LINE__); \
     } \
 }
