@@ -45,7 +45,7 @@ setup(
             Extension(
                 '*',
                 ['./cfgmgr/*.pyx'],
-                libraries=['neweisconfigmgr'])],
+                libraries=['eisconfigmanager'])],
         build_dir='./build/cython',
         compiler_directives={'language_level': 3}
     )

@@ -23,7 +23,7 @@
 import json
 
 
-from .libneweisconfigmgr cimport *
+from .libeisconfigmanager cimport *
 from libc.stdlib cimport malloc
 from libc.stdlib cimport free
 from .util cimport Util

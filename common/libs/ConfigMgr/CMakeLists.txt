@@ -86,9 +86,9 @@ include_directories(
 file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(neweisconfigmgr SHARED ${SOURCES})
+add_library(eisconfigmanager SHARED ${SOURCES})
 
-target_link_libraries(neweisconfigmgr
+target_link_libraries(eisconfigmanager
     PUBLIC
         pthread
         ${GRPC_LIBRARIES}
@@ -99,7 +99,7 @@ target_link_libraries(neweisconfigmgr
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(neweisconfigmgr PRIVATE DEBUG=1)
+    target_compile_definitions(eisconfigmanager PRIVATE DEBUG=1)
 endif()
 
 if(WITH_EXAMPLES)
@@ -113,8 +113,8 @@ endif()
 ##
 ## Configure pkg-config file to be installed for the EIS ConfigMgr
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libneweisconfigmgr.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libneweisconfigmgr.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisconfigmanager.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisconfigmanager.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lgrpc++ -lprotobuf")
 
@@ -128,15 +128,15 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgrNew)
 
-install(TARGETS neweisconfigmgr
-    EXPORT neweisconfigmgr-targets
+install(TARGETS eisconfigmanager
+    EXPORT eisconfigmanager-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(neweisconfigmgr PROPERTIES EXPORT_NAME EISConfigMgrNew)
+set_target_properties(eisconfigmanager PROPERTIES EXPORT_NAME EISConfigMgrNew)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libneweisconfigmgr.pc file
+# Install pkg-config libeisconfigmanager.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -145,7 +145,7 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT neweisconfigmgr-targets
+install(EXPORT eisconfigmanager-targets
     FILE
         EISConfigMgrNewTargets.cmake
     DESTINATION
@@ -173,7 +173,7 @@ install(FILES
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT neweisconfigmgr-targets
+export(EXPORT eisconfigmanager-targets
        FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewTargets.cmake)
 
 # Register package in user's package registry
