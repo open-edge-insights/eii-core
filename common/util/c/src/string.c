@@ -48,16 +48,21 @@ char** get_host_port(const char* end_point) {
         }
         if (host_port[i] == NULL) {
             LOG_ERROR_0("Malloc failed for individual host_port");
-            return NULL;
+            goto err;
         }
         ret = strncpy_s(host_port[i], data_len + 1, data, data_len);
         if (ret != 0) {
             LOG_ERROR("String copy failed (errno: %d) : Failed to copy data \" %s \" to host_port", ret, data);
-            return NULL;
+            goto err;
         }
         i++;
     }
     return host_port;
+    err:
+        if (host_port != NULL) {
+            free_mem(host_port);
+        }
+    return NULL;
 }
 
 
