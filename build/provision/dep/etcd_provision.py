@@ -236,6 +236,10 @@ def etcd_health_check():
     if returncode != 0:
         print("etcd health check failed")
 
+def clear_etcd_kv():
+    returncode = _execute_cmd(["./etcdctl", "del", "--prefix", ETCD_PREFIX + "/"])
+    if returncode != 0:
+        print("Clearing Prefix {} key failed".format(ETCD_PREFIX))
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
@@ -262,6 +266,9 @@ if __name__ == "__main__":
 
     if os.environ['provision_mode'] != "csl":
         etcd_health_check()
+
+    if os.environ['provision_mode'] == "csl":
+        clear_etcd_kv()
 
     apps = get_appname(str(sys.argv[1]))
     load_data_etcd("./config/eis_config.json", apps)
