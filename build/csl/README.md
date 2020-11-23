@@ -31,32 +31,6 @@ EIS Orchestration using CSL Orchestrator.
   ### EIS Pre-Requisites
   * Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) steps for generating the appspecs & module specs using EIS Builder.
 
-  ### Update the Settings for Mounting External Devices/Volumes and EIS User & Group ID for CSL Client Nodes.
-  >**Note** This steps should be done in `cslmanager` machine only.
-  >         Refer `EIS_UID` in [../.env](../.env)
-  * Goto **CSL Manager** Machine.
-      ```sh
-      $   sudo vi /opt/csl/csl-manager/application.properties
-      ```
-  * Set **whitelisted_mounts** property value as follows.
-      ```sh
-      $   whitelisted_mounts=/dev,/var/tmp,/tmp/.X11-unix,/opt/intel/eis/data,/opt/intel/eis/saved_images,/opt/intel/eis
-      ```
-  * Set **whitelistedUsers** property value with `EIS_UID` as follows.
-      ```sh
-      $ whitelistedUsers=0,5319
-      ```
-  * Set **whitelistedGroups** property value with `EIS_UID` as follows.
-      ```sh
-      $ whitelistedGroups=0,5319
-      ```
-  > Save the file.
-
-  * Restart the **csl-manager** docker container
-    ```sh
-    $   docker restart <csl-manager-containerid>
-    ```
-
   ### Update the Container Image details in Module Spec Files.
 > **NOTE**:
 > For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
