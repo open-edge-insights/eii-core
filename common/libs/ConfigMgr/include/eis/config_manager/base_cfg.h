@@ -58,7 +58,6 @@ typedef struct {
 
     void* cfgmgr_handle;
 
-    config_value_t* msgbus_config;
 
 } base_cfg_t;
 
@@ -193,7 +192,7 @@ config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key);
  * base_cfg_new function to creates a new config manager client
  *  @return NULL for any errors occured or base_cfg_t* on success
  */
-base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mode, kv_store_client_t* m_kv_store_handle, config_value_t* pub_interface, config_value_t* datastore);
+base_cfg_t* base_cfg_new(char* app_name, int dev_mode, kv_store_client_t* m_kv_store_handle, config_value_t* datastore);
 /**
  * Destroy base_cfg_t* object.
  *

@@ -169,7 +169,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
            
             strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
             if(ret == 0){
-                cJSON_AddItemToObject(c_json, cJSON_CreateString(""), socket_file_obj);
+                cJSON_AddItemToObject(c_json, "", socket_file_obj);
             } else {
                 cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
             }
@@ -250,16 +250,15 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
 }
 
 bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
-    int ret;
     bool ret_val = false;
     config_value_t* value = NULL;
     config_value_t* publish_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
     config_value_t* array_value = NULL;
     char *grab_public_key = NULL;
-    const char* sub_public_key = NULL;
+    char* sub_public_key = NULL;
     config_value_t* temp_array_value = NULL;
-    const char* publisher_secret_key = NULL;
+    char* publisher_secret_key = NULL;
     char* pub_pri_key = NULL;
 
     publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
@@ -406,9 +405,9 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
     bool ret_val = false;
     char* s_sub_pri_key = NULL;
     char* s_sub_public_key = NULL;
-    const char* sub_public_key = NULL;
-    const char* sub_pri_key = NULL;
-    const char* pub_public_key = NULL;
+    char* sub_public_key = NULL;
+    char* sub_pri_key = NULL;
+    char* pub_public_key = NULL;
 
     size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
     char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);

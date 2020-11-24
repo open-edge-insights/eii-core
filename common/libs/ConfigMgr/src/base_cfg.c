@@ -305,9 +305,8 @@ config_value_t* get_app_interface_value(base_cfg_t* base_cfg, char* key) {
 }
 
 // Function to initialize required objects & functions
-base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mode,
+base_cfg_t* base_cfg_new(char* app_name, int dev_mode,
                         kv_store_client_t* m_kv_store_handle,
-                        config_value_t* pub_interface,
                         config_value_t* datastore) {
     base_cfg_t* base_cfg = NULL;
     base_cfg = (base_cfg_t *)malloc(sizeof(base_cfg_t));
@@ -315,7 +314,6 @@ base_cfg_t* base_cfg_new(config_value_t* pub_config, char* app_name, int dev_mod
         LOG_ERROR_0("base_cfg initialization failed");
         return NULL;
     }
-    base_cfg->msgbus_config = pub_config;
     base_cfg->app_name = app_name;
     base_cfg->dev_mode = dev_mode;
     base_cfg->m_kv_store_handle = m_kv_store_handle;

@@ -443,7 +443,6 @@ err:
 server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* app_cfg, const char* name) {
 
     int result = 0;
-    server_cfg_t* serv_cfg = NULL;
     server_cfg_t* ret = NULL;
     config_value_t* server_interface = NULL;
     config_value_t* serv_config_name = NULL;
@@ -821,7 +820,7 @@ app_cfg_t* app_cfg_new() {
 
     // As we are not using data_store, passing "NULL" as last argument
     // TODO: get datastore from config/envs
-    app_cfg->base_cfg = base_cfg_new(app_config, c_app_name, result, kv_store_client, app_interface, NULL);
+    app_cfg->base_cfg = base_cfg_new(c_app_name, result, kv_store_client, NULL);
     if (app_cfg->base_cfg != NULL) {
         if (c_app_name != NULL) {
             app_cfg->base_cfg->app_name = c_app_name;

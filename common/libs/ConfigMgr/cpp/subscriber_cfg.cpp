@@ -99,7 +99,7 @@ std::vector<std::string> SubscriberCfg::getTopics() {
         return {};
     }
     config_value_t* topic_value;
-    for (int i = 0; i < config_value_array_len(topics); i++) {
+    for (size_t i = 0; i < config_value_array_len(topics); i++) {
         topic_value = config_value_array_get(topics, i);
         if (topic_value == NULL) {
             LOG_ERROR_0("topics initialization failed");
