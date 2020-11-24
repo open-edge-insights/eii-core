@@ -42,15 +42,25 @@
 extern "C" {
 #endif
 
+/**
+ * ConfigMgr interface type
+ */
+typedef enum {
+    PUBLISHER = 0,
+    SUBSCRIBER = 1,
+    SERVER = 2,
+    CLIENT = 3,
+} interface_type_t;
 
 /**
  * get_ipc_config function to creates json structure for ipc mode messagebus config
  * @param c_json - cJSON object for which ipc config to be added
  * @param config - Config from which values are extracted
  * @param end_point - endpoint of the application
+ * @param type - to check whether type is SERVER/CLIENT to not fetch topics
  * @return result of the function passed or failed
  */
-bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point);
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, interface_type_t type);
 
 /**
  * cvt_obj_str_to_char function converts cvt object to char* provided for ipc

@@ -185,7 +185,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        bool ret = get_ipc_config(c_json, cli_config, end_point);
+        bool ret = get_ipc_config(c_json, cli_config, end_point, CLIENT);
         if (ret == false){
             LOG_ERROR_0("IPC configuration for client failed");
             return NULL;

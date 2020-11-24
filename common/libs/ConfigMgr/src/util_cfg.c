@@ -26,7 +26,7 @@
 
 #include "eis/config_manager/util_cfg.h"
 
-bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point){
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, interface_type_t type){
 
     int ret;
     config_value_t* topics = NULL;
@@ -49,14 +49,18 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         goto err;
     }
 
-    topics_list = config_value_object_get(config, TOPICS);
-    if (topics_list == NULL) {
-        LOG_ERROR_0("topics_list initialization failed");
-        goto err;
+    // Do not check for Topics if interface type is SERVER/CLIENT
+    // since SERVER/CLIENT interfaces don't have Topics
+    if (type != SERVER && type != CLIENT) {
+        topics_list = config_value_object_get(config, TOPICS);
+        if (topics_list == NULL) {
+            LOG_ERROR_0("topics_list initialization failed");
+            goto err;
+        }
     }
 
     if(json_endpoint->type == CVT_OBJECT) {
-        
+
         config_value_t* socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
         if (socketdir_cvt == NULL || socketdir_cvt->body.string == NULL) {
             LOG_ERROR_0("socketdir_cvt initialization failed");
@@ -193,19 +197,23 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     } else {
         // Socket file will be created by EIS message bus based on the topic
         LOG_DEBUG_0("socket_ep file not explicitly given by application");
-        topics = config_value_array_get(topics_list, 0);
-        strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
-        if(ret == 0){
-            LOG_ERROR_0("Topics cannot be \"*\" if socket file is not explicitly mentioned");
-            goto err;
+        // Do not check for Topics if interface type is SERVER/CLIENT
+        // since SERVER/CLIENT interfaces don't have Topics
+        if (type != SERVER && type != CLIENT) {
+            topics = config_value_array_get(topics_list, 0);
+            strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
+            if(ret == 0){
+                LOG_ERROR_0("Topics cannot be \"*\" if socket file is not explicitly mentioned");
+                goto err;
+            }
+            config_value_destroy(topics);
         }
-        config_value_destroy(topics);
     }
-            
+
     // Add Endpoint directly to socket_dir if IPC mode
     cJSON_AddStringToObject(c_json, "socket_dir", sock_dir);
 
-    // This line should be last to execut in sucess path, Add your code above it. :-)
+    // This line should be last to execute in success path, Add your code above it. :)
     result = true;
 
 err:

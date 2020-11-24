@@ -242,7 +242,7 @@ config_t* cfgmgr_get_msgbus_config_pub(base_cfg_t* base_cfg, void* pub_conf) {
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        bool ret = get_ipc_config(c_json, pub_config, end_point);
+        bool ret = get_ipc_config(c_json, pub_config, end_point, PUBLISHER);
         if (ret == false){
             LOG_ERROR_0("IPC configuration for publisher failed");
             goto err;

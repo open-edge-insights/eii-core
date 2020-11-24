@@ -194,7 +194,7 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        bool ret = get_ipc_config(c_json, serv_config, end_point);
+        bool ret = get_ipc_config(c_json, serv_config, end_point, SERVER);
         if (ret == false){
             LOG_ERROR_0("IPC configuration for server failed");
             goto err;
