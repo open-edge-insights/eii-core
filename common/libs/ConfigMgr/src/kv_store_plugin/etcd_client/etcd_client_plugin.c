@@ -42,6 +42,7 @@ void etcd_watch(void* handle, char *key_test, callback_t cb, void* user_data);
 void etcd_watch_prefix(void* handle, char *key_test, callback_t cb, void* user_data);
 void etcd_client_free(void* handle);
 bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len);
+int strncpy_s(char *dest, unsigned int dmax, char *src, unsigned int slen);
 
 bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len) {
     if(src_len == 0) {

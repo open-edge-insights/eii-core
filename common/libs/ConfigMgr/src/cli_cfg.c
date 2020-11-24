@@ -72,8 +72,8 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
     char* s_client_pri_key = NULL;
     char* s_client_public_key = NULL;
     char* retreive_server_pub_key = NULL;
-    const char* sub_public_key = NULL;
-    const char* sub_pri_key = NULL;
+    char* sub_public_key = NULL;
+    char* sub_pri_key = NULL;
     char* type_override_env = NULL;
     char* type_override = NULL;
     char* ep_override_env = NULL;
@@ -233,7 +233,7 @@ config_t* cfgmgr_get_msgbus_config_client(base_cfg_t* base_cfg, void* cli_conf) 
                 LOG_ERROR_0("concatenation PUBLIC_KEYS and server_appname string failed");
                 goto err;
             }
-            const char* server_public_key = m_kv_store_handle->get(cfgmgr_handle, retreive_server_pub_key);
+            char* server_public_key = m_kv_store_handle->get(cfgmgr_handle, retreive_server_pub_key);
             if(server_public_key == NULL){
                 LOG_DEBUG("Value is not found for the key: %s", retreive_server_pub_key);
             }

@@ -105,7 +105,7 @@ std::vector<std::string> PublisherCfg::getTopics() {
         LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
         return {};
     }
-    for (int i = 0; i < arr_len; i++) {
+    for (size_t i = 0; i < arr_len; i++) {
         topic_value = config_value_array_get(topics, i);
         if (topic_value == NULL) {
             LOG_ERROR_0("topic_value initialization failed");
@@ -172,7 +172,7 @@ std::vector<std::string> PublisherCfg::getAllowedClients() {
         LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
         return {};
     }
-    for (int i = 0; i < arr_len; i++) {
+    for (size_t i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
             LOG_ERROR_0("client_value initialization failed");

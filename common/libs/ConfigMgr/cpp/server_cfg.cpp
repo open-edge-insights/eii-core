@@ -101,7 +101,7 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
         return {};
     }
 
-    for (int i = 0; i < arr_len; i++) {
+    for (size_t i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
             LOG_ERROR_0("client_value initialization failed");

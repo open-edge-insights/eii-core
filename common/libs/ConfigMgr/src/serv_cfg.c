@@ -82,10 +82,10 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
     config_value_t* server_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
     char* pub_pri_key = NULL;
-    const char* server_secret_key = NULL;
+    char* server_secret_key = NULL;
     config_value_t* server_endpoint = NULL;
     char* grab_public_key = NULL;
-    const char* sub_public_key = NULL;
+    char* client_public_key = NULL;
     char* config_value_cr = NULL;
 
     // Creating cJSON object
@@ -298,16 +298,16 @@ config_t* cfgmgr_get_msgbus_config_server(base_cfg_t* base_cfg, void* server_con
                         LOG_ERROR_0("concatenation for grab_public_key failed");
                         goto err;
                     }
-                    const char* sub_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
-                    if(sub_public_key == NULL){
+                    const char* client_public_key = m_kv_store_handle->get(cfgmgr_handle, grab_public_key);
+                    if(client_public_key == NULL){
                         // If any service isn't provisioned, ignore if key not found
                         LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
                     }
                     free(grab_public_key);
 
                     config_value_destroy(array_value);
-                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
-                    free(sub_public_key);
+                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_public_key));
+                    free(client_public_key);
                 }
                 // Adding all public keys of clients to allowed_clients of config
                 cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
@@ -392,8 +392,8 @@ err:
     if (grab_public_key != NULL) {
         free(grab_public_key);
     }
-    if (sub_public_key != NULL) {
-        free(sub_public_key);
+    if (client_public_key != NULL) {
+        free(client_public_key);
     }
     return ret;
 }
