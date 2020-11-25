@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Intel Corporation.
+# Copyright (c) 2020 Intel Corporation.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -86,7 +86,17 @@ include_directories(
 file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
+add_library(eisconfigmanager_static STATIC ${SOURCES})
 add_library(eisconfigmanager SHARED ${SOURCES})
+
+target_link_libraries(eisconfigmanager_static
+    PUBLIC
+        pthread
+        ${GRPC_LIBRARIES}
+        ${PROTOBUF_LIBRARIES}
+        ${EISMsgEnv_LIBRARIES}
+        ${EISUtils_LIBRARIES}
+        ${IntelSafeString_LIBRARIES})
 
 target_link_libraries(eisconfigmanager
     PUBLIC
@@ -126,14 +136,21 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgrNew)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgr)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgrStatic)
 
 install(TARGETS eisconfigmanager
     EXPORT eisconfigmanager-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisconfigmanager PROPERTIES EXPORT_NAME EISConfigMgrNew)
+install(TARGETS eisconfigmanager_static
+    EXPORT eisconfigmanager_static-targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+set_target_properties(eisconfigmanager PROPERTIES EXPORT_NAME EISConfigMgr)
+set_target_properties(eisconfigmanager_static PROPERTIES EXPORT_NAME EISConfigMgrStatic)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkg-config libeisconfigmanager.pc file
@@ -147,7 +164,15 @@ install(
 # Export targets to a script
 install(EXPORT eisconfigmanager-targets
     FILE
-        EISConfigMgrNewTargets.cmake
+        EISConfigMgrTargets.cmake
+    DESTINATION
+        ${INSTALL_CONFIGDIR}
+)
+
+# Export targets to a script
+install(EXPORT eisconfigmanager_static-targets
+    FILE
+        EISConfigMgrStaticTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -155,26 +180,46 @@ install(EXPORT eisconfigmanager-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrNewConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrStaticConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    DESTINATION ${INSTALL_CONFIGDIR}
+)
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 export(EXPORT eisconfigmanager-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrNewTargets.cmake)
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrTargets.cmake)
+
+export(EXPORT eisconfigmanager_static-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISConfigMgrNew)
+export(PACKAGE EISConfigMgr)
+export(PACKAGE EISConfigMgrStatic)
