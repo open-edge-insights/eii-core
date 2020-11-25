@@ -36,6 +36,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     config_value_t* json_endpoint = NULL;
     char** socket_ep = NULL;
     config_value_t* topics_list = NULL;
+    config_value_t* service_name = NULL;
 
     sock_dir = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
     if (sock_dir == NULL) {
@@ -82,10 +83,6 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         strcmp_s(socketfile_cvt->body.string, strlen(socketfile_cvt->body.string), "*", &ret);
         if (ret != 0) {
             sock_file = socketfile_cvt->body.string;
-        }
-        
-        if (json_endpoint != NULL) {
-            config_value_destroy(json_endpoint);
         }
     } else {
         char* data = NULL;
@@ -150,48 +147,77 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
 
     // When Socket file is explicitly given by the user.
     if (sock_file != NULL) {
-        LOG_DEBUG_0("socket_ep file explicitly given by application");
-        topics_list = config_value_object_get(config, "Topics");
-        if (topics_list == NULL) {
-            LOG_ERROR_0("topics_list initialization failed");
-            goto err;
-        }
+        LOG_INFO("socket_ep file explicitly given by application");
+        // For Publisher & Subscriber use case
+        if (type != SERVER && type != CLIENT) {
+            topics_list = config_value_object_get(config, "Topics");
+            if (topics_list == NULL) {
+                LOG_ERROR_0("topics_list initialization failed");
+                goto err;
+            }
 
-        config_value_t* topics;
-        size_t arr_len = config_value_array_len(topics_list);
-        if(arr_len == 0){
-            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        }
-        // getting the topic list and mapping multiple topics to the socket file
-        for (int i=0; i < arr_len; ++i) {
+            config_value_t* topics;
+            size_t arr_len = config_value_array_len(topics_list);
+            if(arr_len == 0){
+                LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+            }
+            // getting the topic list and mapping multiple topics to the socket file
+            for (int i=0; i < arr_len; ++i) {
+                cJSON* socket_file_obj = cJSON_CreateObject();
+                if (socket_file_obj == NULL) {
+                    LOG_ERROR_0("c_json initialization failed");
+                    goto err;
+                }
+                topics = config_value_array_get(topics_list, i);
+                if (topics == NULL) {
+                    LOG_ERROR("Failed to fetch topic at %d", i);
+                    goto err;
+                }
+
+                strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
+                if(ret == 0){
+                    cJSON_AddItemToObject(c_json, "", socket_file_obj);
+                } else {
+                    cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
+                }
+
+                cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
+                // Adding brokered value if available
+                config_value_t* brokered_value = config_value_object_get(config, BROKERED);
+                if (brokered_value != NULL) {
+                    if (brokered_value->type != CVT_BOOLEAN) {
+                        LOG_ERROR_0("brokered_value type is not boolean");
+                        goto err;
+                    } else {
+                        if (brokered_value->body.boolean) {
+                            cJSON_AddBoolToObject(socket_file_obj, BROKERED, true);
+                        } else {
+                            cJSON_AddBoolToObject(socket_file_obj, BROKERED, false);
+                        }
+                    }
+                }
+            }
+        } else {
+            // For Server & Client use case
             cJSON* socket_file_obj = cJSON_CreateObject();
             if (socket_file_obj == NULL) {
                 LOG_ERROR_0("c_json initialization failed");
                 goto err;
             }
-            topics = config_value_array_get(topics_list, i);
-           
-            strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
-            if(ret == 0){
-                cJSON_AddItemToObject(c_json, "", socket_file_obj);
-            } else {
-                cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
-            }
-
+            // Add the socket file name to socket_file_obj
             cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
-            // Adding brokered value if available
-            config_value_t* brokered_value = config_value_object_get(config, BROKERED);
-            if (brokered_value != NULL) {
-                if (brokered_value->type != CVT_BOOLEAN) {
-                    LOG_ERROR_0("brokered_value type is not boolean");
-                    goto err;
-                } else {
-                    if (brokered_value->body.boolean) {
-                        cJSON_AddBoolToObject(socket_file_obj, BROKERED, true);
-                    } else {
-                        cJSON_AddBoolToObject(socket_file_obj, BROKERED, false);
-                    }
-                }
+
+            // Fetch the service name associated with the interface
+            service_name = config_value_object_get(config, NAME);
+            if (service_name == NULL) {
+                LOG_ERROR_0("service_name initialization failed");
+                goto err;
+            }
+            if (service_name->type != CVT_STRING) {
+                LOG_ERROR_0("Interface value Name should be a string");
+                goto err;
+            } else {
+                cJSON_AddItemToObject(c_json, service_name->body.string, socket_file_obj);
             }
         }
     } else {
@@ -222,6 +248,9 @@ err:
     } 
     if (sock_dir != NULL){
         free(sock_dir);
+    }
+    if (service_name != NULL) {
+        config_value_destroy(service_name);
     }
     if (topics_list != NULL) {
         config_value_destroy(topics_list);
