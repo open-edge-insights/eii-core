@@ -1195,13 +1195,18 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
     yaml_dict = yaml_files_dict[0]
     for var in yaml_files_dict[1:]:
         for k in var:
-            # Update the values from current compose
-            # file to previous compose file
-            for i in var[k]:
-                if(k == "version"):
-                    pass
-                else:
-                    yaml_dict[k].update({i: var[k][i]})
+            try:
+                # Update the values from current compose
+                # file to previous compose file
+                for i in var[k]:
+                    if(k == "version"):
+                        pass
+                    else:
+                        yaml_dict[k].update({i: var[k][i]})
+            # If secrets is not existing, add it to the dict
+            except KeyError:
+                if (k == "secrets"):
+                    yaml_dict[k] = var[k]
 
     # Updating yaml dict for dev mode
     if dev_mode:

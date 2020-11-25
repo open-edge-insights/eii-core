@@ -1,5 +1,6 @@
 AppName:
 # Common video and time-series services
+- EtcdUI
 - OpcuaExport
 - RestDataExport
 - InfluxDBConnector
