@@ -162,7 +162,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 | `Servers`           | `array`   | Yes                  | Entire server interface will be added with in the array. Multiple server endpoints can be added by adding elements in the array   |
 | `Name`              | `string`  | Yes                  | Name of different server interfaces                          |
 | `Type`              | `string`  | Yes                  | Specifies ZeroMQ protocol ("zmq_tcp" or "zmq_ipc") through which Server pushes data   |
-| `EndPoint`          | `string`  | Yes                  | Endpoint on which server listens for requests. |
+| `EndPoint`          | `string` or `object`  | Yes                  | In case of TCP or IPC (socket directory only), endpoint should be string as shown in the above examples. In case IPC explicitly specifying socket file, either object or string can be used for EndPoint. Please refer [Different ways of specifying endpoint](###**Note**-"endpoint"-can-be-given-in-different-ways:) |
 | `AllowedClients`    | `array`   | Yes                  | Specifying who can get data is from the Server. If AllowedClients is "*", then all the provisioned services can connect to Server.                                                |
 
 
@@ -196,7 +196,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 | `Name`              | `string`  | Yes                  | Name of different client interfaces                          |
 | `ServerAppName`     | `string`  | Yes                  | Server's AppName to which client connection is established      |
 | `Type`              | `string`  | Yes                  | Specifies ZeroMQ protocol ("zmq_tcp" or "zmq_ipc") through which client connection is established   |
-| `EndPoint`          | `string`  | Yes                  | Server endpoint to establish connection.             |
+| `EndPoint`          | `string` or `object`  | Yes                  | In case of TCP or IPC (socket directory only), endpoint should be string as shown in the above examples. In case IPC explicitly specifying socket file, either object or string can be used for EndPoint. Please refer [Different ways of specifying endpoint](###**Note**-"endpoint"-can-be-given-in-different-ways:) |
 
 
 ## Overriding of Type and EndPoint:

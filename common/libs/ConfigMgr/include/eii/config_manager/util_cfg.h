@@ -29,6 +29,7 @@
 #define SOCKET_FILE "socket_file"
 #define ENDPOINT "EndPoint"
 #define TOPICS "Topics"
+#define NAME "Name"
 #define ALLOWED_CLIENTS "AllowedClients"
 #define PUBLIC_KEYS "/Publickeys/"
 #define PRIVATE_KEY "/private_key"
