@@ -84,6 +84,8 @@ EIS Orchestration using CSL Orchestrator.
         ```
 
     * Update generated Module Manifest file based on SMR registered artifact name and version.
+      > **Note:** The `ContainerImage` key has to be updated properly with `"{idx:<registered_artifact_name:<EIS_VERSION>}"`
+    
       ```sh
       "RuntimeOptions": {
           "ContainerImage": "${idx:<registered_artifactname>:<EIS_VERSION>}"
@@ -92,14 +94,14 @@ EIS Orchestration using CSL Orchestrator.
 
       For Eg.
 
-      * For registering VideoIngestion Module manifest. Use the `artifact` name as same referred in `ManifestFile` key of VideoIngestion module in [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
-
-      ```sh
-      "RuntimeOptions": {
-          "ContainerImage": "${idx:videoingestion:2.3}"
-      }
-
-      ```
+      * For VideoIngestion Image (ia_video_ingestion) with SMR.
+        
+        * Update the registered image artifact name in `VideoIngestion` Modulespec in 'VideoIngestion_module_spec.json' file.
+          ```sh
+          "RuntimeOptions": {
+              "ContainerImage": "${idx:ia_video_ingestion:2.3}"
+          }
+          ```
 
 ## Provisioning EIS with CSL
 
