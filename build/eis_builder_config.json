@@ -2,7 +2,8 @@
     "subscriber_list": {
         "Visualizer": "",
         "WebVisualizer": "",
-        "VideoProfiler": ""
+        "VideoProfiler": "",
+        "EtcdUI": ""
     },
     "publisher_list": {
         "VideoAnalytics": "outputVA",
