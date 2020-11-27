@@ -140,7 +140,6 @@ void etcd_client_free(void* handle){
     if (handle != NULL) {
         EtcdClient *cli = static_cast<EtcdClient *>(handle);
         cli->~EtcdClient();
-        free(handle);
     }
 }
 
