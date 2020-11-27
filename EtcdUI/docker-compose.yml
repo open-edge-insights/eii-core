@@ -65,8 +65,6 @@ services:
       - etcd_etcduser_key
 
 secrets:
-  ca_etcd:
-    file: provision/Certificates/ca/ca_certificate.pem
   etcd_etcduser_cert:
     file: provision/Certificates/root/root_client_certificate.pem
   etcd_etcduser_key:
