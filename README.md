@@ -174,12 +174,12 @@ optional arguments:
 
    This is achieved by providing a yml file to EIS builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
-  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml), [TLS](build/video-streaming-tls.yml). 
+  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/usecases/video-streaming.yml), [time-series](build/usecases/time-series.yml), [Azure](build/usecases/video-streaming-azure.yml), [TLS](build/usecases/video-streaming-tls.yml). 
   
   An example for running EIS builder with this flag is given below:
 
   ```sh
-  $ python3 eis_builder.py -f video-streaming.yml
+  $ python3 eis_builder.py -f usecases/video-streaming.yml
   ```
 
 * `Running eis_builder to generate multi instance configs`:
@@ -191,10 +191,10 @@ optional arguments:
   An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
-  $ python3 eis_builder.py -v 3 -f video-streaming.yml
+  $ python3 eis_builder.py -v 3 -f usecases/video-streaming.yml
   ```
 
-  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
 * `Running eis_builder to generate benchmarking configs`:
    
@@ -337,19 +337,19 @@ yaml file.
 
 | Usecase                    | yaml file                                                |
 | :---                       | :---                                                    |
-| Video + Timeseries         | [build/video-timeseries.yml](build/video-timeseries.yml) |
-| Video                      | [build/video.yml](build/video.yml)                       |
-| Timeseries                 | [build/time-series.yml](build/time-series.yml)           |
+| Video + Timeseries         | [build/usecases/video-timeseries.yml](build/usecases/video-timeseries.yml) |
+| Video                      | [build/usecases/video.yml](build/usecases/video.yml)                       |
+| Timeseries                 | [build/usecases/time-series.yml](build/usecases/time-series.yml)           |
 
 ## Video pipeline sub-usecases
 
 | Usecase                                | yaml file                                                               |
 | :---                                   | :---                                                                    |
-| Video streaming                        | [build/video-streaming.yml](build/video-streaming.yml)                  |
-| Video streaming and historical         | [build/video-streaming-storage.yml](build/video-streaming-storage.yml)  |
-| Video streaming with EISAzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
-| Video streaming with TLSRemoteAgent    | [build/video-streaming-tls.yml](build/video-streaming-tls.yml)          |
-| Video streaming and custom udfs        | [build/video-streaming-all-udfs.yml](build/video-streaming-all-udfs.yml)|
+| Video streaming                        | [build/usecases/video-streaming.yml](build/usecases/video-streaming.yml)                  |
+| Video streaming and historical         | [build/usecases/video-streaming-storage.yml](build/usecases/video-streaming-storage.yml)  |
+| Video streaming with EISAzureBridge    | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
+| Video streaming with TLSRemoteAgent    | [build/usecases/video-streaming-tls.yml](build/usecases/video-streaming-tls.yml)          |
+| Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
 To build and run EIS in one command:
 
@@ -515,7 +515,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-The services mentioned in [build/time-series.yml](build/time-series) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
+The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
@@ -526,7 +526,7 @@ The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor
 
 DiscoveryCreek is a machine learning based anomaly detection engine.
 
-Add the `DiscoveryCreek` entry to [build/time-series.yml](build/time-series) and the services mentioned in there will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
+Add the `DiscoveryCreek` entry to [build/usecases/time-series.yml](build/usecases/time-series.yml) and the services mentioned in there will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
 
 More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
 

@@ -1368,7 +1368,7 @@ def yaml_parser(args):
         with open(args.yml_file, 'r') as sub_dir_file:
             yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
                                                     preserve_quotes=True)
-            for service in yaml_data['AppName']:
+            for service in yaml_data['AppContexts']:
                 # In case user mentions the service as full path instead of
                 # relative to IEdgeInsights.
                 if service.startswith("/"):
@@ -1506,7 +1506,7 @@ def parse_args():
                            help='Optional config file for list of services'
                            ' to include.\
                            Eg: python3.6 eis_builder.py -f\
-                           video-streaming.yml')
+                           usecases/video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
