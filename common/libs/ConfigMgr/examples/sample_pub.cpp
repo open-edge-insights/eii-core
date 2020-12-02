@@ -100,12 +100,14 @@ int main(int argc, char** argv) {
     config_t* pub_config;
     bool topicsSet;
     try {
+        // create ConfigMgr object
         g_ctx = new ConfigMgr();
     } catch (...) {
         LOG_ERROR_0("Exception occured");
         return -1;
     }
 
+    // check if service is running in devmode
     bool dev_mode = g_ctx->isDevMode();
     if (dev_mode) {
         LOG_INFO_0("Running in DEV mode");
@@ -113,23 +115,29 @@ int main(int argc, char** argv) {
         LOG_INFO_0("Running in PROD mode");
     }
 
+    // get applictaion's AppName
     std::string app_name = g_ctx->getAppName();
     std::cout << "AppName :" << app_name << std::endl;
 
+    // get number of publisher interfaces
     int num_of_publishers = g_ctx->getNumPublishers();
     LOG_DEBUG("Total number of publishers : %d", num_of_publishers);
 
+    // get number of server interfaces
     int num_of_servers = g_ctx->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);
 
     // Uncomment this for getting Publisher using name, else
     // user can use get publisher by index as mentioned below.
+
+    // get the publisher object where publisher's interface 'Name' is 'default'
     // pub_ctx = g_ctx->getPublisherByName("default");
     // if (pub_ctx == NULL){
     //     LOG_ERROR_0("Failed to get publisher by name");
     //     goto err;
     // }
 
+    // get 0th publisher interface object    
     pub_ctx = g_ctx->getPublisherByIndex(0);
     if (pub_ctx == NULL){
         LOG_ERROR_0("Failed to get publisher by index");
@@ -137,6 +145,7 @@ int main(int argc, char** argv) {
     }
     
     // Testing getEndpoint API
+    // get Endpoint of a publisher interface
     ep = pub_ctx->getEndpoint();
     if(ep.empty()){
         LOG_ERROR_0("Failed to get endpoint");
@@ -144,14 +153,17 @@ int main(int argc, char** argv) {
     }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
+    // get config_value_t object to get the value of client interface of key 'Name'
     interface_value = pub_ctx->getInterfaceValue("Name");
     if (interface_value == NULL) {
         LOG_ERROR_0("Failed to get expected interface value");
         goto err;
     }
+    // print the value from object interface_value in string format
     LOG_INFO("Obtained interface value: %s", interface_value->body.string)
 
     // Testing getTopics API
+    // get topics from publisher interface on which data will be published
     topics = pub_ctx->getTopics();
     if(topics.empty()){
         LOG_ERROR_0("Failed to get topics");
@@ -165,8 +177,11 @@ int main(int argc, char** argv) {
     
     newTopicsList.push_back("camera5_stream");
     newTopicsList.push_back("camera6_stream");
+
+    // Update new set of topic for publisher's interface
     topicsSet = pub_ctx->setTopics(newTopicsList);
 
+    // get 'Topics' from publisher interface
     topics_new = pub_ctx->getTopics();
     if(topics_new.empty()){
         LOG_ERROR_0("Failed to get topics_new");
@@ -177,6 +192,7 @@ int main(int argc, char** argv) {
     }
 
     // Testing getAllowedClients API
+    // get 'AllowedClients' from publisher interface
     clients = pub_ctx->getAllowedClients();
     if(clients.empty()){
         LOG_ERROR_0("Failed to get getAllowedClients");
@@ -186,6 +202,7 @@ int main(int argc, char** argv) {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
     }
 
+    // get publisher msgbus config for application to communicate over EIS message bus
     pub_config = pub_ctx->getMsgBusConfig();
     if (pub_config == NULL) {
         LOG_ERROR_0("Failed to get message bus config");

@@ -33,14 +33,17 @@ import (
 func main() {
 	os.Setenv("AppName", "VideoIngestion")
 
+	// Initialize ConfigManager
 	configMgr, err := eiscfgmgr.ConfigManager()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager context
 	defer configMgr.Destroy()
 
+	// Check if service is running in devmode
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
 		fmt.Printf("Running in DEV mode\n")
@@ -48,6 +51,7 @@ func main() {
 		fmt.Printf("Running in PROD mode\n")
 	}
 
+	// Get applictaion's AppName
 	appName, err := configMgr.GetAppName()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -55,18 +59,24 @@ func main() {
 	}
 	fmt.Printf("AppName : %v\n", appName)
 
+	// Get number of publishers in the Publisher interface
 	numOfPublishers, _ := configMgr.GetNumPublishers()
 	fmt.Printf("Publishers : %v\n", numOfPublishers)
 
+	// Get the publisher object where publisher's interface 'Name' is 'default'
 	pubCtx, err := configMgr.GetPublisherByName("default")
+
+	// Get 0th publisher interface object
 	// pubCtx, err := configMgr.GetPublisherByIndex(0)
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager's publisher context
 	defer pubCtx.Destroy()
 
+	// Get Endpoint of a publisher interface
 	endpoint, err:= pubCtx.GetEndPoints()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -74,6 +84,7 @@ func main() {
 	}
 	fmt.Println("endpoint:", endpoint)
 
+	// Get publisher msgbus config for application to communicate over EIS message bus
 	config, err := pubCtx.GetMsgbusConfig()
 	fmt.Println("err in main:", err)
 	if err != nil {
@@ -83,6 +94,7 @@ func main() {
 
 	fmt.Println("GetMsgbusConfig:", config)
 
+	// Get 'Topics' from publisher interface
 	topics, err := pubCtx.GetTopics()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -94,6 +106,7 @@ func main() {
 		fmt.Println(s)
 	}
 
+	// Get 'AllowedClients' from publisher interface
 	allowedClients, err := pubCtx.GetAllowedClients()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -105,6 +118,8 @@ func main() {
 	}
 
 	topicsList := []string{"topic1", "topic2"}
+
+	// Update new set of topic for publisher's interface
 	topicsSet := pubCtx.SetTopics(topicsList)
 	if topicsSet == true {
 		fmt.Println("Pub topics are set succesfully")
@@ -112,6 +127,7 @@ func main() {
 		fmt.Println("Failed to set pub topics")
 	}
 
+	// Get updated topics, modified by SetTopics() API
 	topics2, err:= pubCtx.GetTopics()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -122,24 +138,29 @@ func main() {
 		fmt.Println(s)
 	}
 
+	// Get the object to get the value of server interface of key 'Name'
 	interfaceStrVal, err := pubCtx.GetInterfaceValue("Name")
 	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
 		return
 	}
 
+	// Get the value from object interfaceVal
 	fmt.Println("Interface str Value:", interfaceStrVal.Value)
 
+	// Get the value from object interfaceVal in string format if the value is string
 	strVal, err := interfaceStrVal.GetString()
 	if err != nil {
 		fmt.Printf("Error to GetString value %v\n", err)
 		return
 	}
 
+	// Test to modify the value from GetString() call
 	stringVal := "Hello"
 	stringCat := stringVal + strVal
 	fmt.Println("str concatinated value", stringCat)
 
+	// Initialize msgbus context by passing msgbus config
 	client, err := eismsgbus.NewMsgbusClient(config)
 	if err != nil {
 		fmt.Printf("-- Error initializing message bus context: %v\n", err)

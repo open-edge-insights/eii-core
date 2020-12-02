@@ -96,7 +96,7 @@ namespace eis {
                 config_t* getInterface();
 
                 /**
-                 * Gets value from config
+                 * Gets value from respective application's config
                  * @param key - Key for which value is needed
                  * @return config_value_t* - config_value_t object
                  */
@@ -139,25 +139,29 @@ namespace eis {
                 /**
                  * Get msgbus configuration for application to communicate over EIS message bus
                  * @return config_t* - JSON msg bus server config of type config_t
+                 *                   - On Failure, returns NULL
                  */ 
                 virtual config_t* getMsgBusConfig();
 
                 /**
                  * virtual getEndpoint function implemented by child classes to fetch Endpoint
-                 * @return std::string - Endpoint of associated config of type std::string
+                 * @return std::string - On Success, Endpoint of associated config of type std::string
+                 *                     - On Failure, returns empty string
                  */
                 virtual std::string getEndpoint();
 
                 /**
                  * virtual function that gets value from interface
                  * @param key - Key for which value is needed
-                 * @return config_value_t* - config_value_t object
+                 * @return config_value_t* - On Success, config_value_t object
+                 *                         - On Failure, returns NULL
                  */
                 virtual config_value_t* getInterfaceValue(const char* key);
 
                 /**
                  * virtual getTopics function implemented by child classes to fetch topics
-                 * @return std::string - Endpoint of associated config of type std::string
+                 * @return std::string - On Success, Topics of associated config of type std::string
+                 *                     - On Failure, returns empty vector
                  */
                 virtual std::vector<std::string> getTopics();
 
@@ -165,12 +169,15 @@ namespace eis {
                  * virtual setTopics function implemented by child classes to set topics
                  * @param topics_list - vector of strings containing topics
                  * @return bool - Boolean whether topics were set
+                 *              - On Success, returns true
+                 *              - On Failure, returns false
                  */
                 virtual bool setTopics(std::vector<std::string> topics_list);
 
                 /**
                  * virtual getAllowedClients function implemented by child classes to fetch topics
-                 * @return std::string - Endpoint of associated config of type std::string
+                 * @return std::string - On Success, Allowed client of associated config of type std::string
+                 *                     - On Failure, returns empty vector
                  */
                 virtual std::vector<std::string> getAllowedClients();
 

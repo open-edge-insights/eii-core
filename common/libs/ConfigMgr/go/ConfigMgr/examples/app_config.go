@@ -40,11 +40,13 @@ func main() {
 
 	os.Setenv("AppName", "VideoIngestion")
 
+	// Initialize ConfigManager
 	configMgr, _ := eiscfgmgr.ConfigManager()
 
+	// Get value of application's config('/<appname>/config')
 	appConfig, err := configMgr.GetAppConfig()
 
-	// Fetching Watch object
+	// Get Watch object to call Watch and WatchPrefix APIs on
 	watchObj, err := configMgr.GetWatchObj()
 	if err != nil {
 		fmt.Println("Failed to fetch watch object")
@@ -52,20 +54,29 @@ func main() {
 
 	// Testing Watch API
 	var watchUserData interface{} = "watch"
+
+	// Watch the key "/VideoIngestion/config" for any changes, cbFunc will be called with updated value
 	watchObj.Watch("/VideoIngestion/config", cbFunc, watchUserData)
 
 	// Testing WatchPrefix API
 	var watchPrefixUserData interface{} = 1234
+
+	// Watch the prefix key "/VideoAnalytics" for any changes, cbFunc will be called with updated value
 	watchObj.WatchPrefix("/VideoAnalytics", cbFunc, watchPrefixUserData)
 
 	// Testing WatchConfig API
 	var watchConfigUserData interface{} = 45.67
+
+	// Watch the key '<appname>/config' for any changes, cbFunc will be called with updated value
 	watchObj.WatchConfig(cbFunc, watchConfigUserData)
 
 	// Testing WatchInterface API
 	var watchInterfaceUserData interface{} = true
+
+	// Watch the key '<appname>/inetrafce' for any changes, cbFunc will be called with updated value
 	watchObj.WatchInterface(cbFunc, watchInterfaceUserData)
 
+	// Delete ConfigManager context
 	defer configMgr.Destroy()
 
 	if err != nil {

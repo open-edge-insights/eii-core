@@ -32,14 +32,17 @@ import (
 func main() {
 	os.Setenv("AppName", "VideoAnalytics")
 
+	// Initialize ConfigManager
 	configMgr, err := eiscfgmgr.ConfigManager()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager context
 	defer configMgr.Destroy()
-	
+
+	// Get applictaion's AppName
 	appName, err := configMgr.GetAppName()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -47,18 +50,24 @@ func main() {
 	}
 	fmt.Printf("AppName : %v\n", appName)
 
+	// Get number of subscribers in the Publisher interface
 	numOfSubscribers, _ := configMgr.GetNumSubscribers()
 	fmt.Printf("Subscribers : %v\n", numOfSubscribers)
 
+	// Get the subscriber object where subscriber's interface 'Name' is 'default'
 	// subCtx, err := configMgr.GetSubscriberByName("default")
+
+	// Get 0th publisher interface object
 	subCtx, err := configMgr.GetSubscriberByIndex(0)
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager's subscriber context
 	defer subCtx.Destroy()
 
+	// Get Endpoint of a publisher interface
 	endpoint, err := subCtx.GetEndPoints()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -66,6 +75,7 @@ func main() {
 	}
 	fmt.Printf("Subscriber endpoint:%s", endpoint)
 
+	// get subscriber msgbus config for application to communicate over EIS message bus
 	config, err := subCtx.GetMsgbusConfig()
 
 	if err != nil {
@@ -75,6 +85,7 @@ func main() {
 
 	fmt.Printf("GetMsgbusConfig:%v", config)
 
+	// Get 'Topics' from subscriber interface
 	topics, err := subCtx.GetTopics()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -86,6 +97,7 @@ func main() {
 	}
 
 	topicsList := []string{"subtopic1", "subtopic2", "subtopic3"}
+	// Update new set of topic for subscriber's interface
 	topicsSet := subCtx.SetTopics(topicsList)
 	if topicsSet == true {
 		fmt.Println("Sub topics are set succesfully")
@@ -93,6 +105,7 @@ func main() {
 		fmt.Println("Failed to set sub topics")
 	}
 
+	// Get updated topics, modified by SetTopics() API
 	topics2, err := subCtx.GetTopics()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -103,14 +116,17 @@ func main() {
 		fmt.Println(s)
 	}
 
+	// Get the object to get the value of server interface of key 'Name'
 	interfaceStrVal, err := subCtx.GetInterfaceValue("Name")
 	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
 		return
 	}
 
+	// Get the value from object interfaceVal
 	fmt.Println("Interface Value:", interfaceStrVal.Value)
 
+	// Initialize msgbus context by passing msgbus config
 	client, err := eismsgbus.NewMsgbusClient(config)
 	if err != nil {
 		fmt.Printf("-- Error initializing message bus context: %v\n", err)

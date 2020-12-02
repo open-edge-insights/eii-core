@@ -52,20 +52,19 @@ namespace eis {
                 /**
                 * ClientCfg Constructor
                 * @param client_config - The config associated with a client
+                * @param app_cfg       - app_cfg_t pointer
                 */
                 explicit ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg);
 
                 /**
-                 * Overridden base class method to fetch msgbus client configuration
-                 * for application to communicate over EIS message bus
+                 * Constructs message bus config for Client
                  * @return config_t* - On Success, returns JSON msg bus server config of type config_t
                  *                   - On Failure, returns NULL
                  */ 
                 config_t* getMsgBusConfig() override;
 
                 /**
-                 * Overridden base class method to fetch interface value
-                 * for application to communicate over EIS message bus
+                 * To fetch particular interface value from Client interface config
                  * @param key - Key on which interface value is extracted.
                  * @return config_value_t* - On Success, config_value_t object
                  *                         - On Failure, returns NULL
@@ -73,7 +72,7 @@ namespace eis {
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * To fetch Endpoint for particular client from its interface config
                  * @return std::string - Endpoint of client config of type std::string
                  */
                 std::string getEndpoint() override;

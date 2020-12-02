@@ -89,8 +89,7 @@ cdef class ConfigMgr:
             app_cfg_config_destroy(self.app_cfg)
 
     def get_app_config(self):
-        """Calling base C get_app_config in order to get the 
-        respective applications config
+        """gets AppCfg object respective applications config
 
         :return: Return object of class AppCfg
         :rtype: obj
@@ -129,8 +128,7 @@ cdef class ConfigMgr:
 
 
     def is_dev_mode(self):
-        """Calling bace c cfgmgr_is_dev_mode_base in order to get
-        the dev mode variable
+        """To check if application is running in dev or prod mode
         
         :return: Whether dev mode is set
         :rtype: bool
@@ -146,8 +144,7 @@ cdef class ConfigMgr:
 
 
     def get_app_name(self):
-        """Calling bace c cfgmgr_get_appname_base in order to get
-        the app name
+        """Get the AppName for any application
         
         :return: App name
         :rtype: str
@@ -174,8 +171,7 @@ cdef class ConfigMgr:
 
 
     def get_publisher_by_name(self, name):
-        """Calling bace c get_publisher_by_name in order to get
-        respective publisher config
+        """To fetch a publisher interface using it's name
 
         :param name: Name of the publisher 
         :type: string
@@ -195,8 +191,7 @@ cdef class ConfigMgr:
 
 
     def get_publisher_by_index(self, index):
-        """Calling bace c get_publisher_by_index in order to get
-        respective publisher config
+        """To fetch a publisher interface using it's index
 
         :param index: Index of the publisher 
         :type: int
@@ -214,8 +209,7 @@ cdef class ConfigMgr:
             raise ex
 
     def get_subscriber_by_name(self, name):
-        """Calling bace c get_subscriber_by_name in order to get
-        respective publisher config
+        """To fetch a subscriber interface using it's name
 
         :param name: Name of the subscriber
         :type: string
@@ -235,8 +229,7 @@ cdef class ConfigMgr:
         
 
     def get_subscriber_by_index(self, index):
-        """Calling bace c get_subscriber_by_index in order to get
-        respective subscriber config
+        """To fetch a subscriber interface using it's index
 
         :param index: Index of the subscriber 
         :type: int
@@ -255,8 +248,7 @@ cdef class ConfigMgr:
 
 
     def get_server_by_name(self, name):
-        """Calling bace c get_server_by_name in order to get
-        respective publisher config
+        """To fetch a server interface using it's name
 
         :param name: Name of the server
         :type: string
@@ -276,8 +268,7 @@ cdef class ConfigMgr:
 
 
     def get_server_by_index(self, index):
-        """Calling bace c get_server_by_index in order to get
-        respective publisher config
+        """To fetch a server interface using it's index
 
         :param index: Index of the server
         :type: string
@@ -295,8 +286,7 @@ cdef class ConfigMgr:
             raise ex
 
     def get_client_by_name(self, name):
-        """Calling bace c get_server_by_name in order to get
-        respective publisher config
+        """To fetch a client interface using it's name
 
         :param name: Name of the client
         :type: string
@@ -315,8 +305,7 @@ cdef class ConfigMgr:
             raise ex
 
     def get_client_by_index(self, index):
-        """Calling bace c get_server_by_index in order to get
-        respective publisher config
+        """To fetch a client interface using it's index
 
         :param index: Index of the client
         :type: int
@@ -334,8 +323,7 @@ cdef class ConfigMgr:
             raise ex
 
     def get_num_publishers(self):
-        """Calling bace c cfgmgr_get_num_elements_base in order to get
-        number of publishers in interface
+        """Get total number of publishers from publisher's interface
 
         :return: number of publishers in interface
         :rtype : int
@@ -346,8 +334,7 @@ cdef class ConfigMgr:
         return result
 
     def get_num_subscribers(self):
-        """Calling bace c cfgmgr_get_num_elements_base in order to get
-        number of subscribers in interface
+        """Get total number of subscribers from subscriber's interface
 
         :return: number of subscribers in interface
         :rtype : int
@@ -358,8 +345,7 @@ cdef class ConfigMgr:
         return result
 
     def get_num_servers(self):
-        """Calling bace c cfgmgr_get_num_elements_base in order to get
-        number of servers in interface
+        """Get total number of servers from server's interface
 
         :return: number of servers in interface
         :rtype : int
@@ -370,8 +356,7 @@ cdef class ConfigMgr:
         return result
 
     def get_num_clients(self):
-        """Calling bace c cfgmgr_get_num_elements_base in order to get
-        number of clients in interface
+        """Get total number of clients from client's interface
 
         :return: number of clients in interface
         :rtype : int

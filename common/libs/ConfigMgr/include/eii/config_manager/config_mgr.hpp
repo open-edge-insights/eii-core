@@ -59,6 +59,7 @@ namespace eis {
 
                 /**
                 * Constructor
+                * To instantiate main ConfigMgr object
                 */
                 ConfigMgr();
              
@@ -70,30 +71,30 @@ namespace eis {
 
                 /**
                  * Get total number of publishers in an interface
-                 * @return ServerCfg* - ServerCfg class object
+                 * @return int - number of publisher interfaces
                  */
                 int getNumPublishers();
 
                 /**
                  * Get total number of subscribers in an interface
-                 * @return ServerCfg* - ServerCfg class object
+                 * @return int - number of subscriber interfaces
                  */
                 int getNumSubscribers();
 
                 /**
                  * Get total number of servers in an interface
-                 * @return ServerCfg* - ServerCfg class object
+                 * @return int - number of server interfaces
                  */
                 int getNumServers();
 
                 /**
                  * Get total number of clients in an interface
-                 * @return ServerCfg* - ServerCfg class object
+                 * @return int - number of client interfaces
                  */
                 int getNumClients();
 
                 /**
-                 * Check whether dev mode or prod mode
+                 * To check if application is running in dev or prod mode
                  * @return bool - True if dev mode & false if prod mode
                  */
                 bool isDevMode();
@@ -105,56 +106,56 @@ namespace eis {
                 std::string getAppName();
 
                 /**
-                 * Get server interface from ConfigManager
+                 * Get server interface using it's index
                  * @param index - These servers are in array for which index is sent to get the respective server config.
                  * @return ServerCfg* - ServerCfg class object
                  */
                 ServerCfg* getServerByIndex(int index);
 
                 /**
-                 * Get server interface from ConfigManager
+                 * Get server interface using it's name
                  * @param name - These servers are in array for which name is sent to get the respective server config.
                  * @return ServerCfg* - ServerCfg class object
                  */
                 ServerCfg* getServerByName(const char* name);
 
                 /**
-                 * Get client interface from ConfigManager
+                 * Get client interface using it's index
                  * @param index - These clients are in array for which index is sent to get the respective client config.
                  * @return ClientCfg* - ClientCfg class object
                  */
                 ClientCfg* getClientByIndex(int index);
 
                 /**
-                 * Get client interface from ConfigManager
+                 * Get client interface using it's name
                  * @param name - These clients are in array for which name is sent to get the respective client config.
                  * @return ClientCfg* - ClientCfg class object
                  */
                 ClientCfg* getClientByName(const char* name);
 
                 /**
-                 * Get publisher interface from ConfigManager
+                 * Get publisher interface using it's index
                  * @param index - These publishers are in array for which index is sent to get the respective publisher config.
                  * @return PublisherCfg* - PublisherCfg class object
                  */
                 PublisherCfg* getPublisherByIndex(int index);
 
                 /**
-                 * Get publisher interface from ConfigManager
+                 * Get publisher interface using it's name
                  * @param name - These publishers are in array for which name is sent to get the respective publisher config.
                  * @return PublisherCfg* - PublisherCfg class object
                  */
                 PublisherCfg* getPublisherByName(const char* name);
 
                 /**
-                 * Get subscriber interface from ConfigManager
+                 * Get subscriber interface using it's index
                  * @param index - These subscribers are in array for which name is sent to get the respective subscriber config.
                  * @return SubscriberCfg* - SubscriberCfg class object
                  */
                 SubscriberCfg* getSubscriberByIndex(int index);
 
                 /**
-                 * Get subscriber interface from ConfigManager
+                 * Get subscriber interface using it's name
                  * @param name - These subscribers are in array for which name is sent to get the respective subscriber config.
                  * @return SubscriberCfg* - SubscriberCfg class object
                  */

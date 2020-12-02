@@ -52,20 +52,19 @@ namespace eis {
                 /**
                 * SubscriberCfg Constructor
                 * @param sub_config - The config associated with a subscriber
+                * @param app_cfg    - app_cfg_t pointer
                 */
                 explicit SubscriberCfg(sub_cfg_t* sub_cfg, app_cfg_t* app_cfg);
 
                 /**
-                 * Overridden base class method to fetch msgbus subscriber configuration
-                 * for application to communicate over EIS message bus
+                 * Constructs message bus config for Subscriber
                  * @return config_t* - On Success, JSON msg bus subscriber config of type config_t
                  *                   - On failure, On success, returns NULL
                  */
                 config_t* getMsgBusConfig() override;
 
                 /**
-                 * Overridden base class method to fetch interface value
-                 * for application to communicate over EIS message bus
+                 * To get particular interface value from Subscriber interface config
                  * @param key - Key on which interface value is extracted.
                  * @return config_value_t* - On success, returns config_value_t object
                  *                           On failure, On success, returns NULL
@@ -73,28 +72,28 @@ namespace eis {
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * To get endpoint for particular subscriber from its interface config
                  * @return std::string - On Success, returns Endpoint of server config
                  *                     - On Failure, returns empty string
                  */
                 std::string getEndpoint() override;
 
                 /**
-                 * getTopics for application to fetch the topics associated with message bus config
+                 * To gets topics from subscriber interface config on which subscriber receives data
                  * @return vector<string> - On Success, returns Topics of subscriber config
                  *                        - On Failure, returns empty vector
                  */
                 std::vector<std::string> getTopics() override;
 
                 /**
-                 * setTopics for application to set topics associated with message bus config
+                 * To sets new topics for subscriber in subscribers interface config
                  * @param topics_list - List of topics to be set
                  * @return bool - Boolean whether topics were set
                  */
                 bool setTopics(std::vector<std::string> topics_list) override;
 
                 /**
-                * pub_cfg_t getter to get private m_pub_cfg
+                * sub_cfg_t getter to get private m_pub_cfg
                 */
                 sub_cfg_t* getSubCfg();
 

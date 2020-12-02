@@ -88,17 +88,22 @@ int main() {
     config_t* config = NULL;
 
     try {
+        // get ConfigMgr object
         g_ch = new ConfigMgr();
     } catch (...) {
         LOG_ERROR_0("Exception occured");
         return -1;
     }
 
+    // get the client object where client's interface 'Name' is 'default'
     // ClientCfg* client_ctx = g_ch->getClientByName("default");
+
+    // get 0th client interface object
     ClientCfg* client_ctx = g_ch->getClientByIndex(0);
-    
 
     char* name = NULL;
+
+    // get the value of client interface of key 'Name'
     config_value_t* interface_value = client_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
@@ -108,13 +113,17 @@ int main() {
         LOG_ERROR_0("interface_value type is not string");
         goto err;
     }
+
+    // get the value from object interface_value in string format
     name = interface_value->body.string;
     
     LOG_INFO("interface value is %s", name);
 
+    // get number of client interfaces
     num_of_clients = g_ch->getNumClients();
     LOG_DEBUG("Total number of clients : %d", num_of_clients);
 
+    // get endpoint from client interfaces
     ep = client_ctx->getEndpoint();
     if(ep.empty()){
         LOG_ERROR_0("get endpoint failed");
@@ -122,7 +131,7 @@ int main() {
     }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
-    
+    // get client msgbus config for application to communicate over EIS message bus
     config = client_ctx->getMsgBusConfig();
     if(config == NULL) {
         LOG_ERROR_0("Failed to load JSON configuration");

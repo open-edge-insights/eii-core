@@ -31,19 +31,28 @@ def py_ex_func(key, json):
 
 try:
     os.environ["AppName"] = "VideoIngestion"
+
+    # create ConfigMgr object
     ctx = cfg.ConfigMgr()
     
+    # get AppCfg's obejct to get application's config('/<appname>/config')
     app_cfg = ctx.get_app_config()
     print('app config is : {}'.format((app_cfg.get_dict())))
     print('loop_video is : {}'.format((app_cfg["ingestor"]["loop_video"])))
+
+    # get watch object
     watch_cfg = ctx.get_watch_obj()
     # Watching on GlobalEnv key
     watch_cfg.watch("/GlobalEnv/", py_ex_func)
     # Watching on VideoAnalytics prefix
     watch_cfg.watch_prefix("/VideoAnalytics", py_ex_func)
-    # Watching on app config
+
+    # Watch the key "/<appname>/config" for any changes,
+    # py_ex_func function will be called with updated value
     watch_cfg.watch_config(py_ex_func)
-    # Watching on app interface
+
+    # Watch the key "/<appname>/interface" for any changes,
+    # py_ex_func function will be called with updated value
     watch_cfg.watch_interface(py_ex_func)
     print("Watching on app config & app interface for 60 seconds")
     time.sleep(60)

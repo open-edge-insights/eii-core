@@ -57,27 +57,26 @@ namespace eis {
                 /**
                 * PublisherCfg Constructor
                 * @param pub_config - The config associated with a client
+                * @param app_cfg    - app_cfg_t pointer
                 */
                 explicit PublisherCfg(pub_cfg_t* pub_cfg, app_cfg_t* app_cfg);
 
                 /**
-                 * Overridden base class method to fetch msgbus publisher configuration
-                 * for application to communicate over EIS message bus
+                 * Constructs message bus config for Publisher
                  * @return config_t* - On Success, JSON msg bus publisher config of type config_t
                  *                   - On failure, On success, returns NULL
                  */
                 config_t* getMsgBusConfig() override;
 
                 /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * To get endpoint for particular publisher from it's interface config
                  * @return std::string - On Success, returns Endpoint of server config
                  *                     - On Failure, returns empty string
                  */
                 std::string getEndpoint() override;
 
                 /**
-                 * Overridden base class method to fetch interface value
-                 * for application to communicate over EIS message bus
+                 * To get particular interface value from Publisher interface config
                  * @param key - Key on which interface value is extracted.
                  * @return config_value_t* - On Success, returns config_value_t object
                  *                         - On Failure, returns NULL
@@ -85,21 +84,23 @@ namespace eis {
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
-                 * getTopics for application to fetch the topics associated with message bus config
+                 * To get topics from publisher interface config on which data will be published
                  * @return vector<string> - On Success, returns Topics of publisher config
                  *                        - On Failure, returns empty vector
                  */
                 std::vector<std::string> getTopics() override;
 
                 /**
-                 * setTopics for application to set topics associated with message bus config
+                 * To set new topics for publisher in publishers interface config
                  * @param topics_list - List of topics to be set
                  * @return bool - Boolean whether topics were set
+                 *              - On Success, returns true
+                 *              - On Failure, returns false
                  */
                 bool setTopics(std::vector<std::string> topics_list) override;
 
                 /**
-                 * getAllowedClients for application to list of allowed clients associated with message bus config
+                 * To get the names of the clients allowed to get publishers data
                  * @return vector<string> - On Success, Allowed client of publisher config
                  *                        - On Failure, returns empty vector
                  */

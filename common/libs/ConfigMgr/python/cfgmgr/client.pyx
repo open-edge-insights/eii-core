@@ -74,7 +74,7 @@ cdef class Client:
             client_cfg_config_destroy(self.client_cfg)
 
     def get_msgbus_config(self):
-        """Calling the base C get_msgbus_config() API
+        """Constructs message bus config for Client
 
         :return: Messagebus config
         :rtype: dict
@@ -98,7 +98,7 @@ cdef class Client:
             raise ex
 
     def get_interface_value(self, key):
-        """Calling the base C cfgmgr_get_interface_value_client() API
+        """To fetch particular interface value from Client interface config
 
         :param key: Key on which interface value will be extracted
         :type: string
@@ -124,7 +124,7 @@ cdef class Client:
             raise ex
 
     def get_endpoint(self):
-        """Calling the base C get_endpoint() API
+        """To fetch Endpoint for particular client from its interface config
 
         :return: Endpoint config
         :rtype: string

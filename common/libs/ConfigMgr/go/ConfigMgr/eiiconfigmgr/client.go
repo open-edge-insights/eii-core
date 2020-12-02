@@ -31,6 +31,13 @@ type ClientCfg struct {
 	msgBusCfg unsafe.Pointer
 } 
 
+// GetEndPoints for application to fetch Endpoint associated with message bus config
+//
+// Returns:
+// 1. string
+//    Endpoints value in string
+// 2. error
+//    Error on failure,  nil on success 
 func (clientctx *ClientCfg) GetEndPoints() (string, error) {
 	endPoint, err:=  clientctx.getEndPoints()
 	if err != nil {
@@ -39,6 +46,12 @@ func (clientctx *ClientCfg) GetEndPoints() (string, error) {
 	return endPoint, nil
 }
 
+// GetMsgbusConfig to fetch client msgbus config for application to communicate over EIS message bus
+//
+// Returns:
+// 1. map[string]interface{}
+// 2. error
+//    Error on failure,  nil on success 
 func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	conf, err:= clientctx.getMsgbusConfig()
 	if err != nil {
@@ -51,6 +64,17 @@ func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
+// GetInterfaceValue fetch interface value for application to communicate over EIS message bus
+//
+// Parameters:
+// 1. key: string
+//    Key on which interface value is extracted
+//
+// Returns:
+// 1. Config value : ConfigValue object
+//    Interface value
+// 2. error
+//    Error on failure,  nil on success
 func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal, err:= clientctx.getInterfaceValue(key)
 	if err != nil {
@@ -59,6 +83,7 @@ func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 	return interfaceVal, nil
 }
 
+// To delete Client context
 func (clientctx *ClientCfg) Destroy() {
 	clientctx.destroyClient()
 }

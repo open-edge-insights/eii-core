@@ -86,19 +86,24 @@ int main(int argc, char** argv) {
     std::vector<std::string> newTopicsList;
 
     try {
+        // create ConfigMgr object
         g_sub_ch = new ConfigMgr();
     } catch (...) {
         LOG_ERROR_0("Exception occured");
         return -1;
     }
     // Testing getNumSubscribers()
+    // get number of subscriber interfaces
     int num_of_subscribers = g_sub_ch->getNumSubscribers();
     LOG_DEBUG("Total number of subscribers: %d", num_of_subscribers );
 
+    // get the subscriber object where server's interface 'Name' is 'default'
     // SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByName("default");
     // if(sub_ctx == NULL){
     //     LOG_ERROR_0("get subscriber by name failed");
     // }
+
+    // get 0th subscriber interface object  
     SubscriberCfg* sub_ctx = g_sub_ch->getSubscriberByIndex(0);
     if(sub_ctx == NULL){
         LOG_ERROR_0("get subscriber by index failed");
@@ -106,6 +111,7 @@ int main(int argc, char** argv) {
     }
 
     // Testing getEndpoint API
+    // get Endpoint of a subscriber interface
     std::string ep = sub_ctx->getEndpoint();
     if(ep.empty()){
         LOG_ERROR_0("get subscriber endpoints failed");
@@ -114,6 +120,7 @@ int main(int argc, char** argv) {
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
     // Testing getTopics API
+    // get topics from subscriber interface
     std::vector<std::string> topics = sub_ctx->getTopics();
     if (topics.empty()) {
         LOG_ERROR_0("Get topics failed");
@@ -125,14 +132,18 @@ int main(int argc, char** argv) {
     }
   
     // Testing getInterfaceValue()
+    // get config_value_t object to get the value of subscriber interface of key 'Name'
     config_value_t* interface_value = sub_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
         exit(-1);
     }
+
+    // get the value from object interface_value in string format
     LOG_INFO("interface value is %s", interface_value->body.string);
     config_value_destroy(interface_value);
 
+    // get subscriber msgbus config for application to communicate over EIS message bus
     sub_config = sub_ctx->getMsgBusConfig();
     if(sub_config == NULL){
         LOG_ERROR_0("get subscriber msgbus config failed");
@@ -142,6 +153,8 @@ int main(int argc, char** argv) {
     // Testing setTopics API
     newTopicsList.push_back("camera7_stream");
     newTopicsList.push_back("camera8_stream");
+
+    // Update new set of topic for subscriber's interface
     topicsSet = sub_ctx->setTopics(newTopicsList);
 
     g_msgbus_ctx = msgbus_initialize(sub_config);

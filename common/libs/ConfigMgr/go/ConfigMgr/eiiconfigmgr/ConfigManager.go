@@ -1099,6 +1099,12 @@ func getConfigVal(interfaceVal *C.config_val_t) (*ConfigValue, error) {
 }
 
 // Initialize a new config manager context.
+// 
+// Returns:
+// 1. ConfigMgr : ConfigMgr object
+//    ConfigManager instance
+// 2. error
+//    Error on failure,  nil on success
 func ConfigManager() (*ConfigMgr, error) {
 	// Fetching app_cfg object
 	appCfg := C.create_new_cfg_mr()
@@ -1131,6 +1137,12 @@ func ConfigManager() (*ConfigMgr, error) {
 	return config_mgr, nil
 }
 
+// Gets value from respective application's config
+// 
+// Returns:
+// 1. appConfig : map[string]interface{}
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 	appCfg := C.get_apps_config(ctx.ctx.cfgmgrCtx)
 	ctx.appConfig = appCfg
@@ -1153,6 +1165,13 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 	return jsonAppConfig, nil
 }
 
+// Get Applications name.
+// 
+// Returns:
+// 1. App name : string
+//    Applications name
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetAppName() (string, error) {
 	// Fetching app_name
 	cAppName := C.get_app_name(ctx.ctx.cfgmgrCtx)
@@ -1165,6 +1184,13 @@ func (ctx *ConfigMgr) GetAppName() (string, error) {
 	return goAppName, nil
 }
 
+// To check if application running in dev_mode or prod_mode
+// 
+// Returns:
+// 1. bool value : bool
+//    true is dev_mode, false if prod_mode
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) IsDevMode() (bool, error) {
 	// Fetching dev mode
 	devMode := C.is_dev_mode(ctx.ctx.cfgmgrCtx)
@@ -1296,30 +1322,65 @@ func (watchCtx *WatchObj) WatchInterface(callbackFunc goCallbacktype, user_data 
 	return
 }
 
+// Get number of publishers in Publisher array in interface
+// 
+// Returns:
+// 1. num_of_publishers : int
+//    Number of publishers
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumPublishers() (int, error) {
 	// Fetching dev mode
 	numPublihers := C.get_num_publihers(ctx.ctx.cfgmgrCtx)
 	return int(numPublihers), nil
 }
 
+// Get number of subscribers in Subscriber array in interface
+// 
+// Returns:
+// 1. num_of_subscribers : int
+//    Number of subscribers
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumSubscribers() (int, error) {
 	// Fetching dev mode
 	numSubscribers := C.get_num_subscribers(ctx.ctx.cfgmgrCtx)
 	return int(numSubscribers), nil
 }
 
+// Get number of servers in Server array in interface
+// 
+// Returns:
+// 1. num_of_servers : int
+//    Number of servers
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumServers() (int, error) {
 	// Fetching dev mode
 	numServers := C.get_num_servers(ctx.ctx.cfgmgrCtx)
 	return int(numServers), nil
 }
 
+// Get number of clients in Client array in interface
+// 
+// Returns:
+// 1. num_of_client : int
+//    Number of client
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumClients() (int, error) {
 	// Fetching dev mode
 	num_clients := C.get_num_clients(ctx.ctx.cfgmgrCtx)
 	return int(num_clients), nil
 }
 
+// Get the respective publisher based on the name
+// 
+// Returns:
+// 1. PublisherCfg : PublisherCfg obj
+//    PublisherCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1332,6 +1393,13 @@ func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 	return pubCtx, nil
 }
 
+// Get the respective publisher based on the index
+// 
+// Returns:
+// 1. PublisherCfg : PublisherCfg obj
+//    PublisherCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
 	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1344,6 +1412,13 @@ func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 	return pubCtx, nil
 }
 
+// Get the respective subscriber based on the name
+// 
+// Returns:
+// 1. SubscriberCfg : SubscriberCfg obj
+//    SubscriberCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1356,6 +1431,13 @@ func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 	return subCtx, nil
 }
 
+// Get the respective subscriber based on the index
+// 
+// Returns:
+// 1. SubscriberCfg : SubscriberCfg obj
+//    SubscriberCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
 	subCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1368,6 +1450,13 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	return subCtx, nil
 }
 
+// Get the respective server based on the name
+// 
+// Returns:
+// 1. ServerCfg : ServerCfg obj
+//    ServerCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1380,6 +1469,13 @@ func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	return serverCtx, nil
 }
 
+// Get the respective server based on the index
+// 
+// Returns:
+// 1. ServerCfg : ServerCfg obj
+//    ServerCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
 	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1392,6 +1488,13 @@ func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	return serverCtx, nil
 }
 
+// Get the respective client based on the name
+// 
+// Returns:
+// 1. ClientCfg : ClientCfg obj
+//    ClientCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
 	clientCtx.appCfg = ctx.ctx.cfgmgrCtx
@@ -1401,6 +1504,13 @@ func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 	return clientCtx, nil
 }
 
+// Get the respective client based on the index
+// 
+// Returns:
+// 1. ClientCfg : ClientCfg obj
+//    ClientCfg instance
+// 2. error
+//    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetClientByIndex(index int) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
 	clientCtx.appCfg = ctx.ctx.cfgmgrCtx

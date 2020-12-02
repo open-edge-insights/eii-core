@@ -72,7 +72,7 @@ cdef class Publisher:
             pub_cfg_config_destroy(self.pub_cfg)
 
     def get_msgbus_config(self):
-        """Calling the base C get_msgbus_config() API
+        """Constructs message bus config for Publisher
 
         :return: Messagebus config
         :rtype: dict
@@ -96,7 +96,7 @@ cdef class Publisher:
             raise ex
 
     def get_interface_value(self, key):
-        """Calling the base C cfgmgr_get_interface_value_pub() API
+        """To get particular interface value from Publisher interface config
 
         :param key: Key on which interface value will be extracted
         :type: string
@@ -123,7 +123,7 @@ cdef class Publisher:
             raise ex
 
     def get_endpoint(self):
-        """Calling the base C cfgmgr_get_endpoint_pub() API
+        """To get endpoint for particular publisher from its interface config
 
         :return: Endpoint config
         :rtype: string
@@ -162,7 +162,7 @@ cdef class Publisher:
 
         
     def get_topics(self):
-        """ Calling the base C cfgmgr_get_topics_pub() API
+        """To get topics from publisher interface config on which data will be published
         :return: List of topics
         :rtype: List
         """
@@ -198,7 +198,7 @@ cdef class Publisher:
 
 
     def get_allowed_clients(self):
-        """Calling the base C get_allowed_clients() API
+        """To get the names of the clients allowed to get publishers data
         
         :return: List of clients
         :rtype: List
@@ -235,7 +235,7 @@ cdef class Publisher:
 
 
     def set_topics(self, topics_list):
-        """Calling the base C cfgmgr_set_topics_pub() API
+        """To set new topics for publisher in publishers interface config
 
         :return: whether topic is set
         :rtype: int

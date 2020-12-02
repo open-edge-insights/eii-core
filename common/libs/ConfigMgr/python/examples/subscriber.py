@@ -32,22 +32,34 @@ subscriber = None
 
 try:
     os.environ["AppName"] = "VideoAnalytics"
+
+    # create ConfigMgr object
     ctx = cfg.ConfigMgr()
 
     print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
 
+    # get the subscriber object where server's interface 'Name' is 'default'
     sub_ctx = ctx.get_subscriber_by_name("default")
+
+    # get 0th subscriber interface object  
     #sub_ctx = ctx.get_subscriber_by_index(0)
+
+    # get subscriber msgbus config for application to communicate over EIS message bus
     config = sub_ctx.get_msgbus_config()
 
+    # get the value of subscriber interface of key 'Name'
     interface_value = sub_ctx.get_interface_value("Name")
     print('[INFO] Obtained interface_value is {}'.format(interface_value))
 
+    # get topics from subscriber interface
     topics = sub_ctx.get_topics()
     print('[INFO] Obtained topics is {}'.format(topics))
 
+    # get Endpoint of a subscriber interface
     print('[INFO] Obtained endpoint is {}'.format(sub_ctx.get_endpoint()))
     new_topics = ["camera2_stream_results", "camera3_stream_results", "camera4_stream_results"]
+
+    # Update new set of topic for subscriber's interface
     print('[INFO] Topics set {}'.format(sub_ctx.set_topics(new_topics)))
     print('[INFO] Obtained new topics is {}'.format(sub_ctx.get_topics()))
 
