@@ -31,7 +31,13 @@ type PublisherCfg struct {
 	msgBusCfg unsafe.Pointer
 }
 
-
+// GetEndPoints for application to fetch Endpoint associated with message bus config
+//
+// Returns:
+// 1. string
+//    Endpoints value in string
+// 2. error
+//    Error on failure,  nil on success
 func (pubctx *PublisherCfg) GetEndPoints() (string, error) {
 	endPoint, err:=  pubctx.getEndPoints()
 	if err != nil {
@@ -40,6 +46,13 @@ func (pubctx *PublisherCfg) GetEndPoints() (string, error) {
 	return endPoint, nil
 }
 
+// GetTopics gets topics from publisher interface config on which data will be published
+//
+// Returns:
+// 1. topics : string array
+//    array of topics 
+// 2. error
+//    Error on failure,  nil on success
 func (pubctx *PublisherCfg) GetTopics() ([]string, error) {
 	topics, err:=  pubctx.getTopics()
 	if err != nil {
@@ -48,6 +61,13 @@ func (pubctx *PublisherCfg) GetTopics() ([]string, error) {
 	return topics, nil
 }
 
+// GetAllowedClients gets the names of the clients allowed to get publishers data
+//
+// Returns:
+// 1. allowed_clients : string array
+//    array of allowed clients 
+// 2. error
+//    Error on failure,  nil on success
 func (pubctx *PublisherCfg) GetAllowedClients() ([]string, error) {
 	allowedClients, err:=  pubctx.getAllowedClients()
 	if err != nil {
@@ -56,6 +76,12 @@ func (pubctx *PublisherCfg) GetAllowedClients() ([]string, error) {
 	return allowedClients, nil
 }
 
+// GetMsgbusConfig to fetch client msgbus config for application to communicate over EIS message bus
+//
+// Returns:
+// 1. map[string]interface{}
+// 2. error
+//    Error on failure,  nil on success 
 func (pubctx *PublisherCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	conf, err:= pubctx.getMsgbusConfig()
 	if err != nil {
@@ -69,10 +95,29 @@ func (pubctx *PublisherCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
+// SetTopics sets new topic for publisher in publishers interface config
+// Parameters:
+// 1. topics : string array
+//    array of topics that needs to be set
+//
+// Returns:
+// 1. bool value : bool
+//    true if success, false on failure
 func (pubctx *PublisherCfg) SetTopics(topics []string) bool {
 	return pubctx.setTopics(topics)
 }
 
+// GetInterfaceValue fetch interface value for application to communicate over EIS message bus
+//
+// Parameters:
+// 1. key: string
+//    Key on which interface value is extracted
+//
+// Returns:
+// 1. Config value : ConfigValue object
+//    Interface value
+// 2. error
+//    Error on failure,  nil on success
 func (pubctx *PublisherCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal, err:= pubctx.getInterfaceValue(key)
 	if err != nil {
@@ -81,6 +126,7 @@ func (pubctx *PublisherCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 	return interfaceVal, nil
 }
 
+// To delete Publisher context
 func (pubctx *PublisherCfg) Destroy() {
 	pubctx.destroyPublisher()
 }

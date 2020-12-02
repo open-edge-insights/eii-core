@@ -18,18 +18,19 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+/**
+ * @file
+ * @brief Interface between kv_store_plugin and etcd_client
+ */
+
 #include <eis/utils/logger.h>
 #include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
 
 #define ETCD_KV_STORE   "etcd_kv_store"
 
 /**
- * Create etcd client to store key-value for the kv_store_plugin
- *
- * @param config - Configuration
- * @return kv_store_client instance, or NULL
+ * etcd_config object
  */
-
 typedef struct {
     char *hostname;
     char *port;
@@ -38,6 +39,18 @@ typedef struct {
     char *ca_file;
 } etcd_config_t;
 
-
+/**
+ * Extract config values, create kv_store_client object based on config and
+ * fill kv_store_client's function pointers and kv_store_config which internally
+ * points to @c etcd_config_t
+ * This function would be called by kv_store_plugin's create_kv_client() internally
+ * @param config - Configuration object
+ * @return kv_store_client instance, or NULL
+ */
 kv_store_client_t* create_etcd_client(config_t* config);
+
+/**
+ * Free etcd_config_t and resources held by kv_store_client object
+ @param kv_store_client - @c kv_store_client_t object
+ */
 void etcd_values_destroy(kv_store_client_t* kv_store_client);

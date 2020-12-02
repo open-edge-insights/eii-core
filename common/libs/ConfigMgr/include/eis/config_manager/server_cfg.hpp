@@ -53,20 +53,19 @@ namespace eis {
                 /**
                 * ServerCfg Constructor
                 * @param server_config - The config associated with a server
+                * @param app_cfg       - app_cfg_t pointer
                 */
                 explicit ServerCfg(server_cfg_t* serv_cfg, app_cfg_t* app_cfg);
 
                 /**
-                 * Overridden base class method to fetch msgbus server configuration
-                 * for application to communicate over EIS message bus
+                 * Constructs message bus config for Server
                  * @return config_t* - On Success, JSON msg bus server config of type config_t
                  *                   - On Failure, returns NULL
                  */
                 config_t* getMsgBusConfig() override;
 
                 /**
-                 * Overridden base class method to fetch interface value
-                 * for application to communicate over EIS message bus
+                 * To get particular interface value from Server interface config
                  * @param key - Key on which interface value is extracted.
                  * @return config_value_t* - On Success, config_value_t object
                  *                         - On Failure, returns NULL
@@ -74,14 +73,14 @@ namespace eis {
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**
-                 * getEndpoint for application to fetch Endpoint associated with message bus config
+                 * To get endpoint for particular server from its interface config
                  * @return std::string - On Success returns Endpoint of server config
                  *                     - On Failure returns empty string
                  */
                 std::string getEndpoint() override;
 
                 /**
-                 * getAllowedClients for application to list of allowed clients associated with message bus config
+                 * To get the names of the clients allowed to connect to server
                  * @return vector<string> - On Success, returns Allowed client of server config
                  *                        - On Failure, returns empty vector
                  */

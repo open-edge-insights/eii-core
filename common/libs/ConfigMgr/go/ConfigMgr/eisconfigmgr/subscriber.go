@@ -31,6 +31,13 @@ type SubscriberCfg struct {
 	msgBusCfg unsafe.Pointer
 }
 
+// GetEndPoints for application to fetch Endpoint associated with message bus config
+//
+// Returns:
+// 1. string
+//    Endpoints value in string
+// 2. error
+//    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetEndPoints() (string, error) {
 	endPoint, err:=  subctx.getEndPoints()
 	if err != nil {
@@ -39,7 +46,12 @@ func (subctx *SubscriberCfg) GetEndPoints() (string, error) {
 	return endPoint, nil
 }
 
-
+// GetTopics gets topics from subscriber interface config on which subscriber receives data
+// Returns:
+// 1. topics : string array
+//    array of topics 
+// 2. error
+//    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetTopics() ([]string, error) {	 
 	topics, err:=  subctx.getTopics()
 	if err != nil {
@@ -48,6 +60,12 @@ func (subctx *SubscriberCfg) GetTopics() ([]string, error) {
 	return topics, nil
 }
 
+// GetMsgbusConfig to fetch client msgbus config for application to communicate over EIS message bus
+//
+// Returns:
+// 1. map[string]interface{}
+// 2. error
+//    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	conf, err := subctx.getMsgbusConfig()
 	if err != nil {
@@ -60,10 +78,29 @@ func (subctx *SubscriberCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
+// SetTopics sets new topic for subscriber in subscribers interface config
+// Parameters:
+// 1. topics : string array
+//    array of topics that needs to be set
+//
+// Returns:
+// 1. bool value : bool
+//    true if success, false on failure
 func (subctx *SubscriberCfg) SetTopics(topics []string) bool {
 	return subctx.setTopics(topics)
 }
 
+// GetInterfaceValue fetch interface value for application to communicate over EIS message bus
+//
+// Parameters:
+// 1. key: string
+//    Key on which interface value is extracted
+//
+// Returns:
+// 1. Config value : ConfigValue object
+//    Interface value
+// 2. error
+//    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal, err:= subctx.getInterfaceValue(key)
 	if err != nil {
@@ -72,6 +109,7 @@ func (subctx *SubscriberCfg) GetInterfaceValue(key string) (*ConfigValue, error)
 	return interfaceVal, nil
 }
 
+// To delete Subscriber context
 func (subctx *SubscriberCfg) Destroy() {
 	subctx.destroySubscriber()
 }

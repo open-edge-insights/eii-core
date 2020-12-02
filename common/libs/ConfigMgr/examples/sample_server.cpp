@@ -88,19 +88,24 @@ int main() {
     char* name = NULL;
 
     try {
+        // create ConfigMgr object
         g_config_mgr = new ConfigMgr();
     } catch (...) {
         LOG_ERROR_0("Exception occured");
         return -1;
     }
 
+    // get number of server interfaces
     int num_of_servers = g_config_mgr->getNumServers();
     LOG_DEBUG("Total number of servers : %d", num_of_servers);
 
+    // get 0th server interface object
     g_server_ctx = g_config_mgr->getServerByIndex(0);
+
+    // get the server object where server's interface 'Name' is 'default' 
     //g_server_ctx = g_config_mgr->getServerByName("default");
 
-    
+    // get Endpoint of a server interface
     std::string ep = g_server_ctx->getEndpoint();
     if (ep.empty()){
         LOG_ERROR_0(" Get endpoint failed");
@@ -109,6 +114,7 @@ int main() {
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
     //Testing getAllowedClients API
+    // get 'AllowedClients' from server interface
     clients = g_server_ctx->getAllowedClients();
     if (clients.empty()){
         LOG_ERROR_0(" Get allowed clients failed");
@@ -119,15 +125,18 @@ int main() {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
     }
 
-    
+    // get config_value_t object to get the value of client interface of key 'Name'
     interface_value = g_server_ctx->getInterfaceValue("Name");
     if (interface_value == NULL || interface_value->type != CVT_STRING){
         LOG_ERROR_0("Failed to get expected interface value");
         exit(-1);
     }
+
+    // get the value from object interface_value in string format
     name = interface_value->body.string;
     LOG_INFO("interface value is %s", name);
 
+    // get server msgbus config for application to communicate over EIS message bus
     config = g_server_ctx->getMsgBusConfig();
     if(config == NULL){
         LOG_ERROR_0(" Get message bus config failed");

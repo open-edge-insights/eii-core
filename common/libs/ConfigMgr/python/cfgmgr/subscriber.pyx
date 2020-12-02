@@ -72,7 +72,7 @@ cdef class Subscriber:
             sub_cfg_config_destroy(self.sub_cfg)
 
     def get_msgbus_config(self):
-        """Calling the base C cfgmgr_get_msgbus_config_sub() API
+        """Constructs message bus config for Subscriber
 
         :return: Messagebus config
         :rtype: dict
@@ -96,7 +96,7 @@ cdef class Subscriber:
             raise ex
 
     def get_interface_value(self, key):
-        """Calling the base C cfgmgr_get_interface_value_sub() API
+        """To get particular interface value from Subscriber interface config
 
         :param key: Key on which interface value will be extracted
         :type: string
@@ -122,7 +122,7 @@ cdef class Subscriber:
             raise ex
 
     def get_endpoint(self):
-        """Calling the base C cfgmgr_get_endpoint_sub() API
+        """To get endpoint for particular subscriber from its interface config
 
         :return: Endpoint config
         :rtype: string
@@ -160,7 +160,7 @@ cdef class Subscriber:
             raise ex
 
     def get_topics(self):
-        """Calling the base C cfgmgr_get_topics_sub() API
+        """To gets topics from subscriber interface config on which subscriber receives data
         
         :return: List of topics
         :rtype: List
@@ -195,7 +195,7 @@ cdef class Subscriber:
             raise ex
 
     def set_topics(self, topics_list):
-        """Calling the base C cfgmgr_set_topics_sub() API
+        """To sets new topics for subscriber in subscribers interface config
 
         :return: whether topic is set
         :rtype: int

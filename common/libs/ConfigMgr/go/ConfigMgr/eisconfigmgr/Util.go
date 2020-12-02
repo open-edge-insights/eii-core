@@ -82,11 +82,19 @@ func eval (e Expr) (r Expr) {
     return
 }
 
+// strcut to define config type and values
 type ConfigValue struct{
 	Type ValType
 	Value Expr
 }
 
+// GetInteger gets integer value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. integer value : integer
+//    returns integer value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetInteger() (integer, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == Int) {
@@ -95,6 +103,13 @@ func (cfg ConfigValue) GetInteger() (integer, error) {
 	return -1, errors.New("Value in not int type")
 }
 
+// GetFloat gets float value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. float value : float
+//    returns float value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetFloat() (float, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == Float32) {
@@ -103,6 +118,13 @@ func (cfg ConfigValue) GetFloat() (float, error) {
 	return -1, errors.New("Value in not float type")
 }
 
+// GetString gets string value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. string value : string
+//    returns string value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetString() (string, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == String) {
@@ -111,6 +133,13 @@ func (cfg ConfigValue) GetString() (string, error) {
 	return "", errors.New("Value in not string type")
 }
 
+// GetBool gets boolean value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. bool value : bool
+//    returns bool value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetBool() (boolean, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == Boolean) {
@@ -119,6 +148,13 @@ func (cfg ConfigValue) GetBool() (boolean, error) {
 	return false, errors.New("Value in not bool type")
 }
 
+// GetJson gets json value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. json value : object
+//    returns json value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetJson() (object, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == Json) {
@@ -127,6 +163,13 @@ func (cfg ConfigValue) GetJson() (object, error) {
 	return nil, errors.New("Value in not json type")
 }
 
+// GetArray gets array value from the value received from GetInterfaceValue
+//
+// Returns:
+// 1. array value : array
+//    returns array value
+// 2. error
+//    Error on failure,  nil on success
 func (cfg ConfigValue) GetArray() (array, error) {
 	var x interface{} = cfg.Value
 	if(cfg.Type == Array) {

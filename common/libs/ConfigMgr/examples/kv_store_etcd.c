@@ -41,13 +41,16 @@ void watch_prefix_cb(char *key, char *value, void *user_data){
 int main(int argc, char** argv) { 
     set_log_level(LOG_LVL_INFO);
     
+    // construct config out of json
     config_t* config = json_config_new(argv[1]);
     kv_store_client_t* kv_store_client = NULL;
     void *handle = NULL;
 
+    // create KV_Store client instance
     kv_store_client = create_kv_client(config);
 
     if (kv_store_client != NULL){
+        // get kv_store_client handle
         handle = kv_store_client->init(kv_store_client);
     }
 
@@ -55,6 +58,7 @@ int main(int argc, char** argv) {
         return -1;
     char *key_prefix = "/Video";
 
+    // get all values prifixed with the key '/Video'
     config_value_t* values = kv_store_client->get_prefix(handle, key_prefix);
 
     if(values == NULL) {
@@ -67,6 +71,8 @@ int main(int argc, char** argv) {
         }
         config_value_destroy(values);
     }
+
+    // get value of the key '/VideoIngestion/config'
     char* val = kv_store_client->get(handle, "/VideoIngestion/config");
 
     if (val != NULL)
@@ -80,10 +86,14 @@ int main(int argc, char** argv) {
         printf("put is successful\n");
     }
 
+    // watch the key '/test' and register watch_cb callback function
     kv_store_client->watch(handle, "/test", watch_cb, NULL);
+
+    // watch the prefixed key '/prefix' and register watch_prefix_cb callback function
     kv_store_client->watch_prefix(handle, "/prefix", watch_prefix_cb, (void*)"hello_user_data");
     sleep(10);
 
+    // free kv_store_client instance
     kv_client_free(kv_store_client);
     return 0;
 }

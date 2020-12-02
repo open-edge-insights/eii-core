@@ -46,15 +46,23 @@ int main() {
     set_log_level(LOG_LVL_DEBUG);
 
     setenv("AppName","VideoIngestion", 1);
+
+    // create ConfigMgr object
     ConfigMgr* config_mgr = new ConfigMgr();
+
+    // get AppCfg's obejct to get application's config('/<appname>/config')
     AppCfg* cfg = config_mgr->getAppConfig();
 
     LOG_INFO_0("========================================\n");
+
+    // get value of 'max_workers' from config('/<appname>/config')
     config_value_t* app_config = cfg->getConfigValue("max_workers");
     if (app_config->type != CVT_INTEGER) {
         LOG_ERROR_0("Max_worker is not integer");
         exit(1);
     }
+
+    // get the value of app_config's in int format
     int max_workers = app_config->body.integer;
     LOG_INFO("max_workers value is %d\n", max_workers);
 
@@ -77,10 +85,15 @@ int main() {
     type = udf_type->body.string;
     LOG_INFO("udf_type value is %s\n", type);
 
+    // Watch the key "/<appname>/config" for any changes,
+    // watch_config_example function will be called with updated value
     bool ret = cfg->watchConfig(watch_config_example, (void*)1);
     if (!ret) {
         LOG_ERROR_0("Failed to register callback");
     }
+
+    // Watch the key "/<appname>/interface" for any changes,
+    // watch_config_example function will be called with updated value
     ret = cfg->watchInterface(watch_interface_example, (void*)2);
     if (!ret) {
         LOG_ERROR_0("Failed to register callback");

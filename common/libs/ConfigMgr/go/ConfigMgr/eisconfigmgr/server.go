@@ -31,6 +31,13 @@ type ServerCfg struct {
 	msgBusCfg unsafe.Pointer
 }
 
+// GetEndPoints for application to fetch Endpoint associated with message bus config
+//
+// Returns:
+// 1. string
+//    Endpoints value in string
+// 2. error
+//    Error on failure,  nil on success
 func (serverctx *ServerCfg) GetEndPoints() (string, error) {
 	endPoint, err:=  serverctx.getEndPoints()
 	if err != nil {
@@ -39,6 +46,13 @@ func (serverctx *ServerCfg) GetEndPoints() (string, error) {
 	return endPoint, nil
 }
 
+// GetAllowedClients gets the names of the clients allowed to connect to server
+//
+// Returns:
+// 1. allowed_clients : string array
+//    array of allowed clients 
+// 2. error
+//    Error on failure,  nil on success
 func (serverctx *ServerCfg) GetAllowedClients() ([]string, error) {
 	allowedClients, err:=  serverctx.getAllowedClients()
 	if err != nil {
@@ -47,6 +61,12 @@ func (serverctx *ServerCfg) GetAllowedClients() ([]string, error) {
 	return allowedClients, nil
 }
 
+// GetMsgbusConfig to fetch client msgbus config for application to communicate over EIS message bus
+//
+// Returns:
+// 1. map[string]interface{}
+// 2. error
+//    Error on failure,  nil on success 
 func (serverctx *ServerCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	conf, err:= serverctx.getMsgbusConfig()
 	if err != nil {
@@ -59,6 +79,17 @@ func (serverctx *ServerCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	return config, nil
 }
 
+// GetInterfaceValue fetch interface value for application to communicate over EIS message bus
+//
+// Parameters:
+// 1. key: string
+//    Key on which interface value is extracted
+//
+// Returns:
+// 1. Config value : ConfigValue object
+//    Interface value
+// 2. error
+//    Error on failure,  nil on success
 func (serverctx *ServerCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
 	interfaceVal, err:= serverctx.getInterfaceValue(key)
 	if err != nil {
@@ -67,6 +98,7 @@ func (serverctx *ServerCfg) GetInterfaceValue(key string) (*ConfigValue, error) 
 	return interfaceVal, nil
 }
 
+// To delete server context
 func (serverctx *ServerCfg) Destroy() {
 	serverctx.destroyServer()
 }

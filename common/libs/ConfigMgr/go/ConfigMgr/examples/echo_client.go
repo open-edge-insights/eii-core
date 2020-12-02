@@ -34,14 +34,17 @@ import (
 func main() {
 	os.Setenv("AppName", "VideoAnalytics")
 
+	// Initialize ConfigManager
 	configMgr, err := eiscfgmgr.ConfigManager()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager context
 	defer configMgr.Destroy()
 
+	// Check if service is running in devmode
 	devMode, _ := configMgr.IsDevMode()
 	if devMode {
 		fmt.Printf("Running in DEV mode\n")
@@ -49,6 +52,7 @@ func main() {
 		fmt.Printf("Running in PROD mode\n")
 	}
 
+	// Get applictaion's AppName
 	appName, err := configMgr.GetAppName()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -56,18 +60,24 @@ func main() {
 	}
 	fmt.Printf("AppName : %v\n", appName)
 
+	// Get number of clients in the Client interface
 	numOfClients, _ := configMgr.GetNumClients()
 	fmt.Printf("Clients : %v\n", numOfClients)
 
+	// Get the client object where client's interface 'Name' is 'default'
 	clientCtx, err := configMgr.GetClientByName("default")
+
+	// Get 0th client interface object
 	// clientCtx, err := configMgr.GetClientByIndex(0)
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
 	}
 
+	// Delete ConfigManager's client context
 	defer clientCtx.Destroy()
 
+	// Get Endpoint of a client interface
 	endpoint, err := clientCtx.GetEndPoints()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -75,6 +85,7 @@ func main() {
 	}
 	fmt.Printf("Client endpoint:%s", endpoint)
 
+	// Get the object to get the value of client interface of key 'Name'
 	interfaceVal, err := clientCtx.GetInterfaceValue("Name")
 	if err != nil {
 		fmt.Printf("Error to GetInterfaceValue: %v\n", err)
@@ -82,12 +93,15 @@ func main() {
 	}
 
 	fmt.Println("Interface Value:", interfaceVal.Value)
+
+	// Get the value from object interfaceVal in string format if the value is string
 	serviceName, err := interfaceVal.GetString()
 	if err != nil {
 		fmt.Printf("Error to GetString value %v\n", err)
 		return
 	}
 
+	// get client msgbus config for application to communicate over EIS message bus
 	config, err := clientCtx.GetMsgbusConfig()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
@@ -97,6 +111,8 @@ func main() {
 	fmt.Printf("GetMsgbusConfig:%v", config)
 
 	fmt.Println("-- Initializing message bus context")
+
+	// Initialize msgbus context by passing msgbus config
 	client, err := eismsgbus.NewMsgbusClient(config)
 	if err != nil {
 		fmt.Printf("-- Error initializing message bus context: %v\n", err)

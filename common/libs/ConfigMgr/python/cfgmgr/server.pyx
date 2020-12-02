@@ -71,7 +71,7 @@ cdef class Server:
             server_cfg_config_destroy(self.server_cfg)
 
     def get_msgbus_config(self):
-        """Calling the base C cfgmgr_get_msgbus_config_server() API
+        """Constructs message bus config for Server
 
         :return: Messagebus config
         :rtype: dict
@@ -95,7 +95,7 @@ cdef class Server:
             raise ex
 
     def get_interface_value(self, key):
-        """Calling the base C cfgmgr_get_interface_value_server() API
+        """To get particular interface value from Server interface config
 
         :param key: Key on which interface value will be extracted
         :type: string
@@ -121,7 +121,7 @@ cdef class Server:
             raise ex
 
     def get_endpoint(self):
-        """Calling the base C get_endpoint() API
+        """To get endpoint for particular server from its interface config
 
         :return: Endpoint config
         :rtype: string
@@ -159,7 +159,7 @@ cdef class Server:
             raise ex
 
     def get_allowed_clients(self):
-        """Calling the base C cfgmgr_get_allowed_clients_server() API
+        """To get the names of the clients allowed to connect to server
         
         :return: List of clients
         :rtype: List
