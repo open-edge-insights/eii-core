@@ -34,6 +34,7 @@ from jsonmerge import merge
 from jsonschema import validate
 import ruamel.yaml
 import io
+from ruamel.yaml.comments import CommentedMap
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 SCAN_DIR = ".."
@@ -246,15 +247,16 @@ def create_multi_subscribe_interface(head, temp, client_type):
     return temp
 
 
-def json_parser(file, args):
+def json_parser(app_list, args):
     """Generate etcd config by parsing through
        individual app configs
 
-    :param file: Path of json file
-    :type file: str
+    :param app_list: list of apps
+    :type app_list: list
     :param args: cli args
     :type args: argparse
     """
+
     # Fetching GlobalEnv config
     with open('./common_config.json', "rb") as infile:
         data = {}
@@ -262,25 +264,8 @@ def json_parser(file, args):
         data['/GlobalEnv/'] = head
         config_json = data
 
-    # Fetching docker-compose.yml to retrieve required App dirs
-    with open(file, 'r') as compose_file:
-        data = ruamel.yaml.round_trip_load(compose_file, preserve_quotes=True)
-
-    app_list = []
-    # Replacing $PWD with relative path to EIS dir
-    for key in data['services']:
-        try:
-            rel_dir = data['services'][key]['build']['context'].replace(
-                '$PWD/..', '..')
-        except Exception:
-            # If build isn't found, use CONTEXT set in the environment
-            rel_dir = data['services'][key]['environment']['CONTEXT'].replace(
-                '$PWD/..', '..')
-        app_list.append(rel_dir)
-
-    # Removing duplicates & unwanted dirs from app list
+    # Removing duplicates from app list
     app_list = list(dict.fromkeys(app_list))
-    app_list.remove(SCAN_DIR + '/common')
 
     # Creating benchmarking apps list to edit interfaces accordingly
     for x in override_apps_list:
@@ -381,13 +366,15 @@ def json_parser(file, args):
               eis_config_path))
 
 
-def create_multi_instance_csl_app_spec(app_spec_json, args):
+def create_multi_instance_csl_app_spec(app_spec_json, args, is_subscriber):
     """Method to generate csl boilerplate appspecs
 
     :param app_spec_json: appspec json
     :type app_spec_json: dict
     :param args: cli args
     :type args: argparse
+    :param is_subscriber: if app is in subscriber_list
+    :type is_subscriber: bool
     :return: list of duplicated csl appspecs
     :rtype: list
     """
@@ -399,59 +386,93 @@ def create_multi_instance_csl_app_spec(app_spec_json, args):
 
     # Generating boilerplate csl appspec
     new_list = []
-    for i in range(int(args.video_pipeline_instances)):
+    if not is_subscriber:
+        for i in range(num_multi_instances):
+            temp = copy.deepcopy(app_spec_json)
+            # Updating module name
+            app_name = re.sub(r'\d+', '', temp['Name'])
+            temp['Name'] = app_name + str(i+1)
+            temp['ExecutionEnv']['AppName'] = app_name + str(i+1)
+
+            # Updating ports & links
+            if 'Endpoints' in temp.keys():
+                for x in temp['Endpoints']:
+                    if 'Link' in x:
+                        x['Link'] = x['Link'] + '-' + str(i+1)
+                    if 'Port' in x:
+                        if '$' not in x['Port']:
+                            x['Port'] = str(int(x['Port']) + i)
+
+            # Append every appspec to list of appspecs
+            new_list.append(temp)
+    else:
+        # Maintaining a copy of the individual app_spec
+        # since runtime modifications are not allowed to json
         temp = copy.deepcopy(app_spec_json)
-        # Updating module name
-        app_name = re.sub(r'\d+', '', temp['Name'])
-        temp['Name'] = app_name + str(i+1)
-        temp['ExecutionEnv']['AppName'] = app_name + str(i+1)
-        # Updating PubTopics
-        if 'PubTopics' in temp['ExecutionEnv']:
-            temp['ExecutionEnv']['PubTopics'] = re.sub(r'\d+',
-                                                       str(i+1),
-                                                       temp['ExecutionEnv']
-                                                           ['PubTopics'])
-        # Updating SubTopics
-        if 'SubTopics' in temp['ExecutionEnv']:
-            temp['ExecutionEnv']['SubTopics'] = re.sub(r'\d+',
-                                                       str(i+1),
-                                                       temp['ExecutionEnv']
-                                                           ['SubTopics'])
-        # Updating individual topic configs
-        for k in list(temp['ExecutionEnv'].keys()):
-            if '_cfg' in k:
-                if bool(re.search(r'\d', k)):
-                    new_k = re.sub(r'\d+', str(i+1), k)
-                    temp['ExecutionEnv'][new_k] = temp['ExecutionEnv'][k]
-                    del temp['ExecutionEnv'][k]
-                else:
-                    new_k = k + str(i+1)
-                    temp['ExecutionEnv'][new_k] = temp['ExecutionEnv'][k]
-                    del temp['ExecutionEnv'][k]
-        # Updating Clients section & SubTopics AppNames
-        for x in bm_apps_list:
-            if 'Clients' in temp['ExecutionEnv']:
-                if x in temp['ExecutionEnv']['Clients']:
-                    temp['ExecutionEnv']['Clients'] =\
-                        temp['ExecutionEnv']['Clients'].replace(x,
-                                                                x + '1,' +
-                                                                x + str(i+1))
-            if 'SubTopics' in temp['ExecutionEnv']:
-                if x in temp['ExecutionEnv']['SubTopics']:
-                    temp['ExecutionEnv']['SubTopics'] =\
-                        temp['ExecutionEnv']['SubTopics'].replace(x,
-                                                                  x + str(i+1))
-
-        # Updating ports & links
+        # Updating ExecutionEnv variables
+        if 'ExecutionEnv' in temp.keys():
+            # Updating ENDPOINT in ExecutionEnv
+            for x in list(temp['ExecutionEnv'].keys()):
+                # Pick SUBSCRIBER_*_ENDPOINT & CLIENT_*_ENDPOINT
+                # and check count('_') to ignore ETCD_ENDPOINT
+                if '_ENDPOINT' in x and x.count('_') > 1:
+                    # Check for ep.(.*).remoteaddress to find
+                    # endpoint link name
+                    ep_result = re.search('ep.(.*).remoteaddress', temp['ExecutionEnv'][x])
+                    ep_value = ep_result.group(1)
+                    # Fetch Endpoint name of interface
+                    ep_name = x.split('_ENDPOINT')[0].split('_')[1]
+                    for i in range(num_multi_instances):
+                        # Update ENDPOINT keys
+                        ep_key = x.split('_ENDPOINT')[0].split('_')[1]
+                        if bool(re.search(r'\d', ep_key)):
+                            ep_key = re.sub(r'\d+', str(i+1),
+                                                    ep_key)
+                        else:
+                            ep_key = ep_key + str(i+1)
+                        # Update ENDPOINT values
+                        if bool(re.search(r'\d', ep_value)):
+                            ep_value = re.sub(r'\d+', str(i+1),
+                                                    ep_value)
+                        else:
+                            ep_value = ep_value + str(i+1)
+                        # Add updates key, value pairs to ExecutionEnv
+                        temp['ExecutionEnv']['SUBSCRIBER_' + ep_key + '_ENDPOINT'] = \
+                            "${ep."+ep_value+".remoteaddress}:${ep."+ ep_value +".remoteport}"
+                    # Delete existing SUBSCRIBER endpoint
+                    if 'SUBSCRIBER_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
+                        del temp['ExecutionEnv']['SUBSCRIBER_'+ ep_name +'_ENDPOINT']
+                    # Delete existing CLIENT endpoint
+                    if 'CLIENT_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
+                        del temp['ExecutionEnv']['CLIENT_'+ ep_name +'_ENDPOINT']
+        # Update Endpoints section of app_spec
         if 'Endpoints' in temp.keys():
+            new_ep_list = []
             for x in temp['Endpoints']:
-                if 'Link' in x:
-                    x['Link'] = x['Link'] + '-' + str(i+1)
-                if 'Port' in x:
-                    if '$' not in x['Port']:
-                        x['Port'] = str(int(x['Port']) + i)
-
-        # Append every appspec to list of appspecs
+                # Ignore server Endpoints
+                if x['Endtype'] == 'server':
+                    new_ep_list.append(x)
+                else:
+                    for i in range(num_multi_instances):
+                        y = copy.deepcopy(x)
+                        # Update Name in Endpoints
+                        if 'Name' in y:
+                            if bool(re.search(r'\d', y['Name'])):
+                                y['Name'] = re.sub(r'\d+', str(i+1),
+                                                y['Name'])
+                            else:
+                                y['Name'] = y['Name'] + str(i+1)
+                        # Update Link in Endpoints
+                        if 'Link' in y:
+                            if bool(re.search(r'\d', y['Link'])):
+                                y['Link'] = re.sub(r'\d+', '-' + str(i+1),
+                                                y['Link'])
+                            else:
+                                y['Link'] = y['Link'] + '-' + str(i+1)
+                        # Append updated Endpoints
+                        new_ep_list.append(y)
+            # Update main app_spec with updated Endpoints
+            temp['Endpoints'] = new_ep_list
         new_list.append(temp)
 
     return new_list
@@ -507,7 +528,10 @@ def csl_parser(app_list, args):
             head = json_file["Module"]
             # Generate boilerplate config for benchmark apps
             if num_multi_instances > 1 and app_name not in subscriber_list.keys():
-                data = create_multi_instance_csl_app_spec(head, args)
+                data = create_multi_instance_csl_app_spec(head, args, False)
+                csl_template["Modules"].extend(data)
+            elif num_multi_instances > 1 and app_name in subscriber_list.keys():
+                data = create_multi_instance_csl_app_spec(head, args, True)
                 csl_template["Modules"].extend(data)
             else:
                 csl_template["Modules"].append(head)
@@ -846,6 +870,127 @@ def multi_instance_k8s_deployment(yaml_dict, i):
     return yaml_dict
 
 
+def create_multi_subscribe_k8s_yml(k8s_path, dev_mode):
+    """Method to create multi subscribe instance k8s yml
+
+    :param k8s_path: path of yml dict
+    :type k8s_path: str
+    :param dev_mode: dev mode variable
+    :type dev_mode: bool
+    :return: multi subscribe instance k8s yml
+    :rtype: str
+    """
+    merged_yaml = ""
+    data = ""
+    with open(k8s_path) as yaml_file:
+        file_contents = yaml_file.read()
+        string_io_data = io.StringIO(file_contents)
+        # Create multi instance if app has both service & deployment section
+        if "---" in file_contents:
+            yaml_data_list = file_contents.split("---")
+            string_io_data_one = io.StringIO(yaml_data_list[0])
+            string_io_data = io.StringIO(yaml_data_list[1])
+            yaml_prod_srvc = ruamel.yaml.round_trip_load(string_io_data_one,
+                                                        preserve_quotes=True)
+            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
+                                                    preserve_quotes=True)
+
+            # dict to update service section
+            yaml_dict_srvc = dict()
+            for k, v in yaml_prod_srvc.items():
+                yaml_dict_srvc[k] = v
+
+            # dict to update deployment section
+            yaml_dict = dict()
+            for k, v in yaml_prod.items():
+                yaml_dict[k] = v
+
+            env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
+
+            for v in range(len(env_dict)):
+                # Update tcp ports section
+                if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
+                    # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
+                    if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
+                        for i in range(num_multi_instances):
+                            # Create a CommentedMap() to store updated values
+                            new_env_dict = CommentedMap()
+                            # Update ports
+                            port = env_dict[v]["value"].split(":")[-1]
+                            new_port = get_available_port(port, used_ports_dict["recv_ports"])
+                            # Update appname in endpoint
+                            appname = env_dict[v]["value"].split(":")[0]
+                            temp_value = env_dict[v]["value"].replace(port, new_port)
+                            new_env_dict["value"] = temp_value.replace(appname, appname + str(i+1))
+                            # Update endpoint name if it has a unique name
+                            if env_dict[v]["name"].count("_") > 1:
+                                ep_name = env_dict[v]["name"].split("_")[1]
+                                new_env_dict['name'] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
+                            # Append CommentedMap() to CommentedSeq()
+                            env_dict.append(new_env_dict)
+                        # Condition to remove recv_ports last few entries if multiple
+                        # subscribers are subcribing to same publisher
+                        used_ports_dict["recv_ports"] = \
+                            used_ports_dict["recv_ports"][:len(used_ports_dict["recv_ports"])-num_multi_instances]
+                        del env_dict[v]
+
+            # Merging deployment section updates
+            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
+            # Merging service section updates
+            kube_yml_srvc = ruamel.yaml.round_trip_dump(yaml_dict_srvc)
+            # Creating final k8s yml
+            data = kube_yml_srvc + "---\n" + kube_yaml
+        # Create multi instance if app has only deployment section
+        else:
+            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
+                                                    preserve_quotes=True)
+            # dict to update deployment section
+            yaml_dict = dict()
+            for k, v in yaml_prod.items():
+                yaml_dict[k] = v
+
+            env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
+
+            for v in range(len(env_dict)):
+                # Update tcp ports section
+                if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
+                    # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
+                    if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
+                        for i in range(num_multi_instances):
+                            # Create a CommentedMap() to store updated values
+                            new_env_dict = CommentedMap()
+                            # Update ports
+                            port = env_dict[v]["value"].split(":")[-1]
+                            new_port = get_available_port(port, used_ports_dict["recv_ports"])
+                            # Update appname in endpoint
+                            appname = env_dict[v]["value"].split(":")[0]
+                            temp_value = env_dict[v]["value"].replace(port, new_port)
+                            new_env_dict["value"] = temp_value.replace(appname, appname + str(i+1))
+                            # Update endpoint name if it has a unique name
+                            if env_dict[v]["name"].count("_") > 1:
+                                ep_name = env_dict[v]["name"].split("_")[1]
+                                new_env_dict['name'] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
+                            # Append CommentedMap() to CommentedSeq()
+                            env_dict.append(new_env_dict)
+                        # Condition to remove recv_ports last few entries if multiple
+                        # subscribers are subcribing to same publisher
+                        used_ports_dict["recv_ports"] = \
+                            used_ports_dict["recv_ports"][:len(used_ports_dict["recv_ports"])-num_multi_instances]
+                        del env_dict[v]
+
+            # Merging deployment section updates
+            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
+            # Creating final k8s yml
+            data = kube_yaml
+        # Updating yml based on dev_mode
+        if dev_mode:
+            merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
+        else:
+            merged_yaml = merged_yaml + "---\n" + data
+
+    return merged_yaml
+
+
 def create_multi_instance_k8s_yml(k8s_path, dev_mode, i):
     """Method to create multi instance k8s yml
 
@@ -955,17 +1100,23 @@ def k8s_yaml_merger(app_list, dev_mode, args):
     """
     app_list.extend(override_k8s_apps_list)
     merged_yaml = ""
-    # Iterate through & create multi instance k8s yml
-    # for apps having override directory
+    # Iterate through app_list & merge k8s yaml
+    # and create multi instance yaml if multi
+    # instance is required
     for kube_yaml in app_list:
         app_name = kube_yaml.split("/")[-2]
         if args.override_directory is not None:
             if args.override_directory in kube_yaml:
                 app_name = kube_yaml.split("/")[-3]
+        # Generating multi instance for Publishers/Servers
         if num_multi_instances > 1 and app_name not in subscriber_list.keys():
             for i in range(num_multi_instances):
                 multi_instance_yml = create_multi_instance_k8s_yml(kube_yaml, dev_mode, i)
                 merged_yaml = merged_yaml + "---\n" + multi_instance_yml
+        # Generating multi instance for Subscribers/Clients
+        elif num_multi_instances > 1 and app_name in subscriber_list.keys():
+            multi_instance_yml = create_multi_subscribe_k8s_yml(kube_yaml, dev_mode)
+            merged_yaml = merged_yaml + "---\n" + multi_instance_yml
         else:
             with open(kube_yaml) as yaml_file:
                 data = yaml_file.read()
@@ -974,15 +1125,6 @@ def k8s_yaml_merger(app_list, dev_mode, args):
                 else:
                     merged_yaml = merged_yaml + "---\n" + data
 
-
-    # Iterate through app_list & merge k8s yaml
-    for kube_yaml in app_list:
-        with open(kube_yaml) as yaml_file:
-            data = yaml_file.read()
-            if dev_mode:
-                merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
-            else:
-                merged_yaml = merged_yaml + "---\n" + data
     k8s_service_yaml = './k8s/eis-k8s-deploy.yml'
     with open(k8s_service_yaml, 'w') as final_yaml:
         final_yaml.write(merged_yaml)
@@ -1040,79 +1182,12 @@ def create_multi_instance_yml_dict(data, i):
                         v['secrets'].insert(2, new_key)
             # Update all env key, value pairs of yml
             elif k2 == 'environment':
-                # Update publisher config in eis_builder_cfg
-                for k4, v4 in list(v['environment'].items()):
-                    if k4 == 'AppName':
-                        app_name = v4
-                    # Add cfg of all publishers to eis_builder_cfg
-                    if k4 == 'PubTopics':
-                        if app_name in eis_builder_cfg[
-                           'pub_endpoint_cfg'].keys():
-                            eis_builder_cfg['pub_endpoint_cfg'][app_name] = \
-                                {v4: v['environment'][v4 + '_cfg']}
-                # Add cfg of all publishers to eis_builder_cfg
-                for k4, v4 in list(v['environment'].items()):
-                    # Add SubTopics is not available in subscribers
-                    # update SubTopics & stream cfg from publisher cfg
-                    if 'SubTopics' not in dict(v['environment']).keys() and\
-                       app_name in eis_builder_cfg['subscriber_list'].keys():
-                        for cfg_val in eis_builder_cfg[
-                                'pub_endpoint_cfg'].keys():
-                            if eis_builder_cfg[
-                                    'pub_endpoint_cfg'][cfg_val] != {}:
-                                for k5, v5 in eis_builder_cfg[
-                                        'pub_endpoint_cfg'][cfg_val].items():
-                                    v['environment']['SubTopics'] =\
-                                        cfg_val + '/' + k5
-                                    v['environment'][k5 + '_cfg'] = v5
                 for k4, v4 in list(v['environment'].items()):
                     # Update AppName
                     if k4 == 'AppName':
                         v['environment'][k4] = v4 + str(i)
                         app_name = v4
                         new_app_name = v4 + str(i)
-                    # Update Clients section in publishers
-                    if k4 == 'Clients':
-                        for x in bm_apps_list:
-                            if x in v['environment'][k4]:
-                                v['environment'][k4] = v4.replace(x,
-                                                                  x + '1,'
-                                                                  + x + str(i))
-                    # Update PubTopics SubTopics
-                    # If topics contain an integer, increment it
-                    # if topics don't contain integer, suffix one
-                    if k4 == 'PubTopics':
-                        if bool(re.search(r'\d', v['environment'][k4])):
-                            v['environment'][k4] = re.sub(r'\d+', str(i),
-                                                          v['environment'][k4])
-                        else:
-                            v['environment'][k4] = v['environment'][k4] +\
-                                str(i)
-                    # Update clients in SubTopics
-                    if k4 == 'SubTopics':
-                        for x in bm_apps_list:
-                            if x in v['environment'][k4]:
-                                v['environment'][k4] = v4.replace(x,
-                                                                  x + str(i))
-                    # Update topic names in SubTopics
-                    if k4 == 'SubTopics':
-                        if bool(re.search(r'\d', v['environment'][k4])):
-                            v['environment'][k4] = re.sub(r'\d+', str(i),
-                                                          v['environment'][k4])
-                        else:
-                            v['environment'][k4] = v['environment'][k4] +\
-                                str(i)
-                    # Update cfg of every topic
-                    if '_cfg' in k4:
-                        # If tcp mode, increment port number
-                        if 'tcp' in v['environment'][k4]:
-                            port = v['environment'][k4].split(':')[1]
-                            new_port = str(int(port) + (i-1))
-                            v4 = v4.replace(port, new_port)
-                        new_cfg = re.sub(r'\d+', str(i), k4)
-                        if k4 in v['environment'].keys():
-                            del v['environment'][k4]
-                        v['environment'][new_cfg] = v4
 
     # Update outer secrets section
     if not dev_mode:
@@ -1370,7 +1445,7 @@ def yaml_parser(args):
           " file for {} mode".format(dev_mode_str))
 
     # Starting json parser
-    json_parser(DOCKER_COMPOSE_PATH, args)
+    json_parser(app_list, args)
 
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
