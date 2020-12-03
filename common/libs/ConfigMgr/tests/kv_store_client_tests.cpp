@@ -34,12 +34,12 @@
 static int watch_cb = 0;
 static int watch_prefix_cb = 0;
 
-void watch_callback(char* key, char* value, void *user_data){
+void watch_callback(const char* key, config_t* value, void *user_data){
     std::cout << "kv_store_client: watch_callback is called ....." << std::endl;
     watch_cb++;
 }
 
-void watch_prefix_callback(char* key, char* value, void *user_data){
+void watch_prefix_callback(const char* key, config_t* value, void *user_data){
     std::cout << "kv_store_client: watch_prefix_callback is called ....." << std::endl;
     watch_prefix_cb++;
 }
