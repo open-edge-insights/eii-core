@@ -691,6 +691,10 @@ Please refer [Unit Test installation](###-install-configMgr-with-examples,-test-
 
 * Provisioning EIS should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
 
+Before executing any of the test files, please run below command from `build/tests/`
+```sh
+ cd ../../examples/ && source ./env.sh && cd -
+```
 
 * To run ConfigMgr unit tests
 ```
