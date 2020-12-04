@@ -54,7 +54,7 @@ services:
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
-      - "vol_etcd_keeper:/tmp/nginx"
+      - "vol_etcd_keeper:/opt/nginx"
     user: ${EIS_UID}
     ipc: "none"
     secrets:
