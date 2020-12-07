@@ -55,7 +55,7 @@ spec:
         image: ${DOCKER_REGISTRY}ia_etcd_ui:${EIS_VERSION}
         volumeMounts:
         - name: etcd-keeper
-          mountPath: /tmp/nginx
+          mountPath: /opt/nginx
         - name: "ca-cert"
           mountPath: /run/secrets/ca_etcd
         - name: "etcd-ui-cert"
@@ -96,7 +96,7 @@ spec:
       volumes:
       - name: etcd-keeper
         hostPath:
-          path: /tmp/nginx
+          path: /opt/nginx
       - name: "ca-cert"
         secret:
           secretName: ca-etcd
