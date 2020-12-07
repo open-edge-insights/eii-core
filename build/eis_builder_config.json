@@ -3,7 +3,8 @@
         "Visualizer": "",
         "WebVisualizer": "",
         "VideoProfiler": "",
-        "EtcdUI": ""
+        "EtcdUI": "",
+        "SWTriggerUtility": ""
     },
     "publisher_list": {
         "VideoAnalytics": "outputVA",
