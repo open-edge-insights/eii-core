@@ -29,6 +29,7 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 ## Install ConfigMgr with Examples, Test suits and Debug Build.
 
 ```sh
+$ rm -rf build
 $ mkdir build
 $ cd build
 $ cmake -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..

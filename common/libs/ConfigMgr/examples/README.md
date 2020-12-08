@@ -13,6 +13,12 @@
           cd -
     ```
 
+4. For running the examples having IPC endpoints, please ensure the required sockets directory mentioned in the Endpoints are created. Eg: Create a directory called **.socks** within **build/examples** if the Endpoint provided is:
+
+    ```sh
+        $ "EndPoint": ".socks"
+    ```
+
 ## Running examples
 
 1. Running the Publisher example:
