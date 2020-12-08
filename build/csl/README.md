@@ -8,7 +8,7 @@ EIS Orchestration using CSL Orchestrator.
 
 3. [Provisioning EIS with CSL](#provisioning-eis-with-csl)
 
-4. [Registering EIS ModuleSpecs with CSL SMR](#registering-eis-modulespecs-with-csl-smr)
+4. [Registering EIS Docker Images & ModuleSpecs](#registering-eis-docker-images-and-modulespecs)
 
 5. [Deploying EIS Application with CSL Using CSL Manager UI](#deploying-eis-application-with-csl-using-csl-manager-ui)
 
@@ -30,78 +30,6 @@ EIS Orchestration using CSL Orchestrator.
 ## EIS CSL Pre-Requisites
   ### EIS Pre-Requisites
   * Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) steps for generating the appspecs & module specs using EIS Builder.
-
-  ### Update the Container Image details in Module Spec Files.
-> **NOTE**:
-> For registering module manifest with CSL Software Module Repository **csladm** utility is needed. Please copy the module spec json files to the machine where you are having **csladm** utilty.
-> Use the `eis_builder` generated module specs present in the `build/csl` directory .
-> It is advisable to use `csladm` utility in CSL Manager installed node.
-> * For more details please use this command:
->   ```sh
->        $ ./csladm register artifact -h
->   ```
-> * For `csladm` utility we can use Env Variable to Set the CSL Manager & Software Module Repository to Avoid Frequent User Interaction on using this `csladm` utility for every operation.
->    ```sh
->      export CSLADM_USERNAME=<csl manager username>
->      export CSLADM_PASSWORD=<csl manager password>
->      export CSLADM_SMR_USERNAME=<csl smr username>
->      export CSLADM_SMR_PASSWORD=<csl smr password>
->    ```
-
-*  Pre-Requisites
-
-    **Note** For Running EIS Modules in a node corresponding module Container Image should be present in the docker registry / SMR.
-
-
-* Updating the Module Spec files based on the Docker Regitry / Software Module Repo.
-  > **Note** For EIS If you are using docker image without any registry, no need to change anything in module spec `ContainerImage` Section. by default image name will be there.
-
-  * For Docker Registry
-    ```sh
-    "RuntimeOptions": {
-        "ContainerImage": "<DOCKER_REGISTRY>/<image_name>:<EIS_VERSION>"
-    }
-    ```
-
-  * For SMR
-
-    > **Note**:
-    > 1. Registering docker image with SMR is optional incase of docker registry setup is not
-    >    available. SMR can be used as needed.
-    > 2. [modulename] should be same as referred in `ManifestFile` for their respective module in
-    >    [build/csl/csl_app_spec.json](build/csl/csl_app_spec.json)
-
-    * Build & Update the Docker Repository and Images.
-      * For Saving Docker Images
-
-        ```sh
-          $ docker save imagename:version > imagename.tar.gz
-        ```
-      * For Registering & Loading the Saved Image with SMR
-
-        ```sh
-              $ ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./imagename.tar.gz --name <modulename> --version <EIS_VERSION>
-        ```
-
-    * Update generated Module Manifest file based on SMR registered artifact name and version.
-      > **Note:** The `ContainerImage` key has to be updated properly with `"{idx:<registered_artifact_name:<EIS_VERSION>}"`
-    
-      ```sh
-      "RuntimeOptions": {
-          "ContainerImage": "${idx:<registered_artifactname>:<EIS_VERSION>}"
-      }
-      ```
-
-      For Eg.
-
-      * For VideoIngestion Image (ia_video_ingestion) with SMR.
-        
-        * Update the registered image artifact name in `VideoIngestion` Modulespec in 'VideoIngestion_module_spec.json' file.
-          ```sh
-          "RuntimeOptions": {
-              "ContainerImage": "${idx:ia_video_ingestion:2.3}"
-          }
-          ```
 
 ## Provisioning EIS with CSL
 
@@ -125,9 +53,7 @@ Provisioning EIS with CSL is done in 2 steps.
 
 ### EIS Master Node Provisioning in CSL Client Node
 
-
-    > **NOTE**: Please make sure your CSL Manager IP, CSL Virtual IP, Client node IP address is part of eis_no_proxy for its
-    >           Communication.
+  > **Note**: Please make sure your CSL Manager IP, CSL Virtual IP, Client node IP address is part of `eis_no_proxy` in [build/.env](../../build/.env) file for its Communication.
 
   * To Deploy EIS with CSL, EIS has to be provisioned in "csl" mode.
 
@@ -162,7 +88,6 @@ Provisioning EIS with CSL is done in 2 steps.
 >**Note**:
 > 1. There should be only one master node where we do EIS Master Node provisioning
 > 2. This step is not required for **Single Node** deployment
-
 
   * Pre requisites:
     * EIS Master Node should be provisioned already in any other CSL client node.
@@ -199,23 +124,123 @@ Provisioning EIS with CSL is done in 2 steps.
 ## Generating the CSL Appspec & Module Spec.
   * CSL Appspec will be generated under **build/csl** folder as **csl_app_spec.json** while running [eis_builder](../eis_builder.py) as a part of EIS pre-requisites.
 
-## Registering EIS ModuleSpecs with CSL SMR.
+## Registering EIS Docker Images and ModuleSpecs.
+  > **NOTE**:
+  > For registering module spec & Docker Images with CSL Software Module Repository **csladm** utility is needed. Please find the **csladm** utilty in `[WORKDIR]/orchestrator` folder and copy to the `build/csl` folder where module specs exists.
+  > Use the `eis_builder` generated module specs present in the `build/csl` directory .
+  > * For more details please use this command:
+  >   ```sh
+  >        $ ./csladm register artifact -h
+  >   ```
+  > * For `csladm` utility we can use Env Variable to Set the CSL Manager & Software Module Repository to Avoid Frequent User Interaction on using this `csladm` utility for every operation.
+  >    ```sh
+  >      export CSLADM_USERNAME=<csl manager username>
+  >      export CSLADM_PASSWORD=<csl manager password>
+  >      export CSLADM_SMR_USERNAME=<csl smr username>
+  >      export CSLADM_SMR_PASSWORD=<csl smr password>
+  >    ```
 
-> **Note**:
-> 1. Module Specs will be generated under `build/csl` directory based on the EIS Repo.
-> 2. Please refer the modulename as per the appspec and also confirm both are same for proper
->     reference by csl manager.
+  * To deploy EIS modules, EIS Module(s) container images should be present in the machine(s) of csl client node where it's getting deployed and EIS CSL `moduleSpecs` should be registered with `SMR`
+    EIS module images can be stored either one of following registries.
 
-* Please use the following command to register the module spec with CSL manager using CSL admin utility.
-    ```sh
-    $ ./csladm register artifact --type file --name <modulename> --version <EISVersion> --file ./<module_spec_file>
-    ```
-    For Eg:
-    *   Registering VideoIngestion Module Spec with CSL SMR.
+      1. [Using Software Module Repository](#using-software-module-repository) ***(Default)***
+      2. [Using Docker registry](#using-docker-registry)  *(Optional)*
+      3. [Using Docker image](#using-docker-image)   *(Optional)*
+
+  ### Registering Docker Images
+  #### Using Software Module Repository
+    > **Note**:
+    > 1. Registering `docker image with SMR` is default recommended flow.
+    >    docker registry setup is optional.
+    > 2. By default the `images` tag name & version will be used as per `built` images resources.
+
+    * Build & Update the Docker Repository and Images.
+      * For Saving Docker Images
         ```sh
-        $ ./csladm register artifact --type file --name videoingestion --version 2.3 --file ./vi_module_spec.json
+          $ docker save imagename:version > imagename.tar.gz
         ```
+      * For Registering the saved Image with SMR
 
+        ```sh
+              $ sudo -E ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./<path_if_required>/imagename.tar.gz
+        ```
+      For E.g.
+      * Saving `videoingestion` module image.
+          ```sh
+            $ docker save ia_video_ingestion:2.4 > ia_video_ingestion.tar.gz
+          ```
+      * For Registering the saved `ia_video_ingestion.tar.gz` Image with SMR
+
+        ```sh
+              $ sudo -E ./csladm register artifact --type docker --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./ia_video_ingestion.tar.gz
+        ```
+        **Expected output**
+        ```
+          2020/12/03 00:19:55 Loading docker image
+          2020/12/03 00:20:19 Tagging docker image
+          2020/12/03 00:20:19 Pushing docker image
+          2020/12/03 00:21:51 Docker image 0.0.0.0:5000/ia_video_ingestion:2.4 was successfully pushed to SMR
+          2020/12/03 00:21:51 Insecure TLS flag set to false
+          Artifact with name (ia_video_ingestion), version (2.4) and hash (6a5215ff3b9078d476632298754e7f26ef453efd474b753c66742d27a64ba181) was registered successfully into Castle Lake
+        ```
+        > **Note**: For registering docker image with SMR, `version` & `name` parameters are not required to pass it will be automatically taken as per tagged `image` name & its `version` from the `*tar.gz` file.
+        >           Since SMR is the default regsitry. ModuleSpec files need not to be changed from default generated as per `eis_builder.py`.
+  #### Using Docker Registry
+  > **Note** This is optional.
+  * Update the module spec files in [build/csl](build/csl) with its `Image` details as following.
+      ```sh
+      "RuntimeOptions": {
+          "ContainerImage": "<DOCKER_REGISTRY>/<image_name>:<EIS_VERSION>"
+      }
+      ```
+    > **Note**: Make sure `images` are tagged & registered with docker registry.
+  
+  #### Using Docker Image
+  > **Note** This is optional.
+  * Update the module spec files in [build/csl](build/csl) with its `Image` details as following.
+      ```sh
+      "RuntimeOptions": {
+          "ContainerImage": "<image_tag_name>:<EIS_VERSION>"
+      }
+      ```
+    > **Note**: Make sure `images` are built in deploying `client` machine.
+
+  ### Registering ModuleSpec with SMR
+  > **Note**:
+  > 1. Module Specs will be generated under `build/csl` directory based on the EIS Repo.
+  > 2. Please refer the `modulename` as per the `appspec` and also confirm both are `same` for proper
+  >     reference by csl manager.
+  > 3. ModuleSpec should be not be changed if you are using SMR as your default repo.
+
+  * Please use the following command to register the module spec with CSL SMR using CSL admin utility.
+      ```sh
+      $ sudo -E ./csladm register artifact --type file --name <modulename> --version <EISVersion> --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./<module_spec_file>
+      ```
+      For Eg:
+      *   Registering VideoIngestion Module Spec with CSL SMR.
+          ```sh
+          $ sudo -E ./csladm register artifact --type file --name videoingestion --version 2.4 --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> --file ./VideoIngestion_module_spec.json
+          ```
+  ### Steps to delete the artifacts
+  * Please use the following command to delete the module spec or docker images which is registered with SMR.
+      * For ModuleSpec
+        ```sh
+        $ sudo -E ./csladm delete artifact --type file --name <modulename> --version <EISVersion> --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> 
+        ```
+        For E.g.
+        Deleting `videoingestion` ModuleSpec registered with SMR.
+          ```sh
+          $ sudo -E ./csladm delete artifact --type file --name videoingestion --version 2.4 --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip>
+          ```
+      * For Docker Image
+        ```sh
+        sudo -E ./csladm delete artifact --type docker --name <image_name> --version <EISVersion> --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip> 
+        ```
+        For E.g.
+        Deleting `ia_video_ingestion:2.4` Image from registered with SMR.
+          ```sh
+          $ sudo -E ./csladm delete artifact --type docker --name ia_video_ingestion --version 2.4 --smr-host <smr_host_ip> --csl-mgr-host <csl_mgr_ip>
+          ```
 ## Deploying EIS Application with CSL Using CSL Manager UI
 * Update the Appspec Execution Environment as needed by individual modules.
     * In case of time series, update the "MQTT_BROKER_HOST" env of telegraf module in **csl_app_spec.json**. Replace "127.0.0.1" to mosquito broker's IP address, to receive the data in telegraf.
@@ -395,4 +420,6 @@ it is necessary to fix a Node
 ```
 
 >**Note** If the labels are not set in any Node, and Constraints section is added in the InfluxDBConnector and ImageStore modules in appspec. InfluxDBCOnnector and ImageStore modules will not launch.
+
+> **Note:** If you are using `csladm` in machine which is not a `client` or `server/manager` make sure you have copied the `csl-ca-cert`. It is advised to use `csladm` in either csl `client` or `server/manager` provisioned machines.
 
