@@ -20,7 +20,7 @@ This script installs all the EIS libraries & their respective required dependenc
 3. Incase of unforeseen errors leading to unsuccessful installation, run the command mentioned below to cleanup any/all untracked tar files
 
     ```sh
-        $ git clean -xdf
+        $ sudo git clean -xdf
     ```
 
 
