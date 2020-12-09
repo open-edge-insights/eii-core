@@ -143,6 +143,8 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
     :type i: int
     :param bm_apps_list: multi instance required apps
     :type bm_apps_list: list
+    :return: updated app config
+    :rtype: dict
     """
     # Iterating through interfaces key, value pairs
     for k, v in config["interfaces"].items():
@@ -212,6 +214,8 @@ def create_multi_subscribe_interface(head, temp, client_type):
     :type temp: dict
     :param client_type: Subscribers/Clients
     :type client_type: str
+    :return: updated app config
+    :rtype: dict
     """
     # Loop over all available subscribers/clients
     for j in range(len(head["interfaces"][client_type])):
@@ -245,6 +249,36 @@ def create_multi_subscribe_interface(head, temp, client_type):
         # Remove existing instances
         temp["interfaces"][client_type].remove(client)
     return temp
+
+
+def fetch_appname(app_path):
+    """Fetches AppName from docker-compose.yml file
+       in the directory specified in app_path
+
+    :param app_path: path of the app
+    :type app_path: str
+    :return: AppName of service if found, None for common/video
+             empty string otherwise
+    :rtype: str
+    """
+    if os.path.isdir(app_path):
+        with open(app_path+'/docker-compose.yml', 'rb') as infile:
+            data = ruamel.yaml.round_trip_load(infile,
+                                            preserve_quotes=True)
+            # Iterate through the yaml file and
+            # return AppName if found
+            for x in data:
+                if x == 'services':
+                    for y in data[x]:
+                        if "environment" in data[x][y]:
+                            # If environment sections exists,
+                            # raise Exception if AppName not found
+                            if "AppName" not in data[x][y]["environment"]:
+                                raise Exception("AppName not found")
+                            return data[x][y]["environment"]["AppName"]
+                        # For common/video case
+                        return None
+    return ""
 
 
 def json_parser(app_list, args):
@@ -291,17 +325,19 @@ def json_parser(app_list, args):
         # Creating multi instance config if num_multi_instances > 1
         if num_multi_instances > 1:
             dirname = app_path.split("/")[-1]
+            # Fetching AppName for all services
+            app_name = fetch_appname(app_path)
             if args.override_directory is not None:
                 if args.override_directory in app_path:
                     dirname = app_path.split("/")[-2]
             # Ignoring EtcdUI & common/video service to not create multi instance
             # TODO: Support EISAzureBridge multi instance creation if applicable
-            if dirname not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "EISAzureBridge" not in app_path:
+            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "EISAzureBridge" not in app_path:
                 for i in range(num_multi_instances):
                     with open(app_path + '/config.json', "rb") as infile:
                         head = json.load(infile)
                         # Increments rtsp port number if required
-                        head = increment_rtsp_port(dirname, head, i)
+                        head = increment_rtsp_port(app_name, head, i)
                         # Create multi instance interfaces
                         head = \
                             create_multi_instance_interfaces(head,
@@ -309,11 +345,11 @@ def json_parser(app_list, args):
                                                             bm_apps_list)
                         # merge config of multi instance config
                         if 'config' in head.keys():
-                            data['/' + dirname + str(i+1) + '/config'] = \
+                            data['/' + app_name + str(i+1) + '/config'] = \
                                 head['config']
                         # merge interfaces of multi instance config
                         if 'interfaces' in head.keys():
-                            data['/' + dirname + str(i+1) +
+                            data['/' + app_name + str(i+1) +
                                 '/interfaces'] = \
                                 head['interfaces']
                         # merge multi instance generated json to eis config
@@ -329,29 +365,26 @@ def json_parser(app_list, args):
                         if "Subscribers" in head["interfaces"]:
                             # Generate multi subscribe interface
                             temp = create_multi_subscribe_interface(head, temp, "Subscribers")
-                            data['/' + dirname + '/config'] = head['config']
-                            data['/' + dirname + '/interfaces'] = temp['interfaces']
+                            data['/' + app_name + '/config'] = head['config']
+                            data['/' + app_name + '/interfaces'] = temp['interfaces']
                             config_json = merge(config_json, data)
                         if "Clients" in head["interfaces"]:
                             # Generate multi client interface
                             temp = create_multi_subscribe_interface(head, temp, "Clients")
-                            data['/' + dirname + '/config'] = head['config']
-                            data['/' + dirname + '/interfaces'] = temp['interfaces']
+                            data['/' + app_name + '/config'] = head['config']
+                            data['/' + app_name + '/interfaces'] = temp['interfaces']
                             config_json = merge(config_json, data)
                         # This is to handle empty interfaces cases like EtcdUI
-                        data['/' + dirname + '/config'] = head['config']
-                        data['/' + dirname + '/interfaces'] = temp['interfaces']
+                        data['/' + app_name + '/config'] = head['config']
+                        data['/' + app_name + '/interfaces'] = temp['interfaces']
                         config_json = merge(config_json, data)
         # This condition is to handle the default non multi instance flow
         else:
             with open(app_path + '/config.json', "rb") as infile:
                 # Merging config & interfaces from all services
                 head = json.load(infile)
-                app_name = app_path.replace('.', '')
-                # remove trailing '/'
-                app_name = app_name.rstrip('/')
-                # Fetching AppName & succeeding it with "/"
-                app_name = app_name.split('/')[-1]
+                # Fetching AppName for all services
+                app_name = fetch_appname(app_path)
                 if 'config' in head.keys():
                     data['/' + app_name + '/config'] = head['config']
                 if 'interfaces' in head.keys():
