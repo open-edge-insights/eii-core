@@ -4,27 +4,21 @@ This script installs all the EIS libraries & their respective required dependenc
 
 ## Running the install script
 
-1. As a pre-requisite, please run this one-time command to install the necessary dependencies
+**Note** : The installer needs grpc and protobuf to be installed. If these libraries are already present in the /usr/local/lib, the installation will skip bulid and install of these. It is recommended to remove the libgrpc*.a and libproto*.a from /usr/local/lib before proceeding as it can cause version conflicts.
 
-    ```sh
-        $ cd libs/ConfigMgr && \
-          sudo ./install.sh
-    ```
-
-2. To install all of EIS libraries and their dependencies, run the command mentioned below
+1. To install all of EIS libraries and their dependencies, run the command mentioned below
 
     ```sh
         $ sudo -E ./eis_libs_installer.sh
     ```
 
-3. Incase of unforeseen errors leading to unsuccessful installation, run the command mentioned below to cleanup any/all untracked tar files
+2. Incase of unforeseen errors leading to unsuccessful installation, run the command mentioned below to cleanup any/all untracked tar files
 
     ```sh
         $ sudo git clean -xdf
     ```
 
-
-4. Please follow the below steps to set the required env variables.
+3. Please follow the below steps to set the required env variables.
 
     a. For updating the $LD_LIBRARY_PATH env variable:
     ```sh

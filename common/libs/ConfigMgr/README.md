@@ -431,7 +431,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Type": "zmq_ipc",
             "EndPoint": {
                 "SocketDir" : "/EIS/sockets",
-                "SocketFile": "backend-sock"
+                "SocketFile": "backend-socket"
             },
 
             // PublisherAppName will be "EISZmqBroker" in case of brokered usecase 
@@ -457,7 +457,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Type": "zmq_ipc",
             "EndPoint": {
                 "SocketDir" : "/EIS/sockets",
-                "SocketFile": "frontend-sock"
+                "SocketFile": "frontend-socket"
             },
             "Topics": [
                 "camera1_stream"
@@ -530,6 +530,7 @@ Examples on demonstrating the usage of these APIs in the bindings have been give
 
 ```sh
 $ Navigate to <EISrepo>/common/libs/ConfigMgr
+$ sudo rm -rf build
 $ mkdir build
 $ cd build
 $ cmake -DWITH_EXAMPLES=ON ..
