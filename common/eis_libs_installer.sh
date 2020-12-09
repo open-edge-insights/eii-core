@@ -58,12 +58,23 @@ unset GOROOT
 DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
+GrpcProtoPath="/usr/local/lib"
 
 # Installing cmake 3.15
 wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
     tar --strip-components=1 -xz -C /usr/local
 
 apt-get install -y python3-distutils
+
+# Install ConfigMgr requirements
+if [[ ! -f "$GrpcProtoPath/libgrpc.a" ]] && [[ ! -f "$GrpcProtoPath/libprotobuf.a" ]]; then
+    echo "Installing ConfigMgr dependencies"
+    cd $ConfigMgr &&
+    rm -rf deps && \
+    ./install.sh
+else
+    echo "Skipping installation of grpc & protobuf"
+fi
 
 # Install EISMessageBus requirements
 cd $EISMessageBus &&
