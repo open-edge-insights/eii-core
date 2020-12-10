@@ -207,15 +207,17 @@ EIS Orchestration using k8s Orchestrator.
 
       Eg.
       ```yml
-        apiVersion: apps/v1
-        kind: Deployment
-        metadata:
-          labels:
-            app: video
-          name: deployment-video-ingestion
-          namespace: eis
-          annotations:
-            k8s.v1.cni.cncf.io/networks: macvlan-conf
+        template:
+          metadata:
+            labels:
+              app: video
+            annotations:
+              k8s.v1.cni.cncf.io/networks: macvlan-conf
+
+          spec:
+            containers:
+            - name: ia-video-ingestion
+
       ```
 
       * Follow the [Deployment Steps](#deploying-eis-application-with-k8s)
@@ -223,7 +225,7 @@ EIS Orchestration using k8s Orchestrator.
       * Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
 
           ```sh
-            $ kubectl exec -it <pod_name> -- ip -d address
+            $ kubectl -n eis exec -it <pod_name> -- ip -d address
           ```
 ## Steps to enable Accelarators
   >**Note**:
@@ -238,11 +240,11 @@ EIS Orchestration using k8s Orchestrator.
   * For HDDL/NCS2 dependenecies follow the steps for setting `labels`.
     * For HDDL
         ```sh
-        kubectl label nodes <node-name> hddl=true
+        kubectl -n eis label nodes <node-name> hddl=true
         ```
     * For NCS2
         ```sh
-        kubectl label nodes <node-name> ncs2=true
+        kubectl -n eis label nodes <node-name> ncs2=true
         ```
     **Note** Here the node-name is your worker node machine hostname
 
@@ -365,13 +367,13 @@ EIS Orchestration using k8s Orchestrator.
       1. Run `kubectl get nodes` to get the names of your cluster's nodes. 
           Pick out the one that you want to add a label to, and then run 
           ```sh
-          $ kubectl label nodes <node-name> ipc=enabled
+          $ kubectl -n eis label nodes <node-name> ipc=enabled
           ```
           to add a `label` to the node you've chosen.
 
       2. Verify the node labelled properly with following command.
           ```sh
-          $ kubectl get nodes --show-labels <node-name> | grep ipc=enabled
+          $ kubectl -n eis get nodes --show-labels <node-name> | grep ipc=enabled
           ```
   * Run `eis_builder` from `build` directory to generate the updated yaml file.
         ```sh
