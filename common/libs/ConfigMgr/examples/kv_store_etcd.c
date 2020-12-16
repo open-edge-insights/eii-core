@@ -24,17 +24,20 @@
 
 #include <eis/utils/json_config.h>
 #include <eis/utils/config.h>
+#include <eis/config_manager/base_cfg.h>
 #include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
 
-void watch_cb(char *key, char *value, void *user_data){
+void watch_cb(char *key, config_t* value, void *user_data){
     printf("watch callback is called...\n");
-    printf("key: %s and value: %s \n", key, value);
+    char* val = configt_to_char(value);
+    printf("key: %s and value: %s \n", key, val);
 }
 
-void watch_prefix_cb(char *key, char *value, void *user_data){
+void watch_prefix_cb(char *key, config_t* value, void *user_data){
     printf("watch_prefix callback is called...\n");
-    printf("key: %s and value: %s \n", key, value);
-    char *data = user_data;
+    char* val = configt_to_char(value);
+    printf("key: %s and value: %s \n", key, val);
+    char *data = (char*)user_data;
     printf("userdata: %s", data);
 }
 
