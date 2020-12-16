@@ -34,6 +34,14 @@ static std::string get_file_contents(const char *fpath) {
   return contents;
 }
 
+// Forward declaration of internally used locally defined functions
+void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
+                         WatchRequest watch_req, callback_t user_callback,
+                         void *user_data);
+
+bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
+                    WatchRequest watch_req, callback_t user_callback,
+                    void *user_data);
 
 EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
     LOG_INFO("Initialize EtcdClient in Dev mode");
@@ -174,7 +182,25 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
     return values;
 }
 
-void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
+void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
+                         WatchRequest watch_req, callback_t user_callback,
+                         void *user_data) {
+    bool watch_registered = true;
+    // Register watch once and check for watch expired conditions
+    // If watch is expired, register it again
+    do {
+        // TODO: We are relying on register_watch returning on error
+        // conditions here, should be replaced with a means to catch
+        // specific error conditions like timeout, socket closed etc.
+        watch_registered = register_watch(address, ssl_opts, watch_req,
+                                          user_callback, user_data);
+        if (!watch_registered) {
+            LOG_DEBUG_0("Watch expired, re-registering...");
+        }
+    } while (!watch_registered);
+}
+
+bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
                     WatchRequest watch_req, callback_t user_callback, void *user_data) {
     WatchResponse reply;
     mvccpb::KeyValue kvs;
@@ -194,10 +220,10 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 
     stream->Write(watch_req);
 
-    while(stream->Read(&reply)){
-        if(reply.events_size())
-        { 
-            for(int cnt =0; cnt < reply.events_size(); cnt++){
+    // Checking for any changes in key
+    while (stream->Read(&reply)) {
+        if (reply.events_size()) {
+            for (int cnt = 0; cnt < reply.events_size(); cnt++) {
                 auto event = reply.events(cnt);
                 if(mvccpb::Event::EventType::Event_EventType_PUT == event.type())
                 {
@@ -208,39 +234,46 @@ void register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 
                     cJSON* val_json;
                     // Checking if the value updated is not in Json format
-                    if (kvs_value[0] != '{'){
-                       if(strlen(kvs_value) == 0){
-                           LOG_ERROR_0("Value shouldn't be empty. Empty string is not supported");
-                           return;
-                       }
-                       // Creating the cJSON object with Key as kvs_key and value as kvs_value
-                       val_json = cJSON_CreateObject();
-                       if(val_json == NULL){
-                           LOG_ERROR_0("Create json object failed");
-                           return;
-                       }
-                       cJSON_AddStringToObject(val_json, kvs_key, kvs_value);
+                    if (kvs_value[0] != '{') {
+                        if(strlen(kvs_value) == 0) {
+                            LOG_ERROR_0("Value shouldn't be empty. Empty string is not supported");
+                            return false;
+                        }
+                        // Creating the cJSON object with Key as kvs_key and value as kvs_value
+                        val_json = cJSON_CreateObject();
+                        if(val_json == NULL){
+                            LOG_ERROR_0("Create json object failed");
+                            return false;
+                        }
+                        cJSON_AddStringToObject(val_json, kvs_key, kvs_value);
                     } else{
                         // char* to cJSON conversion
                         val_json = cJSON_Parse(kvs_value);
                         if(val_json == NULL){
-                           LOG_ERROR_0("cJSON Parse failed");
-                           return;
-                       }
-                    }                  
+                            LOG_ERROR_0("cJSON Parse failed");
+                            return false;
+                        }
+                    }
 
                     // cJSON to config_t conversion
                     config_t* config = config_new(
                         (void*) val_json, free_json, get_config_value);
                     if (config == NULL) {
+                        cJSON_Delete(val_json);
+                        config_destroy(config);
                         LOG_ERROR_0("Failed to initialize configuration object");
-                        return;
+                        return false;
                     }
-                    user_callback(kvs_key, config, user_data);         
+                    user_callback(kvs_key, config, user_data);
                 }
             }
         }
     }
+    // Returns false to indicate stream->Read() returned 0
+    // and that the watch has expired
+    // User can choose to re-register the watch based
+    // on this return value
+    return false;
 }
 
 /**
@@ -283,7 +316,7 @@ void EtcdClient::watch_prefix(std::string& key, callback_t user_callback, void *
         watch_create_req.set_start_revision(revision);
         watch_req.mutable_create_request()->CopyFrom(watch_create_req);
 
-        std::thread register_watch_prefix_thread(register_watch, address, ssl_opts, watch_req, user_callback, user_data);
+        std::thread register_watch_prefix_thread(register_watch_loop, address, ssl_opts, watch_req, user_callback, user_data);
         register_watch_prefix_thread.detach();
     } catch(std::exception const & ex) {
         LOG_ERROR("Exception Occurred in watch_prefix() API with the Error: %s", ex.what());
@@ -325,7 +358,7 @@ void EtcdClient::watch(std::string& key, callback_t user_callback, void *user_da
         watch_create_req.set_start_revision(revision);
         watch_req.mutable_create_request()->CopyFrom(watch_create_req);
 
-        std::thread register_watch_thread(register_watch, address, ssl_opts, watch_req, user_callback, user_data);
+        std::thread register_watch_thread(register_watch_loop, address, ssl_opts, watch_req, user_callback, user_data);
         LOG_DEBUG("Thread created to wait on any change on the key %s", key.c_str());
         register_watch_thread.detach();
     } catch(std::exception const & ex) {
