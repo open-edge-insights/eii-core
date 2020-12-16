@@ -408,21 +408,21 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2021.1" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2021.2" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2021.1/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2021.1/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
-     **NOTE**: OpenVINO 2021.1 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+     **NOTE**: OpenVINO 2021.2 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
 
      ```sh
      $ cd /opt/intel
-     $ sudo ln -s openvino_2021.1.110 openvino
+     $ sudo ln -s openvino_2021.2.185 openvino
 
      In case there are older versions of OpenVINO installed on the host system please un-install them.
 
@@ -474,17 +474,17 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
 * **Troubleshooting issues for HDDL devices**
-  * ** Note:** HDDL was tested with OpenVINO 2021.1 on Ubuntu 18.04 with kernel version 5.3.0-050300-generic
+  * ** Note:** HDDL was tested with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version 5.4.0-050400-generic
 
-  * In case one notices shared memory error with OpenVINO 2021.1 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
+  * In case one notices shared memory error with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2021.1 release notes in the below link for new features and changes from the previous versions.
+  * Please refer OpenVINO 2021.2 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2021.1/index.html
+    https://docs.openvinotoolkit.org/2021.2/index.html
 
 ----
 
