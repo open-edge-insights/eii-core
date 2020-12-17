@@ -1325,7 +1325,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
             # Deleting secrets section for individual services
             elif(k == "services"):
                 for _, service_dict in v.items():
-                    for service_keys, _ in service_dict.items():
+                    for service_keys, _ in list(service_dict.items()):
                         if(service_keys == "secrets"):
                             del service_dict[service_keys]
     return yaml_dict
