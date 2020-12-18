@@ -120,6 +120,18 @@ class Visualizer:
         :param stream_label: Message received on the given topic (JSON blob)
         :type: str
         """
+        # Display information about frame FPS
+        x_cord = 20
+        y_cord = 20
+        for res in results:
+            if "Fps" in res:
+                fps_str = "{} : {}".format(str(res), str(results[res]))
+                self.logger.info(fps_str)
+                cv2.putText(frame, fps_str, (x_cord, y_cord),
+                            cv2.FONT_HERSHEY_DUPLEX, 0.5,
+                            self.good_color, 1, cv2.LINE_AA)
+                y_cord = y_cord + 20
+
         # Draw defects for Gva
         if 'gva_meta' in results:
             count = 0
@@ -195,17 +207,6 @@ class Visualizer:
             frame = cv2.copyMakeBorder(frame, 5, 5, 5, 5, cv2.BORDER_CONSTANT,
                                        value=outline_color)
 
-        # Display information about frame FPS
-        x_cord = 20
-        y_cord = 20
-        for res in results:
-            if "Fps" in res:
-                fps_str = "{} : {}".format(str(res), str(results[res]))
-                self.logger.info(fps_str)
-                cv2.putText(frame, fps_str, (x_cord, y_cord),
-                            cv2.FONT_HERSHEY_DUPLEX, 0.5,
-                            self.good_color, 1, cv2.LINE_AA)
-                y_cord = y_cord + 20
 
         # Display information about frame
         (d_x, d_y) = (20, 50)
