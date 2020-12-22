@@ -79,7 +79,21 @@ func DropAllSubscriptions(cli client.Client, dbName string) (*client.Response, e
 		return response, err
 	}
 
-	for _, row := range res[0].Series[0].Values {
+	dbIndex := 0
+	subscriptionExists := false
+	for _, value := range res[0].Series {
+		if value.Name == dbName {
+			glog.Infof("Subscription found at index:%v", dbIndex)
+			subscriptionExists = true
+			break
+		}
+		dbIndex++
+	}
+	if subscriptionExists != true {
+		glog.Infof("Subscription is not found in DB")
+		return nil, nil
+	}
+	for _, row := range res[0].Series[dbIndex].Values {
 		val := row[1].(string)
 		buff.Reset()
 		fmt.Fprintf(&buff, "drop subscription \"%s\" ON \"%s\".\"autogen\"", val, dbName)
@@ -90,7 +104,8 @@ func DropAllSubscriptions(cli client.Client, dbName string) (*client.Response, e
 			return response, err
 		}
 	}
-	return response, err
+	glog.Infof("dropped subscriptions successfully for %s database", dbName)
+    return response, err
 }
 
 // CreateSubscription creates the subscription in InfluxDB
