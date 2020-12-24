@@ -56,6 +56,7 @@ include_directories(
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 # Add target
 add_library(eiiutils SHARED ${SOURCES})
@@ -65,7 +66,7 @@ target_link_libraries(eiiutils
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
-        ${WJE_LIBRARIES})
+        ${WJE_LIBRARY})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

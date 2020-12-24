@@ -61,6 +61,7 @@ include_directories(
 # Get all source files
 file(GLOB SOURCES "src/*.c")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 add_library(eiimsgenv SHARED ${SOURCES})
 target_link_libraries(eiimsgenv

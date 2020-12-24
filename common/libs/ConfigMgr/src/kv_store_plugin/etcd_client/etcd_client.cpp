@@ -110,8 +110,12 @@ std::string EtcdClient::get(std::string& key) {
         get_request.set_key(key);
         status = kv_stub->Range(&context,get_request,&reply);
         if (status.ok()) {
-            kvs.CopyFrom(reply.kvs(0));
-        }else {
+            // Check for kvs_size() which is 0
+            // in error conditions
+            if (reply.kvs_size() != 0) {
+                kvs.CopyFrom(reply.kvs(0));
+            }
+        } else {
             LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
             return "(NULL)";
@@ -153,7 +157,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
             }
         }
         get_request.set_key(key_prefix);
-       
+
         int ascii = (int)range_end[range_end.length()-1];
         range_end.back() = ascii+1;
 
@@ -162,11 +166,15 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
         status = kv_stub->Range(&context,get_request,&reply);
 
         if (status.ok()) {
-            for(int i=0; i<reply.count(); i++) {
-                kvs.CopyFrom(reply.kvs(i));
-                values.push_back( kvs.value());
+            // Check for kvs_size() which is 0
+            // in error conditions
+            if (reply.kvs_size() != 0) {
+                for(int i=0; i<reply.kvs_size(); i++) {
+                    kvs.CopyFrom(reply.kvs(i));
+                    values.push_back( kvs.value());
+                }
             }
-        }else {
+        } else {
             LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
         }

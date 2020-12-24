@@ -33,6 +33,8 @@ services:
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EIS_INSTALL_PATH}
     read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd_ui:${EII_VERSION}
     container_name: ia_etcd_ui

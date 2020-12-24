@@ -22,32 +22,69 @@ ARG EII_VERSION
 ARG DOCKER_REGISTRY
 FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION
 
+ENV EII_VERSION ${EII_VERSION}
+ENV PATH ${PATH}:${GOPATH}/bin
+ARG GLOG_GO_PATH=${GOPATH}/src/github.com/golang/glog
+ARG GLOG_VER=23def4e6c14b4da8ac2ed8007337bc5eb5007998
+RUN mkdir -p ${GLOG_GO_PATH} && \
+    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
+    cd ${GLOG_GO_PATH} && \
+    git checkout -b ${GLOG_VER} ${GLOG_VER}
+
+# This is a dependency for gojsonschema and is not used directly by source code
+ARG GO_JSON_REFERENCE=${GOPATH}/src/github.com/xeipuuv/gojsonreference
+RUN mkdir -p ${GO_JSON_REFERENCE} && \
+    git clone https://github.com/xeipuuv/gojsonreference ${GO_JSON_REFERENCE} && \
+    cd ${GO_JSON_REFERENCE} && \
+    git checkout -b known_version bd5ef7bd5415a7ac448318e64f11a24cd21e594b
+
+# This is a dependency for gojsonschema and is not used directly by source code
+ARG GO_JSON_POINTER=${GOPATH}/src/github.com/xeipuuv/gojsonpointer
+RUN mkdir -p ${GO_JSON_POINTER} && \
+    git clone https://github.com/xeipuuv/gojsonpointer ${GO_JSON_POINTER} && \
+    cd ${GO_JSON_POINTER} && \
+    git checkout -b known_version 4e3ac2762d5f479393488629ee9370b50873b3a6
+
+# Installing Go JSON schema validator
+ARG GO_JSON_SCHEMA=${GOPATH}/src/github.com/xeipuuv/gojsonschema
+RUN mkdir -p ${GO_JSON_SCHEMA} && \
+    git clone https://github.com/xeipuuv/gojsonschema ${GO_JSON_SCHEMA} && \
+    cd ${GO_JSON_SCHEMA} && \
+    git checkout -b known_version 82fcdeb203eb6ab2a67d0a623d9c19e5e5a64927
+
+WORKDIR /eii/common
 ARG RUN_TESTS
 ARG CMAKE_BUILD_TYPE
+ARG CMAKE_INSTALL_PREFIX
+ENV CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 
-WORKDIR ${GO_WORK_DIR}
-COPY cmake ./common/cmake
+# Installing EIIMessageBus dependencies
+COPY libs/EIIMessageBus/install.sh libs/EIIMessageBus/install.sh
+COPY libs/EIIMessageBus/python/requirements.txt libs/EIIMessageBus/python/requirements.txt
+RUN cd libs/EIIMessageBus && \
+    ./install.sh --cython
 
-COPY libs/IntelSafeString ./common/libs/IntelSafeString/
+# Installing ConfigMgr dependencies
+COPY libs/ConfigMgr/install.sh libs/ConfigMgr/install.sh
+RUN ./libs/ConfigMgr/install.sh
 
-COPY libs/EIIMsgEnv ./common/libs/EIIMsgEnv
+COPY util/requirements.txt util/requirements.txt
+RUN pip3 install --user -r util/requirements.txt
 
-COPY util/ ./common/util/
+COPY cmake cmake
+COPY libs/IntelSafeString libs/IntelSafeString/
+COPY libs/EIIMsgEnv libs/EIIMsgEnv
+COPY util/ util/
 
-COPY libs/DynLibLoad/ ./common/libs/DynLibLoad
+COPY libs/DynLibLoad/ libs/DynLibLoad
 
-COPY libs/EIIMessageBus ./common/libs/EIIMessageBus
+COPY libs/EIIMessageBus libs/EIIMessageBus
+COPY libs/ConfigMgr libs/ConfigMgr
 
-COPY libs/ConfigMgr ./common/libs/ConfigMgr
+COPY eii_libs_installer.sh .
+RUN ./eii_libs_installer.sh
 
-COPY eii_libs_installer.sh ./common
-
-RUN cd common && \
-    ./eii_libs_installer.sh
-
-# Re-copying everything here to not to miss any of
-# the subfolders
-COPY libs ./common/libs
-COPY util ./common/util
-
-ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:"/usr/local/lib"
+# Re-copying everything here to not miss any of the subfolders
+COPY libs libs
+COPY util util

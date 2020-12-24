@@ -65,6 +65,7 @@ include_directories(
 
 # Get all source files
 file(GLOB SOURCES "src/*.c")
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 # Add target
 add_library(eiidynlibload SHARED ${SOURCES})

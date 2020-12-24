@@ -33,6 +33,7 @@ services:
           EII_VERSION: ${EII_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
           GO_VERSION: ${GO_VERSION}
+          PYTHON_VERSION: ${PYTHON_VERSION}
     image: ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION}
     ipc: "none"
 
@@ -44,9 +45,11 @@ services:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
+          GO_VERSION: ${GO_VERSION}
           EII_VERSION: ${EII_VERSION}
           # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
           CMAKE_BUILD_TYPE: "Release"
+          CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
           RUN_TESTS: "OFF"
           DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true

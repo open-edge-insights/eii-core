@@ -20,25 +20,26 @@
 
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as eiibase
+ARG UBUNTU_IMAGE_VERSION
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as base
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
 
+FROM base as builder
+LABEL description="EtcdUI image"
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl \
+                                               procps && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
 ARG ETCD_VERSION
-RUN apt-get update && \
-    apt-get install -y curl && \
-    mkdir /EII/etcd && \
-    curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
-    tar -xvf /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EII/etcd --strip 1 && \
-    rm -f /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz /EII/etcd/etcd && \
-    mv /EII/etcd/etcdctl /EII/ && apt-get remove -y curl
-
-RUN apt-get update && \
-    apt-get install -y nginx && \
-    apt-get update && apt-get install -y procps
-
-ARG EII_UID
-RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
-    chown -R ${EII_UID}:${EII_UID} /var/lib/nginx/
-
+RUN mkdir -p etcd && \
+    curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
+    tar -xvf etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C etcd --strip 1 && \
+    rm -f etcd-${ETCD_VERSION}-linux-amd64.tar.gz etcd/etcd && \
+    mv etcd/etcdctl . && \
+    rm -rf etcd/etcdctl
 
 COPY etcdkeeper ./etcdkeeper/
 
@@ -46,16 +47,37 @@ RUN cd ./etcdkeeper/src/etcdkeeper \
     && go build -o etcdkeeper main.go \
     && mv etcdkeeper ../../
 
-FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 
-FROM eiibase
+# Setting python dev env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3.6 \
+                                               python3-distutils && \
+    rm -rf /var/lib/apt/lists/*
 
-COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
-COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
+WORKDIR /app
 
-COPY --from=common /usr/local/include /usr/local/include
-COPY --from=common /usr/local/lib /usr/local/lib
-COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends nginx && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG EII_UID
+RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
+    chown -R ${EII_UID}:${EII_UID} /var/lib/nginx/
+
+ARG ARTIFACTS
+ARG CMAKE_INSTALL_PREFIX
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
+ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.6/site-packages:/app
+COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
+COPY --from=common /eii/common/util util
+COPY --from=common /root/.local/lib .local/lib
+COPY --from=builder /app .
+
+RUN chown -R ${EII_UID} .local/lib/python3.6
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./
@@ -73,5 +95,4 @@ RUN chown -R ${EII_UID}:${EII_UID} /run/nginx.pid && \
     rm -f /etc/nginx/sites-enabled/default
 
 HEALTHCHECK NONE
-
-ENTRYPOINT ["python3.6", "start_etcdkeeper.py"]
+ENTRYPOINT ["python3", "start_etcdkeeper.py"]

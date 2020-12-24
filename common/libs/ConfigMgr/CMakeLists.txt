@@ -86,6 +86,7 @@ include_directories(
 # Get all source files
 file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 add_library(eiiconfigmanager_static STATIC ${SOURCES})
 add_library(eiiconfigmanager SHARED ${SOURCES})

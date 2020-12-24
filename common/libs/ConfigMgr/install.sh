@@ -48,56 +48,61 @@ function check_error() {
     fi
 }
 
+INSTALL_PATH="$CMAKE_INSTALL_PREFIX/lib"
 cjson_version="1.7.12"
 
-# URLs
-cjson_url="https://github.com/DaveGamble/cJSON/archive/v${cjson_version}.tar.gz"
-
-if [ ! -d "deps" ] ; then
-    mkdir deps
-    check_error "Failed to create dependencies directory"
-fi
-
-cd deps
-check_error "Failed to change to dependencies directory"
-
 # Installing cJSON dependency
-if [ ! -f "cjson.tar.gz" ] ; then
-    log_info "Downloading cJSON source"
-    wget $cjson_url -O cjson.tar.gz
-    check_error "Failed to download cJSON source"
+if [ -f "$INSTALL_PATH/libcjson.so.${cjson_version}" ]; then
+    log_info "libcjson ${cjson_version} already installed"
+else
+    # URLs
+    cjson_url="https://github.com/DaveGamble/cJSON/archive/v${cjson_version}.tar.gz"
+
+    if [ ! -d "deps" ] ; then
+        mkdir deps
+        check_error "Failed to create dependencies directory"
+    fi
+
+    cd deps
+    check_error "Failed to change to dependencies directory"
+
+    if [ ! -f "cjson.tar.gz" ] ; then
+        log_info "Downloading cJSON source"
+        wget -q --show-progress $cjson_url -O cjson.tar.gz
+        check_error "Failed to download cJSON source"
+    fi
+
+    cjson_dir="cJSON-${cjson_version}"
+
+    if [ ! -d "$cjson_dir" ] ; then
+        log_info "Extracting cJSON"
+        tar xf cjson.tar.gz
+        check_error "Failed to extract cJSON"
+    fi
+
+    cd $cjson_dir
+    check_error "Failed to change to cJSON directory"
+
+    if [ ! -d "build" ] ; then
+        mkdir build
+        check_error "Failed to create build directory"
+    fi
+
+    cd build
+    check_error "Failed to change to build directory"
+
+    log_info "Configuring cJSON for compilation"
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} ..
+    check_error "Failed to configure cJSON"
+
+    log_info "Compiling cJSON library"
+    make -j$(nproc --ignore=2)
+    check_error "Failed to compile cJSON library"
+
+    log_info "Installing cJSON library"
+    make install
+    check_error "Failed to install cJSON library"
 fi
-
-cjson_dir="cJSON-${cjson_version}"
-
-if [ ! -d "$cjson_dir" ] ; then
-    log_info "Extracting cJSON"
-    tar xf cjson.tar.gz
-    check_error "Failed to extract cJSON"
-fi
-
-cd $cjson_dir
-check_error "Failed to change to cJSON directory"
-
-if [ ! -d "build" ] ; then
-    mkdir build
-    check_error "Failed to create build directory"
-fi
-
-cd build
-check_error "Failed to change to build directory"
-
-log_info "Configuring cJSON for compilation"
-cmake ..
-check_error "Failed to configure cJSON"
-
-log_info "Compiling cJSON library"
-make -j$(nproc --ignore=2)
-check_error "Failed to compile cJSON library"
-
-log_info "Installing cJSON library"
-make install
-check_error "Failed to install cJSON library"
 
 # Installing grpc dependency
 # Library versions
@@ -106,50 +111,49 @@ grpc_version="v1.29.0"
 # URLs
 grpc_url="https://github.com/grpc/grpc"
 
-# Dir to install grpc to
-# Here, the prefix dir is /usr/local 
-# and grpc lib gets installed to $grpc_install_prefix/lib
-grpc_install_prefix="/usr/local"
+if [[ -f "$INSTALL_PATH/libgrpc.a" ]] && [[ -f "$INSTALL_PATH/libprotobuf.a" ]]; then
+    log_info "libgrpc and it's dependencies are already installed"
+else
+    # Dirs
+    grpc_dir="grpc"
 
-# Dirs
-grpc_dir="grpc"
+    if [ ! -d "deps" ] ; then
+        mkdir deps
+        check_error "Failed to create dependencies directory"
+    fi
 
-if [ ! -d "deps" ] ; then
-    mkdir deps
-    check_error "Failed to create dependencies directory"
+    cd deps
+    check_error "Failed to change to deps directory"
+
+    if [ ! -d "grpc" ] ; then
+        log_info "git clone of grpc"
+        git clone --recurse-submodules -b $grpc_version $grpc_url
+        check_error "Failed to git clone"
+    fi
+
+    cd grpc
+    check_error "Failed to cd $grpc_dir"
+
+    if [ ! -d "cmake/build" ] ; then
+        mkdir -p cmake/build
+        check_error "Failed to create cmake/build directory"
+    fi
+
+    cd cmake/build
+    check_error "Falied to change directory to cmake/build"
+
+    log_info "Configuring lib grpc for building"
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX ../..
+
+    check_error "Failed to configure lib grpc"
+
+    log_info "Compiling grpc library"
+    make
+    check_error "Failed to compile grpc library"
+
+    log_info "Installing grpc library"
+    make install
+    check_error "Failed to install grpc library"
 fi
-
-cd deps
-check_error "Failed to change to deps directory"
-
-if [ ! -d "grpc" ] ; then
-    log_info "git clone of grpc"
-    git clone --recurse-submodules -b $grpc_version $grpc_url
-    check_error "Failed to git clone"
-fi
-
-cd grpc
-check_error "Failed to cd $grpc_dir"
-
-if [ ! -d "cmake/build" ] ; then
-    mkdir -p cmake/build
-    check_error "Failed to create cmake/build directory"
-fi
-
-cd cmake/build
-check_error "Falied to change directory to cmake/build"
-
-log_info "Configuring lib grpc for building"
-cmake -DCMAKE_INSTALL_PREFIX=$grpc_install_prefix ../..
-
-check_error "Failed to configure lib grpc"
-
-log_info "Compiling grpc library"
-make
-check_error "Failed to compile grpc library"
-
-log_info "Installing grpc library"
-make install
-check_error "Failed to install grpc library"
 
 log_info "Done."

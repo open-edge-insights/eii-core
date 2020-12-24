@@ -18,110 +18,64 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# EII Base Dockerfile for Go modules
 
+# EII Base Dockerfile 
 ARG UBUNTU_IMAGE_VERSION
-FROM ubuntu:$UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as base
 LABEL description="EII Base Image"
 
-ARG HOST_TIME_ZONE=""
-
-ENV GO_WORK_DIR /EII/go/src/IEdgeInsights
-ENV GOPATH="/EII/go"
-ENV PATH ${PATH}:/usr/local/go/bin:${GOPATH}/bin
-
-WORKDIR ${GO_WORK_DIR}
-
-#Installing Go and dep package manager tool for Go
-ARG GO_VERSION
-RUN apt-get update && \
-    apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
-    wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
-
-ARG DEBIAN_FRONTEND=noninteractive
+ARG HOST_TIME_ZONE
 # Setting timezone inside the container
 RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
     cat /etc/timezone && \
+    apt-get update && \
     apt-get install -y tzdata && \ 
     ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime && \
-    dpkg-reconfigure -f noninteractive tzdata
+    dpkg-reconfigure -f noninteractive tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
-ENV GLOG_GO_PATH ${GOPATH}/src/github.com/golang/glog
-ENV GLOG_VER 23def4e6c14b4da8ac2ed8007337bc5eb5007998
-RUN mkdir -p ${GLOG_GO_PATH} && \
-    git clone https://github.com/golang/glog ${GLOG_GO_PATH} && \
-    cd ${GLOG_GO_PATH} && \
-    git checkout -b ${GLOG_VER} ${GLOG_VER}
-
-# This is a dependency for gojsonschema and is not used directly by source code
-ENV GO_JSON_REFERENCE ${GOPATH}/src/github.com/xeipuuv/gojsonreference
-RUN mkdir -p ${GO_JSON_REFERENCE} && \
-    git clone https://github.com/xeipuuv/gojsonreference ${GO_JSON_REFERENCE} && \
-    cd ${GO_JSON_REFERENCE} && \
-    git checkout -b known_version bd5ef7bd5415a7ac448318e64f11a24cd21e594b
-
-# This is a dependency for gojsonschema and is not used directly by source code
-ENV GO_JSON_POINTER ${GOPATH}/src/github.com/xeipuuv/gojsonpointer
-RUN mkdir -p ${GO_JSON_POINTER} && \
-    git clone https://github.com/xeipuuv/gojsonpointer ${GO_JSON_POINTER} && \
-    cd ${GO_JSON_POINTER} && \
-    git checkout -b known_version 4e3ac2762d5f479393488629ee9370b50873b3a6
-
-# Installing Go JSON schema validator
-ENV GO_JSON_SCHEMA ${GOPATH}/src/github.com/xeipuuv/gojsonschema
-RUN mkdir -p ${GO_JSON_SCHEMA} && \
-    git clone https://github.com/xeipuuv/gojsonschema ${GO_JSON_SCHEMA} && \
-    cd ${GO_JSON_SCHEMA} && \
-    git checkout -b known_version 82fcdeb203eb6ab2a67d0a623d9c19e5e5a64927
-
-RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
-    tar --strip-components=1 -xz -C /usr/local
-
-# These flags are needed for enabling security while compiling and linking with cpuidcheck in golang
-ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
-ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
-
-ENV PY_WORK_DIR /EII
-WORKDIR ${PY_WORK_DIR}
-
-# Installing python 2, pip2, python 3.6 and pip3.6
+# Setting C/C++ dev env and installing build related tools
 RUN apt-get update && \
-    apt-get install -y software-properties-common pkg-config python python-pip && \
-    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get install -y --no-install-recommends build-essential \
+                       git \
+                       iputils-ping \
+                       pkg-config \
+                       software-properties-common \
+                       wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
+    tar --strip-components=1 -xz -C /usr/local
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib:/usr/local/lib/udfs/
+
+# Setting Golang dev env
+ARG GO_VERSION
+RUN wget -q --show-progress https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz && \
+    rm -rf go${GO_VERSION}.linux-amd64.tar.gz
+# These flags are needed for enabling security while compiling and linking with cpuidcheck in golang
+ENV CGO_CFLAGS="$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC" \
+    CGO_LDFLAGS="$CGO_LDFLAGS -z noexecstack -z relro -z now"
+ENV GOPATH="$HOME/go"
+ENV PATH="$PATH:/usr/local/go/bin"
+
+# Setting python dev env
+ARG PYTHON_VERSION
+RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y python3.6 python3.6-dev python3-distutils && \
-    apt-get install python3-pip -y && \
-    apt-get install -y libsm6 libxext6 libfontconfig1 libxrender1
+    # libsm6 libxext6 libfontconfig1 libxrender1 are the
+    # packages needed for opencv python package
+    apt-get install -y --no-install-recommends libsm6 \
+                       libxext6 \
+                       libfontconfig1 \
+                       libxrender1 \
+                       python${PYTHON_VERSION} \
+                       python${PYTHON_VERSION}-dev \
+                       python3-distutils \
+                       python3-setuptools \
+                       python3-pip && \
+    python${PYTHON_VERSION} -m pip install -U pip && \
+    ln -sf /usr/bin/pip /usr/bin/pip3 && \
+    rm -rf /var/lib/apt/lists/*
+ENV PYTHONPATH $PYTHONPATH:/usr/local/lib/python3.6/dist-packages
 
-RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
-
-# Upgrading pip version
-RUN pip3 install --upgrade pip
-
-# Installing python JSON schema validator
-RUN pip3 install jsonschema==3.2.0
-
-COPY libs/EIIMessageBus/install.sh ./install.sh
-
-RUN ./install.sh --cython
-
-COPY libs/ConfigMgr/install.sh ./install.sh
-
-RUN rm -rf deps && \
-    ./install.sh && \
-    rm -rf deps
-
-ENV LD_LIBRARY_PATH "/usr/local/lib"
-
-RUN rm -rf /usr/local/bin/ccmake && \
-    rm -rf /usr/local/bin/cmake-gui && \
-    rm -rf /usr/local/bin/cpack && \
-    rm -rf /usr/local/bin/ctest &&  \
-    rm -rf /usr/local/doc && \
-    rm -rf /usr/local/man && \
-    rm -rf /usr/local/share/aclocal && \
-    rm -rf /usr/local/share/applications && \
-    rm -rf /usr/local/share/icons && \
-    rm -rf /usr/local/share/mime
 HEALTHCHECK NONE
