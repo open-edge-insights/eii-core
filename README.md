@@ -179,12 +179,14 @@ The section assumes the EIS software is already downloaded from the release pack
     $ python3 eis_builder.py -f video-streaming.yml
     ```
 
-    If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eis_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eis_config.json, csl app_spec.json, csl module_spec.json & k8s k8s-service.yml files respectively. Although the multi instance feature works fine for many of the services in EIS stack, it is recommended to use it for **video-streaming** use case. An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
+    If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eis_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eis_config.json, csl app_spec.json, csl module_spec.json & k8s k8s-service.yml files respectively. An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
     ```sh
     $ python3 eis_builder.py -v 3 -f video-streaming.yml
     ```
-
+    > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like
+    >           **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too.
+    
     If user wants to provide a different set of docker-compose.yml, config.json, csl module_spec.json, csl app_spec.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
     ```sh
