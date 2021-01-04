@@ -105,150 +105,162 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 The section assumes the EIS software is already downloaded from the release package or from git.
 
-* Generating consolidated docker-compose.yml & eis_config.json:
+## 1. Generating consolidated docker-compose.yml, eis_config.json, module_spec.json, app_spec.json and eis-k8s-deploy.yml files:
 
-  Move to build directory:
+EIS is equipped with [eis_builder](build/eis_builder.py), a robust python tool to auto-generate the required configuration files to deploy EIS services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EIS service directories which are required to bring up different EII use-cases:
+
+| file name           | Description   |
+| ------------------- | ------------- |
+| docker-compose.yml  | Consolidated `docker-compose.yml` file used to launch EIS docker containers in a given single node using `docker-compose` tool |
+| eis_config.json     | Consolidated `config.json`of every app which will be put into etcd during provisioning         |
+| module_spec.json    | Consolidated `module_spec.json` of every app that is required to register an artifact required for CSL use case                |
+| app_spec.json       | Consolidated `app_spec.json` of every app that is required to deploy EIS services via CSL orchestrator                         |
+| eis-k8s-deploy.yml  | Consolidated `k8s-service.yml` of every app that is required to deploy EIS servcie via Kubernetes orchestrator                 |
+  
+> **NOTE**: Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, it is required to re-run the eis_builder.py script before provisioning and running the EII stack to ensure that the changes done reflect in the required consolidated files.
+
+### 2. Using EIS builder script
+
+#### * Install requirements
+
+```sh
+$ cd [WORKDIR]/IEdgeInsights/build
+# Install requirements for eis_builder.py
+$ pip3 install -r requirements.txt
+```
+
+#### * Running EIS builder
+
+EIS builder script usage:
+
+```sh
+$ python3.6 eis_builder.py -h
+usage: eis_builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
+                    [-d OVERRIDE_DIRECTORY]
+
+optional arguments:
+    -h, --help            show this help message and exit
+    -f YML_FILE, --yml_file YML_FILE
+                        Optional config file for list of services to include.
+                        Eg: python3.6 eis_builder.py -f video-streaming.yml
+                        (default: None)
+    -v VIDEO_PIPELINE_INSTANCES, --video_pipeline_instances VIDEO_PIPELINE_INSTANCES
+                        Optional number of video pipeline instances to be
+                        created. Eg: python3.6 eis_builder.py -v 6 (default:
+                        1)
+    -d OVERRIDE_DIRECTORY, --override_directory OVERRIDE_DIRECTORY
+                        Optional directory consisting of of benchmarking
+                        configs to be present in each app directory. Eg:
+                        python3.6 eis_builder.py -d benchmarking (default:
+                        None)
+```
+
+
+* `Running eis_builder to generate the above listed consolidated files for all applicable EIS services`:
+
+   EIS builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
+
+   ```sh
+   $ python3 eis_builder.py
+   ```
+
+* `Running eis_builder to generate the above listed consolidated files for a subset of EIS services`:
+
+   This is achieved by providing a yml file to EIS builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
+
+  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml), [TLS](build/video-streaming-tls.yml). 
+  
+  An example for running EIS builder with this flag is given below:
 
   ```sh
-  $ cd build
+  $ python3 eis_builder.py -f video-streaming.yml
   ```
 
-  Install requirements for [eis_builder.py](build/eis_builder.py):
+* `Running eis_builder to generate multi instance configs`:
+
+  Based on the user's requirements, eis_builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml, csl_app_spec.json & every module's module_spec.json respectively.
+
+  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eis_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eis_config.json, csl app_spec.json, csl module_spec.json & k8s k8s-service.yml files respectively.
+  
+  An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
-  $ pip3 install -r requirements.txt
+  $ python3 eis_builder.py -v 3 -f video-streaming.yml
   ```
 
-  Run [eis_builder.py](build/eis_builder.py):
+  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too.
 
-  * EIS is equipped with [eis_builder](build/eis_builder.py), a strong python tool to auto-generate the required configuration files used to deploy EIS services on single/multiple nodes. eis_builder is capable of auto-generating the following files which are required for different use-cases:
+* `Running eis_builder to generate benchmarking configs`:
+   
+  If user wants to provide a different set of docker-compose.yml, config.json, csl module_spec.json, csl app_spec.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
-    | file name           | Description   |
-    | ------------------- | ------------- |
-    | docker-compose.yml  | Compose file used to launch docker containers in a given node |
-    | eis_config.json     | The main config that is put into etcd consisting of individual app configs |
-    | module_spec.json    | The module spec of every app that is required to register an artifact required for CSL use case  |
-    | app_spec.json       | The app spec of every app that is required to deploy EIS services using CSL orchestrator use case |
-    | eis-k8s-deploy.yml  | The yml file required to launch EIS services via Kubernetes |
-
-  * Running eis_builder
-    ```sh
-    $ python3 eis_builder.py
-    ```
-
-  * Running eis_builder providing a yaml file as config for list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service.:
-    ```sh
-    $ python3 eis_builder.py -f video-streaming.yml
-    ```
-
-* Multi instance config generation in eis_builder:
-
-  * Based on the user's requirements, eis_builder can also generate multi-instance docker-compose.yml, eis_config.json, k8s-service.yml, csl_app_spec.json & every module's module_spec.json respectively.
-
-  * Running eis_builder for multi-instance configs:
-
-    The user needs to ensure the increment_rtsp_port is set to true/false if using multiple or single rtsp streams respectively in [eis_builder_config.json](build/eis_builder_config.json).
-
-    ```sh
-    $ python3.6 eis_builder.py -h
-    usage: eis_builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
-                      [-d OVERRIDE_DIRECTORY]
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -f YML_FILE, --yml_file YML_FILE
-                            Optional config file for list of services to include.
-                            Eg: python3.6 eis_builder.py -f video-streaming.yml
-                            (default: None)
-      -v VIDEO_PIPELINE_INSTANCES, --video_pipeline_instances VIDEO_PIPELINE_INSTANCES
-                            Optional number of video pipeline instances to be
-                            created. Eg: python3.6 eis_builder.py -v 6 (default:
-                            1)
-      -d OVERRIDE_DIRECTORY, --override_directory OVERRIDE_DIRECTORY
-                            Optional directory consisting of of benchmarking
-                            configs to be present ineach app directory. Eg:
-                            python3.6 eis_builder.py -d benchmarking (default:
-                            None)
-    ```
-
-  * **Features of eis_builder**
-
-    If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml), [TLS](build/video-streaming-tls.yml). An example for running eis_builder with this flag is given below:
-
-    ```sh
-    $ python3 eis_builder.py -f video-streaming.yml
-    ```
-
-    If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eis_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eis_config.json, csl app_spec.json, csl module_spec.json & k8s k8s-service.yml files respectively. An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
-
-    ```sh
-    $ python3 eis_builder.py -v 3 -f video-streaming.yml
-    ```
-    > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like
-    >           **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too.
-    
-    If user wants to provide a different set of docker-compose.yml, config.json, csl module_spec.json, csl app_spec.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
-
-    ```sh
-    $ python3 eis_builder.py -d benchmarking
-    ```
+  ```sh
+  $ python3 eis_builder.py -d benchmarking
+  ```
 
     > **Note:**
     > * If using the override directory feature of eis_builder, it is recommended to include set of all 5 files mentioned above. Failing to provide any of the files in the override directory results in eis_builder not including that service in the generated final config. Eg: If a user fails to provide an app_spec.json in the override directory for a particular service, the final [csl_app_spec.json](build/csl/csl_app_spec.json) will not include the app_spec of that service.
     > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [eis_builder_config.json](build/eis_builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
     For eg: If eis_builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
 
-  * **Using eis_builder to add a new service into the EIS stack**
+ #### 3. Adding new EIS service so it gets picked up by EIS builder
 
-    Since the eis_builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EIS stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
+Since the eis_builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EIS stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
 
-    Any service that needs to be added into the EIS stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EIS stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eis_config.json](build/provision/config/eis_config.json).
+Any service that needs to be added into the EIS stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EIS stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eis_config.json](build/provision/config/eis_config.json). Additionally, if the EIS service needs to be deployed over CSL orchestrator,then the EIS service directory should have **module_spec.json** and **app_spec.json* files defined and for deployment over k8s orchestrator, the **k8s-service.yml** file needs to be defined.
 
-    An example has been provided below on how to write the **config.json** for any new service and subscribing it to **VideoAnalytics** and publish on a new port:
+An example has been provided below on how to write the **config.json** for any new service, subscribe it to **VideoAnalytics** and publish on a new port:
 
-    ```javascript
-      {
-          "config": {
-              "paramOne": "Value",
-              "paramTwo": [1, 2, 3],
-              "paramThree": 4000,
-              "paramFour": true
-          },
-          "interfaces": {
-              "Subscribers": [
-                  {
-                      "Name": "default",
-                      "Type": "zmq_tcp",
-                      "EndPoint": "127.0.0.1:65013",
-                      "PublisherAppName": "VideoAnalytics",
-                      "Topics": [
-                          "camera1_stream_results"
-                      ]
-                  }
-              ],
-              "Publishers": [
-                  {
-                      "Name": "default",
-                      "Type": "zmq_tcp",
-                      "EndPoint": "127.0.0.1:65113",
-                      "Topics": [
-                          "publish_stream"
-                      ],
-                      "AllowedClients": [
-                          "ClientOne",
-                          "ClientTwo",
-                          "ClientThree"
-                      ]
-                  }
-              ]
-          }
-      }
-    ```
-    In the above specified **config.json**, the value of **config** key is the config required by the service to run and the value of the **interfaces** key is the config required by the service to interact with other services of EIS stack.
+```javascript
+    {
+        "config": {
+            "paramOne": "Value",
+            "paramTwo": [1, 2, 3],
+            "paramThree": 4000,
+            "paramFour": true
+        },
+        "interfaces": {
+            "Subscribers": [
+                {
+                    "Name": "default",
+                    "Type": "zmq_tcp",
+                    "EndPoint": "127.0.0.1:65013",
+                    "PublisherAppName": "VideoAnalytics",
+                    "Topics": [
+                        "camera1_stream_results"
+                    ]
+                }
+            ],
+            "Publishers": [
+                {
+                    "Name": "default",
+                    "Type": "zmq_tcp",
+                    "EndPoint": "127.0.0.1:65113",
+                    "Topics": [
+                        "publish_stream"
+                    ],
+                    "AllowedClients": [
+                        "ClientOne",
+                        "ClientTwo",
+                        "ClientThree"
+                    ]
+                }
+            ]
+        }
+    }
+```
 
-    The **Subscribers** value in the **interfaces** section denotes that this service should act as a subscriber to the stream being published by the value specified by **PublisherAppName** on the endpoint mentioned in value specified by **EndPoint** on topics specified in value of **Topics** key.
+In the above specified **config.json**, the value of **config** key is the config required by the service to run and the value of the **interfaces** key is the config required by the service to 
+interact with other services of EIS stack over EIS message bus.
 
-    The **Publishers** value in the **interfaces** section denotes that this service publishes a stream of data after obtaining and processing it from **VideoAnalytics**. The stream is published on the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to subscribe to the published stream if being published securely over the EISMessageBus.
+The **Subscribers** value in the **interfaces** section denotes that this service should act as a subscriber to the stream being published by the value specified by **PublisherAppName** on the 
+endpoint mentioned in value specified by **EndPoint** on topics specified in value of **Topics** key.
+
+The **Publishers** value in the **interfaces** section denotes that this service publishes a stream of data after obtaining and processing it from **VideoAnalytics**. The stream is published on 
+the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to 
+subscribe to the published stream if being published securely over the EISMessageBus.
+
+Similar to above interface keys, EIS services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
 
 # Provision EIS
 
