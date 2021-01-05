@@ -67,7 +67,7 @@ wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
 apt-get install -y python3-distutils
 
 # Install ConfigMgr requirements
-if [[ ! -f "$GrpcProtoPath/libgrpc.a" ]] && [[ ! -f "$GrpcProtoPath/libprotobuf.a" ]]; then
+if [[ ! -f "$GrpcProtoPath/libgrpc.a" ]] || [[ ! -f "$GrpcProtoPath/libprotobuf.a" ]]; then
     echo "Installing ConfigMgr dependencies"
     cd $ConfigMgr &&
     rm -rf deps && \
