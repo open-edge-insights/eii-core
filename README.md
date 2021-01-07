@@ -109,15 +109,21 @@ The section assumes the EIS software is already downloaded from the release pack
 
 EIS is equipped with [eis_builder](build/eis_builder.py), a robust python tool to auto-generate the required configuration files to deploy EIS services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EIS service directories which are required to bring up different EII use-cases:
 
-| file name           | Description   |
-| ------------------- | ------------- |
-| docker-compose.yml  | Consolidated `docker-compose.yml` file used to launch EIS docker containers in a given single node using `docker-compose` tool |
-| eis_config.json     | Consolidated `config.json`of every app which will be put into etcd during provisioning         |
-| module_spec.json    | Consolidated `module_spec.json` of every app that is required to register an artifact required for CSL use case                |
-| app_spec.json       | Consolidated `app_spec.json` of every app that is required to deploy EIS services via CSL orchestrator                         |
-| eis-k8s-deploy.yml  | Consolidated `k8s-service.yml` of every app that is required to deploy EIS servcie via Kubernetes orchestrator                 |
+| file name                    | Description   |
+| ---------------------------- | ------------- |
+| docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EIS docker containers in a given single node using `docker-compose` tool                                       |
+| docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EIS deployment on a given single node using `docker-compose` tool |
+| eis_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
+| module_spec.json             | Consolidated `module_spec.json` of every app that is required to register an artifact required for CSL use case                                                      |
+| app_spec.json                | Consolidated `app_spec.json` of every app that is required to deploy EIS services via CSL orchestrator                                                               |
+| eis-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EIS servcie via Kubernetes orchestrator                                                       |
   
-> **NOTE**: Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, it is required to re-run the eis_builder.py script before provisioning and running the EII stack to ensure that the changes done reflect in the required consolidated files.
+> **NOTE**:
+> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, 
+     it is required to re-run the eis_builder.py script before provisioning and running the EII stack to ensure that the 
+     changes done reflect in the required consolidated files.
+> 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to 
+     respective files in EII app/service directories and use EIS builder script to generate the conslidated ones.
 
 ### 2. Using EIS builder script
 
@@ -188,7 +194,7 @@ optional arguments:
   $ python3 eis_builder.py -v 3 -f video-streaming.yml
   ```
 
-  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too.
+  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
 * `Running eis_builder to generate benchmarking configs`:
    
