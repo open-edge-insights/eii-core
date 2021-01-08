@@ -268,6 +268,9 @@ subscribe to the published stream if being published securely over the EISMessag
 
 Similar to above interface keys, EIS services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
 
+More details on the `interfaces` key responsible for the EIS MessageBus endpoint configuration
+can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces)
+
 # Provision EIS
 
 <b>`By default EIS is provisioned in Secure mode`</b>.
@@ -383,17 +386,17 @@ The following are the two Custom Udfs workflow which EIS supports:
 
    For running custom udfs either in VI or VA one must refer [VideoIngestion/docs/custom_udfs_doc.md](VideoIngestion/docs/custom_udfs_doc.md)
 
-# Etcd Secrets and MessageBus Endpoint Configuration
+# Etcd Secrets Configuration
 
-Etcd Secrets and MessageBus endpoint configurations are done to establish the data path
-and configuration of various EIS containers.
+Etcd Secrets configuration are done to establish the data path
+of various EIS containers.
 
 Every service in [build/docker-compose.yml](build/docker-compose.yml)
 is a
 * messagebus client if it needs to send or receive data over EISMessageBus
 * etcd client if it needs to get data from etcd distributed key store
 
-For more details, visit [Etcd_Secrets_and_MsgBus_Endpoint_Configuration](./Etcd_Secrets_and_MsgBus_Endpoint_Configuration.md)
+For more details, visit [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md)
 
 # Enable camera based Video Ingestion
 
