@@ -16,6 +16,8 @@ This script installs all the EIS libraries & their respective required dependenc
         $ sudo -E ./eis_libs_installer.sh
     ```
 
+**Note**: If an error occurs during execution of eis_libs_installer.sh regarding the $GOPATH, please set the GOPATH appropriately where GO is installed. Ideally, above script will take care of GO installation and setting up the path. If GO is already installed and GOPATH is tampered, then user has to make sure GOPATH is set appropriately.
+
 2. Incase of unforeseen errors leading to unsuccessful installation, run the command mentioned below to cleanup any/all untracked tar files
 
     ```sh
