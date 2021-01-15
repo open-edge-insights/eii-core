@@ -603,3 +603,6 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
 
 ---
 
+# Troubleshooting guide
+
+Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EIS configuration and installation
