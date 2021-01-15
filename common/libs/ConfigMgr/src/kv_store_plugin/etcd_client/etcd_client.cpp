@@ -49,7 +49,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
 
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
     // TODO: Add port check availability function
-    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    snprintf(address, ADDRESS_LEN, "%s:%s", host.c_str(), port.c_str());
     
     try {
         kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
@@ -63,7 +63,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port, const s
                        const std::string& key_file, const std::string ca_file) {
     LOG_INFO("Initialize EtcdClient in Prod mode");
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
-    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    snprintf(address, ADDRESS_LEN, "%s:%s", host.c_str(), port.c_str());
     const char* croot = ca_file.c_str();
     const char* ckey = key_file.c_str();
     const char* ccert = cert_file.c_str();
