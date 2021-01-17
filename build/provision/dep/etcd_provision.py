@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# Copyright (c) 2019 Intel Corporation.
+# Copyright (c) 2020 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,48 +31,9 @@ import zmq
 import base64
 import zmq.auth
 from distutils.util import strtobool
+from util import _execute_cmd, get_appname, get_server_cert_key
+from etcd_config_update import load_data_etcd
 ETCD_PREFIX = os.environ['ETCD_PREFIX']
-
-
-def _execute_cmd(cmd):
-    """Executes the shell cmd
-
-    :param cmd: shell cmd
-    :type cmd: str
-    :return: process returncode
-    :rtype: int
-    """
-    try:
-        process = subprocess.run(cmd, stdout=subprocess.DEVNULL)
-        return process.returncode
-    except Exception as ex:
-        print(ex)
-        return -1
-
-
-def get_appname(file):
-    """Parse given docker-compose file and returns dict for
-        AppName:CertType from environment
-    :param file: Full path of docker-compose file.
-    :type file: String
-    """
-    dictApps = {}
-    with open(file) as f:
-        docs = yaml.load_all(f, Loader=yaml.FullLoader)
-        for doc in docs:
-            for key, value in doc.items():
-                if key == "services":
-                    for key, value in value.items():
-                        for key, value in value.items():
-                            if key == "environment":
-                                try:
-                                    dictApps.setdefault(value["AppName"],
-                                                        value["CertType"])
-                                except KeyError as ke:
-                                    print(ke)
-                                    pass
-
-    return dictApps
 
 
 def put_zmqkeys(appname):
@@ -114,64 +75,6 @@ def enable_etcd_auth():
         sys.exit(-1)
 
 
-def load_data_etcd(file, apps):
-    """Parse given json file and add keys to etcd
-    :param file: Full path of json file having etcd initial data
-    :type file: String
-    :param apps: dict for AppName:CertType
-    :type apps: dict
-    """
-    with open(file, 'r') as f:
-        config = json.load(f)
-    print("=======Adding key/values to etcd========")
-    for key, value in config.items():
-        if key.split("/")[1] not in apps.keys() and key != '/GlobalEnv/':
-            continue
-        key = ETCD_PREFIX + key
-        if isinstance(value, str):
-            returncode = _execute_cmd(["./etcdctl", "put", key,
-                                      bytes(value.encode())])
-            if returncode != 0:
-                print("Adding {} key failed".format(key))
-                sys.exit(-1)
-        elif isinstance(value, dict) and key == '/GlobalEnv/':
-            # Adding DEV_MODE from env
-            value['DEV_MODE'] = os.environ['DEV_MODE']
-            returncode = _execute_cmd(["./etcdctl", "put", key,
-                                      bytes(json.dumps(value,
-                                       indent=4).encode())])
-            if returncode != 0:
-                print("Adding {} key failed".format(key))
-                sys.exit(-1)
-        elif isinstance(value, dict):
-            # Adding ca cert, server key and cert in app config in PROD mode
-            if not devMode:
-                app_type = key[len(ETCD_PREFIX):].split('/')
-                if app_type[2] == 'config':
-                    if 'pem' in apps[app_type[1]] or \
-                       'der' in apps[app_type[1]]:
-                        server_cert_server_key = \
-                            get_server_cert_key(app_type[1], apps[app_type[1]])
-                        value.update(server_cert_server_key)
-            returncode = _execute_cmd(["./etcdctl", "put", key,
-                                      bytes(json.dumps(value,
-                                       indent=4).encode())])
-            if returncode != 0:
-                print("Adding {} key failed".format(key))
-                sys.exit(-1)
-        print("Added {} key successfully".format(key))
-
-    print("=======Reading key/values from etcd========")
-    for key in config.keys():
-        if key.split("/")[1] not in apps.keys() and key != '/GlobalEnv/':
-            continue
-        key = ETCD_PREFIX + key
-        retruncode = _execute_cmd(["./etcdctl", "get", key])
-        if returncode != 0:
-            print("Reading {} key failed".format(key))
-            sys.exit(-1)
-
-
 def create_etcd_users(appname):
     """create etcd user and role for given app. Allow Read only access
      only to appname, global and publickeys directory
@@ -184,62 +87,18 @@ def create_etcd_users(appname):
         print("Failed to create etcd user for {}".format(appname))
 
 
-def get_server_cert_key(appname, certtype):
-    """ parse appname and certtype, returns server cert and key dict
-    :param appname: appname
-    :type config: string
-    :param certtype: certificate type
-    :type apps: string
-    :return: server cert key dict
-    :rtype: dict
-    """
-    server_key_cert = {}
-    cert_ext = None
-    if 'pem' in certtype:
-        cert_ext = ".pem"
-    elif 'der' in certtype:
-        cert_ext = ".der"
-    cert_file = "Certificates/" + appname + "_Server/" + appname \
-        + "_Server_server_certificate" + cert_ext
-    key_file = "Certificates/" + appname + "_Server/" + appname \
-        + "_Server_server_key" + cert_ext
-    ca_certificate = "Certificates/ca/ca_certificate" + cert_ext
-    if cert_ext == ".pem":
-        with open(cert_file, 'r') as s_cert:
-            server_cert = s_cert.read()
-            server_key_cert["server_cert"] = server_cert
-        with open(key_file, 'r') as s_key:
-            server_key = s_key.read()
-            server_key_cert["server_key"] = server_key
-        with open(ca_certificate, 'r') as cert:
-            ca_cert = cert.read()
-            server_key_cert["ca_cert"] = ca_cert
-    if cert_ext == ".der":
-        with open(cert_file, 'rb') as s_cert:
-            server_cert = s_cert.read()
-            server_key_cert["server_cert"] = \
-                base64.standard_b64encode(server_cert).decode("utf-8")
-        with open(key_file, 'rb') as s_key:
-            server_key = s_key.read()
-            server_key_cert["server_key"] = \
-                base64.standard_b64encode(server_key).decode("utf-8")
-        with open(ca_certificate, 'rb') as cert:
-            ca_cert = cert.read()
-            server_key_cert["ca_cert"] = \
-                base64.standard_b64encode(ca_cert).decode("utf-8")
-
-    return server_key_cert
-
-
 def etcd_health_check():
     returncode = _execute_cmd(["./etcd_health_check.sh"])
     if returncode != 0:
         print("etcd health check failed")
 
+
 def clear_etcd_kv():
-    returncode = _execute_cmd(["./etcdctl", "del", "--prefix", ETCD_PREFIX + "/"])
+    returncode = _execute_cmd(["./etcdctl", "del",
+                               "--prefix", ETCD_PREFIX + "/"])
     if returncode != 0:
         print("Clearing Prefix {} key failed".format(ETCD_PREFIX))
+
 
 if __name__ == "__main__":
     devMode = bool(strtobool(os.environ['DEV_MODE']))
@@ -271,7 +130,8 @@ if __name__ == "__main__":
         clear_etcd_kv()
 
     apps = get_appname(str(sys.argv[1]))
-    load_data_etcd("./config/eis_config.json", apps)
+    load_data_etcd("./config/eis_config.json", apps,
+                   "./etcdctl", "Certificates/", devMode)
     for key, value in apps.items():
         try:
             if not devMode:

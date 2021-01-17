@@ -24,6 +24,8 @@ COPY dep/requirements.txt .
 RUN pip3 install -r requirements.txt && \
     rm -rf requirements.txt
 COPY dep/etcd_provision.py .
+COPY dep/etcd_config_update.py .
+COPY dep/util.py .
 COPY dep/etcd_create_user.sh .
 COPY dep/etcd_enable_auth.sh .
 COPY dep/etcd_health_check.sh .
