@@ -68,7 +68,7 @@ using etcdserverpb::WatchResponse;
  * @param value         updated value
  * @param cb_user_data  user data passed
  */
-typedef void (*callback_t)(const char *key, config_t* value, void* cb_user_data);
+typedef void (*kv_store_watch_callback_t)(const char *key, config_t* value, void* cb_user_data);
 
 class EtcdClient {
     public:
@@ -124,7 +124,7 @@ class EtcdClient {
         * @param user_callback user_call back to register for a key
         * @param user_data user_data to be passed, it can be NULL also
         */
-        void watch(std::string& key, callback_t user_cb, void *user_data);
+        void watch(std::string& key, kv_store_watch_callback_t user_cb, void *user_data);
 
         /**
         * Watches for changes of a prefix of a key and register user_callback and notify 
@@ -133,7 +133,7 @@ class EtcdClient {
         * @param user_callback user_call back to register for a key
         * @param user_data user_data to be passed, it can be NULL also
         */
-        void watch_prefix(std::string& key, callback_t user_cb, void *user_data);
+        void watch_prefix(std::string& key, kv_store_watch_callback_t user_cb, void *user_data);
         
     private:
         char address[ADDRESS_LEN];

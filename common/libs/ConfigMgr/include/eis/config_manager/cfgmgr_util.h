@@ -20,12 +20,20 @@
 
 /**
  * @file
- * @brief Util functions for ConfigMgr
+ * @brief Utility for ConfigManager
  */
 
-
-#include "eis/config_manager/base_cfg.h"
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <cjson/cJSON.h>
+#include <safe_lib.h>
+#include <eis/utils/logger.h>
+#include <eis/utils/string.h>
+#include <stdbool.h>
+#include <ctype.h>
+#include "eis/utils/json_config.h"
+#include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
+#define BROKERED "brokered"
 #define SOCKET_FILE "socket_file"
 #define ENDPOINT "EndPoint"
 #define TOPICS "Topics"
@@ -33,11 +41,11 @@
 #define ALLOWED_CLIENTS "AllowedClients"
 #define PUBLIC_KEYS "/Publickeys/"
 #define PRIVATE_KEY "/private_key"
+
 #define MAX_CONFIG_KEY_LENGTH 250
 
-
-#ifndef _EIS_C_UTIL_CFG_H
-#define _EIS_C_UTIL_CFG_H
+#ifndef _EIS_C_BASE_CFG_H
+#define _EIS_C_BASE_CFG_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,21 +55,35 @@ extern "C" {
  * ConfigMgr interface type
  */
 typedef enum {
-    PUBLISHER = 0,
-    SUBSCRIBER = 1,
-    SERVER = 2,
-    CLIENT = 3,
-} interface_type_t;
+    CFGMGR_PUBLISHER = 0,
+    CFGMGR_SUBSCRIBER = 1,
+    CFGMGR_SERVER = 2,
+    CFGMGR_CLIENT = 3,
+} cfgmgr_iface_type_t;
+
+/**
+ * cvt_to_char function to convert config_value_t* to char*
+ * @param config_value_t* - config_value_t* object
+ *  @return NULL for any errors occured or char* on success
+ */
+char* cvt_to_char(config_value_t* config);
+
+/**
+ * configt_to_char function to convert config_t to char*
+ * @param config - config_t object
+ *  @return NULL for any errors occured or char* on success
+ */
+char* configt_to_char(config_t* config);
 
 /**
  * get_ipc_config function to creates json structure for ipc mode messagebus config
  * @param c_json - cJSON object for which ipc config to be added
  * @param config - Config from which values are extracted
  * @param end_point - endpoint of the application
- * @param type - to check whether type is SERVER/CLIENT to not fetch topics
+ * @param type - to check whether type is CFGMGR_SERVER/CFGMGR_CLIENT to not fetch topics
  * @return result of the function passed or failed
  */
-bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, interface_type_t type);
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, cfgmgr_iface_type_t type);
 
 /**
  * cvt_obj_str_to_char function converts cvt object to char* provided for ipc
@@ -77,22 +99,22 @@ char* cvt_obj_str_to_char(config_value_t* cvt);
  * @param inner_json : nested json where endpoint and certificates details are stored
  * @param handle : kv store's handle
  * @param config : publisher's interface config
- * @param m_kv_store_handle : kv store client object
+ * @param kv_store_client : kv store client object
  * @return true on sucess, false on fail
  */
-bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle);
+bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* kv_store_client);
 
 /**
  * construct_tcp_publisher_prod function constructs the publisher message bus config for prod mode
  * @param sub_topic : sub_topic cJSON object where the entire message bus config is held
  * @param app_name : Application name
- * @param m_kv_store_handle : kv store client object
+ * @param kv_store_client : kv store client object
  * @param handle : kv store's handle
  * @param publisher_appname: PublisherAppName value
  * @param sub_config : subscriber's interface config
  * @return true on sucess, false on fail
  */
-bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_kv_store_handle, void* handle, config_value_t* publisher_appname, config_value_t* sub_config);
+bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_store_client, void* handle, config_value_t* publisher_appname, config_value_t* sub_config);
 
 #ifdef __cplusplus
 }

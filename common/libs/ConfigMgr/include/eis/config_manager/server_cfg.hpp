@@ -35,8 +35,7 @@
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.hpp"
-#include "eis/config_manager/util_cfg.h"
-#include "eis/config_manager/cfg_mgr.h"
+#include "eis/config_manager/cfgmgr.h"
 
 
 namespace eis {
@@ -44,18 +43,16 @@ namespace eis {
 
         class ServerCfg : public AppCfg {
             private:
-                // server_cfg_t object
-                server_cfg_t* m_serv_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
             public:
                 /**
                 * ServerCfg Constructor
                 * @param server_config - The config associated with a server
                 * @param app_cfg       - app_cfg_t pointer
                 */
-                explicit ServerCfg(server_cfg_t* serv_cfg, app_cfg_t* app_cfg);
+                explicit ServerCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Server
@@ -87,14 +84,9 @@ namespace eis {
                 std::vector<std::string> getAllowedClients() override;
 
                 /**
-                * server_cfg_t getter to get private m_serv_cfg
+                * cfgmgr_interface_t getter to get private cfgmgr_interface_t
                 */
-                server_cfg_t* getServCfg();
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+                cfgmgr_interface_t* getServCfg();
 
                 /**
                 * Destructor

@@ -20,13 +20,13 @@
 """EIS ConfigManager Watch wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport app_cfg_t
+from .libeisconfigmanager cimport cfgmgr_ctx_t
 
 
 cdef class Watch:
     """EIS ConfigManager Watch class
     """
-    cdef app_cfg_t* app_cfg
+    cdef cfgmgr_ctx_t* cfg_mgr
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg)
+    cdef create(cfgmgr_ctx_t* cfgmgr)

@@ -20,16 +20,14 @@
 """EIS ConfigManager Subscriber wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport sub_cfg_t
-from .libeisconfigmanager cimport app_cfg_t
+from .libeisconfigmanager cimport cfgmgr_interface_t
 
 
 cdef class Subscriber:
     """EIS ConfigManager Subscriber object
     """
-    cdef app_cfg_t* app_cfg
-    cdef sub_cfg_t* sub_cfg
+    cdef cfgmgr_interface_t* cfgmgr_interface
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, sub_cfg_t* sub_cfg)
+    cdef create(cfgmgr_interface_t* cfgmgr_interface)
 

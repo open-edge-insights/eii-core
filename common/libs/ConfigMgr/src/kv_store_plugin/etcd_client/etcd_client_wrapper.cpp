@@ -124,13 +124,13 @@ int etcd_put(void* handle, char *key, char *value){
     return status;
 }
 
-void etcd_watch(void* handle, char *key, callback_t user_cb, void* user_data) {
+void etcd_watch(void* handle, char *key, kv_store_watch_callback_t user_cb, void* user_data) {
     std::string str_key = key;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     cli->watch(str_key, user_cb, user_data);
 }
 
-void etcd_watch_prefix(void* handle, char *key, callback_t user_cb, void* user_data) {
+void etcd_watch_prefix(void* handle, char *key, kv_store_watch_callback_t user_cb, void* user_data) {
     std::string str_key = key;
     EtcdClient *cli = static_cast<EtcdClient *>(handle);
     cli->watch_prefix(str_key, user_cb, user_data);

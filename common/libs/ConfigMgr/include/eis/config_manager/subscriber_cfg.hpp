@@ -35,26 +35,23 @@
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.hpp"
-#include "eis/config_manager/util_cfg.h"
-#include "eis/config_manager/cfg_mgr.h"
+#include "eis/config_manager/cfgmgr.h"
 
 namespace eis {
     namespace config_manager {
 
         class SubscriberCfg : public AppCfg {
             private:
-                // sub_cfg_t object
-                sub_cfg_t* m_sub_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
             public:
                 /**
                 * SubscriberCfg Constructor
                 * @param sub_config - The config associated with a subscriber
                 * @param app_cfg    - app_cfg_t pointer
                 */
-                explicit SubscriberCfg(sub_cfg_t* sub_cfg, app_cfg_t* app_cfg);
+                explicit SubscriberCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Subscriber
@@ -93,26 +90,9 @@ namespace eis {
                 bool setTopics(std::vector<std::string> topics_list) override;
 
                 /**
-                * sub_cfg_t getter to get private m_pub_cfg
+                * cfgmgr_interface_t getter to get private cfgmgr_interface_t
                 */
-                sub_cfg_t* getSubCfg();
-
-                /**
-                * sub_cfg_t setter
-                * @param sub_cfg - The sub_cfg to be set
-                */
-                void setSubCfg(sub_cfg_t* sub_cfg);
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
-
-                /**
-                * app_cfg_t setter
-                * @param app_cfg - The app_cfg to be set
-                */
-                void setAppCfg(app_cfg_t* app_cfg);
+                cfgmgr_interface_t* getSubCfg();
 
                 /**
                 * Destructor

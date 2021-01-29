@@ -35,26 +35,23 @@
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eis/config_manager/app_cfg.hpp"
-#include "eis/config_manager/util_cfg.h"
-#include "eis/config_manager/cfg_mgr.h"
+#include "eis/config_manager/cfgmgr.h"
 
 namespace eis {
     namespace config_manager {
 
         class ClientCfg: public AppCfg {
             private:
-                // client_cfg_t object
-                client_cfg_t* m_cli_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
             public:
                 /**
                 * ClientCfg Constructor
                 * @param client_config - The config associated with a client
                 * @param app_cfg       - app_cfg_t pointer
                 */
-                explicit ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg);
+                explicit ClientCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Client
@@ -78,14 +75,9 @@ namespace eis {
                 std::string getEndpoint() override;
 
                 /**
-                * client_cfg_t getter to get private m_pub_cfg
+                * cfgmgr_interface_t getter to get private m_pub_cfg
                 */
-                client_cfg_t* getCfg();
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+                cfgmgr_interface_t* getCfg();
 
                 /**
                 * Destructor

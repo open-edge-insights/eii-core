@@ -19,12 +19,20 @@
 # IN THE SOFTWARE.
 
 # Add config manager example
+add_executable(pub_c "sample_publisher.c")
+add_executable(sub_c "sample_subscriber.c")
+add_executable(server_c "sample_server.c")
+add_executable(client_c "sample_client.c")
 add_executable(pub "sample_pub.cpp")
 add_executable(sub "sample_sub.cpp")
 add_executable(server "sample_server.cpp")
 add_executable(client "sample_client.cpp")
 add_executable(sample_app "sample_getvalue.cpp")
 add_executable(kv_store_etcd "kv_store_etcd.c")
+target_link_libraries(pub_c eismsgbus eismsgenv eisutils eisconfigmanager)
+target_link_libraries(sub_c eismsgbus eismsgenv eisutils eisconfigmanager)
+target_link_libraries(server_c eismsgbus eismsgenv eisutils eisconfigmanager)
+target_link_libraries(client_c eismsgbus eismsgenv eisutils eisconfigmanager)
 target_link_libraries(pub eismsgbus eismsgenv eisutils eisconfigmanager)
 target_link_libraries(sub eismsgbus eismsgenv eisutils eisconfigmanager)
 target_link_libraries(server eismsgbus eismsgenv eisutils eisconfigmanager)

@@ -20,15 +20,13 @@
 """EIS ConfigManager Client wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport client_cfg_t
-from .libeisconfigmanager cimport app_cfg_t
+from .libeisconfigmanager cimport cfgmgr_interface_t
 
 
 cdef class Client:
     """EIS ConfigManager Client object
     """
-    cdef app_cfg_t* app_cfg
-    cdef client_cfg_t* client_cfg
+    cdef cfgmgr_interface_t* cfgmgr_interface
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, client_cfg_t* client_cfg)
+    cdef create(cfgmgr_interface_t* cfgmgr_interface)

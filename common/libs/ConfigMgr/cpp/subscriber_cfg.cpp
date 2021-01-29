@@ -29,25 +29,19 @@
 using namespace eis::config_manager;
 
 // Constructor
-SubscriberCfg::SubscriberCfg(sub_cfg_t* sub_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {
-    m_sub_cfg = sub_cfg;
-    m_app_cfg = app_cfg;
+SubscriberCfg::SubscriberCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {
+    m_cfgmgr_interface = cfgmgr_interface;
 }
 
-// m_cli_cfg getter
-sub_cfg_t* SubscriberCfg::getSubCfg() {
-    return m_sub_cfg;
-}
-
-// m_app_cfg getter
-app_cfg_t* SubscriberCfg::getAppCfg() {
-    return m_app_cfg;
+// m_cfgmgr_interface getter
+cfgmgr_interface_t* SubscriberCfg::getSubCfg() {
+    return m_cfgmgr_interface;
 }
 
 // getMsgBusConfig of Subscriber class
 config_t* SubscriberCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_sub() API
-    config_t* sub_config = m_sub_cfg->cfgmgr_get_msgbus_config_sub(m_app_cfg->base_cfg, m_sub_cfg);
+    config_t* sub_config = cfgmgr_get_msgbus_config(m_cfgmgr_interface);
     if (sub_config == NULL) {
         LOG_ERROR_0("Unable to fetch subscriber msgbus config");
         return NULL;
@@ -57,7 +51,7 @@ config_t* SubscriberCfg::getMsgBusConfig() {
 
 // Get the Interface Value of Subscriber.
 config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
-    config_value_t* interface_value = m_sub_cfg->cfgmgr_get_interface_value_sub(m_sub_cfg, key);
+    config_value_t* interface_value = cfgmgr_get_interface_value(m_cfgmgr_interface, key);
     if(interface_value == NULL){
         LOG_DEBUG_0("[Subscriber]:Getting interface value from base c layer failed");
         return NULL;
@@ -68,12 +62,12 @@ config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
 // To fetch endpoint from config
 std::string SubscriberCfg::getEndpoint() {
     // Calling the base C get_endpoint_sub() API
-    config_value_t* ep = m_sub_cfg->cfgmgr_get_endpoint_sub(m_sub_cfg);
+    config_value_t* ep = cfgmgr_get_endpoint(m_cfgmgr_interface);
     if (ep == NULL) {
         LOG_ERROR_0("Endpoint not found");
         return "";
     }
-    
+
     char* value;
     value = cvt_obj_str_to_char(ep);
     if(value == NULL){
@@ -93,7 +87,7 @@ std::vector<std::string> SubscriberCfg::getTopics() {
 
     std::vector<std::string> topic_list;
     // Calling the base C get_topics() API
-    config_value_t* topics = m_sub_cfg->cfgmgr_get_topics_sub(m_sub_cfg);
+    config_value_t* topics = cfgmgr_get_topics(m_cfgmgr_interface);
     if (topics == NULL) {
         LOG_ERROR_0("topics initialization failed");
         return {};
@@ -119,7 +113,7 @@ std::vector<std::string> SubscriberCfg::getTopics() {
 bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
 
     int topics_length = topics_list.size();
-    char **topics_to_be_set = (char**)calloc(topics_length, sizeof(char*));
+    const char **topics_to_be_set = (const char**)calloc(topics_length, sizeof(const char*));
     if (topics_to_be_set == NULL) {
         LOG_ERROR_0("calloc failed for topics_to_be_set");
         return false;
@@ -127,27 +121,26 @@ bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
     for (int i =0; i < topics_length; i++) {
         topics_to_be_set[i] = strdup(topics_list[i].c_str());
         if (topics_to_be_set[i] == NULL) {
-            free_mem(topics_to_be_set);
+            free_mem((char**)topics_to_be_set);
             return false;
         }
     }
     // Calling the base C set_topics_sub() API
-    int topics_set = m_sub_cfg->cfgmgr_set_topics_sub(topics_to_be_set, topics_length, m_app_cfg->base_cfg, m_sub_cfg);
+    bool topics_set = cfgmgr_set_topics(m_cfgmgr_interface, topics_to_be_set, topics_length);
     if(topics_set == 0) {
         LOG_INFO_0("Topics successfully set");
-        free_mem(topics_to_be_set);
+        free_mem((char**)topics_to_be_set);
         return true;
     }
     // Freeing topics_to_be_set
-    free_mem(topics_to_be_set);
+    free_mem((char**)topics_to_be_set);
     return false;
 }
 
 // Destructor
 SubscriberCfg::~SubscriberCfg() {
-   if (m_sub_cfg->sub_config != NULL) {
-        config_value_destroy(m_sub_cfg->sub_config);
-        free(m_sub_cfg);
+    if (m_cfgmgr_interface) {
+        cfgmgr_interface_destroy(m_cfgmgr_interface);
     }
     LOG_INFO_0("SubscriberCfg destructor");
 }

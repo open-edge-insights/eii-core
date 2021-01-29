@@ -10,7 +10,7 @@ package eisconfigmgr
 #include <stdlib.h>
 #include <safe_lib.h>
 #include <eis/utils/logger.h>
-#include <eis/config_manager/cfg_mgr.h>
+#include <eis/config_manager/cfgmgr.h>
 
 // Declaring the Go callback to be called from C layer callback
 extern void cfgmgrGoCallback(const char* key, config_t* config, void* user_data);

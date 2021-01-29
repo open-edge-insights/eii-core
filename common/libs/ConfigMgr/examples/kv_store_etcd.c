@@ -24,7 +24,7 @@
 
 #include <eis/utils/json_config.h>
 #include <eis/utils/config.h>
-#include <eis/config_manager/base_cfg.h>
+#include <eis/config_manager/cfgmgr_util.h>
 #include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
 
 void watch_cb(char *key, config_t* value, void *user_data){

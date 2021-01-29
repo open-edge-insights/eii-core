@@ -62,8 +62,8 @@ The troubleshooting guide here talks about the useful tips to address some of th
         running build_ext
         building 'cfgmgr.app_config' extension
         x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/include/python3.6m -c ./build/cython/./cfgmgr/app_config.c -o build/temp.linux-x86_64-3.6/./build/cython/./cfgmgr/app_config.o
-        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eis/config_manager/cfg_mgr.h: No such file or directory
-        #include "eis/config_manager/cfg_mgr.h"
+        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eis/config_manager/cfgmgr.h: No such file or directory
+        #include "eis/config_manager/cfgmgr.h"
         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         compilation terminated.
         error: command 'x86_64-linux-gnu-gcc' failed with exit status 1

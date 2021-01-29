@@ -42,5 +42,5 @@
 5. Running the GetConfig example:
 
     ```sh
-        $ sample_get_value.py
+        $ python3 sample_get_value.py
     ```

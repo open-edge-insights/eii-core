@@ -27,9 +27,7 @@ import "unsafe"
 // ClientCfg context
 type ClientCfg struct {
 	clientCfg unsafe.Pointer
-	appCfg unsafe.Pointer
-	msgBusCfg unsafe.Pointer
-} 
+}
 
 // GetEndPoints for application to fetch Endpoint associated with message bus config
 //
@@ -37,9 +35,9 @@ type ClientCfg struct {
 // 1. string
 //    Endpoints value in string
 // 2. error
-//    Error on failure,  nil on success 
+//    Error on failure,  nil on success
 func (clientctx *ClientCfg) GetEndPoints() (string, error) {
-	endPoint, err:=  clientctx.getEndPoints()
+	endPoint, err := clientctx.getEndPoints()
 	if err != nil {
 		return "", err
 	}
@@ -51,13 +49,13 @@ func (clientctx *ClientCfg) GetEndPoints() (string, error) {
 // Returns:
 // 1. map[string]interface{}
 // 2. error
-//    Error on failure,  nil on success 
+//    Error on failure,  nil on success
 func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
-	conf, err:= clientctx.getMsgbusConfig()
+	conf, err := clientctx.getMsgbusConfig()
 	if err != nil {
 		return nil, err
 	}
-	config, err :=  string_to_map_interface(conf)
+	config, err := string_to_map_interface(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +74,7 @@ func (clientctx *ClientCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 // 2. error
 //    Error on failure,  nil on success
 func (clientctx *ClientCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal, err:= clientctx.getInterfaceValue(key)
+	interfaceVal, err := clientctx.getInterfaceValue(key)
 	if err != nil {
 		return nil, err
 	}

@@ -19,14 +19,43 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief ConfigMgr Util functions implementation
- * Holds the implementaion of util APIs supported by ConfigMgr
+ * @brief ConfigMgr utility C Implementation
+ * Holds the implementaion of utilities supported for ConfigMgr
  */
 
+#include <stdarg.h>
+#include "eis/config_manager/cfgmgr_util.h"
 
-#include "eis/config_manager/util_cfg.h"
+#define MAX_CONFIG_KEY_LENGTH 250
 
-bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, interface_type_t type){
+// Helper function to convert config_t object to char*
+char* configt_to_char(config_t* config) {
+    cJSON* temp = (cJSON*)config->cfg;
+    if(temp == NULL) {
+        LOG_ERROR_0("cJSON temp object is NULL");
+        return NULL;
+    }
+    char* config_value_cr = cJSON_Print(temp);
+    if(config_value_cr == NULL) {
+        LOG_ERROR_0("config_value_cr object is NULL");
+        return NULL;
+    }
+    return config_value_cr;
+}
+
+// Helper function to convert config_value_t object to char*
+char* cvt_to_char(config_value_t* config) {
+
+    cJSON* c_json = (cJSON*)config->body.object->object;
+    char* config_value_cr = cJSON_Print(c_json);
+    if(config_value_cr == NULL) {
+        LOG_ERROR_0("config_value_cr object is NULL");
+        return NULL;
+    }
+    return config_value_cr;
+}
+
+bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, cfgmgr_iface_type_t type){
 
     int ret;
     config_value_t* topics = NULL;
@@ -50,9 +79,9 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         goto err;
     }
 
-    // Do not check for Topics if interface type is SERVER/CLIENT
-    // since SERVER/CLIENT interfaces don't have Topics
-    if (type != SERVER && type != CLIENT) {
+    // Do not check for Topics if interface type is CFGMGR_SERVER/CFGMGR_CLIENT
+    // since CFGMGR_SERVER/CFGMGR_CLIENT interfaces don't have Topics
+    if (type != CFGMGR_SERVER && type != CFGMGR_CLIENT) {
         topics_list = config_value_object_get(config, TOPICS);
         if (topics_list == NULL) {
             LOG_ERROR_0("topics_list initialization failed");
@@ -149,7 +178,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     if (sock_file != NULL) {
         LOG_INFO("socket_ep file explicitly given by application");
         // For Publisher & Subscriber use case
-        if (type != SERVER && type != CLIENT) {
+        if (type != CFGMGR_SERVER && type != CFGMGR_CLIENT) {
             topics_list = config_value_object_get(config, "Topics");
             if (topics_list == NULL) {
                 LOG_ERROR_0("topics_list initialization failed");
@@ -223,9 +252,9 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     } else {
         // Socket file will be created by EIS message bus based on the topic
         LOG_DEBUG_0("socket_ep file not explicitly given by application");
-        // Do not check for Topics if interface type is SERVER/CLIENT
-        // since SERVER/CLIENT interfaces don't have Topics
-        if (type != SERVER && type != CLIENT) {
+        // Do not check for Topics if interface type is CFGMGR_SERVER/CFGMGR_CLIENT
+        // since CFGMGR_SERVER/CFGMGR_CLIENT interfaces don't have Topics
+        if (type != CFGMGR_SERVER && type != CFGMGR_CLIENT) {
             topics = config_value_array_get(topics_list, 0);
             strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
             if(ret == 0){
@@ -286,7 +315,7 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
     return value;
 }
 
-bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* m_kv_store_handle){
+bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* kv_store_client){
     bool ret_val = false;
     config_value_t* value = NULL;
     config_value_t* publish_json_clients = NULL;
@@ -332,7 +361,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             LOG_ERROR_0("all_clients initialization failed");
             goto err;
         }
-        pub_key_values = m_kv_store_handle->get_prefix(handle, "/Publickeys/");
+        pub_key_values = kv_store_client->get_prefix(handle, "/Publickeys/");
         if (pub_key_values == NULL) {
             LOG_ERROR_0("pub_key_values initialization failed");
             goto err;
@@ -376,7 +405,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
                 LOG_ERROR_0("Concatenation failed for getting public keys");
                 goto err;
             }
-            sub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+            sub_public_key = kv_store_client->get(handle, grab_public_key);
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
                 LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
@@ -404,7 +433,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         LOG_ERROR_0("Concatenation failed for getting private keys");
         goto err;
     }
-    publisher_secret_key = m_kv_store_handle->get(handle, pub_pri_key);
+    publisher_secret_key = kv_store_client->get(handle, pub_pri_key);
     if (publisher_secret_key == NULL) {
         LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
         goto err;
@@ -438,7 +467,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
                     
 }
 
-bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_kv_store_handle, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
+bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_store_client, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
     bool ret_val = false;
     char* s_sub_pri_key = NULL;
     char* s_sub_public_key = NULL;
@@ -453,7 +482,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
         goto err;
     }
 
-    pub_public_key = m_kv_store_handle->get(handle, grab_public_key);
+    pub_public_key = kv_store_client->get(handle, grab_public_key);
     if(pub_public_key == NULL){
         LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
     }
@@ -468,7 +497,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
         LOG_ERROR_0("Failed to conact PUBLIC_KEYS and AppName");
         goto err;
     }
-    sub_public_key = m_kv_store_handle->get(handle, s_sub_public_key);
+    sub_public_key = kv_store_client->get(handle, s_sub_public_key);
     if(sub_public_key == NULL){
         LOG_ERROR("Value is not found for applications own public key: %s", s_sub_public_key);
         ret_val=false;
@@ -485,7 +514,7 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* m_k
         goto err;
     }
 
-    sub_pri_key = m_kv_store_handle->get(handle, s_sub_pri_key);
+    sub_pri_key = kv_store_client->get(handle, s_sub_pri_key);
     if(sub_pri_key == NULL){
         LOG_ERROR("Value is not found for applications own private key: %s", s_sub_pri_key);
         goto err;

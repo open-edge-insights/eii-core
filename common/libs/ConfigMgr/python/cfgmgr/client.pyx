@@ -43,23 +43,19 @@ cdef class Client:
     def __cinit__(self, *args, **kwargs):
         """Cython base constructor
         """
-        self.app_cfg = NULL
-        self.client_cfg = NULL
+        self.cfgmgr_interface = NULL
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, client_cfg_t* client_cfg):
+    cdef create(cfgmgr_interface_t* cfgmgr_interface):
         """Helper method for initializing the client object.
 
-        :param app_cfg: Applications config struct
-        :type: struct
-        :param client_cfg: Client config struct
+        :param cfgmgr_interface: Client config struct
         :type: struct
         :return: Client class object
         :rtype: obj
         """
         c = Client()
-        c.app_cfg = app_cfg
-        c.client_cfg = client_cfg
+        c.cfgmgr_interface = cfgmgr_interface
         return c
 
     def __dealloc__(self):
@@ -70,8 +66,8 @@ cdef class Client:
     def destroy(self):
         """Destroy the client.
         """
-        if self.client_cfg != NULL:
-            client_cfg_config_destroy(self.client_cfg)
+        if self.cfgmgr_interface != NULL:
+            cfgmgr_interface_destroy(self.cfgmgr_interface)
 
     def get_msgbus_config(self):
         """Constructs message bus config for Client
@@ -82,7 +78,7 @@ cdef class Client:
         cdef char* config
         cdef config_t* msgbus_config
         try:
-            msgbus_config = self.client_cfg.cfgmgr_get_msgbus_config_client(self.app_cfg.base_cfg,self.client_cfg)
+            msgbus_config = cfgmgr_get_msgbus_config(self.cfgmgr_interface)
             if msgbus_config is NULL:
                 raise Exception("[Client] Getting msgbus config from base c layer failed")
         
@@ -109,7 +105,7 @@ cdef class Client:
         cdef char* config
         try:
             interface_value = None
-            value = self.client_cfg.cfgmgr_get_interface_value_client(self.client_cfg, key.encode('utf-8'))
+            value = cfgmgr_get_interface_value(self.cfgmgr_interface, key.encode('utf-8'))
             if value is NULL:
                 raise Exception("[Client] Getting interface value from base c layer failed")
         
@@ -132,7 +128,7 @@ cdef class Client:
         cdef config_value_t* ep
         cdef char* c_endpoint
         try:
-            ep = self.client_cfg.cfgmgr_get_endpoint_client(self.client_cfg)
+            ep = cfgmgr_get_endpoint(self.cfgmgr_interface)
             if ep is NULL:
                 raise Exception("[Client] Getting end point from base c layer failed")
 

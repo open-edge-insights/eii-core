@@ -37,7 +37,7 @@
 #include <eis/utils/logger.h>
 #include "eis/utils/json_config.h"
 #include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
-#include "eis/config_manager/base_cfg.h"
+#include "eis/config_manager/cfgmgr.h"
 
 
 namespace eis {
@@ -55,11 +55,11 @@ namespace eis {
                 // App's interface
                 config_t* m_app_interface;
 
-                // C base_cfg_t struct
-                base_cfg_t* m_base_cfg;
-
                 // App's data store
                 config_t* m_app_data_store;
+
+                // cfgmgr_ctx_t object
+                cfgmgr_ctx_t* m_cfgmgr;
 
             protected:
 
@@ -80,7 +80,7 @@ namespace eis {
                 * @param app_interface - The interface associated with a service
                 * @param dev_mode - bool whether dev mode is set
                 */
-                explicit AppCfg(base_cfg_t* base_cfg);
+                explicit AppCfg(cfgmgr_ctx_t* cfgmgr);
 
                 /**
                  * Gets app config
@@ -100,7 +100,7 @@ namespace eis {
                  * @param key - Key for which value is needed
                  * @return config_value_t* - config_value_t object
                  */
-                config_value_t* getConfigValue(char* key);
+                config_value_t* getConfigValue(const char* key);
 
                 /**
                  * Register a callback to watch on any given key
@@ -109,7 +109,7 @@ namespace eis {
                  * @param user_data - user data to be sent to callback
                  * @return bool - Boolean whether the callback was registered
                  */
-                bool watch(char* key, callback_t watch_callback, void* user_data);
+                bool watch(const char* key, cfgmgr_watch_callback_t watch_callback, void* user_data);
 
                 /**
                  * Register a callback to watch on any given key prefix
@@ -118,7 +118,7 @@ namespace eis {
                  * @param user_data - user data to be sent to callback
                  * @return bool - Boolean whether the callback was registered
                  */
-                bool watchPrefix(char* prefix, callback_t watch_callback, void* user_data);
+                bool watchPrefix(char* prefix, cfgmgr_watch_callback_t watch_callback, void* user_data);
 
                 /**
                  * Register a callback to watch on app config
@@ -126,7 +126,7 @@ namespace eis {
                  * @param user_data - user data to be sent to callback
                  * @return bool - Boolean whether the callback was registered
                  */
-                bool watchConfig(callback_t watch_callback, void* user_data);
+                bool watchConfig(cfgmgr_watch_callback_t watch_callback, void* user_data);
 
                 /**
                  * Register a callback to watch on app interface
@@ -134,7 +134,7 @@ namespace eis {
                  * @param user_data - user data to be sent to callback
                  * @return bool - Boolean whether the callback was registered
                  */
-                bool watchInterface(callback_t watch_callback, void* user_data);
+                bool watchInterface(cfgmgr_watch_callback_t watch_callback, void* user_data);
 
                 /**
                  * Get msgbus configuration for application to communicate over EIS message bus
