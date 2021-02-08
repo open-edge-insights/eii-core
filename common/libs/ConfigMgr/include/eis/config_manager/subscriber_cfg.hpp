@@ -48,8 +48,9 @@ namespace eis {
             public:
                 /**
                 * SubscriberCfg Constructor
-                * @param sub_config - The config associated with a subscriber
-                * @param app_cfg    - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a subscriber
                 */
                 explicit SubscriberCfg(cfgmgr_interface_t* cfgmgr_interface);
 
@@ -90,7 +91,7 @@ namespace eis {
                 bool setTopics(std::vector<std::string> topics_list) override;
 
                 /**
-                * cfgmgr_interface_t getter to get private cfgmgr_interface_t
+                * cfgmgr_interface_t getter to get subscriber interface
                 */
                 cfgmgr_interface_t* getSubCfg();
 

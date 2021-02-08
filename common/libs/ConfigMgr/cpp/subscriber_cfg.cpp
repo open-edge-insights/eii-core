@@ -43,8 +43,7 @@ config_t* SubscriberCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_sub() API
     config_t* sub_config = cfgmgr_get_msgbus_config(m_cfgmgr_interface);
     if (sub_config == NULL) {
-        LOG_ERROR_0("Unable to fetch subscriber msgbus config");
-        return NULL;
+        throw "Unable to fetch subscriber msgbus config";
     }
     return sub_config;
 }
@@ -52,9 +51,8 @@ config_t* SubscriberCfg::getMsgBusConfig() {
 // Get the Interface Value of Subscriber.
 config_value_t* SubscriberCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = cfgmgr_get_interface_value(m_cfgmgr_interface, key);
-    if(interface_value == NULL){
-        LOG_DEBUG_0("[Subscriber]:Getting interface value from base c layer failed");
-        return NULL;
+    if (interface_value == NULL) {
+        throw "Getting interface value from base c layer failed";
     }
     return interface_value;
 }
@@ -64,16 +62,14 @@ std::string SubscriberCfg::getEndpoint() {
     // Calling the base C get_endpoint_sub() API
     config_value_t* ep = cfgmgr_get_endpoint(m_cfgmgr_interface);
     if (ep == NULL) {
-        LOG_ERROR_0("Endpoint not found");
-        return "";
+        throw "Endpoint not found";
     }
 
     char* value;
     value = cvt_obj_str_to_char(ep);
     if(value == NULL){
-        LOG_ERROR_0("Endpoint object to string conversion failed");
         config_value_destroy(ep);
-        return "";
+        throw "Endpoint object to string conversion failed";
     }
 
     std::string s(value);
@@ -89,16 +85,14 @@ std::vector<std::string> SubscriberCfg::getTopics() {
     // Calling the base C get_topics() API
     config_value_t* topics = cfgmgr_get_topics(m_cfgmgr_interface);
     if (topics == NULL) {
-        LOG_ERROR_0("topics initialization failed");
-        return {};
+        throw "topics initialization failed";
     }
     config_value_t* topic_value;
     for (size_t i = 0; i < config_value_array_len(topics); i++) {
         topic_value = config_value_array_get(topics, i);
         if (topic_value == NULL) {
-            LOG_ERROR_0("topics initialization failed");
             config_value_destroy(topics);
-            return {};
+            throw "topics initialization failed";
         }
         topic_list.push_back(topic_value->body.string);
         // Destroying topics
@@ -112,28 +106,28 @@ std::vector<std::string> SubscriberCfg::getTopics() {
 // To set topics in config
 bool SubscriberCfg::setTopics(std::vector<std::string> topics_list) {
 
-    int topics_length = topics_list.size();
-    const char **topics_to_be_set = (const char**)calloc(topics_length, sizeof(const char*));
+    size_t topics_length = topics_list.size();
+    char **topics_to_be_set = (char**)calloc(topics_length, sizeof(char*));
     if (topics_to_be_set == NULL) {
         LOG_ERROR_0("calloc failed for topics_to_be_set");
         return false;
     }
-    for (int i =0; i < topics_length; i++) {
+    for (size_t i =0; i < topics_length; i++) {
         topics_to_be_set[i] = strdup(topics_list[i].c_str());
         if (topics_to_be_set[i] == NULL) {
-            free_mem((char**)topics_to_be_set);
+            free_mem(topics_to_be_set);
             return false;
         }
     }
     // Calling the base C set_topics_sub() API
     bool topics_set = cfgmgr_set_topics(m_cfgmgr_interface, topics_to_be_set, topics_length);
-    if(topics_set == 0) {
+    if (topics_set) {
         LOG_INFO_0("Topics successfully set");
-        free_mem((char**)topics_to_be_set);
+        free_mem(topics_to_be_set);
         return true;
     }
     // Freeing topics_to_be_set
-    free_mem((char**)topics_to_be_set);
+    free_mem(topics_to_be_set);
     return false;
 }
 

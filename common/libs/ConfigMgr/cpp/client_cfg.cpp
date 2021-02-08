@@ -42,8 +42,7 @@ config_t* ClientCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_client() API
     config_t* cpp_client_config = cfgmgr_get_msgbus_config(m_cfgmgr_interface);
     if (cpp_client_config == NULL) {
-        LOG_ERROR_0("Unable to fetch client msgbus config");
-        return NULL;
+        throw "Unable to fetch client msgbus config";
     }
     return cpp_client_config;
 }
@@ -51,9 +50,8 @@ config_t* ClientCfg::getMsgBusConfig() {
 // Get the Interface Value of Client.
 config_value_t* ClientCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = cfgmgr_get_interface_value(m_cfgmgr_interface, key);
-    if(interface_value == NULL){
-        LOG_DEBUG_0("[Client]:Getting interface value from base c layer failed");
-        return NULL;
+    if (interface_value == NULL) {
+        throw "Getting interface value from base c layer failed";
     }
     return interface_value;
 }
@@ -63,15 +61,13 @@ std::string ClientCfg::getEndpoint() {
     // Fetching EndPoint from config
     config_value_t* ep = cfgmgr_get_endpoint(m_cfgmgr_interface);
     if (ep == NULL) {
-        LOG_ERROR_0("Endpoint is not set");
-        return "";
+        throw "Endpoint is not set";
     }
-    
+
     char* value;
     value = cvt_obj_str_to_char(ep);
-    if(value == NULL){
-        LOG_ERROR_0("Endpoint object to string conversion failed");
-        return "";
+    if (value == NULL) {
+        throw "Endpoint object to string conversion failed";
     }
 
     std::string s(value);

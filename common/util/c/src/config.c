@@ -30,7 +30,8 @@
 
 config_t* config_new(
         void* cfg, void (*free_fn)(void*),
-        config_value_t* (*get_config_value)(const void*,const char*)) {
+        config_value_t* (*get_config_value)(const void*,const char*),
+        bool (*set_config_value)(config_t*, const char*, config_value_t*)) {
     if(cfg != NULL && free_fn == NULL) {
         LOG_ERROR_0("Free method not specified for cfg object");
         return NULL;
@@ -48,12 +49,17 @@ config_t* config_new(
     config->cfg = cfg;
     config->free = free_fn;
     config->get_config_value = get_config_value;
+    config->set_config_value = set_config_value;
 
     return config;
 }
 
 config_value_t* config_get(const config_t* config, const char* key) {
     return config->get_config_value(config->cfg, key);
+}
+
+bool config_set(config_t* config, const char* key, config_value_t* item) {
+    return config->set_config_value(config, key, item);
 }
 
 config_value_t* config_value_object_get(
@@ -87,10 +93,12 @@ size_t config_value_array_len(const config_value_t* arr) {
 }
 
 void config_destroy(config_t* config) {
-    if(config->cfg != NULL) {
-        config->free(config->cfg);
+    if (config != NULL) {
+        if (config->cfg != NULL) {
+            config->free(config->cfg);
+        }
+        free(config);
     }
-    free(config);
 }
 
 config_value_t* config_value_new_integer(int64_t value) {

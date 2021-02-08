@@ -212,8 +212,8 @@ cdef class Subscriber:
 
             # Calling the base C cfgmgr_set_topics() API
             topics_set = cfgmgr_set_topics(self.cfgmgr_interface, topics_to_be_set, len(topics_list))
-            if topics_set is not 0 :
-                    raise Exception("[Subscriber] Set Topics in base c layer failed")
+            if not topics_set :
+                raise Exception("[Subscriber] Set Topics in base c layer failed")
             free(topics_to_be_set)
             return topics_set
         except Exception as ex:

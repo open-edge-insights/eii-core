@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Intel Corporation.
+// Copyright (c) 2021 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -55,7 +55,7 @@ char* cvt_to_char(config_value_t* config) {
     return config_value_cr;
 }
 
-bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, cfgmgr_iface_type_t type){
+bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_point, cfgmgr_iface_type_t type){
 
     int ret;
     config_value_t* topics = NULL;
@@ -66,13 +66,22 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     char** socket_ep = NULL;
     config_value_t* topics_list = NULL;
     config_value_t* service_name = NULL;
+    config_value_t* socketdir_cvt = NULL;
+    config_value_t* socketfile_cvt = NULL;
+    config_t* socket_file_obj = NULL;
+    config_value_t* sock_file_cvt = NULL;
+    config_value_t* brokered_value = NULL;
+    config_value_t* brokered_cvt = NULL;
+    config_value_t* socket_file_obj_cvt = NULL;
+    config_value_t* sock_dir_cvt = NULL;
+    bool config_set_result = false;
 
     sock_dir = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
     if (sock_dir == NULL) {
         LOG_ERROR_0("Malloc failed for sock_dir");
         goto err;
     }
-    
+
     json_endpoint = config_value_object_get(config, ENDPOINT);
     if (json_endpoint == NULL) {
         LOG_ERROR_0("json_endpoint initialization failed");
@@ -89,14 +98,14 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         }
     }
 
-    if(json_endpoint->type == CVT_OBJECT) {
+    if (json_endpoint->type == CVT_OBJECT) {
 
-        config_value_t* socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
+        socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
         if (socketdir_cvt == NULL || socketdir_cvt->body.string == NULL) {
             LOG_ERROR_0("socketdir_cvt initialization failed");
             goto err;
         }
-        config_value_t* socketfile_cvt = config_value_object_get(json_endpoint, "SocketFile");
+        socketfile_cvt = config_value_object_get(json_endpoint, "SocketFile");
         if (socketfile_cvt == NULL || socketfile_cvt->body.string == NULL) {
             LOG_ERROR_0("socketfile_cvt initialization failed");
             goto err;
@@ -185,14 +194,13 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
                 goto err;
             }
 
-            config_value_t* topics;
             size_t arr_len = config_value_array_len(topics_list);
-            if(arr_len == 0){
+            if (arr_len == 0) {
                 LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
             }
             // getting the topic list and mapping multiple topics to the socket file
-            for (int i=0; i < arr_len; ++i) {
-                cJSON* socket_file_obj = cJSON_CreateObject();
+            for (size_t i=0; i < arr_len; ++i) {
+                socket_file_obj = json_config_new_from_buffer("{}");
                 if (socket_file_obj == NULL) {
                     LOG_ERROR_0("c_json initialization failed");
                     goto err;
@@ -204,37 +212,90 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
                 }
 
                 strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
-                if(ret == 0){
-                    cJSON_AddItemToObject(c_json, "", socket_file_obj);
-                } else {
-                    cJSON_AddItemToObject(c_json, topics->body.string, socket_file_obj);
-                }
 
-                cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
+                sock_file_cvt = config_value_new_string(sock_file);
+                if (sock_file_cvt == NULL) {
+                    LOG_ERROR_0("sock_file_cvt initialization failed");
+                    goto err;
+                }
+                config_set_result = config_set(socket_file_obj, SOCKET_FILE, sock_file_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR("Unable to set config value");
+                }
                 // Adding brokered value if available
-                config_value_t* brokered_value = config_value_object_get(config, BROKERED);
+                brokered_value = config_value_object_get(config, BROKERED);
+                if (brokered_value == NULL) {
+                    LOG_ERROR_0("brokered_value initialization failed");
+                    goto err;
+                }
                 if (brokered_value != NULL) {
                     if (brokered_value->type != CVT_BOOLEAN) {
                         LOG_ERROR_0("brokered_value type is not boolean");
                         goto err;
                     } else {
                         if (brokered_value->body.boolean) {
-                            cJSON_AddBoolToObject(socket_file_obj, BROKERED, true);
+                            brokered_cvt = config_value_new_boolean(true);
+                            if (brokered_cvt == NULL) {
+                                LOG_ERROR_0("brokered_cvt initialization failed");
+                                goto err;
+                            }
+                            config_set_result = config_set(socket_file_obj, BROKERED, brokered_cvt);
+                            if (!config_set_result) {
+                                LOG_ERROR_0("Unable to set config value");
+                                goto err;
+                            }
                         } else {
-                            cJSON_AddBoolToObject(socket_file_obj, BROKERED, false);
+                            brokered_cvt = config_value_new_boolean(false);
+                            if (brokered_cvt == NULL) {
+                                LOG_ERROR_0("brokered_cvt initialization failed");
+                                goto err;
+                            }
+                            config_set_result = config_set(socket_file_obj, BROKERED, brokered_cvt);
+                            if (!config_set_result) {
+                                LOG_ERROR_0("Unable to set config value");
+                                goto err;
+                            }
                         }
+                    }
+                }
+                socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);;
+                if (socket_file_obj_cvt == NULL) {
+                    LOG_ERROR_0("socket_file_obj_cvt initialization failed");
+                    goto err;
+                }
+                if (ret == 0) {
+                    config_set_result = config_set(c_json, "", socket_file_obj_cvt);
+                    if (!config_set_result) {
+                        LOG_ERROR("Unable to set config value");
+                        goto err;
+                    }
+                } else {
+                    config_set_result = config_set(c_json, topics->body.string, socket_file_obj_cvt);
+                    if (!config_set_result) {
+                        LOG_ERROR("Unable to set config value");
+                        goto err;
                     }
                 }
             }
         } else {
             // For Server & Client use case
-            cJSON* socket_file_obj = cJSON_CreateObject();
+            socket_file_obj = json_config_new_from_buffer("{}");
             if (socket_file_obj == NULL) {
                 LOG_ERROR_0("c_json initialization failed");
                 goto err;
             }
+
             // Add the socket file name to socket_file_obj
-            cJSON_AddStringToObject(socket_file_obj, SOCKET_FILE, sock_file);
+            sock_file_cvt = config_value_new_string(sock_file);
+            if (sock_file_cvt == NULL) {
+                LOG_ERROR_0("sock_file_cvt initialization failed");
+                goto err;
+            }
+            config_set_result = config_set(socket_file_obj, SOCKET_FILE, sock_file_cvt);
+            if (!config_set_result) {
+                LOG_ERROR_0("Unable to set config value");
+                goto err;
+            }
 
             // Fetch the service name associated with the interface
             service_name = config_value_object_get(config, NAME);
@@ -246,7 +307,16 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
                 LOG_ERROR_0("Interface value Name should be a string");
                 goto err;
             } else {
-                cJSON_AddItemToObject(c_json, service_name->body.string, socket_file_obj);
+                socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);;
+                if (socket_file_obj_cvt == NULL) {
+                    LOG_ERROR_0("socket_file_obj_cvt initialization failed");
+                    goto err;
+                }
+                config_set_result = config_set(c_json, service_name->body.string, socket_file_obj_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR_0("Unable to set config value");
+                    goto err;
+                }
             }
         }
     } else {
@@ -257,7 +327,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
         if (type != CFGMGR_SERVER && type != CFGMGR_CLIENT) {
             topics = config_value_array_get(topics_list, 0);
             strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
-            if(ret == 0){
+            if (ret == 0) {
                 LOG_ERROR_0("Topics cannot be \"*\" if socket file is not explicitly mentioned");
                 goto err;
             }
@@ -266,16 +336,25 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
     }
 
     // Add Endpoint directly to socket_dir if IPC mode
-    cJSON_AddStringToObject(c_json, "socket_dir", sock_dir);
+    sock_dir_cvt = config_value_new_string(sock_dir);
+    if (sock_dir_cvt == NULL) {
+        LOG_ERROR_0("sock_dir_cvt initialization failed");
+        goto err;
+    }
+    config_set_result = config_set(c_json, "socket_dir", sock_dir_cvt);
+    if (!config_set_result) {
+        LOG_ERROR_0("Unable to set config value");
+        goto err;
+    }
 
     // This line should be last to execute in success path, Add your code above it. :)
-    result = true;
+    result = config_set_result;
 
 err:
-    if (sock_file != NULL){
+    if (sock_file != NULL) {
         free(sock_file);
-    } 
-    if (sock_dir != NULL){
+    }
+    if (sock_dir != NULL) {
         free(sock_dir);
     }
     if (service_name != NULL) {
@@ -289,6 +368,9 @@ err:
     }
     if (socket_ep != NULL) {
         free_mem(socket_ep);
+    }
+    if (sock_dir_cvt != NULL) {
+        config_value_destroy(sock_dir_cvt);
     }
     return result;
 }
@@ -315,17 +397,21 @@ char* cvt_obj_str_to_char(config_value_t* cvt){
     return value;
 }
 
-bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_json, void* handle, config_value_t* config, kv_store_client_t* kv_store_client){
+bool construct_tcp_publisher_prod(char* app_name, config_t* c_json, config_t* inner_json, void* handle, config_value_t* config, kv_store_client_t* kv_store_client){
     bool ret_val = false;
     config_value_t* value = NULL;
     config_value_t* publish_json_clients = NULL;
     config_value_t* pub_key_values = NULL;
     config_value_t* array_value = NULL;
-    char *grab_public_key = NULL;
+    char* grab_public_key = NULL;
     char* sub_public_key = NULL;
     config_value_t* temp_array_value = NULL;
     char* publisher_secret_key = NULL;
     char* pub_pri_key = NULL;
+    config_t* all_clients_arr_config = NULL;
+    config_value_t* publisher_secret_key_cvt = NULL;
+    config_value_t* all_clients_arr = NULL;
+    char **all_clients = NULL;
 
     publish_json_clients = config_value_object_get(config, ALLOWED_CLIENTS);
     if (publish_json_clients == NULL) {
@@ -334,7 +420,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     }
 
     // Checking if Allowed clients is empty string
-    if (config_value_array_len(publish_json_clients) == 0){
+    if (config_value_array_len(publish_json_clients) == 0) {
         LOG_ERROR_0("Empty String is not supported in AllowedClients. Atleast one allowed clients is required");
         goto err;
     }
@@ -349,48 +435,32 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
     strcmp_s(temp_array_value->body.string, strlen(temp_array_value->body.string), "*", &result);
 
     size_t arr_len = config_value_array_len(publish_json_clients);
-    if(arr_len == 0){
+    if (arr_len == 0) {
         LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+        goto err;
     }
 
     // If only one item in allowed_clients and it is *
     // Add all available Publickeys
     if ((arr_len == 1) && (result == 0)) {
-        cJSON* all_clients = cJSON_CreateArray();
-        if (all_clients == NULL) {
-            LOG_ERROR_0("all_clients initialization failed");
-            goto err;
-        }
         pub_key_values = kv_store_client->get_prefix(handle, "/Publickeys/");
         if (pub_key_values == NULL) {
             LOG_ERROR_0("pub_key_values initialization failed");
             goto err;
         }
-
-        arr_len = config_value_array_len(pub_key_values);
-        if(arr_len == 0){
+        bool config_set_result = config_set(c_json, "allowed_clients", pub_key_values);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+        }
+    } else {
+        arr_len = config_value_array_len(publish_json_clients);
+        if (arr_len == 0) {
             LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
         }
-
-        for (int i = 0; i < arr_len; i++) {
-            value = config_value_array_get(pub_key_values, i);
-            if (value == NULL) {
-                LOG_ERROR_0("value initialization failed");
-                goto err;
-            }
-            cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
-        }
-        cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
-    } else {
-        
-        cJSON* all_clients = cJSON_CreateArray();
+        all_clients = (char**)calloc(arr_len, sizeof(char*));
         if (all_clients == NULL) {
             LOG_ERROR_0("all_clients initialization failed");
             goto err;
-        }
-        arr_len = config_value_array_len(publish_json_clients);
-        if(arr_len == 0){
-            LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
         }
         for (int i =0; i < arr_len; i++) {
             // Fetching individual public keys of all AllowedClients
@@ -401,7 +471,7 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             }
             size_t init_len = strlen(PUBLIC_KEYS) + strlen(array_value->body.string) + 2;
             grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, array_value->body.string);
-            if (grab_public_key == NULL){
+            if (grab_public_key == NULL) {
                 LOG_ERROR_0("Concatenation failed for getting public keys");
                 goto err;
             }
@@ -409,27 +479,41 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
             if (sub_public_key == NULL) {
                 // If any service isn't provisioned, ignore if key not found
                 LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
+                all_clients[i] = NULL;
+            } else {
+                all_clients[i] = sub_public_key;
             }
-
-            cJSON_AddItemToArray(all_clients, cJSON_CreateString(sub_public_key));
             // Before Loop iterates, release all allocated mems.
             if (grab_public_key != NULL) {
                 free(grab_public_key);
-            }
-            if (sub_public_key != NULL) {
-                free(sub_public_key);
             }
             if (array_value != NULL) {
                 config_value_destroy(array_value);
             }
         }
+
+        all_clients_arr_config = json_config_new_array(all_clients, arr_len);
+        if (all_clients_arr_config == NULL) {
+            LOG_ERROR_0("Failed to create all_clients_arr_config config_t object");
+            goto err;
+        }
+
+        all_clients_arr = config_value_new_object(all_clients_arr_config->cfg, get_config_value, NULL);
+        if (all_clients_arr == NULL) {
+            LOG_ERROR_0("Unable to create config_value_t all_clients_arr object");
+            goto err;
+        }
         // Adding all public keys of clients to allowed_clients of config
-        cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
+        bool config_set_result = config_set(c_json, "allowed_clients", all_clients_arr);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     }
     // Fetching Publisher private key & adding it to zmq_tcp_publish object
     size_t init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
     pub_pri_key = concat_s(init_len, 3, "/", app_name, PRIVATE_KEY);
-    if (pub_pri_key == NULL){
+    if (pub_pri_key == NULL) {
         LOG_ERROR_0("Concatenation failed for getting private keys");
         goto err;
     }
@@ -439,20 +523,32 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         goto err;
     }
 
-    cJSON_AddStringToObject(inner_json, "server_secret_key", publisher_secret_key);
+    publisher_secret_key_cvt = config_value_new_string(publisher_secret_key);
+    if (publisher_secret_key_cvt == NULL) {
+        LOG_ERROR_0("Get publisher_secret_key_cvt failed");
+        goto err;
+    }
+    bool config_set_result = config_set(inner_json, "server_secret_key", publisher_secret_key_cvt);
+    if (!config_set_result) {
+        LOG_ERROR("Unable to set config value");
+        goto err;
+    }
 
     // We should add all success-path code above this line.
     ret_val = true;
 
     err:
-        if(value != NULL) {
+        if (value != NULL) {
             config_value_destroy(value);
         }
-        if (publisher_secret_key) {
+        if (publisher_secret_key != NULL) {
             free(publisher_secret_key);
         }
         if (pub_pri_key != NULL) {
             free(pub_pri_key);
+        }
+        if (sub_public_key != NULL) {
+            free(sub_public_key);
         }
         if (publish_json_clients != NULL) {
             config_value_destroy(publish_json_clients);
@@ -463,17 +559,35 @@ bool construct_tcp_publisher_prod(char* app_name, cJSON* c_json, cJSON* inner_js
         if (pub_key_values != NULL) {
             config_value_destroy(pub_key_values);
         }
+        if (all_clients_arr_config != NULL) {
+            config_value_destroy(all_clients_arr_config);
+        }
+        if (array_value != NULL) {
+            config_value_destroy(array_value);
+        }
+        if (publisher_secret_key_cvt != NULL) {
+            config_value_destroy(publisher_secret_key_cvt);
+        }
+        if (all_clients_arr != NULL) {
+            config_value_destroy(all_clients_arr);
+        }
+        if (all_clients != NULL) {
+            free_mem(all_clients);
+        }
         return ret_val;
-                    
 }
 
-bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_store_client, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
+bool add_keys_to_config(config_t* sub_topic, char* app_name, kv_store_client_t* kv_store_client, void* handle, config_value_t* publisher_appname, config_value_t* sub_config) {
     bool ret_val = false;
     char* s_sub_pri_key = NULL;
     char* s_sub_public_key = NULL;
     char* sub_public_key = NULL;
     char* sub_pri_key = NULL;
     char* pub_public_key = NULL;
+    bool config_set_result = false;
+    config_value_t* sub_pri_key_cvt = NULL;
+    config_value_t* pub_public_key_cvt = NULL;
+    config_value_t* sub_public_key_cvt = NULL;
 
     size_t init_len = strlen(PUBLIC_KEYS) + strlen(publisher_appname->body.string) + 2;
     char* grab_public_key = concat_s(init_len, 2, PUBLIC_KEYS, publisher_appname->body.string);
@@ -487,8 +601,19 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_
         LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
     }
 
-    // Adding Publisher public key to config
-    cJSON_AddStringToObject(sub_topic, "server_public_key", pub_public_key);
+    if (pub_public_key != NULL) {
+        // Adding Publisher public key to config
+        pub_public_key_cvt = config_value_new_string(pub_public_key);
+        if (pub_public_key_cvt == NULL) {
+            LOG_ERROR_0("Get pub_public_key_cvt failed");
+            goto err;
+        }
+        config_set_result = config_set(sub_topic, "server_public_key", pub_public_key_cvt);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+    }
 
     // Adding Subscriber public key to config
     init_len = strlen(PUBLIC_KEYS) + strlen(app_name) + 2;
@@ -504,7 +629,16 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_
         goto err;
     }
 
-    cJSON_AddStringToObject(sub_topic, "client_public_key", sub_public_key);
+    sub_public_key_cvt = config_value_new_string(sub_public_key);
+    if (sub_public_key_cvt == NULL) {
+        LOG_ERROR_0("Get sub_public_key_cvt failed");
+        goto err;
+    }
+    config_set_result = config_set(sub_topic, "client_public_key", sub_public_key_cvt);
+    if (!config_set_result) {
+        LOG_ERROR("Unable to set config value");
+        goto err;
+    }
 
     // Adding Subscriber private key to config
     init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
@@ -520,7 +654,16 @@ bool add_keys_to_config(cJSON* sub_topic, char* app_name, kv_store_client_t* kv_
         goto err;
     }
 
-    cJSON_AddStringToObject(sub_topic, "client_secret_key", sub_pri_key);
+    sub_pri_key_cvt = config_value_new_string(sub_pri_key);
+    if (sub_pri_key_cvt == NULL) {
+        LOG_ERROR_0("Get sub_pri_key_cvt failed");
+        goto err;
+    }
+    config_set_result = config_set(sub_topic, "client_secret_key", sub_pri_key_cvt);
+    if (!config_set_result) {
+        LOG_ERROR_0("Unable to set config value");
+        goto err;
+    }
 
     // Add all success-path code above this line.
     ret_val = true;

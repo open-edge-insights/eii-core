@@ -56,6 +56,11 @@ config_value_t* helper_get(config_t* cfg, const char* key) {
     return cv;
 }
 
+bool helper_set(config_t* cfg, const char* key, config_value_t* item) {
+    bool ret = config_set(cfg, key, item);
+    return ret;
+}
+
 TEST(config_tests, config) {
     set_log_level(LOG_LVL_DEBUG);
 
@@ -117,6 +122,37 @@ TEST(config_tests, config) {
     ASSERT_EQ(obj_item->body.integer, INT_VAL);
     config_value_destroy(obj_item);
     config_value_destroy(object);
+
+    config_value_t* string_test = config_value_new_string("test");
+    if (string_test == NULL) {
+        LOG_ERROR_0("Failed to create config_value_t element");
+        FAIL() << "Failed to create config_value_t element";
+    }
+    bool ret = helper_set(cfg, "set_string_test", string_test);
+    ASSERT_EQ(ret, true);
+
+    config_value_t* string_test_get = helper_get(cfg, "set_string_test");
+    if(string_test_get == NULL) { FAIL() << "Failed to get config value"; }
+    ASSERT_EQ(string_test_get->type, CVT_STRING);
+    ASSERT_STREQ(string_test_get->body.string, "test");
+    config_value_destroy(string_test_get);
+
+    config_value_t* string_replace_test = config_value_new_string("test_replace");
+    if (string_replace_test == NULL) {
+        LOG_ERROR_0("Failed to create config_value_t element");
+        FAIL() << "Failed to create config_value_t element";
+    }
+    ret = helper_set(cfg, "set_string_test", string_replace_test);
+    ASSERT_EQ(ret, true);
+
+    config_value_t* string_replace_test_get = helper_get(cfg, "set_string_test");
+    if(string_replace_test_get == NULL) { FAIL() << "Failed to get config value"; }
+    ASSERT_EQ(string_replace_test_get->type, CVT_STRING);
+    ASSERT_STREQ(string_replace_test_get->body.string, "test_replace");
+    config_value_destroy(string_replace_test_get);
+
+    config_value_destroy(string_test);
+    config_value_destroy(string_replace_test);
 
     config_destroy(cfg);
 }

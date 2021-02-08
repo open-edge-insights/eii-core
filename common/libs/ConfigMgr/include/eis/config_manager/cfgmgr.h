@@ -182,7 +182,7 @@ config_value_t* cfgmgr_get_topics(cfgmgr_interface_t* ctx);
  * @param len - total number of topics
  *  @return false for any errors occured or true on success
  */
-bool cfgmgr_set_topics(cfgmgr_interface_t* ctx, const char** topics_list, int len);
+bool cfgmgr_set_topics(cfgmgr_interface_t* ctx, char const* const* topics_list, int len);
 
 /**
  * cfgmgr_get_allowed_clients function to fetch allowed clients

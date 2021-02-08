@@ -51,8 +51,8 @@ AppCfg* ConfigMgr::getAppConfig() {
 int ConfigMgr::getNumPublishers() {
     // Calling the base C cfgmgr_get_num_elements_base API
     int result = cfgmgr_get_num_publishers(m_cfgmgr);
-    if (result == -1){
-        LOG_DEBUG_0("Failed to fetch number of pulishers");
+    if (result == -1) {
+        LOG_ERROR_0("Failed to fetch number of pulishers");
     }
     return result;
 }
@@ -60,8 +60,8 @@ int ConfigMgr::getNumPublishers() {
 int ConfigMgr::getNumSubscribers() {
     // Calling the base C cfgmgr_get_num_elements_base API
     int result = cfgmgr_get_num_subscribers(m_cfgmgr);
-    if (result == -1){
-        LOG_DEBUG_0("Failed to fetch number of subscribers");
+    if (result == -1) {
+        LOG_ERROR_0("Failed to fetch number of subscribers");
     }
     return result;
 }
@@ -69,8 +69,8 @@ int ConfigMgr::getNumSubscribers() {
 int ConfigMgr::getNumServers() {
     // Calling the base C cfgmgr_get_num_elements_base API
     int result = cfgmgr_get_num_servers(m_cfgmgr);
-    if (result == -1){
-        LOG_DEBUG_0("Failed to fetch number of servers");
+    if (result == -1) {
+        LOG_ERROR_0("Failed to fetch number of servers");
     }
     return result;
 }
@@ -79,7 +79,7 @@ int ConfigMgr::getNumClients() {
     // Calling the base C cfgmgr_get_num_elements_base API
     int result = cfgmgr_get_num_clients(m_cfgmgr);
     if (result == -1) {
-        LOG_DEBUG_0("Failed to fetch number of clients");
+        LOG_ERROR_0("Failed to fetch number of clients");
     }
     return result;
 }
@@ -97,16 +97,13 @@ std::string ConfigMgr::getAppName() {
     // Calling the base C cfgmgr_get_appname_base API
     config_value_t* appname = cfgmgr_get_appname(m_cfgmgr);
     if (appname == NULL) {
-        LOG_ERROR_0("AppName is NULL");
-        return NULL;
+        throw "AppName is NULL";
     }
 
     if (appname->type != CVT_STRING) {
-        LOG_ERROR_0("appname type is not string");
-        return NULL;
+        throw "appname type is not string";
     } else if (appname->body.string == NULL) {
-        LOG_ERROR_0("AppName is NULL");
-        return NULL;
+        throw "AppName is NULL";
     }
     std::string app_name(appname->body.string);
     config_value_destroy(appname);
@@ -114,12 +111,11 @@ std::string ConfigMgr::getAppName() {
 }
 
 PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
-    LOG_INFO_0("AppCfg getPublisherByIndex method");
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_publisher_by_index API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_publisher_by_index(m_cfgmgr, index);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating PublisherCfg object
@@ -128,12 +124,11 @@ PublisherCfg* ConfigMgr::getPublisherByIndex(int index) {
 }
 
 PublisherCfg* ConfigMgr::getPublisherByName(const char* name) {
-    LOG_INFO_0("AppCfg getPublisherByName method");
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_publisher_by_name API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_publisher_by_name(m_cfgmgr, name);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating PublisherCfg object
@@ -142,12 +137,11 @@ PublisherCfg* ConfigMgr::getPublisherByName(const char* name) {
 }
 
 SubscriberCfg* ConfigMgr::getSubscriberByIndex(int index) {
-    LOG_INFO_0("AppCfg getSubscriberByIndex method");
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_subscriber_by_index API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_subscriber_by_index(m_cfgmgr, index);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating SubscriberCfg object
@@ -156,12 +150,11 @@ SubscriberCfg* ConfigMgr::getSubscriberByIndex(int index) {
 }
 
 SubscriberCfg* ConfigMgr::getSubscriberByName(const char* name) {
-    LOG_INFO_0("AppCfg getSubscriberByName method");
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_subscriber_by_name API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_subscriber_by_name(m_cfgmgr, name);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating SubscriberCfg object
@@ -170,13 +163,11 @@ SubscriberCfg* ConfigMgr::getSubscriberByName(const char* name) {
 }
 
 ServerCfg* ConfigMgr::getServerByIndex(int index) {
-    LOG_INFO_0("AppCfg getServerByIndex method");
-
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_server_by_index API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_server_by_index(m_cfgmgr, index);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating ServerCfg object
@@ -185,13 +176,11 @@ ServerCfg* ConfigMgr::getServerByIndex(int index) {
 }
 
 ServerCfg* ConfigMgr::getServerByName(const char* name) {
-    LOG_INFO_0("AppCfg getServerByName method");
-
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_server_by_name API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_server_by_name(m_cfgmgr, name);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating ServerCfg object
@@ -200,13 +189,11 @@ ServerCfg* ConfigMgr::getServerByName(const char* name) {
 }
 
 ClientCfg* ConfigMgr::getClientByIndex(int index) {
-    LOG_INFO_0("AppCfg getClientByName method");
-
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_client_by_name API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_client_by_index(m_cfgmgr, index);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating ClientCfg object
@@ -215,13 +202,11 @@ ClientCfg* ConfigMgr::getClientByIndex(int index) {
 }
 
 ClientCfg* ConfigMgr::getClientByName(const char* name) {
-    LOG_INFO_0("AppCfg getClientByName method");
-
+    LOG_DEBUG("In %s method", __func__);
     // Calling the base C get_client_by_name API
     cfgmgr_interface_t* cfgmgr_interface = cfgmgr_get_client_by_name(m_cfgmgr, name);
     if (cfgmgr_interface == NULL) {
-        LOG_ERROR_0("cfgmgr_interface initialization failed");
-        return NULL;
+        throw "cfgmgr_interface initialization failed";
     }
 
     // Creating ClientCfg object
@@ -230,7 +215,7 @@ ClientCfg* ConfigMgr::getClientByName(const char* name) {
 }
 
 ConfigMgr::~ConfigMgr() {
-    LOG_INFO_0("ConfigMgr destructor called...");
+    LOG_DEBUG("In %s method", __func__);
     if (m_app_cfg_handler) {
         LOG_DEBUG_0("ConfigMgr Destructor: Deleting m_app_cfg_handler class...");
         delete m_app_cfg_handler;

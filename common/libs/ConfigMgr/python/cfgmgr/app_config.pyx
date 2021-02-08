@@ -31,7 +31,7 @@ cdef void watch_callback_fn(const char* key, config_t* value, void* func) with g
     # is not supported in cython yet
     py_value = configt_to_char(value)
     if py_value is NULL:
-        raise Exception("[Watch] Failed to convert value to char")
+        raise Exception("Failed to convert value to char")
     # Destroying config_t* obj after converting to py obj
     config_destroy(value)
     (<object>func)(key.decode(), py_value.decode())
@@ -113,7 +113,7 @@ cdef class Watch:
             cfgmgr_watch(self.cfg_mgr, bytes(key, 'utf-8'), watch_callback_fn, <void *> pyFunc)
             return
         except Exception as ex:
-            raise Exception("[Watch] Failed to register watch callback {}".format(ex))
+            raise Exception("Failed to register watch callback {}".format(ex))
 
     def watch_prefix(self, prefix, pyFunc):
         """Method to watch over a given prefix
@@ -128,7 +128,7 @@ cdef class Watch:
             cfgmgr_watch_prefix(self.cfg_mgr, bytes(prefix, 'utf-8'), watch_callback_fn, <void *> pyFunc)
             return
         except Exception as ex:
-            raise Exception("[Watch] Failed to register watch_prefix callback {}".format(ex))
+            raise Exception("Failed to register watch_prefix callback {}".format(ex))
 
     def watch_config(self, pyFunc):
         """Method to watch over an application's config
@@ -143,7 +143,7 @@ cdef class Watch:
             cfgmgr_watch(self.cfg_mgr, bytes(config_key, 'utf-8'), watch_callback_fn, <void *> pyFunc)
             return
         except Exception as ex:
-            raise Exception("[Watch] Failed to register watch config callback {}".format(ex))
+            raise Exception("Failed to register watch config callback {}".format(ex))
 
     def watch_interface(self, pyFunc):
         """Method to watch over an application's interfaces
@@ -158,4 +158,4 @@ cdef class Watch:
             cfgmgr_watch(self.cfg_mgr, bytes(interface_key, 'utf-8'), watch_callback_fn, <void *> pyFunc)
             return
         except Exception as ex:
-            raise Exception("[Watch] Failed to register watch interface callback {}".format(ex))
+            raise Exception("Failed to register watch interface callback {}".format(ex))

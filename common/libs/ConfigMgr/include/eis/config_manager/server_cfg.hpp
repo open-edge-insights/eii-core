@@ -49,8 +49,9 @@ namespace eis {
             public:
                 /**
                 * ServerCfg Constructor
-                * @param server_config - The config associated with a server
-                * @param app_cfg       - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a server
                 */
                 explicit ServerCfg(cfgmgr_interface_t* cfgmgr_interface);
 
@@ -84,7 +85,7 @@ namespace eis {
                 std::vector<std::string> getAllowedClients() override;
 
                 /**
-                * cfgmgr_interface_t getter to get private cfgmgr_interface_t
+                * cfgmgr_interface_t getter to get server interface
                 */
                 cfgmgr_interface_t* getServCfg();
 

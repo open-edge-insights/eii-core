@@ -53,10 +53,22 @@ config_t* json_config_new(const char* config_file);
  */
 config_t* json_config_new_from_buffer(const char* buffer);
 
+/**
+ * Create a configuration object from a char** array
+ *
+ * \note Will return NULL if an error is encountered.
+ *
+ * @param array_items - array
+ * @param len - length of array
+ * @return config_t
+ */
+config_t* json_config_new_array(const char** array_items, int len);
+
 // prototypes
 void free_json(void* ctx);
 config_value_t* get_array_item(const void* array, int idx);
 config_value_t* get_config_value(const void* o, const char* key);
+bool set_config_value(config_t* config, const char* key, config_value_t* item);
 
 
 #ifdef __cplusplus

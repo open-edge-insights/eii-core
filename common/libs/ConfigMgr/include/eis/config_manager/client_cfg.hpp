@@ -48,8 +48,9 @@ namespace eis {
             public:
                 /**
                 * ClientCfg Constructor
-                * @param client_config - The config associated with a client
-                * @param app_cfg       - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a client
                 */
                 explicit ClientCfg(cfgmgr_interface_t* cfgmgr_interface);
 
@@ -75,7 +76,7 @@ namespace eis {
                 std::string getEndpoint() override;
 
                 /**
-                * cfgmgr_interface_t getter to get private m_pub_cfg
+                * cfgmgr_interface_t getter to get client interface
                 */
                 cfgmgr_interface_t* getCfg();
 

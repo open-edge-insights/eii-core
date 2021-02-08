@@ -52,7 +52,9 @@ namespace eis {
 
                 /**
                 * PublisherCfg Constructor
-                * @param pub_config - The config associated with a client
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a publisher
                 */
                 explicit PublisherCfg(cfgmgr_interface_t* cfgmgr_interface);
 
@@ -102,7 +104,7 @@ namespace eis {
                 std::vector<std::string> getAllowedClients() override;
 
                 /**
-                * cfgmgr_interface_t getter to get private cfgmgr_interface_t
+                * cfgmgr_interface_t getter to get publisher interface
                 */
                 cfgmgr_interface_t* getPubCfg();
 

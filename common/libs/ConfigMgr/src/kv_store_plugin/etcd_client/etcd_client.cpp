@@ -257,7 +257,7 @@ bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 
                     // cJSON to config_t conversion
                     config_t* config = config_new(
-                        (void*) val_json, free_json, get_config_value);
+                        (void*) val_json, free_json, get_config_value, set_config_value);
                     if (config == NULL) {
                         cJSON_Delete(val_json);
                         config_destroy(config);

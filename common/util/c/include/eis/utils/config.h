@@ -89,11 +89,17 @@ typedef struct _config_value {
 /**
  * Configuration object
  */
-typedef struct {
+typedef struct config_t config_t;
+
+/**
+ * Configuration object
+ */
+struct config_t {
     void* cfg;
     void (*free)(void*);
     config_value_t* (*get_config_value)(const void*,const char*);
-} config_t;
+    bool (*set_config_value)(config_t*, const char*, config_value_t*);
+};
 
 /**
  * Create a new configuration object.
@@ -105,7 +111,8 @@ typedef struct {
  */
 config_t* config_new(
         void* cfg, void (*free_fn)(void*),
-        config_value_t* (*get_config_value)(const void*,const char*));
+        config_value_t* (*get_config_value)(const void*,const char*),
+        bool (*set_config_value)(config_t*, const char*, config_value_t*));
 
 /**
  * Get value from configuration object.
@@ -117,6 +124,18 @@ config_t* config_new(
  * @return @c config_value_t
  */
 config_value_t* config_get(const config_t* config, const char* key);
+
+/**
+ * Set value for configuration object.
+ *
+ * \note Returns true if the value is set, false otherwise.
+ *
+ * @param config - Configuration object pointer
+ * @param key    - Key for the configuration value
+ * @param item   - Config to be set
+ * @return bool
+ */
+bool config_set(config_t* config, const char* key, config_value_t* item);
 
 /**
  * Destroy the configuration object.

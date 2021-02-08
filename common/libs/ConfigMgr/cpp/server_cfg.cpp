@@ -43,8 +43,7 @@ config_t* ServerCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_server() API
     config_t* server_config = cfgmgr_get_msgbus_config(m_cfgmgr_interface);
     if (server_config == NULL) {
-        LOG_ERROR_0("Unable to fetch server msgbus config");
-        return NULL;
+        throw "Unable to fetch server msgbus config";
     }
     return server_config;
 }
@@ -52,9 +51,8 @@ config_t* ServerCfg::getMsgBusConfig() {
 // Get the Interface Value of Server.
 config_value_t* ServerCfg::getInterfaceValue(const char* key){
     config_value_t* interface_value = cfgmgr_get_interface_value(m_cfgmgr_interface, key);
-    if(interface_value == NULL){
-        LOG_DEBUG_0("[Server]:Getting interface value from base c layer failed");
-        return NULL;
+    if (interface_value == NULL){
+        throw "Getting interface value from base c layer failed";
     }
     return interface_value;
 }
@@ -64,15 +62,13 @@ std::string ServerCfg::getEndpoint() {
     // Calling the base C get_endpoint_server() API
     config_value_t* ep = cfgmgr_get_endpoint(m_cfgmgr_interface);
     if (ep == NULL) {
-        LOG_ERROR_0("Endpoint not found");
-        return "";
+        throw "Endpoint not found";
     }
-    
+
     char* value;
     value = cvt_obj_str_to_char(ep);
-    if(value == NULL){
-        LOG_ERROR_0("Endpoint object to string conversion failed");
-        return "";
+    if (value == NULL) {
+        throw "Endpoint object to string conversion failed";
     }
 
     std::string s(value);
@@ -89,22 +85,19 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
     // Calling the base C get_topics() API
     config_value_t* clients = cfgmgr_get_allowed_clients(m_cfgmgr_interface);
     if (clients == NULL) {
-        LOG_ERROR_0("clients initialization failed");
-        return {};
+        throw "clients initialization failed";
     }
     config_value_t* client_value;
 
     size_t arr_len = config_value_array_len(clients);
-    if(arr_len == 0){
-        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        return {};
+    if (arr_len == 0) {
+        throw "Empty array is not supported, atleast one value should be given.";
     }
 
     for (size_t i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
-            LOG_ERROR_0("client_value initialization failed");
-            return {};
+            throw "client_value initialization failed";
         }
         client_list.push_back(client_value->body.string);
         // Destroying client_value

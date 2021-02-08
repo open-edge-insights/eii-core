@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Intel Corporation.
+// Copyright (c) 2021 Intel Corporation.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -28,17 +28,25 @@
 
 // function to generate kv_store_config from env
 config_t* create_kv_store_config() {
+    LOG_DEBUG("In %s function", __func__);
     char* c_type_name = NULL;
-    config_t* config = NULL;
-    char* config_value_cr = NULL;
     char* c_app_name = NULL;
     char* config_manager_type = NULL;
     char* dev_mode_var = NULL;
     char* app_name_var = NULL;
-    // Creating cJSON object
-    cJSON* c_json = cJSON_CreateObject();
-    if (c_json == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
+    bool config_set_result = false;
+    config_t* config = NULL;
+    config_value_t* etcd_type = NULL;
+    config_t* etcd_kv_store = NULL;
+    config_value_t* cert_file = NULL;
+    config_value_t* key_file = NULL;
+    config_value_t* ca_file = NULL;
+    config_value_t* etcd_kv_store_cvt = NULL;
+
+    // Creating final config object
+    config = json_config_new_from_buffer("{}");
+    if (config == NULL) {
+        LOG_ERROR_0("Error creating config_t config object");
         goto err;
     }
 
@@ -46,38 +54,65 @@ config_t* create_kv_store_config() {
     config_manager_type = getenv("KVStore");
     if (config_manager_type == NULL) {
         LOG_DEBUG_0("KVStore env not set, defaulting to etcd");
-        cJSON_AddStringToObject(c_json, "type", "etcd");
+        etcd_type = config_value_new_string("etcd");
+        if (etcd_type == NULL) {
+            LOG_ERROR_0("Error creating etcd_type config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(config, "type", etcd_type);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
+
     } else {
         int ind_kv_store_type;
         strcmp_s(config_manager_type, strlen(config_manager_type),
                  "", &ind_kv_store_type);
         if (ind_kv_store_type == 0) {
             LOG_DEBUG_0("KVStore env is set to empty, defaulting to etcd");
-            cJSON_AddStringToObject(c_json, "type", "etcd");
+            etcd_type = config_value_new_string("etcd");
+            if (etcd_type == NULL) {
+                LOG_ERROR_0("Error creating etcd_type config_value_t object");
+                goto err;
+            }
+            config_set_result = config_set(config, "type", etcd_type);
+            if (!config_set_result) {
+                LOG_ERROR_0("Unable to set config value");
+                goto err;
+            }
         } else {
             size_t str_len = strlen(config_manager_type) + 1;
             c_type_name = (char*)malloc(sizeof(char) * str_len);
-            if (c_type_name == NULL){
+            if (c_type_name == NULL) {
                 LOG_ERROR_0("Malloc failed for c_type_name");
                 goto err;
             }
             int ret = snprintf(c_type_name, str_len, "%s", config_manager_type);
-            if (ret < 0){
+            if (ret < 0) {
                 LOG_ERROR_0("snprintf failed for c_type_name");
                 goto err;
             }
             LOG_DEBUG("ConfigManager selected is %s", c_type_name);
-            cJSON_AddStringToObject(c_json, "type", c_type_name);
+            etcd_type = config_value_new_string(c_type_name);
+            if (etcd_type == NULL) {
+                LOG_ERROR_0("Error creating etcd_type config_value_t object");
+                goto err;
+            }
+            config_set_result = config_set(config, "type", etcd_type);
+            if (!config_set_result) {
+                LOG_ERROR_0("Unable to set config value");
+                goto err;
+            }
         }
     }
 
     // Creating etcd_kv_store object
-    cJSON* etcd_kv_store = cJSON_CreateObject();
+    etcd_kv_store = json_config_new_from_buffer("{}");
     if (etcd_kv_store == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
+        LOG_ERROR_0("Failed to create etcd_kv_store config_value_t object");
         goto err;
     }
-    cJSON_AddItemToObject(c_json, "etcd_kv_store", etcd_kv_store);
 
     // Fetching & intializing dev mode variable
     int result = 0;
@@ -110,7 +145,7 @@ config_t* create_kv_store_config() {
         goto err;
     }
     int ret = snprintf(c_app_name, str_len, "%s", app_name_var);
-    if (ret < 0){
+    if (ret < 0) {
         LOG_ERROR_0("snprintf failed for c_app_name");
         goto err;
     }
@@ -121,9 +156,38 @@ config_t* create_kv_store_config() {
     char pri_key_file[MAX_CONFIG_KEY_LENGTH] = "";
     char trust_file[MAX_CONFIG_KEY_LENGTH] = "";
     if (result == 0) {
-        cJSON_AddStringToObject(etcd_kv_store, "cert_file", "");
-        cJSON_AddStringToObject(etcd_kv_store, "key_file", "");
-        cJSON_AddStringToObject(etcd_kv_store, "ca_file", "");
+        cert_file = config_value_new_string("");
+        if (cert_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "cert_file", cert_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+
+        key_file = config_value_new_string("");
+        if (key_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "key_file", key_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+
+        ca_file = config_value_new_string("");
+        if (ca_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "ca_file", ca_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     } else {
         ret = snprintf(pub_cert_file, MAX_CONFIG_KEY_LENGTH,
                  "/run/secrets/etcd_%s_cert", c_app_name);
@@ -167,37 +231,77 @@ config_t* create_kv_store_config() {
                 goto err;
             }
         }
-        cJSON_AddStringToObject(etcd_kv_store, "cert_file", pub_cert_file);
-        cJSON_AddStringToObject(etcd_kv_store, "key_file", pri_key_file);
-        cJSON_AddStringToObject(etcd_kv_store, "ca_file", trust_file);
+
+        cert_file = config_value_new_string(pub_cert_file);
+        if (cert_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "cert_file", cert_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+
+        key_file = config_value_new_string(pri_key_file);
+        if (key_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "key_file", key_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+
+        ca_file = config_value_new_string(trust_file);
+        if (ca_file == NULL) {
+            LOG_ERROR_0("Error creating config_value_t object");
+            goto err;
+        }
+        config_set_result = config_set(etcd_kv_store, "ca_file", ca_file);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     }
 
-    // Constructing char* object from cJSON object
-    config_value_cr = cJSON_Print(c_json);
-    if (config_value_cr == NULL) {
-        LOG_ERROR_0("KV Store config is NULL");
+    etcd_kv_store_cvt = config_value_new_object(etcd_kv_store->cfg, get_config_value, NULL);
+    if (etcd_kv_store_cvt == NULL) {
+        LOG_ERROR_0("Error creating config_value_t object");
         goto err;
     }
-    LOG_DEBUG("KV store config is : %s \n", config_value_cr);
-
-    // Constructing config_t object from cJSON object
-    config = config_new((void*) c_json, free_json, get_config_value);
-    if (config == NULL) {
-        LOG_ERROR_0("Failed to initialize configuration object");
+    config_set_result = config_set(config, "etcd_kv_store", etcd_kv_store_cvt);
+    if (!config_set_result) {
+        LOG_ERROR("Unable to set config value");
         goto err;
     }
 
-    if (config_value_cr != NULL) {
-        free(config_value_cr);
-    }
     if (c_app_name != NULL) {
         free(c_app_name);
     }
     if (c_type_name != NULL) {
         free(c_type_name);
     }
+    if (etcd_type != NULL) {
+        config_value_destroy(etcd_type);
+    }
+    if (etcd_kv_store != NULL) {
+        config_value_destroy(etcd_kv_store);
+    }
+    if (cert_file != NULL) {
+        config_value_destroy(cert_file);
+    }
+    if (key_file != NULL) {
+        config_value_destroy(key_file);
+    }
+    if (ca_file != NULL) {
+        config_value_destroy(ca_file);
+    }
+    if (etcd_kv_store_cvt != NULL) {
+        config_value_destroy(etcd_kv_store_cvt);
+    }
     return config;
-
 err:
     if (c_app_name != NULL) {
         free(c_app_name);
@@ -205,29 +309,68 @@ err:
     if (c_type_name != NULL) {
         free(c_type_name);
     }
-    if (config_value_cr != NULL) {
-        free(config_value_cr);
+    if (config_manager_type != NULL) {
+        free(config_manager_type);
     }
-    if (c_json != NULL) {
-        cJSON_Delete(c_json);
+    if (dev_mode_var != NULL) {
+        free(dev_mode_var);
+    }
+    if (app_name_var != NULL) {
+        free(app_name_var);
+    }
+    if (config != NULL) {
+        config_destroy(config);
+    }
+    if (etcd_type != NULL) {
+        config_value_destroy(etcd_type);
+    }
+    if (etcd_kv_store != NULL) {
+        config_value_destroy(etcd_kv_store);
+    }
+    if (cert_file != NULL) {
+        config_value_destroy(cert_file);
+    }
+    if (key_file != NULL) {
+        config_value_destroy(key_file);
+    }
+    if (ca_file != NULL) {
+        config_value_destroy(ca_file);
+    }
+    if (etcd_kv_store_cvt != NULL) {
+        config_value_destroy(etcd_kv_store_cvt);
     }
     return NULL;
 }
 
 cfgmgr_interface_t* cfgmgr_interface_initialize() {
+    LOG_DEBUG("In %s function", __func__);
     cfgmgr_interface_t *cfgmgr_ctx = (cfgmgr_interface_t *)malloc(sizeof(cfgmgr_interface_t));
     if (cfgmgr_ctx == NULL) {
         LOG_ERROR_0("Malloc failed for cfgmgr_ctx_t");
+        return NULL;
     }
     return cfgmgr_ctx;
 }
 
-cfgmgr_interface_t* cfgmgr_get_publisher_by_name(cfgmgr_ctx_t* cfgmgr, const char* name) {
+cfgmgr_interface_t* cfgmgr_get_interface_by_name(cfgmgr_ctx_t* cfgmgr, const char* name, cfgmgr_iface_type_t type) {
+    LOG_DEBUG("In %s function", __func__);
+    char* interface_type = NULL;
+    if (type == CFGMGR_PUBLISHER) {
+        interface_type = PUBLISHERS;
+    } else if (type == CFGMGR_SUBSCRIBER) {
+        interface_type = SUBSCRIBERS;
+    } else if (type == CFGMGR_SERVER) {
+        interface_type = SERVERS;
+    } else if (type == CFGMGR_CLIENT) {
+        interface_type = CLIENTS;
+    } else {
+        LOG_ERROR_0("Interface type not supported");
+        return NULL;
+    }
     int result = 0;
-    LOG_INFO_0("cfgmgr_get_publisher_by_name method");
     cfgmgr_interface_t* ctx = NULL;
-    config_value_t* pub_config_name = NULL;
-    config_value_t* publisher_interface = NULL;
+    config_value_t* config_name = NULL;
+    config_value_t* interface = NULL;
 
     config_t* app_interface = cfgmgr->app_interface;
     ctx = cfgmgr_interface_initialize();
@@ -237,64 +380,77 @@ cfgmgr_interface_t* cfgmgr_get_publisher_by_name(cfgmgr_ctx_t* cfgmgr, const cha
     }
 
     // Fetching list of Publisher interfaces
-    publisher_interface = app_interface->get_config_value(app_interface->cfg, PUBLISHERS);
-    if (publisher_interface == NULL) {
-        LOG_ERROR_0("publisher_interface initialization failed");
+    interface = app_interface->get_config_value(app_interface->cfg, interface_type);
+    if (interface == NULL) {
+        LOG_ERROR_0("interface initialization failed");
         goto err;
     }
 
-    size_t arr_len = config_value_array_len(publisher_interface);
-    if(arr_len == 0){
+    size_t arr_len = config_value_array_len(interface);
+    if (arr_len == 0) {
         LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
         goto err;
     }
     // Iterating through available publisher configs
-    for(int i=0; i<arr_len; i++) {
+    for (size_t i = 0; i < arr_len; i++) {
         // Fetch name of individual publisher config
-        config_value_t* pub_config = config_value_array_get(publisher_interface, i);
-        if (pub_config == NULL) {
-            LOG_ERROR_0("pub_config initialization failed");
+        config_value_t* config = config_value_array_get(interface, i);
+        if (config == NULL) {
+            LOG_ERROR_0("config initialization failed");
             goto err;
         }
-        pub_config_name = config_value_object_get(pub_config, "Name");
-        if (pub_config_name == NULL || pub_config_name->body.string == NULL) {
-            LOG_ERROR_0("pub_config_name initialization failed");
+        config_name = config_value_object_get(config, "Name");
+        if (config_name == NULL || config_name->body.string == NULL) {
+            LOG_ERROR_0("config_name initialization failed");
             goto err;
         }
         // Verifying publisher config with name exists
-        strcmp_s(pub_config_name->body.string, strlen(pub_config_name->body.string), name, &result);
+        strcmp_s(config_name->body.string, strlen(config_name->body.string), name, &result);
         if(result == 0) {
             ctx->cfg_mgr = cfgmgr;
-            ctx->interface = pub_config;
-            ctx->type = CFGMGR_PUBLISHER;
+            ctx->interface = config;
+            ctx->type = type;
             goto err;
-        } else if(i == config_value_array_len(publisher_interface)) {
+        } else if(i == config_value_array_len(interface)) {
             LOG_ERROR("Publisher by name %s not found", name);
             goto err;
         } else {
-            if (pub_config_name != NULL) {
-                config_value_destroy(pub_config_name);
+            if (config_name != NULL) {
+                config_value_destroy(config_name);
             }
-            if (pub_config != NULL) {
-                config_value_destroy(pub_config);
+            if (config != NULL) {
+                config_value_destroy(config);
             }
         }
     }
 
 err:
-    if(publisher_interface != NULL) {
-        config_value_destroy(publisher_interface);
+    if (interface != NULL) {
+        config_value_destroy(interface);
     }
-    if (pub_config_name != NULL) {
-        config_value_destroy(pub_config_name);
+    if (config_name != NULL) {
+        config_value_destroy(config_name);
     }
     return ctx;
 }
 
-cfgmgr_interface_t* cfgmgr_get_publisher_by_index(cfgmgr_ctx_t* cfgmgr, int index) {
-    LOG_DEBUG_0("cfgmgr_get_publisher_by_index method");
-    config_value_t* pub_config_index = NULL;
-    config_value_t* publisher_interface = NULL;
+cfgmgr_interface_t* cfgmgr_get_interface_by_index(cfgmgr_ctx_t* cfgmgr, int index, cfgmgr_iface_type_t type) {
+    LOG_DEBUG("In %s function", __func__);
+    char* interface_type = NULL;
+    if (type == CFGMGR_PUBLISHER) {
+        interface_type = PUBLISHERS;
+    } else if (type == CFGMGR_SUBSCRIBER) {
+        interface_type = SUBSCRIBERS;
+    } else if (type == CFGMGR_SERVER) {
+        interface_type = SERVERS;
+    } else if (type == CFGMGR_CLIENT) {
+        interface_type = CLIENTS;
+    } else {
+        LOG_ERROR_0("Interface type not supported");
+        return NULL;
+    }
+    config_value_t* config = NULL;
+    config_value_t* interface = NULL;
     config_t* app_interface = cfgmgr->app_interface;
     cfgmgr_interface_t* ctx = NULL;
     ctx = cfgmgr_interface_initialize();
@@ -304,394 +460,130 @@ cfgmgr_interface_t* cfgmgr_get_publisher_by_index(cfgmgr_ctx_t* cfgmgr, int inde
     }
 
     // Fetching list of Publisher interfaces
-    publisher_interface = app_interface->get_config_value(app_interface->cfg, PUBLISHERS);
-    if (publisher_interface == NULL) {
-        LOG_ERROR_0("publisher_interface initialization failed");
+    interface = app_interface->get_config_value(app_interface->cfg, interface_type);
+    if (interface == NULL) {
+        LOG_ERROR_0("interface initialization failed");
         goto err;
     }
 
     // Fetch publisher config associated with index
-    pub_config_index = config_value_array_get(publisher_interface, index);
-    if (pub_config_index == NULL) {
-        LOG_ERROR_0("pub_config_index initialization failed");
+    config = config_value_array_get(interface, index);
+    if (config == NULL) {
+        LOG_ERROR_0("config initialization failed");
         goto err;
     }
 
     ctx->cfg_mgr = cfgmgr;
-    ctx->interface = pub_config_index;
-    ctx->type = CFGMGR_PUBLISHER;
+    ctx->interface = config;
+    ctx->type = type;
 
-    if (publisher_interface != NULL) {
-        config_value_destroy(publisher_interface);
+    if (interface != NULL) {
+        config_value_destroy(interface);
     }
     return ctx;
 
 err:
-    if (publisher_interface != NULL) {
-        config_value_destroy(publisher_interface);
+    if (interface != NULL) {
+        config_value_destroy(interface);
     }
-    if (pub_config_index != NULL) {
-        config_value_destroy(pub_config_index);
+    if (config != NULL) {
+        config_value_destroy(config);
     }
     if (ctx != NULL) {
         cfgmgr_interface_destroy(ctx);
     }
     return NULL;
+}
 
+cfgmgr_interface_t* cfgmgr_get_publisher_by_name(cfgmgr_ctx_t* cfgmgr, const char* name) {
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* publisher_interface = cfgmgr_get_interface_by_name(cfgmgr, name, CFGMGR_PUBLISHER);
+    if (publisher_interface == NULL) {
+        LOG_ERROR_0("Failed to fetch publisher_interface");
+        return NULL;
+    }
+    return publisher_interface;
+}
+
+cfgmgr_interface_t* cfgmgr_get_publisher_by_index(cfgmgr_ctx_t* cfgmgr, int index) {
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* publisher_interface = cfgmgr_get_interface_by_index(cfgmgr, index, CFGMGR_PUBLISHER);
+    if (publisher_interface == NULL) {
+        LOG_ERROR_0("Failed to fetch publisher_interface");
+        return NULL;
+    }
+    return publisher_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_subscriber_by_name(cfgmgr_ctx_t* cfgmgr, const char* name) {
-    LOG_INFO_0("cfgmgr_get_subscriber_by_name method");
-    config_value_t* sub_config_name = NULL;
-    config_value_t* sub_config_index = NULL;
-    config_value_t* subscriber_interface = NULL;
-    config_t* app_interface = cfgmgr->app_interface;
-    cfgmgr_interface_t* ctx = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of Subscribers interfaces
-    subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* subscriber_interface = cfgmgr_get_interface_by_name(cfgmgr, name, CFGMGR_SUBSCRIBER);
     if (subscriber_interface == NULL) {
-        LOG_ERROR_0("subscriber_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch subscriber_interface");
+        return NULL;
     }
-
-    size_t arr_len = config_value_array_len(subscriber_interface);
-    if(arr_len == 0){
-        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        goto err;
-    }
-
-    // Iterating through available subscriber configs
-    for(int i=0; i<arr_len; i++) {
-        // Fetch name of individual subscriber config
-        sub_config_index = config_value_array_get(subscriber_interface, i);
-        if (sub_config_index == NULL) {
-            LOG_ERROR_0("sub_config_index initialization failed");
-            goto err;
-        }
-        sub_config_name = config_value_object_get(sub_config_index, "Name");
-        if (sub_config_name == NULL || sub_config_name->body.string == NULL) {
-            LOG_ERROR_0("sub_config_name initialization failed");
-            goto err;
-        }
-        // Verifying subscriber config with name exists
-        int ret;
-        strcmp_s(sub_config_name->body.string, strlen(sub_config_name->body.string), name, &ret);
-        if(ret == 0) {
-            ctx->cfg_mgr = cfgmgr;
-            ctx->interface = sub_config_index;
-            ctx->type = CFGMGR_SUBSCRIBER;
-            goto err;
-        } else if(i == config_value_array_len(subscriber_interface)) {
-            LOG_ERROR("Subscribers by name %s not found", name);
-            if (sub_config_index != NULL) {
-                config_value_destroy(sub_config_index);
-            }
-            goto err;
-        } else {
-            if (sub_config_name != NULL) {
-                config_value_destroy(sub_config_name);
-            }
-            if (sub_config_index != NULL) {
-                config_value_destroy(sub_config_index);
-            }
-        }
-    }
-
-err:
-    if (sub_config_name != NULL) {
-        config_value_destroy(sub_config_name);
-    }
-    if (subscriber_interface != NULL) {
-        config_value_destroy(subscriber_interface);
-    }
-    return ctx;
+    return subscriber_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_subscriber_by_index(cfgmgr_ctx_t* cfgmgr, int index) {
-    LOG_INFO_0("cfgmgr_get_subscriber_by_index method");
-
-    config_t* app_interface = cfgmgr->app_interface;
-    config_value_t* sub_config_index = NULL;
-    config_value_t* subscriber_interface = NULL;
-    cfgmgr_interface_t* ctx = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of Subscribers interfaces
-    subscriber_interface = app_interface->get_config_value(app_interface->cfg, SUBSCRIBERS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* subscriber_interface = cfgmgr_get_interface_by_index(cfgmgr, index, CFGMGR_SUBSCRIBER);
     if (subscriber_interface == NULL) {
-        LOG_ERROR_0("subscriber_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch subscriber_interface");
+        return NULL;
     }
-
-    // Fetch subscriber config associated with index
-    sub_config_index = config_value_array_get(subscriber_interface, index);
-    if (sub_config_index == NULL) {
-        LOG_ERROR_0("sub_config_index initialization failed");
-        goto err;
-    }
-
-    ctx->cfg_mgr = cfgmgr;
-    ctx->interface = sub_config_index;
-    ctx->type = CFGMGR_SUBSCRIBER;
-
-    if (subscriber_interface != NULL) {
-        config_value_destroy(subscriber_interface);
-    }
-
-    return ctx;
-err:
-    if (subscriber_interface != NULL) {
-        config_value_destroy(subscriber_interface);
-    }
-    if (sub_config_index != NULL) {
-        config_value_destroy(sub_config_index);
-    }
-    if (ctx != NULL) {
-        cfgmgr_interface_destroy(ctx);
-    }
-    return NULL;
+    return subscriber_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_server_by_name(cfgmgr_ctx_t* cfgmgr, const char* name) {
-    LOG_INFO_0("cfgmgr_get_server_by_name method");
-    int result = 0;
-    config_value_t* server_interface = NULL;
-    config_value_t* serv_config_name = NULL;
-    config_t* app_interface = cfgmgr->app_interface;
-    cfgmgr_interface_t* ctx = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of server interfaces
-    server_interface = app_interface->get_config_value(app_interface->cfg, SERVERS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* server_interface = cfgmgr_get_interface_by_name(cfgmgr, name, CFGMGR_SERVER);
     if (server_interface == NULL) {
-        LOG_ERROR_0("server_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch server_interface");
+        return NULL;
     }
-
-    size_t arr_len = config_value_array_len(server_interface);
-    if(arr_len == 0){
-        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        goto err;
-    }
-    // Iterating through available server configs
-    for(int i=0; i<arr_len; i++) {
-        // Fetch name of individual server config
-        config_value_t* serv_config = config_value_array_get(server_interface, i);
-        if (serv_config == NULL) {
-            LOG_ERROR_0("serv_config initialization failed");
-            goto err;
-        }
-        serv_config_name = config_value_object_get(serv_config, "Name");
-        if (serv_config_name == NULL) {
-            LOG_ERROR_0("serv_config_name initialization failed");
-            goto err;
-        }
-        // Verifying server config with name exists
-        strcmp_s(serv_config_name->body.string, strlen(serv_config_name->body.string), name, &result);
-        if(result == 0) {
-            ctx->interface = serv_config;
-            ctx->cfg_mgr = cfgmgr;
-            ctx->type = CFGMGR_SERVER;
-            goto err;
-        } else if(i == config_value_array_len(server_interface)) {
-            LOG_ERROR("Servers by name %s not found", name);
-            goto err;
-        } else {
-            if (serv_config_name != NULL) {
-                config_value_destroy(serv_config_name);
-            }
-            if (serv_config != NULL) {
-                config_value_destroy(serv_config);
-            }
-        }
-    }
-
-err:
-    if (server_interface != NULL) {
-        config_value_destroy(server_interface);
-    }
-    if (serv_config_name != NULL) {
-        config_value_destroy(serv_config_name);
-    }
-    return ctx;
+    return server_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_server_by_index(cfgmgr_ctx_t* cfgmgr, int index) {
-    LOG_INFO_0("cfgmgr_get_server_by_index method");
-    config_t* app_interface = cfgmgr->app_interface;
-    config_value_t* server_interface = NULL;
-    config_value_t* server_config = NULL;
-    cfgmgr_interface_t* ctx = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of Servers interfaces
-    server_interface = app_interface->get_config_value(app_interface->cfg, SERVERS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* server_interface = cfgmgr_get_interface_by_index(cfgmgr, index, CFGMGR_SERVER);
     if (server_interface == NULL) {
-        LOG_ERROR_0("server_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch server_interface");
+        return NULL;
     }
-
-    // Fetch Server config associated with index
-    server_config = config_value_array_get(server_interface, index);
-    if (server_config == NULL) {
-        LOG_ERROR_0("server_config initialization failed");
-        goto err;
-    }
-    ctx->interface = server_config;
-    ctx->cfg_mgr = cfgmgr;
-    ctx->type = CFGMGR_SERVER;
-err:
-    if (server_interface != NULL) {
-        config_value_destroy(server_interface);
-    }
-    return ctx;
+    return server_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_client_by_name(cfgmgr_ctx_t* cfgmgr, const char* name) {
-    LOG_INFO_0("cfgmgr_get_client_by_name method");
-    int ret;
-    config_t* app_interface = cfgmgr->app_interface;
-    config_value_t* cli_config_name = NULL;
-    cfgmgr_interface_t* ctx = NULL;
-    config_value_t* client_interface = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of client interfaces
-    client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* client_interface = cfgmgr_get_interface_by_name(cfgmgr, name, CFGMGR_CLIENT);
     if (client_interface == NULL) {
-        LOG_ERROR_0("client_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch client_interface");
+        return NULL;
     }
-
-    size_t arr_len = config_value_array_len(client_interface);
-    if(arr_len == 0){
-        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        goto err;
-    }
-    // Iterating through available client configs
-    for (int i = 0; i < arr_len; i++) {
-        // Fetch name of individual client config
-        config_value_t* cli_config = config_value_array_get(client_interface, i);
-        if (cli_config == NULL) {
-            LOG_ERROR_0("cli_config initialization failed");
-            goto err;
-        }
-        cli_config_name = config_value_object_get(cli_config, "Name");
-        if (cli_config_name == NULL) {
-            LOG_ERROR_0("cli_config_name initialization failed");
-            goto err;
-        }
-        // Verifying client config with name exists
-        strcmp_s(cli_config_name->body.string, strlen(cli_config_name->body.string), name, &ret);
-        if (ret == 0) {
-            ctx->interface = cli_config;
-            ctx->cfg_mgr = cfgmgr;
-            ctx->type = CFGMGR_CLIENT;
-            goto err;
-        } else if (i == config_value_array_len(client_interface)) {
-            LOG_ERROR("Clients by name %s not found", name);
-            if (cli_config != NULL) {
-                config_value_destroy(cli_config);
-            }
-            goto err;
-        } else {
-            if (cli_config_name != NULL) {
-                config_value_destroy(cli_config_name);
-            }
-            if (cli_config != NULL) {
-                config_value_destroy(cli_config);
-            }
-        }
-    }
-err:
-   if (cli_config_name != NULL) {
-        config_value_destroy(cli_config_name);
-    }
-    if (client_interface != NULL) {
-        config_value_destroy(client_interface);
-    }
-    return ctx;
+    return client_interface;
 }
 
 cfgmgr_interface_t* cfgmgr_get_client_by_index(cfgmgr_ctx_t* cfgmgr, int index) {
-    LOG_INFO_0("cfgmgr_get_client_by_index method");
-    config_t* app_interface = cfgmgr->app_interface;
-    config_value_t* client_interface = NULL;
-    config_value_t* cli_config_index = NULL;
-    cfgmgr_interface_t* ctx = NULL;
-    ctx = cfgmgr_interface_initialize();
-    if (ctx == NULL) {
-        LOG_ERROR_0("cfgmgr initialization failed");
-        goto err;
-    }
-
-    // Fetching list of Clients interfaces
-    client_interface = app_interface->get_config_value(app_interface->cfg, CLIENTS);
+    LOG_DEBUG("In %s function", __func__);
+    cfgmgr_interface_t* client_interface = cfgmgr_get_interface_by_index(cfgmgr, index, CFGMGR_CLIENT);
     if (client_interface == NULL) {
-        LOG_ERROR_0("client_interface initialization failed");
-        goto err;
+        LOG_ERROR_0("Failed to fetch client_interface");
+        return NULL;
     }
-
-    // Fetch client config associated with index
-    cli_config_index = config_value_array_get(client_interface, index);
-    if (cli_config_index == NULL) {
-        LOG_ERROR_0("cli_config_index initialization failed");
-        goto err;
-    }
-
-    ctx->interface = cli_config_index;
-    ctx->cfg_mgr = cfgmgr;
-    ctx->type = CFGMGR_CLIENT;
-
-    if (client_interface != NULL) {
-        config_value_destroy(client_interface);
-    }
-
-    return ctx;
-
-err:
-    if (client_interface != NULL) {
-        config_value_destroy(client_interface);
-    }
-    if (cli_config_index != NULL) {
-        config_value_destroy(cli_config_index);
-    }
-    if (ctx != NULL) {
-        cfgmgr_interface_destroy(ctx);
-    }
-    return NULL;
+    return client_interface;
 }
 
 config_value_t* cfgmgr_get_endpoint(cfgmgr_interface_t* ctx) {
-    config_value_t* pub_config = ctx->interface;
-    if (pub_config == NULL) {
-        LOG_ERROR_0("pub_config initialization failed");
+    LOG_DEBUG("In %s function", __func__);
+    config_value_t* config = ctx->interface;
+    if (config == NULL) {
+        LOG_ERROR_0("config initialization failed");
         return NULL;
     }
     // Fetching EndPoint from config
-    config_value_t* end_point = config_value_object_get(pub_config, "EndPoint");
+    config_value_t* end_point = config_value_object_get(config, "EndPoint");
     if (end_point == NULL) {
         LOG_ERROR_0("end_point initialization failed");
         return NULL;
@@ -700,151 +592,140 @@ config_value_t* cfgmgr_get_endpoint(cfgmgr_interface_t* ctx) {
 }
 
 config_value_t* cfgmgr_get_topics(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     if (ctx->type == CFGMGR_SERVER || ctx->type == CFGMGR_CLIENT) {
         LOG_ERROR_0("cfgmgr_get_topics not applicable for CFGMGR_SERVER/CFGMGR_CLIENT");
         return NULL;
     }
+    // Setting default to 1 since strcmp_s
+    // changes it to 0
+    int ret = 1;
+    config_t* topics_cvt = NULL;
+    // Fetching interface
     config_value_t* config = ctx->interface;
-    cJSON *arr = NULL;
-
     if (config == NULL) {
         LOG_ERROR_0("config initialization failed");
         return NULL;
     }
+    // Fetching topics from interface
     config_value_t* topics = config_value_object_get(ctx->interface, "Topics");
     if (topics == NULL) {
         LOG_ERROR_0("topics initialization failed");
         return NULL;
     }
-
     if (topics->type != CVT_ARRAY) {
         LOG_ERROR_0("Topics type mismatch, it should be array");
         return NULL;
     }
-
-    arr = cJSON_CreateArray();
-    if (arr == NULL) {
-        LOG_ERROR_0("arr initialization failed");
-        return NULL;
-    }
-    int ret;
 
     size_t arrlen = config_value_array_len(topics);
     if (arrlen == 0) {
         LOG_ERROR_0("Empty String is not supported in Topics. Atleast one topic is required");
         return NULL;
     }
-
     config_value_t* topic_value = NULL;
     topic_value = config_value_array_get(topics, 0);
     if (topic_value == NULL) {
         LOG_ERROR_0("Extracting first topic from topics array failed ");
         return NULL;
     }
-
     // If only one item in Topics and it is *,
     // then add empty string in order to allow all clients to subscribe
     strcmp_s(topic_value->body.string, strlen(topic_value->body.string), "*", &ret);
-
-    if((arrlen == 1) && (ret == 0 )){
-        cJSON_AddItemToArray(arr, cJSON_CreateString(""));
-        config_value_destroy(topics);
+    if ((arrlen == 1) && (ret == 0 )) {
+        // Creating empty config array for * single topic
+        config_t* topics_cvt = json_config_new_from_buffer("[\"\"]");
+        if (topics_cvt == NULL) {
+            LOG_ERROR_0("Failed to create topics_cvt config_value_t object");
+            return NULL;
+        }
         topics = config_value_new_array(
-                (void*) arr , cJSON_GetArraySize(arr), get_array_item, NULL);
-        if (topics == NULL){
+                (void*) topics_cvt->cfg , arrlen, get_array_item, NULL);
+        if (topics == NULL) {
             LOG_ERROR_0("config value new array for topic failed");
             return NULL;
         }
         return topics;
     }
-
     if (topic_value != NULL) {
         config_value_destroy(topic_value);
     }
-
-    if (arr != NULL) {
-        cJSON_free(arr);
-    }
-
     return topics;
 }
 
-bool cfgmgr_set_topics(cfgmgr_interface_t* ctx, const char** topics_list, int len) {
+bool cfgmgr_set_topics(cfgmgr_interface_t* ctx, char const* const* topics_list, int len) {
+    LOG_DEBUG("In %s function", __func__);
     if (ctx->type == CFGMGR_SERVER || ctx->type == CFGMGR_CLIENT) {
         LOG_ERROR_0("cfgmgr_set_topics not applicable for CFGMGR_SERVER/CFGMGR_CLIENT");
         return NULL;
     }
-    char* type = "";
+    char* type = NULL;
     if (ctx->type == CFGMGR_PUBLISHER) {
         type = PUBLISHERS;
     } else if (ctx->type == CFGMGR_SUBSCRIBER) {
         type = SUBSCRIBERS;
     }
+    config_t* config_arr = NULL;
+    config_value_t* config_arr_cvt = NULL;
+    config_t* config_input = NULL;
 
-    int ret_val = 0;
-    // Fetching the name of pub/sub interface
-    config_value_t* config_name = config_value_object_get(ctx->interface, "Name");
-    if (config_name == NULL) {
-        LOG_ERROR_0("config_name initialization failed");
+    bool ret_val = true;
+    // Creating config array from char**
+    config_arr = json_config_new_array(topics_list, len);
+    if (config_arr == NULL) {
+        LOG_ERROR_0("Failed to create config_arr config_t object");
         goto err;
     }
-
-    // Constructing cJSON object from obtained interface
-    cJSON* temp = (cJSON*)ctx->cfg_mgr->app_interface->cfg;
-    if (temp == NULL) {
-        LOG_ERROR_0("cJSON temp object is NULL");
-        ret_val = -1;
+    // Creating config_value_t object from config array
+    config_arr_cvt = config_value_new_array(
+                (void*) config_arr->cfg , len, get_array_item, NULL);
+    if (config_arr_cvt == NULL) {
+        LOG_ERROR_0("Failed to create config_arr_cvt config_value_t object");
         goto err;
     }
-
-    // Creating cJSON object of new topics
-    cJSON* obj = cJSON_CreateArray();
-    if (obj == NULL) {
-        LOG_ERROR_0("cJSON obj initialization failed");
-        ret_val = -1;
+    // Creating config_t object to set new topics value
+    config_input = config_new(
+            (void*) ctx->interface->body.object->object, free_json, get_config_value, set_config_value);
+    if (config_input == NULL) {
+        LOG_ERROR_0("Failed to create config_input config_t object");
         goto err;
     }
-    for (int i = 0; i < len; i++) {
-        cJSON_AddItemToArray(obj, cJSON_CreateString(topics_list[i]));
-    }
-
-    // Fetching list of publishers/subscribers
-    cJSON* config_list = cJSON_GetObjectItem(temp, type);
-    if (config_list == NULL) {
-        LOG_ERROR_0("cJSON config_list initialization failed");
-        ret_val = -1;
+    // Setting new topics
+    ret_val = config_set(config_input, TOPICS, config_arr_cvt);
+    if (!ret_val) {
+        LOG_ERROR_0("Unable to set config value");
         goto err;
     }
-
-    // Iterating & validating name
-    int config_size = cJSON_GetArraySize(config_list);
-    for (int i = 0; i < config_size; i++) {
-        cJSON* config_list_name = cJSON_GetArrayItem(config_list, i);
-        if (config_list_name == NULL) {
-            LOG_ERROR_0("config_list_name initialization failed");
-            ret_val = -1;
-            goto err;
-        }
-        char* name_to_check = cJSON_GetStringValue(cJSON_GetObjectItem(config_list_name, "Name"));
-        if (name_to_check == NULL) {
-            LOG_ERROR_0("name_to_check initialization failed");
-            ret_val = -1;
-            goto err;
-        }
-        // Replace topics if name matches
-        if (strcmp(name_to_check, config_name->body.string) == 0) {
-            cJSON_ReplaceItemInObject(config_list_name, "Topics", obj);
-        }
+    if (config_arr_cvt != NULL) {
+        config_value_destroy(config_arr_cvt);
+    }
+    // Freeing this instead of destroying since we do
+    // not want to free the inner config_input->cfg
+    if (config_input != NULL) {
+        free(config_input);
+    }
+    // Freeing this instead of destroying since we do
+    // not want to free the inner config_arr->cfg
+    if (config_arr != NULL) {
+        free(config_arr);
     }
 
+    return ret_val;
 err:
-    if (config_name != NULL) {
-        config_value_destroy(config_name);
+    if (config_arr != NULL) {
+        config_destroy(config_arr);
+    }
+    if (config_input != NULL) {
+        config_destroy(config_input);
+    }
+    if (config_arr_cvt != NULL) {
+        config_value_destroy(config_arr_cvt);
     }
     return ret_val;
 }
 
 config_value_t* cfgmgr_get_allowed_clients(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     if (ctx->type == CFGMGR_SUBSCRIBER || ctx->type == CFGMGR_CLIENT) {
         LOG_ERROR_0("cfgmgr_get_allowed_clients not applicable for CFGMGR_SUBSCRIBER/CFGMGR_CLIENT");
         return NULL;
@@ -867,6 +748,7 @@ config_value_t* cfgmgr_get_allowed_clients(cfgmgr_interface_t* ctx) {
 }
 
 config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     config_t* m_config = NULL;
     config_value_t* broker_app_name = NULL;
     char** host_port = NULL;
@@ -881,12 +763,19 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     config_value_t* publish_config_type = NULL;
     config_value_t* publish_config_endpoint = NULL;
     config_value_t* publish_config_name = NULL;
+    config_value_t* cvt_type = NULL;
+    config_value_t* zmq_recv_hwm_value = NULL;
+    config_value_t* brokered_value = NULL;
+    config_t* zmq_tcp_publish_cvt = NULL;
+    config_value_t* zmq_tcp_host = NULL;
+    config_value_t* zmq_tcp_port = NULL;
+    config_value_t* zmq_tcp_publish = NULL;
     char* config_value_cr = NULL;
-
-    // Creating cJSON object
-    cJSON* c_json = cJSON_CreateObject();
-    if (c_json == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
+    bool config_set_result = false;
+    // Creating final config object
+    m_config = json_config_new_from_buffer("{}");
+    if (m_config == NULL) {
+        LOG_ERROR_0("Error creating m_config object");
         goto err;
     }
 
@@ -897,7 +786,7 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         goto err;
     }
 
-    if(publish_config_type->type != CVT_STRING || publish_config_type->body.string == NULL){
+    if (publish_config_type->type != CVT_STRING || publish_config_type->body.string == NULL) {
         LOG_ERROR_0("publish_config_type type mismatch or the string value is NULL");
         goto err;
     }
@@ -911,16 +800,14 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         goto err;
     }
 
-    const char* end_point;
-    if(publish_config_endpoint->type == CVT_OBJECT){
+    char* end_point = NULL;
+    if (publish_config_endpoint->type == CVT_OBJECT) {
         end_point = cvt_to_char(publish_config_endpoint);
-    }else if(publish_config_endpoint->type == CVT_STRING && publish_config_endpoint->body.string != NULL){
+    } else if(publish_config_endpoint->type == CVT_STRING && publish_config_endpoint->body.string != NULL) {
         end_point = publish_config_endpoint->body.string;
-    } else {
-        end_point = NULL;
     }
 
-    if(end_point == NULL) {
+    if (end_point == NULL) {
         LOG_ERROR_0("Failed to get endpoint, its NULL");
         goto err;
     }
@@ -948,7 +835,7 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = (const char*)ep_override;
+            end_point = ep_override;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -961,7 +848,7 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     if (publisher_ep != NULL) {
         LOG_DEBUG_0("Overriding endpoint with PUBLISHER_ENDPOINT");
         if (strlen(publisher_ep) != 0) {
-            end_point = (const char*)publisher_ep;
+            end_point = publisher_ep;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding PUBLISHER_ENDPOINT, and hence endpoint taking from interface ");
@@ -983,7 +870,6 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence type taking from interface ", type_override_env);
     }
-
     free(type_override_env);
 
     // Overriding endpoint with PUBLISHER_TYPE if set
@@ -998,22 +884,34 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         LOG_DEBUG("env not set for overridding PUBLISHER_TYPE, and hence type taking from interface ");
     }
 
-    cJSON_AddStringToObject(c_json, "type", type);
-    // TODO: type has to be freed in destructor
-    // free(type);
+    // Creating type config_value_t to set in final config
+    cvt_type = config_value_new_string(type);
+    if (cvt_type == NULL) {
+        LOG_ERROR_0("Error creating config_value_t object");
+        goto err;
+    }
+    config_set_result = config_set(m_config, "type", cvt_type);
+    if (!config_set_result) {
+        LOG_ERROR("Unable to set config value");
+        goto err;
+    }
 
     // Adding zmq_recv_hwm value if available
-    config_value_t* zmq_recv_hwm_value = config_value_object_get(pub_config, ZMQ_RECV_HWM);
+    zmq_recv_hwm_value = config_value_object_get(pub_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
             goto err;
         }
-        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+        config_set_result = config_set(m_config, ZMQ_RECV_HWM, zmq_recv_hwm_value);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     }
 
     // Adding brokered value if available
-    config_value_t* brokered_value = config_value_object_get(pub_config, BROKERED);
+    brokered_value = config_value_object_get(pub_config, BROKERED);
     if (brokered_value != NULL) {
         if (brokered_value->type != CVT_BOOLEAN) {
             LOG_ERROR_0("brokered_value type is not boolean");
@@ -1022,15 +920,15 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     }
 
     if (!strcmp(type, "zmq_ipc")) {
-        bool ret = get_ipc_config(c_json, pub_config, end_point, CFGMGR_PUBLISHER);
+        bool ret = get_ipc_config(m_config, pub_config, end_point, CFGMGR_PUBLISHER);
         if (ret == false){
             LOG_ERROR_0("IPC configuration for publisher failed");
             goto err;
         }
     } else if (!strcmp(type, "zmq_tcp")) {
-        // Add host & port to zmq_tcp_publish cJSON object
+        // Add host & port to zmq_tcp_publish object
         host_port = get_host_port(end_point);
-        if (host_port == NULL){
+        if (host_port == NULL) {
             LOG_ERROR_0("Get host and port failed");
             goto err;
         }
@@ -1039,21 +937,39 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         port = host_port[1];
         trim(port);
         __int64_t i_port = atoi(port);
-        cJSON* zmq_tcp_publish = cJSON_CreateObject();
-        if (zmq_tcp_publish == NULL) {
-            LOG_ERROR_0("zmq_tcp_publish initialization failed");
+        // Creating empty config object
+        zmq_tcp_publish_cvt = json_config_new_from_buffer("{}");
+        if (zmq_tcp_publish_cvt == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_publish_cvt failed");
             goto err;
         }
-        cJSON_AddStringToObject(zmq_tcp_publish, "host", host);
-        cJSON_AddNumberToObject(zmq_tcp_publish, "port", i_port);
+        zmq_tcp_host = config_value_new_string(host);
+        if (zmq_tcp_host == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_host failed");
+            goto err;
+        }
+        zmq_tcp_port = config_value_new_integer(i_port);
+        if (zmq_tcp_port == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_port failed");
+            goto err;
+        }
+        config_set_result = config_set(zmq_tcp_publish_cvt, "host", zmq_tcp_host);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+        config_set_result = config_set(zmq_tcp_publish_cvt, "port", zmq_tcp_port);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
         if (brokered_value != NULL) {
-            if (brokered_value->body.boolean) {
-                cJSON_AddBoolToObject(zmq_tcp_publish, BROKERED, true);
-            } else {
-                cJSON_AddBoolToObject(zmq_tcp_publish, BROKERED, false);
+            config_set_result = config_set(zmq_tcp_publish_cvt, BROKERED, brokered_value);
+            if (!config_set_result) {
+                LOG_ERROR("Unable to set config value");
+                goto err;
             }
         }
-        cJSON_AddItemToObject(c_json, "zmq_tcp_publish", zmq_tcp_publish);
         if (dev_mode != 0) {
             bool ret_val;
 
@@ -1069,38 +985,36 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
                 // If a publisher is using broker to communicate with its respective subscriber
                 // then publisher will act as a subscriber to X-SUB, hence publishers 
                 // message bus config looks like a subscriber one.  
-                ret_val = add_keys_to_config(zmq_tcp_publish, app_name, kv_store_client, kv_store_handle, broker_app_name, pub_config);
+                ret_val = add_keys_to_config(zmq_tcp_publish_cvt, app_name, kv_store_client, kv_store_handle, broker_app_name, pub_config);
                 if(!ret_val) {
                     LOG_ERROR_0("Failed to add respective cert keys");
                     goto err;
                 }
             } else{
-                ret_val = construct_tcp_publisher_prod(app_name, c_json, zmq_tcp_publish, kv_store_handle, pub_config, kv_store_client);
+                ret_val = construct_tcp_publisher_prod(app_name, m_config, zmq_tcp_publish_cvt, kv_store_handle, pub_config, kv_store_client);
                 if(!ret_val) {
                     LOG_ERROR_0("Failed to construct tcp config struct");
                     goto err;
                 }
             }
         }
+        zmq_tcp_publish = config_value_new_object(zmq_tcp_publish_cvt->cfg, get_config_value, NULL);
+        config_set_result = config_set(m_config, "zmq_tcp_publish", zmq_tcp_publish);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     } else {
         LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
         goto err;
     }
-    // Constructing char* object from cJSON object
-    config_value_cr = cJSON_Print(c_json);
+    // Constructing char* object from config_t object
+    config_value_cr = configt_to_char(m_config);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("config_value_cr initialization failed");
         goto err;
     }
     LOG_DEBUG("Env publisher Config is : %s \n", config_value_cr);
-
-    // Constructing config_t object from cJSON object
-    m_config = config_new(
-            (void*) c_json, free_json, get_config_value);
-    if (m_config == NULL) {
-        LOG_ERROR_0("Failed to initialize configuration object");
-        goto err;
-    }
 
 err:
     if (config_value_cr != NULL) {
@@ -1118,21 +1032,43 @@ err:
     if (broker_app_name != NULL) {
         config_value_destroy(broker_app_name);
     }
+    if (cvt_type != NULL) {
+        config_value_destroy(cvt_type);
+    }
     if (host_port != NULL) {
         free_mem(host_port);
+    }
+    // Freeing this instead of destroying since we don't
+    // want to free the inner zmq_tcp_publish_cvt->cfg
+    if (zmq_tcp_publish_cvt != NULL) {
+        free(zmq_tcp_publish_cvt);
+    }
+    if (zmq_recv_hwm_value != NULL) {
+        config_value_destroy(zmq_recv_hwm_value);
+    }
+    if (brokered_value != NULL) {
+        config_value_destroy(brokered_value);
+    }
+    if (zmq_tcp_host != NULL) {
+        config_value_destroy(zmq_tcp_host);
+    }
+    if (zmq_tcp_port != NULL) {
+        config_value_destroy(zmq_tcp_port);
+    }
+    if (zmq_tcp_publish != NULL) {
+        config_value_destroy(zmq_tcp_publish);
     }
     return m_config;
 }
 
 config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     char** host_port = NULL;
     char* host = NULL;
     char* port = NULL;
-    // Initializing base_cfg variables
     config_value_t* sub_config = ctx->interface;
     char* app_name = ctx->cfg_mgr->app_name;
     bool dev_mode = false;
-    config_t* m_config = NULL;
     config_value_t* topic_array = NULL;
     config_value_t* publisher_appname = NULL;
     config_value_t* topic = NULL;
@@ -1145,18 +1081,25 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
     char* ep_override_env = NULL;
     char* ep_override = NULL;
     config_value_t* zmq_recv_hwm_value = NULL;
+    config_t* topics = NULL;
+    kv_store_client_t* kv_store_client = NULL;
+    config_t* c_json = NULL;
+    config_value_t* type_cvt = NULL;
+    config_value_t* zmq_tcp_host = NULL;
+    config_value_t* zmq_tcp_port = NULL;
 
     int devmode = ctx->cfg_mgr->dev_mode;
-    if(devmode == 0) {
+    if (devmode == 0) {
         dev_mode = true;
     }
- 
-    kv_store_client_t* kv_store_client = ctx->cfg_mgr->kv_store_client;
+
+    kv_store_client = ctx->cfg_mgr->kv_store_client;
     void* kv_store_handle = ctx->cfg_mgr->kv_store_handle;
-    // Creating cJSON object
-    cJSON* c_json = cJSON_CreateObject();
+
+    // Creating final config object
+    c_json = json_config_new_from_buffer("{}");
     if (c_json == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
+        LOG_ERROR_0("Error creating c_json object");
         goto err;
     }
 
@@ -1180,14 +1123,14 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
         goto err;
     }
 
-    const char* end_point = NULL;
-    if(subscribe_config_endpoint->type == CVT_OBJECT){
+    char* end_point = NULL;
+    if (subscribe_config_endpoint->type == CVT_OBJECT) {
         end_point = cvt_to_char(subscribe_config_endpoint);
-    }else{
+    } else {
         end_point = subscribe_config_endpoint->body.string;
     }
 
-    if(end_point == NULL){
+    if (end_point == NULL) {
         LOG_ERROR_0("Failed to get endpoint, its NULL");
         goto err;
     }
@@ -1206,11 +1149,11 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
-    ep_override = getenv(ep_override_env);   
+    ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = (const char*)ep_override;
+            end_point = ep_override;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -1222,7 +1165,7 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
     if (subscriber_ep != NULL) {
         LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_ENDPOINT");
         if (strlen(subscriber_ep) != 0) {
-            end_point = (const char*)subscriber_ep;
+            end_point = subscriber_ep;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding SUBSCRIBER_ENDPOINT, and hence endpoint taking from interface ");
@@ -1256,7 +1199,17 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
     } else {
         LOG_DEBUG("env not set for overridding SUBSCRIBER_TYPE, and hence type taking from interface ");
     }
-    cJSON_AddStringToObject(c_json, "type", type);
+
+    type_cvt = config_value_new_string(type);
+    if (type_cvt == NULL) {
+        LOG_ERROR_0("Get type_cvt failed");
+        goto err;
+    }
+    bool config_set_result = config_set(c_json, "type", type_cvt);
+    if (!config_set_result) {
+        LOG_ERROR_0("Unable to set config value");
+        goto err;
+    }
 
     // Adding zmq_recv_hwm value if available
     zmq_recv_hwm_value = config_value_object_get(sub_config, ZMQ_RECV_HWM);
@@ -1265,7 +1218,10 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
             goto err;
         }
-        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+        bool config_set_result = config_set(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+        }
     }
 
     if(!strcmp(type, "zmq_ipc")) {
@@ -1299,7 +1255,7 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
         port = host_port[1];
         trim(port);
         int64_t i_port = atoi(port);
-        
+
         int ret;
         int topicret;
         // comparing the first topic in the array of subscribers topic with "*"
@@ -1324,25 +1280,37 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             goto err;
         }
 
-        for (int i = 0; i < arr_len; i++) {
-            // Create cJSON object for every topic
-            cJSON* topics = cJSON_CreateObject();
-            if (topics == NULL) {
-                LOG_ERROR_0("c_json initialization failed");
+        for (size_t i = 0; i < arr_len; i++) {
+            // Creating empty config object
+            topics = json_config_new_from_buffer("{}");
+            zmq_tcp_host = config_value_new_string(host);
+            if (zmq_tcp_host == NULL) {
+                LOG_ERROR_0("Get zmq_tcp_host failed");
                 goto err;
             }
+            zmq_tcp_port = config_value_new_integer(i_port);
+            if (zmq_tcp_port == NULL) {
+                LOG_ERROR_0("Get zmq_tcp_port failed");
+                goto err;
+            }
+            config_set_result = config_set(topics, "host", zmq_tcp_host);
+            if (!config_set_result) {
+                LOG_ERROR("Unable to set config value");
+            }
+            config_set_result = config_set(topics, "port", zmq_tcp_port);
+            if (!config_set_result) {
+                LOG_ERROR("Unable to set config value");
+            }
+
             topic = config_value_array_get(topic_array, i);
-            if (topic == NULL){
+            if (topic == NULL) {
                 LOG_ERROR_0("topic initialization failed");
                 goto err;
             }
-            // Add host & port to cJSON object
-            cJSON_AddStringToObject(topics, "host", host);
-            cJSON_AddNumberToObject(topics, "port", i_port);
 
             // if topics lenght is not 1 or the topic is not equal to "*",
             //then we are adding that topic for subscription.
-            if(!dev_mode) {
+            if (!dev_mode) {
                 bool ret_val;
                 // This is EISZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
                 // hence comparing for "PublisherAppname" and "*"
@@ -1363,10 +1331,23 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
                     }
                 }
             }
+            config_value_t* topics_cvt = config_value_new_object(topics->cfg, get_config_value, NULL);
+            if (topics_cvt == NULL) {
+                LOG_ERROR_0("Unable to create topics_cvt config_value_t object");
+                goto err;
+            }
             if((arr_len == 1) && (topicret == 0)) {
-                cJSON_AddItemToObject(c_json, "", topics);
+                config_set_result = config_set(c_json, "", topics_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR_0("Unable to set config value");
+                    goto err;
+                }
             } else {
-                cJSON_AddItemToObject(c_json, topic->body.string, topics);
+                config_set_result = config_set(c_json, topic->body.string, topics_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR_0("Unable to set config value");
+                    goto err;
+                }
             }
             if (topic != NULL) {
                 config_value_destroy(topic);
@@ -1377,21 +1358,14 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
         goto err;
     }
 
-    // Constructing char* object from cJSON object
-    config_value_cr = cJSON_Print(c_json);
+    // Constructing char* object from config_t object
+    config_value_cr = configt_to_char(c_json);
     if (config_value_cr == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
+        LOG_ERROR_0("config_value_cr initialization failed");
         goto err;
     }
     LOG_DEBUG("Env subscriber Config is : %s \n", config_value_cr);
 
-    // Constructing config_t object from cJSON object
-    m_config = config_new(
-            (void*) c_json, free_json, get_config_value);
-    if (m_config == NULL) {
-        LOG_ERROR_0("Failed to initialize configuration object");
-        goto err;
-    }
 err:
     if (host_port != NULL) {
         free_mem(host_port);
@@ -1423,17 +1397,25 @@ err:
     if (config_value_cr != NULL) {
         free(config_value_cr);
     }
-    return m_config;
+    if (type_cvt != NULL) {
+        config_value_destroy(type_cvt);
+    }
+    if (zmq_tcp_host != NULL) {
+        config_value_destroy(zmq_tcp_host);
+    }
+    if (zmq_tcp_port != NULL) {
+        config_value_destroy(zmq_tcp_port);
+    }
+return c_json;
 }
 
 config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
-    // Initializing base_cfg variables
+    LOG_DEBUG("In %s function", __func__);
     config_value_t* serv_config = ctx->interface;
     char* app_name = ctx->cfg_mgr->app_name;
     int dev_mode = ctx->cfg_mgr->dev_mode;
     kv_store_client_t* kv_store_client = ctx->cfg_mgr->kv_store_client;
     void* kv_store_handle = ctx->cfg_mgr->kv_store_handle;
-    config_t* ret = NULL;
     config_value_t* temp_array_value = NULL;
     config_value_t* server_name = NULL;
     config_value_t* server_config_type = NULL;
@@ -1448,12 +1430,22 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
     char* grab_public_key = NULL;
     char* client_public_key = NULL;
     char* config_value_cr = NULL;
+    char **all_clients = NULL;
+    config_value_t* type_cvt = NULL;
+    config_value_t* zmq_recv_hwm_value = NULL;
+    config_t* server_topic = NULL;
+    config_value_t* zmq_tcp_host = NULL;
+    config_value_t* zmq_tcp_port = NULL;
+    config_t* all_clients_arr_config = NULL;
+    config_value_t* all_clients_cvt = NULL;
+    config_value_t* server_secret_key_cvt = NULL;
+    config_value_t* server_topic_cvt = NULL;
 
-    // Creating cJSON object
-    cJSON* c_json = cJSON_CreateObject();
+    config_t* c_json = NULL;
+    // Creating final config object
+    c_json = json_config_new_from_buffer("{}");
     if (c_json == NULL) {
-        LOG_ERROR_0("c_json initialization failed");
-        goto err;
+        LOG_ERROR_0("Error creating c_json object");
     }
 
     // Fetching Name from name
@@ -1483,7 +1475,7 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("server_endpoint initialization failed");
         goto err;
     }
-    const char* end_point = server_endpoint->body.string;
+    char* end_point = server_endpoint->body.string;
 
     // // Overriding endpoint with SERVER_<Name>_ENDPOINT if set
     size_t init_len = strlen("SERVER_") + strlen(server_name->body.string) + strlen("_ENDPOINT") + 2;
@@ -1496,7 +1488,7 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = (const char*)ep_override;
+            end_point = ep_override;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding endpoint, hence endpoint is taken from interface");
@@ -1508,7 +1500,7 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
     if (server_ep != NULL) {
         LOG_DEBUG_0("Overriding endpoint with SERVER_ENDPOINT");
         if (strlen(server_ep) != 0) {
-            end_point = (const char*)server_ep;
+            end_point = server_ep;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding SERVER_ENDPOINT, and hence endpoint taking from interface ");
@@ -1542,33 +1534,49 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
     }  else {
         LOG_DEBUG_0("env not set for overridding SERVER_TYPE, and hence type taking from interface ");
     }
-    cJSON_AddStringToObject(c_json, "type", type);
+
+    type_cvt = config_value_new_string(type);
+    if (type_cvt == NULL) {
+        LOG_ERROR_0("Get type_cvt failed");
+        goto err;
+    }
+    bool config_set_result = config_set(c_json, "type", type_cvt);
+    if (!config_set_result) {
+        LOG_ERROR("Unable to set config value");
+        goto err;
+    }
 
     // Adding zmq_recv_hwm value if available
-    config_value_t* zmq_recv_hwm_value = config_value_object_get(serv_config, ZMQ_RECV_HWM);
+    zmq_recv_hwm_value = config_value_object_get(serv_config, ZMQ_RECV_HWM);
     if (zmq_recv_hwm_value != NULL) {
         if (zmq_recv_hwm_value->type != CVT_INTEGER) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
             goto err;
         }
-        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+
+        bool config_set_result = config_set(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
     }
 
     if (!strcmp(type, "zmq_ipc")) {
         bool ret = get_ipc_config(c_json, serv_config, end_point, CFGMGR_SERVER);
-        if (ret == false){
+        if (ret == false) {
             LOG_ERROR_0("IPC configuration for server failed");
             goto err;
         }
     } else if (!strcmp(type, "zmq_tcp")) {
-        // Add host & port to zmq_tcp_publish cJSON object
-        cJSON* server_topic = cJSON_CreateObject();
+        // Add host & port to zmq_tcp_publish object
+        server_topic = json_config_new_from_buffer("{}");
         if (server_topic == NULL) {
             LOG_ERROR_0("server_topic initialization failed");
             goto err;
         }
+
         host_port = get_host_port(end_point);
-        if (host_port == NULL){
+        if (host_port == NULL) {
             LOG_ERROR_0("Get host and port failed");
             goto err;
         }
@@ -1578,8 +1586,27 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
         trim(port);
         __int64_t i_port = atoi(port);
 
-        cJSON_AddStringToObject(server_topic, "host", host);
-        cJSON_AddNumberToObject(server_topic, "port", i_port);
+        zmq_tcp_host = config_value_new_string(host);
+        if (zmq_tcp_host == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_host failed");
+            goto err;
+        }
+        zmq_tcp_port = config_value_new_integer(i_port);
+        if (zmq_tcp_port == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_port failed");
+            goto err;
+        }
+
+        config_set_result = config_set(server_topic, "host", zmq_tcp_host);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
+        config_set_result = config_set(server_topic, "port", zmq_tcp_port);
+        if (!config_set_result) {
+            LOG_ERROR("Unable to set config value");
+            goto err;
+        }
 
         if (dev_mode != 0) {
 
@@ -1607,43 +1634,27 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
             // If only one item in allowed_clients and it is *
             // Add all available Publickeys
             if ((config_value_array_len(server_json_clients) == 1) && (result == 0)) {
-                cJSON* all_clients = cJSON_CreateArray();
-                if (all_clients == NULL) {
-                    LOG_ERROR_0("all_clients initialization failed");
-                    goto err;
-                }
                 pub_key_values = kv_store_client->get_prefix(kv_store_handle, "/Publickeys/");
                 if (pub_key_values == NULL) {
                     LOG_ERROR_0("pub_key_values initialization failed");
                     goto err;
                 }
-                config_value_t* value;
-                size_t arr_len = config_value_array_len(pub_key_values);
-                if(arr_len == 0){
-                    LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+
+                config_set_result = config_set(c_json, "allowed_clients", pub_key_values);
+                if (!config_set_result) {
+                    LOG_ERROR_0("Unable to set config value");
                     goto err;
                 }
-
-                for (int i = 0; i < arr_len; i++) {
-                    value = config_value_array_get(pub_key_values, i);
-                    if (value == NULL) {
-                        LOG_ERROR_0("value initialization failed");
-                        goto err;
-                    }
-                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(value->body.string));
-                    config_value_destroy(value);
-                }
-                cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
             } else {
                 config_value_t* array_value;
-                cJSON* all_clients = cJSON_CreateArray();
-                if (all_clients == NULL) {
-                    LOG_ERROR_0("all_clients initialization failed");
-                    goto err;
-                }
                 size_t arr_len = config_value_array_len(server_json_clients);
                 if(arr_len == 0){
                     LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
+                    goto err;
+                }
+                all_clients = (char**)calloc(arr_len, sizeof(char*));
+                if (all_clients == NULL) {
+                    LOG_ERROR_0("all_clients initialization failed");
                     goto err;
                 }
                 for (int i =0; i < arr_len; i++) {
@@ -1663,15 +1674,32 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
                     if(client_public_key == NULL){
                         // If any service isn't provisioned, ignore if key not found
                         LOG_DEBUG("Value is not found for the key: %s", grab_public_key);
+                        all_clients[i] = NULL;
+                    } else {
+                        all_clients[i] = client_public_key;
                     }
                     free(grab_public_key);
 
                     config_value_destroy(array_value);
-                    cJSON_AddItemToArray(all_clients, cJSON_CreateString(client_public_key));
-                    free(client_public_key);
                 }
                 // Adding all public keys of clients to allowed_clients of config
-                cJSON_AddItemToObject(c_json, "allowed_clients",  all_clients);
+                all_clients_arr_config = json_config_new_array(all_clients, arr_len);
+                if (all_clients_arr_config == NULL) {
+                    LOG_ERROR_0("Failed to create all_clients_arr_config config_t object");
+                    goto err;
+                }
+
+                all_clients_cvt = config_value_new_object(all_clients_arr_config->cfg, get_config_value, NULL);
+                if (all_clients_cvt == NULL) {
+                    LOG_ERROR_0("Unable to create config_value_t all_clients_cvt object");
+                    goto err;
+                }
+
+                config_set_result = config_set(c_json, "allowed_clients", all_clients_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR_0("Unable to set config value");
+                    goto err;
+                }
             }
 
             // Fetching Publisher private key & adding it to server_topic object
@@ -1686,32 +1714,42 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
                 LOG_ERROR("Value is not found for the key: %s", pub_pri_key);
                 goto err;
             }
-            cJSON_AddStringToObject(server_topic, "server_secret_key", server_secret_key);
+
+            server_secret_key_cvt = config_value_new_string(server_secret_key);
+            if (server_secret_key_cvt == NULL) {
+                LOG_ERROR_0("Get server_secret_key_cvt failed");
+                goto err;
+            }
+            config_set_result = config_set(server_topic, "server_secret_key", server_secret_key_cvt);
+            if (!config_set_result) {
+                LOG_ERROR("Unable to set config value");
+                goto err;
+            }
+
         }
-        // Creating the final cJSON config object
-        // server_name
-        cJSON_AddItemToObject(c_json, server_name->body.string, server_topic);
+        // Creating the server_topic config_value_t object
+        server_topic_cvt = config_value_new_object(server_topic->cfg, get_config_value, set_config_value);
+        if (server_topic_cvt == NULL) {
+            LOG_ERROR_0("server_topic_cvt config_value_t initialization failed");
+            goto err;
+        }
+        config_set_result = config_set(c_json, server_name->body.string, server_topic_cvt);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
     } else {
         LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
         goto err;
     }
 
-    // Constructing char* object from cJSON object
-    config_value_cr = cJSON_Print(c_json);
+    // Constructing char* object from object
+    config_value_cr = configt_to_char(c_json);
     if (config_value_cr == NULL) {
         LOG_ERROR_0("config_value_cr initialization failed");
         goto err;
     }
     LOG_DEBUG("Env server Config is : %s \n", config_value_cr);
-
-    // Constructing config_t object from cJSON object
-    config_t* m_config = config_new(
-            (void*) c_json, free_json, get_config_value);
-    if (m_config == NULL) {
-        LOG_ERROR_0("Failed to initialize configuration object");
-        goto err;
-    }
-    ret = m_config;
 
 err:
     if (temp_array_value != NULL) {
@@ -1756,10 +1794,41 @@ err:
     if (client_public_key != NULL) {
         free(client_public_key);
     }
-    return ret;
+    if (type_cvt != NULL) {
+        config_value_destroy(type_cvt);
+    }
+    if (zmq_recv_hwm_value != NULL) {
+        config_value_destroy(zmq_recv_hwm_value);
+    }
+    if (server_topic != NULL) {
+        free(server_topic);
+    }
+    if (zmq_tcp_host != NULL) {
+        config_value_destroy(zmq_tcp_host);
+    }
+    if (zmq_tcp_port != NULL) {
+        config_value_destroy(zmq_tcp_port);
+    }
+    if (all_clients_arr_config != NULL) {
+        free(all_clients_arr_config);
+    }
+    if (all_clients_cvt != NULL) {
+        free(all_clients_cvt);
+    }
+    if (all_clients != NULL) {
+        free_mem(all_clients);
+    }
+    if (server_secret_key_cvt != NULL) {
+        config_value_destroy(server_secret_key_cvt);
+    }
+    if (server_topic_cvt != NULL) {
+        free(server_topic_cvt);
+    }
+    return c_json;
 }
 
 config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     // Initializing base_cfg variables
     config_value_t* cli_config = ctx->interface;
     char* app_name = ctx->cfg_mgr->app_name;
@@ -1783,16 +1852,26 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
     char* type_override = NULL;
     char* ep_override_env = NULL;
     char* config_value = NULL;
+    config_t* c_json = NULL;
+    config_value_t* client_name = NULL;
+    config_value_t* type_cvt = NULL;
+    config_t* client_topic = NULL;
+    config_value_t* zmq_tcp_host = NULL;
+    config_value_t* zmq_tcp_port = NULL;
+    config_value_t* server_public_key_cvt = NULL;
+    config_value_t* client_public_key_cvt = NULL;
+    config_value_t* sub_pri_key_cvt = NULL;
+    config_value_t* client_topic_cvt = NULL;
 
-    // Creating cJSON object
-    cJSON* c_json = cJSON_CreateObject();
+    // Creating the final config object
+    c_json = json_config_new_from_buffer("{}");
     if (c_json == NULL) {
-        LOG_ERROR_0("c_json object initialization failed");
-        return NULL;
+        LOG_ERROR_0("Error creating c_json object");
+        goto err;
     }
 
     // Fetching name from config
-    config_value_t* client_name = config_value_object_get(cli_config, NAME);
+    client_name = config_value_object_get(cli_config, NAME);
     if (client_name == NULL || client_name->body.string == NULL) {
         LOG_ERROR_0("client_name initialization failed");
         goto err;
@@ -1818,7 +1897,7 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("client_endpoint object initialization failed");
         goto err;
     }
-    const char* end_point = client_endpoint->body.string;
+    char* end_point = client_endpoint->body.string;
 
     // Overriding endpoint with CLIENT_<Name>_ENDPOINT if set
     size_t init_len = strlen("CLIENT_") + strlen(client_name->body.string) + strlen("_ENDPOINT") + 2;
@@ -1831,7 +1910,7 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
     if (ep_override != NULL) {
         if (strlen(ep_override) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = (const char*)ep_override;
+            end_point = ep_override;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -1843,7 +1922,7 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
     if (client_ep != NULL) {
         LOG_DEBUG_0("Overriding endpoint with CLIENT_ENDPOINT");
         if (strlen(client_ep) != 0) {
-            end_point = (const char*)client_ep;
+            end_point = client_ep;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding CLIENT_ENDPOINT, and hence endpoint taking from interface ");
@@ -1877,7 +1956,17 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
     } else {
         LOG_DEBUG("env not set for overridding CLIENT_TYPE, and hence type taking from interface ");
     }
-    cJSON_AddStringToObject(c_json, "type", type);
+
+    type_cvt = config_value_new_string(type);
+    if (type_cvt == NULL) {
+        LOG_ERROR_0("Get type_cvt failed");
+        goto err;
+    }
+    bool config_set_result = config_set(c_json, "type", type_cvt);
+    if (!config_set_result) {
+        LOG_ERROR_0("Unable to set config value");
+        goto err;
+    }
 
     // Adding zmq_recv_hwm value if available
     zmq_recv_hwm_value = config_value_object_get(cli_config, ZMQ_RECV_HWM);
@@ -1886,25 +1975,30 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
             LOG_ERROR_0("zmq_recv_hwm type is not integer");
             goto err;
         }
-        cJSON_AddNumberToObject(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value->body.integer);
+
+        config_set_result = config_set(c_json, ZMQ_RECV_HWM, zmq_recv_hwm_value);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
     }
 
     if (!strcmp(type, "zmq_ipc")) {
         bool ret = get_ipc_config(c_json, cli_config, end_point, CFGMGR_CLIENT);
-        if (ret == false){
+        if (ret == false) {
             LOG_ERROR_0("IPC configuration for client failed");
             return NULL;
         }
     } else if (!strcmp(type, "zmq_tcp")) {
 
-        // Add host & port to client_topic cJSON object
-        cJSON* client_topic = cJSON_CreateObject();
+        // Add host & port to client_topic object
+        client_topic = json_config_new_from_buffer("{}");
         if (client_topic == NULL) {
             LOG_ERROR_0("client_topic object initialization failed");
             goto err;
         }
         host_port = get_host_port(end_point);
-        if (host_port == NULL){
+        if (host_port == NULL) {
             LOG_ERROR_0("Get host and port failed");
             goto err;
         }
@@ -1913,11 +2007,28 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
         port = host_port[1];
         trim(port);
         __int64_t i_port = atoi(port);
+        zmq_tcp_host = config_value_new_string(host);
+        if (zmq_tcp_host == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_host failed");
+            goto err;
+        }
+        zmq_tcp_port = config_value_new_integer(i_port);
+        if (zmq_tcp_port == NULL) {
+            LOG_ERROR_0("Get zmq_tcp_port failed");
+            goto err;
+        }
+        config_set_result = config_set(client_topic, "host", zmq_tcp_host);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
+        config_set_result = config_set(client_topic, "port", zmq_tcp_port);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
 
-        cJSON_AddStringToObject(client_topic, "host", host);
-        cJSON_AddNumberToObject(client_topic, "port", i_port);
-
-        if(dev_mode != 0) {
+        if (dev_mode != 0) {
 
             // Fetching Server AppName from config
             server_appname = config_value_object_get(cli_config, SERVER_APPNAME);
@@ -1942,8 +2053,15 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
             if(server_public_key == NULL){
                 LOG_DEBUG("Value is not found for the key: %s", retreive_server_pub_key);
             }
-
-            cJSON_AddStringToObject(client_topic, "server_public_key", server_public_key);
+            server_public_key_cvt = config_value_new_string(server_public_key);
+            if (server_public_key_cvt == NULL) {
+                LOG_ERROR_0("Get server_secret_key_cvt failed");
+                goto err;
+            }
+            config_set_result = config_set(client_topic, "server_public_key", server_public_key_cvt);
+            if (!config_set_result) {
+                LOG_ERROR("Unable to set config value");
+            }
 
             // free server_pub_key
             if (server_public_key != NULL) {
@@ -1963,7 +2081,16 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
                 goto err;
             }
 
-            cJSON_AddStringToObject(client_topic, "client_public_key", sub_public_key);
+            client_public_key_cvt = config_value_new_string(sub_public_key);
+            if (client_public_key_cvt == NULL) {
+                LOG_ERROR_0("Get client_public_key_cvt failed");
+                goto err;
+            }
+            config_set_result = config_set(client_topic, "client_public_key", client_public_key_cvt);
+            if (!config_set_result) {
+                LOG_ERROR_0("Unable to set config value");
+                goto err;
+            }
 
             // Adding client private key to config
             init_len = strlen("/") + strlen(app_name) + strlen(PRIVATE_KEY) + 2;
@@ -1977,28 +2104,40 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
                 LOG_ERROR("Value is not found for the key: %s", s_client_pri_key);
                 goto err;
             }
-            
-            cJSON_AddStringToObject(client_topic, "client_secret_key", sub_pri_key);
+
+            sub_pri_key_cvt = config_value_new_string(sub_pri_key);
+            if (sub_pri_key_cvt == NULL) {
+                LOG_ERROR_0("Get sub_pri_key_cvt failed");
+                goto err;
+            }
+            config_set_result = config_set(client_topic, "client_secret_key", sub_pri_key_cvt);
+            if (!config_set_result) {
+                LOG_ERROR_0("Unable to set config value");
+                goto err;
+            }
         }
-        // Creating the final cJSON config object
-        cJSON_AddItemToObject(c_json, client_name->body.string, client_topic);
+        client_topic_cvt = config_value_new_object(client_topic->cfg, get_config_value, NULL);
+        if (client_topic_cvt == NULL) {
+            LOG_ERROR_0("Unable to create config_value_t client_topic_cvt object");
+            goto err;
+        }
+        // Creating the final config object
+        config_set_result = config_set(c_json, client_name->body.string, client_topic_cvt);
+        if (!config_set_result) {
+            LOG_ERROR_0("Unable to set config value");
+            goto err;
+        }
     } else {
         LOG_ERROR_0("Type should be either \"zmq_ipc\" or \"zmq_tcp\"");
         goto err;
     }
 
-    config_value = cJSON_Print(c_json);
+    config_value = configt_to_char(c_json);
     if (config_value == NULL) {
         LOG_ERROR_0("config_value object initialization failed");
         goto err;
     }
     LOG_DEBUG("Env client Config is : %s \n", config_value);
-
-    m_config = config_new(
-            (void*) c_json, free_json, get_config_value);
-    if (m_config == NULL) {
-        LOG_ERROR_0("Failed to initialize configuration object");
-    }
 
 err:
     if (s_client_pri_key != NULL) {
@@ -2043,10 +2182,35 @@ err:
     if (server_appname != NULL) {
         config_value_destroy(server_appname);
     }
-    return m_config;
+    if (type_cvt != NULL) {
+        config_value_destroy(type_cvt);
+    }
+    if (client_topic != NULL) {
+        free(client_topic);
+    }
+    if (zmq_tcp_host != NULL) {
+        config_value_destroy(zmq_tcp_host);
+    }
+    if (zmq_tcp_port != NULL) {
+        config_value_destroy(zmq_tcp_port);
+    }
+    if (server_public_key_cvt != NULL) {
+        config_value_destroy(server_public_key_cvt);
+    }
+    if (client_public_key_cvt != NULL) {
+        config_value_destroy(client_public_key_cvt);
+    }
+    if (sub_pri_key_cvt != NULL) {
+        config_value_destroy(sub_pri_key_cvt);
+    }
+    if (client_topic_cvt != NULL) {
+        config_value_destroy(client_topic_cvt);
+    }
+    return c_json;
 }
 
 config_t* cfgmgr_get_msgbus_config(cfgmgr_interface_t* ctx) {
+    LOG_DEBUG("In %s function", __func__);
     config_t* config;
     if (ctx->type == CFGMGR_PUBLISHER) {
         config = cfgmgr_get_msgbus_config_pub(ctx);
@@ -2056,11 +2220,15 @@ config_t* cfgmgr_get_msgbus_config(cfgmgr_interface_t* ctx) {
         config = cfgmgr_get_msgbus_config_server(ctx);
     } else if (ctx->type == CFGMGR_CLIENT) {
         config = cfgmgr_get_msgbus_config_client(ctx);
+    } else {
+        LOG_ERROR_0("Interface type not supported");
+        return NULL;
     }
     return config;
 }
 
 bool cfgmgr_is_dev_mode(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     // Fetching dev mode from cfgmgr
     int result = cfgmgr->dev_mode;
     if (result == 0) {
@@ -2070,6 +2238,7 @@ bool cfgmgr_is_dev_mode(cfgmgr_ctx_t* cfgmgr) {
 }
 
 config_value_t* cfgmgr_get_appname(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     // Fetching app name from cfgmgr
     config_value_t* app_name = config_value_new_string(cfgmgr->app_name);
     if (app_name == NULL) {
@@ -2080,6 +2249,7 @@ config_value_t* cfgmgr_get_appname(cfgmgr_ctx_t* cfgmgr) {
 }
 
 int cfgmgr_get_num_elements(config_t* config, const char* key) {
+    LOG_DEBUG("In %s function", __func__);
     // Fetching list of interface elements
     config_value_t* interfaces = config_get(config, key);
     if (interfaces == NULL) {
@@ -2096,59 +2266,71 @@ int cfgmgr_get_num_elements(config_t* config, const char* key) {
 }
 
 int cfgmgr_get_num_publishers(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     int result = cfgmgr_get_num_elements(cfgmgr->app_interface, PUBLISHERS);
     return result;
 }
 
 int cfgmgr_get_num_subscribers(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     int result = cfgmgr_get_num_elements(cfgmgr->app_interface, SUBSCRIBERS);
     return result;
 }
 
 int cfgmgr_get_num_servers(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     int result = cfgmgr_get_num_elements(cfgmgr->app_interface, SERVERS);
     return result;
 }
 
 int cfgmgr_get_num_clients(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     int result = cfgmgr_get_num_elements(cfgmgr->app_interface, CLIENTS);
     return result;
 }
 
 config_t* cfgmgr_get_app_config(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     return cfgmgr->app_config;
 }
 
 config_t* cfgmgr_get_app_interface(cfgmgr_ctx_t* cfgmgr) {
+    LOG_DEBUG("In %s function", __func__);
     return cfgmgr->app_interface;
 }
 
 config_value_t* cfgmgr_get_app_config_value(cfgmgr_ctx_t* cfgmgr, const char* key) {
+    LOG_DEBUG("In %s function", __func__);
     return cfgmgr->app_config->get_config_value(cfgmgr->app_config->cfg, key);
 }
 
 config_value_t* cfgmgr_get_app_interface_value(cfgmgr_ctx_t* cfgmgr, const char* key) {
+    LOG_DEBUG("In %s function", __func__);
     return cfgmgr->app_interface->get_config_value(cfgmgr->app_interface->cfg, key);
 }
 
 config_value_t* cfgmgr_get_interface_value(cfgmgr_interface_t* cfgmgr_interface, const char* key) {
+    LOG_DEBUG("In %s function", __func__);
     config_value_t* interface_value = config_value_object_get(cfgmgr_interface->interface, key);
     return interface_value;
 }
 
 void cfgmgr_watch(cfgmgr_ctx_t* cfgmgr, const char* key, cfgmgr_watch_callback_t watch_callback, void* user_data) {
+    LOG_DEBUG("In %s function", __func__);
     // Calling the base watch API
     cfgmgr->kv_store_client->watch(cfgmgr->kv_store_handle, key, watch_callback, user_data);
     return;
 }
 
 void cfgmgr_watch_prefix(cfgmgr_ctx_t* cfgmgr, char* prefix, cfgmgr_watch_callback_t watch_callback, void* user_data) {
+    LOG_DEBUG("In %s function", __func__);
     // Calling the base watch_prefix API
     cfgmgr->kv_store_client->watch_prefix(cfgmgr->kv_store_handle, prefix, watch_callback, user_data);
     return;
 }
 
 cfgmgr_ctx_t* cfgmgr_initialize() {
+    LOG_DEBUG("In %s function", __func__);
     int result = 0;
     config_t* app_config = NULL;
     char* interface = NULL;
@@ -2206,6 +2388,8 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
         LOG_WARN_0("Value is not found for the key /GlobalEnv/,"
                    " continuing without setting GlobalEnv vars");
     } else {
+        // TODO: Find a way to parse a char* to iterate and fetch the
+        // key-value pairs using just config_t, not depending on cJSON
         // Creating cJSON of /GlobalEnv/ to iterate over a loop
         cJSON* env_json = cJSON_Parse(env_var);
         if (env_json == NULL) {
@@ -2222,12 +2406,30 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
                 goto err;
             }
         }
-        //TODO : Go and python making use of ths variable
-        // We need to allocate and find a suitable place to
-        // free. As it is used across C++ & C APIs.
-        //free(env_var);
         cJSON_Delete(env_json);
     }
+
+    // Setting log level
+    char* str_log_level = NULL;
+    log_lvl_t log_level = LOG_LVL_ERROR; // default log level is `ERROR`
+
+    str_log_level = getenv("C_LOG_LEVEL");
+    if(str_log_level == NULL) {
+        LOG_ERROR_0("C_LOG_LEVEL env not set");
+    } else {
+        if(strncmp(str_log_level, "DEBUG", 5) == 0) {
+            log_level = LOG_LVL_DEBUG;
+        } else if(strncmp(str_log_level, "INFO", 5) == 0) {
+            log_level = LOG_LVL_INFO;
+        } else if(strncmp(str_log_level, "WARN", 5) == 0) {
+            log_level = LOG_LVL_WARN;
+        } else if(strncmp(str_log_level, "ERROR", 5) == 0) {
+            log_level = LOG_LVL_ERROR;
+    }
+    set_log_level(log_level);
+    }
+
+    set_log_level(log_level);
 
     // Fetching AppName
     app_name_var = getenv("AppName");
@@ -2242,7 +2444,7 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
         goto err;
     }
     int ret = snprintf(c_app_name, str_len, "%s", app_name_var);
-    if (ret < 0){
+    if (ret < 0) {
         LOG_ERROR_0("snprintf failed to c_app_name");
         goto err;
     }
@@ -2260,7 +2462,7 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
     // Fetching App config
     init_len = strlen("/") + strlen(c_app_name) + strlen("/config") + 1;
     config_char = concat_s(init_len, 3, "/", c_app_name, "/config");
-    if (config_char == NULL){
+    if (config_char == NULL) {
         LOG_ERROR_0("Concatenation of /appname and /config failed");
         goto err;
     }
@@ -2364,7 +2566,7 @@ err:
 }
 
 void cfgmgr_destroy(cfgmgr_ctx_t *cfg_mgr) {
-    LOG_DEBUG_0("cfgmgr_ctx_t destroy");
+    LOG_DEBUG("In %s function", __func__);
     if (cfg_mgr != NULL) {
         if (cfg_mgr->app_config) {
             config_destroy(cfg_mgr->app_config);
@@ -2393,7 +2595,7 @@ void cfgmgr_destroy(cfgmgr_ctx_t *cfg_mgr) {
 }
 
 void cfgmgr_interface_destroy(cfgmgr_interface_t *cfg_mgr_interface) {
-    LOG_DEBUG_0("cfgmgr_interface_t destroy");
+    LOG_DEBUG("In %s function", __func__);
     if (cfg_mgr_interface != NULL) {
         if (cfg_mgr_interface->cfg_mgr) {
             cfgmgr_destroy(cfg_mgr_interface->cfg_mgr);

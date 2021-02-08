@@ -149,7 +149,7 @@ std::vector<std::string> AppCfg::getAllowedClients() {
 // This virtual method is implemented
 // by sub class objects
 bool AppCfg::setTopics(std::vector<std::string> topics_list) {
-    return NULL;
+    return false;
 }
 
 // tokenizer function to split string based on delimiter
