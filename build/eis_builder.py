@@ -452,32 +452,33 @@ def create_multi_instance_csl_app_spec(app_spec_json, args, is_subscriber):
                     # Check for ep.(.*).remoteaddress to find
                     # endpoint link name
                     ep_result = re.search('ep.(.*).remoteaddress', temp['ExecutionEnv'][x])
-                    ep_value = ep_result.group(1)
-                    # Fetch Endpoint name of interface
-                    ep_name = x.split('_ENDPOINT')[0].split('_')[1]
-                    for i in range(num_multi_instances):
-                        # Update ENDPOINT keys
-                        ep_key = x.split('_ENDPOINT')[0].split('_')[1]
-                        if bool(re.search(r'\d', ep_key)):
-                            ep_key = re.sub(r'\d+', str(i+1),
-                                                    ep_key)
-                        else:
-                            ep_key = ep_key + str(i+1)
-                        # Update ENDPOINT values
-                        if bool(re.search(r'\d', ep_value)):
-                            ep_value = re.sub(r'\d+', str(i+1),
-                                                    ep_value)
-                        else:
-                            ep_value = ep_value + str(i+1)
-                        # Add updates key, value pairs to ExecutionEnv
-                        temp['ExecutionEnv']['SUBSCRIBER_' + ep_key + '_ENDPOINT'] = \
-                            "${ep."+ep_value+".remoteaddress}:${ep."+ ep_value +".remoteport}"
-                    # Delete existing SUBSCRIBER endpoint
-                    if 'SUBSCRIBER_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
-                        del temp['ExecutionEnv']['SUBSCRIBER_'+ ep_name +'_ENDPOINT']
-                    # Delete existing CLIENT endpoint
-                    if 'CLIENT_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
-                        del temp['ExecutionEnv']['CLIENT_'+ ep_name +'_ENDPOINT']
+                    if ep_result is not None:
+                        ep_value = ep_result.group(1)
+                        # Fetch Endpoint name of interface
+                        ep_name = x.split('_ENDPOINT')[0].split('_')[1]
+                        for i in range(num_multi_instances):
+                            # Update ENDPOINT keys
+                            ep_key = x.split('_ENDPOINT')[0].split('_')[1]
+                            if bool(re.search(r'\d', ep_key)):
+                                ep_key = re.sub(r'\d+', str(i+1),
+                                                        ep_key)
+                            else:
+                                ep_key = ep_key + str(i+1)
+                            # Update ENDPOINT values
+                            if bool(re.search(r'\d', ep_value)):
+                                ep_value = re.sub(r'\d+', str(i+1),
+                                                        ep_value)
+                            else:
+                                ep_value = ep_value + str(i+1)
+                            # Add updates key, value pairs to ExecutionEnv
+                            temp['ExecutionEnv']['SUBSCRIBER_' + ep_key + '_ENDPOINT'] = \
+                                "${ep."+ep_value+".remoteaddress}:${ep."+ ep_value +".remoteport}"
+                        # Delete existing SUBSCRIBER endpoint
+                        if 'SUBSCRIBER_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
+                            del temp['ExecutionEnv']['SUBSCRIBER_'+ ep_name +'_ENDPOINT']
+                        # Delete existing CLIENT endpoint
+                        if 'CLIENT_'+ ep_name +'_ENDPOINT' in list(temp['ExecutionEnv'].keys()):
+                            del temp['ExecutionEnv']['CLIENT_'+ ep_name +'_ENDPOINT']
         # Update Endpoints section of app_spec
         if 'Endpoints' in temp.keys():
             new_ep_list = []
@@ -596,16 +597,17 @@ def csl_parser(app_list, args):
                         # endpoint of the service which subscribe to VA
                         # or Influx will be removed
                         if count < len(publisher_list.keys()):
-                            if pub_list[count] != {}:
-                                if pub_list[count]["Endtype"] == "server":
-                                    endpoint["Link"] = pub_list[count]["Link"]
-                                    publisher_present = True
-                                    all_link_backend.append(endpoint["Link"])
-                                    count += 1
+                            if count >= len(pub_list):
+                                if pub_list[count] != {}:
+                                    if pub_list[count]["Endtype"] == "server":
+                                        endpoint["Link"] = pub_list[count]["Link"]
+                                        publisher_present = True
+                                        all_link_backend.append(endpoint["Link"])
+                                        count += 1
 
-                            if publisher_present is False:
-                                endpoint_to_remove.append(endpoint)
-                                count += 1
+                                if publisher_present is False:
+                                    endpoint_to_remove.append(endpoint)
+                                    count += 1
 
                 # Remove link if no publishers are available
                 for endpoint in endpoint_to_remove:
@@ -669,10 +671,11 @@ def csl_parser(app_list, args):
         head = csl_template["Modules"][index]
         for key in open_link.keys():
             for endpoint in head["Endpoints"]:
-                if endpoint["Link"] == key:
-                    if endpoint["Endtype"] == "client":
-                        links_to_del.append(endpoint["Name"])
-                        client_link.append(key)
+                if "Link" in endpoint.keys():
+                    if endpoint["Link"] == key:
+                        if endpoint["Endtype"] == "client":
+                            links_to_del.append(endpoint["Name"])
+                            client_link.append(key)
 
         if links_to_del:
             for link in links_to_del:
