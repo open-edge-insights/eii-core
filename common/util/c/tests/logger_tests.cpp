@@ -23,7 +23,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "eis/utils/logger.h"
+#include "eii/utils/logger.h"
 
 TEST(logger_tests, set_log_lvl) {
     set_log_level(LOG_LVL_INFO);

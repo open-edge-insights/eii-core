@@ -17,16 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus Subscriber wrapper object
+"""EII Message Bus Subscriber wrapper object
 """
 
 import json
 
-from .libeisconfigmanager cimport *
+from .libeiiconfigmanager cimport *
 from libc.stdlib cimport malloc
 
 cdef class Util:
-    """EIS Message Bus Publisher object
+    """EII Message Bus Publisher object
     """
 
     def __init__(self):

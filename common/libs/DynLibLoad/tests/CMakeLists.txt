@@ -18,7 +18,7 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 configure_file(
-    "${EIS_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in"
+    "${EII_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in"
     "${CMAKE_CURRENT_BINARY_DIR}/googletest-download/CMakeLists.txt")
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
                 RESULT_VARIABLE result
@@ -56,5 +56,5 @@ add_library(test SHARED "test_library.c")
 
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(dynlibload-tests "dynlibload_tests.cpp")
-target_link_libraries(dynlibload-tests eisdynlibload gtest_main ${EISUtils_LIBRARIES})
+target_link_libraries(dynlibload-tests eiidynlibload gtest_main ${EIIUtils_LIBRARIES})
 add_test(NAME dynlibload-tests COMMAND dynlibload-tests)

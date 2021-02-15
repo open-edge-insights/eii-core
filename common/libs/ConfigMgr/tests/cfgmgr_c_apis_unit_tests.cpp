@@ -28,16 +28,16 @@
 #include <string.h>
 #include <unistd.h>
 #include <gtest/gtest.h>
-#include "eis/msgbus/msgbus.h"
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/config_mgr.hpp"
+#include "eii/msgbus/msgbus.h"
+#include "eii/utils/json_config.h"
+#include "eii/config_manager/config_mgr.hpp"
 #include <cjson/cJSON.h>
 #include <iostream>
 #include <fstream>
 
 #define KV_STORE_CONFIG "./kv_store_unittest_config_cpp.json"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 using namespace std;
 
 void etcd_requirements_put(){
@@ -170,7 +170,7 @@ void etcd_requirements_put(){
                         \"TLSRemoteAgent\",\
                         \"RestDataExport\"\
                     ],\
-                    \"EndPoint\": \"/EIS/sockets\",\
+                    \"EndPoint\": \"/EII/sockets\",\
                     \"Name\": \"default\",\
                     \"Topics\": [\
                         \"camera1_stream\"\
@@ -197,7 +197,7 @@ void etcd_requirements_put(){
     status = kv_store_client->put(handle, "/TestSubClient/interfaces", "{\
         \"Subscribers\": [\
                 {\
-                    \"EndPoint\": \"/EIS/sockets\",\
+                    \"EndPoint\": \"/EII/sockets\",\
                     \"Name\": \"default\",\
                     \"Topics\": [\
                         \"camera1_stream\"\
@@ -441,7 +441,7 @@ TEST(ConfigManagerTest, getEndpointTest) {
         EXPECT_NE(endpoint, nullptr);
         std::string publisher_endpoint(endpoint->body.string);
         cout << "Publisher endPoint is : " << publisher_endpoint << endl;
-        EXPECT_EQ(publisher_endpoint, "/EIS/sockets");
+        EXPECT_EQ(publisher_endpoint, "/EII/sockets");
 
         server_cfg = cfgmgr_get_server_by_index(cfg_mgr, 0);
         endpoint = cfgmgr_get_endpoint(server_cfg);
@@ -460,7 +460,7 @@ TEST(ConfigManagerTest, getEndpointTest) {
         EXPECT_NE(endpoint, nullptr);
         std::string subscriber_endpoint(endpoint->body.string);
         cout << "Subscriber endPoint is : " << subscriber_endpoint << endl;
-        EXPECT_EQ(subscriber_endpoint, "/EIS/sockets");
+        EXPECT_EQ(subscriber_endpoint, "/EII/sockets");
 
         client_cfg = cfgmgr_get_client_by_index(cfg_mgr, 0);
         endpoint = cfgmgr_get_endpoint(client_cfg);

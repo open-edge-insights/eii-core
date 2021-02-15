@@ -24,7 +24,7 @@
  */
 
 #include <stdarg.h>
-#include "eis/config_manager/cfgmgr.h"
+#include "eii/config_manager/cfgmgr.h"
 
 // function to generate kv_store_config from env
 config_t* create_kv_store_config() {
@@ -1312,11 +1312,11 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             //then we are adding that topic for subscription.
             if (!dev_mode) {
                 bool ret_val;
-                // This is EISZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
+                // This is EIIZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
                 // hence comparing for "PublisherAppname" and "*"
                 strcmp_s(publisher_appname->body.string, strlen(publisher_appname->body.string), "*", &ret);
                 if(ret == 0) {
-                    // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of
+                    // In case of EIIZmqBroker, it is "X-SUB" which needs "publishers" way of
                     // messagebus config, hence calling "construct_tcp_publisher_prod()" function
                     ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, kv_store_handle, sub_config, kv_store_client);
                      if(!ret_val) {

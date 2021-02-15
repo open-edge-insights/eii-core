@@ -2,7 +2,7 @@
 
 ## Pre-requisites
 
-1. Ensure you run eis_builder & provision with Go Sample Apps enabled.
+1. Ensure you run eii_builder & provision with Go Sample Apps enabled.
 
 2. Ensure you comment/uncomment the required lines for DEV_PROD mode accordingly in [go_env.sh](go_env.sh).
 

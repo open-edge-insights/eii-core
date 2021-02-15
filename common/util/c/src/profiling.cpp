@@ -18,10 +18,10 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include "eis/utils/profiling.h"
+#include "eii/utils/profiling.h"
 #include <algorithm>
 
-eis::utils::Profiling::Profiling() {
+eii::utils::Profiling::Profiling() {
     char* prof_mode_str = getenv("PROFILING_MODE");
     if(prof_mode_str != NULL) {
         std::string prof_mode = std::string(prof_mode_str);
@@ -40,11 +40,11 @@ eis::utils::Profiling::Profiling() {
     }
 }
 
-bool eis::utils::Profiling::is_profiling_enabled() {
+bool eii::utils::Profiling::is_profiling_enabled() {
     return this->m_profiling_enabled;
 }
 
-void eis::utils::Profiling::add_profiling_ts(msg_envelope_t* meta, const char* key) {
+void eii::utils::Profiling::add_profiling_ts(msg_envelope_t* meta, const char* key) {
     try {
         using namespace std::chrono;
         using time_stamp = std::chrono::time_point<std::chrono::system_clock,
@@ -73,7 +73,7 @@ void eis::utils::Profiling::add_profiling_ts(msg_envelope_t* meta, const char* k
 }
 
 
-int64_t eis::utils::Profiling::get_curr_time_as_int_epoch() {
+int64_t eii::utils::Profiling::get_curr_time_as_int_epoch() {
     using namespace std::chrono;
      using time_stamp = std::chrono::time_point<std::chrono::system_clock,
                                            std::chrono::milliseconds>;

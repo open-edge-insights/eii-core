@@ -23,10 +23,10 @@
  * Holds the implementaion of APIs supported by AppCfg class
  */
 
-#include "eis/config_manager/app_cfg.hpp"
-#include "eis/config_manager/cfgmgr.h"
+#include "eii/config_manager/app_cfg.hpp"
+#include "eii/config_manager/cfgmgr.h"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 using namespace std;
 
 

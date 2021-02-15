@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
-#include "eis/dynlibload/dynlibload.h"
+#include "eii/dynlibload/dynlibload.h"
 
 #define LIBRARY_NAME "libexample.so"
 #define FUNC_NAME    "example_function"

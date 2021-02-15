@@ -19,7 +19,7 @@
 # IN THE SOFTWARE.
 
 set(CMAKE_CXX_STANDARD 11)
-configure_file(${EIS_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
+configure_file(${EII_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
                 RESULT_VARIABLE result
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
@@ -55,21 +55,21 @@ endif()
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/test_config.json"
      DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 add_executable(config-tests "config_tests.cpp")
-target_link_libraries(config-tests eisutils gtest_main)
+target_link_libraries(config-tests eiiutils gtest_main)
 add_test(NAME config-tests COMMAND config-tests)
 
 add_executable(log-tests "logger_tests.cpp")
-target_link_libraries(log-tests eisutils gtest_main)
+target_link_libraries(log-tests eiiutils gtest_main)
 add_test(NAME log-tests COMMAND log-tests)
 
 add_executable(tsp-tests "thread_safe_queue_tests.cpp")
-target_link_libraries(tsp-tests eisutils gtest_main)
+target_link_libraries(tsp-tests eiiutils gtest_main)
 add_test(NAME tsp-tests COMMAND tsp-tests)
 
 add_executable(thp-tests "thread_pool_tests.cpp")
-target_link_libraries(thp-tests eisutils gtest_main)
+target_link_libraries(thp-tests eiiutils gtest_main)
 add_test(NAME thp-tests COMMAND thp-tests)
 
 add_executable(thexec-tests "thread_executor_tests.cpp")
-target_link_libraries(thexec-tests eisutils gtest_main)
+target_link_libraries(thexec-tests eiiutils gtest_main)
 add_test(NAME thexec-tests COMMAND thexec-tests)

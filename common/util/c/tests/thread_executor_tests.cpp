@@ -22,8 +22,8 @@
  * @brief ThreadExecutor unit tests
  */
 
-#include "eis/utils/thread_executor.hpp"
-#include "eis/utils/logger.h"
+#include "eii/utils/thread_executor.hpp"
+#include "eii/utils/logger.h"
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <atomic>
@@ -46,7 +46,7 @@ void test_run_err(int tid, std::atomic<bool>& m_stop, void* vargp) {
 
 TEST(th_exec_tests, basic_run) {
     // Initialize ThreadExecutor
-    eis::utils::ThreadExecutor* executor = new eis::utils::ThreadExecutor(
+    eii::utils::ThreadExecutor* executor = new eii::utils::ThreadExecutor(
             4, test_run, NULL);
 
     // Sleep for 3 seconds
@@ -58,7 +58,7 @@ TEST(th_exec_tests, basic_run) {
 
 TEST(th_exec_tests, error_run) {
     // Initialize ThreadExecutor
-    eis::utils::ThreadExecutor* executor = new eis::utils::ThreadExecutor(
+    eii::utils::ThreadExecutor* executor = new eii::utils::ThreadExecutor(
             4, test_run_err, NULL);
 
     // Sleep for 3 seconds

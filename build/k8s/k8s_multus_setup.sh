@@ -73,6 +73,6 @@ kubectl delete -f ./k8s-macvlan-deploy.yml --ignore-not-found
 kubectl create -f ./k8s-macvlan-deploy.yml
 
 # Describing Created Config
-kubectl describe network-attachment-definitions macvlan-conf -n eis | grep 'Config'
+kubectl describe network-attachment-definitions macvlan-conf -n eii | grep 'Config'
 
 echo "${bold}${f_g}${blink}Setup Finished !!!${clear}"

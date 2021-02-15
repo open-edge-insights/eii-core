@@ -23,7 +23,7 @@ SOFTWARE.
 package main
 
 import (
-	eiscfgmgr "ConfigMgr/eisconfigmgr"
+	eiicfgmgr "ConfigMgr/eiiconfigmgr"
 	"flag"
 	"fmt"
 	"os"
@@ -41,7 +41,7 @@ func main() {
 	os.Setenv("AppName", "VideoIngestion")
 
 	// Initialize ConfigManager
-	configMgr, _ := eiscfgmgr.ConfigManager()
+	configMgr, _ := eiicfgmgr.ConfigManager()
 
 	// Get value of application's config('/<appname>/config')
 	appConfig, err := configMgr.GetAppConfig()

@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "eis/utils/logger.h"
+#include "eii/utils/logger.h"
 
 static void schema_free(WJElement schema, void *client) {
     WJECloseDocument(schema);

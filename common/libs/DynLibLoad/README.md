@@ -7,7 +7,7 @@ C library for loading shared libraries at runtime.
 
 The dynamic library loading library depends on the libraries listed below:
 
-* [EISUtils](../../util/c/README.md)
+* [EIIUtils](../../util/c/README.md)
 * [IntelSafeString](../../IntelSafeString/README.md)
 
 Please see the documentation for those libraries to install them.

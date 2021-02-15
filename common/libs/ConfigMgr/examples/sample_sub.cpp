@@ -23,14 +23,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "eis/msgbus/msgbus.h"
-#include "eis/utils/logger.h"
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/config_mgr.hpp"
+#include "eii/msgbus/msgbus.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/json_config.h"
+#include "eii/config_manager/config_mgr.hpp"
 
 #define TOPIC "publish_test"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Globals for cleaning up nicely
 recv_ctx_t* g_sub_ctx = NULL;
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     LOG_INFO("interface value is %s", interface_value->body.string);
     config_value_destroy(interface_value);
 
-    // get subscriber msgbus config for application to communicate over EIS message bus
+    // get subscriber msgbus config for application to communicate over EII message bus
     sub_config = sub_ctx->getMsgBusConfig();
     if(sub_config == NULL){
         LOG_ERROR_0("get subscriber msgbus config failed");

@@ -1,14 +1,14 @@
-# EIS Orchestration using k8s (a.k.a) Kuberenetes Orchestrator
+# EII Orchestration using k8s (a.k.a) Kuberenetes Orchestrator
 
-EIS Orchestration using k8s Orchestrator.
+EII Orchestration using k8s Orchestrator.
 
 1. [k8s Setup](#k8s-setup)
 
 2. [Steps for Multinode Deployment](#steps-for-multinode-deployment)
 
-3. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
+3. [Provisioning EII with k8s](#provisioning-eii-with-k8s)
 
-4. [Deploying EIS Application with K8s](#deploying-eis-application-with-k8s)
+4. [Deploying EII Application with K8s](#deploying-eii-application-with-k8s)
 
 5. [Accessing Web Visualizer and EtcdUI](#Accessing-Web-Visualizer-and-EtcdUI)
 
@@ -36,15 +36,15 @@ EIS Orchestration using k8s Orchestrator.
  > 2. `This step is not required for **Single Node** deployment`
  *  Pre-Requisites
 
-    **Note** For Running EIS Modules in k8s multi node cluster, corresponding module Container Images should be present in the master and worker(s) nodes. The container images can be pushed to a Docker registry and pulled on the required nodes. For more information on Docker registry- Kindly refer:
+    **Note** For Running EII Modules in k8s multi node cluster, corresponding module Container Images should be present in the master and worker(s) nodes. The container images can be pushed to a Docker registry and pulled on the required nodes. For more information on Docker registry- Kindly refer:
     [build/deploy/README.md/#step-2-set-up-docker-registry-url-then-build-and-push-images](../../build/deploy/README.md/#step-2-set-up-docker-registry-url-then-build-and-push-images)
 
   * Master Node provisoning: Follow steps mentioned in below links.
     1. [Change for Master Provision for Multinode Deployment](###change-for-master-provision-for-multinode-deployment)
-    2. [Provisioning EIS with k8s](#provisioning-eis-with-k8s)
+    2. [Provisioning EII with k8s](#provisioning-eii-with-k8s)
   * Worker Node provisoning: Follow steps mentioned in below links.
-     1. [EIS Provision Bundle creation for k8s worker node](#EIS-Provision-Bundle-creation-for-k8s-worker-node)
-     2. [EIS k8s Worker Node provisioning for MultiNode deployment](#EIS-k8s-Worker-Node-provisioning-for-MultiNode-deployment)
+     1. [EII Provision Bundle creation for k8s worker node](#EII-Provision-Bundle-creation-for-k8s-worker-node)
+     2. [EII k8s Worker Node provisioning for MultiNode deployment](#EII-k8s-Worker-Node-provisioning-for-MultiNode-deployment)
 
 ### Change for Master Provision for Multinode Deployment.
  * Get the master node name by running below command.
@@ -72,7 +72,7 @@ EIS Orchestration using k8s Orchestrator.
        restartPolicy: OnFailure
        nodeName: coolm
      ```
-### EIS Provision Bundle creation for k8s worker node.
+### EII Provision Bundle creation for k8s worker node.
 > 1. This step is not required for **Single Node** deployment
 > 2. Provisioning bundle will be generated on k8s `Master node`.
 > 3. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env) of Master node.
@@ -82,31 +82,31 @@ EIS Orchestration using k8s Orchestrator.
   * Generate Provisioning bundle for k8s worker node provisioning.
 
     ```sh
-      $ sudo python3 generate_eis_bundle.py -p
+      $ sudo python3 generate_eii_bundle.py -p
     ```
-### EIS `k8s Worker Node` provisioning for MultiNode deployment
+### EII `k8s Worker Node` provisioning for MultiNode deployment
 >**Note**:
 > 1. This should be executed in k8s worker nodes in ***Multi node
 >    scenario*** only.
 > 2. This step is not required for **Single Node** deployment
 > 3. Provisioning bundle generated on k8s Master node will be copied to worker node.
-  * Copy the `eis_provisioning.tar.gz` file from k8s master node to worker node(s).
+  * Copy the `eii_provisioning.tar.gz` file from k8s master node to worker node(s).
 
       ```sh
-          $ sudo scp <eis_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
-          $ sudo tar -xvf <eis_provisioning.tar.gz>
-          $ cd <eis_provisioning>
+          $ sudo scp <eii_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
+          $ sudo tar -xvf <eii_provisioning.tar.gz>
+          $ cd <eii_provisioning>
       ```
-  * Provision the EIS in k8s Worker(s) Node.
+  * Provision the EII in k8s Worker(s) Node.
       ```sh
           $ cd provision
-          $ sudo ./provision_eis.sh
+          $ sudo ./provision_eii.sh
       ```
-## Provisioning EIS with k8s
-> **Note:** If Provisioning of EIS with k8s is already done under Multinode deployment, please skip it.
-   > 1. EIS Deployment with k8s can be done in **PROD** & **DEV** mode.
-  > 2. For running EIS in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
-  > 3. Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites) before k8s Provisioning.
+## Provisioning EII with k8s
+> **Note:** If Provisioning of EII with k8s is already done under Multinode deployment, please skip it.
+   > 1. EII Deployment with k8s can be done in **PROD** & **DEV** mode.
+  > 2. For running EII in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
+  > 3. Please follow the [EII Pre-requisites](../../README.md#eii-pre-requisites) before k8s Provisioning.
 
   * Please Update following Environment Variables in [build/.env](../../build/.env)
     * HOST_IP           =     [masternodeip]
@@ -115,38 +115,38 @@ EIS Orchestration using k8s Orchestrator.
     * ETCD_PEER_PORT    =     8380
 
   * Please Update following Environment Variables in [build/provision/.env](../../build/provision/.env)
-    * EIS_LOCAL_PATH    =     [EIS Source path]
+    * EII_LOCAL_PATH    =     [EII Source path]
     * PROVISION_MODE    =     k8s
 
-### Provisioning `EIS` with `k8s` in `DEV` mode
-> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
-> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
->updated `build/k8s/k8s_eis_deploy.yml` file.
->   Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+### Provisioning `EII` with `k8s` in `DEV` mode
+> **Note:** `k8s_eii_deploy.yml` file be generated in `build/k8s` directory by `eiibuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eiibuilder` to generate
+>updated `build/k8s/k8s_eii_deploy.yml` file.
+>   Please follow the [EII Pre-requisites](../../README.md#eii-pre-requisites)
 
   * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
 
-  * Provision EIS with K8s.
+  * Provision EII with K8s.
     ```sh
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+    $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
 
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    eq. $ sudo ./provision_eii.sh ../docker-compose.yml
     ```
-### Provisioning `EIS` with `k8s` in `PROD` mode
-> **Note:** `k8s_eis_deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
-> Once 'DEV_MODE` is updated. We should re-run `eisbuilder` to generate
->updated `build/k8s/k8s_eis_deploy.yml` file.
-> Please follow the [EIS Pre-requisites](../../README.md#eis-pre-requisites)
+### Provisioning `EII` with `k8s` in `PROD` mode
+> **Note:** `k8s_eii_deploy.yml` file be generated in `build/k8s` directory by `eiibuilder`.
+> Once 'DEV_MODE` is updated. We should re-run `eiibuilder` to generate
+>updated `build/k8s/k8s_eii_deploy.yml` file.
+> Please follow the [EII Pre-requisites](../../README.md#eii-pre-requisites)
   * Please Update `DEV_MODE=false` in [build/.env](../../build/.env) file.
 
-  * Provision EIS with K8s.
+  * Provision EII with K8s.
     ```sh
-    $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+    $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
 
-    eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+    eq. $ sudo ./provision_eii.sh ../docker-compose.yml
     ```
-## Deploying EIS Application with K8s
-  > **Note:** `eis-k8s-deploy.yml` file be generated in `build/k8s` directory by `eisbuilder`.
+## Deploying EII Application with K8s
+  > **Note:** `eii-k8s-deploy.yml` file be generated in `build/k8s` directory by `eiibuilder`.
 
   * Goto `build/k8s` directory.
     ```sh
@@ -154,11 +154,11 @@ EIS Orchestration using k8s Orchestrator.
     ```
   * Deploy `k8s` using `kubectl` utility by following command
     ```sh
-    $  kubectl apply -f ./eis-k8s-deploy.yml
+    $  kubectl apply -f ./eii-k8s-deploy.yml
     ```
   * Make sure the pods are `Running` fine as per deploy yml file.
     ```sh
-    $  kubectl -n eis get pods
+    $  kubectl -n eii get pods
     ```
 ## Accessing Web Visualizer and EtcdUI
   In K8s Environment EtcdUI & WebVisualizer will be running in Following ports. 
@@ -220,12 +220,12 @@ EIS Orchestration using k8s Orchestrator.
 
       ```
 
-      * Follow the [Deployment Steps](#deploying-eis-application-with-k8s)
+      * Follow the [Deployment Steps](#deploying-eii-application-with-k8s)
      
       * Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
 
           ```sh
-            $ kubectl -n eis exec -it <pod_name> -- ip -d address
+            $ kubectl -n eii exec -it <pod_name> -- ip -d address
           ```
 ## Steps to enable Accelarators
   >**Note**:
@@ -240,17 +240,17 @@ EIS Orchestration using k8s Orchestrator.
   * For HDDL/NCS2 dependenecies follow the steps for setting `labels`.
     * For HDDL
         ```sh
-        kubectl -n eis label nodes <node-name> hddl=true
+        kubectl -n eii label nodes <node-name> hddl=true
         ```
     * For NCS2
         ```sh
-        kubectl -n eis label nodes <node-name> ncs2=true
+        kubectl -n eii label nodes <node-name> ncs2=true
         ```
     **Note** Here the node-name is your worker node machine hostname
 
   * Updating the `yml` File.
 
-    * Open the `build/k8s/eis-k8s-deploy.yml` file.
+    * Open the `build/k8s/eii-k8s-deploy.yml` file.
 
     * Based on your
       workload preference. Add a `nodeSelector` field to your `pod` configuration for `VideoIngestion` or `VideoAnalytics` Module(s) `k8s-service.yml` yml file. 
@@ -289,23 +289,23 @@ EIS Orchestration using k8s Orchestrator.
           .
           .
           ```
-    * Run the `build/eis_builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules `k8s-service.yml` files.
+    * Run the `build/eii_builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules `k8s-service.yml` files.
      ```sh
         cd build/
-        python3 eis_builder.py
+        python3 eii_builder.py
      ```
 
     * Deploy the `latest` generated `yml` file
     ```sh
         cd build/k8s/
-        kubectl apply -f ./eis-k8s-deploy.yml
+        kubectl apply -f ./eii-k8s-deploy.yml
     ```
 
     * Verify the respecitve workloads are running based on the `nodeSelector` constraints.
 
 ## Steps to enable IPC mode
 
-  >**Note** To achieve VideoIngestion & VideoAnalytics Module run in IPC mode. Both the Services should be running in same node. By following the below steps it makes the modules to the select the same node in ipc mode based on the label & config updated in `k8s/eis-k8s-deploy.yml` file.
+  >**Note** To achieve VideoIngestion & VideoAnalytics Module run in IPC mode. Both the Services should be running in same node. By following the below steps it makes the modules to the select the same node in ipc mode based on the label & config updated in `k8s/eii-k8s-deploy.yml` file.
 
   * Open the `VideoIngestion/k8s-service.yml` file
 
@@ -367,22 +367,22 @@ EIS Orchestration using k8s Orchestrator.
       1. Run `kubectl get nodes` to get the names of your cluster's nodes. 
           Pick out the one that you want to add a label to, and then run 
           ```sh
-          $ kubectl -n eis label nodes <node-name> ipc=enabled
+          $ kubectl -n eii label nodes <node-name> ipc=enabled
           ```
           to add a `label` to the node you've chosen.
 
       2. Verify the node labelled properly with following command.
           ```sh
-          $ kubectl -n eis get nodes --show-labels <node-name> | grep ipc=enabled
+          $ kubectl -n eii get nodes --show-labels <node-name> | grep ipc=enabled
           ```
-  * Run `eis_builder` from `build` directory to generate the updated yaml file.
+  * Run `eii_builder` from `build` directory to generate the updated yaml file.
         ```sh
-           python3 ./eis_builder.py
+           python3 ./eii_builder.py
         ```
   * Deploy the `latest` generated `yaml` file from `k8s` directory
       ```sh
           $ cd build/k8s/
-          $ kubectl apply -f ./eis-k8s-deploy.yml
+          $ kubectl apply -f ./eii-k8s-deploy.yml
       ```
   * Verify the respecitve workloads are running based on the `nodeSelector` constraints with `ipc` mode.
  

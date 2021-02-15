@@ -22,10 +22,10 @@
  * @brief Thread Executor Utility implementation
  */
 
-#include "eis/utils/thread_executor.hpp"
-#include "eis/utils/logger.h"
+#include "eii/utils/thread_executor.hpp"
+#include "eii/utils/logger.h"
 
-namespace eis {
+namespace eii {
 namespace utils {
 
 ThreadExecutor::ThreadExecutor(
@@ -80,4 +80,4 @@ void ThreadExecutor::run_wrapper(
 }
 
 }  // namespace utils
-}  // namespace eis
+}  // namespace eii

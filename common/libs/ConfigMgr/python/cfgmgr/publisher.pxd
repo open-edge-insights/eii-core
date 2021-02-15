@@ -17,14 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS ConfigManager Publisher wrapper object Cython declaration
+"""EII ConfigManager Publisher wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport cfgmgr_interface_t
+from .libeiiconfigmanager cimport cfgmgr_interface_t
+
 
 
 cdef class Publisher:
-    """EIS ConfigManager Publisher object
+    """EII ConfigManager Publisher object
     """
     cdef cfgmgr_interface_t* cfgmgr_interface
 

@@ -1,0 +1,5 @@
+AppContexts:
+- InfluxDBConnector
+- Kapacitor
+- Telegraf
+- tools/TimeSeriesProfiler

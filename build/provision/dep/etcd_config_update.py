@@ -138,5 +138,5 @@ if __name__ == "__main__":
             os.environ.get("ETCD_ROOT_KEY",
                            "../Certificates/root/root_client_key.pem")
     apps = get_appname("../../docker-compose.yml")
-    load_data_etcd("../config/eis_config.json", apps,
+    load_data_etcd("../config/eii_config.json", apps,
                    "../etcd/etcdctl", "../Certificates/", dev_mode)

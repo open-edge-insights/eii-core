@@ -19,7 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS thread safe queue unit tests
+ * @brief EII thread safe queue unit tests
  */
 
 #include <stdlib.h>
@@ -27,9 +27,9 @@
 #include <thread>
 #include <chrono>
 #include <gtest/gtest.h>
-#include "eis/utils/thread_safe_queue.h"
+#include "eii/utils/thread_safe_queue.h"
 
-using namespace eis::utils;
+using namespace eii::utils;
 
 QueueRetCode push_char_arr(
         ThreadSafeQueue<char*>* q, const char* value, bool wait=false) {

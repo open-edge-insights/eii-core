@@ -17,14 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus subscriber example
+"""EII Message Bus subscriber example
 """
 
 import time
 import json
 import argparse
 import os
-import eis.msgbus as mb
+import eii.msgbus as mb
 import cfgmgr.config_manager as cfg
 
 msgbus = None
@@ -45,8 +45,7 @@ try:
     # get 0th subscriber interface object
     # sub_ctx = ctx.get_subscriber_by_index(0)
 
-    # get subscriber msgbus config for application
-    # to communicate over EIS message bus
+    # get subscriber msgbus config for application to communicate over EII message bus
     config = sub_ctx.get_msgbus_config()
 
     # get the value of subscriber interface of key 'Name'

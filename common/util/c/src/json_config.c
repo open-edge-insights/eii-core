@@ -27,9 +27,9 @@
 
 #include <cjson/cJSON.h>
 
-#include "eis/utils/json_config.h"
-#include "eis/utils/logger.h"
-#include "eis/utils/string.h"
+#include "eii/utils/json_config.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/string.h"
 
 
 // prototypes

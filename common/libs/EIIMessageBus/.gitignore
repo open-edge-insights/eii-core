@@ -1,0 +1,14 @@
+**/*.swp
+**/*.swo
+**/build
+**/.DS_Store
+**/deps
+**/doc
+**/__pycache__
+**/*.so
+compile_commands.json
+python/eii/*.c
+
+# Automatically generated during documenation generation
+python/docs/eii.rst
+python/docs/modules.rst

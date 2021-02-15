@@ -23,14 +23,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "eis/msgbus/msgbus.h"
-#include "eis/utils/logger.h"
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/config_mgr.hpp"
+#include "eii/msgbus/msgbus.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/json_config.h"
+#include "eii/config_manager/config_mgr.hpp"
 
 #define TOPIC "publish_test"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Globals for cleaning up nicely
 publisher_ctx_t* g_pub_ctx = NULL;
@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
         LOG_INFO("Allowed clients : %s", clients[i].c_str());
     }
 
-    // get publisher msgbus config for application to communicate over EIS message bus
+    // get publisher msgbus config for application to communicate over EII message bus
     pub_config = pub_ctx->getMsgBusConfig();
     if (pub_config == NULL) {
         LOG_ERROR_0("Failed to get message bus config");

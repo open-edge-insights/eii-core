@@ -24,9 +24,9 @@
  */
 
 
-#include "eis/config_manager/publisher_cfg.hpp"
+#include "eii/config_manager/publisher_cfg.hpp"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Constructor
 PublisherCfg::PublisherCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {

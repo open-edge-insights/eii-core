@@ -18,9 +18,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
+ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION
 
 ARG RUN_TESTS
 ARG CMAKE_BUILD_TYPE
@@ -30,20 +30,20 @@ COPY cmake ./common/cmake
 
 COPY libs/IntelSafeString ./common/libs/IntelSafeString/
 
-COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
+COPY libs/EIIMsgEnv ./common/libs/EIIMsgEnv
 
 COPY util/ ./common/util/
 
 COPY libs/DynLibLoad/ ./common/libs/DynLibLoad
 
-COPY libs/EISMessageBus ./common/libs/EISMessageBus
+COPY libs/EIIMessageBus ./common/libs/EIIMessageBus
 
 COPY libs/ConfigMgr ./common/libs/ConfigMgr
 
-COPY eis_libs_installer.sh ./common
+COPY eii_libs_installer.sh ./common
 
 RUN cd common && \
-    ./eis_libs_installer.sh
+    ./eii_libs_installer.sh
 
 # Re-copying everything here to not to miss any of
 # the subfolders

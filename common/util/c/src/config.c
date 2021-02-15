@@ -19,14 +19,14 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS configuration interface implementation
+ * @brief EII configuration interface implementation
  */
 
 #include <string.h>
 #include <safe_lib.h>
 
-#include "eis/utils/config.h"
-#include "eis/utils/logger.h"
+#include "eii/utils/config.h"
+#include "eii/utils/logger.h"
 
 config_t* config_new(
         void* cfg, void (*free_fn)(void*),

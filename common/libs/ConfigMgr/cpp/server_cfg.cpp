@@ -24,9 +24,9 @@
  */
 
 
-#include "eis/config_manager/server_cfg.hpp"
+#include "eii/config_manager/server_cfg.hpp"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Constructor
 ServerCfg::ServerCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {

@@ -19,21 +19,21 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.12)
-project(eis-utils VERSION 1.0.0 LANGUAGES C CXX)
+project(eii-utils VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+set(EII_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
 set(CMAKE_CXX_STANDARD 14)
 
 # Include directory for CMake modules
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EII_COMMON_CMAKE}")
 
 # Find packages
 find_package(cJSON REQUIRED)
-find_package(EISMsgEnv REQUIRED)
+find_package(EIIMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
 find_package(WJE REQUIRED)
 
@@ -50,7 +50,7 @@ endif()
 include_directories(
     include/
     ${CJSON_LIBRARIES}/
-    ${EISMsgEnv_INCLUDE}/
+    ${EIIMsgEnv_INCLUDE}/
     ${IntelSafeString_INCLUDE}/
     ${WJE_INCLUDE_DIRS})
 
@@ -58,10 +58,10 @@ include_directories(
 file(GLOB SOURCES "src/*.c" "src/*.cpp")
 
 # Add target
-add_library(eisutils SHARED ${SOURCES})
-target_link_libraries(eisutils
+add_library(eiiutils SHARED ${SOURCES})
+target_link_libraries(eiiutils
     PRIVATE
-        ${EISMsgEnv_LIBRARIES}
+        ${EIIMsgEnv_LIBRARIES}
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
@@ -69,7 +69,7 @@ target_link_libraries(eisutils
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(eisutils PRIVATE DEBUG=1)
+    target_compile_definitions(eiiutils PRIVATE DEBUG=1)
 endif()
 
 # Add unit tests if the option was selected
@@ -78,10 +78,10 @@ if(WITH_TESTS)
 endif()
 
 ##
-## Configure pkg-config file to be installed for the EIS Utils
+## Configure pkg-config file to be installed for the EII Utils
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisutils.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisutils.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeiiutils.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeiiutils.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lcjson")
 
@@ -93,17 +93,17 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISUtils)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EIIUtils)
 
-install(TARGETS eisutils
-    EXPORT eisutils-targets
+install(TARGETS eiiutils
+    EXPORT eiiutils-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisutils PROPERTIES EXPORT_NAME EISUtils)
+set_target_properties(eiiutils PROPERTIES EXPORT_NAME EIIUtils)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisutils.pc file
+# Install pkg-config libeiiutils.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -112,9 +112,9 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisutils-targets
+install(EXPORT eiiutils-targets
     FILE
-        EISUtilsTargets.cmake
+        EIIUtilsTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -122,26 +122,26 @@ install(EXPORT eisutils-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIUtilsConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISUtilsConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EIIUtilsConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIUtilsConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIUtilsConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIUtilsConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisutils-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISUtilsTargets.cmake)
+export(EXPORT eiiutils-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/EIIUtilsTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISUtils)
+export(PACKAGE EIIUtils)

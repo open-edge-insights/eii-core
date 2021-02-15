@@ -23,8 +23,8 @@ SOFTWARE.
 package main
 
 import (
-	eiscfgmgr "ConfigMgr/eisconfigmgr"
-	eismsgbus "EISMessageBus/eismsgbus"
+	eiicfgmgr "ConfigMgr/eiiconfigmgr"
+	eiimsgbus "EIIMessageBus/eiimsgbus"
 	"fmt"
 	"os"
 )
@@ -33,7 +33,7 @@ func main() {
 	os.Setenv("AppName", "VideoIngestion")
 
 	// Initialize ConfigManager
-	configMgr, err := eiscfgmgr.ConfigManager()
+	configMgr, err := eiicfgmgr.ConfigManager()
 	if err != nil {
 		fmt.Printf("Error occured with error:%v", err)
 		return
@@ -100,7 +100,7 @@ func main() {
 		return
 	}
 
-	// Get server msgbus config for application to communicate over EIS message bus
+	// Get server msgbus config for application to communicate over EII message bus
 	config, err := serverCtx.GetMsgbusConfig()
 
 	if err != nil {
@@ -125,7 +125,7 @@ func main() {
 	fmt.Println("-- Initializing message bus context")
 
 	// Initialize msgbus context by passing msgbus config
-	client, err := eismsgbus.NewMsgbusClient(config)
+	client, err := eiimsgbus.NewMsgbusClient(config)
 	if err != nil {
 		fmt.Printf("-- Error initializing message bus context: %v\n", err)
 		return

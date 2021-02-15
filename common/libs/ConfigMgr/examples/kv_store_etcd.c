@@ -22,10 +22,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <eis/utils/json_config.h>
-#include <eis/utils/config.h>
-#include <eis/config_manager/cfgmgr_util.h>
-#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eii/utils/json_config.h>
+#include <eii/utils/config.h>
+#include <eii/config_manager/cfgmgr_util.h>
+#include <eii/config_manager/kv_store_plugin/kv_store_plugin.h>
 
 void watch_cb(char *key, config_t* value, void *user_data){
     printf("watch callback is called...\n");

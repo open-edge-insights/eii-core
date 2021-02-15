@@ -29,9 +29,9 @@
 #include <string.h>
 #include <errno.h>
 #include <safe_lib.h>
-#include <eis/utils/string.h>
+#include <eii/utils/string.h>
 
-#include "eis/dynlibload/dynlibload.h"
+#include "eii/dynlibload/dynlibload.h"
 
 #define DELIM ":"
 #define SEP   "/"

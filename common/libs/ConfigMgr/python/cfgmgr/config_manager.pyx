@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS ConfigManager Python mapping
+"""EII ConfigManager Python mapping
 """
 
 # Python imports
@@ -27,7 +27,7 @@ import logging
 import os
 
 # Cython imports
-from .libeisconfigmanager cimport *
+from .libeiiconfigmanager cimport *
 from .publisher cimport Publisher
 from .subscriber cimport Subscriber
 from .app_config import AppCfg
@@ -38,7 +38,7 @@ from libc.stdlib cimport free
 
 
 cdef class ConfigMgr:
-    """EIS ConfigManager context object
+    """EII ConfigManager context object
     """
     cdef cfgmgr_ctx_t* cfgmgr
     cdef cfgmgr_interface_t* cfgmgr_interface

@@ -24,11 +24,11 @@
  */
 
 
-#include "eis/config_manager/config_mgr.hpp"
+#include "eii/config_manager/config_mgr.hpp"
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 ConfigMgr::ConfigMgr() {
     // Initializing C app_cfg object

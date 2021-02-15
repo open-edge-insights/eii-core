@@ -1,10 +1,10 @@
-# EIS Utils
+# EII Utils
 
-EIS Utils is a C library providing commonly used APIs across the C/C++ EIS modules, EIS Message Bus and Config Manager libraries.
+EII Utils is a C library providing commonly used APIs across the C/C++ EII modules, EII Message Bus and Config Manager libraries.
 
 ## Dependency Installation
 
-The EISUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
+The EIIUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
 of CMake, execute the following commands:
 
@@ -24,21 +24,21 @@ $ sudo cmake-3.15.0-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
 $ sudo update-alternatives --install /usr/bin/cmake cmake /opt/cmake/bin/cmake 1 --force
 ```
 
-To install the remaining dependencies for the EISUtils execute the following
+To install the remaining dependencies for the EIIUtils execute the following
 command:
 
 ```sh
 $ sudo -E ./install.sh
 ```
 
-Additionally, EISUtils depends on the below libraries. Follow their documentation to install them.
+Additionally, EIIUtils depends on the below libraries. Follow their documentation to install them.
 * [IntelSafeString](../../libs/IntelSafeString/README.md)
-* [EISMsgEnv](../../libs/EISMsgEnv/README.md)
+* [EIIMsgEnv](../../libs/EIIMsgEnv/README.md)
 
 
 ## Compilation
 
-The EIS Utils utilizes CMake as the build tool for compiling the C
+The EII Utils utilizes CMake as the build tool for compiling the C
 library. The simplest sequence of commands for building the library are
 shown below.
 
@@ -49,7 +49,7 @@ $ cmake ..
 $ make
 ```
 
-If you wish to compile the EIS Utils in debug mode, then you can set
+If you wish to compile the EII Utils in debug mode, then you can set
 the `CMAKE_BUILD_TYPE` to `Debug` when executing the `cmake` command (as shown
 below).
 
@@ -60,16 +60,16 @@ $ cmake -DCMAKE_BUILD_TYPE=Debug ..
 ## Installation
 
 > **NOTE:** This is a mandatory step to use this library in
-> C/C++ EIS modules and EIS Message Bus library.
+> C/C++ EII modules and EII Message Bus library.
 
-If you wish to install the EIS Utils on your system, execute the
+If you wish to install the EII Utils on your system, execute the
 following command after building the library:
 
 ```sh
 $ sudo make install
 ```
 
-By default, this command will install the EIS Utils C library into
+By default, this command will install the EII Utils C library into
 `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
 by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`.
 This can be accomplished with the following `export`:

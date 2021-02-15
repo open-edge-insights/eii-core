@@ -19,10 +19,10 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS logger implementation
+ * @brief EII logger implementation
  */
 
-#include "eis/utils/logger.h"
+#include "eii/utils/logger.h"
 
 // Global log level value
 static log_lvl_t g_log_level = LOG_LVL_ERROR;

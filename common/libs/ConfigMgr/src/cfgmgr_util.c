@@ -24,7 +24,7 @@
  */
 
 #include <stdarg.h>
-#include "eis/config_manager/cfgmgr_util.h"
+#include "eii/config_manager/cfgmgr_util.h"
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
@@ -320,7 +320,7 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
             }
         }
     } else {
-        // Socket file will be created by EIS message bus based on the topic
+        // Socket file will be created by EII message bus based on the topic
         LOG_DEBUG_0("socket_ep file not explicitly given by application");
         // Do not check for Topics if interface type is CFGMGR_SERVER/CFGMGR_CLIENT
         // since CFGMGR_SERVER/CFGMGR_CLIENT interfaces don't have Topics

@@ -24,8 +24,8 @@
 
 #include <string.h>
 #include <safe_lib.h>
-#include "eis/utils/logger.h"
-#include "eis/utils/string.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/string.h"
 
 // helper function to fetch host & port from endpoint
 char** get_host_port(const char* end_point) {

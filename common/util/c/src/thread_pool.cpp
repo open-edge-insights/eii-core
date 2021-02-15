@@ -22,10 +22,10 @@
  * @brief @c ThreadPool implementation
  */
 
-#include "eis/utils/thread_pool.h"
-#include "eis/utils/logger.h"
+#include "eii/utils/thread_pool.h"
+#include "eii/utils/logger.h"
 
-using namespace eis::utils;
+using namespace eii::utils;
 
 //
 // ThreadPool implementation

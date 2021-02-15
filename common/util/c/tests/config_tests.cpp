@@ -19,15 +19,15 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS configuration interface unit tests
+ * @brief EII configuration interface unit tests
  */
 
 // NOTE: The configuration interface is tested using the JSON configuration
 // loading utility
 
 #include <gtest/gtest.h>
-#include "eis/utils/logger.h"
-#include "eis/utils/json_config.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/json_config.h"
 
 // Test JSON configuration file for verifying configuration interface
 #define TEST_JSON_FN "./test_config.json"

@@ -1,6 +1,6 @@
-# eis_libs_installer
+# eii_libs_installer
 
-This script installs all the EIS libraries & their respective required dependencies.
+This script installs all the EII libraries & their respective required dependencies.
 
 ## Running the install script
 
@@ -10,13 +10,13 @@ This script installs all the EIS libraries & their respective required dependenc
     $ sudo rm -rf /usr/local/lib/libgrpc*.a /usr/local/lib/libproto*.a
 ```
 
-1. To install all of EIS libraries and their dependencies, run the command mentioned below
+1. To install all of EII libraries and their dependencies, run the command mentioned below
 
     ```sh
-        $ sudo -E ./eis_libs_installer.sh
+        $ sudo -E ./eii_libs_installer.sh
     ```
 
-**Note**: If an error occurs during execution of eis_libs_installer.sh regarding the $GOPATH, please set the GOPATH appropriately where GO is installed. Ideally, above script will take care of GO installation and setting up the path. If GO is already installed and GOPATH is tampered, then user has to make sure GOPATH is set appropriately.
+**Note**: If an error occurs during execution of eii_libs_installer.sh regarding the $GOPATH, please set the GOPATH appropriately where GO is installed. Ideally, above script will take care of GO installation and setting up the path. If GO is already installed and GOPATH is tampered, then user has to make sure GOPATH is set appropriately.
 
 2. Incase of unforeseen errors leading to unsuccessful installation, run the command mentioned below to cleanup any/all untracked tar files
 

@@ -17,14 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS ConfigManager Util class
+"""EII ConfigManager Util class
 """
 
-from .libeisconfigmanager cimport config_value_t
+from .libeiiconfigmanager cimport config_value_t
 
 
 cdef class Util:
-    """EIS ConfigManager Publisher object
+    """EII ConfigManager Publisher object
     """
 
     @staticmethod

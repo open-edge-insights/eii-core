@@ -158,7 +158,7 @@ def generate_k8s_secrets():
         cmd2 = subprocess.run(["grep", "-v", r"^\s*namespace:\s"],
                               input=cmd1.stdout, stdout=subprocess.PIPE,
                               check=False)
-        subprocess.run(["kubectl", "apply", "--namespace=eis", "-f", "-"],
+        subprocess.run(["kubectl", "apply", "--namespace=eii", "-f", "-"],
                        input=cmd2.stdout, check=False)
         for key, value in data.items():
             for var in value:
@@ -182,7 +182,7 @@ def generate_k8s_secrets():
                                           stdout=subprocess.PIPE,
                                           check=False)
                     subprocess.run(["kubectl", "apply",
-                                    "--namespace=eis", "-f", "-"],
+                                    "--namespace=eii", "-f", "-"],
                                    input=cmd4.stdout, check=False)
                     cmd5 = subprocess.run(["kubectl", "get", "secret",
                                            k1 + "-key", "--namespace=default",
@@ -192,7 +192,7 @@ def generate_k8s_secrets():
                                           input=cmd5.stdout,
                                           stdout=subprocess.PIPE, check=False)
                     subprocess.run(["kubectl", "apply",
-                                    "--namespace=eis", "-f", "-"],
+                                    "--namespace=eii", "-f", "-"],
                                    input=cmd6.stdout, check=False)
     except Exception as err:
         print("Exception Occured in generating k8s secrets" + str(err))
