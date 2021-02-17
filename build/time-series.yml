@@ -4,6 +4,5 @@ AppName:
 - InfluxDBConnector
 - Kapacitor
 - Grafana
-- DiscoveryCreek
 - OpcuaExport
 - RestDataExport

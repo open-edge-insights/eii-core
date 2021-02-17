@@ -22,14 +22,11 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 10. [Time-series Analytics](#time-series-analytics)
 
-11. [DiscoveryCreek](#DiscoveryCreek)
+11. [List of All EIS services](#list-of-all-eis-services)
 
-12. [List of All EIS services](#list-of-all-eis-services)
+12. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
 
-13. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
-
-14. [Debugging options](#debugging-options)
-
+13. [Debugging options](#debugging-options)
 
 
 # Minimum System Requirements
@@ -520,14 +517,6 @@ More details on enabling this mode can be referred from [Kapacitor/README.md](Ka
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
-# DiscoveryCreek
-
-DiscoveryCreek is a machine learning based anomaly detection engine.
-
-Add the `DiscoveryCreek` entry to [build/time-series.yml](build/time-series) and the services mentioned in there will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
-
-More details on enabling DiscoveryCreek based analytics can be referred at [DiscoveryCreek/README.md](DiscoveryCreek/README.md)
-
 # List of All EIS Services
 
 EIS stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
@@ -554,7 +543,6 @@ EIS stack comes with following services, which can be included/excluded in docke
 1. [Telegraf](Telegraf/README.md)
 2. [Kapacitor](Kapacitor/README.md)
 3. [Grafana](Grafana/README.md)
-4. [DiscoveryCreek](DiscoveryCreek/README.md)
 
 # EIS multi node cluster provision and deployment using Turtlecreek
 
