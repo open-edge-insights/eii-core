@@ -9,6 +9,5 @@ AppContexts:
 - InfluxDBConnector
 - Kapacitor
 - Grafana
-- DiscoveryCreek
 - OpcuaExport
 - RestDataExport
