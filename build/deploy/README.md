@@ -12,9 +12,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 5 Creating eis bundle for worker node](#step-5-creating-eis-bundle-for-worker-node)
 
-[Step 6 EIS-Multinode deployment with TurtleCreek](#step-6-eis-multinode-deployment-with-turtlecreek)
-
-[Step 7 EIS-Multinode deployment without TurtleCreek](#step-7-eis-multinode-deployment-without-turtlecreek)
+[Step 6 EIS-Multinode deployment](#step-6-eis-multinode-deployment)
 
 # Step 1 Provision the Master node
 
@@ -86,16 +84,15 @@ Follow below steps:
 
     > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in master node and it can be accessed from worker nodes at: http://[master_node_ip]:7070/etcdkeeper.<br/>
     > Follow [EtcdUI/README](../../EtcdUI/README.md) for more inofrmation.
+
 # Step 4 Provisioning the worker node
 
 ```
-    # commands to be executed on master node.
-    $ sudo vim .env
-
-    Now change the value of following fields in the .env of the worker node.
-
+    # Please ensure the following fields are correctly set in the master node before generating the provisioning bundle:
     ETCD_HOST=<IP address of master node>
     DOCKER_REGISTRY=<Docker registry details>
+
+    # commands to be executed on master node:
     $ cd build/deploy
     $ sudo python3.6 generate_eis_bundle.py -p
 
@@ -105,7 +102,7 @@ Follow below steps:
 ```
 
 ```
-    # commands to be executed on worker node.
+    # commands to be executed on worker node:
     $ tar -xvzf eis_provisioning.tar.gz
     $ cd eis_provisioning/provision/
     $ sudo ./provision_eis.sh
@@ -115,14 +112,12 @@ Follow below steps:
 > **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-4.
 
 ```
-    # commands to be executed on master node.
-    $ sudo vim .env
-
-    Now change the value of following fields in the .env of the worker node.
-
+    # Please ensure the following fields are correctly set in the master node before generating the eis bundle:
     ETCD_HOST=<IP address of master node>
     DOCKER_REGISTRY=<Docker registry details>
-    $ cd deploy
+
+    # commands to be executed on master node:
+    $ cd build/deploy
     $ sudo python3.6 generate_eis_bundle.py
 
     This will generate the .tar.gz which has all the required artifacts by which eis services 
@@ -153,32 +148,9 @@ For more help:
 Now this bundle can be used to deploy an eis on worker node. This bundle has all the required artifacts to start the eis
 services on worker node.
 
-# Step 6 EIS-Multinode deployment with TurtleCreek
+# Step 6 EIS-Multinode deployment
 
-## Thingsboard/Telit/Azure - TurtleCreek:
-
-EIS deployment will only be done on the node where TurtleCreek is installed & provisioned via Thingsboard/Telit/Azure portal.
-
-1. Before proceeding this step, please make sure, you have followed steps 1-5.
-
-2. For TurtleCreek Agent installation and deployment through TurtleCreek, please refer TurtleCreek repo README.
-
-    While deploying EIS Software Stack via Telit-TurtleCreek. Visualizer UI will not pop up because of display not attached to docker container of Visualizer.
-
-    To Overcome. goto IEdgeInsights/build
-    -->  Stop the running ia_visualizer container with it's name or container id using "docker ps" command.
-         ```sh
-         docker rm -f ia_visualizer
-         ```
-
-    -->  Start the ia_visualizer again.
-        ```sh
-        docker-compose up ia_visualizer
-        ```
-
-# Step 7 EIS-Multinode deployment without TurtleCreek
-
-> **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-5. Please make sure to copy and untar the above bundle on a secure location having root only access as it contains secrets.
+> **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-5. Please make sure to copy and untar the above bundle on a secure location having root only access as it contains secrets. Please ensure you mandatorily run the below commands with sudo option as shown below.
 
 ```
     $ sudo tar -xvzf <eis_bundle gz generated in Step No. 5>

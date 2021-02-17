@@ -26,9 +26,11 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 12. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
 
-13. [Debugging options](#debugging-options)
+13. [EIS multi node cluster provision and deployment](#eis-multi-node-cluster-provision-and-deployment)
 
+14. [EIS workload orchestration using kubernetes](#eis-workload-orchestration-using-kubernetes)
 
+15. [Debugging options](#debugging-options)
 
 # Minimum System Requirements
 
@@ -547,10 +549,13 @@ EIS stack comes with following services, which can be included/excluded in docke
 2. [Kapacitor](Kapacitor/README.md)
 3. [Grafana](Grafana/README.md)
 
-# EIS multi node cluster provision and deployment using Turtlecreek
+# EIS multi node cluster provision and deployment
 
-By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and
-remote managibility using turtlecreek, please follow [build/deploy/README.md](build/deploy/README.md)
+By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry and provision ETCD cluster, please follow [build/deploy/README.md](build/deploy/README.md)
+
+# EIS workload orchestration using kubernetes
+
+In order to deploy EIS using the orchestrator Kubernetes, please follow [build/k8s/README.md](build/k8s/README.md)
 
 # Debugging options
 
