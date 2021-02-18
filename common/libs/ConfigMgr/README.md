@@ -297,7 +297,7 @@ export CLIENT_ENDPOINT="127.0.0.1:65013"
 ```
 
 
-Overriding feature of ConfigMgr will be used in orchestrated scenarios including CSL and Kubernetes.
+Overriding feature of ConfigMgr will be used in orchestrated scenarios including Kubernetes.
 
 ## Broker Usecase
 

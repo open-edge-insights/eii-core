@@ -111,7 +111,7 @@ if __name__ == "__main__":
                              start_new_session=True)
 
         else:
-            # Setting cert paths with option to override using env for CSL/K8s
+            # Setting cert paths with option to override using env for K8s
             ca_cert = os.getenv("CONFIGMGR_CACERT", "/run/secrets/ca_etcd")
             key = os.getenv("CONFIGMGR_KEY", "/run/secrets/etcd_EtcdUI_key")
             cert = os.getenv("CONFIGMGR_CERT", "/run/secrets/etcd_EtcdUI_cert")

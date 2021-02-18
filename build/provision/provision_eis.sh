@@ -168,14 +168,6 @@ function prod_mode_gen_certs() {
 
 }
 
-function gen_csl_certs() {
-    log_info "Generating CSL Certificates"
-    /bin/bash ./dep/generate_csl_certificates.sh
-    chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
-    chmod -R 750 Certificates/
-
-}
-
 function check_ETCD_port() {
     log_info "Checking if ETCD ports are already up..."
     ports=($ETCD_CLIENT_PORT)
@@ -231,18 +223,7 @@ fi
 
 #############################################################
 
-if [ "$PROVISION_MODE" = 'csl' -a "$ETCD_NAME" = 'master' ]; then
-    if [ $DEV_MODE = 'false' ]; then
-	log_info "Provisioning EIS with CSL enabled mode... "
-	install_pip_requirements
-        copy_docker_compose_file
-        prod_mode_gen_certs
-        gen_csl_certs
-        docker-compose -f dep/docker-compose-cslprovision.yml up --build -d
-    else
-	log_fatal "Orchestration with CSL is not supported in Dev mode"
-    fi
-elif [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
+if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
      log_info "Provisioning EIS with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
