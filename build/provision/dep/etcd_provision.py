@@ -123,11 +123,7 @@ if __name__ == "__main__":
         os.environ["ETCDCTL_KEY"] = \
             os.environ.get("ETCD_ROOT_KEY", "/run/secrets/etcd_root_key")
 
-    if os.environ['provision_mode'] != "csl":
-        etcd_health_check()
-
-    if os.environ['provision_mode'] == "csl":
-        clear_etcd_kv()
+    etcd_health_check()
 
     apps = get_appname(str(sys.argv[1]))
     load_data_etcd("./config/eis_config.json", apps,
@@ -137,9 +133,8 @@ if __name__ == "__main__":
             if not devMode:
                 if 'zmq' in value:
                     put_zmqkeys(key)
-                if os.environ['provision_mode'] != "csl":
-                    create_etcd_users(key)
+                create_etcd_users(key)
         except ValueError:
             pass
-    if not devMode and os.environ['provision_mode'] != "csl":
+    if not devMode:
         enable_etcd_auth()

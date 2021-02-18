@@ -12,9 +12,5 @@
         "VideoAnalytics": "outputVA",
         "InfluxDBConnector": "pointClsOutput"
     },
-    "csl_pub_endpoint_list": {
-        "VideoAnalytics": {},
-        "InfluxDBConnector": {}
-    },
     "increment_rtsp_port": true
 }

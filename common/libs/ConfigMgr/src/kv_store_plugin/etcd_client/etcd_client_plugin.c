@@ -157,7 +157,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
                 goto err;
             }
         }
-        // Fetching ETCD_ENDPOINT from env for CSL
+        // Fetching ETCD_ENDPOINT from env
         // If set over-rides ETCD_HOST & ETCD_CLIENT_PORT
         char* etcd_endpoint = getenv("ETCD_ENDPOINT");
         if (etcd_endpoint == NULL) {
