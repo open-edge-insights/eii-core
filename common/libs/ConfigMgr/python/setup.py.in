@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Intel Corporation.
+# Copyright (c) 2021 Intel Corporation.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -39,14 +39,16 @@ setup(
     description='EIS ConfigMgr Python wrapper',
     keywords='eis configmgr',
     url='',
-    package_dir={'': '.'},
+    package_dir={'': '${CMAKE_CURRENT_SOURCE_DIR}'},
     packages=['cfgmgr'],
     ext_modules = cythonize([
             Extension(
                 '*',
-                ['./cfgmgr/*.pyx'],
+                ['${CMAKE_CURRENT_SOURCE_DIR}/cfgmgr/*.pyx'],
+                include_dirs=['${PROJECT_SOURCE_DIR}/include'],
+                library_dirs=['${PROJECT_BINARY_DIR}/'],
                 libraries=['eisconfigmanager'])],
-        build_dir='./build/cython',
+        build_dir='${CMAKE_CURRENT_BINARY_DIR}/build/cython',
         compiler_directives={'language_level': 3}
     )
 )

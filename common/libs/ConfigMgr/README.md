@@ -15,7 +15,7 @@ The EISUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
 of CMake and other ConfigMgr dependencies, please follow [eis_libs_installer README](../../README.md)
 
-By default, ConfigMgr installs to `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`,
+By default, ConfigMgr installs to `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to your `LD_LIBRARY_PATH`,
 otherwise you will encounter issues using the ConfigMgr. This can
 be accomplished with the following `export`:
 
@@ -26,18 +26,18 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag.
 
-## Install ConfigMgr with Examples, Test suits and Debug Build.
+## Install ConfigMgr with Python bindings, Go bindings, Examples, Test suits and Debug Build.
 
 ```sh
 $ rm -rf build
 $ mkdir build
 $ cd build
-$ cmake -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake -DWITH_PYTHON=ON -DWITH_GO=ON -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
 $ make
 $ sudo make install
 ```
 
-`WITH_EXAMPLES=ON`, `WITH_TESTS=ON` and `CMAKE_BUILD_TYPE=Debug` to compile ConfigMgr with Examples, Unit Tests and Debug mode respectively.
+`WITH_PYTHON=ON`, `WITH_GO=ON`, `WITH_EXAMPLES=ON`, `WITH_TESTS=ON` and `CMAKE_BUILD_TYPE=Debug` to compile ConfigMgr with Python bindings, Go bindings, Examples, Unit Tests and Debug mode respectively.
 
 # Interfaces
 
@@ -582,9 +582,13 @@ $ ./sample_app
 ### Python Examples
 
 ```sh
-$ Navigate to <EISrepo>/common/libs/ConfigMgr/python
-$ python3 setup.py build
-$ sudo python3 setup.py install
+$ Navigate to <EISrepo>/common/libs/ConfigMgr
+$ sudo rm -rf build
+$ mkdir build
+$ cd build
+$ cmake -DWITH_PYTHON=ON ..
+$ make
+$ sudo make install
 ```
 
 There are currently 5 Python examples:

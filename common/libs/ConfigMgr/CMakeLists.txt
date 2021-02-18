@@ -24,8 +24,9 @@ project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 # Define CMake options
 
 option(WITH_EXAMPLES "Compile with examples" OFF)
-option(WITH_GO "Compile Go Bindings" OFF)
-option(WITH_TESTS "Compile with tests" OFF)
+option(WITH_GO       "Compile Go Bindings" OFF)
+option(WITH_PYTHON   "Compile with Python bindings" OFF)
+option(WITH_TESTS    "Compile with tests" OFF)
 
 # Globals
 set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
@@ -114,6 +115,10 @@ endif()
 
 if(WITH_EXAMPLES)
     add_subdirectory(examples/)
+endif()
+
+if(WITH_PYTHON)
+    add_subdirectory(python/)
 endif()
 
 if(WITH_TESTS)

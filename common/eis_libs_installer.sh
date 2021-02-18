@@ -142,8 +142,5 @@ cd $ConfigMgr && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_GO=ON .. && \
+   cmake -DWITH_GO=ON -DWITH_PYTHON=ON .. && \
    make install
-
-cd $ConfigMgr/python && \
-   python3 setup.py install
