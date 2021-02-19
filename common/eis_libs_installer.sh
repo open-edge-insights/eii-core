@@ -1,5 +1,53 @@
 #!/bin/bash -e
 
+# Copyright (c) 2019 Intel Corporation.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+RED='\033[0;31m'
+YELLOW="\033[1;33m"
+GREEN="\033[0;32m"
+NC='\033[0m' # No Color
+
+function log_warn() {
+    echo -e "${YELLOW}WARN: $1 ${NC}"
+}
+
+function log_info() {
+    echo -e "${GREEN}INFO: $1 ${NC}"
+}
+
+function log_error() {
+    echo -e "${RED}ERROR: $1 ${NC}"
+}
+
+function log_fatal() {
+    echo -e "${RED}FATAL: $1 ${NC}"
+    exit -1
+}
+
+function check_error() {
+    if [ $? -ne 0 ] ; then
+        log_fatal "$1"
+    fi
+}
+
 export CUR_DIR=$PWD
 
 service_exists () {
@@ -7,10 +55,10 @@ service_exists () {
 }
 
 install_go_dependencies () {
-
+    log_info "----Installing required golang dependencies----"
     export GLOG_GO_PATH=$GOPATH/src/github.com/golang/glog
     if [ -d "$GLOG_GO_PATH" ]; then
-        echo "$GLOG_GO_PATH already exists, skipping installation..."
+        log_info "----$GLOG_GO_PATH already exists, skipping installation----"
     else
         export GLOG_VER=23def4e6c14b4da8ac2ed8007337bc5eb5007998
         mkdir -p $GLOG_GO_PATH && \
@@ -21,7 +69,7 @@ install_go_dependencies () {
 
     export ETCD_GO_PATH=$GOPATH/src/go.etcd.io/etcd
     if [ -d "$ETCD_GO_PATH" ]; then
-        echo "$ETCD_GO_PATH already exists, skipping installation..."
+        log_info "$ETCD_GO_PATH already exists, skipping installation..."
     else
         export ETCD_GO_VER=0c787e26bcd102c3bb14050ac893b07ba9ea029f
         mkdir -p $ETCD_GO_PATH && \
@@ -33,11 +81,17 @@ install_go_dependencies () {
 }
 
 install_go () {
+
     apt-get update && \
-    apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
-    wget https://dl.google.com/go/go1.12.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.12.linux-amd64.tar.gz
-    export GOPATH=/home/$USER/go/
+        apt-get install -y build-essential \
+                        git \
+                        g++ \
+                        pkg-config \
+                        wget  && \
+        wget -q --show-progress https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
+        tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+    export GOPATH=$HOME/go
+    log_info "----GOPATH: $GOPATH----"
     mkdir -p $GOPATH/src
 
     install_go_dependencies
@@ -45,7 +99,7 @@ install_go () {
 }
 
 if service_exists go ; then
-    echo "Go already installed"
+    log_info "----Golang already installed----"
     install_go_dependencies
 else
     install_go
@@ -58,48 +112,59 @@ unset GOROOT
 DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EISMessageBus="$CUR_DIR/libs/EISMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
-GrpcProtoPath="/usr/local/lib"
+LIBS_INSTALL_PATH="/usr/local/lib"
 
-# Installing cmake 3.15
-wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
-    tar --strip-components=1 -xz -C /usr/local
-
-apt-get install -y python3-distutils
-
-# Install ConfigMgr requirements
-if [[ ! -f "$GrpcProtoPath/libgrpc.a" ]] || [[ ! -f "$GrpcProtoPath/libprotobuf.a" ]]; then
-    echo "Installing ConfigMgr dependencies"
-    cd $ConfigMgr &&
-    rm -rf deps && \
-    ./install.sh
-else
-    echo "Skipping installation of grpc & protobuf"
+CMAKE_EXISTS=`cmake --version`
+if [ $? -ne 0 ]; then
+    log_info "----Installing cmake----"
+    wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
+        tar --strip-components=1 -xz -C /usr/local
 fi
 
-# Install EISMessageBus requirements
+DISTUTILS_INSTALLED=`dpkg --list|grep distutils`
+if [ $? -ne 0 ]; then
+    apt-get install -y python3-distutils
+fi
+
+# Install ConfigMgr requirements
+log_info "----Installing ConfigMgr dependencies----"
+cd $ConfigMgr &&
+rm -rf deps && \
+./install.sh
+
+log_info "----Installing EISMessageBus lib dependencies----"
 cd $EISMessageBus &&
    rm -rf deps && \
    ./install.sh --cython
 
-cd $EISMessageBus/../IntelSafeString/ &&
-   rm -rf build && \
-   mkdir build && \
-   cd build && \
-   cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-   make install
+if [ -f "$LIBS_INSTALL_PATH/libsafestring.so" ]; then
+    log_info "libsafestring.so already installed"
+else
+    log_info "----Installing IntelSafeString lib----"
+    cd $EISMessageBus/../IntelSafeString/ &&
+    rm -rf build && \
+    mkdir build && \
+    cd build && \
+    cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+    make install
+    check_error "----Failed to install IntelSafeString lib----"
+fi
 
+log_info "----Installing EISMsgEnv lib----"
 cd $EISMessageBus/../EISMsgEnv/ &&
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake  -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
    make && \
    if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
    ./msg-envelope-tests  && \
    ./crc32-tests  && \
    cd .. ; fi && \
    make install
+check_error "----Failed to install EISMsgEnv lib----"
 
+log_info "----Installing Util lib----"
 cd $EISMessageBus/../../util/c/ &&
    ./install.sh && \
    rm -rf build && \
@@ -115,7 +180,9 @@ cd $EISMessageBus/../../util/c/ &&
    ./thexec-tests
    cd .. ; fi  && \
    make install
+check_error "----Failed to install Util lib----"
 
+log_info "----Installing DynLibLoad lib----"
 cd $EISMessageBus/../DynLibLoad/ && \
     rm -rf build &&  \
     mkdir build && \
@@ -124,26 +191,33 @@ cd $EISMessageBus/../DynLibLoad/ && \
     make && \
     if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
     make install
+check_error "----Failed to install Util lib----"
 
-# Installing EISMessageBus C++ from DEB package
+log_info "----Installing EISMessageBus c++ lib from DEB package----"
 cd $EISMessageBus &&
    apt install ./eis-messagebus-2.4.0-Linux.deb
+check_error "----Failed to install EISMessageBus c++ lib----"
 
-# Installing EISMessageBus python
+log_info "----Installing EISMessageBus python binding----"
 cd $EISMessageBus/python &&
    python3 setup.py install
+check_error "----Failed to install EISMessageBus python binding----"
 
-# Installing EISMessageBus Go
+log_info "----Installing EISMessageBus Golang binding----"
 cd $EISMessageBus &&
    cp -a go/. $GOPATH/src/
+check_error "----Failed to install EISMessageBus Golang binding----"
 
-# Install ConfigMgr and kv_store_plugin
+log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
    rm -rf build && \
    mkdir build && \
    cd build && \
    cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
+check_error "----Failed to install ConfigMgr C and golang libs----"
 
+log_info "----Installing CofigMgr python binding----"
 cd $ConfigMgr/python && \
    python3 setup.py install
+check_error "----Failed to install ConfigMgr python binding----"

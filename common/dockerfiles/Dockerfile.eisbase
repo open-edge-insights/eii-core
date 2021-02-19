@@ -35,7 +35,7 @@ WORKDIR ${GO_WORK_DIR}
 #Installing Go and dep package manager tool for Go
 ARG GO_VERSION
 RUN apt-get update && \
-    apt-get install -y wget git build-essential pkg-config iputils-ping g++ && \
+    apt-get install -y wget git build-essential pkg-config software-properties-common g++ && \
     wget https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
 
@@ -85,32 +85,29 @@ ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 ENV PY_WORK_DIR /EIS
 WORKDIR ${PY_WORK_DIR}
 
-# Installing python 2, pip2, python 3.6 and pip3.6
-RUN apt-get update && \
-    apt-get install -y software-properties-common pkg-config python python-pip && \
-    add-apt-repository ppa:deadsnakes/ppa && \
+# Installing python 3.6 and pip3.6
+RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y python3.6 python3.6-dev python3-distutils && \
-    apt-get install python3-pip -y && \
-    apt-get install -y libsm6 libxext6 libfontconfig1 libxrender1
+    apt-get install -y python3.6 python3.6-dev python3-distutils python3-pip \
+                       libsm6 libxext6 libfontconfig1 libxrender1
 
 RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
 
 # Upgrading pip version
 RUN pip3 install --upgrade pip
 
-# Installing python JSON schema validator
-RUN pip3 install jsonschema==3.2.0
+# Installing EISMessageBus dependencies
+COPY libs/EISMessageBus/install.sh libs/EISMessageBus/install.sh
+COPY libs/EISMessageBus/python/requirements.txt libs/EISMessageBus/python/requirements.txt
+RUN cd libs/EISMessageBus && \
+    ./install.sh --cython
 
-COPY libs/EISMessageBus/install.sh ./install.sh
+# Installing ConfigMgr dependencies
+COPY libs/ConfigMgr/install.sh libs/ConfigMgr/install.sh
+RUN ./libs/ConfigMgr/install.sh
 
-RUN ./install.sh --cython
-
-COPY libs/ConfigMgr/install.sh ./install.sh
-
-RUN rm -rf deps && \
-    ./install.sh && \
-    rm -rf deps
+COPY util/requirements.txt util/requirements.txt
+RUN pip3 install -r util/requirements.txt
 
 ENV LD_LIBRARY_PATH "/usr/local/lib"
 
