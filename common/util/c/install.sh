@@ -48,6 +48,7 @@ function check_error() {
     fi
 }
 
+INSTALL_PATH="/usr/local/lib"
 wjelement_commit="1c792c1669fd8441cf17647facc0cc908441dc0d"
 # cjson version
 cjson_version="1.7.12"
@@ -57,7 +58,6 @@ wjelement_url="https://github.com/netmail-open/wjelement"
 cjson_url="https://github.com/DaveGamble/cJSON/archive/v${cjson_version}.tar.gz"
 
 wjelement_dir="wjelement"
-cjson_version="1.7.12"
 
 DEPS=deps
 if [ -d "$DEPS" ] ; then
@@ -70,73 +70,83 @@ fi
 
 cd $DEPS
 
-git clone $wjelement_url
-check_error "Failed to git clone wjelement"
+# Installing WJElement dependency
+if [ -f "$INSTALL_PATH/libwjelement.so" ]; then
+    log_info "libwjelement already installed"
+else
 
-cd $wjelement_dir/
-check_error "Failed to change to wjelement directory"
+    git clone $wjelement_url
+    check_error "Failed to git clone wjelement"
 
-git checkout  -b known_version $wjelement_commit
-check_error "Failed to checkout to a commit"
+    cd $wjelement_dir/
+    check_error "Failed to change to wjelement directory"
 
-if [ ! -d "build" ] ; then
-    mkdir build
-    check_error "Failed to create build directory"
+    git checkout  -b known_version $wjelement_commit
+    check_error "Failed to checkout to a commit"
+
+    if [ ! -d "build" ] ; then
+        mkdir build
+        check_error "Failed to create build directory"
+    fi
+
+    cd build
+    check_error "Failed to change to build directory"
+
+    log_info "Configuring wjelement for compilation"
+
+    cmake ..
+    check_error "Failed to configure wjelement"
+
+    make -j$(nproc --ignore=2)
+    check_error "Failed to compile wjelement"
+
+    log_info "Installing wjelement..."
+    make install
+    check_error "Failed to install wjelement"
+
+    cd ../..
 fi
-
-cd build
-check_error "Failed to change to build directory"
-
-log_info "Configuring wjelement for compilation"
-
-cmake ..
-check_error "Failed to configure wjelement"
-
-make -j$(nproc --ignore=2)
-check_error "Failed to compile wjelement"
-
-log_info "Installing wjelement..."
-make install
-check_error "Failed to install wjelement"
-
-cd ../..
 
 # Installing cJSON dependency
-if [ ! -f "cjson.tar.gz" ] ; then
-    log_info "Downloading cJSON source"
-    wget $cjson_url -O cjson.tar.gz
-    check_error "Failed to download cJSON source"
+if [ -f "$INSTALL_PATH/libcjson.so.${cjson_version}" ]; then
+    log_info "libcjson ${cjson_version} already installed"
+else
+    if [ ! -f "cjson.tar.gz" ] ; then
+        log_info "Downloading cJSON source"
+        wget -q --show-progress $cjson_url -O cjson.tar.gz
+        check_error "Failed to download cJSON source"
+    fi
+
+    cjson_dir="cJSON-${cjson_version}"
+
+    if [ ! -d "$cjson_dir" ] ; then
+        log_info "Extracting cJSON"
+        tar xf cjson.tar.gz
+        check_error "Failed to extract cJSON"
+    fi
+
+    cd $cjson_dir
+    check_error "Failed to change to cJSON directory"
+
+    if [ ! -d "build" ] ; then
+        mkdir build
+        check_error "Failed to create build directory"
+    fi
+
+    cd build
+    check_error "Failed to change to build directory"
+
+    log_info "Configuring cJSON for compilation"
+    cmake ..
+    check_error "Failed to configure cJSON"
+
+    log_info "Compiling cJSON library"
+    make -j$(nproc --ignore=2)
+    check_error "Failed to compile cJSON library"
+
+    log_info "Installing cJSON library"
+    make install
+    check_error "Failed to install cJSON library"
 fi
-
-cjson_dir="cJSON-${cjson_version}"
-
-if [ ! -d "$cjson_dir" ] ; then
-    log_info "Extracting cJSON"
-    tar xf cjson.tar.gz
-    check_error "Failed to extract cJSON"
-fi
-
-cd $cjson_dir
-check_error "Failed to change to cJSON directory"
-
-if [ ! -d "build" ] ; then
-    mkdir build
-    check_error "Failed to create build directory"
-fi
-
-cd build
-check_error "Failed to change to build directory"
-
-log_info "Configuring cJSON for compilation"
-cmake ..
-check_error "Failed to configure cJSON"
-
-log_info "Compiling cJSON library"
-make -j$(nproc --ignore=2)
-check_error "Failed to compile cJSON library"
-
-log_info "Installing cJSON library"
-make install
-check_error "Failed to install cJSON library"
 
 log_info "Done."
