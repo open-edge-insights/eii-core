@@ -142,7 +142,7 @@ cd $ConfigMgr && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_GO=ON .. && \
+   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
 
 cd $ConfigMgr/python && \
