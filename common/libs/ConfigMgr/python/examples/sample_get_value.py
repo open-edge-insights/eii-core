@@ -24,6 +24,7 @@ import os
 import cfgmgr.config_manager as cfg
 import time
 
+
 def py_ex_func(key, json):
     print("Key is {}".format(key))
     print("json is {}".format(json))
@@ -34,7 +35,7 @@ try:
 
     # create ConfigMgr object
     ctx = cfg.ConfigMgr()
-    
+
     # get AppCfg's obejct to get application's config('/<appname>/config')
     app_cfg = ctx.get_app_config()
     print('app config is : {}'.format((app_cfg.get_dict())))

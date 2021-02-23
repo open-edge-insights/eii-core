@@ -49,7 +49,7 @@ setup(
     ],
     package_dir={'': '.'},
     packages=['eis'],
-    ext_modules = cythonize([
+    ext_modules=cythonize([
             Extension(
                 '*',
                 ['./eis/*.pyx'],

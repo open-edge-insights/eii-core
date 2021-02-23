@@ -94,8 +94,8 @@ def etcd_health_check():
 
 
 def clear_etcd_kv():
-    returncode = _execute_cmd(["./etcdctl", "del",
-                               "--prefix", ETCD_PREFIX + "/"])
+    returncode = _execute_cmd(["./etcdctl", "del", "--prefix",
+                               ETCD_PREFIX + "/"])
     if returncode != 0:
         print("Clearing Prefix {} key failed".format(ETCD_PREFIX))
 

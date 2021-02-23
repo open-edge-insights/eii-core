@@ -41,7 +41,7 @@ setup(
     url='',
     package_dir={'': '${CMAKE_CURRENT_SOURCE_DIR}'},
     packages=['cfgmgr'],
-    ext_modules = cythonize([
+    ext_modules=cythonize([
             Extension(
                 '*',
                 ['${CMAKE_CURRENT_SOURCE_DIR}/cfgmgr/*.pyx'],

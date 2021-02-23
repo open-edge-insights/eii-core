@@ -36,11 +36,11 @@ try:
     # create ConfigMgr object
     ctx = cfg.ConfigMgr()
 
-    # get the server object where server's interface 'Name' is 'default' 
+    # get the server object where server's interface 'Name' is 'default'
     server_ctx = ctx.get_server_by_name("default")
 
     # get 0th server interface object
-    #server_ctx = ctx.get_server_by_index(0)
+    # server_ctx = ctx.get_server_by_index(0)
 
     # get number of server interfaces
     ret = ctx.get_num_servers()
@@ -48,11 +48,13 @@ try:
         print('[INFO] No server interfaces found')
     print('[INFO] Number of server interfaces are : {}'.format(ret))
 
-    # get server msgbus config for application to communicate over EIS message bus
+    # get server msgbus config for application
+    # to communicate over EIS message bus
     config = server_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(server_ctx.get_endpoint()))
-    print('[INFO] Obtained allowed clients is {}'.format(server_ctx.get_allowed_clients()))
+    print('[INFO] Obtained allowed clients is {}'
+          .format(server_ctx.get_allowed_clients()))
 
     # get the value of client interface of key 'Name'
     interface_value = server_ctx.get_interface_value("Name")

@@ -207,7 +207,6 @@ class Visualizer:
             frame = cv2.copyMakeBorder(frame, 5, 5, 5, 5, cv2.BORDER_CONSTANT,
                                        value=outline_color)
 
-
         # Display information about frame
         (d_x, d_y) = (20, 50)
         if 'display_info' in results:

@@ -124,7 +124,7 @@ if __name__ == "__main__":
     os.environ['ETCDCTL_ENDPOINTS'] = os.getenv('ETCD_HOST') \
         + ':' + os.getenv('ETCD_CLIENT_PORT')
     if not dev_mode:
-        if os.path.isdir('../Certificates') == False :
+        if os.path.isdir('../Certificates') is False:
             print('Certificate directory is missing')
             sys.exit(-1)
 

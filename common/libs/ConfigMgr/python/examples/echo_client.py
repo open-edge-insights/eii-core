@@ -35,20 +35,23 @@ try:
 
     # create ConfigMgr object
     ctx = cfg.ConfigMgr()
-    print('[INFO] Total number of clients in interface is {}'.format(ctx.get_num_clients()))
+    nclients = ctx.get_num_clients()
+    print('[INFO] Total number of clients in interface is {}'.format(nclients))
 
     # get the client object where client's interface 'Name' is 'default'
     client_ctx = ctx.get_client_by_name("default")
 
     # get 0th client interface object
-    #client_ctx = ctx.get_client_by_index(0)
+    # client_ctx = ctx.get_client_by_index(0)
 
-    # get client msgbus config for application to communicate over EIS message bus
+    # get client msgbus config for application
+    # to communicate over EIS message bus
     config = client_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(client_ctx.get_endpoint()))
 
-    # get config_value_t object to get the value of client interface of key 'Name'
+    # get config_value_t object to get
+    # the value of client interface of key 'Name'
     interface_value = client_ctx.get_interface_value("Name")
     print('[INFO] Obtained interface_value is {}'.format(interface_value))
 
