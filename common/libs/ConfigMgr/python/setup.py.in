@@ -42,7 +42,7 @@ setup(
             Extension(
                 '*',
                 ['${CMAKE_CURRENT_SOURCE_DIR}/cfgmgr/*.pyx'],
-                include_dirs==[cmake_install_prefix + '/include','${PROJECT_SOURCE_DIR}/include'],
+                include_dirs=[cmake_install_prefix + '/include','${PROJECT_SOURCE_DIR}/include'],
                 library_dirs=[cmake_install_prefix + '/lib', '${PROJECT_BINARY_DIR}/'],
                 libraries=['eiiconfigmanager'])],
         build_dir='${CMAKE_CURRENT_BINARY_DIR}/build/cython',

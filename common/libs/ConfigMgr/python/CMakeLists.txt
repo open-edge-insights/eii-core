@@ -41,4 +41,4 @@ add_custom_command(
 # Add target for the Python library
 add_custom_target(py-cfgmgr ALL DEPENDS ${OUTPUT})
 
-install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install)")
+install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY} install --user)")
