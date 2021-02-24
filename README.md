@@ -394,13 +394,7 @@ For more details, visit [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuratio
 
 # Enable camera based Video Ingestion
 
-EII supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
-
-All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference.
-
 For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
-
-For Sample docker-compose file and ETCD preload values for multiple camaras, refer to [build/samples/multi_cam_sample/README.md](build/samples/multi_cam_sample/README.md).
 
 # Using video accelerators
 
