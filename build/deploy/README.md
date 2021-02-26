@@ -1,4 +1,4 @@
-# Multi-node EII Provisioning & Deployment
+# Multi-node Provisioning & Deployment
 
 Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
@@ -36,9 +36,9 @@ Provision the Master node using the below command,
 
         ```
         $ cd [WORK_DIR]/IEdgeInsights/build/provision
-        $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
+        $ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-        eq. $ sudo ./provision_eii.sh ../docker-compose.yml
+        eq. $ sudo ./provision.sh ../docker-compose.yml
 
         ```
     This creates the ETCD server (Container ia_etcd) on the master edge node.
@@ -96,16 +96,16 @@ Follow below steps:
     $ cd build/deploy
     $ sudo python3.6 generate_eii_bundle.py -p
 
-    This will generate the 'eii_provisioning.tar.gz'.
+    This will generate the 'provisioning.tar.gz'.
     Do a manual copy of this bundle on worker node. And then follow below commands
     on worker node.
 ```
 
 ```
     # commands to be executed on worker node.
-    $ tar -xvzf eii_provisioning.tar.gz
-    $ cd eii_provisioning/provision/
-    $ sudo ./provision_eii.sh
+    $ tar -xvzf provisioning.tar.gz
+    $ cd provisioning/provision/
+    $ sudo ./provision.sh
 ```
 
 # Step 5 Creating eii bundle for worker node

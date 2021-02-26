@@ -9,12 +9,12 @@
 
 ---
 **NOTE**:
-1. If ETCD_ROOT_PASSWORD is changed, EII must to be provisioned again. Please follow below command in < EII Repo >/build/provision folder to reprovision EII.
+1. If ETCD_ROOT_PASSWORD is changed, EII must to be provisioned again. Please follow below command in < EII Repo >/build/provision folder to reprovision.
 
         ```
-        $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
+        $ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-        eq. $ sudo ./provision_eii.sh ../docker-compose.yml
+        eq. $ sudo ./provision.sh ../docker-compose.yml
 
         ```
 2. Only VideoIngestion and VideoAnalytics based services will have watch for any changes. Any changes done to those keys will be reflected at runtime in EII.

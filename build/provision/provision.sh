@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Provision EII
-# Usage: sudo ./provision_eii <path-of-docker-compose-file>
+# Provision
+# Usage: sudo ./provision <path-of-docker-compose-file>
 
 docker_compose=$1
 RED='\033[0;31m'
@@ -54,15 +54,15 @@ function check_error() {
 
 function souce_env() {
     EII_ENV="../.env"
-    EII_PROVISIONING_ENV=".env"
+    PROVISIONING_ENV=".env"
 
     set -a
     if [ -f $EII_ENV ]; then
         source $EII_ENV
     fi
 
-    if [ -f $EII_PROVISIONING_ENV ]; then
-        source $EII_PROVISIONING_ENV
+    if [ -f $PROVISIONING_ENV ]; then
+        source $PROVISIONING_ENV
     fi
     set +a
 }
@@ -131,7 +131,7 @@ function copy_docker_compose_file() {
     # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
     if ! [ -f $docker_compose ] || [ -z $docker_compose ]; then
         log_error "Supplied docker compose file '$docker_compose' does not exists"
-        log_fatal "Usage: $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>"
+        log_fatal "Usage: $ sudo ./provision.sh <path_to_eii_docker_compose_file>"
     else
         cp $docker_compose ./docker-compose.yml
     fi
@@ -224,7 +224,7 @@ fi
 #############################################################
 
 if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
-     log_info "Provisioning EII with KUBERNETES enabled mode... "
+     log_info "Provisioning with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
      
@@ -282,4 +282,4 @@ fi
 remove_client_server
 remove_docker_compose_file
 
-log_info "EII Provisioning is Successful..."
+log_info "Provisioning is Successful..."

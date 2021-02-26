@@ -127,7 +127,7 @@ def increment_rtsp_port(appname, config, i):
     # Increment port number for RTSP stream pipelines if
     # increment_rtsp_port is set to true
     if appname == 'VideoIngestion' and \
-       eii_builder_cfg['increment_rtsp_port'] is True:
+       builder_cfg['increment_rtsp_port'] is True:
         if 'rtspsrc' in config['config']['ingestor']['pipeline']:
             port = config['config']['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
@@ -340,8 +340,8 @@ def json_parser(app_list, args):
                 if args.override_directory in app_path:
                     dirname = app_path.split("/")[-2]
             # Ignoring EtcdUI & common/video service to not create multi instance
-            # TODO: Support EIIAzureBridge multi instance creation if applicable
-            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "EIIAzureBridge" not in app_path:
+            # TODO: Support AzureBridge multi instance creation if applicable
+            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "AzureBridge" not in app_path:
                 for i in range(num_multi_instances):
                     with open(app_path + '/config.json', "rb") as infile:
                         head = json.load(infile)
@@ -1020,12 +1020,12 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 # Create single instance only for services in subscriber_list
                 # and for corner case of common/video,
                 # create multi instance otherwise
-                # TODO: Support EIIAzureBridge
+                # TODO: Support AzureBridge
                 # multi instance creation if applicable
                 if (appname not in subscriber_list.keys() and
                         appname != "video" and
                         appname != "common" and
-                        appname != "EIIAzureBridge"):
+                        appname != "AzureBridge"):
                     for i in range(num_multi_instances):
                         data_two = create_multi_instance_yml_dict(data, i+1)
                         yaml_files_dict.append(data_two)
@@ -1224,37 +1224,37 @@ def parse_args():
     arg_parse.add_argument('-f', '--yml_file', default=None,
                            help='Optional config file for list of services'
                            ' to include.\
-                           Eg: python3.6 eii_builder.py -f\
+                           Eg: python3.6 builder.py -f\
                            usecases/video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
-                           Eg: python3.6 eii_builder.py -v 6')
+                           Eg: python3.6 builder.py -v 6')
     arg_parse.add_argument('-d', '--override_directory',
                            default=None,
                            help='Optional directory consisting of '
                            'of benchmarking configs to be present in'
                            'each app directory.\
-                           Eg: python3.6 eii_builder.py -d benchmarking')
+                           Eg: python3.6 builder.py -d benchmarking')
     return arg_parse.parse_args()
 
 
 if __name__ == '__main__':
 
-    # fetching eii_builder config
-    with open('eii_builder_config.json', 'r') as config_file,\
-         open('eii_builder_schema.json', 'r') as schema_file:
-        eii_builder_cfg = json.load(config_file)
-        eii_builder_schema = json.load(schema_file)
+    # fetching builder config
+    with open('builder_config.json', 'r') as config_file,\
+         open('builder_schema.json', 'r') as schema_file:
+        builder_cfg = json.load(config_file)
+        builder_schema = json.load(schema_file)
         try:
-            validate(instance=eii_builder_cfg, schema=eii_builder_schema)
+            validate(instance=builder_cfg, schema=builder_schema)
         except Exception as e:
             print("JSON schema validation failed {}".format(e))
             sys.exit(1)
         # list of publishers and their endpoints
-        publisher_list = eii_builder_cfg['publisher_list']
+        publisher_list = builder_cfg['publisher_list']
         # list of subscribers
-        subscriber_list = eii_builder_cfg['subscriber_list']
+        subscriber_list = builder_cfg['subscriber_list']
 
     # Parse command line arguments
     args = parse_args()

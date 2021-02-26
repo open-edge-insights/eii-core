@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """Script to generate eii bundle for worker node setup
-   in Multi-node EII Provisioning & Deployment scenario.
+   in Multi-node Provisioning & Deployment scenario.
 """
 import subprocess
 import json
@@ -154,20 +154,20 @@ class EiiBundleGenerator:
 
     def generate_provision_bundle(self):
         '''
-            generate_eii_provision bundle helps to execute set of pre
+            generate_provision bundle helps to execute set of pre
             commands which are required for provision Bundle and finally
             it generates the bundle
         '''
-        provision_tag_name = 'eii_provisioning'
-        eii_provision_dir = "./" + provision_tag_name + "/provision/"
+        provision_tag_name = 'provisioning'
+        provision_dir = "./" + provision_tag_name + "/provision/"
         cmdlist = []
         cmdlist.append(["rm", "-rf", provision_tag_name])
         cmdlist.append(["mkdir", "-p", provision_tag_name])
         cmdlist.append(["cp", "../.env", provision_tag_name])
-        cmdlist.append(["mkdir", "-p", eii_provision_dir])
-        cmdlist.append(["cp", "-f", "../provision/provision_eii.sh",
-                        eii_provision_dir])
-        cmdlist.append(["chmod", "+x", eii_provision_dir + "provision_eii.sh"])
+        cmdlist.append(["mkdir", "-p", provision_dir])
+        cmdlist.append(["cp", "-f", "../provision/provision.sh",
+                        provision_dir])
+        cmdlist.append(["chmod", "+x", provision_dir + "provision.sh"])
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)

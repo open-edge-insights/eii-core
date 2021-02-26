@@ -301,11 +301,11 @@ Overriding feature of ConfigMgr will be used in orchestrated scenarios including
 
 ## Broker Usecase
 
-If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e., if publisher publish data to EIIZmqBroker and subscriber subscribes from EIIZmqBroker, then the interfaces of EIIZmqBroker, subscriber and publisher with respect to `zmq_tcp` and `zmq_ipc` protocol as follows.
+If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if publisher publish data to ZmqBroker and subscriber subscribes from ZmqBroker, then the interfaces of ZmqBroker, subscriber and publisher with respect to `zmq_tcp` and `zmq_ipc` protocol as follows.
 
 ## zmq_tcp Protocol usecase
 
-### EIIZmqBroker:
+### ZmqBroker:
 
 ```javascript
 {
@@ -352,8 +352,8 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:5568",
 
-            // PublisherAppName will be "EIIZmqBroker" in case of brokered usecase 
-            "PublisherAppName": "EIIZmqBroker",
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            "PublisherAppName": "ZmqBroker",
             "Topics": [
                 "*"
             ]
@@ -376,9 +376,9 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
             ],
             // With broker usecase, AllowedClients in Publisher's interface is not required, as it acts as a subscriber to X-SUB
 
-            // "brokered" and "BrokerAppName" should be added for EIIZmqBroker usecase
+            // "brokered" and "BrokerAppName" should be added for ZmqBroker usecase
             "brokered": true,
-            "BrokerAppName" : "EIIZmqBroker"
+            "BrokerAppName" : "ZmqBroker"
         }
     ]
 }
@@ -388,7 +388,7 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
 
 ## zmq_ipc Protocol usecase
 
-### EIIZmqBroker:
+### ZmqBroker:
 
 ```javascript
 {
@@ -434,8 +434,8 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
                 "SocketFile": "backend-socket"
             },
 
-            // PublisherAppName will be "EIIZmqBroker" in case of brokered usecase 
-            "PublisherAppName": "EIIZmqBroker",
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            "PublisherAppName": "ZmqBroker",
 
             // Topics cannot be "*", if the only IPC directory is given
             // if it Topics "*" to be used in ipc, then socket file should be given explicitly.
@@ -465,9 +465,9 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
 
             // With broker usecase, AllowedClients in Publisher's interface is not required, as it acts as a subscriber to X-SUB
 
-            // "brokered" and "BrokerAppName" should be added for EIIZmqBroker usecase
+            // "brokered" and "BrokerAppName" should be added for ZmqBroker usecase
             "brokered": true,
-            "BrokerAppName" : "EIIZmqBroker"
+            "BrokerAppName" : "ZmqBroker"
         }
     ]
 }
@@ -476,8 +476,8 @@ If publisher and subscriber wants to communicate via broker(EIIZmqBroker), i.e.,
 
 |          Key        |    Type   | Required (Mandatory) |                         Description                          |
 | :-----------------: | --------- | -------------------- | ------------------------------------------------------------ |
-| `brokered`          | `boolean` | Yes                   | (Required if publishing via EIIZmqBroker) Specifies if publisher is using broker or not. use "brokered": true for use with broker. |
-| `BrokerAppName`     | `string`  | Yes                   | (Required if publishing via EIIZmqBroker) Specifies EII ZeroMQ Broker app name|
+| `brokered`          | `boolean` | Yes                   | (Required if publishing via ZmqBroker) Specifies if publisher is using broker or not. use "brokered": true for use with broker. |
+| `BrokerAppName`     | `string`  | Yes                   | (Required if publishing via ZmqBroker) Specifies ZeroMQ Broker app name|
 
 
 ### **Note** "Endpoint" can be given in different ways:
@@ -695,7 +695,7 @@ $ ./app_config
 * The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
 Please refer [Unit Test installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.) installation.
 
-* Provisioning EII should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
+* Provisioning should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
 
 Before executing any of the test files, please run below command from `build/tests/`
 ```sh

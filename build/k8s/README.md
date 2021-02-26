@@ -6,7 +6,7 @@ EII Orchestration using k8s Orchestrator.
 
 2. [Steps for Multinode Deployment](#steps-for-multinode-deployment)
 
-3. [Provisioning EII with k8s](#provisioning-eii-with-k8s)
+3. [Provisioning with k8s](#provisioning-eii-with-k8s)
 
 4. [Deploying EII Application with K8s](#deploying-eii-application-with-k8s)
 
@@ -41,9 +41,9 @@ EII Orchestration using k8s Orchestrator.
 
   * Master Node provisoning: Follow steps mentioned in below links.
     1. [Change for Master Provision for Multinode Deployment](###change-for-master-provision-for-multinode-deployment)
-    2. [Provisioning EII with k8s](#provisioning-eii-with-k8s)
+    2. [Provisioning with k8s](#provisioning-eii-with-k8s)
   * Worker Node provisoning: Follow steps mentioned in below links.
-     1. [EII Provision Bundle creation for k8s worker node](#EII-Provision-Bundle-creation-for-k8s-worker-node)
+     1. [Provision Bundle creation for k8s worker node](#Provision-Bundle-creation-for-k8s-worker-node)
      2. [EII k8s Worker Node provisioning for MultiNode deployment](#EII-k8s-Worker-Node-provisioning-for-MultiNode-deployment)
 
 ### Change for Master Provision for Multinode Deployment.
@@ -72,7 +72,7 @@ EII Orchestration using k8s Orchestrator.
        restartPolicy: OnFailure
        nodeName: coolm
      ```
-### EII Provision Bundle creation for k8s worker node.
+### Provision Bundle creation for k8s worker node.
 > 1. This step is not required for **Single Node** deployment
 > 2. Provisioning bundle will be generated on k8s `Master node`.
 > 3. Make Sure ETCD_NAME=[any name other than `master`] in [build/.env](../build/.env) of Master node.
@@ -90,19 +90,19 @@ EII Orchestration using k8s Orchestrator.
 >    scenario*** only.
 > 2. This step is not required for **Single Node** deployment
 > 3. Provisioning bundle generated on k8s Master node will be copied to worker node.
-  * Copy the `eii_provisioning.tar.gz` file from k8s master node to worker node(s).
+  * Copy the `provisioning.tar.gz` file from k8s master node to worker node(s).
 
       ```sh
-          $ sudo scp <eii_provisioning.tar.gz> <any-directory_on-worker-Filesystem>
-          $ sudo tar -xvf <eii_provisioning.tar.gz>
-          $ cd <eii_provisioning>
+          $ sudo scp <provisioning.tar.gz> <any-directory_on-worker-Filesystem>
+          $ sudo tar -xvf <provisioning.tar.gz>
+          $ cd <provisioning>
       ```
   * Provision the EII in k8s Worker(s) Node.
       ```sh
           $ cd provision
-          $ sudo ./provision_eii.sh
+          $ sudo ./provision.sh
       ```
-## Provisioning EII with k8s
+## Provisioning with k8s
 > **Note:** If Provisioning of EII with k8s is already done under Multinode deployment, please skip it.
    > 1. EII Deployment with k8s can be done in **PROD** & **DEV** mode.
   > 2. For running EII in multi node, we have to identify one master node.For a master node `ETCD_NAME` in [build/.env](../.env) must be set to `master`.
@@ -126,11 +126,11 @@ EII Orchestration using k8s Orchestrator.
 
   * Please Update `DEV_MODE=true` in [build/.env](../../build/.env) file.
 
-  * Provision EII with K8s.
+  * Provision with K8s.
     ```sh
-    $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
+    $ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-    eq. $ sudo ./provision_eii.sh ../docker-compose.yml
+    eq. $ sudo ./provision.sh ../docker-compose.yml
     ```
 ### Provisioning `EII` with `k8s` in `PROD` mode
 > **Note:** `k8s_eii_deploy.yml` file be generated in `build/k8s` directory by `eiibuilder`.
@@ -139,11 +139,11 @@ EII Orchestration using k8s Orchestrator.
 > Please follow the [EII Pre-requisites](../../README.md#eii-pre-requisites)
   * Please Update `DEV_MODE=false` in [build/.env](../../build/.env) file.
 
-  * Provision EII with K8s.
+  * Provision with K8s.
     ```sh
-    $ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
+    $ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-    eq. $ sudo ./provision_eii.sh ../docker-compose.yml
+    eq. $ sudo ./provision.sh ../docker-compose.yml
     ```
 ## Deploying EII Application with K8s
   > **Note:** `eii-k8s-deploy.yml` file be generated in `build/k8s` directory by `eiibuilder`.
@@ -289,10 +289,10 @@ EII Orchestration using k8s Orchestrator.
           .
           .
           ```
-    * Run the `build/eii_builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules `k8s-service.yml` files.
+    * Run the `build/builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules `k8s-service.yml` files.
      ```sh
         cd build/
-        python3 eii_builder.py
+        python3 builder.py
      ```
 
     * Deploy the `latest` generated `yml` file
@@ -375,9 +375,9 @@ EII Orchestration using k8s Orchestrator.
           ```sh
           $ kubectl -n eii get nodes --show-labels <node-name> | grep ipc=enabled
           ```
-  * Run `eii_builder` from `build` directory to generate the updated yaml file.
+  * Run `builder` from `build` directory to generate the updated yaml file.
         ```sh
-           python3 ./eii_builder.py
+           python3 ./builder.py
         ```
   * Deploy the `latest` generated `yaml` file from `k8s` directory
       ```sh

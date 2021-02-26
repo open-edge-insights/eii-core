@@ -148,7 +148,7 @@ name for the socket file name. This enables two specific use cases:
 
 1. Having a single application publish multiple topics over a single IPC socket
     file
-2. Connecting ZeroMQ IPC publishers to the EII ZeroMQ Broker
+2. Connecting ZeroMQ IPC publishers to the ZeroMQ Broker
 
 For the second use case, there is an additional property which must be specified;
 the `brokered` configuration value. This is must be a boolean value, with `true`
@@ -182,7 +182,7 @@ An example of this is shown below.
         "socket_file": "socket-filename",
 
         // The below property is only supported by publishers, this specifies
-        // that the given publisher will be brokered through the EII ZeroMQ Broker
+        // that the given publisher will be brokered through the ZeroMQ Broker
         "brokered": true
     }
 }
@@ -208,7 +208,7 @@ an object which has the following keys:
 | `host`              | `string`  | Yes      | Specifies the host to publish as                             |
 | `port`              | `int`     | Yes      | Specifies the port to publish messages on                    |
 | `server_secret_key` | `string`  | No       | Specifies the secret key for the port for authentication     |
-| `brokered`          | `boolean` | No       | Specifies whether or not to connect to the EII ZeroMQ Broker |
+| `brokered`          | `boolean` | No       | Specifies whether or not to connect to the ZeroMQ Broker |
 
 The `server_secret_key` must be a Curve Z85 encoded string value that is
 specified if the application wishes to use CurveZMQ authentication with to
@@ -304,9 +304,9 @@ The table below specifies all of the provided example configurations.
 | :---------------------------------------------: | ----------------------------------------------------------------------------------- |
 | ipc_example_config.json                         | Configuration for IPC based communication. Works with all examples.                 |
 | ipc_example_config_multi_topics.json            | Configuration for IPC based communication to be used with multi-topic publishing/subscribing. Works with publisher-many & subscriber examples. |
-| ipc_publisher_brokered.json                     | Publisher configuration for IPC based communication using the EII ZeroMQ Broker.    |
-| ipc_subscriber_brokered.json                    | Subscriber configuration for IPC based communication using the EII ZeroMQ Broker.   |
-| tcp_publisher_brokered_no_security.json         | TCP configuration for publishing with no security through the EII ZeroMQ Broker.    |
+| ipc_publisher_brokered.json                     | Publisher configuration for IPC based communication using the ZeroMQ Broker.    |
+| ipc_subscriber_brokered.json                    | Subscriber configuration for IPC based communication using the ZeroMQ Broker.   |
+| tcp_publisher_brokered_no_security.json         | TCP configuration for publishing with no security through the ZeroMQ Broker.    |
 | tcp_publisher_no_security.json                  | TCP configuration for publishing with no security.                                  |
 | tcp_publisher_with_security_no_auth.json        | TCP configuration for publishing with key based auth without ZAP auth.              |
 | tcp_publisher_with_security_with_auth.json      | TCP configuration for publishing with key based auth and ZAP auth.                  |
@@ -322,7 +322,7 @@ The table below specifies all of the provided example configurations.
 
 > **NOTE:** When using the brokered examples, you must also launch the broker
 > first. For more information on the broker and how to use it, see the
-> EIIZmqBroker/README.md.
+> ZmqBroker/README.md.
 
 You will notice that for the publisher configurations and service server side
 configurations there are 3 configurations each, where as subscribers and service
@@ -593,8 +593,8 @@ $ ./subscriber ./configs/tcp_subscriber_with_security.json
 
 **IMPORTANT NOTE:**
 
-Before runnint the examples below, you must start the EII ZeroMQ Broker. See
-the EIIZmqBroker/README.md for more details on configuring/launching the broker.
+Before runnint the examples below, you must start the ZeroMQ Broker. See
+the ZmqBroker/README.md for more details on configuring/launching the broker.
 Keep in mind that your broker configuration will impact the configuration
 needed for these examples.
 
@@ -603,7 +603,7 @@ socket for publishers to connect to is not named `frontend-sock` then this
 configuration file needs to be changed to reflect the different socket file
 name.
 
-To make this easy, the EII ZeroMQ Broker provides example configurations for TCP
+To make this easy, the ZeroMQ Broker provides example configurations for TCP
 and IPC which use the same socket directory / files and (host, port) combinations
 to easily try out this feature.
 
@@ -765,7 +765,7 @@ security primitives.
 ## Known issues
 
 Due to certain limitations imposed by cJSON, there is no proper distinction
-between an integer and a floating point in **EISMsgEnv**. As a result of this limitation,
+between an integer and a floating point in **EIIMsgEnv**. As a result of this limitation,
 the floating point values defined as whole numbers(1.0, 50.00 etc) are always deserialized
 as integers(1, 50 etc) on the subscriber's end in C, Python & Go APIs.
 

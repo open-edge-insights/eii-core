@@ -1,4 +1,4 @@
-Edge Insights Software (EII) is the framework for enabling smart manufacturing with visual and point defect inspections.
+Edge Insights for Industrial(EII) is the framework for enabling smart manufacturing with visual and point defect inspections.
 
 # Contents:
 
@@ -8,7 +8,7 @@ Edge Insights Software (EII) is the framework for enabling smart manufacturing w
 
 3. [EII Pre-requisites](#eii-pre-requisites)
 
-4. [Provision EII](#provision-eii)
+4. [Provision](#provision)
 
 5. [Build / Run EII PCB Demo Example](#build-and-run-eii-pcb-demo-example)
 
@@ -107,7 +107,7 @@ The section assumes the EII software is already downloaded from the release pack
 
 ## 1. Generating consolidated docker-compose.yml, eii_config.json and eii-k8s-deploy.yml files:
 
-EII is equipped with [eii_builder](build/eii_builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
+EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
 | file name                    | Description   |
 | ---------------------------- | ------------- |
@@ -118,98 +118,97 @@ EII is equipped with [eii_builder](build/eii_builder.py), a robust python tool t
   
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, 
-     it is required to re-run the eii_builder.py script before provisioning and running the EII stack to ensure that the 
+     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the 
      changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to 
-     respective files in EII app/service directories and use EII builder script to generate the conslidated ones.
+     respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
-### 2. Using EII builder script
+### 2. Using Builder script
 
 #### * Install requirements
 
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build
-# Install requirements for eii_builder.py
+# Install requirements for builder.py
 $ pip3 install -r requirements.txt
 ```
 
-#### * Running EII builder
+#### * Running Builder
 
-EII builder script usage:
+Builder script usage:
 
 ```sh
-$ python3.6 eii_builder.py -h
-usage: eii_builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
+$ python3.6 builder.py -h
+usage: builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
                     [-d OVERRIDE_DIRECTORY]
 
 optional arguments:
     -h, --help            show this help message and exit
     -f YML_FILE, --yml_file YML_FILE
                         Optional config file for list of services to include.
-                        Eg: python3.6 eii_builder.py -f video-streaming.yml
+                        Eg: python3.6 builder.py -f video-streaming.yml
                         (default: None)
     -v VIDEO_PIPELINE_INSTANCES, --video_pipeline_instances VIDEO_PIPELINE_INSTANCES
                         Optional number of video pipeline instances to be
-                        created. Eg: python3.6 eii_builder.py -v 6 (default:
+                        created. Eg: python3.6 builder.py -v 6 (default:
                         1)
     -d OVERRIDE_DIRECTORY, --override_directory OVERRIDE_DIRECTORY
                         Optional directory consisting of of benchmarking
                         configs to be present in each app directory. Eg:
-                        python3.6 eii_builder.py -d benchmarking (default:
+                        python3.6 builder.py -d benchmarking (default:
                         None)
 ```
 
 
-* `Running eii_builder to generate the above listed consolidated files for all applicable EII services`:
+* `Running builder to generate the above listed consolidated files for all applicable EII services`:
 
-   EII builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
+   Builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
 
    ```sh
-   $ python3 eii_builder.py
+   $ python3 builder.py
    ```
 
-* `Running eii_builder to generate the above listed consolidated files for a subset of EII services`:
+* `Running builder to generate the above listed consolidated files for a subset of EII services`:
 
-   This is achieved by providing a yml file to EII builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
+   This is achieved by providing a yml file to Builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
-  If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of eii_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/usecases/video-streaming.yml), [time-series](build/usecases/time-series.yml), [Azure](build/usecases/video-streaming-azure.yml), [TLS](build/usecases/video-streaming-tls.yml). 
+  If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/usecases/video-streaming.yml), [time-series](build/usecases/time-series.yml), [Azure](build/usecases/video-streaming-azure.yml), [TLS](build/usecases/video-streaming-tls.yml). 
   
-  An example for running EII builder with this flag is given below:
+  An example for running Builder with this flag is given below:
 
   ```sh
-  $ python3 eii_builder.py -f usecases/video-streaming.yml
+  $ python3 builder.py -f usecases/video-streaming.yml
   ```
 
-* `Running eii_builder to generate multi instance configs`:
+* `Running builder to generate multi instance configs`:
 
   Based on the user's requirements, eii_builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
 
   If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eii_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
   
-  An example for running eii_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
+  An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
-  $ python3 eii_builder.py -v 3 -f usecases/video-streaming.yml
+  $ python3 builder.py -v 3 -f usecases/video-streaming.yml
   ```
 
-  > **NOTE**: This multi-instance feature support of EII builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > **NOTE**: This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
-* `Running eii_builder to generate benchmarking configs`:
+* `Running builder to generate benchmarking configs`:
    
   If user wants to provide a different set of docker-compose.yml, config.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
   ```sh
-  $ python3 eii_builder.py -d benchmarking
+  $ python3 builder.py -d benchmarking
   ```
 
     > **Note:**
-    > * If using the override directory feature of eii_builder, it is recommended to include set of all 3 files mentioned above. Failing to provide any of the files in the override directory results in eii_builder not including that service in the generated final config.
-    > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [eii_builder_config.json](build/eii_builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [eii_builder_config.json](build/eii_builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
-    For eg: If eii_builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [eii_builder_config.json](build/eii_builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [eii_builder_config.json](build/eii_builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
+    > * If using the override directory feature of builder, it is recommended to include set of all 3 files mentioned above. Failing to provide any of the files in the override directory results in builder not including that service in the generated final config.
+    > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [builder_config.json](build/builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [builder_config.json](build/builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
+    For eg: If builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [builder_config.json](build/builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [builder_config.json](build/builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
+ #### 3. Adding new EII service so it gets picked up by Builder
 
- #### 3. Adding new EII service so it gets picked up by EII builder
-
-Since the eii_builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EII stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
+Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EII stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
 
 Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json). Additionally, if the EII service needs to be deployed over k8s orchestrator, the **k8s-service.yml** file needs to be defined.
 
@@ -269,15 +268,15 @@ Similar to above interface keys, EII services can also have "Servers" and "Clien
 More details on the `interfaces` key responsible for the EII MessageBus endpoint configuration
 can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces)
 
-# Provision EII
+# Provision
 
 <b>`By default EII is provisioned in Secure mode`</b>.
 
-Follow below steps to provision EII. Provisioning must be done before deploying EII on any node. It will start ETCD as a container and load it with configuration required to run EII for single node or multi node cluster set up.
+Follow below steps to provision. Provisioning must be done before deploying EII on any node. It will start ETCD as a container and load it with configuration required to run EII for single node or multi node cluster set up.
 
-Please follow below steps to provision EII in Developer mode. Developer mode will have all security disabled.
+Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
 
-* Please update DEV_MODE=true in [build/.env](build/.env) to provision EII in Developer mode.
+* Please update DEV_MODE=true in [build/.env](build/.env) to provision in Developer mode.
 * <b>Please comment secrets section for all services in [build/docker-compose.yml](../docker-compose.yml)</b>
 
 Following actions will be performed as part of Provisioning
@@ -293,12 +292,12 @@ Following actions will be performed as part of Provisioning
 $ python3.6 volume_data_script.py
 ```
 
-Below script starts `etcd` as a container and provision EII. Please pass docker-compose file as argument, against which provisioning will be done.
+Below script starts `etcd` as a container and provision. Please pass docker-compose file as argument, against which provisioning will be done.
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build/provision
-$ sudo ./provision_eii.sh <path_to_eii_docker_compose_file>
+$ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-# eq. $ sudo ./provision_eii.sh ../docker-compose.yml
+# eq. $ sudo ./provision.sh ../docker-compose.yml
 
 ```
 **Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
@@ -345,7 +344,7 @@ yaml file.
 | :---                                   | :---                                                                    |
 | Video streaming                        | [build/usecases/video-streaming.yml](build/usecases/video-streaming.yml)                  |
 | Video streaming and historical         | [build/usecases/video-streaming-storage.yml](build/usecases/video-streaming-storage.yml)  |
-| Video streaming with EIIAzureBridge    | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
+| Video streaming with AzureBridge    | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
 | Video streaming with TLSRemoteAgent    | [build/usecases/video-streaming-tls.yml](build/usecases/video-streaming-tls.yml)          |
 | Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
@@ -513,7 +512,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eii_config.json](build/eii_config.json) of the EII stack for timeseries use case when built via `eii_builder.py` as called out in previous steps.
+The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eii_config.json](build/eii_config.json) of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
@@ -538,7 +537,7 @@ EII stack comes with following services, which can be included/excluded in docke
 3. [Visualizer](Visualizer/README.md)
 4. [WebVisualizer](WebVisualizer/README.md)
 5. [ImageStore](ImageStore/README.md)
-6. [EIIAzureBridge](EIIAzureBridge/README.md)
+6. [AzureBridge](AzureBridge/README.md)
 7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants to control the light based on defective/non-defective data
 
 ## Timeseries related services

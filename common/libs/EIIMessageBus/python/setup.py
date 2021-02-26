@@ -38,7 +38,7 @@ setup(
     version='${PACKAGE_VERSION}',
     author='Kevin Midkiff',
     description='EII message bus Python wrapper',
-    keywords='msgbus eii zeromq',
+    keywords='msgbus zeromq',
     url='',
     long_description=read('../README.md'),
     classifiers=[

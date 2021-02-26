@@ -65,7 +65,7 @@ $ ./crc32-tests
 ## Known issues
 
 Due to certain limitations imposed by cJSON, there is no proper distinction
-between an integer and a floating point in EISMsgEnv. As a result of this limitation,
+between an integer and a floating point in EIIMsgEnv. As a result of this limitation,
 the floating point values defined as whole numbers(1.0, 50.00 etc) are always deserialized
 as integers(1, 50 etc).
 
