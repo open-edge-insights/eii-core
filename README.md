@@ -2,11 +2,11 @@ Edge Insights for Industrials (EII) is the framework for enabling smart manufact
 
 # Contents:
 
-1. [Minimum System Requirements](#minimum-system-requirements)
+1. [Minimum System Requirements](#minimum-system-requirements) 
 
-2. [Docker pre-requisites](#docker-pre-requisities)
+2. [EII Prerequisites installation](#eii-prerequisites-installation)
 
-3. [EII Pre-requisites](#eii-pre-requisites)
+3. [Generate deployment and configuration files](#generate-deployment-and-configuration-files)
 
 4. [Provision](#provision)
 
@@ -47,14 +47,47 @@ For performing Video Analytics, a 16GB of RAM is recommended.
 For time-series ingestion and analytics, a 2GB RAM is sufficient.
 The EII is validated on Ubuntu 18.04 and though it can run on other platforms supporting docker, it is not recommended.
 
+# EII Prerequisites installation
 
-# Docker Pre-requisities
+The installer script automates the installation & configuration of all the prerequisite software needed to be installed on a system with a freshly installed Operating system to make the system ready for provisioning, building and running EII stack. These pre-requisite softwares include:
+1. **docker daemon**
+2. **docker client**
+3. **docker-compose**
+4. **Python packages** 
+The script checks if docker & docker-compose are already installed in the system. If not installed, then it installs the intended version of the docker & docker-compose which is mentioned in the script.
+If docker and/or docker-compose are already installed in the system but the installed version of the docker/docker-compose is older than the intended docker/docker-compose version (which is mentioned in the script) then the script uninstalls the older version of docker/docker-compose & re-installs the intended version mentioned in the script. The script also configures the proxy settings for docker client and docker daemon to connect to internet.
 
-1. **Installing docker daemon and docker-compose tools with proxy settings configuration**.
+The "pre-requisite.sh" script also does Proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system in behind a proxy.  
+The `pre-requisite.sh` script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
 
-  Please follow the steps mentioned in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md) for installing docker daemon and docker-compose tool
+1. **Steps to run the installer script is as follows**:
 
-2. **Optional:** For enabling full security, make sure host machine and docker daemon are configured with below security recommendations. [build/docker_security_recommendation.md](build/docker_security_recommendation.md)
+```sh
+$ sudo ./pre-requisites.sh --help
+
+Usage :: sudo ./pre-requisites.sh [OPTION...]
+
+List of available options...
+
+--proxy         proxies, required when the gateway/edge node running EII (or any of EII profile) is connected behind proxy
+
+--help / -h         display this help and exit
+
+Note : If --proxy option is not provided then script will run without proxy
+
+Different use cases...
+
+                1. RUNS WITHOUT PROXY
+                $sudo ./pre-requisites.sh
+
+                
+                2.RUNS WITH PROXY
+                $sudo ./pre-requisites.sh --proxy="proxy.intel.com:891"
+
+```
+
+
+2. **Optional:** For enabling full security for production deployments, make sure host machine and docker daemon are configured with below security recommendations. [build/docker_security_recommendation.md](build/docker_security_recommendation.md)
 
 3. **Optional:** If one wishes to enable log rotation for docker containers
 
@@ -98,7 +131,7 @@ The EII is validated on Ubuntu 18.04 and though it can run on other platforms su
               max-file: 5
         ```
 
-# EII Pre-Requisites
+# Generate deployment and configuration files
 
 The section assumes the EII software is already downloaded from the release package or from git.
 
@@ -120,17 +153,8 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to 
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
-### 2. Using Builder script
-
-#### * Install requirements
-
-```sh
-$ cd [WORKDIR]/IEdgeInsights/build
-# Install requirements for builder.py
-$ pip3 install -r requirements.txt
-```
-
-#### * Running Builder
+### 2. Using builder script
+#### * Running builder
 
 Builder script usage:
 
@@ -584,4 +608,11 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
 
 # Troubleshooting guide
 
-Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation
+1. Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation
+2. If any issues are observed w.r.t the python package installation then manually install the python packages as shown below :
+
+```sh
+$ cd [WORKDIR]/IEdgeInsights/build
+# Install requirements for builder.py
+$ pip3 install -r requirements.txt
+```
