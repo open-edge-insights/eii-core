@@ -169,7 +169,7 @@ optional arguments:
 
    This is achieved by providing a yml file to EIS builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
-  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml), [TLS](build/video-streaming-tls.yml). 
+  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml) etc.,
   
   An example for running EIS builder with this flag is given below:
 
@@ -343,7 +343,6 @@ yaml file.
 | Video streaming                        | [build/video-streaming.yml](build/video-streaming.yml)                  |
 | Video streaming and historical         | [build/video-streaming-storage.yml](build/video-streaming-storage.yml)  |
 | Video streaming with EISAzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
-| Video streaming with TLSRemoteAgent    | [build/video-streaming-tls.yml](build/video-streaming-tls.yml)          |
 | Video streaming and custom udfs        | [build/video-streaming-all-udfs.yml](build/video-streaming-all-udfs.yml)|
 
 To build and run EIS in one command:
