@@ -146,11 +146,14 @@ int main(int argc, char** argv) {
     LOG_INFO("App interface value of Subscribers is %s\n", app_interface_value_char);
 
     // Freeing all variables
-    if (app_name != NULL) {
-        config_value_destroy(app_name);
-    }
     if (subscriber_interface != NULL) {
         cfgmgr_interface_destroy(subscriber_interface);
+    }
+    if (cfg_mgr != NULL) {
+        cfgmgr_destroy(cfg_mgr);
+    }
+    if (app_name != NULL) {
+        config_value_destroy(app_name);
     }
     if (ep != NULL) {
         config_value_destroy(ep);
@@ -166,12 +169,6 @@ int main(int argc, char** argv) {
     }
     if (sub_config != NULL) {
         config_destroy(sub_config);
-    }
-    if (app_interface != NULL) {
-        config_destroy(app_interface);
-    }
-    if (app_config != NULL) {
-        config_destroy(app_config);
     }
     if (sub_config_char != NULL) {
         free(sub_config_char);

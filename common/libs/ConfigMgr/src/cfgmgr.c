@@ -1055,9 +1055,6 @@ err:
     if (zmq_tcp_port != NULL) {
         config_value_destroy(zmq_tcp_port);
     }
-    if (zmq_tcp_publish != NULL) {
-        config_value_destroy(zmq_tcp_publish);
-    }
     return m_config;
 }
 
@@ -2597,9 +2594,11 @@ void cfgmgr_destroy(cfgmgr_ctx_t *cfg_mgr) {
 void cfgmgr_interface_destroy(cfgmgr_interface_t *cfg_mgr_interface) {
     LOG_DEBUG("In %s function", __func__);
     if (cfg_mgr_interface != NULL) {
-        if (cfg_mgr_interface->cfg_mgr) {
-            cfgmgr_destroy(cfg_mgr_interface->cfg_mgr);
-        }
+        // This needs to be freed manually by user
+        // by calling cfgmgr_destroy() separately
+        // if (cfg_mgr_interface->cfg_mgr) {
+        //     cfgmgr_destroy(cfg_mgr_interface->cfg_mgr);
+        // }
         if (cfg_mgr_interface->interface) {
             config_value_destroy(cfg_mgr_interface->interface);
         }

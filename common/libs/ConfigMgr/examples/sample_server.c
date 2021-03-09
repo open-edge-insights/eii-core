@@ -151,6 +151,9 @@ int main(int argc, char** argv) {
     if (server_interface != NULL) {
         cfgmgr_interface_destroy(server_interface);
     }
+    if (cfg_mgr != NULL) {
+        cfgmgr_destroy(cfg_mgr);
+    }
     if (app_name != NULL) {
         config_value_destroy(app_name);
     }
@@ -168,12 +171,6 @@ int main(int argc, char** argv) {
     }
     if (server_config != NULL) {
         config_destroy(server_config);
-    }
-    if (app_config != NULL) {
-        config_destroy(app_config);
-    }
-    if (app_interface != NULL) {
-        config_destroy(app_interface);
     }
     if (server_config_char != NULL) {
         free(server_config_char);

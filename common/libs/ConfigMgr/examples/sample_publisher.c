@@ -178,9 +178,13 @@ int main(int argc, char** argv) {
     char* app_interface_value_char = cvt_to_char(app_interface_value);
     LOG_INFO("App interface value of Publishers is %s\n", app_interface_value_char);
 
+
     // Freeing all variables
     if (publisher_interface != NULL) {
         cfgmgr_interface_destroy(publisher_interface);
+    }
+    if (cfg_mgr != NULL) {
+        cfgmgr_destroy(cfg_mgr);
     }
     if (app_name != NULL) {
         config_value_destroy(app_name);
@@ -203,12 +207,6 @@ int main(int argc, char** argv) {
     if (pub_config != NULL) {
         config_destroy(pub_config);
     }
-    if (app_config != NULL) {
-        config_destroy(app_config);
-    }
-    if (app_interface != NULL) {
-        config_destroy(app_interface);
-    }
     if (pub_config_char != NULL) {
         free(pub_config_char);
     }
@@ -225,7 +223,7 @@ int main(int argc, char** argv) {
         free(app_interface_value_char);
     }
     if (topics_to_be_set != NULL) {
-        free_mem(topics_to_be_set);
+        free(topics_to_be_set);
     }
     return 0;
 }

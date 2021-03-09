@@ -553,26 +553,14 @@ bool construct_tcp_publisher_prod(char* app_name, config_t* c_json, config_t* in
         if (publish_json_clients != NULL) {
             config_value_destroy(publish_json_clients);
         }
-        if (temp_array_value != NULL) {
-            config_value_destroy(temp_array_value);
-        }
         if (pub_key_values != NULL) {
             config_value_destroy(pub_key_values);
-        }
-        if (all_clients_arr_config != NULL) {
-            config_value_destroy(all_clients_arr_config);
         }
         if (array_value != NULL) {
             config_value_destroy(array_value);
         }
         if (publisher_secret_key_cvt != NULL) {
             config_value_destroy(publisher_secret_key_cvt);
-        }
-        if (all_clients_arr != NULL) {
-            config_value_destroy(all_clients_arr);
-        }
-        if (all_clients != NULL) {
-            free_mem(all_clients);
         }
         return ret_val;
 }
