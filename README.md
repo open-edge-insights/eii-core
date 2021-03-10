@@ -194,7 +194,7 @@ optional arguments:
 
    This is achieved by providing a yml file to Builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
-  If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/usecases/video-streaming.yml), [time-series](build/usecases/time-series.yml), [Azure](build/usecases/video-streaming-azure.yml), [TLS](build/usecases/video-streaming-tls.yml). 
+  If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of builder.py to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/usecases/video-streaming.yml), [time-series](build/usecases/time-series.yml), [Azure](build/usecases/video-streaming-azure.yml) etc.,
   
   An example for running Builder with this flag is given below:
 
@@ -366,8 +366,7 @@ yaml file.
 | :---                                   | :---                                                                    |
 | Video streaming                        | [build/usecases/video-streaming.yml](build/usecases/video-streaming.yml)                  |
 | Video streaming and historical         | [build/usecases/video-streaming-storage.yml](build/usecases/video-streaming-storage.yml)  |
-| Video streaming with AzureBridge    | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
-| Video streaming with TLSRemoteAgent    | [build/usecases/video-streaming-tls.yml](build/usecases/video-streaming-tls.yml)          |
+| Video streaming with AzureBridge       | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
 | Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
 To build and run EII in one command:
