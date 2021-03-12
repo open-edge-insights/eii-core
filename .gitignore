@@ -37,6 +37,8 @@ build/k8s/eis-k8s-deploy.yml
 # is pulled onto IEdgeInsights folder making
 # all these apps/services appear as untracked
 # files
+common/util/c/
+common/libs/EISMessageBus/
 FactoryControlApp/
 Grafana/
 ImageStore/
