@@ -150,20 +150,6 @@ else
     check_error "----Failed to install IntelSafeString lib----"
 fi
 
-log_info "----Installing EISMsgEnv lib----"
-cd $EISMessageBus/../EISMsgEnv/ &&
-   rm -rf build && \
-   mkdir build && \
-   cd build && \
-   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-   make && \
-   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
-   ./msg-envelope-tests  && \
-   ./crc32-tests  && \
-   cd .. ; fi && \
-   make install
-check_error "----Failed to install EISMsgEnv lib----"
-
 log_info "----Installing Util lib----"
 cd $EISMessageBus/../../util/c/ &&
    ./install.sh && \
@@ -193,10 +179,14 @@ cd $EISMessageBus/../DynLibLoad/ && \
     make install
 check_error "----Failed to install Util lib----"
 
-log_info "----Installing EISMessageBus c++ lib from DEB package----"
-cd $EISMessageBus &&
-   apt install ./eis-messagebus-2.4.0-Linux.deb
-check_error "----Failed to install EISMessageBus c++ lib----"
+log_info "----Installing EISMessageBus c library----"
+cd $EISMessageBus && \
+    rm -rf build/ && \
+    mkdir build/ && \
+    cd build/ && \
+    cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+    make install
+check_error "----Failed to install EISMessageBus c lib----"
 
 log_info "----Installing EISMessageBus python binding----"
 cd $EISMessageBus/python &&

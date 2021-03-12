@@ -30,8 +30,6 @@ COPY cmake ./common/cmake
 
 COPY libs/IntelSafeString ./common/libs/IntelSafeString/
 
-COPY libs/EISMsgEnv ./common/libs/EISMsgEnv
-
 COPY util/ ./common/util/
 
 COPY libs/DynLibLoad/ ./common/libs/DynLibLoad
