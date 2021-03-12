@@ -70,7 +70,7 @@ function souce_env() {
 
 function export_host_ip() {
     if [ -z $HOST_IP ]; then
-        hostIP=`hostname -I | awk '{print $1}'`
+	hostIP=$(ip -4 addr list | grep "state UP" -A1 | tail -n1 | awk {'print $2'} | cut -f1 -d'/')
         export HOST_IP=$hostIP
     fi
     echo 'System IP Address is:' $HOST_IP
