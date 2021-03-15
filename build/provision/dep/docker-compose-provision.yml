@@ -26,9 +26,9 @@ services:
       dockerfile: ./dep/Dockerfile
       args:
        ETCD_VERSION: $ETCD_VERSION
-       EIS_UID: $EIS_UID
+       EII_UID: $EII_UID
     read_only: true
-    image: ia_etcd:$EIS_VERSION
+    image: ia_etcd:$EII_VERSION
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m
@@ -46,15 +46,15 @@ services:
       ETCD_NAME: $ETCD_NAME
       ETCD_INITIAL_CLUSTER_STATE: $ETCD_INITIAL_CLUSTER_STATE
       ETCD_INITIAL_CLUSTER: $ETCD_INITIAL_CLUSTER
-      no_proxy: $eis_no_proxy
-      NO_PROXY: $eis_no_proxy
+      no_proxy: $eii_no_proxy
+      NO_PROXY: $eii_no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
     volumes:
       - "vol_etcd:$ETCD_DATA_DIR"
     network_mode: host
     ipc: "none"
-    user: $EIS_UID
+    user: $EII_UID
     
   ia_etcd_provision:
     depends_on:
@@ -63,19 +63,19 @@ services:
        context: ../
        dockerfile: ./dep/Dockerfile.provision
        args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: $EIS_UID
+        EII_VERSION: ${EII_VERSION}
+        EII_UID: $EII_UID
     container_name: ia_etcd_provision
     read_only: true
-    image: ia_etcd_provision:$EIS_VERSION
+    image: ia_etcd_provision:$EII_VERSION
     volumes:
-      - "../config:/EIS/etcd/config/"
-      - "../docker-compose.yml:/EIS/etcd/docker-compose.yml"
+      - "../config:/EII/etcd/config/"
+      - "../docker-compose.yml:/EII/etcd/docker-compose.yml"
     environment:
       ETCDCTL_API: 3
       DEV_MODE: ${DEV_MODE}
-      no_proxy: $eis_no_proxy
-      NO_PROXY: $eis_no_proxy
+      no_proxy: $eii_no_proxy
+      NO_PROXY: $eii_no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
       provision_mode: $PROVISION_MODE
@@ -84,7 +84,7 @@ services:
       ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
     network_mode: host
     ipc: "none"
-    user: $EIS_UID
+    user: $EII_UID
 
 volumes:
   vol_etcd:
@@ -92,5 +92,5 @@ volumes:
     driver_opts:
       type: local
       o: bind
-      device: ${EIS_INSTALL_PATH}/data/etcd/
+      device: ${EII_INSTALL_PATH}/data/etcd/
    

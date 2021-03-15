@@ -18,12 +18,12 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-#include <eis/utils/config.h>
-#include <eis/utils/string.h>
+#include <eii/utils/config.h>
+#include <eii/utils/string.h>
 #include <stdlib.h>
 
-#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
-#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
+#include <eii/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eii/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
 
 #define PORT            "port"
 #define HOST            "host"

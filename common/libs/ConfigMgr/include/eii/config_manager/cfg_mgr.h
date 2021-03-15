@@ -24,18 +24,18 @@
  */
 
 #include <ctype.h>
-#include "eis/config_manager/pub_cfg.h"
-#include "eis/config_manager/sub_cfg.h"
-#include "eis/config_manager/server_cfg.h"
-#include "eis/config_manager/client_cfg.h"
+#include "eii/config_manager/pub_cfg.h"
+#include "eii/config_manager/sub_cfg.h"
+#include "eii/config_manager/server_cfg.h"
+#include "eii/config_manager/client_cfg.h"
 
 #define PUBLISHERS "Publishers"
 #define SUBSCRIBERS "Subscribers"
 #define SERVERS "Servers"
 #define CLIENTS "Clients"
 
-#ifndef _EIS_C_CONFIG_MGR_H
-#define _EIS_C_CONFIG_MGR_H
+#ifndef _EII_C_CONFIG_MGR_H
+#define _EII_C_CONFIG_MGR_H
 
 #ifdef __cplusplus
 extern "C" {

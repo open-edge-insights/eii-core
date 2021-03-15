@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 """Script to list out and remove all the docker volumes created by
-   EIS services.
+   EII services.
 """
 import subprocess
 import yaml

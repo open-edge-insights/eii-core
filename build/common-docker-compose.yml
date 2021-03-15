@@ -22,46 +22,46 @@ version: '3.6'
 
 services:
 
-  ##----Start: EIS Base Images -- This Base images must be included for building any EIS servcies ----
-  ## Define ia_eisbase service
-  ia_eisbase:
+  ##----Start: EII Base Images -- This Base images must be included for building any EII servcies ----
+  ## Define ia_eiibase service
+  ia_eiibase:
     build:
       context: $PWD/../common
-      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eisbase
+      dockerfile: $PWD/../common/dockerfiles/Dockerfile.eiibase
       args:
           UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
-          EIS_VERSION: ${EIS_VERSION}
+          EII_VERSION: ${EII_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
           GO_VERSION: ${GO_VERSION}
-    image: ${DOCKER_REGISTRY}ia_eisbase:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION}
     ipc: "none"
 
   ## Define ia_common service
   ia_common:
     depends_on:
-      - ia_eisbase
+      - ia_eiibase
     build:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
-          EIS_VERSION: ${EIS_VERSION}
+          EII_VERSION: ${EII_VERSION}
           # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
           CMAKE_BUILD_TYPE: "Release"
           RUN_TESTS: "OFF"
           DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EIS_VERSION}
+    image: ${DOCKER_REGISTRY}ia_common:${EII_VERSION}
     ipc: "none"
 
-  ##----End: EIS Base Images---- -- This Base images must be included for building any EIS servcies ----
+  ##----End: EII Base Images---- -- This Base images must be included for building any EII servcies ----
 
 volumes:
-  vol_eis_socket:
+  vol_eii_socket:
     driver: local
     driver_opts:
       type: local
       o: bind
-      device: ${EIS_INSTALL_PATH}/sockets
+      device: ${EII_INSTALL_PATH}/sockets
 
   vol_etcd_keeper:
     driver: local

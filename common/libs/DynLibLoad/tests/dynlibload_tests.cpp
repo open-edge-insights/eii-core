@@ -25,8 +25,8 @@
 #include <gtest/gtest.h>
 #include <errno.h>
 #include <limits.h>
-#include <eis/utils/string.h>
-#include "eis/dynlibload/dynlibload.h"
+#include <eii/utils/string.h>
+#include "eii/dynlibload/dynlibload.h"
 
 // Macros
 #define ASSERT_NOT_NULL(val) { \

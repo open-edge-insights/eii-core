@@ -24,7 +24,7 @@
  */
 
 
-#include "eis/config_manager/base_cfg.h"
+#include "eii/config_manager/base_cfg.h"
 
 #define SOCKET_FILE "socket_file"
 #define ENDPOINT "EndPoint"
@@ -36,8 +36,8 @@
 #define MAX_CONFIG_KEY_LENGTH 250
 
 
-#ifndef _EIS_C_UTIL_CFG_H
-#define _EIS_C_UTIL_CFG_H
+#ifndef _EII_C_UTIL_CFG_H
+#define _EII_C_UTIL_CFG_H
 
 #ifdef __cplusplus
 extern "C" {

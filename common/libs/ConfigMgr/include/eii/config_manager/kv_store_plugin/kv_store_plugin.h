@@ -27,11 +27,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <eis/utils/config.h>
-#include <eis/utils/logger.h>
+#include <eii/utils/config.h>
+#include <eii/utils/logger.h>
 
-#ifndef EIS_KV_STORE_CLIENT_H
-#define EIS_KV_STORE_CLIENT_H
+#ifndef EII_KV_STORE_CLIENT_H
+#define EII_KV_STORE_CLIENT_H
 
 #ifdef __cplusplus
 extern "C" {

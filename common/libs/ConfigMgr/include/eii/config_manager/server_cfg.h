@@ -24,7 +24,7 @@
  */
 
 
-#include "eis/config_manager/base_cfg.h"
+#include "eii/config_manager/base_cfg.h"
 #define TYPE "Type"
 #define NAME "Name"
 #define ENDPOINT "EndPoint"
@@ -33,8 +33,8 @@
 #define PUBLIC_KEYS "/Publickeys/"
 #define PRIVATE_KEY "/private_key"
 
-#ifndef _EIS_C_SERV_CFG_H
-#define _EIS_C_SERV_CFG_H
+#ifndef _EII_C_SERV_CFG_H
+#define _EII_C_SERV_CFG_H
 
 #ifdef __cplusplus
 extern "C" {

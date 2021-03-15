@@ -24,8 +24,8 @@
  * to comminate with etcd server
 **/
 
-#ifndef _EIS_ETCD_CLIENT_H
-#define _EIS_ETCD_CLIENT_H
+#ifndef _EII_ETCD_CLIENT_H
+#define _EII_ETCD_CLIENT_H
 
 #include <iostream>
 #include <memory>
@@ -36,13 +36,13 @@
 #include <sstream>
 #include <fstream>
 #include <cjson/cJSON.h>
-#include "eis/utils/json_config.h"
+#include "eii/utils/json_config.h"
 #include <grpcpp/grpcpp.h>
 #include <grpc++/security/credentials.h>
 #include <fstream>
 
-#include <eis/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.grpc.pb.h>
-#include <eis/config_manager/kv_store_plugin/etcd_client/protobuf/kv.pb.h>
+#include <eii/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.grpc.pb.h>
+#include <eii/config_manager/kv_store_plugin/etcd_client/protobuf/kv.pb.h>
 
 #define ADDRESS_LEN 30
 using grpc::Channel;
@@ -141,4 +141,4 @@ class EtcdClient {
         std::unique_ptr<KV::Stub> kv_stub;
 };
 
-#endif // _EIS_ETCD_CLIENT_H
+#endif // _EII_ETCD_CLIENT_H

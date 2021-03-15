@@ -18,24 +18,24 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-get_filename_component(EISDynLibLoad_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(EIIDynLibLoad_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 
-list(APPEND CMAKE_MODULE_PATH ${EISDynLibLoad_CMAKE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${EIIDynLibLoad_CMAKE_DIR})
 
 # NOTE Had to use find_package because find_dependency does not support
 # COMPONENTS or MODULE until 3.8.0
 find_package(IntelSafeString REQUIRED)
-find_package(EISUtils REQUIRED)
+find_package(EIIUtils REQUIRED)
 
 # Include header directories
 include_directories(
-    ${EISUtils_INCLUDE}
+    ${EIIUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
 
-if(NOT TARGET EISDynLibLoad)
-    include("${EISDynLibLoad_CMAKE_DIR}/EISDynLibLoadTargets.cmake")
+if(NOT TARGET EIIDynLibLoad)
+    include("${EIIDynLibLoad_CMAKE_DIR}/EIIDynLibLoadTargets.cmake")
 endif()
 
-set(EISDYNLIBLOAD_LIBRARIES eisdynlibload)
-set(EISDYNLIBLOAD_INCLUDE   ${INSTALL_LIBDIR}/include)
+set(EIIDYNLIBLOAD_LIBRARIES eiidynlibload)
+set(EIIDYNLIBLOAD_INCLUDE   ${INSTALL_LIBDIR}/include)

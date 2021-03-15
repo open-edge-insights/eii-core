@@ -1,4 +1,4 @@
-Edge Insights Software (EIS) is the framework for enabling smart manufacturing with visual and point defect inspections.
+Edge Insights for Industrials (EII) is the framework for enabling smart manufacturing with visual and point defect inspections.
 
 # Contents:
 
@@ -6,11 +6,11 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 2. [Docker pre-requisites](#docker-pre-requisities)
 
-3. [EIS Pre-requisites](#eis-pre-requisites)
+3. [EII Pre-requisites](#eii-pre-requisites)
 
-4. [Provision EIS](#provision-eis)
+4. [Provision](#provision)
 
-5. [Build / Run EIS PCB Demo Example](#build-and-run-eis-pcb-demo-example)
+5. [Build / Run EII PCB Demo Example](#build-and-run-eii-pcb-demo-example)
 
 6. [Custom Udfs](#custom-udfs)
 
@@ -22,16 +22,16 @@ Edge Insights Software (EIS) is the framework for enabling smart manufacturing w
 
 10. [Time-series Analytics](#time-series-analytics)
 
-11. [List of All EIS services](#list-of-all-eis-services)
+11. [List of All EII services](#list-of-all-eii-services)
 
-12. [EIS multi node cluster provision and deployment using Turtlecreek](#eis-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+12. [EII multi node cluster provision and deployment using Turtlecreek](#eii-multi-node-cluster-provision-and-deployment-using-turtlecreek)
 
 13. [Debugging options](#debugging-options)
 
 
 # Minimum System Requirements
 
-EIS software will run on the below mentioned Intel platforms:
+EII software will run on the below mentioned Intel platforms:
 
 ```
 * 6th generation Intel® CoreTM processor onwards OR
@@ -45,7 +45,7 @@ EIS software will run on the below mentioned Intel platforms:
 
 For performing Video Analytics, a 16GB of RAM is recommended.
 For time-series ingestion and analytics, a 2GB RAM is sufficient.
-The EIS is validated on Ubuntu 18.04 and though it can run on other platforms supporting docker, it is not recommended.
+The EII is validated on Ubuntu 18.04 and though it can run on other platforms supporting docker, it is not recommended.
 
 
 # Docker Pre-requisities
@@ -98,117 +98,117 @@ The EIS is validated on Ubuntu 18.04 and though it can run on other platforms su
               max-file: 5
         ```
 
-# EIS Pre-Requisites
+# EII Pre-Requisites
 
-The section assumes the EIS software is already downloaded from the release package or from git.
+The section assumes the EII software is already downloaded from the release package or from git.
 
-## 1. Generating consolidated docker-compose.yml, eis_config.json and eis-k8s-deploy.yml files:
+## 1. Generating consolidated docker-compose.yml, eii_config.json and eii-k8s-deploy.yml files:
 
-EIS is equipped with [eis_builder](build/eis_builder.py), a robust python tool to auto-generate the required configuration files to deploy EIS services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EIS service directories which are required to bring up different EII use-cases:
+EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
 | file name                    | Description   |
 | ---------------------------- | ------------- |
-| docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EIS docker containers in a given single node using `docker-compose` tool                                       |
-| docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EIS deployment on a given single node using `docker-compose` tool |
-| eis_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
-| eis-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EIS servcie via Kubernetes orchestrator                                                       |
+| docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EII docker containers in a given single node using `docker-compose` tool                                       |
+| docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
+| eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
+| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII servcie via Kubernetes orchestrator                                                       |
   
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, 
-     it is required to re-run the eis_builder.py script before provisioning and running the EII stack to ensure that the 
+     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the 
      changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to 
-     respective files in EII app/service directories and use EIS builder script to generate the conslidated ones.
+     respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
-### 2. Using EIS builder script
+### 2. Using Builder script
 
 #### * Install requirements
 
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build
-# Install requirements for eis_builder.py
+# Install requirements for builder.py
 $ pip3 install -r requirements.txt
 ```
 
-#### * Running EIS builder
+#### * Running Builder
 
-EIS builder script usage:
+Builder script usage:
 
 ```sh
-$ python3.6 eis_builder.py -h
-usage: eis_builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
+$ python3.6 builder.py -h
+usage: builder.py [-h] [-f YML_FILE] [-v VIDEO_PIPELINE_INSTANCES]
                     [-d OVERRIDE_DIRECTORY]
 
 optional arguments:
     -h, --help            show this help message and exit
     -f YML_FILE, --yml_file YML_FILE
                         Optional config file for list of services to include.
-                        Eg: python3.6 eis_builder.py -f video-streaming.yml
+                        Eg: python3.6 builder.py -f video-streaming.yml
                         (default: None)
     -v VIDEO_PIPELINE_INSTANCES, --video_pipeline_instances VIDEO_PIPELINE_INSTANCES
                         Optional number of video pipeline instances to be
-                        created. Eg: python3.6 eis_builder.py -v 6 (default:
+                        created. Eg: python3.6 builder.py -v 6 (default:
                         1)
     -d OVERRIDE_DIRECTORY, --override_directory OVERRIDE_DIRECTORY
                         Optional directory consisting of of benchmarking
                         configs to be present in each app directory. Eg:
-                        python3.6 eis_builder.py -d benchmarking (default:
+                        python3.6 builder.py -d benchmarking (default:
                         None)
 ```
 
 
-* `Running eis_builder to generate the above listed consolidated files for all applicable EIS services`:
+* `Running builder to generate the above listed consolidated files for all applicable EII services`:
 
-   EIS builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
+   Builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
 
    ```sh
-   $ python3 eis_builder.py
+   $ python3 builder.py
    ```
 
-* `Running eis_builder to generate the above listed consolidated files for a subset of EIS services`:
+* `Running builder to generate the above listed consolidated files for a subset of EII services`:
 
-   This is achieved by providing a yml file to EIS builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
+   This is achieved by providing a yml file to Builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
-  If user wants to include only a certain number of services in the EIS stack, he can opt to provide the **-f or yml_file** flag of eis_builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml) etc.,
+  If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml) etc.,
   
-  An example for running EIS builder with this flag is given below:
+  An example for running Builder with this flag is given below:
 
   ```sh
-  $ python3 eis_builder.py -f video-streaming.yml
+  $ python3 builder.py -f video-streaming.yml
   ```
 
-* `Running eis_builder to generate multi instance configs`:
+* `Running builder to generate multi instance configs`:
 
-  Based on the user's requirements, eis_builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
+  Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
 
-  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eis_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eis_config.json & k8s k8s-service.yml files respectively.
+  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
   
-  An example for running eis_builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
+  An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
-  $ python3 eis_builder.py -v 3 -f video-streaming.yml
+  $ python3 builder.py -v 3 -f video-streaming.yml
   ```
 
-  > **NOTE**: This multi-instance feature support of EIS builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > **NOTE**: This multi-instance feature support of Builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
-* `Running eis_builder to generate benchmarking configs`:
+* `Running builder to generate benchmarking configs`:
    
   If user wants to provide a different set of docker-compose.yml, config.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
   ```sh
-  $ python3 eis_builder.py -d benchmarking
+  $ python3 builder.py -d benchmarking
   ```
 
     > **Note:**
-    > * If using the override directory feature of eis_builder, it is recommended to include set of all 3 files mentioned above. Failing to provide any of the files in the override directory results in eis_builder not including that service in the generated final config.
-    > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [eis_builder_config.json](build/eis_builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
-    For eg: If eis_builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [eis_builder_config.json](build/eis_builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
+    > * If using the override directory feature of builder, it is recommended to include set of all 3 files mentioned above. Failing to provide any of the files in the override directory results in builder not including that service in the generated final config.
+    > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [builder_config.json](build/builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [builder_config.json](build/builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
+    For eg: If builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [builder_config.json](build/builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [builder_config.json](build/builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
 
- #### 3. Adding new EIS service so it gets picked up by EIS builder
+ #### 3. Adding new EII service so it gets picked up by Builder
 
-Since the eis_builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EIS stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
+Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EII stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
 
-Any service that needs to be added into the EIS stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EIS stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eis_config.json](build/provision/config/eis_config.json). Additionally, if the EIS service needs to be deployed over k8s orchestrator, the **k8s-service.yml** file needs to be defined.
+Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json). Additionally, if the EII service needs to be deployed over k8s orchestrator, the **k8s-service.yml** file needs to be defined.
 
 An example has been provided below on how to write the **config.json** for any new service, subscribe it to **VideoAnalytics** and publish on a new port:
 
@@ -252,34 +252,34 @@ An example has been provided below on how to write the **config.json** for any n
 ```
 
 In the above specified **config.json**, the value of **config** key is the config required by the service to run and the value of the **interfaces** key is the config required by the service to 
-interact with other services of EIS stack over EIS message bus.
+interact with other services of EII stack over EII message bus.
 
 The **Subscribers** value in the **interfaces** section denotes that this service should act as a subscriber to the stream being published by the value specified by **PublisherAppName** on the 
 endpoint mentioned in value specified by **EndPoint** on topics specified in value of **Topics** key.
 
 The **Publishers** value in the **interfaces** section denotes that this service publishes a stream of data after obtaining and processing it from **VideoAnalytics**. The stream is published on 
 the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to 
-subscribe to the published stream if being published securely over the EISMessageBus.
+subscribe to the published stream if being published securely over the EIIMessageBus.
 
-Similar to above interface keys, EIS services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
+Similar to above interface keys, EII services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
 
-More details on the `interfaces` key responsible for the EIS MessageBus endpoint configuration
+More details on the `interfaces` key responsible for the EII MessageBus endpoint configuration
 can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces)
 
-# Provision EIS
+# Provision
 
-<b>`By default EIS is provisioned in Secure mode`</b>.
+<b>`By default EII is provisioned in Secure mode`</b>.
 
-Follow below steps to provision EIS. Provisioning must be done before deploying EIS on any node. It will start ETCD as a container and load it with configuration required to run EIS for single node or multi node cluster set up.
+Follow below steps to provision. Provisioning must be done before deploying EII on any node. It will start ETCD as a container and load it with configuration required to run EII for single node or multi node cluster set up.
 
-Please follow below steps to provision EIS in Developer mode. Developer mode will have all security disabled.
+Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
 
-* Please update DEV_MODE=true in [build/.env](build/.env) to provision EIS in Developer mode.
+* Please update DEV_MODE=true in [build/.env](build/.env) to provision in Developer mode.
 * <b>Please comment secrets section for all services in [build/docker-compose.yml](../docker-compose.yml)</b>
 
 Following actions will be performed as part of Provisioning
 
- * Loading inital ETCD values from json file located at [build/provision/config/eis_config.json](build/provision/config/eis_config.json).
+ * Loading inital ETCD values from json file located at [build/provision/config/eii_config.json](build/provision/config/eii_config.json).
  * For Secure mode, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
  * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
@@ -290,12 +290,12 @@ Following actions will be performed as part of Provisioning
 $ python3.6 volume_data_script.py
 ```
 
-Below script starts `etcd` as a container and provision EIS. Please pass docker-compose file as argument, against which provisioning will be done.
+Below script starts `etcd` as a container and provision. Please pass docker-compose file as argument, against which provisioning will be done.
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build/provision
-$ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
+$ sudo ./provision.sh <path_to_eii_docker_compose_file>
 
-# eq. $ sudo ./provision_eis.sh ../docker-compose.yml
+# eq. $ sudo ./provision.sh ../docker-compose.yml
 
 ```
 **Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
@@ -303,17 +303,17 @@ $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>
 $ ./etcd_capture.sh
 ```
 
-# Build and Run EIS PCB video/timeseries use cases
+# Build and Run EII PCB video/timeseries use cases
 
   ---
   > **Note:**
   > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
-     run command `$ xhost +` in the terminal before starting EIS stack, this is a one time configuration.
+     run command `$ xhost +` in the terminal before starting EII stack, this is a one time configuration.
      This is needed by `ia_visualizer` service to render the UI
-  > * For running EIS services in IPC mode, make sure that the same user should be there in publisher and subscriber.
+  > * For running EII services in IPC mode, make sure that the same user should be there in publisher and subscriber.
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
-     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EIS_UID}` is in publisher service, then the
-     same `user: ${EIS_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
+     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EII_UID}` is in publisher service, then the
+     same `user: ${EII_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
   > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the
      [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and
@@ -323,9 +323,9 @@ $ ./etcd_capture.sh
   >     ```
   ---
 
-All the below EIS build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory.
+All the below EII build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory.
 
-Below are the usecases supported by EIS to bring up the respective services mentioned in the
+Below are the usecases supported by EII to bring up the respective services mentioned in the
 yaml file.
 
 ## Main usecases
@@ -342,10 +342,10 @@ yaml file.
 | :---                                   | :---                                                                    |
 | Video streaming                        | [build/video-streaming.yml](build/video-streaming.yml)                  |
 | Video streaming and historical         | [build/video-streaming-storage.yml](build/video-streaming-storage.yml)  |
-| Video streaming with EISAzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
+| Video streaming with AzureBridge    | [build/video-streaming-azure.yml](build/video-streaming-azure.yml)      |
 | Video streaming and custom udfs        | [build/video-streaming-all-udfs.yml](build/video-streaming-all-udfs.yml)|
 
-To build and run EIS in one command:
+To build and run EII in one command:
 
 ```sh
 $ docker-compose up --build -d
@@ -364,13 +364,13 @@ If any of the services fails during build, it can be built using below command
 $ docker-compose build --no-cache <service name>
 ```
 
-Please note that the first time build of EIS containers may take ~70 minutes depending on the n/w speed.
+Please note that the first time build of EII containers may take ~70 minutes depending on the n/w speed.
 
 A successful run will open Visualizer UI with results of video analytics for all video usecases.
 
 # Custom Udfs
 
-The following are the two Custom Udfs workflow which EIS supports:
+The following are the two Custom Udfs workflow which EII supports:
 
 1. Build / Run custom udfs as standalone applications
 
@@ -383,18 +383,18 @@ The following are the two Custom Udfs workflow which EIS supports:
 # Etcd Secrets Configuration
 
 Etcd Secrets configuration are done to establish the data path
-of various EIS containers.
+of various EII containers.
 
 Every service in [build/docker-compose.yml](build/docker-compose.yml)
 is a
-* messagebus client if it needs to send or receive data over EISMessageBus
+* messagebus client if it needs to send or receive data over EIIMessageBus
 * etcd client if it needs to get data from etcd distributed key store
 
 For more details, visit [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md)
 
 # Enable camera based Video Ingestion
 
-EIS supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
+EII supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
 
 All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference.
 
@@ -404,8 +404,8 @@ For Sample docker-compose file and ETCD preload values for multiple camaras, ref
 
 # Using video accelerators
 
-EIS supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in `udfs`
-key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eis_config.json](build/provision/config/eis_config.json)
+EII supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in `udfs`
+key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eii_config.json](build/provision/config/eii_config.json)
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](common/udfs/README.md).
 
@@ -466,7 +466,7 @@ check [common/udfs/README.md](common/udfs/README.md).
 * **Troubleshooting issues for MYRIAD(NCS2) devices**
 
   * Following is an workaround can be excercised if in case user observes `NC_ERROR` during device initialization of NCS2 stick.
-     While running EIS if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
+     While running EII if NCS2 devices failed to initialize properly then user can re-plug the device for the init to happen freshly.
      User can verify the successfull initialization by executing ***dmesg**** & ***lsusb***  as below:
 
      ```sh
@@ -509,18 +509,18 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-The services mentioned in [build/time-series.yml](build/time-series) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eis_config.json](build/eis_config.json) of the EIS stack for timeseries use case when built via `eis_builder.py` as called out in previous steps.
+The services mentioned in [build/time-series.yml](build/time-series) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eii_config.json](build/eii_config.json) of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt-temp-sensor](tools/mqtt-temp-sensor) application.
 
-# List of All EIS Services
+# List of All EII Services
 
-EIS stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
+EII stack comes with following services, which can be included/excluded in docker-compose file based on requirements.
 
-## Common EIS services
+## Common EII services
 
 1. [EtcdUI](EtcdUI/README.md)
 2. [InfluxDBConnector](InfluxDBConnector/README.md)
@@ -534,7 +534,7 @@ EIS stack comes with following services, which can be included/excluded in docke
 3. [Visualizer](Visualizer/README.md)
 4. [WebVisualizer](WebVisualizer/README.md)
 5. [ImageStore](ImageStore/README.md)
-6. [EISAzureBridge](EISAzureBridge/README.md)
+6. [AzureBridge](AzureBridge/README.md)
 7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants to control the light based on defective/non-defective data
 
 ## Timeseries related services
@@ -543,15 +543,15 @@ EIS stack comes with following services, which can be included/excluded in docke
 2. [Kapacitor](Kapacitor/README.md)
 3. [Grafana](Grafana/README.md)
 
-# EIS multi node cluster provision and deployment using Turtlecreek
+# EII multi node cluster provision and deployment using Turtlecreek
 
-By default EIS is provisioned with Single node cluster. In order to deploy EIS on multiple nodes using docker registry, provision ETCD cluster and
+By default EII is provisioned with Single node cluster. In order to deploy EII on multiple nodes using docker registry, provision ETCD cluster and
 remote managibility using turtlecreek, please follow [build/deploy/README.md](build/deploy/README.md)
 
 # Debugging options
 
-1. To check if all the EIS images are built successfully, use cmd: `docker images|grep ia` and
-   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EIS containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `build\dockerfiles` at the top after the LABEL instruction and retry the building EIS images:
+1. To check if all the EII images are built successfully, use cmd: `docker images|grep ia` and
+   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EII containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service. Even after doing this, if you are running into the same issue, please add below instrcutions to all the dockerfiles in `build\dockerfiles` at the top after the LABEL instruction and retry the building EII images:
 
     ```sh
     ENV http_proxy http://proxy.iind.intel.com:911
@@ -560,9 +560,9 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
 
 2. `docker ps` should list all the enabled containers which are included in docker-compose.yml
 
-3. To verify if the default video pipeline with EIS is working fine i.e., from video ingestion->video analytics->visualizer, please check the visualizer UI
+3. To verify if the default video pipeline with EII is working fine i.e., from video ingestion->video analytics->visualizer, please check the visualizer UI
 
-4. `/opt/intel/eis` root directory gets created - This is the installation path for EIS:
+4. `/opt/intel/eii` root directory gets created - This is the installation path for EII:
      * `data/` - stores the backup data for persistent imagestore and influxdb
      * `sockets/` - stores the IPC ZMQ socket files
 
@@ -590,4 +590,4 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
 
 # Troubleshooting guide
 
-Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EIS configuration and installation
+Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation

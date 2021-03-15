@@ -17,14 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus echo service client Python example.
+"""EII Message Bus echo service client Python example.
 """
 
 import time
 import json
 import argparse
 import os
-import eis.msgbus as mb
+import eii.msgbus as mb
 import cfgmgr.config_manager as cfg
 
 msgbus = None
@@ -43,7 +43,7 @@ try:
     # get 0th client interface object
     #client_ctx = ctx.get_client_by_index(0)
 
-    # get client msgbus config for application to communicate over EIS message bus
+    # get client msgbus config for application to communicate over EII message bus
     config = client_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(client_ctx.get_endpoint()))

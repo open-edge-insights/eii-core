@@ -23,10 +23,10 @@
  * @brief KV Store Plugin implementation
  */
 
-#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
-#include <eis/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
+#include <eii/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eii/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
 
-#include <eis/utils/config.h>
+#include <eii/utils/config.h>
 #include <safe_lib.h>
 
 #define KV_ETCD "etcd"

@@ -24,9 +24,9 @@
  */
 
 
-#include "eis/config_manager/server_cfg.h"
+#include "eii/config_manager/server_cfg.h"
 #include <stdarg.h>
-#include "eis/config_manager/util_cfg.h"
+#include "eii/config_manager/util_cfg.h"
 
 #define MAX_CONFIG_KEY_LENGTH 250
 

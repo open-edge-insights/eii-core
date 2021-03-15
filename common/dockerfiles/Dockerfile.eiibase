@@ -18,16 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# EIS Base Dockerfile for Go modules
+# EII Base Dockerfile for Go modules
 
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:$UBUNTU_IMAGE_VERSION
-LABEL description="EIS Base Image"
+LABEL description="EII Base Image"
 
 ARG HOST_TIME_ZONE=""
 
-ENV GO_WORK_DIR /EIS/go/src/IEdgeInsights
-ENV GOPATH="/EIS/go"
+ENV GO_WORK_DIR /EII/go/src/IEdgeInsights
+ENV GOPATH="/EII/go"
 ENV PATH ${PATH}:/usr/local/go/bin:${GOPATH}/bin
 
 WORKDIR ${GO_WORK_DIR}
@@ -82,7 +82,7 @@ RUN wget -qO- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
 ENV CGO_CFLAGS "$CGO_FLAGS -O2 -D_FORTIFY_SOURCE=2 -Werror=format-security -fstack-protector-strong -fPIC"
 ENV CGO_LDFLAGS "$CGO_LDFLAGS -z noexecstack -z relro -z now"
 
-ENV PY_WORK_DIR /EIS
+ENV PY_WORK_DIR /EII
 WORKDIR ${PY_WORK_DIR}
 
 # Installing python 3.6 and pip3.6
@@ -96,10 +96,10 @@ RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
 # Upgrading pip version
 RUN pip3 install --upgrade pip
 
-# Installing EISMessageBus dependencies
-COPY libs/EISMessageBus/install.sh libs/EISMessageBus/install.sh
-COPY libs/EISMessageBus/python/requirements.txt libs/EISMessageBus/python/requirements.txt
-RUN cd libs/EISMessageBus && \
+# Installing EIIMessageBus dependencies
+COPY libs/EIIMessageBus/install.sh libs/EIIMessageBus/install.sh
+COPY libs/EIIMessageBus/python/requirements.txt libs/EIIMessageBus/python/requirements.txt
+RUN cd libs/EIIMessageBus && \
     ./install.sh --cython
 
 # Installing ConfigMgr dependencies

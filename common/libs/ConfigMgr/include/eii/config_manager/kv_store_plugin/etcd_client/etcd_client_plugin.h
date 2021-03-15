@@ -23,8 +23,8 @@
  * @brief Interface between kv_store_plugin and etcd_client
  */
 
-#include <eis/utils/logger.h>
-#include <eis/config_manager/kv_store_plugin/kv_store_plugin.h>
+#include <eii/utils/logger.h>
+#include <eii/config_manager/kv_store_plugin/kv_store_plugin.h>
 
 #define ETCD_KV_STORE   "etcd_kv_store"
 

@@ -24,12 +24,12 @@ import queue
 from distutils.util import strtobool
 import cv2
 import numpy as np
-import eis.msgbus as mb
+import eii.msgbus as mb
 
 
 class Visualizer:
     """Object for the databus callback to wrap needed state variables for the
-    callback in to EIS.
+    callback in to EII.
     """
 
     def __init__(self, topic_queue_dict, logger, draw_results,
@@ -257,7 +257,7 @@ class Visualizer:
     def callback(self, msgbus_cfg, topic):
         """Callback called when the databus has a new message.
 
-        :param msgbus_cfg: config for the context creation in EISMessagebus
+        :param msgbus_cfg: config for the context creation in EIIMessagebus
         :type: str
         :param topic: Topic the message was published on
         :type: str

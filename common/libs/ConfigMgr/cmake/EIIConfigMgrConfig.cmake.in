@@ -18,14 +18,14 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-get_filename_component(EISConfigMgrStatic_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(EIIConfigMgr_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 include(CMakeFindDependencyMacro)
 
-list(APPEND CMAKE_MODULE_PATH ${EISConfigMgrStatic_CMAKE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${EIIConfigMgr_CMAKE_DIR})
 
-if(NOT TARGET EISConfigMgrStatic)
-	include("${EISConfigMgrStatic_CMAKE_DIR}/EISConfigMgrStaticTargets.cmake")
+if(NOT TARGET EIIConfigMgr)
+    include("${EIIConfigMgr_CMAKE_DIR}/EIIConfigMgrTargets.cmake")
 endif()
 
-set(EISConfigMgrStatic_LIBRARIES eisconfigmanager_static)
-set(EISConfigMgrStatic_INCLUDE ${INSTALL_LIBDIR}/include)
+set(EIIConfigMgr_LIBRARIES eiiconfigmanager)
+set(EIIConfigMgr_INCLUDE ${INSTALL_LIBDIR}/include)

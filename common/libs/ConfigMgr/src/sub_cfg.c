@@ -24,8 +24,8 @@
  */
 
 
-#include "eis/config_manager/sub_cfg.h"
-#include "eis/config_manager/util_cfg.h"
+#include "eii/config_manager/sub_cfg.h"
+#include "eii/config_manager/util_cfg.h"
 #include <stdarg.h>
 
 #define MAX_CONFIG_KEY_LENGTH 250
@@ -294,11 +294,11 @@ config_t* cfgmgr_get_msgbus_config_sub(base_cfg_t* base_cfg, void* sub_conf) {
             //then we are adding that topic for subscription.
             if(!dev_mode) {
                 bool ret_val;
-                // This is EISZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
+                // This is ZmqBroker usecase, where in "PublisherAppname" will be specified as "*"
                 // hence comparing for "PublisherAppname" and "*"
                 strcmp_s(publisher_appname->body.string, strlen(publisher_appname->body.string), "*", &ret);
                 if(ret == 0) {
-                    // In case of EISZmqBroker, it is "X-SUB" which needs "publishers" way of
+                    // In case of ZmqBroker, it is "X-SUB" which needs "publishers" way of
                     // messagebus config, hence calling "construct_tcp_publisher_prod()" function
                     ret_val = construct_tcp_publisher_prod(app_name, c_json, topics, cfgmgr_handle, sub_config, kv_store_handle);
                      if(!ret_val) {

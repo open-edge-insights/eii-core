@@ -2,4 +2,4 @@ AppName:
 - EtcdUI
 - VideoIngestion
 - VideoAnalytics
-- EISAzureBridge
+- AzureBridge

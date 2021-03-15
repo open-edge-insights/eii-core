@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""All C imports for the EIS ConfigManager
+"""All C imports for the EII ConfigManager
 """
 
 from libc.stdint cimport *
@@ -25,7 +25,7 @@ from libc.stdint cimport *
 cdef extern from "stdbool.h":
     ctypedef bint bool
 
-cdef extern from "eis/config_manager/cfg_mgr.h" nogil:
+cdef extern from "eii/config_manager/cfg_mgr.h" nogil:
     ctypedef struct config_t:
         pass
 

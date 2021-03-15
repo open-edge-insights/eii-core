@@ -4,7 +4,7 @@
 #ifndef GRPC_rpc_2eproto__INCLUDED
 #define GRPC_rpc_2eproto__INCLUDED
 
-#include "eis/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.pb.h"
+#include "eii/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.pb.h"
 
 #include <functional>
 #include <grpc/impl/codegen/port_platform.h>

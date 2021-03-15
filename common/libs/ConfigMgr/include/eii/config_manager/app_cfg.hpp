@@ -24,8 +24,8 @@
  * @brief ConfigMgr AppCfg class
  */
 
-#ifndef _EIS_CH_APP_CFG_H
-#define _EIS_CH_APP_CFG_H
+#ifndef _EII_CH_APP_CFG_H
+#define _EII_CH_APP_CFG_H
 
 #include <string.h>
 #include <cjson/cJSON.h>
@@ -34,13 +34,13 @@
 #include <vector>
 #include <bits/stdc++.h>
 #include <safe_lib.h>
-#include <eis/utils/logger.h>
-#include "eis/utils/json_config.h"
-#include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
-#include "eis/config_manager/base_cfg.h"
+#include <eii/utils/logger.h>
+#include "eii/utils/json_config.h"
+#include "eii/config_manager/kv_store_plugin/kv_store_plugin.h"
+#include "eii/config_manager/base_cfg.h"
 
 
-namespace eis {
+namespace eii {
     namespace config_manager {
 
         /**
@@ -137,7 +137,7 @@ namespace eis {
                 bool watchInterface(callback_t watch_callback, void* user_data);
 
                 /**
-                 * Get msgbus configuration for application to communicate over EIS message bus
+                 * Get msgbus configuration for application to communicate over EII message bus
                  * @return config_t* - JSON msg bus server config of type config_t
                  *                   - On Failure, returns NULL
                  */ 

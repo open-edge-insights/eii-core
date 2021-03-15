@@ -148,7 +148,7 @@ def generate_k8s_secrets():
        subprocess.run (["kubectl" , "create" , "secret" , "generic" , "ca-etcd" , "--from-file=Certificates/ca/ca_certificate.pem" ])
        cmd1 = subprocess.run (["kubectl" , "get" , "secret" , "ca-etcd" , "--namespace=default" , "-o" ,"yaml" ],stdout=subprocess.PIPE, check=False)
        cmd2 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ] , input=cmd1.stdout,stdout=subprocess.PIPE, check=False)
-       subprocess.run(["kubectl", "apply", "--namespace=eis", "-f","-"] , input=cmd2.stdout, check=False)
+       subprocess.run(["kubectl", "apply", "--namespace=eii", "-f","-"] , input=cmd2.stdout, check=False)
        for key,value in data.items():
            for var in value:
                for k,v in var.items():
@@ -158,10 +158,10 @@ def generate_k8s_secrets():
                    subprocess.run (["kubectl", "create", "secret", "generic" ,k1+"-key", "--from-file=Certificates/"+k+"/"+k+"_"+cs+"_key.pem"])
                    cmd3 = subprocess.run (["kubectl", "get", "secret", k1+"-cert", "--namespace=default", "-o", "yaml"],stdout=subprocess.PIPE, check=False)
                    cmd4 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ],input=cmd3.stdout,stdout=subprocess.PIPE, check=False)
-                   subprocess.run ([ "kubectl", "apply", "--namespace=eis", "-f", "-"] , input=cmd4.stdout, check=False)
+                   subprocess.run ([ "kubectl", "apply", "--namespace=eii", "-f", "-"] , input=cmd4.stdout, check=False)
                    cmd5 = subprocess.run (["kubectl", "get", "secret", k1+"-key", "--namespace=default", "-o", "yaml"],stdout=subprocess.PIPE, check=False)
                    cmd6 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ], input=cmd5.stdout,stdout=subprocess.PIPE, check=False)
-                   subprocess.run (["kubectl", "apply", "--namespace=eis", "-f", "-"],input=cmd6.stdout, check=False)
+                   subprocess.run (["kubectl", "apply", "--namespace=eii", "-f", "-"],input=cmd6.stdout, check=False)
     except Exception as err:
           print("Exception Occured in generating k8s secrets" + str(err))
           sys.exit(1)

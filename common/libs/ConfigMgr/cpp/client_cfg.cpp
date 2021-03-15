@@ -23,9 +23,9 @@
  * Holds the implementaion of APIs supported by ClientCfg class
  */
 
-#include "eis/config_manager/client_cfg.hpp"
+#include "eii/config_manager/client_cfg.hpp"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Constructor
 ClientCfg::ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {

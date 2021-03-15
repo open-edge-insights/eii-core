@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package eisconfigmgr
+package eiiconfigmgr
 
 import "unsafe"
 
@@ -76,7 +76,7 @@ func (pubctx *PublisherCfg) GetAllowedClients() ([]string, error) {
 	return allowedClients, nil
 }
 
-// GetMsgbusConfig to fetch client msgbus config for application to communicate over EIS message bus
+// GetMsgbusConfig to fetch client msgbus config for application to communicate over EII message bus
 //
 // Returns:
 // 1. map[string]interface{}
@@ -107,7 +107,7 @@ func (pubctx *PublisherCfg) SetTopics(topics []string) bool {
 	return pubctx.setTopics(topics)
 }
 
-// GetInterfaceValue fetch interface value for application to communicate over EIS message bus
+// GetInterfaceValue fetch interface value for application to communicate over EII message bus
 //
 // Parameters:
 // 1. key: string

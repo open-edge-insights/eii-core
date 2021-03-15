@@ -17,15 +17,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS ConfigManager Subscriber wrapper object Cython declaration
+"""EII ConfigManager Subscriber wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport sub_cfg_t
-from .libeisconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport sub_cfg_t
+from .libeiiconfigmanager cimport app_cfg_t
 
 
 cdef class Subscriber:
-    """EIS ConfigManager Subscriber object
+    """EII ConfigManager Subscriber object
     """
     cdef app_cfg_t* app_cfg
     cdef sub_cfg_t* sub_cfg

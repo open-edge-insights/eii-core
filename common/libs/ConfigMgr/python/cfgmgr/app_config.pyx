@@ -17,10 +17,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus Publisher wrapper object
+"""EII Message Bus Publisher wrapper object
 """
 
-from .libeisconfigmanager cimport *
+from .libeiiconfigmanager cimport *
 
 
 cdef void watch_callback_fn(const char* key, config_t* value, void* func) with gil:
@@ -37,7 +37,7 @@ cdef void watch_callback_fn(const char* key, config_t* value, void* func) with g
     (<object>func)(key.decode(), py_value.decode())
 
 class AppCfg:
-    """EIS Message Bus Publisher object
+    """EII Message Bus Publisher object
     """
   
     def __init__(self, cfg):
@@ -64,7 +64,7 @@ class AppCfg:
         return self.cfg
 
 cdef class Watch:
-    """EIS Message Bus Watch class
+    """EII Message Bus Watch class
     """
 
     def __init__(self):

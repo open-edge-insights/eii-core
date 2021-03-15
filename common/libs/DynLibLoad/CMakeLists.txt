@@ -19,17 +19,17 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.12)
-project(eis-dynlibload VERSION 1.0.0 LANGUAGES C CXX)
+project(eii-dynlibload VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_EXAMPLES "Compile with examples" OFF)
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
 # Globals
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+set(EII_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
 # Include directory for CMake modules
-set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}")
+set(CMAKE_MODULE_PATH "${EII_COMMON_CMAKE}")
 
 # Set C++ version
 set(CMAKE_CXX_STANDARD 14)
@@ -46,7 +46,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 
 # Find packages
 find_package(IntelSafeString REQUIRED)
-find_package(EISUtils REQUIRED)
+find_package(EIIUtils REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,17 +60,17 @@ endif()
 # Include header directories
 include_directories(
     include/
-    ${EISUtils_INCLUDE}
+    ${EIIUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
 
 # Get all source files
 file(GLOB SOURCES "src/*.c")
 
 # Add target
-add_library(eisdynlibload SHARED ${SOURCES})
-target_link_libraries(eisdynlibload
+add_library(eiidynlibload SHARED ${SOURCES})
+target_link_libraries(eiidynlibload
     PRIVATE
-        ${EISUtils_LIBRARIES}
+        ${EIIUtils_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
         ${CMAKE_DL_LIBS})
 
@@ -90,42 +90,42 @@ endif()
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/eisdynlibload)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/eiidynlibload)
 
-install(TARGETS eisdynlibload
-    EXPORT eisdynlibload-targets
+install(TARGETS eiidynlibload
+    EXPORT eiidynlibload-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisdynlibload PROPERTIES EXPORT_NAME dynlibload)
+set_target_properties(eiidynlibload PROPERTIES EXPORT_NAME dynlibload)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Export targets to a script
 install(
-    EXPORT eisdynlibload-targets
-    FILE EISDynLibLoadTargets.cmake
+    EXPORT eiidynlibload-targets
+    FILE EIIDynLibLoadTargets.cmake
     DESTINATION ${INSTALL_CONFIGDIR})
 
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIDynLibLoadConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISDynLibLoadConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EIIDynLibLoadConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIDynLibLoadConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR})
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIDynLibLoadConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIDynLibLoadConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR})
 
-export(EXPORT eisdynlibload-targets
-    FILE ${CMAKE_CURRENT_BINARY_DIR}/EISDynLibLoadTargets.cmake)
+export(EXPORT eiidynlibload-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/EIIDynLibLoadTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISDynLibLoad)
+export(PACKAGE EIIDynLibLoad)

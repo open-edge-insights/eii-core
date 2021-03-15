@@ -2,8 +2,8 @@
 // If you make any local change, they will be lost.
 // source: rpc.proto
 
-#include "eis/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.pb.h"
-#include "eis/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.grpc.pb.h"
+#include "eii/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.pb.h"
+#include "eii/config_manager/kv_store_plugin/etcd_client/protobuf/rpc.grpc.pb.h"
 
 #include <functional>
 #include <grpcpp/impl/codegen/async_stream.h>

@@ -17,14 +17,14 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS ConfigManager Watch wrapper object Cython declaration
+"""EII ConfigManager Watch wrapper object Cython declaration
 """
 
-from .libeisconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport app_cfg_t
 
 
 cdef class Watch:
-    """EIS ConfigManager Watch class
+    """EII ConfigManager Watch class
     """
     cdef app_cfg_t* app_cfg
 

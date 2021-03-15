@@ -24,7 +24,7 @@
  */
 
 
-#include "eis/config_manager/util_cfg.h"
+#include "eii/config_manager/util_cfg.h"
 
 bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point, interface_type_t type){
 
@@ -221,7 +221,7 @@ bool get_ipc_config(cJSON* c_json, config_value_t* config, const char* end_point
             }
         }
     } else {
-        // Socket file will be created by EIS message bus based on the topic
+        // Socket file will be created by EII message bus based on the topic
         LOG_DEBUG_0("socket_ep file not explicitly given by application");
         // Do not check for Topics if interface type is SERVER/CLIENT
         // since SERVER/CLIENT interfaces don't have Topics

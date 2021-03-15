@@ -1,1 +1,1 @@
-Python binding for the EIS ConfigManager.
+Python binding for the EII ConfigManager.

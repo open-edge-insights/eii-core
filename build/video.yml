@@ -9,4 +9,4 @@ AppName:
 - FactoryControlApp
 - OpcuaExport
 - RestDataExport
-- EISAzureBridge
+- AzureBridge

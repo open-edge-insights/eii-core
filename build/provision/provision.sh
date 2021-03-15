@@ -20,8 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Provision EIS
-# Usage: sudo ./provision_eis <path-of-docker-compose-file>
+# Provision
+# Usage: sudo ./provision <path-of-docker-compose-file>
 
 docker_compose=$1
 RED='\033[0;31m'
@@ -53,16 +53,16 @@ function check_error() {
 }
 
 function souce_env() {
-    EIS_ENV="../.env"
-    EIS_PROVISIONING_ENV=".env"
+    EII_ENV="../.env"
+    EII_PROVISIONING_ENV=".env"
 
     set -a
-    if [ -f $EIS_ENV ]; then
-        source $EIS_ENV
+    if [ -f $EII_ENV ]; then
+        source $EII_ENV
     fi
 
-    if [ -f $EIS_PROVISIONING_ENV ]; then
-        source $EIS_PROVISIONING_ENV
+    if [ -f $EII_PROVISIONING_ENV ]; then
+        source $EII_PROVISIONING_ENV
     fi
     set +a
 }
@@ -74,7 +74,7 @@ function export_host_ip() {
         export HOST_IP=$hostIP
     fi
     echo 'System IP Address is:' $HOST_IP
-    export no_proxy=$eis_no_proxy,$HOST_IP
+    export no_proxy=$eii_no_proxy,$HOST_IP
 }
 
 function set_docker_host_time_zone() {
@@ -86,42 +86,42 @@ function set_docker_host_time_zone() {
     sed -i '/HOST_TIME_ZONE/d' ../.env && echo "HOST_TIME_ZONE=$hostTimezone" >> ../.env
 }
 
-function create_eis_user() {
-    echo "Create $EIS_USER_NAME if it doesn't exists. Update UID from env if already exists with different UID"
+function create_eii_user() {
+    echo "Create $EII_USER_NAME if it doesn't exists. Update UID from env if already exists with different UID"
 
-    # EIS containers will be executed as eisuser
-    if ! id $EIS_USER_NAME >/dev/null 2>&1; then
-        groupadd $EIS_USER_NAME -g $EIS_UID
-        useradd -r -u $EIS_UID -g $EIS_USER_NAME $EIS_USER_NAME
+    # EII containers will be executed as eiiuser
+    if ! id $EII_USER_NAME >/dev/null 2>&1; then
+        groupadd $EII_USER_NAME -g $EII_UID
+        useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
     else
-        if ! [ $(id -u $EIS_USER_NAME) = $EIS_UID ]; then
-            usermod -u $EIS_UID $EIS_USER_NAME
-            groupmod -g $EIS_UID $EIS_USER_NAME
+        if ! [ $(id -u $EII_USER_NAME) = $EII_UID ]; then
+            usermod -u $EII_UID $EII_USER_NAME
+            groupmod -g $EII_UID $EII_USER_NAME
         fi
     fi
 }
 
-function create_eis_install_dir() {
-    log_info "Creating EIS install Directories"
+function create_eii_install_dir() {
+    log_info "Creating EII install Directories"
     if [ $ETCD_RESET = 'true' ]; then
-        rm -rf $EIS_INSTALL_PATH/data/etcd
+        rm -rf $EII_INSTALL_PATH/data/etcd
     fi
 
-    # Creating the required EIS dirs
-    mkdir -p $EIS_INSTALL_PATH/data/influxdata
-    check_error "Failed to create dir '$EIS_INSTALL_PATH/data/influxdata'"
+    # Creating the required EII dirs
+    mkdir -p $EII_INSTALL_PATH/data/influxdata
+    check_error "Failed to create dir '$EII_INSTALL_PATH/data/influxdata'"
 
-    mkdir -p $EIS_INSTALL_PATH/data/etcd/data
-    check_error "Failed to create dir '$EIS_INSTALL_PATH/data/etcd/data'"
+    mkdir -p $EII_INSTALL_PATH/data/etcd/data
+    check_error "Failed to create dir '$EII_INSTALL_PATH/data/etcd/data'"
 
-    mkdir -p $EIS_INSTALL_PATH/sockets/
-    check_error "Failed to create dir '$EIS_INSTALL_PATH/sockets'"
+    mkdir -p $EII_INSTALL_PATH/sockets/
+    check_error "Failed to create dir '$EII_INSTALL_PATH/sockets'"
     
-    mkdir -p $EIS_INSTALL_PATH/model_repo
-    chown -R $EIS_USER_NAME:$EIS_USER_NAME $EIS_INSTALL_PATH
+    mkdir -p $EII_INSTALL_PATH/model_repo
+    chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
 
     if [ -d $TC_DISPATCHER_PATH ]; then
-        chown -R $EIS_USER_NAME:$EIS_USER_NAME $TC_DISPATCHER_PATH
+        chown -R $EII_USER_NAME:$EII_USER_NAME $TC_DISPATCHER_PATH
         chmod -R 760 $TC_DISPATCHER_PATH
     fi
 }
@@ -131,7 +131,7 @@ function copy_docker_compose_file() {
     # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
     if ! [ -f $docker_compose ] || [ -z $docker_compose ]; then
         log_error "Supplied docker compose file '$docker_compose' does not exists"
-        log_fatal "Usage: $ sudo ./provision_eis.sh <path_to_eis_docker_compose_file>"
+        log_fatal "Usage: $ sudo ./provision.sh <path_to_eii_docker_compose_file>"
     else
         cp $docker_compose ./docker-compose.yml
     fi
@@ -155,7 +155,7 @@ function remove_client_server() {
 }
 
 function prod_mode_gen_certs() {
-    log_info "Generating EIS Certificates"
+    log_info "Generating EII Certificates"
     if [ -d "rootca" ]; then
         log_warn "Making use of existing CA from ./rootca dir for generating certs..."
         log_warn "To generate new CA, remove roootca/ from current dir.."
@@ -163,7 +163,7 @@ function prod_mode_gen_certs() {
     else
         python3 gen_certs.py --f $docker_compose
     fi
-    chown -R $EIS_USER_NAME:$EIS_USER_NAME Certificates/
+    chown -R $EII_USER_NAME:$EII_USER_NAME Certificates/
     chmod -R 750 Certificates/
 
 }
@@ -195,14 +195,14 @@ function check_k8s_secrets() {
 }
 
 function check_k8s_namespace() {
-    echo "Checking if already exists eis namespace, will delete to remove all existing pods and services"
-    ns_str=$(kubectl get namespace | grep -w ^eis| awk '{print $1}' )
+    echo "Checking if already exists eii namespace, will delete to remove all existing pods and services"
+    ns_str=$(kubectl get namespace | grep -w ^eii| awk '{print $1}' )
     ns_list=(`echo ${ns_str}`);
     for ns in "${ns_list[@]}"
     do
-	if [[ "$ns" = "eis" ]];then
+	if [[ "$ns" = "eii" ]];then
             echo "Deleting namespace so that all existing pods and services within that namespace are deleted.\nIt may take sometime."
-            kubectl delete namespace eis
+            kubectl delete namespace eii
         fi
     done
 }
@@ -210,26 +210,26 @@ function check_k8s_namespace() {
 souce_env
 export_host_ip
 set_docker_host_time_zone
-create_eis_user
-create_eis_install_dir
+create_eii_user
+create_eii_install_dir
 
 if [ $DEV_MODE = 'false' ]; then
-    chmod -R 760 $EIS_INSTALL_PATH/data
-    chmod -R 760 $EIS_INSTALL_PATH/sockets
+    chmod -R 760 $EII_INSTALL_PATH/data
+    chmod -R 760 $EII_INSTALL_PATH/sockets
 else
-    chmod -R 755 $EIS_INSTALL_PATH/data
-    chmod -R 755 $EIS_INSTALL_PATH/sockets
+    chmod -R 755 $EII_INSTALL_PATH/data
+    chmod -R 755 $EII_INSTALL_PATH/sockets
 fi
 
 #############################################################
 
 if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
-     log_info "Provisioning EIS with KUBERNETES enabled mode... "
+     log_info "Provisioning with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
      
      echo "Creating a new namespace"
-     kubectl create namespace eis
+     kubectl create namespace eii
      pip3 install -r cert_requirements.txt
      
      echo "Clearing existing Certificates..."
@@ -255,7 +255,7 @@ if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
 elif [ $ETCD_NAME = 'master' ]; then
     install_pip_requirements
     log_info "Bringing down existing ETCD container"
-    python3 stop_and_remove_existing_eis.py --f dep/docker-compose-provision.yml
+    python3 stop_and_remove_existing_eii.py --f dep/docker-compose-provision.yml
 
     copy_docker_compose_file
 
@@ -266,7 +266,7 @@ elif [ $ETCD_NAME = 'master' ]; then
     check_ETCD_port
 
     if [ $DEV_MODE = 'true' ]; then
-        log_info "EIS is not running in Secure mode. Generating certificates is not required.. "
+        log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting and provisioning ETCD ..."
         docker-compose -f dep/docker-compose-provision.yml up --build -d
     else
@@ -275,11 +275,11 @@ elif [ $ETCD_NAME = 'master' ]; then
         docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
     fi
 
-    echo "Bringing down existing EIS containers"
-    python3 stop_and_remove_existing_eis.py --f $docker_compose
+    echo "Bringing down existing EII containers"
+    python3 stop_and_remove_existing_eii.py --f $docker_compose
 fi
 
 remove_client_server
 remove_docker_compose_file
 
-log_info "EIS Provisioning is Successful..."
+log_info "Provisioning is Successful..."

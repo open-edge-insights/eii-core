@@ -23,8 +23,8 @@
  * @brief Library for dynamically loading shared libraries.
  */
 
-#ifndef _EIS_DYNLIBLOAD_H
-#define _EIS_DYNLIBLOAD_H
+#ifndef _EII_DYNLIBLOAD_H
+#define _EII_DYNLIBLOAD_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,4 +95,4 @@ const char* dynlib_strerror(int err);
 } // __cplusplus
 #endif
 
-#endif // _EIS_DYNLIBLOAD_H
+#endif // _EII_DYNLIBLOAD_H

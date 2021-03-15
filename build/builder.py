@@ -19,7 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""script to generate consolidated docker-compose.yml, eis_config.json
+"""script to generate consolidated docker-compose.yml, eii_config.json
    and AppSpec json
 """
 import argparse
@@ -122,7 +122,7 @@ def increment_rtsp_port(appname, config, i):
     # Increment port number for RTSP stream pipelines if
     # increment_rtsp_port is set to true
     if appname == 'VideoIngestion' and \
-       eis_builder_cfg['increment_rtsp_port'] is True:
+       builder_cfg['increment_rtsp_port'] is True:
         if 'rtspsrc' in config['config']['ingestor']['pipeline']:
             port = config['config']['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
@@ -319,7 +319,7 @@ def json_parser(app_list, args):
                 bm_appname = x.split("/")[-2]
         bm_apps_list.append(bm_appname)
 
-    eis_config_path = "./provision/config/eis_config.json"
+    eii_config_path = "./provision/config/eii_config.json"
     for app_path in app_list:
         data = {}
         # Creating multi instance config if num_multi_instances > 1
@@ -331,8 +331,8 @@ def json_parser(app_list, args):
                 if args.override_directory in app_path:
                     dirname = app_path.split("/")[-2]
             # Ignoring EtcdUI & common/video service to not create multi instance
-            # TODO: Support EISAzureBridge multi instance creation if applicable
-            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "EISAzureBridge" not in app_path:
+            # TODO: Support AzureBridge multi instance creation if applicable
+            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "AzureBridge" not in app_path:
                 for i in range(num_multi_instances):
                     with open(app_path + '/config.json', "rb") as infile:
                         head = json.load(infile)
@@ -352,7 +352,7 @@ def json_parser(app_list, args):
                             data['/' + app_name + str(i+1) +
                                 '/interfaces'] = \
                                 head['interfaces']
-                        # merge multi instance generated json to eis config
+                        # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
             # This condition is to handle not creating multi instance for 
             # subscriber services
@@ -393,10 +393,10 @@ def json_parser(app_list, args):
                 config_json = merge(config_json, data)
 
     # Writing consolidated json into desired location
-    with open(eis_config_path, "w") as json_file:
+    with open(eii_config_path, "w") as json_file:
         json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
         print("Successfully created consolidated config json at {}".format(
-              eis_config_path))
+              eii_config_path))
 
 def k8s_yaml_remove_secrets(yaml_data):
     """This method takes input as a yml data and removes
@@ -764,7 +764,7 @@ def create_multi_instance_k8s_yml(k8s_path, dev_mode, i):
 
 
 def k8s_yaml_merger(app_list, dev_mode, args):
-    """Method merges the k8s yml files of each eis
+    """Method merges the k8s yml files of each eii
        modules and generates a consolidated ymlfile.
 
     :param app_list: List of services
@@ -799,7 +799,7 @@ def k8s_yaml_merger(app_list, dev_mode, args):
                 else:
                     merged_yaml = merged_yaml + "---\n" + data
 
-    k8s_service_yaml = './k8s/eis-k8s-deploy.yml'
+    k8s_service_yaml = './k8s/eii-k8s-deploy.yml'
     with open(k8s_service_yaml, 'w') as final_yaml:
         final_yaml.write(merged_yaml)
     # Substituting sourced env in k8s_service_yaml
@@ -928,8 +928,8 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         appname = k.split("/")[-2]
                 # Create single instance only for services in subscriber_list and 
                 # for corner case of common/video, create multi instance otherwise
-                # TODO: Support EISAzureBridge multi instance creation if applicable
-                if appname not in subscriber_list.keys() and appname != "video" and appname != "common" and appname != "EISAzureBridge":
+                # TODO: Support AzureBridge multi instance creation if applicable
+                if appname not in subscriber_list.keys() and appname != "video" and appname != "common" and appname != "AzureBridge":
                     for i in range(num_multi_instances):
                         data_two = create_multi_instance_yml_dict(data, i+1)
                         yaml_files_dict.append(data_two)
@@ -1000,8 +1000,8 @@ def yaml_parser(args):
     :type args: argparse
     """
 
-    # Fetching EIS directory path
-    eis_dir = os.getcwd() + '/../'
+    # Fetching EII directory path
+    eii_dir = os.getcwd() + '/../'
     dir_list = []
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
@@ -1015,18 +1015,18 @@ def yaml_parser(args):
                 if service.startswith("/"):
                     prefix_path = service
                 else:
-                    prefix_path = eis_dir + service
+                    prefix_path = eii_dir + service
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
     else:
         # Fetching list of subdirectories
         print("Parsing through directory to fetch required services...")
-        dir_list = [f.name for f in os.scandir(eis_dir) if
+        dir_list = [f.name for f in os.scandir(eii_dir) if
                     (f.is_dir() or os.path.islink(f))]
         dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
-    if os.path.isdir(eis_dir + 'common/video'):
+    if os.path.isdir(eii_dir + 'common/video'):
         dir_list.insert(0, 'common/video')
 
     # Removing the docker-compose.override.yml
@@ -1040,7 +1040,7 @@ def yaml_parser(args):
         if app_dir.startswith("/"):
             prefix_path = app_dir
         else:
-            prefix_path = eis_dir + app_dir
+            prefix_path = eii_dir + app_dir
         # Append to app_list if dir has both docker-compose.yml and config.json
         # & append to override_apps_list if override_directory has both
         # docker-compose.yml and config.json
@@ -1077,8 +1077,8 @@ def yaml_parser(args):
 
     # Adding video folder manually since it's not a direct sub-directory
     # for multi instance feature
-    if os.path.isdir(eis_dir + 'common/video'):
-        app_list.insert(0, eis_dir + 'common/video')
+    if os.path.isdir(eii_dir + 'common/video'):
+        app_list.insert(0, eii_dir + 'common/video')
 
     # Fetching DEV_MODE from .env
     dev_mode = False
@@ -1113,7 +1113,7 @@ def yaml_parser(args):
     try:
         k8s_yaml_merger(k8s_app_list, dev_mode, args)
         print("Successfully created consolidated Kubernetes "
-              "deployment yml at ./k8s/eis-k8s-deploy.yml")
+              "deployment yml at ./k8s/eii-k8s-deploy.yml")
     except Exception as e:
         print("Exception Occured at Kubernetes yml generation {}".format(e))
         sys.exit(1)
@@ -1127,37 +1127,37 @@ def parse_args():
     arg_parse.add_argument('-f', '--yml_file', default=None,
                            help='Optional config file for list of services'
                            ' to include.\
-                           Eg: python3.6 eis_builder.py -f\
+                           Eg: python3.6 builder.py -f\
                            video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
-                           Eg: python3.6 eis_builder.py -v 6')
+                           Eg: python3.6 builder.py -v 6')
     arg_parse.add_argument('-d', '--override_directory',
                            default=None,
                            help='Optional directory consisting of '
                            'of benchmarking configs to be present in'
                            'each app directory.\
-                           Eg: python3.6 eis_builder.py -d benchmarking')
+                           Eg: python3.6 builder.py -d benchmarking')
     return arg_parse.parse_args()
 
 
 if __name__ == '__main__':
 
-    # fetching eis_builder config
-    with open('eis_builder_config.json', 'r') as config_file,\
-         open('eis_builder_schema.json', 'r') as schema_file:
-        eis_builder_cfg = json.load(config_file)
-        eis_builder_schema = json.load(schema_file)
+    # fetching builder config
+    with open('builder_config.json', 'r') as config_file,\
+         open('builder_schema.json', 'r') as schema_file:
+        builder_cfg = json.load(config_file)
+        builder_schema = json.load(schema_file)
         try:
-            validate(instance=eis_builder_cfg, schema=eis_builder_schema)
+            validate(instance=builder_cfg, schema=builder_schema)
         except Exception as e:
             print("JSON schema validation failed {}".format(e))
             sys.exit(1)
         # list of publishers and their endpoints
-        publisher_list = eis_builder_cfg['publisher_list']
+        publisher_list = builder_cfg['publisher_list']
         # list of subscribers
-        subscriber_list = eis_builder_cfg['subscriber_list']
+        subscriber_list = builder_cfg['subscriber_list']
 
     # Parse command line arguments
     args = parse_args()

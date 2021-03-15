@@ -27,15 +27,15 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "eis/config_manager/config_mgr.hpp"
-#include "eis/msgbus/msgbus.h"
-#include "eis/utils/logger.h"
-#include "eis/utils/json_config.h"
+#include "eii/config_manager/config_mgr.hpp"
+#include "eii/msgbus/msgbus.h"
+#include "eii/utils/logger.h"
+#include "eii/utils/json_config.h"
 
 #define SERVICE_NAME "echo_service"
 
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 // Globals for cleaning up nicely
 void* g_msgbus_ctx = NULL;
@@ -131,7 +131,7 @@ int main() {
     }
     LOG_INFO("Endpoint obtained : %s", ep.c_str());
 
-    // get client msgbus config for application to communicate over EIS message bus
+    // get client msgbus config for application to communicate over EII message bus
     config = client_ctx->getMsgBusConfig();
     if(config == NULL) {
         LOG_ERROR_0("Failed to load JSON configuration");

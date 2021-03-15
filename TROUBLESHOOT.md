@@ -1,11 +1,11 @@
 # Troubleshooting
 
-The troubleshooting guide here talks about the useful tips to address some of the EIS configuration and installation issues.
+The troubleshooting guide here talks about the useful tips to address some of the EII configuration and installation issues.
 
 ## Contents
 
 1. ["host" network_mode is incompatible with port_bindings during docker-compose up](#1-host-network_mode-is-incompatible-with-port_bindings-during-docker-compose-up)
-2. [eis_libs_installer.sh script failing during bare-metal execution](#2-eis_libs_installersh-script-failing-during-bare-metal-execution)
+2. [eii_libs_installer.sh script failing during bare-metal execution](#2-eii_libs_installersh-script-failing-during-bare-metal-execution)
 
 ## 1. "host" network_mode is incompatible with port_bindings during docker-compose up
 
@@ -41,11 +41,11 @@ The troubleshooting guide here talks about the useful tips to address some of th
   $ sudo chmod +x /usr/local/bin/docker-compose
   ```
 
-## 2. eis_libs_installer.sh script failing during bare-metal execution
+## 2. eii_libs_installer.sh script failing during bare-metal execution
 
 - Problem Description:
 
-  One might run into issue of $GOPATH not being set appropriately which could result in the EIS librarires installation failure when run on bare-metal
+  One might run into issue of $GOPATH not being set appropriately which could result in the EII librarires installation failure when run on bare-metal
 
 - Error description:
 
@@ -54,29 +54,29 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
         – Configuring incomplete, errors occurred!
 
-        See also "/home/eisval-desk6/FOG/EISv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeOutput.log".
-        See also "/home/eisval-desk6/FOG/EISv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeError.log".
+        See also "/home/eiival-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeOutput.log".
+        See also "/home/eiival-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeError.log".
         running install
         running build
         running build_py
         running build_ext
         building 'cfgmgr.app_config' extension
         x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/include/python3.6m -c ./build/cython/./cfgmgr/app_config.c -o build/temp.linux-x86_64-3.6/./build/cython/./cfgmgr/app_config.o
-        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eis/config_manager/cfg_mgr.h: No such file or directory
-        #include "eis/config_manager/cfg_mgr.h"
+        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eii/config_manager/cfg_mgr.h: No such file or directory
+        #include "eii/config_manager/cfg_mgr.h"
         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         compilation terminated.
         error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
 
 - Possible Cause:
 
-        If "GO" is already installed in the system, eis_libs_installer script skips the installation of it.
+        If "GO" is already installed in the system, eii_libs_installer script skips the installation of it.
 
         In this case where GO is already installed, GOPATH needs to be set in the system. If not, then above error occurs.
 
 - Solution:
 
-  Installing GO through eis_libs_installer script will install GO and set the required env variables like GOPATH. If not, then one need to set GOPATH    
+  Installing GO through eii_libs_installer script will install GO and set the required env variables like GOPATH. If not, then one need to set GOPATH    
   environment variable with appropriate path.
 
   ```sh

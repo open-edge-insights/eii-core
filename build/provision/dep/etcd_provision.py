@@ -267,7 +267,7 @@ if __name__ == "__main__":
     etcd_health_check()
 
     apps = get_appname(str(sys.argv[1]))
-    load_data_etcd("./config/eis_config.json", apps)
+    load_data_etcd("./config/eii_config.json", apps)
     for key, value in apps.items():
         try:
             if not devMode:

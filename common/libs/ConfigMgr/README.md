@@ -3,17 +3,17 @@ ConfigMgr (Config manager) provides CPP/Python/Golang APIs to:
 - fetch an applications configs values from the KV store.
 - fetch an applications interface values from KV store for pub, sub, server and client.
 - watch on application's config changes.
-- generate EIS MessageBus config.
+- generate EII MessageBus config.
 - read and set /GlobalEnv variables.
 - fetch env variables: appname, dev_mode
 
-All these data are stored into the kv store of EIS during the provisioning phase and can be changed   dynamically by the admin.
+All these data are stored into the kv store of EII during the provisioning phase and can be changed   dynamically by the admin.
 
 ## Installation
 
-The EISUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
+The EIIUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
-of CMake and other ConfigMgr dependencies, please follow [eis_libs_installer README](../../README.md)
+of CMake and other ConfigMgr dependencies, please follow [eii_libs_installer README](../../README.md)
 
 By default, ConfigMgr installs to `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`,
 otherwise you will encounter issues using the ConfigMgr. This can
@@ -55,7 +55,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
         {
             "Name": "default",
             "Type": "zmq_ipc",
-            "EndPoint": "/EIS/sockets",
+            "EndPoint": "/EII/sockets",
             "Topics": [
                 "camera1_stream"
             ],
@@ -149,7 +149,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
         {
             "Name": "example",
             "Type": "zmq_ipc",
-            "EndPoint": "/EIS/sockets",
+            "EndPoint": "/EII/sockets",
             "AllowedClients": [
                 "VideoAnalytics"
             ]
@@ -185,7 +185,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
             "Name": "example",
             "ServerAppName": "VideoIngestion",
             "Type": "zmq_ipc",
-            "EndPoint": "/EIS/sockets"
+            "EndPoint": "/EII/sockets"
         }
     ]
 }
@@ -212,7 +212,7 @@ Let's take publisher as an example having multiple endpoints and below is its in
         {
             "Name": "default",
             "Type": "zmq_ipc",
-            "EndPoint": "/EIS/sockets",
+            "EndPoint": "/EII/sockets",
             "Topics": [
                 "camera1_stream"
             ],
@@ -235,7 +235,7 @@ Let's take publisher as an example having multiple endpoints and below is its in
 }
 ```
 
-Let's say we want to override the Type ("zmq_ipc") and Endpoint ("/EIS/sockets") of the first publisher's interface (interface having "Name":"default"), then env variable should be set with below syntax.
+Let's say we want to override the Type ("zmq_ipc") and Endpoint ("/EII/sockets") of the first publisher's interface (interface having "Name":"default"), then env variable should be set with below syntax.
 
 ```sh
 export PUBLISHER_default_TYPE="zmq_tcp"
@@ -265,7 +265,7 @@ Let's take publisher as an example having single endpoint and below is its inter
         {
             "Name": "default",
             "Type": "zmq_ipc",
-            "EndPoint": "/EIS/sockets",
+            "EndPoint": "/EII/sockets",
             "Topics": [
                 "camera1_stream"
             ],
@@ -276,7 +276,7 @@ Let's take publisher as an example having single endpoint and below is its inter
 }
 ``` 
 
-If we want to override the Type ("zmq_ipc") and Endpoint ("/EIS/sockets") of publisher's interface, then env variable should be set with below syntax.
+If we want to override the Type ("zmq_ipc") and Endpoint ("/EII/sockets") of publisher's interface, then env variable should be set with below syntax.
 
 ```sh
 export PUBLISHER_TYPE="zmq_tcp"
@@ -301,11 +301,11 @@ Overriding feature of ConfigMgr will be used in orchestrated scenarios including
 
 ## Broker Usecase
 
-If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e., if publisher publish data to EISZmqBroker and subscriber subscribes from EISZmqBroker, then the interfaces of EISZmqBroker, subscriber and publisher with respect to `zmq_tcp` and `zmq_ipc` protocol as follows.
+If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if publisher publish data to ZmqBroker and subscriber subscribes from ZmqBroker, then the interfaces of ZmqBroker, subscriber and publisher with respect to `zmq_tcp` and `zmq_ipc` protocol as follows.
 
 ## zmq_tcp Protocol usecase
 
-### EISZmqBroker:
+### ZmqBroker:
 
 ```javascript
 {
@@ -352,8 +352,8 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:5568",
 
-            // PublisherAppName will be "EISZmqBroker" in case of brokered usecase 
-            "PublisherAppName": "EISZmqBroker",
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            "PublisherAppName": "ZmqBroker",
             "Topics": [
                 "*"
             ]
@@ -376,9 +376,9 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             ],
             // With broker usecase, AllowedClients in Publisher's interface is not required, as it acts as a subscriber to X-SUB
 
-            // "brokered" and "BrokerAppName" should be added for EISZmqBroker usecase
+            // "brokered" and "BrokerAppName" should be added for ZmqBroker usecase
             "brokered": true,
-            "BrokerAppName" : "EISZmqBroker"
+            "BrokerAppName" : "ZmqBroker"
         }
     ]
 }
@@ -388,7 +388,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
 
 ## zmq_ipc Protocol usecase
 
-### EISZmqBroker:
+### ZmqBroker:
 
 ```javascript
 {
@@ -397,7 +397,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Name": "backend",
             "Type": "zmq_ipc",
             "EndPoint": {
-                "SocketDir": "/EIS/sockets",
+                "SocketDir": "/EII/sockets",
                 "SocketFile": "backend-socket"
             },
             "Topics": ["*"],
@@ -409,7 +409,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Name": "frontend",
             "Type": "zmq_ipc",
             "EndPoint": {
-                "SocketDir": "/EIS/sockets",
+                "SocketDir": "/EII/sockets",
                 "SocketFile": "frontend-socket"
             },
             "PublisherAppName": "*",
@@ -430,12 +430,12 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Name": "default",
             "Type": "zmq_ipc",
             "EndPoint": {
-                "SocketDir" : "/EIS/sockets",
+                "SocketDir" : "/EII/sockets",
                 "SocketFile": "backend-socket"
             },
 
-            // PublisherAppName will be "EISZmqBroker" in case of brokered usecase 
-            "PublisherAppName": "EISZmqBroker",
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            "PublisherAppName": "ZmqBroker",
 
             // Topics cannot be "*", if the only IPC directory is given
             // if it Topics "*" to be used in ipc, then socket file should be given explicitly.
@@ -456,7 +456,7 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
             "Name": "default",
             "Type": "zmq_ipc",
             "EndPoint": {
-                "SocketDir" : "/EIS/sockets",
+                "SocketDir" : "/EII/sockets",
                 "SocketFile": "frontend-socket"
             },
             "Topics": [
@@ -465,9 +465,9 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
 
             // With broker usecase, AllowedClients in Publisher's interface is not required, as it acts as a subscriber to X-SUB
 
-            // "brokered" and "BrokerAppName" should be added for EISZmqBroker usecase
+            // "brokered" and "BrokerAppName" should be added for ZmqBroker usecase
             "brokered": true,
-            "BrokerAppName" : "EISZmqBroker"
+            "BrokerAppName" : "ZmqBroker"
         }
     ]
 }
@@ -476,8 +476,8 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
 
 |          Key        |    Type   | Required (Mandatory) |                         Description                          |
 | :-----------------: | --------- | -------------------- | ------------------------------------------------------------ |
-| `brokered`          | `boolean` | Yes                   | (Required if publishing via EISZmqBroker) Specifies if publisher is using broker or not. use "brokered": true for use with broker. |
-| `BrokerAppName`     | `string`  | Yes                   | (Required if publishing via EISZmqBroker) Specifies EIS ZeroMQ Broker app name|
+| `brokered`          | `boolean` | Yes                   | (Required if publishing via ZmqBroker) Specifies if publisher is using broker or not. use "brokered": true for use with broker. |
+| `BrokerAppName`     | `string`  | Yes                   | (Required if publishing via ZmqBroker) Specifies ZeroMQ Broker app name|
 
 
 ### **Note** "Endpoint" can be given in different ways:
@@ -493,27 +493,27 @@ If publisher and subscriber wants to communicate via broker(EISZmqBroker), i.e.,
     - Specifying just socket directory
 
         ```javascript
-        "Endpoint":"/EIS/sockets"
+        "Endpoint":"/EII/sockets"
         ```
 
     - Specifying socket directory and socket file
 
         ```javascript
         "Endpoint":{
-            "SocketDir" : "/EIS/sockets",
+            "SocketDir" : "/EII/sockets",
             "SocketFile": "socketfile"
         }
 
         or
 
-        "Endpoint":"/EIS/sockets, socketfile"
+        "Endpoint":"/EII/sockets, socketfile"
         ```
 
 
 
 ## Running Examples
 
-The ConfigMgr library also supports Cpp APIs and Python & Go bindings. These APIs/bindings can be used in Cpp and Python/Go services in the EIS stack to fetch required config/interfaces/msgbus config. 
+The ConfigMgr library also supports Cpp APIs and Python & Go bindings. These APIs/bindings can be used in Cpp and Python/Go services in the EII stack to fetch required config/interfaces/msgbus config. 
 
 Examples will only be compiled if the `WITH_EXAMPLES=ON` option is specified while running CMake.
 Please refer [Examples installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.) 
@@ -529,7 +529,7 @@ Examples on demonstrating the usage of these APIs in the bindings have been give
 ### CPP Examples
 
 ```sh
-$ Navigate to <EISrepo>/common/libs/ConfigMgr
+$ Navigate to <EIIrepo>/common/libs/ConfigMgr
 $ sudo rm -rf build
 $ mkdir build
 $ cd build
@@ -582,7 +582,7 @@ $ ./sample_app
 ### Python Examples
 
 ```sh
-$ Navigate to <EISrepo>/common/libs/ConfigMgr/python
+$ Navigate to <EIIrepo>/common/libs/ConfigMgr/python
 $ python3 setup.py build
 $ sudo python3 setup.py install
 ```
@@ -631,7 +631,7 @@ $ python3 sample_get_value.py
 ### Go Examples
 
 ```sh
-$ Navigate to <EISrepo>/common/libs/ConfigMgr/go
+$ Navigate to <EIIrepo>/common/libs/ConfigMgr/go
 $ cp -r ConfigMgr/ $GOPATH/src
 $ cd ConfigMgr/examples
 $ source go_env.sh
@@ -691,7 +691,7 @@ $ ./app_config
 * The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
 Please refer [Unit Test installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.) installation.
 
-* Provisioning EIS should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
+* Provisioning should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
 
 Before executing any of the test files, please run below command from `build/tests/`
 ```sh

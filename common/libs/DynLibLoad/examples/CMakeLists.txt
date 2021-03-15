@@ -27,4 +27,4 @@ add_library(example SHARED "example.c")
 
 # Build the example loader program
 add_executable(load-example "load_example.c")
-target_link_libraries(load-example eisdynlibload ${EISUtils_LIBRARIES} pthread)
+target_link_libraries(load-example eiidynlibload ${EIIUtils_LIBRARIES} pthread)

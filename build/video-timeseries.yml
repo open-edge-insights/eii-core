@@ -11,7 +11,7 @@ AppName:
 - WebVisualizer
 - ImageStore
 - FactoryControlApp
-- EISAzureBridge
+- AzureBridge
 # Time-series services
 - Telegraf
 - Kapacitor

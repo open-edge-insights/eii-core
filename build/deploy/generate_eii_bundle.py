@@ -17,8 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Script to generate eis bundle for worker node setup
-   in Multi-node EIS Provisioning & Deployment scenario.
+"""Script to generate eii bundle for worker node setup
+   in Multi-node Provisioning & Deployment scenario.
 """
 import subprocess
 import json
@@ -26,11 +26,11 @@ import sys
 import argparse
 import yaml
 
-USER = "eisuser:eisuser"
+USER = "eiiuser:eiiuser"
 
 
-class EisBundleGenerator:
-    """EisBundleGenerator class
+class EiiBundleGenerator:
+    """EiiBundleGenerator class
     """
     def __init__(self):
         '''
@@ -69,7 +69,7 @@ class EisBundleGenerator:
     def generate_docker_composeyml(self):
         '''
             This method helps to generate the docker-compose yaml
-            file from EIS "docker-setup" directory and manipualtes
+            file from EII "docker-setup" directory and manipualtes
             new compose yaml file as per config file which will be
             part of telit bundle
         '''
@@ -100,9 +100,9 @@ class EisBundleGenerator:
         except Exception as err:
             print("Exception Occured", err)
 
-    def generate_eis_bundle(self):
+    def generate_eii_bundle(self):
         '''
-            generate_eis_bundle helps to execute set of pre
+            generate_eii_bundle helps to execute set of pre
             commands which are required for Bundle and finally
             it generates the bundle
         '''
@@ -111,7 +111,7 @@ class EisBundleGenerator:
             print("Please Check the Docker Regsitry Address in \
                 'DOCKER_REGISTRY' env of build/.env file")
             sys.exit(0)
-        eis_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
+        eii_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
         cmdlist = []
         cmdlist.append(["rm", "-rf", self.bundle_tag_name])
         cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
@@ -121,14 +121,14 @@ class EisBundleGenerator:
             for service in self.config['services'].keys():
                 servicename =\
                     self.config['services'][service]['environment']['AppName']
-                service_dir = eis_cert_dir + servicename
+                service_dir = eii_cert_dir + servicename
                 cmdlist.append(["mkdir", "-p", service_dir])
                 cert_dir = "../provision/Certificates/" + servicename
-                cmdlist.append(["cp", "-rf", cert_dir, eis_cert_dir])
+                cmdlist.append(["cp", "-rf", cert_dir, eii_cert_dir])
 
             cmdlist.append(["cp", "-rf", "../provision/Certificates/ca",
-                            eis_cert_dir])
-            ca_key_file = eis_cert_dir + "ca/ca_key.pem"
+                            eii_cert_dir])
+            ca_key_file = eii_cert_dir + "ca/ca_key.pem"
             cmdlist.append(["rm", ca_key_file])
         try:
             for cmd in cmdlist:
@@ -154,20 +154,20 @@ class EisBundleGenerator:
 
     def generate_provision_bundle(self):
         '''
-            generate_eis_provision bundle helps to execute set of pre
+            generate_eii_provision bundle helps to execute set of pre
             commands which are required for provision Bundle and finally
             it generates the bundle
         '''
-        provision_tag_name = 'eis_provisioning'
-        eis_provision_dir = "./" + provision_tag_name + "/provision/"
+        provision_tag_name = 'eii_provisioning'
+        eii_provision_dir = "./" + provision_tag_name + "/provision/"
         cmdlist = []
         cmdlist.append(["rm", "-rf", provision_tag_name])
         cmdlist.append(["mkdir", "-p", provision_tag_name])
         cmdlist.append(["cp", "../.env", provision_tag_name])
-        cmdlist.append(["mkdir", "-p", eis_provision_dir])
-        cmdlist.append(["cp", "-f", "../provision/provision_eis.sh",
-                        eis_provision_dir])
-        cmdlist.append(["chmod", "+x", eis_provision_dir + "provision_eis.sh"])
+        cmdlist.append(["mkdir", "-p", eii_provision_dir])
+        cmdlist.append(["cp", "-f", "../provision/provision.sh",
+                        eii_provision_dir])
+        cmdlist.append(["chmod", "+x", eii_provision_dir + "provision.sh"])
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
@@ -200,20 +200,20 @@ class EisBundleGenerator:
         if args.provisioning:
             self.generate_provision_bundle()
         else:
-            self.generate_eis_bundle()
+            self.generate_eii_bundle()
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="EIS Bundle Generator:\
-         This Utility helps to Generate the bundle required to deploy EIS.\
+    parser = argparse.ArgumentParser(description="EII Bundle Generator:\
+         This Utility helps to Generate the bundle required to deploy EII.\
          ", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-f',
                         dest='compose_file_path',
                         default="../docker-compose.yml",
-                        help='Docker Compose File path for EIS Deployment')
+                        help='Docker Compose File path for EII Deployment')
     parser.add_argument('-t',
                         dest='bundle_tag_name',
-                        default="eis_bundle",
+                        default="eii_bundle",
                         help='Tag Name used for Bundle Generation')
     parser.add_argument('-bf',
                         dest='bundle_folder',
@@ -226,5 +226,5 @@ if __name__ == '__main__':
                         help='Generates provisioning bundle')
 
     arg = parser.parse_args()
-    eisBundle = EisBundleGenerator()
-    eisBundle.main(arg)
+    eiiBundle = EiiBundleGenerator()
+    eiiBundle.main(arg)

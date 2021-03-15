@@ -18,7 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-""" Script to stop and remove existing eis docker containers
+""" Script to stop and remove existing eii docker containers
 """
 import os
 import subprocess
@@ -30,13 +30,13 @@ def parse_args():
     """ function to parse arguements
     """
     parser = argparse.ArgumentParser(description="Tool Used for stopping\
-                                     and removing existing EIS containers")
+                                     and removing existing EII containers")
     parser.add_argument('--f', dest='compose_file_path',
                         help='docker-compose.yml file path')
     return parser.parse_args()
 
 
-def stop_and_remove_eis_containers(composefile):
+def stop_and_remove_eii_containers(composefile):
     """Parse given docker-compose file, stops and removed any running
     containers.
     :param file: Full path of docker-compose file.
@@ -56,4 +56,4 @@ def stop_and_remove_eis_containers(composefile):
 
 if __name__ == "__main__":
     args = parse_args()
-    stop_and_remove_eis_containers(args.compose_file_path)
+    stop_and_remove_eii_containers(args.compose_file_path)

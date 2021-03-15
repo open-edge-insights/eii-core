@@ -17,7 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""Python distutils installer for the Python EIS Message Bus library
+"""Python distutils installer for the Python EII Message Bus library
 """
 
 import os
@@ -27,17 +27,17 @@ from Cython.Build import cythonize
 
 # Python install script for config manager is added
 # for v2.4
-eis_configmgr_version = "2.4"
-eis_version = os.getenv("EIS_VERSION")
-if eis_version is not None and eis_version != "":
-    eis_configmgr_version = eis_version
+eii_configmgr_version = "2.4"
+eii_version = os.getenv("EII_VERSION")
+if eii_version is not None and eii_version != "":
+    eii_configmgr_version = eii_version
 
 # Main package setup
 setup(
-    name='eis-configmgr',
-    version=eis_configmgr_version,
-    description='EIS ConfigMgr Python wrapper',
-    keywords='eis configmgr',
+    name='eii-configmgr',
+    version=eii_configmgr_version,
+    description='EII ConfigMgr Python wrapper',
+    keywords='eii configmgr',
     url='',
     package_dir={'': '.'},
     packages=['cfgmgr'],
@@ -45,7 +45,7 @@ setup(
             Extension(
                 '*',
                 ['./cfgmgr/*.pyx'],
-                libraries=['eisconfigmanager'])],
+                libraries=['eiiconfigmanager'])],
         build_dir='./build/cython',
         compiler_directives={'language_level': 3}
     )

@@ -26,8 +26,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "eis/config_manager/kv_store_plugin/kv_store_plugin.h"
-#include "eis/utils/json_config.h"
+#include "eii/config_manager/kv_store_plugin/kv_store_plugin.h"
+#include "eii/utils/json_config.h"
 
 #define KV_STORE_CONFIG "./kv_store_unittest_config.json"
 

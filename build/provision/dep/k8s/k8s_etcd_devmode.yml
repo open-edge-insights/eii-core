@@ -22,7 +22,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: etcd
-  namespace: eis
+  namespace: eii
 spec:
   type: NodePort
   selector:
@@ -39,12 +39,12 @@ metadata:
   labels:
     app: etcd
   name: ia-etcd
-  namespace: eis
+  namespace: eii
 spec:
   restartPolicy: OnFailure
   containers:
   - name: ia-etcd
-    image: ia_etcd:${EIS_VERSION}
+    image: ia_etcd:${EII_VERSION}
     volumeMounts:
     - name: "etcd-data"
       mountPath: "$ETCD_DATA_DIR"
@@ -68,4 +68,4 @@ spec:
   volumes:
   - name: "etcd-data"
     hostPath:
-      path: ${EIS_INSTALL_PATH}/data/etcd/
+      path: ${EII_INSTALL_PATH}/data/etcd/

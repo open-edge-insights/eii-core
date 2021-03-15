@@ -26,9 +26,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "eis/config_manager/config_mgr.hpp"
+#include "eii/config_manager/config_mgr.hpp"
 
-using namespace eis::config_manager;
+using namespace eii::config_manager;
 
 void watch_config_example(const char* key, config_t* value, void *user_data) {
     char* val = configt_to_char(value);

@@ -20,18 +20,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-package eisconfigmgr
+package eiiconfigmgr
 
 /*
 #cgo CFLAGS: -g -Wall
-#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -leisconfigmanager -lsafestring
+#cgo LDFLAGS: -leiimsgbus -leiimsgenv -leiiutils -leiiconfigmanager -lsafestring
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <safe_lib.h>
-#include <eis/utils/logger.h>
-#include <eis/config_manager/cfg_mgr.h>
+#include <eii/utils/logger.h>
+#include <eii/config_manager/cfg_mgr.h>
 
 typedef struct {
 	char** arr;

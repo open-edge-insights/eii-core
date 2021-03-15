@@ -19,7 +19,7 @@
 # IN THE SOFTWARE.
 
 set(CMAKE_CXX_STANDARD 11)
-configure_file(${EIS_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
+configure_file(${EII_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
                 RESULT_VARIABLE result
                 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download)
@@ -53,8 +53,8 @@ endif()
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(config_manager_unit_tests "config_manager_unit_tests.cpp")
 add_executable(kvstore_client-tests "kv_store_client_tests.cpp")
-target_link_libraries(config_manager_unit_tests eisconfigmanager eismsgbus eismsgenv cjson eisutils gtest_main eisutils)
-target_link_libraries(kvstore_client-tests eisconfigmanager gtest_main eisutils)
+target_link_libraries(config_manager_unit_tests eiiconfigmanager eiimsgbus eiimsgenv cjson eiiutils gtest_main eiiutils)
+target_link_libraries(kvstore_client-tests eiiconfigmanager gtest_main eiiutils)
 add_test(NAME config_manager_unit_tests COMMAND config_manager_unit_tests)
 add_test(NAME kvstore_client-tests COMMAND kvstore_client-tests)
 

@@ -27,18 +27,18 @@ build/docker-compose.override.yml
 build/csl/csl_app_spec.json
 build/csl/*_module_spec.json
 build/provision/Certificates/
-build/provision/config/eis_config.json
+build/provision/config/eii_config.json
 build/provision/rootca/
 build/provision/server
 build/provision/client
-build/k8s/eis-k8s-deploy.yml
+build/k8s/eii-k8s-deploy.yml
 
-# Adding these folder names as eis-core repo
+# Adding these folder names as eii-core repo
 # is pulled onto IEdgeInsights folder making
 # all these apps/services appear as untracked
 # files
 common/util/c/
-common/libs/EISMessageBus/
+common/libs/EIIMessageBus/
 FactoryControlApp/
 Grafana/
 ImageStore/
@@ -52,10 +52,10 @@ VideoAnalytics/
 VideoIngestion/
 Visualizer/
 WebVisualizer/
-EISAzureBridge/
+AzureBridge/
 common/video/
 CustomUdfs/
-EISZmqBroker/
+ZmqBroker/
 tools/
 Samples/
 *sample_app/

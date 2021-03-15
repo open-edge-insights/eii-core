@@ -1,16 +1,16 @@
-package eisconfigmgr
+package eiiconfigmgr
 
 /*
 #include <stdio.h>
 #cgo CFLAGS: -g -Wall
-#cgo LDFLAGS: -leismsgbus -leismsgenv -leisutils -leisconfigmanager -lsafestring
+#cgo LDFLAGS: -leiimsgbus -leiimsgenv -leiiutils -leiiconfigmanager -lsafestring
 
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <safe_lib.h>
-#include <eis/utils/logger.h>
-#include <eis/config_manager/cfg_mgr.h>
+#include <eii/utils/logger.h>
+#include <eii/config_manager/cfg_mgr.h>
 
 // Declaring the Go callback to be called from C layer callback
 extern void cfgmgrGoCallback(const char* key, config_t* config, void* user_data);

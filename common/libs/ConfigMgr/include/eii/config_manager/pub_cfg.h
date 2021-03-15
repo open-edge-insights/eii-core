@@ -24,7 +24,7 @@
  */
 
 
-#include "eis/config_manager/base_cfg.h"
+#include "eii/config_manager/base_cfg.h"
 #define TYPE "Type"
 #define NAME "Name"
 #define ENDPOINT "EndPoint"
@@ -37,8 +37,8 @@
 #define TOPICS "Topics"
 #define BROKER_APPNAME "BrokerAppName"
 
-#ifndef _EIS_C_PUB_CFG_H
-#define _EIS_C_PUB_CFG_H
+#ifndef _EII_C_PUB_CFG_H
+#define _EII_C_PUB_CFG_H
 
 #ifdef __cplusplus
 extern "C" {

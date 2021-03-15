@@ -24,7 +24,7 @@
  */
 
 #include <stdarg.h>
-#include "eis/config_manager/base_cfg.h"
+#include "eii/config_manager/base_cfg.h"
 
 #define MAX_CONFIG_KEY_LENGTH 250
 
@@ -47,7 +47,7 @@ config_value_t* get_endpoint_base(config_value_t* conf) {
 // To fetch topics from config
 // Get topics base returns the value mapped to Topics key in the Applications Interface.
 // If "*" is mentioned in topics, then it is replaced by empty string ,
-// as our EISMessageBus supports the prefix approach, empty prefix considers all/any the topics. 
+// as our EIIMessageBus supports the prefix approach, empty prefix considers all/any the topics. 
 
 config_value_t* get_topics_base(config_value_t* conf) {
     config_value_t* config = conf;

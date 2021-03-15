@@ -3,10 +3,10 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-Name: libeisconfigmanager
-Description: EIS Config Manager 2.4 library.
+Name: libeiiconfigmanager_static
+Description: EII Config Manager 2.4 library.
 Version: @PROJECT_VERSION@
 
-Libs: -L${libdir} -leisconfigmanager
+Libs: -L${libdir} -leiiconfigmanager_static
 Libs.private: @PRIVATE_LIBS@
 Cflags: -I${includedir}

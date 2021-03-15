@@ -18,26 +18,26 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-ARG EIS_VERSION
+ARG EII_VERSION
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION as eisbase
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as eiibase
 
 ARG ETCD_VERSION
 RUN apt-get update && \
     apt-get install -y curl && \
-    mkdir /EIS/etcd && \
-    curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
-    tar -xvf /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EIS/etcd --strip 1 && \
-    rm -f /EIS/etcd-${ETCD_VERSION}-linux-amd64.tar.gz /EIS/etcd/etcd && \
-    mv /EIS/etcd/etcdctl /EIS/ && apt-get remove -y curl
+    mkdir /EII/etcd && \
+    curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
+    tar -xvf /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EII/etcd --strip 1 && \
+    rm -f /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz /EII/etcd/etcd && \
+    mv /EII/etcd/etcdctl /EII/ && apt-get remove -y curl
 
 RUN apt-get update && \
     apt-get install -y nginx && \
     apt-get update && apt-get install -y procps
 
-ARG EIS_UID
-RUN chown -R ${EIS_UID}:${EIS_UID} /var/log/nginx/ && \
-    chown -R ${EIS_UID}:${EIS_UID} /var/lib/nginx/
+ARG EII_UID
+RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
+    chown -R ${EII_UID}:${EII_UID} /var/lib/nginx/
 
 
 COPY etcdkeeper ./etcdkeeper/
@@ -46,9 +46,9 @@ RUN cd ./etcdkeeper/src/etcdkeeper \
     && go build -o etcdkeeper main.go \
     && mv etcdkeeper ../../
 
-FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
 
-FROM eisbase
+FROM eiibase
 
 COPY --from=common ${GO_WORK_DIR}/common/libs ${PY_WORK_DIR}/libs
 COPY --from=common ${GO_WORK_DIR}/common/util ${PY_WORK_DIR}/util
@@ -59,16 +59,16 @@ COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./
-COPY eis_nginx_prod.conf ./
-COPY eis_nginx_dev.conf ./
+COPY eii_nginx_prod.conf ./
+COPY eii_nginx_dev.conf ./
 
 RUN touch /run/nginx.pid
 
-ARG EIS_UID
-RUN chown -R ${EIS_UID}:${EIS_UID} /run/nginx.pid && \
+ARG EII_UID
+RUN chown -R ${EII_UID}:${EII_UID} /run/nginx.pid && \
     ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log && \
     mkdir -p /tmp/nginx && \
-    chown -R ${EIS_UID}:${EIS_UID} /tmp/nginx && \
+    chown -R ${EII_UID}:${EII_UID} /tmp/nginx && \
     rm -rf /var/lib/nginx && ln -sf /tmp/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 

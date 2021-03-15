@@ -32,9 +32,9 @@ services:
         - etcd_root_cert
         - etcd_root_key
     volumes:
-        - "../Certificates:/EIS/etcd/Certificates"
+        - "../Certificates:/EII/etcd/Certificates"
     environment:
-      ETCD_ROOT_PASSWORD: eis123
+      ETCD_ROOT_PASSWORD: eii123
 
 secrets:
   ca_etcd:

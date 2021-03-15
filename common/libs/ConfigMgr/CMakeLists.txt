@@ -19,7 +19,7 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.11)
-project(eis-configmanager VERSION 1.0.0 LANGUAGES C CXX)
+project(eii-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 
 # Define CMake options
 
@@ -28,7 +28,7 @@ option(WITH_GO "Compile Go Bindings" OFF)
 option(WITH_TESTS "Compile with tests" OFF)
 
 # Globals
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
+set(EII_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
 
 # Set C standard to C11
 set(CMAKE_CXX_STANDARD 11)
@@ -40,15 +40,15 @@ set(CMAKE_C_FLAGS "-fPIE -fPIC -O2 -Wall -pedantic -fstack-protector-strong -D_F
 set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 
 # Add cmake module path
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EIS_COMMON_CMAKE}")
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EII_COMMON_CMAKE}")
 
 # Finding libraries
 find_package(cJSON REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PROTOBUF REQUIRED)
 find_package(GRPC REQUIRED)
-find_package(EISUtils REQUIRED)
-find_package(EISMsgEnv REQUIRED)
+find_package(EIIUtils REQUIRED)
+find_package(EIIMsgEnv REQUIRED)
 find_package(IntelSafeString REQUIRED)
 
 #set gRPC_FOUND to true
@@ -78,38 +78,38 @@ include_directories(
     include/
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS}
-    ${EISMsgEnv_INCLUDE}
-    ${EISUtils_INCLUDE}
+    ${EIIMsgEnv_INCLUDE}
+    ${EIIUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})
 
 # Get all source files
 file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
 
-add_library(eisconfigmanager_static STATIC ${SOURCES})
-add_library(eisconfigmanager SHARED ${SOURCES})
+add_library(eiiconfigmanager_static STATIC ${SOURCES})
+add_library(eiiconfigmanager SHARED ${SOURCES})
 
-target_link_libraries(eisconfigmanager_static
+target_link_libraries(eiiconfigmanager_static
     PUBLIC
         pthread
         ${GRPC_LIBRARIES}
         ${PROTOBUF_LIBRARIES}
-        ${EISMsgEnv_LIBRARIES}
-        ${EISUtils_LIBRARIES}
+        ${EIIMsgEnv_LIBRARIES}
+        ${EIIUtils_LIBRARIES}
         ${IntelSafeString_LIBRARIES})
 
-target_link_libraries(eisconfigmanager
+target_link_libraries(eiiconfigmanager
     PUBLIC
         pthread
         ${GRPC_LIBRARIES}
         ${PROTOBUF_LIBRARIES}
-        ${EISMsgEnv_LIBRARIES}
-        ${EISUtils_LIBRARIES}
+        ${EIIMsgEnv_LIBRARIES}
+        ${EIIUtils_LIBRARIES}
         ${IntelSafeString_LIBRARIES})
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    target_compile_definitions(eisconfigmanager PRIVATE DEBUG=1)
+    target_compile_definitions(eiiconfigmanager PRIVATE DEBUG=1)
 endif()
 
 if(WITH_EXAMPLES)
@@ -121,10 +121,10 @@ if(WITH_TESTS)
 endif()
 
 ##
-## Configure pkg-config file to be installed for the EIS ConfigMgr
+## Configure pkg-config file to be installed for the EII ConfigMgr
 ##
-set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeisconfigmanager.pc.in")
-set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeisconfigmanager.pc")
+set(PKG_CONFIG_IN  "${CMAKE_CURRENT_SOURCE_DIR}/cmake/libeiiconfigmanager.pc.in")
+set(PKG_CONFIG_OUT "${CMAKE_CURRENT_BINARY_DIR}/libeiiconfigmanager.pc")
 set(DEST_DIR       "${CMAKE_INSTALL_PREFIX}")
 set(PRIVATE_LIBS   "-lgrpc++ -lprotobuf")
 
@@ -136,24 +136,24 @@ configure_file(${PKG_CONFIG_IN} ${PKG_CONFIG_OUT} @ONLY)
 ##
 
 include(GNUInstallDirs)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgr)
-set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EISConfigMgrStatic)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EIIConfigMgr)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/EIIConfigMgrStatic)
 
-install(TARGETS eisconfigmanager
-    EXPORT eisconfigmanager-targets
+install(TARGETS eiiconfigmanager
+    EXPORT eiiconfigmanager-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-install(TARGETS eisconfigmanager_static
-    EXPORT eisconfigmanager_static-targets
+install(TARGETS eiiconfigmanager_static
+    EXPORT eiiconfigmanager_static-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-set_target_properties(eisconfigmanager PROPERTIES EXPORT_NAME EISConfigMgr)
-set_target_properties(eisconfigmanager_static PROPERTIES EXPORT_NAME EISConfigMgrStatic)
+set_target_properties(eiiconfigmanager PROPERTIES EXPORT_NAME EIIConfigMgr)
+set_target_properties(eiiconfigmanager_static PROPERTIES EXPORT_NAME EIIConfigMgrStatic)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-# Install pkg-config libeisconfigmanager.pc file
+# Install pkg-config libeiiconfigmanager.pc file
 install(
     FILES
         ${PKG_CONFIG_OUT}
@@ -162,17 +162,17 @@ install(
 )
 
 # Export targets to a script
-install(EXPORT eisconfigmanager-targets
+install(EXPORT eiiconfigmanager-targets
     FILE
-        EISConfigMgrTargets.cmake
+        EIIConfigMgrTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
 
 # Export targets to a script
-install(EXPORT eisconfigmanager_static-targets
+install(EXPORT eiiconfigmanager_static-targets
     FILE
-        EISConfigMgrStaticTargets.cmake
+        EIIConfigMgrStaticTargets.cmake
     DESTINATION
         ${INSTALL_CONFIGDIR}
 )
@@ -180,46 +180,46 @@ install(EXPORT eisconfigmanager_static-targets
 # Create a ConfigVersion.cmake file
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrStaticConfigVersion.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EIIConfigMgrConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 configure_package_config_file(
-    ${CMAKE_CURRENT_LIST_DIR}/cmake/EISConfigMgrStaticConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfig.cmake
+    ${CMAKE_CURRENT_LIST_DIR}/cmake/EIIConfigMgrStaticConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrStaticConfig.cmake
     INSTALL_DESTINATION ${INSTALL_CONFIGDIR}
 )
 
 # Install the config, configversion and custom find modules
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfigVersion.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrStaticConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrStaticConfig.cmake
     DESTINATION ${INSTALL_CONFIGDIR}
 )
 
-export(EXPORT eisconfigmanager-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrTargets.cmake)
+export(EXPORT eiiconfigmanager-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrTargets.cmake)
 
-export(EXPORT eisconfigmanager_static-targets
-       FILE ${CMAKE_CURRENT_BINARY_DIR}/EISConfigMgrStaticTargets.cmake)
+export(EXPORT eiiconfigmanager_static-targets
+       FILE ${CMAKE_CURRENT_BINARY_DIR}/EIIConfigMgrStaticTargets.cmake)
 
 # Register package in user's package registry
-export(PACKAGE EISConfigMgr)
-export(PACKAGE EISConfigMgrStatic)
+export(PACKAGE EIIConfigMgr)
+export(PACKAGE EIIConfigMgrStatic)

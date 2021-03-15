@@ -80,24 +80,24 @@ if __name__ == "__main__":
 
     if devMode:
         try:
-            with open("/tmp/nginx/eis_nginx_temp.conf", "w") as outfile:
-                subprocess.run(["sed", sed_ip, "./eis_nginx_dev.conf"],
+            with open("/tmp/nginx/eii_nginx_temp.conf", "w") as outfile:
+                subprocess.run(["sed", sed_ip, "./eii_nginx_dev.conf"],
                                stdout=outfile, check=False)
-            with open("/tmp/nginx/eis_nginx.conf", "w") as outfile:
+            with open("/tmp/nginx/eii_nginx.conf", "w") as outfile:
                 subprocess.run(["sed", sed_port,
-                               "/tmp/nginx/eis_nginx_temp.conf"],
+                               "/tmp/nginx/eii_nginx_temp.conf"],
                                stdout=outfile, check=False)
         except subprocess.CalledProcessError as err:
             print("Subprocess error: {}, {}".format(err.returncode,
                   err.output))
     else:
         try:
-            with open("/tmp/nginx/eis_nginx_temp.conf", "w") as outfile:
-                subprocess.run(["sed", sed_ip, "./eis_nginx_prod.conf"],
+            with open("/tmp/nginx/eii_nginx_temp.conf", "w") as outfile:
+                subprocess.run(["sed", sed_ip, "./eii_nginx_prod.conf"],
                                stdout=outfile, check=False)
-            with open("/tmp/nginx/eis_nginx.conf", "w") as outfile:
+            with open("/tmp/nginx/eii_nginx.conf", "w") as outfile:
                 subprocess.run(["sed", sed_port,
-                               "/tmp/nginx/eis_nginx_temp.conf"],
+                               "/tmp/nginx/eii_nginx_temp.conf"],
                                stdout=outfile, check=False)
         except subprocess.CalledProcessError as err:
             print("Subprocess error: {}, {}".format(err.returncode,

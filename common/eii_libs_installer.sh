@@ -110,7 +110,7 @@ fi
 unset GOROOT
 
 DynLibLoad="$CUR_DIR/libs/DynLibLoad"
-EISMessageBus="$CUR_DIR/libs/EISMessageBus"
+EIIMessageBus="$CUR_DIR/libs/EIIMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 LIBS_INSTALL_PATH="/usr/local/lib"
 
@@ -132,8 +132,8 @@ cd $ConfigMgr &&
 rm -rf deps && \
 ./install.sh
 
-log_info "----Installing EISMessageBus lib dependencies----"
-cd $EISMessageBus &&
+log_info "----Installing EIIMessageBus lib dependencies----"
+cd $EIIMessageBus &&
    rm -rf deps && \
    ./install.sh --cython
 
@@ -141,7 +141,7 @@ if [ -f "$LIBS_INSTALL_PATH/libsafestring.so" ]; then
     log_info "libsafestring.so already installed"
 else
     log_info "----Installing IntelSafeString lib----"
-    cd $EISMessageBus/../IntelSafeString/ &&
+    cd $EIIMessageBus/../IntelSafeString/ &&
     rm -rf build && \
     mkdir build && \
     cd build && \
@@ -151,7 +151,7 @@ else
 fi
 
 log_info "----Installing Util lib----"
-cd $EISMessageBus/../../util/c/ &&
+cd $EIIMessageBus/../../util/c/ &&
    ./install.sh && \
    rm -rf build && \
    mkdir build && \
@@ -169,7 +169,7 @@ cd $EISMessageBus/../../util/c/ &&
 check_error "----Failed to install Util lib----"
 
 log_info "----Installing DynLibLoad lib----"
-cd $EISMessageBus/../DynLibLoad/ && \
+cd $EIIMessageBus/../DynLibLoad/ && \
     rm -rf build &&  \
     mkdir build && \
     cd build && \
@@ -179,24 +179,24 @@ cd $EISMessageBus/../DynLibLoad/ && \
     make install
 check_error "----Failed to install Util lib----"
 
-log_info "----Installing EISMessageBus c library----"
-cd $EISMessageBus && \
+log_info "----Installing EIIMessageBus c library----"
+cd $EIIMessageBus && \
     rm -rf build/ && \
     mkdir build/ && \
     cd build/ && \
     cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
     make install
-check_error "----Failed to install EISMessageBus c lib----"
+check_error "----Failed to install EIIMessageBus c lib----"
 
-log_info "----Installing EISMessageBus python binding----"
-cd $EISMessageBus/python &&
+log_info "----Installing EIIMessageBus python binding----"
+cd $EIIMessageBus/python &&
    python3 setup.py install
-check_error "----Failed to install EISMessageBus python binding----"
+check_error "----Failed to install EIIMessageBus python binding----"
 
-log_info "----Installing EISMessageBus Golang binding----"
-cd $EISMessageBus &&
+log_info "----Installing EIIMessageBus Golang binding----"
+cd $EIIMessageBus &&
    cp -a go/. $GOPATH/src/
-check_error "----Failed to install EISMessageBus Golang binding----"
+check_error "----Failed to install EIIMessageBus Golang binding----"
 
 log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \

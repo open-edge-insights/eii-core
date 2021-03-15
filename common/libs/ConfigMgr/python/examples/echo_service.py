@@ -17,13 +17,13 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-"""EIS Message Bus echo service Python example.
+"""EII Message Bus echo service Python example.
 """
 
 import json
 import argparse
 import os
-import eis.msgbus as mb
+import eii.msgbus as mb
 import cfgmgr.config_manager as cfg
 
 
@@ -48,7 +48,7 @@ try:
         print('[INFO] No server interfaces found')
     print('[INFO] Number of server interfaces are : {}'.format(ret))
 
-    # get server msgbus config for application to communicate over EIS message bus
+    # get server msgbus config for application to communicate over EII message bus
     config = server_ctx.get_msgbus_config()
     print('[INFO] Obtained config is {}'.format(config))
     print('[INFO] Obtained endpoint is {}'.format(server_ctx.get_endpoint()))

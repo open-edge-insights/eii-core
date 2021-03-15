@@ -1,4 +1,4 @@
-# `EIS Etcd Secrets and MsgBus Endpoints Configuration`
+# `EII Etcd Secrets and MsgBus Endpoints Configuration`
 
 ## `Etcd Secrets Configuration`
 
