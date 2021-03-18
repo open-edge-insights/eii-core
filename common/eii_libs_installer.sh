@@ -200,6 +200,9 @@ check_error "----Failed to install EIIMessageBus Golang binding----"
 
 log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
+   # Installing grpc from DEB package
+   apt install ./grpc-1.29.0-Linux.deb && \
+   # Install ConfigMgr and kv_store_plugin
    rm -rf build && \
    mkdir build && \
    cd build && \
