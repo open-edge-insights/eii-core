@@ -343,7 +343,9 @@ $ ./etcd_capture.sh
      [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and
      below command can be used to build and run the containers.
   >    ```sh
-  >     $ docker-compose up --build -d
+  >     $ docker-compose -f docker-compose-build.yml build
+  >     $ docker-compose -f docker-compose-push.yml push
+  >     $ docker-compose up -d
   >     ```
   ---
 
@@ -369,28 +371,44 @@ yaml file.
 | Video streaming with AzureBridge       | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
 | Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
-To build and run EII in one command:
+
+## Build EII stack
+
+Builds all EII services in the [docker-compose-build.yml](build/docker-compose-build.yml) along with the base EII services.
 
 ```sh
-$ docker-compose up --build -d
+$ docker-compose -f docker-compose-build.yml build
 ```
 
-The build and run steps can be split into two as well like below:
-
-```sh
-$ docker-compose build
-$ docker-compose up -d
-```
+> **NOTE**: Base EII services like ia_eiibase, ia_video_common etc., are required only at the build time and not at the runtime.
 
 If any of the services fails during build, it can be built using below command
 
 ```sh
-$ docker-compose build --no-cache <service name>
+$ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 ```
+
+## Run EII services
+
+Runs all the EII services in the [docker-compose.yml](build/docker-compose.yml)
+
+```sh
+$ docker-compose up -d
+```
+
+> **NOTE**: The [docker-compose.yml](build/docker-compose.yml) is same as [docker-compose-build.yml](build/docker-compose-build.yml) with only difference it doesn't contain the base EII services.
 
 Please note that the first time build of EII containers may take ~70 minutes depending on the n/w speed.
 
 A successful run will open Visualizer UI with results of video analytics for all video usecases.
+
+## Push required EII images to docker registry
+
+Pushes all the EII service docker images in the [docker-compose-push.yml](build/docker-compose-push.yml). Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
+```sh
+$ docker-compose -f docker-compose-push.yml push
+```
+> **NOTE**: The [docker-compose-push.yml](build/docker-compose-push.yml) is same as [docker-compose.yml](build/docker-compose.yml) with only difference it contains the dummy **build: .** key which is required to push the EII service docker images.
 
 # Custom Udfs
 
@@ -596,7 +614,7 @@ In order to deploy EII using the orchestrator Kubernetes, please follow [build/k
 ---
 **Note**:
 1. Few useful docker-compose and docker commands:
-     * `docker-compose build` - builds all the service containers. To build a single service container, use `docker-compose build [serv_cont_name]`
+     * `docker-compose -f docker-compose-build.yml build` - builds all the service containers. To build a single service container, use `docker-compose -f docker-compose-build.yml build [serv_cont_name]`
      * `docker-compose down` - stops and removes the service containers
      * `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
      * `docker ps` - check running containers

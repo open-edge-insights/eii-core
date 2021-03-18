@@ -37,6 +37,8 @@ import io
 from ruamel.yaml.comments import CommentedMap
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
+DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
+DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
 SCAN_DIR = ".."
 dev_mode = False
 # Initializing multi instance related variables
@@ -1068,7 +1070,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
     return yaml_dict
 
 
-def create_docker_compose_override(app_list, dev_mode, args):
+def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images):
     """Consolidated docker-compose.override.yml
 
     :param app_list: List of docker-compose-dev.override.yml file
@@ -1084,9 +1086,16 @@ def create_docker_compose_override(app_list, dev_mode, args):
                                         'docker-compose-dev.override.yml',
                                         dev_mode,
                                         args)
-
+        temp = copy.deepcopy(override_data)
+        for k, v in override_data.items():
+            if(k == "services"):
+                for service, service_dict in v.items():
+                    if(service in run_exclude_images):
+                        del temp["services"][service]
+            elif (k != "version"):
+                del temp[k]
         with open("./docker-compose.override.yml", 'w') as fp:
-            ruamel.yaml.round_trip_dump(override_data, fp)
+            ruamel.yaml.round_trip_dump(temp, fp)
 
 
 def yaml_parser(args):
@@ -1099,6 +1108,8 @@ def yaml_parser(args):
     # Fetching EII directory path
     eii_dir = os.getcwd() + '/../'
     dir_list = []
+    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base"]
+    build_params = ["depends_on", "build", "image"]
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
         print("Fetching required services from {}...".format(args.yml_file))
@@ -1187,15 +1198,51 @@ def yaml_parser(args):
                 break
 
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
+    temp = copy.deepcopy(yml_dict)
+    # Writing docker-compose-build.yml file. This yml will have services which will only
+    # contain the build_params keys for all services.
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                for service_keys, _ in list(service_dict.items()):
+                    if(service_keys not in build_params):
+                        del temp["services"][service][service_keys]
+        elif (k != "version"):
+            del temp[k]
+    with open(DOCKER_COMPOSE_BUILD_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
+    temp = copy.deepcopy(yml_dict)
+    build_params.remove("image")
+    # Writing docker-compose.yml file.
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                for service_keys, _ in list(service_dict.items()):
+                    if(service_keys in build_params):
+                        del temp["services"][service][service_keys]
+                if(service in run_exclude_images):
+                    del temp["services"][service]
 
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
-        ruamel.yaml.round_trip_dump(yml_dict, docker_compose_file)
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
+    # Writing docker-compose-push.yml file.
+    for k, v in temp.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                # The docker-compose-push.yml contains the dummy build: . key 
+                # which is required to push the EII service docker images
+                temp["services"][service]["build"] = "."
+                temp["services"][service].move_to_end("build", last=False)
+    with open(DOCKER_COMPOSE_PUSH_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
 
     dev_mode_str = "PROD"
     if dev_mode:
         dev_mode_str = "DEV"
         # Creating docker-compose-dev.override.yml only in DEV mode
-        create_docker_compose_override(dev_override_list, True, args)
+        create_docker_compose_override(dev_override_list, True, args, run_exclude_images)
     print("Successfully created docker-compose.yml"
           " file for {} mode".format(dev_mode_str))
 
