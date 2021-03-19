@@ -2049,20 +2049,21 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
             char* server_public_key = kv_store_client->get(kv_store_handle, retreive_server_pub_key);
             if(server_public_key == NULL){
                 LOG_DEBUG("Value is not found for the key: %s", retreive_server_pub_key);
-            }
-            server_public_key_cvt = config_value_new_string(server_public_key);
-            if (server_public_key_cvt == NULL) {
-                LOG_ERROR_0("Get server_secret_key_cvt failed");
-                goto err;
-            }
-            config_set_result = config_set(client_topic, "server_public_key", server_public_key_cvt);
-            if (!config_set_result) {
-                LOG_ERROR("Unable to set config value");
-            }
+            } else {
+                server_public_key_cvt = config_value_new_string(server_public_key);
+                if (server_public_key_cvt == NULL) {
+                    LOG_ERROR_0("Get server_secret_key_cvt failed");
+                    goto err;
+                }
+                config_set_result = config_set(client_topic, "server_public_key", server_public_key_cvt);
+                if (!config_set_result) {
+                    LOG_ERROR("Unable to set config value");
+                }
 
-            // free server_pub_key
-            if (server_public_key != NULL) {
-                free(server_public_key);
+                // free server_pub_key
+                if (server_public_key != NULL) {
+                    free(server_public_key);
+                }
             }
 
             // Adding client public key to config
