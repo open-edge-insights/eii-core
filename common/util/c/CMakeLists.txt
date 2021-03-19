@@ -66,7 +66,8 @@ target_link_libraries(eiiutils
         ${CJSON_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${IntelSafeString_LIBRARIES}
-        ${WJE_LIBRARY})
+        ${WJE_LIBRARY}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/eii/utils/libbase64.o)
 
 # If compile in debug mode, set DEBUG flag for C code
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
