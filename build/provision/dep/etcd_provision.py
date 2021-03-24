@@ -204,6 +204,18 @@ def get_server_cert_key(appname, certtype):
     key_file = "Certificates/" + appname + "_Server/" + appname \
         + "_Server_server_key" + cert_ext
     ca_certificate = "Certificates/ca/ca_certificate" + cert_ext
+
+    if not os.path.isfile(cert_file):
+        # For usage with certs mounted with helm created k8s secrets,
+        # the directory structure will be flat
+        cert_file = "Certificates/" + appname + "_Server_server_certificate" \
+            + cert_ext
+        key_file = "Certificates/" + appname + "_Server_server_key" + cert_ext
+        ca_certificate = "Certificates/" + "ca_certificate" + cert_ext
+        if not os.path.isfile(cert_file):
+            print("Error: Server certificates not found for ", appname)
+            return None
+
     if cert_ext == ".pem":
         with open(cert_file, 'r') as s_cert:
             server_cert = s_cert.read()
