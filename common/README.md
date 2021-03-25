@@ -13,7 +13,7 @@ This script installs all the EII libraries & their respective required dependenc
 1. To install all of EII libraries and their dependencies, run the command mentioned below
 
     ```sh
-        $ sudo -E ./eii_libs_installer.sh
+        $ sudo -E CMAKE_INSTALL_PREFIX="/opt/intel/eii" ./eii_libs_installer.sh
     ```
 
 **Note**: If an error occurs during execution of eii_libs_installer.sh regarding the $GOPATH, please set the GOPATH appropriately where GO is installed. Ideally, above script will take care of GO installation and setting up the path. If GO is already installed and GOPATH is tampered, then user has to make sure GOPATH is set appropriately.
