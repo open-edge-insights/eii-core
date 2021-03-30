@@ -80,6 +80,11 @@ if [ ! -d "grpc" ] ; then
     log_info "git clone of grpc"
     git clone --recurse-submodules -b $grpc_version $grpc_url
     check_error "Failed to git clone"
+    # Updating the version of libcares to 1.17.1
+    # to fix the vulnerability CVE-2020-8277
+    cd grpc/third_party/cares/cares
+    git checkout cares-1_17_1
+    cd ../../../../
 fi
 
 cd grpc
