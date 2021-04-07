@@ -529,7 +529,7 @@ Examples on demonstrating the usage of these APIs in the bindings have been give
 ### CPP Examples
 
 ```sh
-$ Navigate to <EIIrepo>/common/libs/ConfigMgr
+$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
 $ sudo rm -rf build
 $ mkdir build
 $ cd build
@@ -582,7 +582,7 @@ $ ./sample_app
 ### Python Examples
 
 ```sh
-$ Navigate to <EIIrepo>/common/libs/ConfigMgr
+$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
 $ sudo rm -rf build
 $ mkdir build
 $ cd build
@@ -635,7 +635,7 @@ $ python3 sample_get_value.py
 ### Go Examples
 
 ```sh
-$ Navigate to <EIIrepo>/common/libs/ConfigMgr/go
+$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr/go
 $ cp -r ConfigMgr/ $GOPATH/src
 $ cd ConfigMgr/examples
 $ source go_env.sh
@@ -707,3 +707,17 @@ Before executing any of the test files, please run below command from `build/tes
 $ ./config_manager_unit_tests
 $ ./kvstore_client-tests
 ```
+
+## Creation of grpc .deb file (Optional)
+
+**Note**: This is an optional as we have already created .deb file in the repo.
+If user wants to create .deb file freshly, then one has to follow this step.
+
+Navigate to `[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr` and run the `grpc_deb.sh`
+
+```sh
+$ sudo ./grpc_deb.sh
+```
+
+By executing the above script, `grpc-1.29.0-Linux.deb` will be created in
+`[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr`.
