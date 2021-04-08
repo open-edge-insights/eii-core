@@ -81,7 +81,7 @@ install_go_dependencies () {
 }
 
 install_go () {
-    
+
     apt-get update && \
         apt-get install -y build-essential \
                         git \
@@ -98,6 +98,11 @@ install_go () {
     install_go_dependencies
     export PATH=$PATH:/usr/local/go/bin
 }
+
+# Verify that the CMAKE_INSTALL_PREFIX is set
+if [[ -z "${CMAKE_INSTALL_PREFIX}" ]] ; then
+    log_fatal "CMAKE_INSTALL_PREFIX must be set in the environment"
+fi
 
 if service_exists go ; then
     log_info "----Golang already installed----"
@@ -181,7 +186,7 @@ cd $EIIMessageBus/../../util/c/ &&
    ./thexec-tests
    cd .. ; fi  && \
    make install
-check_error "----Failed to install Util lib----"  
+check_error "----Failed to install Util lib----"
 
 log_info "----Installing DynLibLoad lib----"
 cd $EIIMessageBus/../DynLibLoad/ && \
@@ -192,22 +197,22 @@ cd $EIIMessageBus/../DynLibLoad/ && \
     make && \
     if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
     make install
-check_error "----Failed to install Util lib----"  
+check_error "----Failed to install Util lib----"
 
 log_info "----Installing EIIMessageBus c++ lib from DEB package----"
 cd $EIIMessageBus &&
    apt install ./eii-messagebus-2.4.0-Linux.deb
-check_error "----Failed to install EIIMessageBus c++ lib----"  
+check_error "----Failed to install EIIMessageBus c++ lib----"
 
 log_info "----Installing EIIMessageBus python binding----"
 cd $EIIMessageBus/python &&
    python3 setup.py install --user
-check_error "----Failed to install EIIMessageBus python binding----"  
+check_error "----Failed to install EIIMessageBus python binding----"
 
 log_info "----Installing EIIMessageBus Golang binding----"
 cd $EIIMessageBus &&
    cp -a go/. $GOPATH/src/
-check_error "----Failed to install EIIMessageBus Golang binding----"  
+check_error "----Failed to install EIIMessageBus Golang binding----"
 
 log_info "----Installing ConfigMgr C, golang and python libs----"
 cd $ConfigMgr && \
