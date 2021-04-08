@@ -72,6 +72,8 @@ RUN chown -R ${EII_UID}:${EII_UID} /run/nginx.pid && \
     rm -rf /var/lib/nginx && ln -sf /tmp/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 
+RUN apt-get remove --auto-remove --purge -y libnginx-mod-http-image-filter
+
 HEALTHCHECK NONE
 
 ENTRYPOINT ["python3.6", "start_etcdkeeper.py"]
