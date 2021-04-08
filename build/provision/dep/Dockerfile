@@ -18,7 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-FROM python:3.7-slim
+FROM ubuntu:18.04
+
+# Setting python dev env
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common curl && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends python3.6 \
+                                               python3-pip && \
+    python3.6 -m pip install -U pip && \
+    ln -sf /usr/bin/pip /usr/bin/pip3
+
 RUN  apt update && \
      apt install -y curl
 ARG ETCD_VERSION
