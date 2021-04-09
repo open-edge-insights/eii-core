@@ -1092,8 +1092,9 @@ def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images)
                         del temp["services"][service]
             elif (k != "version"):
                 del temp[k]
-        with open("./docker-compose.override.yml", 'w') as fp:
-            ruamel.yaml.round_trip_dump(temp, fp)
+        if temp["services"]:
+            with open("./docker-compose.override.yml", 'w') as fp:
+                ruamel.yaml.round_trip_dump(temp, fp)
 
 
 def yaml_parser(args):
