@@ -2,7 +2,7 @@ Edge Insights for Industrials (EII) is the framework for enabling smart manufact
 
 # Contents:
 
-1. [Minimum System Requirements](#minimum-system-requirements) 
+1. [Minimum System Requirements](#minimum-system-requirements)
 
 2. [EII Prerequisites installation](#eii-prerequisites-installation)
 
@@ -53,11 +53,11 @@ The installer script automates the installation & configuration of all the prere
 1. **docker daemon**
 2. **docker client**
 3. **docker-compose**
-4. **Python packages** 
+4. **Python packages**
 The script checks if docker & docker-compose are already installed in the system. If not installed, then it installs the intended version of the docker & docker-compose which is mentioned in the script.
 If docker and/or docker-compose are already installed in the system but the installed version of the docker/docker-compose is older than the intended docker/docker-compose version (which is mentioned in the script) then the script uninstalls the older version of docker/docker-compose & re-installs the intended version mentioned in the script. The script also configures the proxy settings for docker client and docker daemon to connect to internet.
 
-The "pre-requisite.sh" script also does Proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system in behind a proxy.  
+The "pre-requisite.sh" script also does Proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system in behind a proxy.
 The `pre-requisite.sh` script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
 
 1. **Steps to run the installer script is as follows**:
@@ -80,7 +80,7 @@ Different use cases...
                 1. RUNS WITHOUT PROXY
                 $sudo ./pre-requisites.sh
 
-                
+
                 2.RUNS WITH PROXY
                 $sudo ./pre-requisites.sh --proxy="proxy.intel.com:891"
 
@@ -145,12 +145,12 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
 | eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII servcie via Kubernetes orchestrator                                                       |
-  
+
 > **NOTE**:
-> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column, 
-     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the 
+> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column,
+     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the
      changes done reflect in the required consolidated files.
-> 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to 
+> 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
 ### 2. Using builder script
@@ -194,7 +194,7 @@ optional arguments:
    This is achieved by providing a yml file to Builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
   If user wants to include only a certain number of services in the EII stack, he can opt to provide the **-f or yml_file** flag of builder to allow only the services provided in the yml file mentioned with the **-f or yml_file**. Few examples of such yml files for different usecases are provided at [video](build/video-streaming.yml), [time-series](build/time-series.yml), [Azure](build/video-streaming-azure.yml) etc.,
-  
+
   An example for running Builder with this flag is given below:
 
   ```sh
@@ -206,7 +206,7 @@ optional arguments:
   Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
 
   If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
-  
+
   An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
@@ -216,7 +216,7 @@ optional arguments:
   > **NOTE**: This multi-instance feature support of Builder works only for the video pipeline i.e., **video-streaming.yml** use case alone and not with any other use case yml files like **video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
 * `Running builder to generate benchmarking configs`:
-   
+
   If user wants to provide a different set of docker-compose.yml, config.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
   ```sh
@@ -275,14 +275,14 @@ An example has been provided below on how to write the **config.json** for any n
     }
 ```
 
-In the above specified **config.json**, the value of **config** key is the config required by the service to run and the value of the **interfaces** key is the config required by the service to 
+In the above specified **config.json**, the value of **config** key is the config required by the service to run and the value of the **interfaces** key is the config required by the service to
 interact with other services of EII stack over EII message bus.
 
-The **Subscribers** value in the **interfaces** section denotes that this service should act as a subscriber to the stream being published by the value specified by **PublisherAppName** on the 
+The **Subscribers** value in the **interfaces** section denotes that this service should act as a subscriber to the stream being published by the value specified by **PublisherAppName** on the
 endpoint mentioned in value specified by **EndPoint** on topics specified in value of **Topics** key.
 
-The **Publishers** value in the **interfaces** section denotes that this service publishes a stream of data after obtaining and processing it from **VideoAnalytics**. The stream is published on 
-the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to 
+The **Publishers** value in the **interfaces** section denotes that this service publishes a stream of data after obtaining and processing it from **VideoAnalytics**. The stream is published on
+the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to
 subscribe to the published stream if being published securely over the EIIMessageBus.
 
 Similar to above interface keys, EII services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
@@ -443,21 +443,23 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2021.2" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2021.3" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
-     **NOTE**: OpenVINO 2021.2 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+     **NOTE**: OpenVINO 2021.3 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
 
      ```sh
      $ cd /opt/intel
-     $ sudo ln -s openvino_2021.2.185 openvino
+     $ sudo ln -s <OpenVINO latest installation> openvino
+
+       Eg: sudo ln -s openvino_2021.3.394 openvino
 
      In case there are older versions of OpenVINO installed on the host system please un-install them.
 
@@ -509,17 +511,14 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
 * **Troubleshooting issues for HDDL devices**
-  * ** Note:** HDDL was tested with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version 5.4.0-050400-generic
-
-  * In case one notices shared memory error with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2021.2 release notes in the below link for new features and changes from the previous versions.
+  * Please refer OpenVINO 2021.3 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2021.2/index.html
+    https://docs.openvinotoolkit.org/2021.3/index.html
 
 ----
 
