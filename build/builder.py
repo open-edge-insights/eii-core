@@ -413,8 +413,6 @@ def json_parser(app_list, args):
     # Writing consolidated json into desired location
     with open(eii_config_path, "w") as json_file:
         json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
-        print("Successfully created consolidated config json at {}".format(
-              eii_config_path))
 
 def k8s_yaml_remove_secrets(yaml_data):
     """This method takes input as a yml data and removes
@@ -1243,12 +1241,29 @@ def yaml_parser(args):
         dev_mode_str = "DEV"
         # Creating docker-compose-dev.override.yml only in DEV mode
         create_docker_compose_override(dev_override_list, True, args, run_exclude_images)
-    print("Successfully created docker-compose.yml"
-          " file for {} mode".format(dev_mode_str))
 
     # Starting json parser
     json_parser(app_list, args)
-
+    log_msg = """
+    For deployment on single/multiple nodes,
+    successfully created below consolidated files:
+    * Required docker compose files: `docker-compose-build.yml`
+      `docker-compose.yml` and `docker-compose-push.yml`
+    * Consolidated config json of required EII services in
+      `docker-compose.yml` at ./provision/config/eii_config.json
+    Please run the below commands to bring up the EII stack:
+    Run:
+    # provision the node to run EII
+    $ cd provision && ./provision.sh ../docker-compose.yml
+    # For building EII services
+    $ docker-compose -f docker-compose-build.yml build
+    # For running EII services
+    $ docker-compose up -d
+    # For pushing EII docker images to registry
+    (useful in multi-node deployment scenarios)
+    $ docker-compose -f docker-compose-push.yml push
+    """
+    print(log_msg)
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
     source_env("./provision/.env")
@@ -1256,11 +1271,24 @@ def yaml_parser(args):
     # Generating Consolidated k8s yaml file for deployment
     try:
         k8s_yaml_merger(k8s_app_list, dev_mode, args)
-        print("Successfully created consolidated Kubernetes "
-              "deployment yml at ./k8s/eii-k8s-deploy.yml")
     except Exception as e:
         print("Exception Occured at Kubernetes yml generation {}".format(e))
         sys.exit(1)
+    log_msg = """
+    For deployment via k8s orchestrator,
+    successfully created consolidated Kubernetes deployment
+    yml at ./k8s/eii-k8s-deploy.yml. Refer `./k8s/README.md`
+    for deployment details.
+    """
+    print(log_msg)
+    log_msg = """
+    **NOTE**:
+    Please re-run the `builder.py` whenever
+    the individual docker-compose.yml, config.json and
+    k8s-service files of individual services are updated
+    and you need them to be considered
+    """
+    print(log_msg)
 
 
 def parse_args():
