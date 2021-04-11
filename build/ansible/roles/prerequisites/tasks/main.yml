@@ -1,0 +1,153 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+- name: Setting up system proxy to /etc/environment
+  become: yes
+  block:
+    - name: Adding http_proxy to /etc/environment
+      lineinfile:
+        path: /etc/environment
+        state: present
+        line: "http_proxy={{ http_proxy }}"
+      when: enable_system_proxy|bool and http_proxy
+
+    - name: Adding https_proxy to /etc/environment
+      lineinfile:
+        path: /etc/environment
+        state: present
+        line: "https_proxy={{ https_proxy }}"
+      when: enable_system_proxy|bool and https_proxy
+
+    - name: Adding no_proxy to /etc/environment
+      lineinfile:
+        path: /etc/environment
+        state: present
+        line: "no_proxy={{ no_proxy }}"
+      when: enable_system_proxy|bool and no_proxy
+
+- name: Add Docker GPG apt Key
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker Repository
+  become: yes
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu bionic stable
+    state: present
+
+- name: Update apt and install docker-ce
+  become: yes
+  apt: update_cache=yes name=docker-ce state=latest
+  notify: 
+        - "enablestartdocker"
+
+- name: Update apt and install docker-ce-cli
+  become: yes
+  apt: update_cache=yes name=docker-ce-cli state=latest
+  notify: 
+        - "enablestartdocker"
+
+- name: Creating ~/.docker/config.json File
+  tags: docker_proxy
+  block:
+      - name: Create .docker directory in home folder
+        file:
+          name: ~/.docker
+          state: directory
+      - name: Load the config.json template with Proxy Env Variables from all.yml
+        template:
+          src: config.json.j2
+          dest: ~/.docker/config.json
+        notify: 
+          - "enablestartdocker"
+
+- name: Creating http-proxy.conf file in /etc/systemd/system/docker.service.d/ Directory
+  tags: docker_proxy
+  block:
+      - name: Create /etc/systemd/system/docker.service.d/ directory
+        become: yes
+        file:
+          name: /etc/systemd/system/docker.service.d/
+          state: directory
+        notify: 
+          - "enablestartdocker"
+      - name: Load the http-proxy.conf template with Proxy Env Variables from all.yml
+        become: yes
+        template:
+          src: http-proxy.conf.j2
+          dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+        notify: 
+          - "enablestartdocker"
+
+- name: Creating /etc/docker/daemon.json File for setting up logging driver
+  tags: docker_logging_optional
+  block:
+    - name: Create /etc/docker directory
+      become: yes
+      file:
+        name: /etc/docker
+        state: directory
+    - name: Load daemon.json template file
+      become: yes
+      template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+      notify:
+          - "enablestartdocker"
+
+- name: Download Docker-Compose
+  become: yes
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: 0755
+
+- name: Ensure group "docker" exists with correct gid
+  become: yes
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Get current user
+  shell: echo $USER
+  register: current_user
+
+- name: usermod -aG docker {{ current_user.stdout }}
+  become: yes
+  shell: usermod -aG docker {{ current_user.stdout }}
+
+- name: Enable & Reload docker
+  become: yes
+  systemd:
+    name: docker
+    enabled: yes
+    masked: no
+    state: restarted
+    daemon_reload: yes
+
+- name: "Make sure docker service is running"
+  become: yes
+  service:
+    name=docker
+    state=started
+    enabled=yes
