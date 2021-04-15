@@ -63,9 +63,9 @@ The `pre-requisite.sh` script also configures proxy setting system wide `/etc/en
 1. **Steps to run the installer script is as follows**:
 
 ```sh
-$ sudo ./pre-requisites.sh --help
+$ sudo ./pre_requisites.sh --help
 
-Usage :: sudo ./pre-requisites.sh [OPTION...]
+Usage :: sudo ./pre_requisites.sh [OPTION...]
 
 List of available options...
 
@@ -78,11 +78,11 @@ Note : If --proxy option is not provided then script will run without proxy
 Different use cases...
 
                 1. RUNS WITHOUT PROXY
-                $sudo ./pre-requisites.sh
+                $sudo ./pre_requisites.sh
 
 
                 2.RUNS WITH PROXY
-                $sudo ./pre-requisites.sh --proxy="proxy.intel.com:891"
+                $sudo ./pre_requisites.sh --proxy="proxy.intel.com:891"
 
 ```
 
