@@ -137,19 +137,6 @@ cd $EIIMessageBus &&
    rm -rf deps && \
    ./install.sh --cython
 
-if [ -f "$LIBS_INSTALL_PATH/libsafestring.so" ]; then
-    log_info "libsafestring.so already installed"
-else
-    log_info "----Installing IntelSafeString lib----"
-    cd $EIIMessageBus/../IntelSafeString/ &&
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-    make install
-    check_error "----Failed to install IntelSafeString lib----"
-fi
-
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
    ./install.sh && \
@@ -166,17 +153,6 @@ cd $EIIMessageBus/../../util/c/ &&
    ./thexec-tests
    cd .. ; fi  && \
    make install
-check_error "----Failed to install Util lib----"
-
-log_info "----Installing DynLibLoad lib----"
-cd $EIIMessageBus/../DynLibLoad/ && \
-    rm -rf build &&  \
-    mkdir build && \
-    cd build && \
-    cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-    make && \
-    if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
-    make install
 check_error "----Failed to install Util lib----"
 
 log_info "----Installing EIIMessageBus c library----"

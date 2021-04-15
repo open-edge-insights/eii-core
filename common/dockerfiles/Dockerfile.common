@@ -31,11 +31,7 @@ ARG CMAKE_BUILD_TYPE
 WORKDIR ${GO_WORK_DIR}
 COPY cmake ./common/cmake
 
-COPY libs/IntelSafeString ./common/libs/IntelSafeString/
-
 COPY util/ ./common/util/
-
-COPY libs/DynLibLoad/ ./common/libs/DynLibLoad
 
 COPY libs/EIIMessageBus ./common/libs/EIIMessageBus
 
