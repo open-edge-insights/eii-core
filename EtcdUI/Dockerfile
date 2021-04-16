@@ -67,9 +67,9 @@ RUN touch /run/nginx.pid
 ARG EII_UID
 RUN chown -R ${EII_UID}:${EII_UID} /run/nginx.pid && \
     ln -sf /dev/stdout /var/log/nginx/access.log && ln -sf /dev/stderr /var/log/nginx/error.log && \
-    mkdir -p /tmp/nginx && \
-    chown -R ${EII_UID}:${EII_UID} /tmp/nginx && \
-    rm -rf /var/lib/nginx && ln -sf /tmp/nginx /var/lib/nginx && \
+    mkdir -p /opt/nginx && \
+    chown -R ${EII_UID}:${EII_UID} /opt/nginx && \
+    rm -rf /var/lib/nginx && ln -sf /opt/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 
 RUN apt-get remove --auto-remove --purge -y libnginx-mod-http-image-filter

@@ -62,10 +62,10 @@ if __name__ == "__main__":
         server_cert = config["server_cert"]
         server_key = config["server_key"]
 
-        with open('/tmp/nginx/server_cert.pem', 'w') as f:
+        with open('/opt/nginx/server_cert.pem', 'w') as f:
             f.write(server_cert)
 
-        with open('/tmp/nginx/server_key.pem', 'w') as f:
+        with open('/opt/nginx/server_key.pem', 'w') as f:
             f.write(server_key)
     cmd1 = subprocess.run(["hostname", "-I"], stdout=subprocess.PIPE,
                           check=False)
@@ -80,24 +80,24 @@ if __name__ == "__main__":
 
     if devMode:
         try:
-            with open("/tmp/nginx/eii_nginx_temp.conf", "w") as outfile:
+            with open("/opt/nginx/eii_nginx_temp.conf", "w") as outfile:
                 subprocess.run(["sed", sed_ip, "./eii_nginx_dev.conf"],
                                stdout=outfile, check=False)
-            with open("/tmp/nginx/eii_nginx.conf", "w") as outfile:
+            with open("/opt/nginx/eii_nginx.conf", "w") as outfile:
                 subprocess.run(["sed", sed_port,
-                               "/tmp/nginx/eii_nginx_temp.conf"],
+                               "/opt/nginx/eii_nginx_temp.conf"],
                                stdout=outfile, check=False)
         except subprocess.CalledProcessError as err:
             print("Subprocess error: {}, {}".format(err.returncode,
                   err.output))
     else:
         try:
-            with open("/tmp/nginx/eii_nginx_temp.conf", "w") as outfile:
+            with open("/opt/nginx/eii_nginx_temp.conf", "w") as outfile:
                 subprocess.run(["sed", sed_ip, "./eii_nginx_prod.conf"],
                                stdout=outfile, check=False)
-            with open("/tmp/nginx/eii_nginx.conf", "w") as outfile:
+            with open("/opt/nginx/eii_nginx.conf", "w") as outfile:
                 subprocess.run(["sed", sed_port,
-                               "/tmp/nginx/eii_nginx_temp.conf"],
+                               "/opt/nginx/eii_nginx_temp.conf"],
                                stdout=outfile, check=False)
         except subprocess.CalledProcessError as err:
             print("Subprocess error: {}, {}".format(err.returncode,
