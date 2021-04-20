@@ -19,7 +19,8 @@
 # SOFTWARE.
 
 ARG EII_VERSION
-FROM ia_etcd:${EII_VERSION}
+ARG DOCKER_REGISTRY
+FROM ${DOCKER_REGISTRY}ia_etcd:${EII_VERSION}
 COPY dep/requirements.txt .
 RUN pip3 install -r requirements.txt && \
     rm -rf requirements.txt

@@ -28,7 +28,7 @@ services:
        ETCD_VERSION: $ETCD_VERSION
        EII_UID: $EII_UID
     read_only: true
-    image: ia_etcd:$EII_VERSION
+    image: ${DOCKER_REGISTRY}ia_etcd:$EII_VERSION
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m
@@ -65,9 +65,10 @@ services:
        args:
         EII_VERSION: ${EII_VERSION}
         EII_UID: $EII_UID
+        DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     container_name: ia_etcd_provision
     read_only: true
-    image: ia_etcd_provision:$EII_VERSION
+    image: ${DOCKER_REGISTRY}ia_etcd_provision:$EII_VERSION
     volumes:
       - "../config:/EII/etcd/config/"
       - "../docker-compose.yml:/EII/etcd/docker-compose.yml"
