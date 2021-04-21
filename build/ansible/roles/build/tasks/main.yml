@@ -19,39 +19,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-- debug:
-    msg: "EII build stage will take longer depending on the machine configuration"
-
 - name: Loading env template & updating build/.env
   template:
     src: env.j2
-    dest: "{{ eii_source_path }}/build/.env"
+    dest: "{{ EII_SOURCE_PATH }}/build/.env"
 
 - name: Loading provisioning env template & updating build/provision/.env
   template:
     src: provision_env.j2
-    dest: "{{ eii_source_path }}/build/provision/.env"
+    dest: "{{ EII_SOURCE_PATH }}/build/provision/.env"
 
 - name: "Generating docker-compose file & config files builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
   shell: "python3 builder.py"
   args:
-    chdir: "{{ eii_source_path }}/build"
+    chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
   when: usecase == 'all' 
 
 - debug:
-    msg: "Status of building containers {{ command_out.stdout }}"
+    msg: "{{ command_out.stdout }}"
   when: usecase == 'all'
 
 - name: "Generating docker-compose file & config file using builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
-  shell: "python3 builder.py -f usecases/{{ usecase }}.yml"
+  shell: "python3 builder.py -f usecases/{{ usecase }}.yml -v {{ instances }}"
   args:
-    chdir: "{{ eii_source_path }}/build"
+    chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
   when: usecase != 'all'
 
 - debug:
-    msg: "Status of building containers {{ command_out.stdout }}"
+    msg: "{{ command_out.stdout }}"
   when: usecase != 'all'
 
 - name: "Make sure docker service is running"
@@ -64,12 +61,51 @@
 - debug:
     msg: "Building containers based on the `builder` generated files & configs for {{ usecase }} usecase "
 
+- debug:
+    msg: "EII build stage will take longer depending on the machine configuration"
+
 - name: "Building containers for {{ usecase }} usecase"
   shell: "docker-compose -f docker-compose-build.yml build"
   args:
-    chdir: "{{ eii_source_path }}/build"
+    chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
+  when: no_cache == false
 
 - debug:
     msg: "Status of building containers {{ command_out.stdout }}"
+  when: no_cache == false
 
+- name: "Building containers for {{ usecase }} usecase"
+  shell: "docker-compose -f docker-compose-build.yml build --no-cache"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: no_cache == true
+
+- debug:
+    msg: "Status of building containers {{ command_out.stdout }}"
+  when: no_cache == true
+
+- name: docker login in master node
+  shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Push images to the docker_registry will take some time"
+  when: docker_registry != ""
+
+- name: "Push Containers to the registry {{ docker_registry }}"
+  shell: "docker-compose -f docker-compose-push.yml push"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: docker_registry != ""
+
+- debug:
+    msg: "docker push containers {{ command_out.stdout }}"
+  when: docker_registry != ""

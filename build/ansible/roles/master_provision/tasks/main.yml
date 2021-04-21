@@ -19,26 +19,36 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+- name: Create directory {{ EII_DEPLOY_PATH }} if it does not exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: directory
+    mode: '0755'
 
-- name: Copy eii_bundle.tar.gz from control node to all nodes
+- name: Copy master_provisioning.tar.gz from control node to master node
   become: yes
   ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/deploy/{{ inventory_hostname }}.tar.gz"
+    src: "{{ EII_SOURCE_PATH }}/build/deploy/master_provisioning.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     follow: yes
 
-- name: Extract eii_bundle.tar.gz to "{{ EII_DEPLOY_PATH }}"
+- name: Extract master_provisioning.tar.gz to {{ EII_DEPLOY_PATH }}
   become: yes
   ansible.builtin.unarchive:
-    src: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}.tar.gz"
+    src: "{{ EII_DEPLOY_PATH }}/master_provisioning.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     remote_src: yes
 
-- name: "Bring down all containers"
-  shell: "docker-compose down"
+- name: "Bring up etcd server"
+  become: yes
+  shell: "./provision.sh --run_etcd"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_DEPLOY_PATH }}/master_provisioning/provision"
   register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
 
 - name: docker login
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
@@ -48,12 +58,11 @@
 - debug:
     msg: "Status of docker login, {{ command_out.stdout }}"
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
-
-- name: "Executing docker-compose up for {{ usecase }} Usecase"
-  shell: "docker-compose up -d"
+  
+- name: "Pushing Etcd Container to the registry {{ docker_registry }}"
+  shell: "docker push {{ docker_registry }}ia_etcd:{{ EII_VERSION }}"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_DEPLOY_PATH }}/master_provisioning/provision"
   register: command_out
+  when: docker_registry != ""
 
-- debug:
-    msg: "Deployed {{ usecase }} usecase to {{inventory_hostname}}"

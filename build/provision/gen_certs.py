@@ -126,6 +126,11 @@ def generate(opts, root_ca_needed=True):
                 else:
                     os.environ["SAN"] = "IP:" + \
                         os.environ["HOST_IP"] + "," + os.environ["SAN"]
+                if os.environ["ETCD_HOST"] != "":
+                    os.environ["SAN"] = "IP:" + \
+                                        os.environ["ETCD_HOST"] + "," + \
+                                        os.environ["SAN"]
+
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("server",

@@ -19,13 +19,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-- hosts: master
+# Executes roles in all nodes
+- hosts: all
   roles:
     - role: prerequisites
       tags: [prerequisites]
+
+# Executes roles only control machine
+- hosts: control
+  roles:
     - role: build
       tags: [build]
-    - role: provision
-      tags: [provision]
+    - role: gen_certs
+      tags: [gen_certs]
+    - role: gen_master_provision_bundle
+      tags: [gen_master_provision_bundle]
+    - role: gen_worker_provision_bundle
+      tags: [gen_worker_provision_bundle]
+    - role: gen_bundles
+      tags: [gen_bundles]
+
+# Executes roles only in master nodes
+- hosts: master
+  roles:
+    - role: master_provision
+      tags: [master_provision]
+
+# Executes roles in worker machines
+- hosts: targets[2:]
+  roles:
+    - role: worker_provision
+      tags: [worker_provision]
+
+# Executes roles only in control nodes
+- hosts: control
+  roles:
+    - role: etcd_provision
+      tags: [etcd_provision]
+
+# Executes roles in worker machines
+- hosts: targets[1:]
+  roles:
     - role: deploy
       tags: [deploy]

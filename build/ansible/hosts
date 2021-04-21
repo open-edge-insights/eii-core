@@ -19,9 +19,23 @@
 # SOFTWARE.
 
 [targets]
-master ansible_host=<host IP> ansible_user=<user> ansible_ssh_pass=<ssh password> ansible_become_pass=<sudo password>
-
+# control node details
 # Eg. given below for the reference
-# master ansible_host=10.223.97.101 ansible_user=intel ansible_ssh_pass=intel@123 ansible_become_pass=intel@123
+# control ansible_host=10.223.97.101 ansible_user=user ansible_ssh_pass=pass@123 ansible_become_pass=pass@123
 
+control ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+
+# master node details
+master ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+
+# Add worker node details from here onwards
+#worker1 ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+#worker2 ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+
+
+[targets:vars]
+# Varibles to login to docker registry
+docker_registry=""
+docker_login_user=""
+docker_login_passwd=""
 

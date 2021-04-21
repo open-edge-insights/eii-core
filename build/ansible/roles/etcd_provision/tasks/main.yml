@@ -19,27 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-- name: Copy eii_bundle.tar.gz from control node to all nodes
-  become: yes
-  ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/deploy/{{ inventory_hostname }}.tar.gz"
-    dest: "{{ EII_DEPLOY_PATH }}"
-    follow: yes
-
-- name: Extract eii_bundle.tar.gz to "{{ EII_DEPLOY_PATH }}"
-  become: yes
-  ansible.builtin.unarchive:
-    src: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}.tar.gz"
-    dest: "{{ EII_DEPLOY_PATH }}"
-    remote_src: yes
-
-- name: "Bring down all containers"
-  shell: "docker-compose down"
-  args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
-  register: command_out
-
 - name: docker login
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
   register: command_out
@@ -49,11 +28,12 @@
     msg: "Status of docker login, {{ command_out.stdout }}"
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
 
-- name: "Executing docker-compose up for {{ usecase }} Usecase"
-  shell: "docker-compose up -d"
+- name: Run etcd_provision in control node at {{ inventory_dir }}
+  become: yes
+  shell: "./provision.sh ../docker-compose.yml --run_etcd_provision"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_SOURCE_PATH }}/build/provision"
   register: command_out
 
 - debug:
-    msg: "Deployed {{ usecase }} usecase to {{inventory_hostname}}"
+    msg: "etcd provisioning output {{ command_out.stdout }}"
