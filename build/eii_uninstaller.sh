@@ -108,7 +108,7 @@ removeImages()
     echo "Removing the EII docker Images ..."
     echo "==============================="
 
-    imageId=$(docker images --filter "reference=ia_*:2.4.1" --format '{{.Repository}}:{{.Tag}}')
+    imageId=$(docker images --filter "reference=ia_*:$1" --format '{{.Repository}}:{{.Tag}}')
 
     if [[ ! $imageId ]]
     then
