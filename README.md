@@ -28,6 +28,8 @@ Edge Insights for Industrials (EII) is the framework for enabling smart manufact
 
 13. [Debugging options](#debugging-options)
 
+14. [EII Uninstaller](#eii-uninstaller)
+
 
 # Minimum System Requirements
 
@@ -622,4 +624,32 @@ remote managibility using turtlecreek, please follow [build/deploy/README.md](bu
 $ cd [WORKDIR]/IEdgeInsights/build
 # Install requirements for builder.py
 $ pip3 install -r requirements.txt
+```
+
+# EII Uninstaller
+
+The uninstaller script automates the removal of all the EII Docker configuration installed on a system. This uninstaller will perform the following tasks:
+1. **Stops and removes all EII running and stopped containers**
+2. **Removes all EII docker volumes**
+3. **Removes all EII docker images \[Optional\]**
+4. **Removes all EII install directory**
+
+```sh
+
+$ Usage: ./eii_uninstaller.sh [-h] [-d]
+
+ This script uninstalls previous EII version.
+ Where:
+    -h show the help
+    -d triggers the deletion of docker images (by default it will not trigger)
+
+ Example: 
+  1) Deleting only EII Containers and Volumes
+    $ ./eii_uninstaller.sh
+
+  2) Deleting EII Containers, Volumes and Images
+    $ export EII_VERSION=2.4
+    $ ./eii_uninstaller.sh
+    above example will delete EII containers, volumes and all the docker images having 2.4 version.
+
 ```
