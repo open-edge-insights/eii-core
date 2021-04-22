@@ -480,6 +480,14 @@ check [common/udfs/README.md](common/udfs/README.md).
                  - "/dev/dri"
                  - "/dev/ion:/dev/ion"
     ```
+    
+*   **Running on Intel(R) Processor Graphics (GPU/iGPU)**
+     
+    **Note**: The below step is required only for 11th gen Intel Processors
+  
+    Upgrade the kernel version to 5.8 and install the required drivers from the below OpenVINO link:
+    https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps
+      
 **Note**:
 ----
 
