@@ -58,6 +58,11 @@ services:
 
   ##----End: EII Base Images---- -- This Base images must be included for building any EII servcies ----
 
+networks:
+  eii:
+    external:
+      name: eii
+
 volumes:
   vol_eii_socket:
     driver: local

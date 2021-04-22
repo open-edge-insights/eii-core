@@ -126,6 +126,24 @@ function create_eii_install_dir() {
     fi
 }
 
+function create_docker_network() {
+	echo "Checking eii docker network.."
+	docker_networks=$(docker network ls --filter name=eii| awk '{print $2}')
+	docker_net_list=(`echo ${docker_networks}`);
+	network_present=false
+	for dn in "${docker_net_list[@]}"
+	do
+	    if [[ "$dn" = "eii" ]];then
+	        network_present=true
+	        break
+	    fi
+	done
+	if [[ "$network_present" = false ]]; then
+		echo "Creating eii docker bridge network as it is not present.."
+		docker network create eii
+	fi
+}
+
 function copy_docker_compose_file() {
     echo "Copying docker compose yaml file which is provided as an argument."
     # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
@@ -212,6 +230,7 @@ export_host_ip
 set_docker_host_time_zone
 create_eii_user
 create_eii_install_dir
+create_docker_network
 
 if [ $DEV_MODE = 'false' ]; then
     chmod -R 760 $EII_INSTALL_PATH/data
@@ -271,7 +290,8 @@ elif [ $ETCD_NAME = 'master' ]; then
     if [ $DEV_MODE = 'true' ]; then
         log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-provision.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml up --build -d
     else
         prod_mode_gen_certs
         log_info "Starting and provisioning ETCD ..."

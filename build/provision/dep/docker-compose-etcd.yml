@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Intel Corporation.
+# Copyright (c) 2020 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -46,15 +46,16 @@ services:
       ETCD_NAME: $ETCD_NAME
       ETCD_INITIAL_CLUSTER_STATE: $ETCD_INITIAL_CLUSTER_STATE
       ETCD_INITIAL_CLUSTER: $ETCD_INITIAL_CLUSTER
-      no_proxy: $eii_no_proxy
-      NO_PROXY: $eii_no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
+    networks:
+      - eii
     volumes:
       - "vol_etcd:$ETCD_DATA_DIR"
-    network_mode: host
     ipc: "none"
     user: $EII_UID
+    ports:
+      - $ETCD_CLIENT_PORT:$ETCD_CLIENT_PORT
     
 volumes:
   vol_etcd:
@@ -63,4 +64,7 @@ volumes:
       type: local
       o: bind
       device: ${EII_INSTALL_PATH}/data/etcd/
-   
+networks:
+  eii:
+    external:
+      name: eii

@@ -37,16 +37,19 @@ services:
     environment:
       ETCDCTL_API: 3
       DEV_MODE: ${DEV_MODE}
-      no_proxy: $eii_no_proxy
-      NO_PROXY: $eii_no_proxy
       http_proxy: $http_proxy
       https_proxy: $https_proxy
       provision_mode: $PROVISION_MODE
       ETCD_PREFIX: $ETCD_PREFIX
       ETCD_HOST: $ETCD_HOST
       ETCD_CLIENT_PORT: $ETCD_CLIENT_PORT
-    network_mode: host
     ipc: "none"
     user: $EII_UID
+    networks:
+      - eii
 
-   
+networks:
+  eii:
+    external:
+      name: eii
+
