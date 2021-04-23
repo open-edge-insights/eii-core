@@ -32,6 +32,7 @@ services:
         ETCD_VERSION: ${ETCD_VERSION}
         EII_VERSION: ${EII_VERSION}
         EII_UID: ${EII_UID}
+        EII_USER_NAME: ${EII_USER_NAME}
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
@@ -57,7 +58,6 @@ services:
       ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
       - "vol_etcd_keeper:/opt/nginx"
-    user: ${EII_UID}
     ipc: "none"
     secrets:
       - ca_etcd

@@ -65,6 +65,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 ARG EII_UID
+ARG EII_USER_NAME
+RUN groupadd $EII_USER_NAME -g $EII_UID && \
+    useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
+
 RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
     chown -R ${EII_UID}:${EII_UID} /var/lib/nginx/
 
@@ -94,5 +98,6 @@ RUN chown -R ${EII_UID}:${EII_UID} /run/nginx.pid && \
     rm -rf /var/lib/nginx && ln -sf /opt/nginx /var/lib/nginx && \
     rm -f /etc/nginx/sites-enabled/default
 
+USER $EII_USER_NAME
 HEALTHCHECK NONE
 ENTRYPOINT ["python3", "start_etcdkeeper.py"]
