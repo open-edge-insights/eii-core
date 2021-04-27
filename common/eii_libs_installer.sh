@@ -139,6 +139,7 @@ cd $EIIMessageBus &&
 
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
+   rm -rf IntelSafeString/build && \
    ./install.sh && \
    rm -rf build && \
    mkdir build && \
