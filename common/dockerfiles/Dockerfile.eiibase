@@ -92,9 +92,9 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
                        libsm6 libxext6 libfontconfig1 libxrender1
 
 RUN ln -sf /usr/bin/pip3 /usr/bin/pip3.6
-
-# Upgrading pip version
-RUN pip3 install --upgrade pip
+# Sticking to pip version that is same as the one in the
+# openvino base image version in Dockerfile.openvino
+RUN pip3 install pip==21.0.1
 
 # Installing EIIMessageBus dependencies
 COPY libs/EIIMessageBus/install.sh libs/EIIMessageBus/install.sh
