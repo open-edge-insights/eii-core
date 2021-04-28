@@ -254,9 +254,12 @@ if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
      fi
 elif [ $ETCD_NAME = 'master' ]; then
     install_pip_requirements
-    log_info "Bringing down existing ETCD container"
-    python3 stop_and_remove_existing_eii.py --f dep/docker-compose-provision.yml
-
+    log_info "Bringing down running eii containers"
+    for container_id in $(docker ps  --filter="name=ia_" -q -a)
+    do
+        docker rm -f $container_id
+    done
+    
     copy_docker_compose_file
 
     echo "Clearing existing Certificates..."
@@ -272,11 +275,9 @@ elif [ $ETCD_NAME = 'master' ]; then
     else
         prod_mode_gen_certs
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up --build
     fi
-
-    echo "Bringing down existing EII containers"
-    python3 stop_and_remove_existing_eii.py --f $docker_compose
 fi
 
 remove_client_server
