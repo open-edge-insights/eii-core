@@ -649,7 +649,7 @@ $ Usage: ./eii_uninstaller.sh [-h] [-d]
 
   2) Deleting EII Containers, Volumes and Images
     $ export EII_VERSION=2.4
-    $ ./eii_uninstaller.sh
+    $ ./eii_uninstaller.sh -d
     above example will delete EII containers, volumes and all the docker images having 2.4 version.
 
 ```
