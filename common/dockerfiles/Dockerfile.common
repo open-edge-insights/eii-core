@@ -82,17 +82,6 @@ COPY libs/DynLibLoad/ libs/DynLibLoad
 COPY libs/EIIMessageBus libs/EIIMessageBus
 COPY libs/ConfigMgr libs/ConfigMgr
 
-# Install fast base64 library
-ARG BASE64_REPO=https://github.com/aklomp/base64/archive/refs/tags/v0.4.0.tar.gz
-
-RUN wget -O - ${BASE64_REPO} | tar xz && \
-    cd base64-0.4.0 && \
-    make && \
-    cp -a include/libbase64.h /eii/common/util/c/include/eii/utils/. && \
-    cp -a lib/libbase64.o /eii/common/util/c/include/eii/utils/. && \
-    cd ../ && \
-    rm -rf base64-0.4.0
-
 COPY eii_libs_installer.sh .
 RUN ./eii_libs_installer.sh
 
