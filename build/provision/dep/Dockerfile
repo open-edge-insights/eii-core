@@ -17,17 +17,16 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-FROM ubuntu:18.04
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION
 
 # Setting python dev env
 RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common curl && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python3.6 \
-                                               python3-pip && \
-    python3.6 -m pip install -U pip && \
+    apt-get install -y --no-install-recommends python3-pip && \
+    python3 -m pip install -U pip && \
     ln -sf /usr/bin/pip /usr/bin/pip3
 
 ARG ETCD_VERSION

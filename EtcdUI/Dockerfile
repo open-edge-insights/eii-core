@@ -54,8 +54,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python3.6 \
-                                               python3-distutils && \
+    apt-get install -y --no-install-recommends python3.8-distutils && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -75,13 +74,13 @@ RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
 ARG ARTIFACTS
 ARG CMAKE_INSTALL_PREFIX
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
-ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.6/site-packages:/app
+ENV PYTHONPATH $PYTHONPATH:/app/.local/lib/python3.8/site-packages:/app
 COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
 COPY --from=common /eii/common/util util
 COPY --from=common /root/.local/lib .local/lib
 COPY --from=builder /app .
 
-RUN chown -R ${EII_UID} .local/lib/python3.6
+RUN chown -R ${EII_UID} .local/lib/python3.8
 
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY start_etcdkeeper.py ./

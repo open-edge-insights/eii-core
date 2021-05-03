@@ -77,7 +77,7 @@ Follow below steps:
 
         }
       ```
-    ***Note***: 
+    ***Note***:
     > 1. Please validate the json.
 
     > 2. Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
@@ -94,7 +94,7 @@ Follow below steps:
 
     # commands to be executed on master node:
     $ cd build/deploy
-    $ sudo python3.6 generate_eii_bundle.py -p
+    $ sudo python3 generate_eii_bundle.py -p
 
     This will generate the 'provisioning.tar.gz'.
     Do a manual copy of this bundle on worker node. And then follow below commands
@@ -118,9 +118,9 @@ Follow below steps:
 
     # commands to be executed on master node:
     $ cd build/deploy
-    $ sudo python3.6 generate_eii_bundle.py
+    $ sudo python3 generate_eii_bundle.py
 
-    This will generate the .tar.gz which has all the required artifacts by which eii services 
+    This will generate the .tar.gz which has all the required artifacts by which eii services
     can be started on worker node.
 ```
 ***Note***:
@@ -133,7 +133,7 @@ Follow below steps:
 
 For more help:
 
-    $sudo python3.6 generate_eii_bundle.py
+    $sudo python3 generate_eii_bundle.py
 
 
     usage: generate_eii_bundle.py [-h] [-f COMPOSE_FILE_PATH] [-t BUNDLE_TAG_NAME]

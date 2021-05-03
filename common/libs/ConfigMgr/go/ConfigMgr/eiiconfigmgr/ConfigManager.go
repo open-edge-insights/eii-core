@@ -153,7 +153,7 @@ static inline void destroy_config_val(config_val_t* config_val) {
 	}
 }
 
-inline char** parse_config_value(config_value_t* config_value, int num_of_items) {
+static inline char** parse_config_value(config_value_t* config_value, int num_of_items) {
 	char** char_config_value = NULL;
 	char_config_value = (char**)malloc(num_of_items * sizeof(char*));
 	if(char_config_value == NULL){

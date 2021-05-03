@@ -1230,7 +1230,7 @@ def yaml_parser(args):
     for k, v in temp.items():
         if(k == "services"):
             for service, service_dict in v.items():
-                # The docker-compose-push.yml contains the dummy build: . key 
+                # The docker-compose-push.yml contains the dummy build: . key
                 # which is required to push the EII service docker images
                 temp["services"][service]["build"] = "."
                 temp["services"][service].move_to_end("build", last=False)
@@ -1300,18 +1300,18 @@ def parse_args():
     arg_parse.add_argument('-f', '--yml_file', default=None,
                            help='Optional config file for list of services'
                            ' to include.\
-                           Eg: python3.6 builder.py -f\
+                           Eg: python3 builder.py -f\
                            usecases/video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
-                           Eg: python3.6 builder.py -v 6')
+                           Eg: python3 builder.py -v 6')
     arg_parse.add_argument('-d', '--override_directory',
                            default=None,
                            help='Optional directory consisting of '
                            'of benchmarking configs to be present in'
                            'each app directory.\
-                           Eg: python3.6 builder.py -d benchmarking')
+                           Eg: python3 builder.py -d benchmarking')
     return arg_parse.parse_args()
 
 

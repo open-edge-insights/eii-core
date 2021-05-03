@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 
-# EII Base Dockerfile 
+# EII Base Dockerfile
 ARG UBUNTU_IMAGE_VERSION
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as base
 LABEL description="EII Base Image"
@@ -29,7 +29,7 @@ ARG HOST_TIME_ZONE
 RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
     cat /etc/timezone && \
     apt-get update && \
-    apt-get install -y tzdata && \ 
+    apt-get install -y tzdata && \
     ln -sf /usr/share/zoneinfo/${HOST_TIME_ZONE} /etc/localtime && \
     dpkg-reconfigure -f noninteractive tzdata && \
     rm -rf /var/lib/apt/lists/*
@@ -76,6 +76,6 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     python${PYTHON_VERSION} -m pip install -U pip && \
     ln -sf /usr/bin/pip /usr/bin/pip3 && \
     rm -rf /var/lib/apt/lists/*
-ENV PYTHONPATH $PYTHONPATH:/usr/local/lib/python3.6/dist-packages
+ENV PYTHONPATH $PYTHONPATH:/usr/local/lib/python3.8/dist-packages
 
 HEALTHCHECK NONE

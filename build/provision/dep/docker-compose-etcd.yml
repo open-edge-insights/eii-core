@@ -25,6 +25,7 @@ services:
       context: ../
       dockerfile: ./dep/Dockerfile
       args:
+       UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION} 
        ETCD_VERSION: $ETCD_VERSION
        EII_UID: $EII_UID
     read_only: true
