@@ -1,11 +1,11 @@
-# Contributing to IEdgeInsights
+# Contributing to open-edge-insights
 
-## Merge Requests
+## Pull Requests
 
-Everybody can propose a merge request (MR) but only the
+Everybody can propose a merge request (PR) but only the
 core-maintainers of the project can merge it.
 
-### Commit and MR Hygiene
+### Commit and Pull Requests Hygiene
 
 The following points will be especially looked at during the review.
 
@@ -51,26 +51,18 @@ The following points will be especially looked at during the review.
    the commit message and do a `git push -f origin <branch_name>` to forcely
    push your changes. This is needed as we want to maintain a single commit.
 
-### Minimum requirements for a MR
+### Minimum requirements for a PR
 
-The following are the minimal requirements that every MR should meet.
+The following are the minimal requirements that every PR should meet.
 
-- **Pass Continuous Integration (pre-merge build)**: Every MR has to pass
-  our CI. Below are the scripts in [CITests repo](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests?nav_source=navbar) that would be invoked
-  by the pre-merge build:
-  1. `pre_recieve_hook.sh` - does linting for changed go and python files
-      w.r.t latest master
-  2. `pre_merge_and_nightly_build_script.sh` - builds and runs the pre-merge
-      build
-  3. We are in the process of adding the `pre-merge` testsuite to perform
-     santiy testing
+- **Pass Continuous Integration (pre-merge build)**: Every PR has to pass our CI
 
 ### Review Process
 
 The reviewers may be busy. If they take especially long to react, feel free to
-trigger them by additional comments in the MR thread.
+trigger them by additional comments in the PR thread.
 
-It is the job of the developer that posts the MR to rebase the MR on the target
+It is the job of the developer that posts the PR to rebase the PR on the target
 branch when the two diverge.
 
 Below are some additional stuff that developers should adhere to:
@@ -100,5 +92,4 @@ Below are some additional stuff that developers should adhere to:
 
 * Whenever one sees any failure in the pre-merge build, just check if “rebasing”
   your merge-request branch with latest master and re-push can fix the issue.
-  If not, please apply access to CI environment(check [CITests repo README.md](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests/blob/master/README.md))
-  to see the reason behind failure.
+  
