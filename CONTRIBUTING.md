@@ -92,12 +92,13 @@ Below are some additional stuff that developers should adhere to:
   If pull-request has a single commit, then automatically it gets picked up in
   your pull-request description.
 
-  If one wants to just keep ammending the single commit, he/she can do so as
-  well as github allows to compare the force pushed changes with the previous
-  version which will be very helpful for reviewers.
-
 * Whenever one sees any failure in the pre-merge build, just check if “rebasing”
   your pull-request branch with latest master and re-push can fix the issue.
   If this is till failing, request the reviewers/maintainers to point out the 
   required compliance needed for passing the CI build for your PR.
+
+### Merge code
+
+Merging will be done as a 'Merge and Rebase' to avoid extraneous merge commits on the master branch
+* Special case 'Squash and Merge' will be used sparingly and only as needed
   
