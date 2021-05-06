@@ -63,6 +63,11 @@ The `pre-requisite.sh` script also configures proxy setting system wide `/etc/en
 
 1. **Steps to run the installer script is as follows**:
 
+   **Note**: It is highly recommended that you use a python virtual environment to
+   install the python packages, so that the system python installation doesn't
+   get altered. Details on setting up and using python virtual environment can
+   be found here: https://www.geeksforgeeks.org/python-virtual-environment/
+
 ```sh
 $ sudo ./pre_requisites.sh --help
 
@@ -315,6 +320,12 @@ $ python3 volume_data_script.py
 ```
 
 Below script starts `etcd` as a container and provision. Please pass docker-compose file as argument, against which provisioning will be done.
+
+**Note**: It is highly recommended that you use a python virtual environment to
+install the python packages, so that the system python installation doesn't
+get altered. Details on setting up and using python virtual environment can
+be found here: https://www.geeksforgeeks.org/python-virtual-environment/
+
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build/provision
 $ sudo ./provision.sh <path_to_eii_docker_compose_file>
@@ -637,6 +648,9 @@ In order to deploy EII using the orchestrator Kubernetes, please follow [build/k
 
 1. Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation
 2. If any issues are observed w.r.t the python package installation then manually install the python packages as shown below :
+
+   **Note**: It is highly recommended that you use a python virtual environment to install the python packages, so that the system python installation doesn't get
+   altered. Details on setting up and using python virtual environment can be found here: https://www.geeksforgeeks.org/python-virtual-environment/
 
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build
