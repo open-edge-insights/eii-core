@@ -153,7 +153,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
-     or in the [build/.env](build/.env) file, it is required to re-run the `builder.p`y` script before provisioning and running 
+     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running 
      the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
