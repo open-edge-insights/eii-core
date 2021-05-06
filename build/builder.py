@@ -35,6 +35,7 @@ from jsonschema import validate
 import ruamel.yaml
 import io
 from ruamel.yaml.comments import CommentedMap
+import shutil
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
@@ -43,13 +44,11 @@ SCAN_DIR = ".."
 dev_mode = False
 # Initializing multi instance related variables
 num_multi_instances = 0
-override_apps_list, override_k8s_apps_list = \
-    ([] for _ in range(2))
-dev_override_list, app_list, k8s_app_list = \
-    ([] for _ in range(3))
 used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
-override_apps_list, override_k8s_apps_list = ([] for _ in range(2))
-dev_override_list, app_list, k8s_app_list = ([] for _ in range(3))
+override_apps_list, override_k8s_apps_list, override_helm_apps_list = \
+    ([] for _ in range(3))
+dev_override_list, app_list, k8s_app_list, helm_app_list = \
+    ([] for _ in range(4))
 used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
 
 
@@ -895,6 +894,98 @@ def k8s_yaml_merger(app_list, dev_mode, args):
     env_subst(k8s_service_yaml, k8s_service_yaml)
 
 
+def helm_yaml_merger(app_list, args):
+    """Method merges the values.yaml files of each eii
+       modules and generates a consolidated values.yaml
+       file. copy all templates files of each eii
+       modules to ./k8s/helm-eii/eii-deploy/templates.
+
+    :param app_list: List of services
+    :type app_list: list
+    :type args: argparse
+    """
+    pv_merged_yaml = ""
+    pvc_merged_yaml = ""
+    helm_values_dict = []
+    ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
+    helm_deploy_dir = "./k8s/helm-eii/eii-deploy/"
+    # Load the common values.yaml
+    if os.path.isdir(helm_deploy_dir + "templates"):
+        shutil.rmtree(helm_deploy_dir + "templates")
+    os.mkdir(helm_deploy_dir + "templates")
+    with open(helm_deploy_dir +"../common-values.yaml", 'r') as \
+        values_file:
+        data = ruamel.yaml.round_trip_load(values_file,
+                                           preserve_quotes=True)
+        helm_values_dict.append(data)
+
+    # Read persistent volume yaml
+    with open(helm_deploy_dir +"../common-eii-pv.yaml") as pv_yaml_file:
+        data = pv_yaml_file.read()
+        pv_merged_yaml = pv_merged_yaml + "---\n" + data
+
+    # Read persistent volume claim yaml
+    with open(helm_deploy_dir +"../common-eii-pvc.yaml") as pvc_yaml_file:
+        data = pvc_yaml_file.read()
+        pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
+
+    app_list.extend(override_helm_apps_list)
+    for app_path in app_list:
+        helm_app_path = os.path.join(app_path + "/helm")
+        app_name = app_path.split("/")[-1]
+        if args.override_directory is not None:
+            if args.override_directory in helm_app_path:
+                app_name = app_path.split("/")[-2]
+
+        # Copying all templates files of each eii modules to
+        # ./k8s/helm-eii/eii-deploy/templates.
+        yaml_files = os.listdir(helm_app_path + "/templates")
+        for yaml_file in yaml_files:
+            helm_yaml_file = os.path.join(helm_app_path, "templates", yaml_file)
+            if os.path.isfile(helm_yaml_file) and yaml_file \
+                not in ignore_template_copy:
+                shutil.copy(helm_yaml_file, helm_deploy_dir + "templates")
+
+        # Load the required values.yaml files
+        with open(helm_app_path + "/values.yaml", 'r') as values_file:
+            data = ruamel.yaml.round_trip_load(values_file,
+                                               preserve_quotes=True)
+
+            helm_values_dict.append(data)
+
+
+        # Reading persistent volume yaml if present
+        if os.path.isfile(helm_app_path + "/templates/eii-pv.yaml"):
+            with open(helm_app_path + "/templates/eii-pv.yaml") as pv_yaml_file:
+                data = pv_yaml_file.read()
+                pv_merged_yaml = pv_merged_yaml + "---\n" + data
+
+        # Writing final persistent volume yaml file
+        with open(helm_deploy_dir + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
+            final_pv_yaml.write(pv_merged_yaml)
+
+        # Reading persistent volume claim yaml if present
+        if os.path.isfile(helm_app_path + "/templates/eii-pvc.yaml"):
+            with open(helm_app_path + "/templates/eii-pvc.yaml") as pvc_yaml_file:
+                data = pvc_yaml_file.read()
+                pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
+
+        # Writing final persistent volume claim yaml file
+        with open(helm_deploy_dir + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
+            final_pvc_yaml.write(pvc_merged_yaml)
+
+
+    # Updating final helm values dict
+    helm_dict = helm_values_dict[0]
+    for var in helm_values_dict[1:]:
+        for k in var:
+            for i in var[k]:
+                helm_dict[k].update({i: var[k][i]})
+
+    # Writing consolidated values.yaml file to ./k8s/helm-eii/eii-deploy/ dir
+    with open(helm_deploy_dir +"values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_dict, value_file)
+
 def create_multi_instance_yml_dict(data, i):
     """Method to generate boilerplate
        yamls
@@ -1178,6 +1269,22 @@ def yaml_parser(args):
             if os.path.isfile(prefix_path + '/k8s-service.yml'):
                 k8s_app_list.append(prefix_path + '/k8s-service.yml')
 
+        # Append to helm_app_list if dir has deployment.yaml
+        # and values.yaml files.
+        # & append to override_helm_apps_list if
+        # override_directory has deployment.yaml
+        # and values.yaml files.
+        if args.override_directory is not None:
+            override_dir = prefix_path + '/' + args.override_directory
+            if os.path.isdir(override_dir):
+                if (os.path.isdir(override_dir + '/helm')):
+                    override_helm_apps_list.append(override_dir)
+            elif (os.path.isdir(prefix_path + '/helm')):
+                helm_app_list.append(prefix_path)
+        else:
+            if (os.path.isdir(prefix_path + '/helm')):
+                helm_app_list.append(prefix_path)
+
         # Append to override_list if dir has docker-compose-dev.override.yml
         if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
             dev_override_list.append(prefix_path)
@@ -1277,16 +1384,27 @@ def yaml_parser(args):
         sys.exit(1)
     log_msg = """
     For deployment via k8s orchestrator,
-    successfully created consolidated Kubernetes deployment
-    yml at ./k8s/eii-k8s-deploy.yml. Refer `./k8s/README.md`
-    for deployment details.
+    successfully created consolidated Kubernetes deployment yml at
+    ./k8s/eii-k8s-deploy.yml. Refer `./k8s/README.md` for deployment details.
+    """
+    print(log_msg)
+    try:
+        helm_yaml_merger(helm_app_list, args)
+    except Exception as e:
+        print("Exception Occured at helm yml generation {}".format(e))
+        sys.exit(1)
+    log_msg = """
+    For deployment via k8s orchestrator, successfully created consolidated
+    values.yaml at ./k8s/helm-eii/eii-deploy/.
+    Successfully copied all templates files of each eii modules to
+    ./k8s/helm-eii/eii-deploy/templates/.
+    Refer `./k8s/helm-eii/README.md` for deployment details.
     """
     print(log_msg)
     log_msg = """
     **NOTE**:
-    Please re-run the `builder.py` whenever
-    the individual docker-compose.yml, config.json and
-    k8s-service files of individual services are updated
+    Please re-run the `builder.py` whenever the individual docker-compose.yml,
+    config.json and k8s-service files of individual services are updated
     and you need them to be considered
     """
     print(log_msg)

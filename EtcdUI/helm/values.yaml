@@ -1,0 +1,12 @@
+config:
+    etcd_ui:
+      name: etcd-ui
+      int_port: 7071
+      ext_port: 30010
+volumes:
+  etcdui:
+    name: etcd-keeper
+    size: 10Mi
+    location: "/opt/nginx"
+    hostpath: "/opt/intel/eii/nginx"
+

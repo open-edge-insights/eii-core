@@ -34,19 +34,3 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: {{ .Values.volumes.eii_socket.hostpath }}
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  namespace: {{ .Values.namespace }}
-  name: {{ .Values.volumes.etcdui.name }}
-  labels:
-    type: local
-spec:
-  storageClassName: {{ .Values.storageClassName }}
-  capacity:
-    storage: {{ .Values.volumes.etcdui.size }}
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: {{ .Values.volumes.etcdui.hostpath }}
