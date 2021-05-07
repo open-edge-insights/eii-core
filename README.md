@@ -56,15 +56,17 @@ The installer script automates the installation & configuration of all the prere
 2. **docker client**
 3. **docker-compose**
 4. **Python packages**
+
 The script checks if docker & docker-compose are already installed in the system. If not installed, then it installs the intended version of the docker & docker-compose which is mentioned in the script.
 If docker and/or docker-compose are already installed in the system but the installed version of the docker/docker-compose is older than the intended docker/docker-compose version (which is mentioned in the script) then the script uninstalls the older version of docker/docker-compose & re-installs the intended version mentioned in the script. The script also configures the proxy settings for docker client and docker daemon to connect to internet.
 
-The "pre-requisite.sh" script also does Proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system in behind a proxy.
-The `pre-requisite.sh` script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
+The [build/pre_requisites.sh](build/pre_requisites.sh) script also does proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system is behind a proxy.
+The script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
 
 1. **Steps to run the installer script is as follows**:
 
 ```sh
+$ cd [WORKDIR]/IEdgeInsights/build
 $ sudo ./pre_requisites.sh --help
 
 Usage :: sudo ./pre_requisites.sh [OPTION...]
@@ -136,6 +138,7 @@ Different use cases...
 # Generate deployment and configuration files
 
 The section assumes the EII software is already downloaded from the release package or from git.
+Run all the below commmands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
 ## 1. Generating consolidated docker-compose.yml, eii_config.json and eii-k8s-deploy.yml files:
 
@@ -146,12 +149,12 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EII docker containers in a given single node using `docker-compose` tool                                       |
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
-| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII servcie via Kubernetes orchestrator                                                       |
+| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII service via Kubernetes orchestrator                                                       |
 
 > **NOTE**:
-> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column,
-     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the
-     changes done reflect in the required consolidated files.
+> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
+     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running 
+     the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
@@ -301,7 +304,7 @@ Follow below steps to provision. Provisioning must be done before deploying EII 
 Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
 
 * Please update DEV_MODE=true in [build/.env](build/.env) to provision in Developer mode.
-* <b>Please comment secrets section for all services in [build/docker-compose.yml](../docker-compose.yml)</b>
+* Please re-run the [build/builder.py](build/builder.py) to re-generate the consolidated files as mentioned above
 
 Following actions will be performed as part of Provisioning
 
@@ -311,10 +314,9 @@ Following actions will be performed as part of Provisioning
  * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
  * If HOST_IP is blank in [build/.env](build/.env), then HOST_IP will be automatically detected when server certificates are generated.
 
-**Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](build/provision/volume_data_script.py). The script can be run by the command:
-```sh
-$ python3.6 volume_data_script.py
-```
+**Optional:** In case of any errors during provisioning w.r.t existing volumes, please remove the existing volumes by running the EII uninstaller script: [eii_uninstaller.sh](build/eii_uninstaller.sh)
+
+Run all the below commmands in this section from `[WORKDIR]/IEdgeInsights/build/provision` directory.
 
 Below script starts `etcd` as a container and provision. Please pass docker-compose file as argument, against which provisioning will be done.
 ```sh
@@ -333,23 +335,14 @@ $ ./etcd_capture.sh
 
   ---
   > **Note:**
-  > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
-     run command `$ xhost +` in the terminal before starting EII stack, this is a one time configuration.
-     This is needed by `ia_visualizer` service to render the UI
   > * For running EII services in IPC mode, make sure that the same user should be there in publisher and subscriber.
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
      In [docker-compose.yml](build/docker-compose.yml) if `user: ${EII_UID}` is in publisher service, then the
      same `user: ${EII_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
-  > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the
-     [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and
-     below command can be used to build and run the containers.
-  >    ```sh
-  >     $ docker-compose up --build -d
-  >     ```
   ---
 
-All the below EII build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory.
+All the below EII build and run commands needs to be executed from the `[WORKDIR]/IEdgeInsights/build/` directory.
 
 Below are the usecases supported by EII to bring up the respective services mentioned in the
 yaml file.
@@ -374,6 +367,7 @@ yaml file.
 To build and run EII in one command:
 
 ```sh
+$ xhost +
 $ docker-compose up --build -d
 ```
 
@@ -634,9 +628,11 @@ The uninstaller script automates the removal of all the EII Docker configuration
 3. **Removes all EII docker images \[Optional\]**
 4. **Removes all EII install directory**
 
-```sh
+Run the below commmand from `[WORKDIR]/IEdgeInsights/build/` directory.
 
-$ Usage: ./eii_uninstaller.sh [-h] [-d]
+```sh
+$ ./eii_uninstaller.sh -h
+Usage: ./eii_uninstaller.sh [-h] [-d]
 
  This script uninstalls previous EII version.
  Where:
