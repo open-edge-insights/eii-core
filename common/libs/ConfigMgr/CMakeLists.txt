@@ -76,6 +76,7 @@ endif()
 
 # Include header directories
 include_directories(
+    ${CMAKE_INSTALL_PREFIX}/include/
     include/
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS}

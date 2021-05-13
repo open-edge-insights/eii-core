@@ -59,6 +59,7 @@ endif()
 
 # Include header directories
 include_directories(
+    ${CMAKE_INSTALL_PREFIX}/include/
     include/
     ${EIIUtils_INCLUDE}
     ${IntelSafeString_INCLUDE})

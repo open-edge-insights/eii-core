@@ -28,8 +28,10 @@ This script installs all the EII libraries & their respective required dependenc
 
     a. For updating the $LD_LIBRARY_PATH env variable:
     ```sh
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib
     ```
+
+    **Note**: `$LD_LIBRARY_PATH` should be appended by `$CMAKE_INSTALL_PREFIX/lib`. In the above installation CMAKE_INSTALL_PREFIX is `/opt/intel/eii` and hence LD_LIBRARY_PATH appended with /opt/intel/eii/lib
 
     b. For updating the $no_proxy env variable to connect to etcd:
     ```sh

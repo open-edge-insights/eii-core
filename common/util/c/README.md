@@ -39,13 +39,21 @@ Additionally, EIIUtils depends on the below libraries. Follow their documentatio
 ## Compilation
 
 The EII Utils utilizes CMake as the build tool for compiling the C
-library. The simplest sequence of commands for building the library are
+library. 
+
+CMAKE_INSTALL_PREFIX needs to be set for the build and installation:
+
+```sh
+    $ export CMAKE_INSTALL_PREFIX="/opt/intel/eii"
+```
+
+The simplest sequence of commands for building the library are
 shown below.
 
 ```sh
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX ..
 $ make
 ```
 
@@ -54,7 +62,7 @@ the `CMAKE_BUILD_TYPE` to `Debug` when executing the `cmake` command (as shown
 below).
 
 ```sh
-$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Debug ..
 ```
 
 ## Installation
@@ -70,16 +78,16 @@ $ sudo make install
 ```
 
 By default, this command will install the EII Utils C library into
-`/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
+`/opt/intel/eii/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH`
 by default. As a result, you must add this directory to you `LD_LIBRARY_PATH`.
 This can be accomplished with the following `export`:
 
 ```sh
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib/
 ```
 
 > **NOTE:** You can also specify a different library prefix to CMake through
-> the `CMAKE_INSTALL_PREFIX` flag.
+> the `CMAKE_INSTALL_PREFIX` flag. If different installation path is given via `CMAKE_INSTALL_PREFIX`, then `$LD_LIBRARY_PATH` should be appended by $CMAKE_INSTALL_PREFIX/lib.
 
 ## Running Unit Tests
 

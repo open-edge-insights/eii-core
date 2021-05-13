@@ -15,16 +15,22 @@ The EIIUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
 of CMake and other ConfigMgr dependencies, please follow [eii_libs_installer README](../../README.md)
 
-By default, ConfigMgr installs to `/usr/local/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to your `LD_LIBRARY_PATH`,
+CMAKE_INSTALL_PREFIX needs to be set for the installation:
+
+```sh
+    $ export CMAKE_INSTALL_PREFIX="/opt/intel/eii"
+```
+
+ConfigMgr installs to `/opt/intel/eii/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to your `LD_LIBRARY_PATH`,
 otherwise you will encounter issues using the ConfigMgr. This can
 be accomplished with the following `export`:
 
 ```sh
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib/
 ```
 
 > **NOTE:** You can also specify a different library prefix to CMake through
-> the `CMAKE_INSTALL_PREFIX` flag.
+> the `CMAKE_INSTALL_PREFIX` flag. If different installation path is given via `CMAKE_INSTALL_PREFIX`, then `$LD_LIBRARY_PATH` should be appended by $CMAKE_INSTALL_PREFIX/lib.
 
 ## Install ConfigMgr with Python bindings, Go bindings, Examples, Test suits and Debug Build.
 
@@ -32,7 +38,7 @@ $ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 $ rm -rf build
 $ mkdir build
 $ cd build
-$ cmake -DWITH_PYTHON=ON -DWITH_GO=ON -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON -DWITH_GO=ON -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
 $ make
 $ sudo make install
 ```
@@ -533,7 +539,7 @@ $ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
 $ sudo rm -rf build
 $ mkdir build
 $ cd build
-$ cmake -DWITH_EXAMPLES=ON ..
+$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_EXAMPLES=ON ..
 $ make
 $ sudo make install
 ```
@@ -586,7 +592,7 @@ $ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
 $ sudo rm -rf build
 $ mkdir build
 $ cd build
-$ cmake -DWITH_PYTHON=ON ..
+$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON ..
 $ make
 $ sudo make install
 ```
