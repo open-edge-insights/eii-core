@@ -59,16 +59,6 @@ ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 
-# Installing EIIMessageBus dependencies
-COPY libs/EIIMessageBus/install.sh libs/EIIMessageBus/install.sh
-COPY libs/EIIMessageBus/python/requirements.txt libs/EIIMessageBus/python/requirements.txt
-RUN cd libs/EIIMessageBus && \
-    ./install.sh --cython
-
-# Installing ConfigMgr dependencies
-COPY libs/ConfigMgr/install.sh libs/ConfigMgr/install.sh
-RUN ./libs/ConfigMgr/install.sh
-
 COPY util/requirements.txt util/requirements.txt
 RUN pip3 install --user -r util/requirements.txt
 

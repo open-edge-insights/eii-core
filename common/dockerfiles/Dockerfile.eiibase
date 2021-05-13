@@ -38,7 +38,6 @@ RUN echo "$HOST_TIME_ZONE" >/etc/timezone && \
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential \
                        git \
-                       iputils-ping \
                        pkg-config \
                        software-properties-common \
                        wget && \
