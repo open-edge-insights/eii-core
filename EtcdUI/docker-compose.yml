@@ -71,6 +71,13 @@ services:
       - etcd_etcduser_cert
       - etcd_etcduser_key
 
+volumes:
+  vol_etcd_keeper:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+
 secrets:
   etcd_etcduser_cert:
     file: provision/Certificates/root/root_client_certificate.pem

@@ -71,12 +71,6 @@ volumes:
       o: bind
       device: ${EII_INSTALL_PATH}/sockets
 
-  vol_etcd_keeper:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
-
 secrets:
   ca_etcd:
     file: provision/Certificates/ca/ca_certificate.pem
