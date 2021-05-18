@@ -213,16 +213,23 @@ function check_k8s_secrets() {
 }
 
 function check_k8s_namespace() {
-    echo "Checking if already exists eii namespace, will delete to remove all existing pods and services"
     ns_str=$(kubectl get namespace | grep -w ^eii| awk '{print $1}' )
     ns_list=(`echo ${ns_str}`);
+    ns_flag="0"
     for ns in "${ns_list[@]}"
     do
 	if [[ "$ns" = "eii" ]];then
-            echo "Deleting namespace so that all existing pods and services within that namespace are deleted.\nIt may take sometime."
-            kubectl delete namespace eii
+            ns_flag="1"
+	    break
         fi
     done
+    if [ "$ns_flag" = "0" ] ; then
+       echo " Creating Namespace eii for the first time"
+       kubectl create namespace eii
+    else
+       echo "Deleting services,pods, deployments, replicaset, statefulset, daemonset, cronjobs, jobs if any exist in namespace eii"
+       kubectl delete all --all --namespace=eii
+    fi
 }
 
 souce_env
@@ -246,9 +253,6 @@ if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
      log_info "Provisioning with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
-
-     echo "Creating a new namespace"
-     kubectl create namespace eii
      pip3 install -r cert_requirements.txt
 
      echo "Clearing existing Certificates..."
@@ -260,13 +264,15 @@ if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
      check_ETCD_port
 
      if [ $DEV_MODE = 'true' ]; then
-	docker-compose -f dep/docker-compose-provision.yml build
+	docker-compose -f dep/docker-compose-etcd.yml build
+	docker-compose -f dep/docker-compose-etcd-provision.yml build
         envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
         kubectl apply -f dep/k8s_etcd_devmode.yml
         docker-compose -f dep/docker-compose-k8sprovision.yml up -d
      else
         prod_mode_gen_certs
-	docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
+	docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml build
+	docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml build
         envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
         kubectl apply -f dep/k8s_etcd_prodmode.yml
         docker-compose -f dep/docker-compose-k8sprovision.yml -f dep/docker-compose-k8sprovision.override.prod.yml up -d
