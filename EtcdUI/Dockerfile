@@ -42,7 +42,7 @@ RUN mkdir -p etcd && \
     rm -rf etcd/etcdctl
 
 COPY etcdkeeper ./etcdkeeper/
-
+ENV GOPROXY "https://proxy.golang.org"
 RUN cd ./etcdkeeper/src/etcdkeeper \
     && go build -o etcdkeeper main.go \
     && mv etcdkeeper ../../
