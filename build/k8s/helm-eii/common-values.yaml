@@ -27,7 +27,7 @@ storageClassName: manual
 env:
   dev_mode: true
   PROFILING_MODE: false
-  eii_INSTALL_PATH: /opt/intel/eii
+  EII_INSTALL_PATH: /opt/intel/eii
   SOCKET_DIR: /eii/sockets
 config:
     etcd:

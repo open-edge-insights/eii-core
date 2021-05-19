@@ -26,9 +26,12 @@ metadata:
 spec:
   selector:
     app: etcd
+  type: NodePort
   ports:
-    - port: {{ .Values.network.etcd.client_port }}
-      name: tcp
+    - name: tcp
+      port: {{ .Values.network.etcd.client_port }}
+      targetPort: {{ .Values.network.etcd.client_port }}
+      nodePort: {{ .Values.network.etcd.ext.client_port }}
 ---
 apiVersion: apps/v1
 kind: Deployment
