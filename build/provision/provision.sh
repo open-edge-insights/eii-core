@@ -70,7 +70,7 @@ function souce_env() {
 
 function export_host_ip() {
     if [ -z $HOST_IP ]; then
-	hostIP=$(ip -4 addr list | grep "state UP" -A1 | tail -n1 | awk {'print $2'} | cut -f1 -d'/')
+	hostIP=$(ip -4 addr list | grep "fq_codel state UP" -A1 | tail -n1 | awk {'print $2'} | cut -f1 -d'/')
         export HOST_IP=$hostIP
     fi
     echo 'System IP Address is:' $HOST_IP
@@ -116,7 +116,7 @@ function create_eii_install_dir() {
 
     mkdir -p $EII_INSTALL_PATH/sockets/
     check_error "Failed to create dir '$EII_INSTALL_PATH/sockets'"
-    
+
     mkdir -p $EII_INSTALL_PATH/model_repo
     chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
 
@@ -246,14 +246,14 @@ if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
      log_info "Provisioning with KUBERNETES enabled mode... "
      check_k8s_secrets
      check_k8s_namespace
-     
+
      echo "Creating a new namespace"
      kubectl create namespace eii
      pip3 install -r cert_requirements.txt
-     
+
      echo "Clearing existing Certificates..."
      rm -rf Certificates
-     
+
      copy_docker_compose_file
 
      echo "Checking ETCD port..."
@@ -278,7 +278,7 @@ elif [ $ETCD_NAME = 'master' ]; then
     do
         docker rm -f $container_id
     done
-    
+
     copy_docker_compose_file
 
     echo "Clearing existing Certificates..."
