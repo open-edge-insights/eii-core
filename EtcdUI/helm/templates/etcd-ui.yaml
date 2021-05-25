@@ -55,8 +55,8 @@ spec:
         image: {{ .Values.registry }}ia_etcd_ui:{{ .Values.eii_version }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         volumeMounts:
-        - name: {{ .Values.volumes.etcdui.name }}
-          mountPath: {{ .Values.volumes.etcdui.location }}
+        - name: tmp-ssl
+          mountPath: "/opt/nginx"
         {{ if eq .Values.env.dev_mode false}}
         - name: etcd-certs
           mountPath: /run/secrets/etcd/
@@ -89,9 +89,9 @@ spec:
           value: "/run/secrets/etcd/EtcdUI_client_key.pem"
         {{ end }}
       volumes:
-      - name: {{ .Values.volumes.etcdui.name }}
-        persistentVolumeClaim:
-          claimName: {{ .Values.volumes.etcdui.name }}
+      - name: tmp-ssl
+        emptyDir:
+          medium: Memory
       {{ if eq .Values.env.dev_mode false}}
       - name: etcd-certs
         secret:
