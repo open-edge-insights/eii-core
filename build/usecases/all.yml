@@ -27,4 +27,4 @@ AppContexts:
 - tools/EmbPublisher
 - tools/TimeSeriesProfiler
 - tools/DiscoveryCreek
-- tools/mqtt-publisher
+- tools/mqtt/publisher
