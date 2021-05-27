@@ -977,6 +977,8 @@ def helm_yaml_merger(app_list, args):
 
     # Updating final helm values dict
     helm_dict = helm_values_dict[0]
+    if num_multi_instances > 1:
+        helm_dict.update({"num_video_instances": num_multi_instances})
     for var in helm_values_dict[1:]:
         for k in var:
             for i in var[k]:

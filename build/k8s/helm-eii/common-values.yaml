@@ -23,6 +23,7 @@ eii_version: 2.5
 registry:  
 imagePullPolicy: IfNotPresent
 storageClassName: manual
+num_video_instances: 1
 
 env:
   dev_mode: true
