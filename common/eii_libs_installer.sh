@@ -86,7 +86,6 @@ install_go () {
         apt-get install -y build-essential \
                         git \
                         g++ \
-                        iputils-ping \
                         pkg-config \
                         wget  && \
         wget -q --show-progress https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
@@ -115,7 +114,6 @@ fi
 # with GOPATH set
 unset GOROOT
 
-DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EIIMessageBus="$CUR_DIR/libs/EIIMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 GrpcProtoPath="$CMAKE_INSTALL_PREFIX/lib"
@@ -143,33 +141,6 @@ cd $EIIMessageBus &&
    rm -rf deps && \
    ./install.sh --cython
 
-if [ -f "$CMAKE_INSTALL_PREFIX/lib/libsafestring.so" ]; then
-    log_info "libsafestring.so already installed"
-else
-    log_info "----Installing IntelSafeString lib----"
-    cd $EIIMessageBus/../IntelSafeString/ &&
-    rm -rf build && \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-    make install
-    check_error "----Failed to install IntelSafeString lib----"
-fi
-
-log_info "----Installing EIIMsgEnv lib----"
-cd $EIIMessageBus/../EIIMsgEnv/ &&
-   rm -rf build && \
-   mkdir build && \
-   cd build && \
-   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
-   make && \
-   if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && \
-   ./msg-envelope-tests  && \
-   ./crc32-tests  && \
-   cd .. ; fi && \
-   make install
-check_error "----Failed to install EIIMsgEnv lib----"
-
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
    ./install.sh && \
@@ -186,17 +157,6 @@ cd $EIIMessageBus/../../util/c/ &&
    ./thexec-tests
    cd .. ; fi  && \
    make install
-check_error "----Failed to install Util lib----"
-
-log_info "----Installing DynLibLoad lib----"
-cd $EIIMessageBus/../DynLibLoad/ && \
-    rm -rf build &&  \
-    mkdir build && \
-    cd build && \
-    cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
-    make && \
-    if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests && ./dynlibload-tests && cd .. ; fi && \
-    make install
 check_error "----Failed to install Util lib----"
 
 log_info "----Installing EIIMessageBus c++ lib from DEB package----"
