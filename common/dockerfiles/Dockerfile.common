@@ -73,11 +73,7 @@ COPY util/requirements.txt util/requirements.txt
 RUN pip3 install --user -r util/requirements.txt
 
 COPY cmake cmake
-COPY libs/IntelSafeString libs/IntelSafeString/
-COPY libs/EIIMsgEnv libs/EIIMsgEnv
 COPY util/ util/
-
-COPY libs/DynLibLoad/ libs/DynLibLoad
 
 COPY libs/EIIMessageBus libs/EIIMessageBus
 COPY libs/ConfigMgr libs/ConfigMgr
