@@ -4,8 +4,8 @@ Ansible is the automation engine which can enable EII deployment across single/m
 We need one control node where ansible is installed and optional hosts. We can also use the control node itself to deploy EII
 
 > **Note**: 
-> * Ansible can execute the tasks on control node based on the host information updated in config file.
-> * There are 3 types of nodes - control node where ansible must be installed, EII master node and optional worker nodes. Control node and EII master node can be same.
+> * Ansible can execute the tasks on control node based on the playbooks defined
+> * There are 3 types of nodes - control node where ansible must be installed, EII master node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on master node. Control node and EII master node can be same.
 
 ## Installing Ansible on Ubuntu {Control node} 
 
@@ -30,13 +30,15 @@ We need one control node where ansible is installed and optional hosts. We can a
     For Eg:
     ```
     [targets]
+    control ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
     master ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
     ```
     
     > **Note**: 
     > * The above information is used by ansible to establish ssh  connection to the nodes.
-    > * For single node installation, we must provide the same control node details
-    > * To deploy EII on multiple nodes, add hosts details to the inventory file
+    > * control and master node details are mandatory
+    > * For single node installation, control and master nodes can be same or different
+    > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
 
 
@@ -86,25 +88,46 @@ We need one control node where ansible is installed and optional hosts. We can a
     ```sh
         $ vi group_vars/all.yml
     ```
-2. Update EII Source Folder path to `eii_source_path` variable value.
-    ```sh
-        eii_source_path: "<source_code_path>"
-    ```
-3. Update Proxy Settings
+2. Update Proxy Settings
     ```sh
         http_proxy: <proxy_server_details>
         https_proxy: <proxy_server_details>
         no_proxy: <managed_node ip>,<controller node ip>,<worker nodes ip>,localhost,127.0.0.1
     ```
-4. Update the `usecase` variable, based on this `builder.py` generates the EII deployment & config files.
+3. Update the `usecase` variable, based on this `builder.py` generates the EII deployment & config files.
     **Note** By default it will be `video`, For other usecases refer the `build/usecases` folder and update only names without `.yml` extension
     
     For Eg. If you want build & deploy for `build/usecases/video.yml` update the `usecase` key value as `video`
     ```sh
         usecase: <video>
     ```
+4. Optionally you can choose number of video pipeline instances to be created by updating `instances`
 
-5.  Save & Close the File.
+5. Update other optional variables provided if required
+
+## Select EII services to run on a particular node
+
+* Edit `vars/vars.yml` -> under `nodes` add a specific a node which was defined in the inventory file(`hosts`) and add EII services to `include_services` list
+
+    Eg. if you want master to run ia_video_ingesstion, `vars/vars.yml` should be
+
+    ```yml
+        nodes:
+          master:
+            include_services:
+                - ia_video_ingestion
+    ```
+
+* If you want to add `worker1` to `nodes` and bring up `ia_visulaizer` in `worker1`:
+
+    ```yml
+    nodes:
+      master:
+        include_services:
+            - ia_video_ingestion
+      worker1:
+            - ia_visualizer
+    ```
 
 
 ## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node}
@@ -133,25 +156,71 @@ For Eg:
 >    ```
 >
 
-* For EII prequisite, build, provision, deploy & setup master node for multinode deployement usecase
-   
-    ```$ ansible-playbook -i hosts eii.yml```
+*  For Single Point of Execution
+   > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup master node for multinode deployement usecase in one shot sequentialy.
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml
+    ```
   
+ > **Note**: Below steps are the individual execution of setups.
 * For EII Prequisite Setup
 
-    ```$ ansible-playbook -i hosts eii.yml --tags "prerequisites"```
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "prerequisites"
+    ```
  
 * For building EII containers
 
-    ```$ ansible-playbook -i hosts eii.yml --tags "build"```
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "build"
+    ```
 
-* Provision EII
+* To generate Certificates in control node
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "gen_certs"
+    ```
 
-    ```$ ansible-playbook -i hosts eii.yml --tags "provision"```
+* To generate provision bundle for master
 
-* Deploy selected EII usecase
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "gen_master_provision_bundle"
+    ```
 
-    ```$ ansible-playbook -i hosts eii.yml --tags "deploy"```
+* To generate provision bundle for worker
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "gen_worker_provision_bundle"
+    ```
+
+* To generate eii bundles for master, worker nodes
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "gen_bundles"
+    ```
+
+* provision master and bring up ETCD server
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "master_provision"
+    ```
+
+* provision worker node
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "worker_provsion"
+    ```
+* Provision EIS Config values to etcd
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "etcd_provision"
+    ```
+
+* To generate eii bundles for master, worker nodes
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "deploy"
+    ```
 
     > **Note**: 
     > * To skip running a particular tag permenantly update `ansible.cfg` under `[tags]` section

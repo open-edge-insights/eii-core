@@ -19,9 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# Path where EIS Source available
-eii_source_path: ""
-
 # docker-compose version
 docker_compose_version: "1.24.0"
 
@@ -33,13 +30,14 @@ http_proxy: ""
 https_proxy: ""
 no_proxy: ""
 
-# This will be passed as argument to builder.py to generate required services files. default: video
+# This will be passed as an argument to builder.py to generate required services files. default: video
 usecase: "video"
 
-# Varibles to login to docker registry
-docker_registry:
-docker_login_user:
-docker_login_passwd:
+# Optional number of video pipeline instances to be created, default is 1
+instances: 1
+
+# Update no_cache: true if you want to build eii docker images with --no-cache
+no_cache: false
 
 #Environment Variables for Provisioning
 # To Provision with k8s, Input is k8s.
@@ -49,3 +47,8 @@ PROVISION_MODE: ""
 
 ## ENV Variable Update
 DEV_MODE: false
+EII_VERSION: 2.5
+## EII Source path
+EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
+## EII Deploy path
+EII_DEPLOY_PATH: /opt/intel/eii/deploy/

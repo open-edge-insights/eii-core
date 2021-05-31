@@ -231,6 +231,14 @@ function check_k8s_namespace() {
     fi
 }
 
+function remove_eii_containers() {
+    log_info "Bringing down running eii containers"
+    for container_id in $(docker ps  --filter="name=ia_" -q -a)
+    do
+        docker rm -f $container_id
+    done
+}
+
 souce_env
 export_host_ip
 set_docker_host_time_zone
@@ -246,44 +254,80 @@ else
     chmod -R 755 $EII_INSTALL_PATH/sockets
 fi
 
+if [ '$1' = '--worker' -o '$ETCD_NAME' = 'worker' ]; then
+    remove_eii_containers
+    log_info "Provisioning is Successful..."
+    exit -1
+fi
+
 #############################################################
 
-if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
-     log_info "Provisioning with KUBERNETES enabled mode... "
-     check_k8s_secrets
-     check_k8s_namespace
-     pip3 install -r cert_requirements.txt
+if [ "$PROVISION_MODE" = 'k8s' ]; then
+    log_info "Provisioning with KUBERNETES enabled mode... "
+    remove_eii_containers
+    check_k8s_secrets
+    check_k8s_namespace
 
-     echo "Clearing existing Certificates..."
-     rm -rf Certificates
+    echo "Creating a new namespace"
+    kubectl create namespace eii
+    pip3 install -r cert_requirements.txt
 
-     copy_docker_compose_file
+    echo "Clearing existing Certificates..."
+    rm -rf Certificates
 
-     echo "Checking ETCD port..."
-     check_ETCD_port
+    copy_docker_compose_file
 
-     if [ $DEV_MODE = 'true' ]; then
-	docker-compose -f dep/docker-compose-etcd.yml build
-	docker-compose -f dep/docker-compose-etcd-provision.yml build
+    echo "Checking ETCD port..."
+    check_ETCD_port
+
+    if [ $DEV_MODE = 'true' ]; then
+        docker-compose -f dep/docker-compose-provision.yml build
         envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
         kubectl apply -f dep/k8s_etcd_devmode.yml
         docker-compose -f dep/docker-compose-k8sprovision.yml up -d
-     else
+    else
         prod_mode_gen_certs
-	docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml build
-	docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml build
+        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
         envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
         kubectl apply -f dep/k8s_etcd_prodmode.yml
         docker-compose -f dep/docker-compose-k8sprovision.yml -f dep/docker-compose-k8sprovision.override.prod.yml up -d
-     fi
-elif [ $ETCD_NAME = 'master' ]; then
-    install_pip_requirements
-    log_info "Bringing down running eii containers"
-    for container_id in $(docker ps  --filter="name=ia_" -q -a)
-    do
-        docker rm -f $container_id
-    done
+    fi
+elif [ "$1" = "--run_etcd" ] ; then
+    remove_eii_containers
+    echo "Checking ETCD port..."
+    check_ETCD_port
 
+    if [ $DEV_MODE = 'true' ]; then
+        log_info "EII is not running in Secure mode. Generating certificates is not required.. "
+        log_info "Starting ETCD ..."
+        docker-compose -f dep/docker-compose-etcd.yml up --build -d
+    else
+        log_info "Starting ETCD ..."
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up --build -d
+    fi
+elif [ "$2" = "--run_etcd_provision" ] ; then
+    echo "Checking ETCD health..."
+    ./dep/etcd_health_check.sh
+
+    copy_docker_compose_file
+
+    if [ $DEV_MODE = 'true' ]; then
+        log_info "EII is not running in Secure mode. Generating certificates is not required.. "
+        log_info "Starting etcd_provision..."
+        docker-compose -f dep/docker-compose-etcd-provision.yml up --build
+    else
+        log_info "Starting etcd_provision..."
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up --build
+    fi
+elif [ "$2" = "--generate_certs" ] ; then
+    echo "Clearing existing Certificates..."
+    rm -rf Certificates
+
+    install_pip_requirements
+    copy_docker_compose_file
+    prod_mode_gen_certs
+elif [ "$ETCD_NAME" = "master" ]; then
+    remove_eii_containers
     copy_docker_compose_file
 
     echo "Clearing existing Certificates..."

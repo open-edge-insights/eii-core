@@ -22,12 +22,33 @@
 - debug:
     msg: "Provisioning EII"
 
-- name: "Execute Provision Script"
+- name: Create directory {{ EII_DEPLOY_PATH }} if it does not exist in {{ inventory_hostname }}
   become: yes
-  shell: "./provision.sh ../docker-compose.yml"
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy worker_provisioning.tar.gz from control node to master node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/deploy/worker_provisioning.tar.gz"
+    dest: "{{ EII_DEPLOY_PATH }}/"
+    follow: yes
+
+- name: Extract worker_provisioning.tar.gz to {{ EII_DEPLOY_PATH }}
+  become: yes
+  ansible.builtin.unarchive:
+    src: "{{ EII_DEPLOY_PATH }}/worker_provisioning.tar.gz"
+    dest: "{{ EII_DEPLOY_PATH }}"
+    remote_src: yes
+
+- name: "provision worker"
+  become: yes
+  shell: "./provision.sh --worker"
   args:
-    chdir: "{{ eii_source_path }}/build/provision"
+    chdir: "{{ EII_DEPLOY_PATH }}/worker_provisioning/provision"
   register: command_out
 
 - debug:
-    msg: "Provisioning output {{ command_out.stdout }}"
+    msg: "{{ command_out.stdout }}"
