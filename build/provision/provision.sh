@@ -116,7 +116,6 @@ function create_eii_install_dir() {
 
     mkdir -p $EII_INSTALL_PATH/sockets/
     check_error "Failed to create dir '$EII_INSTALL_PATH/sockets'"
-
     mkdir -p $EII_INSTALL_PATH/model_repo
     chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
 

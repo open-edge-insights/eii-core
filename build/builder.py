@@ -1418,12 +1418,21 @@ def parse_args():
     arg_parse.add_argument('-f', '--yml_file', default=None,
                            help='Optional config file for list of services'
                            ' to include.\
+<<<<<<< HEAD:build/builder.py
                            Eg: python3 builder.py -f\
                            usecases/video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
                            Eg: python3 builder.py -v 6')
+=======
+                           Eg: python3.6 builder.py -f\
+                           video-streaming.yml')
+    arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
+                           help='Optional number of video pipeline '
+                                'instances to be created.\
+                           Eg: python3.6 builder.py -v 6')
+>>>>>>> master:build/builder.py
     arg_parse.add_argument('-d', '--override_directory',
                            default=None,
                            help='Optional directory consisting of '

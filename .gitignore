@@ -31,11 +31,12 @@ build/provision/server
 build/provision/client
 build/k8s/eii-k8s-deploy.yml
 
-# Adding these folder names as eis-core repo
+# Adding these folder names as eii-core repo
 # is pulled onto IEdgeInsights folder making
 # all these apps/services appear as untracked
 # files
-DiscoveryCreek/
+common/util/c/
+common/libs/EIIMessageBus/
 FactoryControlApp/
 Grafana/
 ImageStore/

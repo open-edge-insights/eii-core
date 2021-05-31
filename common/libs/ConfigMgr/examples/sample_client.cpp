@@ -34,6 +34,10 @@
 
 #define SERVICE_NAME "echo_service"
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 using namespace eii::config_manager;
 
 // Globals for cleaning up nicely

@@ -1,4 +1,4 @@
-Edge Insights for Industrial(EII) is the framework for enabling smart manufacturing with visual and point defect inspections.
+Edge Insights for Industrials (EII) is the framework for enabling smart manufacturing with visual and point defect inspections.
 
 # Contents:
 
@@ -30,6 +30,9 @@ Edge Insights for Industrial(EII) is the framework for enabling smart manufactur
 
 14. [EII workload orchestration using kubernetes](#eii-workload-orchestration-using-kubernetes)
 
+15. [Debugging options](#debugging-options)
+
+16. [EII Uninstaller](#eii-uninstaller)
 
 # Minimum System Requirements
 
@@ -55,20 +58,17 @@ The installer script automates the installation & configuration of all the prere
 2. **docker client**
 3. **docker-compose**
 4. **Python packages**
+
 The script checks if docker & docker-compose are already installed in the system. If not installed, then it installs the intended version of the docker & docker-compose which is mentioned in the script.
 If docker and/or docker-compose are already installed in the system but the installed version of the docker/docker-compose is older than the intended docker/docker-compose version (which is mentioned in the script) then the script uninstalls the older version of docker/docker-compose & re-installs the intended version mentioned in the script. The script also configures the proxy settings for docker client and docker daemon to connect to internet.
 
-The "pre-requisite.sh" script also does Proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system in behind a proxy.
-The `pre-requisite.sh` script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
+The [build/pre_requisites.sh](build/pre_requisites.sh) script also does proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system is behind a proxy.
+The script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
 
 1. **Steps to run the installer script is as follows**:
 
-   **Note**: It is highly recommended that you use a python virtual environment to
-   install the python packages, so that the system python installation doesn't
-   get altered. Details on setting up and using python virtual environment can
-   be found here: https://www.geeksforgeeks.org/python-virtual-environment/
-
 ```sh
+$ cd [WORKDIR]/IEdgeInsights/build
 $ sudo ./pre_requisites.sh --help
 
 Usage :: sudo ./pre_requisites.sh [OPTION...]
@@ -140,6 +140,7 @@ Different use cases...
 # Generate deployment and configuration files
 
 The section assumes the EII software is already downloaded from the release package or from git.
+Run all the below commmands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
 ## 1. Generating consolidated docker-compose.yml, eii_config.json and eii-k8s-deploy.yml files:
 
@@ -150,12 +151,12 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EII docker containers in a given single node using `docker-compose` tool                                       |
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
-| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII servcie via Kubernetes orchestrator                                                       |
+| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII service via Kubernetes orchestrator                                                       |
 
 > **NOTE**:
-> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column,
-     it is required to re-run the builder.py script before provisioning and running the EII stack to ensure that the
-     changes done reflect in the required consolidated files.
+> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
+     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running 
+     the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
 
@@ -209,9 +210,9 @@ optional arguments:
 
 * `Running builder to generate multi instance configs`:
 
-  Based on the user's requirements, eii_builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
+  Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
 
-  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of eii_builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
+  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
 
   An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
@@ -304,7 +305,7 @@ Follow below steps to provision. Provisioning must be done before deploying EII 
 Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
 
 * Please update DEV_MODE=true in [build/.env](build/.env) to provision in Developer mode.
-* <b>Please comment secrets section for all services in [build/docker-compose.yml](../docker-compose.yml)</b>
+* Please re-run the [build/builder.py](build/builder.py) to re-generate the consolidated files as mentioned above
 
 Following actions will be performed as part of Provisioning
 
@@ -314,18 +315,11 @@ Following actions will be performed as part of Provisioning
  * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
  * If HOST_IP is blank in [build/.env](build/.env), then HOST_IP will be automatically detected when server certificates are generated.
 
-**Optional:** In case of cleaning existing volumes, please run the [volume_data_script.py](build/provision/volume_data_script.py). The script can be run by the command:
-```sh
-$ python3 volume_data_script.py
-```
+**Optional:** In case of any errors during provisioning w.r.t existing volumes, please remove the existing volumes by running the EII uninstaller script: [eii_uninstaller.sh](build/eii_uninstaller.sh)
+
+Run all the below commmands in this section from `[WORKDIR]/IEdgeInsights/build/provision` directory.
 
 Below script starts `etcd` as a container and provision. Please pass docker-compose file as argument, against which provisioning will be done.
-
-**Note**: It is highly recommended that you use a python virtual environment to
-install the python packages, so that the system python installation doesn't
-get altered. Details on setting up and using python virtual environment can
-be found here: https://www.geeksforgeeks.org/python-virtual-environment/
-
 ```sh
 $ cd [WORKDIR]/IEdgeInsights/build/provision
 $ sudo ./provision.sh <path_to_eii_docker_compose_file>
@@ -342,25 +336,14 @@ $ ./etcd_capture.sh
 
   ---
   > **Note:**
-  > * If `ia_visualizer` service is enabled in the [docker-compose.yml](build/docker-compose.yml) file, please
-     run command `$ xhost +` in the terminal before starting EII stack, this is a one time configuration.
-     This is needed by `ia_visualizer` service to render the UI
   > * For running EII services in IPC mode, make sure that the same user should be there in publisher and subscriber.
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
      In [docker-compose.yml](build/docker-compose.yml) if `user: ${EII_UID}` is in publisher service, then the
      same `user: ${EII_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
-  > * In case multiple VideoIngestion or VideoAnalytics services are needed to be launched, then the
-     [docker-compose.yml](build/docker-compose.yml) file can be modified with the required configurations and
-     below command can be used to build and run the containers.
-  >    ```sh
-  >     $ docker-compose -f docker-compose-build.yml build
-  >     $ docker-compose -f docker-compose-push.yml push
-  >     $ docker-compose up -d
-  >     ```
   ---
 
-All the below EII build and run commands to be executed from the [WORKDIR]/IEdgeInsights/build/ directory.
+All the below EII build and run commands needs to be executed from the `[WORKDIR]/IEdgeInsights/build/` directory.
 
 Below are the usecases supported by EII to bring up the respective services mentioned in the
 yaml file.
@@ -382,12 +365,12 @@ yaml file.
 | Video streaming with AzureBridge       | [build/usecases/video-streaming-azure.yml](build/usecases/video-streaming-azure.yml)      |
 | Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
-
 ## Build EII stack
 
 Builds all EII services in the [docker-compose-build.yml](build/docker-compose-build.yml) along with the base EII services.
 
 ```sh
+$ xhost +
 $ docker-compose -f docker-compose-build.yml build
 ```
 
@@ -447,13 +430,7 @@ For more details, visit [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuratio
 
 # Enable camera based Video Ingestion
 
-EII supports various cameras like Basler (GiGE), RTSP and USB camera. The video ingestion pipeline is enabled using 'gstreamer' which ingests the frames from the camera. The Video Ingestion application accepts a user-defined filter algorithm to do pre-processing on the frames before it is ingested into the DBs and inturn to the Analytics container.
-
-All the changes related to camera type are made in the Etcd ingestor configuration values and sample ingestor configurations are provided in [VideoIngestion/README.md](VideoIngestion/README.md) for reference.
-
 For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
-
-For Sample docker-compose file and ETCD preload values for multiple camaras, refer to [build/samples/multi_cam_sample/README.md](build/samples/multi_cam_sample/README.md).
 
 # Using video accelerators
 
@@ -478,21 +455,23 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2021.2" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2021.3" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2021.2/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
-     **NOTE**: OpenVINO 2021.2 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+     **NOTE**: OpenVINO 2021.3 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
 
      ```sh
      $ cd /opt/intel
-     $ sudo ln -s openvino_2021.2.185 openvino
+     $ sudo ln -s <OpenVINO latest installation> openvino
+
+       Eg: sudo ln -s openvino_2021.3.394 openvino
 
      In case there are older versions of OpenVINO installed on the host system please un-install them.
 
@@ -513,6 +492,14 @@ check [common/udfs/README.md](common/udfs/README.md).
                  - "/dev/dri"
                  - "/dev/ion:/dev/ion"
     ```
+    
+*   **Running on Intel(R) Processor Graphics (GPU/iGPU)**
+     
+    **Note**: The below step is required only for 11th gen Intel Processors
+  
+    Upgrade the kernel version to 5.8 and install the required drivers from the below OpenVINO link:
+    https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps
+      
 **Note**:
 ----
 
@@ -544,17 +531,14 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
 * **Troubleshooting issues for HDDL devices**
-  * ** Note:** HDDL was tested with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version 5.4.0-050400-generic
-
-  * In case one notices shared memory error with OpenVINO 2021.2 on Ubuntu 18.04 with kernel version above 5.3 please downgrade the kernel version. The ION driver could have compatibility issues getting installed with kernel version above 5.3
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2021.2 release notes in the below link for new features and changes from the previous versions.
+  * Please refer OpenVINO 2021.3 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2021.2/index.html
+    https://docs.openvinotoolkit.org/2021.3/index.html
 
 ----
 
@@ -656,4 +640,34 @@ In order to deploy EII using the orchestrator Kubernetes, please follow [build/k
 $ cd [WORKDIR]/IEdgeInsights/build
 # Install requirements for builder.py
 $ pip3 install -r requirements.txt
+```
+
+# EII Uninstaller
+
+The uninstaller script automates the removal of all the EII Docker configuration installed on a system. This uninstaller will perform the following tasks:
+1. **Stops and removes all EII running and stopped containers**
+2. **Removes all EII docker volumes**
+3. **Removes all EII docker images \[Optional\]**
+4. **Removes all EII install directory**
+
+Run the below commmand from `[WORKDIR]/IEdgeInsights/build/` directory.
+
+```sh
+$ ./eii_uninstaller.sh -h
+Usage: ./eii_uninstaller.sh [-h] [-d]
+
+ This script uninstalls previous EII version.
+ Where:
+    -h show the help
+    -d triggers the deletion of docker images (by default it will not trigger)
+
+ Example: 
+  1) Deleting only EII Containers and Volumes
+    $ ./eii_uninstaller.sh
+
+  2) Deleting EII Containers, Volumes and Images
+    $ export EII_VERSION=2.4
+    $ ./eii_uninstaller.sh -d
+    above example will delete EII containers, volumes and all the docker images having 2.4 version.
+
 ```

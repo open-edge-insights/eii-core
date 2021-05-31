@@ -713,7 +713,10 @@ Before executing any of the test files, please run below command from `build/tes
 $ ./config_manager_unit_tests
 $ ./kvstore_client-tests
 ```
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 ## Creation of grpc .deb file (Optional)
 
 **Note**: This is an optional as we have already created .deb file in the repo.

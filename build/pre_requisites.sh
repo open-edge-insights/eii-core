@@ -40,7 +40,8 @@ DOCKER_GPG_KEY="0EBFCD88"
 # vars
 PROXY_EXIST="no"
 
-DOCKER_COMPOSE_VERSION=1.28.5
+REQ_DOCKER_COMPOSE_VERSION=1.24.0
+REQ_DOCKER_VERSION=19.03.8
 
 #------------------------------------------------------------------------------
 # system_info
@@ -187,7 +188,7 @@ install_basic_packages()
 {
     echo "${INFO}Installing basic packages required ${NC}"
     # Installing dependent packages
-    apt-get update > /dev/null && apt-get -y install build-essential python3-pip wget curl patch > /dev/null
+    apt-get update > /dev/null && apt-get -y install build-essential python3-pip wget curl patch jq > /dev/null
     if [ "$?" -ne "0" ]; then
 	    echo "${RED}failed to download basic packages. Please check if your basic package manager is working or not using apt-get update command and try to re-run the script${NC}"
 	    exit 1
@@ -299,41 +300,47 @@ validate_action_user_input()
 #------------------------------------------------------------------------------
 proxy_enabled_network()
 {
-    # 1. Configure the Docker client
-    #USER_PROXY=""
-		
-    echo "{
-    \"proxies\":
-    {
+    # 1. Configure the Docker client for http and https proxy
+    mkdir -p ~/.docker
+    DOCKER_CONFIG_FILE=~/.docker/config.json
+    DOCKER_CLIENT_PROXY="{
     \"default\":
     {
     \"httpProxy\": \"http://${USER_PROXY}\",
     \"httpsProxy\": \"http://${USER_PROXY}\",
     \"noProxy\": \"127.0.0.1,localhost\"
     }
-    }
-    }" > ~/.docker/config.json
+    }"
 
+	echo "Docker client proxy: $DOCKER_CLIENT_PROXY"
+	# Truncating any new lines
+	DOCKER_CLIENT_PROXY=`echo $DOCKER_CLIENT_PROXY | tr -d '\n'`
 
-    # 2. HTTP/HTTPS proxy
-    if [ -d "/etc/systemd/system/docker.service.d" ];then
-        rm -rf /etc/systemd/system/docker.service.d
-    fi
-    mkdir -p /etc/systemd/system/docker.service.d
-    touch /etc/systemd/system/docker.service.d/http-proxy.conf
-    touch /etc/systemd/system/docker.service.d/https-proxy.conf
-
-    if [ -f "/etc/systemd/system/docker.service.d/http-proxy.conf" ] && [ -f "/etc/systemd/system/docker.service.d/https-proxy.conf" ];then
-        echo "[Service]" > /etc/systemd/system/docker.service.d/http-proxy.conf
-        echo "Environment=\"HTTP_PROXY=http://${USER_PROXY}/\" \"NO_PROXY=localhost,127.0.0.1\"" >> /etc/systemd/system/docker.service.d/http-proxy.conf
-        check_for_errors "$?" "Failed to update http-proxy.conf files. Please check logs"
-        echo "[Service]" > /etc/systemd/system/docker.service.d/https-proxy.conf
-        echo "Environment=\"HTTPS_PROXY=http://${USER_PROXY}/\" \"NO_PROXY=localhost,127.0.0.1\"" >> /etc/systemd/system/docker.service.d/https-proxy.conf
-        check_for_errors "$?" "Failed to update https-proxy.conf files. Please check logs"
+    if [ -f $DOCKER_CONFIG_FILE ]; then
+        echo "${INFO} $DOCKER_CONFIG_FILE exists, updating the \"proxies\" key"
+        jq --arg var "$DOCKER_CLIENT_PROXY" '.proxies = $var' $DOCKER_CONFIG_FILE > tmp.$$.json && mv tmp.$$.json $DOCKER_CONFIG_FILE
     else
-        # Files do not exist, display error message
-        check_for_errors "-1" "Files http-proxy.conf and https-proxy.conf not found. Please check logs"
+        echo "{
+        \"proxies\":
+            $DOCKER_CLIENT_PROXY
+        }" > $DOCKER_CONFIG_FILE
     fi
+
+    # 2. Configure the Docker daemon for http and https proxy
+    DOCKER_SERVICE_DIR="/etc/systemd/system/docker.service.d"
+    if [ -d $DOCKER_SERVICE_DIR ];then
+       rm -rf $DOCKER_SERVICE_DIR
+    fi
+    mkdir -p $DOCKER_SERVICE_DIR
+    touch $DOCKER_SERVICE_DIR/http-proxy.conf
+    touch $DOCKER_SERVICE_DIR/https-proxy.conf
+
+    echo "[Service]" > $DOCKER_SERVICE_DIR/http-proxy.conf
+    echo "Environment=\"HTTP_PROXY=http://${USER_PROXY}/\" \"NO_PROXY=localhost,127.0.0.1\"" >> $DOCKER_SERVICE_DIR/http-proxy.conf
+    check_for_errors "$?" "Failed to update http-proxy.conf files. Please check logs"
+    echo "[Service]" > $DOCKER_SERVICE_DIR/https-proxy.conf
+    echo "Environment=\"HTTPS_PROXY=http://${USER_PROXY}/\" \"NO_PROXY=localhost,127.0.0.1\"" >> $DOCKER_SERVICE_DIR/https-proxy.conf
+    check_for_errors "$?" "Failed to update https-proxy.conf files. Please check logs"
 
     # Flush the changes
     systemctl daemon-reload
@@ -359,7 +366,7 @@ dns_server_settings()
 {
     UBUNTU_VERSION=$(grep "DISTRIB_RELEASE" /etc/lsb-release | cut -d "=" -f2)
 
-    echo "${GREEN}Updating correct DNS server details in /etc/resolv.conf${NC}"
+    echo "${INFO}Updating correct DNS server details in /etc/resolv.conf${NC}"
     # DNS server settings for Ubuntu 16.04 or earlier
     VERSION_COMPARE=$(echo "${UBUNTU_VERSION} <= 16.04" | bc)
     if [  "${VERSION_COMPARE}" -eq "1" ];then
@@ -627,14 +634,14 @@ docker_compose_install()
 {
 	echo "${INFO}Installing docker-compose...${NC}"
     rm -rf $(which docker-compose)
-    pip3 uninstall -y docker-compose
+    pip3 uninstall -y docker-compose | rm -rf `which docker-compose`
     # Downloading docker-compose using curl utility.
-    curl -L "https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    curl -L "https://github.com/docker/compose/releases/download/${REQ_DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     if [ "$?" -eq "0" ];then
         # Making the docker-compose executable. 
         chmod +x /usr/local/bin/docker-compose
-        ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-	echo "${GREEN}Installed docker-compose successfully.${NC}"
+        ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
+        echo "${GREEN}Installed docker-compose successfully.${NC}"
     else
         echo "${RED}ERROR: Docker-compose Downloading Failed.Please Check Manually.${NC}"
         exit 1
@@ -657,22 +664,24 @@ docker_compose_install()
 docker_compose_verify_installation()
 {
     echo "Verifying if docker_compose already exists."
-    requiredver="1.28.5"
     cur_v=$(echo $(docker-compose --version) | cut -d"n" -f 2 | cut -d"," -f 1)
 	if [ -z $cur_v ];then
 		echo "${INFO}docker-compose is not installed on machine${NC}"
 		echo "${INFO}docker-compose needs to be Installed.${NC} "
         docker_compose_install
 	else
-		testvercomp $cur_v $requiredver "="
+		testvercomp $cur_v $REQ_DOCKER_COMPOSE_VERSION "="
 		ret=$?
 		if [ "$ret" -eq 0 ]; then
 			echo "${GREEN}docker-compose is already installed, ${cur_v}${NC}"
 		else
 			echo "${INFO}docker-compose is either not installed or old one${NC}"
-			echo "Required = "${requiredver}, "Present version = " ${cur_v}
-			echo "${INFO}docker-compose needs to be Installed.${NC}"
-			docker_compose_install
+			echo "Required = "${REQ_DOCKER_COMPOSE_VERSION}, "Present version = " ${cur_v}
+			read -p "Do you want to proceed with the installation of above required version of docker-compose tool?[y/n]" yn
+			case $yn in
+				[Yy] ) docker_compose_install;;
+				[Nn] ) ;;
+			esac
 		fi
 	fi
 	echo "${GREEN}docker-compose installation is done...${NC}"
@@ -695,23 +704,26 @@ docker_compose_verify_installation()
 docker_verification_installation()
 {
     echo "Verifying if docker already exists."
-    requiredver="19.03.0"
     cur_v=$(echo $(docker --version) | cut -d"n" -f 2 | cut -d"," -f 1)
 	if [ -z $cur_v ];then
 		echo "${INFO}docker is not installed on machine${NC}"
 		echo "${INFO}docker needs to be Installed.${NC} "
 		docker_install
 	else
-		testvercomp $cur_v $requiredver ">"
+		testvercomp $cur_v $REQ_DOCKER_VERSION ">"
 		ret=$?
 		if [ "$ret" -eq 0 ]; then
-			echo "${GREEN}docker is already installed, ${cur_v}${NC}"
+			echo "${GREEN} Expected docker version is already installed, ${cur_v}${NC}"
 		else
 			echo "${INFO}docker version is either not installed or old one${NC}"
-			echo "Required = "${requiredver}, "Present version = " ${cur_v}
-			echo "${INFO}docker needs to be Installed.${NC} "
-			uninstall_docker
-			docker_install
+			echo "Required = "${REQ_DOCKER_VERSION}, "Present version = " ${cur_v}
+			read -p "Do you want to proceed with the installation of above required version of docker?[y/n]" yn
+			case $yn in
+				[Yy] )
+						uninstall_docker
+						docker_install;;
+				[Nn] ) ;;
+			esac
 		fi
 	fi
     validate_action_user_input "$@"
@@ -771,7 +783,7 @@ Usage()
 	echo 
 	echo "${BOLD}${INFO}==================================================================================${NC}"
 	echo
-	echo "${BOLD}${GREEN}Usage :: sudo ./pre-requisites.sh [OPTION...] ${NC}"
+	echo "${BOLD}${GREEN}Usage :: sudo ./pre_requisites.sh [OPTION...] ${NC}"
 	echo
 	echo "${INFO}List of available options..."
     echo
@@ -785,10 +797,10 @@ Usage()
 	echo "${BOLD}${MAGENTA}
 		
 		1. RUNS WITHOUT PROXY
-		sudo ./pre-requisites.sh
+		sudo ./pre_requisites.sh
 
 		2.RUNS WITH PROXY
-		sudo ./pre-requisites.sh --proxy=\"proxy.intel.com:211\"
+		sudo ./pre_requisites.sh --proxy=\"proxy.intel.com:211\"
 	"
 	echo "${INFO}===================================================================================${NC}"
 	exit 1
