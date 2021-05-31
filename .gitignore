@@ -37,6 +37,8 @@ build/k8s/eii-k8s-deploy.yml
 # files
 common/util/c/
 common/libs/EIIMessageBus/
+common/libs/EIIMsgEnv/
+common/libs/DynLibLoad/
 FactoryControlApp/
 Grafana/
 ImageStore/
