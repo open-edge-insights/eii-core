@@ -159,28 +159,37 @@ cd $EIIMessageBus/../../util/c/ &&
    make install
 check_error "----Failed to install Util lib----"
 
-log_info "----Installing EIIMessageBus c++ lib from DEB package----"
-cd $EIIMessageBus &&
-   apt install ./eii-messagebus-2.4.0-Linux.deb
-check_error "----Failed to install EIIMessageBus c++ lib----"
+log_info "----Installing EIIMessageBus library----"
+cd $EIIMessageBus && \
+    rm -rf build/ && \
+    mkdir build/ && \
+    cd build/ && \
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+    make install
+check_error "----Failed to install EIIMessageBus library----"
 
-log_info "----Installing EIIMessageBus python binding----"
-cd $EIIMessageBus/python &&
-   python3 setup.py install --user
-check_error "----Failed to install EIIMessageBus python binding----"
+# log_info "----Installing EIIMessageBus python binding----"
+# cd $EIIMessageBus/python &&
+#    python3 setup.py install --user
+# check_error "----Failed to install EIIMessageBus python binding----"
 
 log_info "----Installing EIIMessageBus Golang binding----"
 cd $EIIMessageBus &&
    cp -a go/. $GOPATH/src/
 check_error "----Failed to install EIIMessageBus Golang binding----"
 
-log_info "----Installing ConfigMgr C, golang and python libs----"
+log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
    # Installing grpc from DEB package
    apt install ./grpc-1.29.0-Linux.deb && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON -DWITH_PYTHON=ON .. && \
+   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
-check_error "----Failed to install ConfigMgr C, golang and python libs----"
+check_error "----Failed to install ConfigMgr C and golang libs----"
+
+# log_info "----Installing CofigMgr python binding----"
+# cd $ConfigMgr/python && \
+#    python3 setup.py.in install --user
+# check_error "----Failed to install ConfigMgr python binding----"
