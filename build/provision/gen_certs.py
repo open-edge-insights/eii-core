@@ -30,7 +30,7 @@ import paths
 import argparse
 import subprocess
 import yaml
-
+import re
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Tool Used for Generating\
@@ -126,11 +126,20 @@ def generate(opts, root_ca_needed=True):
                 else:
                     os.environ["SAN"] = "IP:" + \
                         os.environ["HOST_IP"] + "," + os.environ["SAN"]
-                if os.environ["ETCD_HOST"] != "":
-                    os.environ["SAN"] = "IP:" + \
-                                        os.environ["ETCD_HOST"] + "," + \
-                                        os.environ["SAN"]
 
+                if os.environ["ETCD_HOST"] != "":
+                    pattern = "^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$"
+                    match = re.match(pattern, os.environ["ETCD_HOST"])
+                    if match:
+                        print("ETCD_HOST env value is IP")
+                        os.environ["SAN"] = "IP:" + \
+                                            os.environ["ETCD_HOST"] + "," + \
+                                            os.environ["SAN"]
+                    else:
+                        print("Etcd host env value is DNS")
+                        os.environ["SAN"] = "DNS:" + \
+                                            os.environ["ETCD_HOST"] + "," + \
+                                            os.environ["SAN"]
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("server",
