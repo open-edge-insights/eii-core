@@ -28,9 +28,18 @@
 - name: Include vars of ansible/vars/vars.yaml
   include_vars: vars.yml
 
-- name: Generate eii_bundle
+- name: Generate eii_bundle for multi node deployment
   become: yes
   shell: "python3.6 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}} "
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
   loop: "{{ query('dict', nodes) }}"
+  when: multi_node == true
+
+- name: Generate eii_bundle for single node deployment
+  become: yes
+  shell: "python3.6 generate_eii_bundle.py -u -t master"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
+  when: multi_node == false
+  

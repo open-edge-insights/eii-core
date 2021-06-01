@@ -19,8 +19,20 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# docker-compose version
-docker_compose_version: "1.24.0"
+# This will be passed as an argument to builder.py to generate required services files. default: video
+# If usercase: video, this would generate builder files for build/usecases/video.yml
+usecase: "video"
+
+# Optional number of video pipeline instances to be created, default is 1
+instances: 1
+
+# default deployment will be in single node,
+# set true to enable multi node deployment without kubernetes
+multi_node: false
+
+## ENV Variable Update
+DEV_MODE: false
+EII_VERSION: "2.6-RC1"
 
 # default enable_system_proxy is true, for setting up system proxy
 enable_system_proxy: true
@@ -30,14 +42,8 @@ http_proxy: ""
 https_proxy: ""
 no_proxy: ""
 
-# This will be passed as an argument to builder.py to generate required services files. default: video
-usecase: "video"
-
-# Optional number of video pipeline instances to be created, default is 1
-instances: 1
-
-# Update no_cache: true if you want to build eii docker images with --no-cache
-no_cache: false
+# docker-compose version
+docker_compose_version: "1.24.0"
 
 #Environment Variables for Provisioning
 # To Provision with k8s, Input is k8s.
@@ -45,9 +51,9 @@ no_cache: false
 # Eg. PROVISION_MODE: "k8s"
 PROVISION_MODE: ""
 
-## ENV Variable Update
-DEV_MODE: false
-EII_VERSION: 2.5
+# Update no_cache: true if you want to build eii docker images with --no-cache
+no_cache: false
+
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
 ## EII Deploy path

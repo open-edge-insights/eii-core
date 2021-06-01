@@ -103,9 +103,11 @@ We need one control node where ansible is installed and optional hosts. We can a
     ```
 4. Optionally you can choose number of video pipeline instances to be created by updating `instances`
 
-5. Update other optional variables provided if required
+5. Set `multi_node` to `true` to enable multinode deployment without k8s and `false` to enable single node deployment. Update `vars/vars.yml` to the services to run on a specific node in case of multi_node deployment by following [this](#Select-EII-services-to-run-on-a-particular-node-in-multinode-deployment), where in single node deployment all the services based on the `usecase` chosen will be deployed. 
 
-## Select EII services to run on a particular node
+6. Update other optional variables provided if required
+
+## Select EII services to run on a particular node in multinode deployment
 
 * Edit `vars/vars.yml` -> under `nodes` add a specific a node which was defined in the inventory file(`hosts`) and add EII services to `include_services` list
 
@@ -118,7 +120,7 @@ We need one control node where ansible is installed and optional hosts. We can a
                 - ia_video_ingestion
     ```
 
-* If you want to add `worker1` to `nodes` and bring up `ia_visulaizer` in `worker1`:
+* If you want to add `worker1` to `nodes` and bring up `ia_visualizer` in `worker1`:
 
     ```yml
     nodes:
@@ -126,11 +128,10 @@ We need one control node where ansible is installed and optional hosts. We can a
         include_services:
             - ia_video_ingestion
       worker1:
+        include_services:
             - ia_visualizer
     ```
 
-
-## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node}
 
 ### Steps to execute ansible playbook with `Encrypted hosts` file
 > **Note**
@@ -156,8 +157,12 @@ For Eg:
 >    ```
 >
 
+## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node}
+
+
 *  For Single Point of Execution
    > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup master node for multinode deployement usecase in one shot sequentialy.
+    > * Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
 
     ```sh
     $ ansible-playbook -i hosts eii.yml
@@ -224,7 +229,6 @@ For Eg:
 
     > **Note**: 
     > * To skip running a particular tag permenantly update `ansible.cfg` under `[tags]` section
-
 
 ### Deploying EII Using Helm in Kubernetes (k8s) environment
 > **Note**

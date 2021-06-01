@@ -64,7 +64,7 @@ class EiiBundleGenerator:
                 env_dict[env_val[0]] = env_val[1].rstrip()
         return env_dict
 
-    def generate_docker_composeyml(self):
+    def generate_docker_composeyml(self, usecase=False):
         '''
             This method helps to generate the docker-compose yaml
             file from EII "docker-setup" directory and manipualtes
@@ -76,10 +76,14 @@ class EiiBundleGenerator:
                 self.config = yaml.safe_load(ymlfile)
             self.config['version'] = self.docker_compose_file_version
 
-            for service in self.config['services'].keys():
-                print("config service:{}".format(service))
-                if service not in self.include_services:
-                    self.exclude_services.append(service)
+            if usecase:
+                # Include all services from the chosen builder usecase
+                self.include_services = list(self.config['services'].keys())
+            else:
+                # exclude services if service isn't listed in include_services
+                for service in self.config['services'].keys():
+                    if service not in self.include_services:
+                        self.exclude_services.append(service)
 
             # Remove Unwanted Services for Build
             for service in self.exclude_services:
@@ -119,6 +123,9 @@ class EiiBundleGenerator:
         if self.env["DEV_MODE"] == "false":
             cmdlist.append(["mkdir", "-p", eii_cert_dir + "/ca"])
             for service in self.config['services'].keys():
+                if 'environment' not in self.config['services'][service]:
+                    break
+
                 servicename =\
                     self.config['services'][service]['environment']['AppName']
                 service_dir = eii_cert_dir + servicename
@@ -238,6 +245,9 @@ class EiiBundleGenerator:
             self.include_services = config['include_services']
             self.generate_docker_composeyml()
             self.generate_eii_bundle()
+        elif args.usecase:
+            self.generate_docker_composeyml(usecase=True)
+            self.generate_eii_bundle()
         else:
             self.generate_docker_composeyml()
             self.generate_eii_bundle()
@@ -279,6 +289,10 @@ if __name__ == '__main__':
                         '--config',
                         dest='config',
                         help='config with include services for bundle generation')
+    parser.add_argument('-u',
+                        '--usecase',
+                        action='store_true',
+                        help='usecase to generate bundles for')
 
     arg = parser.parse_args()
     eiiBundle = EiiBundleGenerator()
