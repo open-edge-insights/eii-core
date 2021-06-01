@@ -20,7 +20,7 @@
 
 message("-- Including Python bindings")
 
-find_package(PythonInterp 3.6 REQUIRED)
+# find_package(PythonInterp 3.6 REQUIRED)
 
 # Needed variables for building
 set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
