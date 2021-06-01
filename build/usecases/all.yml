@@ -26,5 +26,8 @@ AppContexts:
 - ZmqBroker
 - tools/EmbPublisher
 - tools/TimeSeriesProfiler
-- tools/DiscoveryCreek
+- tools/DiscoverHistory
 - tools/mqtt/publisher
+- tools/JupyterNotebook
+- tools/SWTriggerUtility
+- tools/VideoProfiler
