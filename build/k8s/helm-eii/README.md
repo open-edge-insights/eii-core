@@ -58,7 +58,7 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 1. Install provision helm chart
   ```sh
-  $ cd helm-eii/
+  $ cd k8s/helm-eii/
   $ helm install eii-provision eii-provision/
   ```
 
@@ -69,10 +69,27 @@ Copy the helm charts in helm-eii/ directory to the node.
   NAME                       READY   STATUS    RESTARTS   AGE
   ia-etcd-58866469b9-dl66k   2/2     Running   0          8s
   ```
-
-2. Install deploy helm chart
+2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
   ```sh
-  $ cd helm-eii/
+  $ python3 builder.py
+  ```
+> **Note**:
+> If user wants to include only a certain number of services in the EII stack, he can opt to provide the -f or yml_file flag of builder.py to allow only the services provided in the yml file mentioned with the -f or yml_file.
+> Example:
+>```sh
+>  $ python3 builder.py -f usecases/video-streaming.yml
+>  ```
+>
+> If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the -v or video_pipeline_instances flag of builder.
+> Example:
+>```sh
+>  $ python3 builder.py -v 3 -f usecases/video-streaming.yml
+>  ```
+>
+
+3. Install deploy helm chart
+  ```sh
+  $ cd k8s/helm-eii/
   $ helm install eii-deploy eii-deploy/
   ```
 
@@ -90,14 +107,22 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 The EII is now succesfully deployed and the web visualizer can be accessed.
 
-## Provision and deploy in DEV mode
+## Provision and deploy mode in times switching between dev and prodmode 
 
-Below changes need to be done for deploying the EII applications in DEV mode
+1. Set the dev_mode as "true/false" in  eii-provision/values.yaml and common-values.yaml depending on dev or prod mode.
 
-1. Set the dev_mode as "true" in  eii-provision/values.yaml and eii-deploy/values.yaml.
-
+2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
+  ```sh
+  $ python3 builder.py
+  ```
 2. Remove the etcd storage directory
   ```sh
   $sudo rm -rf /opt/intel/eii/data/*
   ```
+
 Do helm install of provision and deploy charts as per previous section.
+
+> **Note**:
+> Please wait for all the pods terminated successfully, In times of re-deploy helm chart for eii-provision and eii-deploy
+
+

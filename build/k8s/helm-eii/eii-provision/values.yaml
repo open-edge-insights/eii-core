@@ -19,13 +19,13 @@
 # SOFTWARE.
 
 namespace: default
-eii_version: 2.5
+eii_version: 2.6-RC1
 registry: 
 imagePullPolicy: IfNotPresent
 storageClassName: manual
 
 env:
-  dev_mode: true
+  dev_mode: false
   etcd_root_password: eii123
 
 network:
