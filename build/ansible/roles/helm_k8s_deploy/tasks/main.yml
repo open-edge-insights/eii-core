@@ -90,7 +90,6 @@
 - name: Sleep for 20 seconds and continue with play
   wait_for:
     timeout: 20
-  when: command_out.stdout != "0"
 
 - name: "Provisioning EII Using Helm"
   shell: "helm install eii-provision eii-provision/"
