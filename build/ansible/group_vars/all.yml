@@ -51,4 +51,8 @@ EII_VERSION: 2.5
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
 ## EII Deploy path
-EII_DEPLOY_PATH: /opt/intel/eii/deploy/
+EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
+## Deployment mode, default, docker-compose, update deployment mode to k8s for helm based k8s deployment
+DEPLOYMENT_MODE: "docker-compose"
+## Enable this to true, if you want retain the certificates in k8s leader machine
+retain_certs_in_k8s_leader_machine: false

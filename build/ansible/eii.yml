@@ -32,18 +32,40 @@
       tags: [build]
     - role: gen_certs
       tags: [gen_certs]
-    - role: gen_master_provision_bundle
-      tags: [gen_master_provision_bundle]
-    - role: gen_worker_provision_bundle
-      tags: [gen_worker_provision_bundle]
-    - role: gen_bundles
-      tags: [gen_bundles]
+    - {
+        role: gen_master_provision_bundle,
+        tags: [gen_master_provision_bundle],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: gen_worker_provision_bundle,
+        tags: [gen_worker_provision_bundle],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: gen_bundles,
+        tags: [gen_bundles],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: helm_k8s_prerequisites,
+        tags: ["helm_k8s_prerequisites"],
+        when: DEPLOYMENT_MODE == "k8s"
+      }
 
 # Executes roles only in master nodes
 - hosts: master
   roles:
-    - role: master_provision
-      tags: [master_provision]
+    - {
+        role: master_provision,
+        tags: [master_provision],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: helm_k8s_deploy,
+        tags: ["helm_k8s_deploy"],
+        when: DEPLOYMENT_MODE == "k8s"
+      }
 
 # Executes roles in worker machines
 - hosts: targets[2:]
@@ -54,11 +76,42 @@
 # Executes roles only in control nodes
 - hosts: control
   roles:
-    - role: etcd_provision
-      tags: [etcd_provision]
+    - {
+        role: etcd_provision,
+        tags: [etcd_provision],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
 
 # Executes roles in worker machines
 - hosts: targets[1:]
   roles:
     - role: deploy
       tags: [deploy]
+
+- hosts: control
+  tags: [helm_deploy]
+  tasks:
+    - name: "Setting Back the Certificats to Protected"
+      become: yes
+      ansible.builtin.file:
+        path: "{{ EII_SOURCE_PATH }}/build/provision/Certificates/"
+        state: directory
+        recurse: yes
+        mode: "0750"
+      when: DEPLOYMENT_MODE == "k8s"
+
+    - name: "Setting Back the Certificats to Protected"
+      become: yes
+      ansible.builtin.file:
+        path: "{{ EII_SOURCE_PATH }}/build/provision/rootca/"
+        state: directory
+        recurse: yes
+        mode: "0750"
+      when: DEPLOYMENT_MODE == "k8s"
+
+    - name: "Removing the Certificates from HELM EII"
+      become: yes
+      shell: "rm -rf Certificates/"
+      args:
+        chdir: "{{ EII_SOURCE_PATH }}/build/k8s/helm-eii/eii-provision/"
+      when: DEPLOYMENT_MODE == "k8s"

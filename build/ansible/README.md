@@ -224,3 +224,58 @@ For Eg:
 
     > **Note**: 
     > * To skip running a particular tag permenantly update `ansible.cfg` under `[tags]` section
+
+
+### Deploying EII Using Helm in Kubernetes (k8s) environment
+> **Note**
+>   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
+>   2. You need update the `k8s` master machine as master node in `hosts` file.
+>   3. Non `k8s` master machine the `helm` deployment will fail.
+
+* Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
+    *   Open `group_vars/all.yml` file
+    ```sh
+        $ vi group_vars/all.yml
+    ```
+    *   Update the `DEPLOYMENT_MODE` flag as `k8s`
+
+    ```yml
+        ## Deploy in k8s mode using helm
+        DEPLOYMENT_MODE: "k8s"
+    ```
+
+    * Save & Close
+
+*  For Single Point of Execution
+   > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy for a usecase in one shot sequentialy.
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml
+    ```
+
+> **Note**: Below steps are the individual execution of setups.
+* For EII Prequisite Setup
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "prerequisites"
+    ```
+
+* For building EII containers
+
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "build"
+    ```
+
+* To generate Certificates in control node
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "gen_certs"
+    ```
+
+* Prerequisites for deploy EII using Ansible helm environment.
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "helm_k8s_prerequisites"
+    ```
+* Provision & Deploy EII Using Ansible helm environment
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --tags "helm_k8s_deploy"
+    ```

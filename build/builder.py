@@ -457,6 +457,7 @@ def helm_yaml_merger(app_list, args):
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
+        data['registry']=os.environ["DOCKER_REGISTRY"]
         helm_values_dict.append(data)
 
     # Read persistent volume yaml

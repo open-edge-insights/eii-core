@@ -1,0 +1,126 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+- debug:
+    msg: "Installing Helm base in K8s leader node"
+
+- name: "Adding helm key"
+  become: yes
+  shell: "curl https://baltocdn.com/helm/signing.asc | sudo apt-key add - && sudo apt-get install apt-transport-https --yes"
+
+- name: "Adding helm url to apt source list"
+  become: yes
+  shell: "echo 'deb https://baltocdn.com/helm/stable/debian/ all main' | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list"
+
+- name: "Installing Helm"
+  become: yes
+  apt: update_cache=yes name=helm state=latest
+
+- name: Create directory {{ EII_DEPLOY_PATH }}/helm if it does not exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}/helm"
+    state: directory
+    mode: '0755'
+
+- name: Copy helm charts from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/k8s/helm-eii"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/"
+    follow: yes
+
+- name: Copy docker-compose yml from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/docker-compose.yml"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    follow: yes
+
+- name: Copy eii_config.json from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/provision/config/eii_config.json"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    follow: yes
+
+- name: docker login
+  shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- name: Getting Number of Existing Helm deployments
+  shell: "helm ls --all --short | wc -l"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: Stopping/Uninstalling existing Helm Chart installations/deployments
+  shell: "helm uninstall eii-provision eii-deploy"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: command_out
+  when: command_out.stdout != "0"
+
+- name: Sleep for 20 seconds and continue with play
+  wait_for:
+    timeout: 20
+  when: command_out.stdout != "0"
+
+- name: "Provisioning EII Using Helm"
+  shell: "helm install eii-provision eii-provision/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: Sleep for 20 seconds and continue with play
+  wait_for:
+    timeout: 20
+
+- name: "Deploy EII Using Helm"
+  shell: "helm install eii-deploy eii-deploy/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: Removing Certificates from helm directory
+  become: yes
+  shell: "rm -rf Certificates/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+  register: command_out
+  when: retain_certs_in_k8s_master_machine == false
+
+- debug:
+    msg: "{{ command_out.stdout }}"
