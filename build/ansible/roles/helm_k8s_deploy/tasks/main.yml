@@ -44,7 +44,7 @@
 - name: Copy helm charts from control node to leader node
   become: yes
   ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/k8s/helm-eii"
+    src: "{{ EII_SOURCE_PATH }}/build/helm-eii"
     dest: "{{ EII_DEPLOY_PATH }}/helm/"
     follow: yes
 

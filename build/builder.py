@@ -413,6 +413,7 @@ def json_parser(app_list, args):
     with open(eii_config_path, "w") as json_file:
         json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
 
+
 def get_available_port(curr_port, ports_dict):
     """Method to recursively check for available
        ports in provided ports_dict
@@ -434,11 +435,12 @@ def get_available_port(curr_port, ports_dict):
         ports_dict.append(curr_port)
         return curr_port
 
+
 def helm_yaml_merger(app_list, args):
     """Method merges the values.yaml files of each eii
        modules and generates a consolidated values.yaml
        file. copy all templates files of each eii
-       modules to ./k8s/helm-eii/eii-deploy/templates.
+       modules to ./helm-eii/eii-deploy/templates.
 
     :param app_list: List of services
     :type app_list: list
@@ -448,7 +450,7 @@ def helm_yaml_merger(app_list, args):
     pvc_merged_yaml = ""
     helm_values_dict = []
     ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
-    helm_deploy_dir = "./k8s/helm-eii/eii-deploy/"
+    helm_deploy_dir = "./helm-eii/eii-deploy/"
     # Load the common values.yaml
     if os.path.isdir(helm_deploy_dir + "templates"):
         shutil.rmtree(helm_deploy_dir + "templates")
@@ -479,7 +481,7 @@ def helm_yaml_merger(app_list, args):
                 app_name = app_path.split("/")[-2]
 
         # Copying all templates files of each eii modules to
-        # ./k8s/helm-eii/eii-deploy/templates.
+        # ./helm-eii/eii-deploy/templates.
         yaml_files = os.listdir(helm_app_path + "/templates")
         for yaml_file in yaml_files:
             helm_yaml_file = os.path.join(helm_app_path, "templates", yaml_file)
@@ -525,9 +527,10 @@ def helm_yaml_merger(app_list, args):
             for i in var[k]:
                 helm_dict[k].update({i: var[k][i]})
 
-    # Writing consolidated values.yaml file to ./k8s/helm-eii/eii-deploy/ dir
+    # Writing consolidated values.yaml file to ./helm-eii/eii-deploy/ dir
     with open(helm_deploy_dir +"values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_dict, value_file)
+
 
 def create_multi_instance_yml_dict(data, i):
     """Method to generate boilerplate
@@ -976,11 +979,11 @@ def yaml_parser(args):
         print("Exception Occured at helm yml generation {}".format(e))
         sys.exit(1)
     log_msg = """
-    For deployment via k8s orchestrator, successfully created consolidated
-    values.yaml at ./k8s/helm-eii/eii-deploy/.
+    For deployment via helm, successfully created consolidated
+    values.yaml at ./helm-eii/eii-deploy/.
     Successfully copied all templates files of each eii modules to
-    ./k8s/helm-eii/eii-deploy/templates/.
-    Refer `./k8s/helm-eii/README.md` for deployment details.
+    ./helm-eii/eii-deploy/templates/.
+    Refer `./helm-eii/README.md` for deployment details.
     """
     print(log_msg)
     log_msg = """

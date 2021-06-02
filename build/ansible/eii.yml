@@ -113,5 +113,5 @@
       become: yes
       shell: "rm -rf Certificates/"
       args:
-        chdir: "{{ EII_SOURCE_PATH }}/build/k8s/helm-eii/eii-provision/"
+        chdir: "{{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
       when: DEPLOYMENT_MODE == "k8s"

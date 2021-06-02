@@ -18,7 +18,7 @@
     
 - name: Copy Certificates to eii-helm provision
   become: yes
-  shell: "cp -rf Certificates/ {{ EII_SOURCE_PATH }}/build/k8s/helm-eii/eii-provision/"
+  shell: "cp -rf Certificates/ {{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/provision/"
 

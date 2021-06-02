@@ -203,33 +203,7 @@ function install_pip_requirements() {
     log_info "Installing dependencies.."
     pip3 install -r cert_requirements.txt
 }
-function check_k8s_secrets() {
-    echo "Checking if already exists k8s secrets, if yes-delete them"
-    secret_generic_list=$(kubectl get secrets | grep -E "cert|key|ca-etcd" | awk '{print $1}')
-    if [ "$secret_generic_list" ] ; then
-        kubectl delete secrets $secret_generic_list
-    fi
-}
 
-function check_k8s_namespace() {
-    ns_str=$(kubectl get namespace | grep -w ^eii| awk '{print $1}' )
-    ns_list=(`echo ${ns_str}`);
-    ns_flag="0"
-    for ns in "${ns_list[@]}"
-    do
-	if [[ "$ns" = "eii" ]];then
-            ns_flag="1"
-	    break
-        fi
-    done
-    if [ "$ns_flag" = "0" ] ; then
-       echo " Creating Namespace eii for the first time"
-       kubectl create namespace eii
-    else
-       echo "Deleting services,pods, deployments, replicaset, statefulset, daemonset, cronjobs, jobs if any exist in namespace eii"
-       kubectl delete all --all --namespace=eii
-    fi
-}
 
 function remove_eii_containers() {
     log_info "Bringing down running eii containers"
@@ -261,38 +235,7 @@ if [ '$1' = '--worker' -o '$ETCD_NAME' = 'worker' ]; then
 fi
 
 #############################################################
-
-if [ "$PROVISION_MODE" = 'k8s' ]; then
-    log_info "Provisioning with KUBERNETES enabled mode... "
-    remove_eii_containers
-    check_k8s_secrets
-    check_k8s_namespace
-
-    echo "Creating a new namespace"
-    kubectl create namespace eii
-    pip3 install -r cert_requirements.txt
-
-    echo "Clearing existing Certificates..."
-    rm -rf Certificates
-
-    copy_docker_compose_file
-
-    echo "Checking ETCD port..."
-    check_ETCD_port
-
-    if [ $DEV_MODE = 'true' ]; then
-        docker-compose -f dep/docker-compose-provision.yml build
-        envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
-        kubectl apply -f dep/k8s_etcd_devmode.yml
-        docker-compose -f dep/docker-compose-k8sprovision.yml up -d
-    else
-        prod_mode_gen_certs
-        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
-        envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
-        kubectl apply -f dep/k8s_etcd_prodmode.yml
-        docker-compose -f dep/docker-compose-k8sprovision.yml -f dep/docker-compose-k8sprovision.override.prod.yml up -d
-    fi
-elif [ "$1" = "--run_etcd" ] ; then
+if [ "$1" == "--run_etcd" ] ; then
     remove_eii_containers
     echo "Checking ETCD port..."
     check_ETCD_port
