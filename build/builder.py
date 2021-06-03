@@ -250,10 +250,15 @@ def create_multi_subscribe_interface(head, temp, client_type):
                     cli_instance["Topics"][0] = client["Topics"][0] + str(i+1)
             # Updating EndPoint if mode is tcp
             if ":" in client["EndPoint"]:
+                ip = client["EndPoint"].split(":")[0]
+                if ip != "localhost" and ip != "127.0.0.1":
+                    new_ip = ip + str(i+1)
                 port = client["EndPoint"].split(":")[1]
                 new_port = str(int(port)+i)
                 cli_instance["EndPoint"] = \
                     client["EndPoint"].replace(port, new_port)
+                cli_instance["EndPoint"] = \
+                    cli_instance["EndPoint"].replace(ip, new_ip)
             # Appending client multi instances
             temp["interfaces"][client_type].append(cli_instance)
         # Remove existing instances
@@ -565,6 +570,16 @@ def create_multi_instance_yml_dict(data, i):
             # Update hostname
             elif k2 == 'hostname':
                 v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
+            # Update ports
+            elif k2 == 'ports':
+                # Iterate through all ports
+                for j in list(v['ports']):
+                    # Update new ports & remove
+                    # existing ports to avoid duplication
+                    port = j.split(':')[0]
+                    new_port = str(int(port) + (i-1))
+                    v['ports'].append(new_port+':'+new_port)
+                    v['ports'].remove(port+':'+port)
             # Update secrets section of yml
             elif k2 == 'secrets':
                 for v3 in v['secrets']:
