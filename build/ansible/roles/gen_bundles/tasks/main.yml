@@ -38,7 +38,7 @@
 
 - name: Generate eii_bundle for single node deployment
   become: yes
-  shell: "python3.6 generate_eii_bundle.py -u -t master"
+  shell: "python3.6 generate_eii_bundle.py -u -t leader"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
   when: multi_node == false

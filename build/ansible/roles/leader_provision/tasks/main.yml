@@ -26,17 +26,17 @@
     state: directory
     mode: '0755'
 
-- name: Copy master_provisioning.tar.gz from control node to master node
+- name: Copy leader_provisioning.tar.gz from control node to leader node
   become: yes
   ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/deploy/master_provisioning.tar.gz"
+    src: "{{ EII_SOURCE_PATH }}/build/deploy/leader_provisioning.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     follow: yes
 
-- name: Extract master_provisioning.tar.gz to {{ EII_DEPLOY_PATH }}
+- name: Extract leader_provisioning.tar.gz to {{ EII_DEPLOY_PATH }}
   become: yes
   ansible.builtin.unarchive:
-    src: "{{ EII_DEPLOY_PATH }}/master_provisioning.tar.gz"
+    src: "{{ EII_DEPLOY_PATH }}/leader_provisioning.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     remote_src: yes
 
@@ -44,7 +44,7 @@
   become: yes
   shell: "./provision.sh --run_etcd"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/master_provisioning/provision"
+    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
   register: command_out
 
 - debug:
@@ -62,7 +62,7 @@
 - name: "Pushing Etcd Container to the registry {{ docker_registry }}"
   shell: "docker push {{ docker_registry }}ia_etcd:{{ EII_VERSION }}"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/master_provisioning/provision"
+    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
   register: command_out
   when: docker_registry != ""
 

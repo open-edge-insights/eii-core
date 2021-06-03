@@ -2,7 +2,7 @@
 
 Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
-[Step 1 Provision the Master node](#step-1-provision-the-master-node)
+[Step 1 Provision the Leader node](#step-1-provision-the-leader-node)
 
 [Step 2 Set up Docker Registry URL then Build and Push Images](#step-2-set-up-docker-registry-url-then-build-and-push-images)
 
@@ -14,25 +14,25 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 [Step 6 EII-Multinode deployment](#step-6-eii-multinode-deployment)
 
-# Step 1 Provision the Master node
+# Step 1 Provision the Leader node
 
 > **Pre-requisite**:
 > Please follow the EII Pre-requisites before Provisioning.
 > [EII Pre-requisites](../../README.md#eii-pre-requisites)
 
 > **NOTE**:
-> * EII services can run on master as well as worker nodes
-> * Master node should have the entire repo/source code present
-> * Master node is the primary administative node and has following attributes:
+> * EII services can run on leader as well as worker nodes
+> * Leader node should have the entire repo/source code present
+> * Leader node is the primary administative node and has following attributes:
 >   1. Generating required certificates and secrets.
 >   2. Loading Initial ETCD values.
 >   3. Generating bundles to provision new nodes.
 >   4. Generating bundles to deploy EII services on new/worker nodes.
 
 
-For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `master` node). For a master node, ETCD_NAME in [build/.env](../.env) must be set to `master`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Master` node only.
+For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `leader` node). For a leader node, ETCD_NAME in [build/.env](../.env) must be set to `leader`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Leader` node only.
 
-Provision the Master node using the below command,
+Provision the Leader node using the below command,
 
         ```
         $ cd [WORK_DIR]/IEdgeInsights/build/provision
@@ -41,14 +41,14 @@ Provision the Master node using the below command,
         eq. $ sudo ./provision.sh ../docker-compose.yml
 
         ```
-    This creates the ETCD server (Container ia_etcd) on the master edge node.
+    This creates the ETCD server (Container ia_etcd) on the leader edge node.
 
 # Step 2 Set up Docker Registry URL then Build and Push Images
 EII Deployment on multiple node must be done using a docker registry.
 
 Follow below steps:
 
-* Please update docker registry url in DOCKER_REGISTRY variable in  [build/.env](../.env) on any node(master/worker). Please use full registry URL with a traliling /
+* Please update docker registry url in DOCKER_REGISTRY variable in  [build/.env](../.env) on any node(leader/worker). Please use full registry URL with a traliling /
 
 * Building EII images and pushing the same to docker registry.
 
@@ -82,17 +82,17 @@ Follow below steps:
 
     > 2. Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
 
-    > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in master node and it can be accessed from worker nodes at: http://[master_node_ip]:7070/etcdkeeper.<br/>
+    > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in leader node and it can be accessed from worker nodes at: http://[leader_node_ip]:7070/etcdkeeper.<br/>
     > Follow [EtcdUI/README](../../EtcdUI/README.md) for more inofrmation.
 
 # Step 4 Provisioning the worker node
 
 ```
-    # Please ensure the following fields are correctly set in the master node before generating the provisioning bundle:
-    ETCD_HOST=<IP address of master node>
+    # Please ensure the following fields are correctly set in the leader node before generating the provisioning bundle:
+    ETCD_HOST=<IP address of leader node>
     DOCKER_REGISTRY=<Docker registry details>
 
-    # commands to be executed on master node:
+    # commands to be executed on leader node:
     $ cd build/deploy
     $ sudo python3 generate_eii_bundle.py -p
 
@@ -112,11 +112,11 @@ Follow below steps:
 > **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-4.
 
 ```
-    # Please ensure the following fields are correctly set in the master node before generating the eii bundle:
-    ETCD_HOST=<IP address of master node>
+    # Please ensure the following fields are correctly set in the leader node before generating the eii bundle:
+    ETCD_HOST=<IP address of leader node>
     DOCKER_REGISTRY=<Docker registry details>
 
-    # commands to be executed on master node:
+    # commands to be executed on leader node:
     $ cd build/deploy
     $ sudo python3 generate_eii_bundle.py
 

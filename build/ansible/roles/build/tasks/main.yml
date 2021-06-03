@@ -86,7 +86,7 @@
     msg: "Status of building containers {{ command_out.stdout }}"
   when: no_cache == true
 
-- name: docker login in master node
+- name: docker login in leader node
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
   register: command_out
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""

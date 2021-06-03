@@ -269,7 +269,7 @@ elif [ "$2" = "--generate_certs" ] ; then
     install_pip_requirements
     copy_docker_compose_file
     prod_mode_gen_certs
-elif [ "$ETCD_NAME" = "master" ]; then
+elif [ "$ETCD_NAME" = "leader" ]; then
     remove_eii_containers
     copy_docker_compose_file
 

@@ -71,7 +71,7 @@ spec:
         - name: ETCD_PEER_PORT
           value: "{{ .Values.network.etcd.peer_port }}"
         - name: ETCD_NAME
-          value: "master"
+          value: "leader"
         - name: ETCD_INITIAL_CLUSTER_STATE
           value: "new"
         - name: ETCDCTL_API

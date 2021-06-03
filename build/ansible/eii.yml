@@ -33,8 +33,8 @@
     - role: gen_certs
       tags: [gen_certs]
     - {
-        role: gen_master_provision_bundle,
-        tags: [gen_master_provision_bundle],
+        role: gen_leader_provision_bundle,
+        tags: [gen_leader_provision_bundle],
         when: DEPLOYMENT_MODE == "docker-compose"
       }
     - {
@@ -53,12 +53,12 @@
         when: DEPLOYMENT_MODE == "k8s"
       }
 
-# Executes roles only in master nodes
-- hosts: master
+# Executes roles only in leader nodes
+- hosts: leader
   roles:
     - {
-        role: master_provision,
-        tags: [master_provision],
+        role: leader_provision,
+        tags: [leader_provision],
         when: DEPLOYMENT_MODE == "docker-compose"
       }
     - {

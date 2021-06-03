@@ -130,7 +130,7 @@ class EiiBundleGenerator:
                     self.config['services'][service]['environment']['AppName']
                 service_dir = eii_cert_dir + servicename
 
-                # TODO: enable etcd_ui only in master node
+                # TODO: enable etcd_ui only in leader node
                 if "ia_etcd_ui" in self.include_services:
                     cmdlist.append(["cp", "-rf", "../provision/Certificates/root", eii_cert_dir])
 
@@ -147,7 +147,7 @@ class EiiBundleGenerator:
                 subprocess.check_output(cmd)
             env = open(self.bundle_tag_name + "/.env", "r+")
             envdata = env.read()
-            newenvdata = envdata.replace("ETCD_NAME=master",
+            newenvdata = envdata.replace("ETCD_NAME=leader",
                                          "ETCD_NAME=worker")
             env.write(newenvdata)
             env.close()
@@ -170,7 +170,7 @@ class EiiBundleGenerator:
             commands which are required for provision Bundle and finally
             it generates the bundle
         '''
-        provision_tag_name = 'master_provisioning'
+        provision_tag_name = 'leader_provisioning'
         if node is 'worker':
             provision_tag_name = 'worker_provisioning'
 
@@ -184,7 +184,7 @@ class EiiBundleGenerator:
         cmdlist.append(["mkdir", "-p", provision_dir])
         
         try:
-            if node is 'master':
+            if node is 'leader':
                 cmdlist.append(["mkdir", "-p", dep_dir])
                 cmdlist.append(["cp", "-f", "../provision/dep/docker-compose-etcd.yml",
                                 dep_dir])
@@ -211,7 +211,7 @@ class EiiBundleGenerator:
             if node is 'worker':
                 env = open(provision_tag_name + "/.env", "r+")
                 envdata = env.read()
-                newenvdata = envdata.replace("ETCD_NAME=master",
+                newenvdata = envdata.replace("ETCD_NAME=leader",
                                             "ETCD_NAME=worker")
                 env.write(newenvdata)
                 env.close()
@@ -234,8 +234,8 @@ class EiiBundleGenerator:
         self.docker_file_path = args.compose_file_path
         self.bundle_folder = args.bundle_folder
 
-        if args.master:
-            self.generate_provision_bundle("master")
+        if args.leader:
+            self.generate_provision_bundle("leader")
         elif args.worker:
             self.generate_provision_bundle("worker")
         elif args.config:
@@ -280,10 +280,10 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Generate eii_bundle for worker node')
 
-    parser.add_argument('-m',
-                        '--master',
+    parser.add_argument('-l',
+                        '--leader',
                         action='store_true',
-                        help='Generate provision_bundle for master node')
+                        help='Generate provision_bundle for leader node')
 
     parser.add_argument('-c',
                         '--config',

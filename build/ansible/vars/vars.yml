@@ -19,9 +19,10 @@
 # SOFTWARE.
 
 nodes:
-  master:
+  leader:
     include_services:
       - ia_video_ingestion
       - ia_video_analytics
       - ia_etcd_ui
       - ia_web_visualizer
+

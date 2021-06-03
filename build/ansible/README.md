@@ -5,7 +5,7 @@ We need one control node where ansible is installed and optional hosts. We can a
 
 > **Note**: 
 > * Ansible can execute the tasks on control node based on the playbooks defined
-> * There are 3 types of nodes - control node where ansible must be installed, EII master node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on master node. Control node and EII master node can be same.
+> * There are 3 types of nodes - control node where ansible must be installed, EII leader node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on leader node. Control node and EII leader node can be same.
 
 ## Installing Ansible on Ubuntu {Control node} 
 
@@ -31,13 +31,13 @@ We need one control node where ansible is installed and optional hosts. We can a
     ```
     [targets]
     control ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
-    master ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
+    leader ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
     ```
     
     > **Note**: 
     > * The above information is used by ansible to establish ssh  connection to the nodes.
-    > * control and master node details are mandatory
-    > * For single node installation, control and master nodes can be same or different
+    > * control and leader node details are mandatory
+    > * For single node installation, control and leader nodes can be same or different
     > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
 
@@ -111,11 +111,11 @@ We need one control node where ansible is installed and optional hosts. We can a
 
 * Edit `vars/vars.yml` -> under `nodes` add a specific a node which was defined in the inventory file(`hosts`) and add EII services to `include_services` list
 
-    Eg. if you want master to run ia_video_ingesstion, `vars/vars.yml` should be
+    Eg. if you want leader to run ia_video_ingesstion, `vars/vars.yml` should be
 
     ```yml
         nodes:
-          master:
+          leader:
             include_services:
                 - ia_video_ingestion
     ```
@@ -124,7 +124,7 @@ We need one control node where ansible is installed and optional hosts. We can a
 
     ```yml
     nodes:
-      master:
+      leader:
         include_services:
             - ia_video_ingestion
       worker1:
@@ -161,7 +161,7 @@ For Eg:
 
 
 *  For Single Point of Execution
-   > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup master node for multinode deployement usecase in one shot sequentialy.
+   > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup leader node for multinode deployement usecase in one shot sequentialy.
     > * Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
 
     ```sh
@@ -186,10 +186,10 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "gen_certs"
     ```
 
-* To generate provision bundle for master
+* To generate provision bundle for leader
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_master_provision_bundle"
+    $ ansible-playbook -i hosts eii.yml --tags "gen_leader_provision_bundle"
     ```
 
 * To generate provision bundle for worker
@@ -198,16 +198,16 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "gen_worker_provision_bundle"
     ```
 
-* To generate eii bundles for master, worker nodes
+* To generate eii bundles for leader, worker nodes
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "gen_bundles"
     ```
 
-* provision master and bring up ETCD server
+* provision leader and bring up ETCD server
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "master_provision"
+    $ ansible-playbook -i hosts eii.yml --tags "leader_provision"
     ```
 
 * provision worker node
@@ -221,7 +221,7 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "etcd_provision"
     ```
 
-* To generate eii bundles for master, worker nodes
+* To generate eii bundles for leader, worker nodes
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "deploy"
@@ -233,8 +233,8 @@ For Eg:
 ### Deploying EII Using Helm in Kubernetes (k8s) environment
 > **Note**
 >   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
->   2. You need update the `k8s` master machine as master node in `hosts` file.
->   3. Non `k8s` master machine the `helm` deployment will fail.
+>   2. You need update the `k8s` leader machine as leader node in `hosts` file.
+>   3. Non `k8s` leader machine the `helm` deployment will fail.
 
 * Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
     *   Open `group_vars/all.yml` file

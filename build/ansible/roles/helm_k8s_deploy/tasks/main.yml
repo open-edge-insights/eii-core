@@ -119,7 +119,7 @@
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
   register: command_out
-  when: retain_certs_in_k8s_master_machine == false
+  when: retain_certs_in_k8s_leader_machine == false
 
 - debug:
     msg: "{{ command_out.stdout }}"

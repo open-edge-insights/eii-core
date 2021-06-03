@@ -29,7 +29,7 @@
     state: directory
     mode: '0755'
 
-- name: Copy worker_provisioning.tar.gz from control node to master node
+- name: Copy worker_provisioning.tar.gz from control node to leader node
   become: yes
   ansible.builtin.copy:
     src: "{{ EII_SOURCE_PATH }}/build/deploy/worker_provisioning.tar.gz"

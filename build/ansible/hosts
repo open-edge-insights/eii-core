@@ -26,7 +26,7 @@
 control ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
 
 # master node details
-master ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+leader ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
 
 # Add worker node details from here onwards
 #worker1 ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
@@ -38,4 +38,5 @@ master ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
 docker_registry=""
 docker_login_user=""
 docker_login_passwd=""
+
 
