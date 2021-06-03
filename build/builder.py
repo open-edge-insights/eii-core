@@ -731,6 +731,63 @@ def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images)
                 ruamel.yaml.round_trip_dump(temp, fp)
 
 
+def get_service_dependency_tree(yml_dict):
+    """Method to generate a dict of services and services it depends on 
+
+    :param yml_dict: dict generated from docker-compose yml
+    :type yml_dict: dict
+    :return dep_tree: the dependency tree dict
+    :rtype: dict
+    """
+    dep_tree = {}
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                for service_key, service_vals in list(service_dict.items()):
+                    if service_key == "depends_on":
+                        dep_tree[service] = service_vals
+    return dep_tree
+
+
+def update_dependency_service(service, dep_tree, req_services):
+    """Method to append the provided dict with nested dependencies of the 
+       provided service
+    :param service: Name of the service of which the dependencies need to be 
+                    fetched
+    :type service: str
+    :param dep_tree: The dependency tree dict returned by 
+                     get_service_dependency_tree() method
+    :type dep_tree: dict
+    :param req_services: The list where the dependencies names to be appended
+    :type req_services: dict
+    """ 
+    req_services[service] = "1"
+    if service in dep_tree:
+        deps = dep_tree[service]
+        for i in range(len(deps)):
+            update_dependency_service(deps[i], dep_tree, req_services)
+        
+
+def get_required_services_list(dep_tree, run_exclude_images):
+    """Method to get the list of required services along with the services
+       it depends on
+    :param dep_tree: The dependency tree dict returned by 
+                     get_service_dependency_tree() method
+    :type dep_tree: dict
+    :param run_exclude_images: List of name of dependency services which
+                               are excluded from run
+    :type run_exclude_images: array
+    :return req_services: dict of required services
+    :rtype: dict
+    """ 
+    req_services = {}
+    for service in dep_tree:
+        if service not in run_exclude_images:
+            update_dependency_service(service, dep_tree, req_services)
+        
+    return req_services
+
+
 def yaml_parser(args):
     """Yaml parser method.
 
@@ -834,11 +891,19 @@ def yaml_parser(args):
 
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
     temp = copy.deepcopy(yml_dict)
+
+    deps = get_service_dependency_tree(yml_dict)
+    # Get the list of services that needs to be written to docker-compose-build.yml
+    required_services = get_required_services_list(deps, run_exclude_images)
+
     # Writing docker-compose-build.yml file. This yml will have services which will only
     # contain the build_params keys for all services.
     for k, v in yml_dict.items():
         if(k == "services"):
             for service, service_dict in v.items():
+                if service not in required_services:
+                    del temp["services"][service]
+                    continue
                 for service_keys, _ in list(service_dict.items()):
                     if(service_keys not in build_params):
                         del temp["services"][service][service_keys]
