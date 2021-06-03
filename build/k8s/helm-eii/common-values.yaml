@@ -29,7 +29,7 @@ env:
   dev_mode: false
   PROFILING_MODE: false
   EII_INSTALL_PATH: /opt/intel/eii
-  SOCKET_DIR: /eii/sockets
+  SOCKET_DIR: /EII/sockets
 config:
     etcd:
       name: etcd
@@ -39,6 +39,6 @@ volumes:
   eii_socket:
     name: vol-eii-socket
     size: 10Mi
-    location: "/eii/sockets"
+    location: "/EII/sockets"
     hostpath: "/opt/intel/eii/sockets"
 
