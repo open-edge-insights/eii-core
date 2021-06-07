@@ -1,6 +1,6 @@
 # AppContexts is a list of the docker build context directory
 # of the apps/services to be brought up
-# 
+#
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
@@ -15,3 +15,7 @@ AppContexts:
 - CustomUdfs/PySafetyGearIngestion
 - CustomUdfs/PyMultiClassificationIngestion
 - CustomUdfs/GVASafetyGearIngestion
+# For running NativePclIngestion service a physical
+# realsense depth camera needs to be connected.
+# After connecting realsense camera uncomment below line.
+# - CustomUdfs/NativePclIngestion
