@@ -224,10 +224,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                 }
                 // Adding brokered value if available
                 brokered_value = config_value_object_get(config, BROKERED);
-                if (brokered_value == NULL) {
-                    LOG_ERROR_0("brokered_value initialization failed");
-                    goto err;
-                }
                 if (brokered_value != NULL) {
                     if (brokered_value->type != CVT_BOOLEAN) {
                         LOG_ERROR_0("brokered_value type is not boolean");
