@@ -79,6 +79,8 @@ function export_host_ip() {
 
 function set_docker_host_time_zone() {
     echo "Updating .env for container timezone..."
+    # Setting RTC to UTC
+    timedatectl set-local-rtc 0
     # Get Docker Host timezone
     hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
     hostTimezone=`echo $hostTimezone`
