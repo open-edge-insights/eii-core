@@ -21,16 +21,18 @@
 [targets]
 # control node details
 # Eg. given below for the reference
-# control ansible_host=10.223.97.101 ansible_user=user ansible_ssh_pass=pass@123 ansible_become_pass=pass@123
+control ansible_connection=local ansible_host=localhost
 
-control ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
 
-# master node details
-leader ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+# localhost leader node details
+leader ansible_connection=local ansible_host=localhost
+
+# For remote leader node,  please update the below line and comment the localhost node details
+# leader ansible_connection=ssh ansible_host= ansible_user=
 
 # Add worker node details from here onwards
-#worker1 ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
-#worker2 ansible_host= ansible_user= ansible_ssh_pass= ansible_become_pass=
+#worker1 ansible_connection=ssh ansible_host= ansible_user=
+#worker2 ansible_connection=ssh ansible_host= ansible_user=
 
 
 [targets:vars]

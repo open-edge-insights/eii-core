@@ -21,6 +21,34 @@
 
 # Executes roles in all nodes
 - hosts: all
+  pre_tasks:
+    - name: "Getting Current user name"
+      shell: "whoami"
+      register: username
+      tags:
+          - always
+
+    - name: "Verify Sudo Access is there"
+      block:
+      - name: "Executing Sudo Command"
+        shell: "sudo -l -U {{ username.stdout }}"
+        become: yes
+        register: command_out
+        tags:
+          - always
+
+      - name: "User Access"
+        ansible.builtin.debug:
+          msg: "Access details of Username: {{ username.stdout }} {{ command_out.stdout }}"
+        tags:
+          - always
+      rescue:
+      - name: "Update your Sudoes File using 'sudo"
+        ansible.builtin.debug:
+          msg: "Please Append your current user name to sudoers file as `<username>  ALL=(ALL:ALL) NOPASSWD: ALL"
+        tags:
+          - always
+      - meta: end_play
   roles:
     - role: prerequisites
       tags: [prerequisites]

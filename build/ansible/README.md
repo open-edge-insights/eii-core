@@ -19,28 +19,133 @@ We need one control node where ansible is installed and optional hosts. We can a
         # To maske ssh connection from control node to other nodes
         $ sudo apt install sshpass
     ```
-## Updating the hosts Information
+
+## Prerequisite step needed for all the control/worker nodes.
+### Generate SSH KEY for all nodes
+
+Generate the SSH KEY for all nodes using following command (to be executed in the respective node)
+
+```sh
+    $ ssh-keygen
+```
+> **Note**:
+>   * Dont give any passphrase and id, just press `Enter` for all the prompt which will generate the key.
+>   * The above step should be done for all the machines including `control` node.
+
+For Eg.
+```sh
+$ ssh-keygen
+
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):  <ENTER>
+Enter passphrase (empty for no passphrase):  <ENTER>
+Enter same passphrase again:  <ENTER>
+Your identification has been saved in ~/.ssh/id_rsa.
+Your public key has been saved in ~/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:vlcKVU8Tj8nxdDXTW6AHdAgqaM/35s2doon76uYpNA0 root@host
+The key's randomart image is:
++---[RSA 2048]----+
+|          .oo.==*|
+|     .   .  o=oB*|
+|    o . .  ..o=.=|
+|   . oE.  .  ... |
+|      ooS.       |
+|      ooo.  .    |
+|     . ...oo     |
+|      . .*o+.. . |
+|       =O==.o.o  |
++----[SHA256]-----+
+```
+
+### Configure Sudoers file to accept NO PASSWORD for sudo operation.
+
+> **Note**: Ansible need to execute some commands as `sudo`. The below configuration is needed so that `passwords` need not be saved in the ansible `hosts` file as a variable.
+
+Update `sudoers` file
+
+1. Open the `sudoers` file.
+    ```sh
+        $ sudo visudo
+    ```
+2. Append the following to the `sudoers` file
+   ```sh
+       $ <ansible_non_root_user>  ALL=(ALL:ALL) NOPASSWD: ALL
+   ```
+   For E.g:
+
+   In control node the executing not root user name is `user1`, you should append as follows
+   ```sh
+      $ user1 ALL=(ALL:ALL) NOPASSWD: ALL
+   ```
+   Now the above line authorizes `user1` user to do `sudo` operation in the control node without `PASSWORD` ask.
+   > **Note**: The same procedure applies to all other nodes where ansible connection is involved.
+
+
+3. Save & Close the file
+
+## Adding SSH Authorized Key of all the nodes to control node
+
+Please follow the steps to copy the generated keys from all other nodes to the control node.
+1. Execute the following command from `control` node.
+```sh
+    $ ssh-copy-id <USER_NAME>@<HOST_IP>
+```
+
+For Eg.
+```sh
+    $ ssh-copy-id test@192.0.0.1
+
+    /usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/<username>/.ssh/id_rsa.pub"
+
+    Number of key(s) added: 1
+
+    Now try logging into the machine, with:   "ssh 'test@192.0.0.1'"
+    and check to make sure that only the key(s) you wanted were added.
+```
+## Updating the Leader & Worker node Information for using remote hosts
+
+>**Note**: By `default` both control/leader node `ansible_connection` will be `localhost` for executing in same node.
+
+Please follow below steps to update the details of leader / worker nodes for multi node scenario.
 
 *   Update the hosts information in the inventory file `build/ansible/hosts`
     ```
         [group_name]
-        <nodename> ansible_host=<ipaddress> ansible_user=<machine_user_name> ansible_ssh_pass=<machine_user_password> ansible_become_pass=<sudo_password>
+        <nodename> ansible_connection=ssh ansible_host=<ipaddress> ansible_user=<machine_user_name>
     ```
 
     For Eg:
     ```
     [targets]
-    control ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
-    leader ansible_host=192.0.0.1  ansible_user=user1 ansible_ssh_pass=user1@123 ansible_become_pass=user1@123
+    leader ansible_connection=ssh ansible_host=192.0.0.1  ansible_user=user1
     ```
     
     > **Note**: 
+    > * `ansible_connection=ssh` is mandatory when you are updating any remote hosts, which makes ansible to connect via `ssh`.
     > * The above information is used by ansible to establish ssh  connection to the nodes.
-    > * control and leader node details are mandatory
+    > * control node will always be `ansible_connection = local`, Don't update the control node
     > * For single node installation, control and leader nodes can be same or different
     > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
+### Updating docker registry details in hosts file
 
+Update the below information for using docker registry for deploying the images from control node to other nodes in multi node scenario.
+
+1. Open the `hosts` file.
+    ```sh
+        $ vi hosts
+    ```
+2. Update `docker` registry details in following section
+    ```yml
+        [targets:vars]
+        # Varibles to login to docker registry
+        docker_registry="<regsitry_url>"
+        docker_login_user="<username>"
+        docker_login_passwd="<password>"
+    ```
+    > **Note**:
+    >    1. If you `registry` is a no password  registry, not required to update the `docker_login_user` & `docker_login_passwd` details.
 
 ### Steps to encrypt `hosts` file using Password
 
@@ -63,6 +168,7 @@ We need one control node where ansible is installed and optional hosts. We can a
     >**Note:** This password should be remembered for decrypting the file & also using with ansible-playbook.
     
 ### Steps to decrypt `hosts` file using Password
+
     **Note** This steps is required to decrypt the `hosts` file in to human readable format. 
     So that editing the `hosts` file further is possible.
 
@@ -134,6 +240,7 @@ We need one control node where ansible is installed and optional hosts. We can a
 
 
 ### Steps to execute ansible playbook with `Encrypted hosts` file
+
 > **Note**
 > Ansible `hosts` file can be encrypted using `ansible-vault` utility with a password.
 > Encrypted `hosts` file can be decrypted while executing playbook using `--ask-vault-pass` argument.
@@ -158,7 +265,6 @@ For Eg:
 >
 
 ## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node}
-
 
 *  For Single Point of Execution
    > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup leader node for multinode deployement usecase in one shot sequentialy.
@@ -231,6 +337,7 @@ For Eg:
     > * To skip running a particular tag permenantly update `ansible.cfg` under `[tags]` section
 
 ### Deploying EII Using Helm in Kubernetes (k8s) environment
+
 > **Note**
 >   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
 >   2. You need update the `k8s` leader machine as leader node in `hosts` file.
