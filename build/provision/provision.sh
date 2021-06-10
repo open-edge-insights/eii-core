@@ -237,6 +237,19 @@ if [ '$1' = '--worker' -o '$ETCD_NAME' = 'worker' ]; then
 fi
 
 #############################################################
+function build_etcd_and_etcd_provision() {
+    echo "Building etcd and etcd_provision images..."
+    docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.build.yml build
+    docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.build.yml build
+}
+
+for arg in "$@"
+do
+    if [ "$arg" == "--build" ]
+    then
+        build_etcd_and_etcd_provision
+    fi
+done
 if [ "$1" == "--run_etcd" ] ; then
     remove_eii_containers
     echo "Checking ETCD port..."
@@ -245,10 +258,10 @@ if [ "$1" == "--run_etcd" ] ; then
     if [ $DEV_MODE = 'true' ]; then
         log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting ETCD ..."
-        docker-compose -f dep/docker-compose-etcd.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml up -d
     else
         log_info "Starting ETCD ..."
-        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up -d
     fi
 elif [ "$2" = "--run_etcd_provision" ] ; then
     echo "Checking ETCD health..."
@@ -259,10 +272,10 @@ elif [ "$2" = "--run_etcd_provision" ] ; then
     if [ $DEV_MODE = 'true' ]; then
         log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting etcd_provision..."
-        docker-compose -f dep/docker-compose-etcd-provision.yml up --build
+        docker-compose -f dep/docker-compose-etcd-provision.yml up
     else
         log_info "Starting etcd_provision..."
-        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up --build
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up
     fi
 elif [ "$2" = "--generate_certs" ] ; then
     echo "Clearing existing Certificates..."
@@ -284,13 +297,13 @@ elif [ "$ETCD_NAME" = "leader" ]; then
     if [ $DEV_MODE = 'true' ]; then
         log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-etcd.yml up --build -d
-        docker-compose -f dep/docker-compose-etcd-provision.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml up -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml up -d
     else
         prod_mode_gen_certs
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up --build -d
-        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up --build
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up
     fi
 fi
 

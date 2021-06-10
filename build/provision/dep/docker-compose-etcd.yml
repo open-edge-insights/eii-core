@@ -21,13 +21,6 @@
 version: '3.6'
 services:
   ia_etcd:
-    build:
-      context: ../
-      dockerfile: ./dep/Dockerfile
-      args:
-       UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION} 
-       ETCD_VERSION: $ETCD_VERSION
-       EII_UID: $EII_UID
     read_only: true
     image: ${DOCKER_REGISTRY}ia_etcd:$EII_VERSION
     healthcheck:

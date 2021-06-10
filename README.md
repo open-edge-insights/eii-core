@@ -327,6 +327,13 @@ $ sudo ./provision.sh <path_to_eii_docker_compose_file>
 # eq. $ sudo ./provision.sh ../docker-compose.yml
 
 ```
+>**Note**: By default, the provisioning step will pull the provisioning images from docker registry. In case the user wants to build the images, `--build` flag should be provided in the provisioning command i.e.
+```sh
+$ sudo ./provision.sh <path_to_eii_docker_compose_file> --build
+
+# eq. $ sudo ./provision.sh ../docker-compose.yml --build
+```
+
 **Optional:** For capturing the data back from ETCD Cluster to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
 ```sh
 $ ./etcd_capture.sh
