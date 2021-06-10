@@ -58,7 +58,7 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 1. Install provision helm chart
   ```sh
-  $ cd helm-eii/
+  $ cd $WORKDIR/IEdgeInsights/build/helm-eii/
   $ helm install eii-provision eii-provision/
   ```
 
@@ -89,7 +89,7 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 3. Install deploy helm chart
   ```sh
-  $ cd helm-eii/
+  $ cd $WORKDIR/IEdgeInsights/build/helm-eii/
   $ helm install eii-deploy eii-deploy/
   ```
 
@@ -124,4 +124,162 @@ Do helm install of provision and deploy charts as per previous section.
 
 > **Note**:
 > Please wait for all the pods terminated successfully, In times of re-deploy helm chart for eii-provision and eii-deploy
+
+## Steps to enable Accelarators
+>**Note**:
+> `nodeSelector` is the simplest recommended form of node selection constraint.
+> `nodeSelector` is a field of PodSpec. It specifies a map of key-value pairs. For the pod to be eligible to run on a node, the node must have each of the indicated key-value pairs as labels (it can have additional labels as well). The most common usage is one key-value pair.
+
+1. Setting the `label` for a particular node
+  ```sh
+  $ kubectl label nodes <node-name> <label-key>=<label-value>
+  ```
+
+2. For HDDL/NCS2 dependenecies follow the steps for setting `labels`.
+
+  * For HDDL
+
+  ```sh
+  $ kubectl label nodes <node-name> hddl=true
+  ```
+
+  * For NCS2
+
+  ```sh
+  kubectl label nodes <node-name> ncs2=true
+  ```
+
+>**Note**: Here the node-name is your worker node machine hostname
+
+3. Open the `$WORKDIR/IEdgeInsights/VideoIngestion/helm/values.yaml` or `$WORKDIR/IEdgeInsights/VideoAnalytics/helm/values.yaml` file.
+
+4. Based on your workload preference. Add hddl or ncs2 to accelerator in values.yaml of video-ingestion or video-analytics. 
+
+  * For HDDL
+
+  ```yml
+  config:
+    video_ingestion:
+       .
+       .
+       .
+      accelerator: "hddl"
+      .
+      .
+      .
+  ```
+  * For NCS2
+
+  ```yml
+  config:
+    video_ingestion:
+       .
+       .
+       .
+      accelerator: "ncs2"
+      .
+      .
+      .
+  ```
+
+5. set device as "MYRIAD" in case of ncs2 and as HDDL in case of hddl in the [VA config](../../VideoAnalytics/config.json)
+  
+  * In case of ncs2.
+
+  ```yml
+  "udfs": [{
+    .
+    .
+    .
+    "device": "MYRIAD"
+    }]
+  ```
+
+  * In case of hddl.
+
+  ```yml
+  "udfs": [{
+    .
+    .
+    .
+    "device": "HDDL"
+    }]
+  ```  
+
+6. Run the `$WORKDIR/IEdgeInsights/build/builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules.
+
+  ```sh
+  cd $WORKDIR/IEdgeInsights/build/
+  python3 builder.py
+  ```
+
+7. Follow the [Deployment Steps](##Provision-and-deploy-in-the-kubernetes-node)
+
+8. Verify the respecitve workloads are running based on the `nodeSelector` constraints.
+
+## Steps for Enabling GiGE Camera with helm
+
+**Note:** For more information on `Multus` please refer this git https://github.com/intel/multus-cni
+ Skip installing multus if it is already installed.
+
+1. Prequisites
+  For enabling gige camera with helm. Helm pod networks should be enabled `Multus` Network Interface
+  to attach host system network interface access by the pods for connected camera access.
+
+  **Note**: Please follow the below steps & make sure `dhcp daemon` is running fine.If there is an error on `macvlan` container creation on accessing the socket or if socket was not running. Please execute the below steps again
+
+  ```sh
+  $ sudo rm -f /run/cni/dhcp.sock
+  $ cd /opt/cni/bin
+  $ sudo ./dhcp daemon
+  ```
+ 
+  ### Setting up Multus CNI and Enabling it.
+  * Multus CNI is a container network interface (CNI) plugin for Kubernetes that enables attaching multiple network interfaces to pods. Typically, in Kubernetes each pod only has one network interface (apart from a loopback) -- with Multus you can create a multi-homed pod that has multiple interfaces. This is accomplished by Multus acting as a "meta-plugin", a CNI plugin that can call multiple other CNI plugins.
+
+  1. Get the name of the `ethernet` interface in which gige camera & host system connected
+    **Note**: Identify the network interface name by following command
+
+  ```sh
+  $ ifconfig
+  ```
+
+  2. Execute the Following Script with Identified `ethernet` interface name as Argument for `Multus Network Setup`
+    **Note:** Pass the `interface` name without `quotes`
+
+  ```sh
+  $ cd $WORKDIR/IEdgeInsights/build/helm-eii/gige_setup
+  $ sudo -E sh ./multus_setup.sh <interface_name>
+  ```
+
+  3. Set gige_camera to true in values.yaml
+
+  ```sh
+  $ vi $WORKDIR/IEdgeInsights/VideoIngestion/helm/values.yaml
+  .
+  .
+  .
+  gige_camera: true
+  .
+  .
+  .      
+  ```
+
+  4. Follow the [Deployment Steps](##Provision-and-deploy-in-the-kubernetes-node)
+     
+  5. Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
+
+  ```sh
+  $ kubectl -n eii exec -it <pod_name> -- ip -d address      
+  ```
+
+## Accessing Web Visualizer and EtcdUI
+  Environment EtcdUI & WebVisualizer will be running in Following ports. 
+  * EtcdUI
+     * `https://master-nodeip:30010/`
+  * WebVisualizer
+     * PROD Mode --  `https://master-nodeip:30007/`
+     * DEV Mode -- `http://master-nodeip:30009/`
+
+
 
