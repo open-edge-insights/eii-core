@@ -1,6 +1,0 @@
-config:
-    etcd_ui:
-      name: etcd-ui
-      int_port: 7071
-      ext_port: 30010
-
