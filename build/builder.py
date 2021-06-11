@@ -749,11 +749,14 @@ def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images)
                 ruamel.yaml.round_trip_dump(temp, fp)
 
 
-def get_service_dependency_tree(yml_dict):
+def get_service_dependency_tree(yml_dict, run_exclude_images):
     """Method to generate a dict of services and services it depends on 
 
     :param yml_dict: dict generated from docker-compose yml
     :type yml_dict: dict
+    :param run_exclude_images: List of name of dependency services which
+                               are excluded from run
+    :type run_exclude_images: array
     :return dep_tree: the dependency tree dict
     :rtype: dict
     """
@@ -761,6 +764,8 @@ def get_service_dependency_tree(yml_dict):
     for k, v in yml_dict.items():
         if(k == "services"):
             for service, service_dict in v.items():
+                if service not in run_exclude_images:
+                    dep_tree[service] = []
                 for service_key, service_vals in list(service_dict.items()):
                     if service_key == "depends_on":
                         dep_tree[service] = service_vals
@@ -910,7 +915,7 @@ def yaml_parser(args):
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
     temp = copy.deepcopy(yml_dict)
 
-    deps = get_service_dependency_tree(yml_dict)
+    deps = get_service_dependency_tree(yml_dict, run_exclude_images)
     # Get the list of services that needs to be written to docker-compose-build.yml
     required_services = get_required_services_list(deps, run_exclude_images)
 
