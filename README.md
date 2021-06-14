@@ -142,7 +142,7 @@ Different use cases...
 The section assumes the EII software is already downloaded from the release package or from git.
 Run all the below commmands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
-## 1. Generating consolidated docker-compose.yml, eii_config.json and eii-k8s-deploy.yml files:
+## 1. Generating consolidated docker-compose.yml and eii_config.json files:
 
 EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
@@ -151,8 +151,8 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EII docker containers in a given single node using `docker-compose` tool                                       |
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
-| eii-k8s-deploy.yml           | Consolidated `k8s-service.yml` of every app that is required to deploy EII service via Kubernetes orchestrator                                                       |
-
+| values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII service via helm                                                       |
+| Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII service via helm                                             
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
      or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running 
@@ -210,9 +210,9 @@ optional arguments:
 
 * `Running builder to generate multi instance configs`:
 
-  Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json, k8s-service.yml respectively.
+  Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json respectively.
 
-  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json & k8s k8s-service.yml files respectively.
+  If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json files respectively.
 
   An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
@@ -224,7 +224,7 @@ optional arguments:
 
 * `Running builder to generate benchmarking configs`:
 
-  If user wants to provide a different set of docker-compose.yml, config.json & k8s k8s-service.yml other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
+  If user wants to provide a different set of docker-compose.yml, config.json other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
   ```sh
   $ python3 builder.py -d benchmarking
@@ -238,7 +238,7 @@ optional arguments:
 
 Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service the user wants to add into the EII stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
 
-Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json). Additionally, if the EII service needs to be deployed over k8s orchestrator, the **k8s-service.yml** file needs to be defined.
+Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json).
 
 An example has been provided below on how to write the **config.json** for any new service, subscribe it to **VideoAnalytics** and publish on a new port:
 
@@ -591,9 +591,6 @@ EII stack comes with following services, which can be included/excluded in docke
 
 By default EII is provisioned with Single node cluster. In order to deploy EII on multiple nodes using docker registry and provision ETCD cluster, please follow [build/deploy/README.md](build/deploy/README.md)
 
-# EII workload orchestration using kubernetes
-
-In order to deploy EII using the orchestrator Kubernetes, please follow [build/k8s/README.md](build/k8s/README.md)
 
 # Debugging options
 
