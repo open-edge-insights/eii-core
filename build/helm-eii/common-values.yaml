@@ -19,17 +19,17 @@
 # SOFTWARE.
 
 namespace: default
-eii_version: 2.6-RC1
-registry:  
+EII_VERSION:
+DOCKER_REGISTRY:
 imagePullPolicy: IfNotPresent
 storageClassName: manual
 num_video_instances: 1
 
 env:
-  dev_mode: false
-  PROFILING_MODE: false
-  EII_INSTALL_PATH: /opt/intel/eii
-  SOCKET_DIR: /EII/sockets
+  DEV_MODE:
+  PROFILING_MODE:
+  EII_INSTALL_PATH:
+  SOCKET_DIR:
 config:
     etcd:
       name: etcd

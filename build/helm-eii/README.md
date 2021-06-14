@@ -58,7 +58,7 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 1. Install provision helm chart
   ```sh
-  $ cd k8s/helm-eii/
+  $ cd helm-eii/
   $ helm install eii-provision eii-provision/
   ```
 
@@ -89,7 +89,7 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 3. Install deploy helm chart
   ```sh
-  $ cd k8s/helm-eii/
+  $ cd helm-eii/
   $ helm install eii-deploy eii-deploy/
   ```
 
@@ -109,7 +109,7 @@ The EII is now succesfully deployed and the web visualizer can be accessed.
 
 ## Provision and deploy mode in times switching between dev and prodmode 
 
-1. Set the dev_mode as "true/false" in  eii-provision/values.yaml and common-values.yaml depending on dev or prod mode.
+1. Set the DEV_MODE as "true/false" in  [.env](../.env) depending on dev or prod mode.
 
 2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
   ```sh

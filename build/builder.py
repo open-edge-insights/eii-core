@@ -454,8 +454,11 @@ def helm_yaml_merger(app_list, args):
     pv_merged_yaml = ""
     pvc_merged_yaml = ""
     helm_values_dict = []
+    value_keys = ["env", "config", "volumes"]
+    helm_provision_values_dict = []
     ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
     helm_deploy_dir = "./helm-eii/eii-deploy/"
+    helm_provision_dir = "./helm-eii/eii-provision"
     # Load the common values.yaml
     if os.path.isdir(helm_deploy_dir + "templates"):
         shutil.rmtree(helm_deploy_dir + "templates")
@@ -464,7 +467,6 @@ def helm_yaml_merger(app_list, args):
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
-        data['registry']=os.environ["DOCKER_REGISTRY"]
         helm_values_dict.append(data)
 
     # Read persistent volume yaml
@@ -523,8 +525,50 @@ def helm_yaml_merger(app_list, args):
             final_pvc_yaml.write(pvc_merged_yaml)
 
 
+    # Updating values.yaml for provision
+    with open(helm_provision_dir +"/values.yaml", 'r') as \
+        values_file:
+        data = ruamel.yaml.round_trip_load(values_file,
+                                           preserve_quotes=True)
+        helm_provision_values_dict.append(data)
+
+    # helm_provision_dict contains the provisioning values for helm
+    helm_provision_dict = helm_provision_values_dict[0]
+    for var in helm_provision_dict:
+        if var not in value_keys:
+            if os.environ.get(var) is not None:
+                # Updating outer variables in values yaml file for provision
+                helm_provision_dict.update({var: os.getenv(var)})
+        elif var == "env":
+            for i in helm_provision_dict[var]:
+                # Updating environment variables inside env key in values yaml file for provision
+                if os.environ.get(i) is not None:
+                    if i == "DEV_MODE" or i == "PROFILING_MODE":
+                        helm_provision_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                    else:
+                        helm_provision_dict[var].update({i: os.getenv(i)})
+    with open(helm_provision_dir +"/values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_provision_dict, value_file)
+
+
+
     # Updating final helm values dict
     helm_dict = helm_values_dict[0]
+    for var in helm_dict:
+        if var not in value_keys:
+            if os.environ.get(var) is not None:
+                # Updating outer variables in values yaml file for deploy
+                helm_dict.update({var: os.getenv(var)})
+        elif var == "env":
+            for i in helm_dict[var]:
+                # Updating environment variables inside env key in values yaml file for deploy
+                if os.environ.get(i) is not None:
+                    if i == "DEV_MODE" or i == "PROFILING_MODE":
+                        helm_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                    else:
+                        helm_dict[var].update({i: os.getenv(i)})
+
+
     if num_multi_instances > 1:
         helm_dict.update({"num_video_instances": num_multi_instances})
     for var in helm_values_dict[1:]:

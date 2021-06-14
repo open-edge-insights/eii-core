@@ -52,12 +52,12 @@ spec:
     spec:
       containers:
       - name: ia-etcd
-        image: {{ .Values.registry }}ia_etcd:{{ .Values.eii_version }}
+        image: {{ .Values.DOCKER_REGISTRY }}ia_etcd:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         volumeMounts:
         - name: {{ .Values.volumes.etcd_data.name }}
           mountPath: {{ .Values.volumes.etcd_data.location }}
-        {{ if eq .Values.env.dev_mode false}}
+        {{ if eq .Values.env.DEV_MODE false}}
         - name: etcd-certs
           mountPath: /run/secrets/etcd/
         {{ end }}
@@ -65,7 +65,7 @@ spec:
         - name: AppName
           value: "ia-etcd"
         - name: DEV_MODE
-          value: "{{ .Values.env.dev_mode }}"
+          value: "{{ .Values.env.DEV_MODE }}"
         - name: ETCD_CLIENT_PORT
           value: "{{ .Values.network.etcd.client_port }}"
         - name: ETCD_PEER_PORT
@@ -78,7 +78,7 @@ spec:
           value: "3"
         - name: ETCD_DATA_DIR
           value: {{ .Values.volumes.etcd_data.location }}
-        {{ if eq .Values.env.dev_mode false}}
+        {{ if eq .Values.env.DEV_MODE false}}
         - name: ETCD_TRUSTED_CA_FILE
           value: "/run/secrets/etcd/ca_certificate.pem"
         - name: ETCD_CERT_FILE
@@ -88,11 +88,11 @@ spec:
         {{ end }}
 
       - name: ia-etcd-provision
-        image: {{ .Values.registry }}ia_etcd_provision:{{ .Values.eii_version }}
+        image: {{ .Values.DOCKER_REGISTRY }}ia_etcd_provision:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         env:
         - name: DEV_MODE
-          value: "{{ .Values.env.dev_mode }}"
+          value: "{{ .Values.env.DEV_MODE }}"
         - name: ETCDCTL_API
           value: "3"
         - name: provision_mode
@@ -103,7 +103,7 @@ spec:
           value: "{{ .Values.network.etcd.client_port }}"
         - name: ETCD_PREFIX
           value: ""
-        {{ if eq .Values.env.dev_mode false}}
+        {{ if eq .Values.env.DEV_MODE false}}
         - name: ETCD_ROOT_PASSWORD
           value: {{ .Values.env.etcd_root_password }}
         - name: ETCD_ROOT_CERT
@@ -129,7 +129,7 @@ spec:
         - name: docker-compose
           mountPath: /EII/etcd/docker-compose.yml
           subPath: docker-compose.yml
-        {{ if eq .Values.env.dev_mode false}}
+        {{ if eq .Values.env.DEV_MODE false}}
         - name: all-certs
           mountPath: /EII/etcd/Certificates/
         {{ end }}
@@ -144,7 +144,7 @@ spec:
       - name: docker-compose
         configMap:
           name: etcd-provision-input
-      {{ if eq .Values.env.dev_mode false}}
+      {{ if eq .Values.env.DEV_MODE false}}
       - name: all-certs
         secret:
           secretName: eii-certs
