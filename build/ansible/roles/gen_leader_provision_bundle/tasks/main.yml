@@ -21,7 +21,7 @@
 
 - name: Generate provision bundle for leader node
   become: yes
-  shell: "python3.6 generate_eii_bundle.py -l"
+  shell: "python3 generate_eii_bundle.py -l"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
   register: command_out
