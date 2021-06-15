@@ -19,6 +19,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+- name: Remove old copied bundles
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}/"
+    state: absent
+
 - name: Create directory {{ EII_DEPLOY_PATH }} if it does not exist in {{ inventory_hostname }}
   become: yes
   ansible.builtin.file:

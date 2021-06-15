@@ -20,29 +20,14 @@
 # SOFTWARE.
 
 
-- name: Include vars of ansible/vars/vars.yaml
-  include_vars: vars.yml
+- name: Remove old bundles
+  find:
+    paths: "{{ EII_SOURCE_PATH }}/build/deploy/"
+    patterns: "*.tar.gz"
+  register: tar_files_to_delete
 
-- name: Generate eii_bundle for multi node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}}"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  loop: "{{ query('dict', nodes) }}"
-  when: multi_node == true and docker_registry != ""
-
-- name: Generate eii_bundle, docker save for multi node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}} -ds -dl -v {{ EII_VERSION }}"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  loop: "{{ query('dict', nodes) }}"
-  when: multi_node == true and docker_registry == "" and build == true
-
-- name: Generate eii_bundle for single node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -u -t leader"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  when: multi_node == false
-  
+- name: Remove old bundles
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ tar_files_to_delete.files }}"

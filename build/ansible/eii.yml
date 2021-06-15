@@ -53,13 +53,22 @@
     - role: prerequisites
       tags: [prerequisites]
 
+  tasks:
+    - name: Remove deploy bundles
+      become: yes
+      shell: "rm -rf {{ EII_DEPLOY_PATH }}"
+
 # Executes roles only control machine
 - hosts: control
   roles:
+    - role: load_env
+      tags: [load_env]
     - role: build
       tags: [build]
     - role: gen_certs
       tags: [gen_certs]
+    - role: delete_bundles
+      tags: [delete_bundles]
     - {
         role: gen_leader_provision_bundle,
         tags: [gen_leader_provision_bundle],

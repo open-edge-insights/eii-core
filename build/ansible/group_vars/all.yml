@@ -30,6 +30,10 @@ instances: 1
 # set true to enable multi node deployment without kubernetes
 multi_node: false
 
+# set build to false to skip docker build, push
+# default docker images from docker hub will be used
+build: true
+
 ## ENV Variable Update
 DEV_MODE: false
 EII_VERSION: "2.6-RC1"
@@ -62,4 +66,3 @@ EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
 DEPLOYMENT_MODE: "docker-compose"
 ## Enable this to true, if you want retain the certificates in k8s leader machine
 retain_certs_in_k8s_leader_machine: false
-

@@ -218,9 +218,6 @@ function remove_eii_containers() {
 souce_env
 export_host_ip
 set_docker_host_time_zone
-create_eii_user
-create_eii_install_dir
-create_docker_network
 
 if [ $DEV_MODE = 'false' ]; then
     chmod -R 760 $EII_INSTALL_PATH/data
@@ -230,10 +227,16 @@ else
     chmod -R 755 $EII_INSTALL_PATH/sockets
 fi
 
-if [ '$1' = '--worker' -o '$ETCD_NAME' = 'worker' ]; then
+if [ "$2" != "--run_etcd_provision" ]; then
+    create_eii_user
+    create_eii_install_dir
+    create_docker_network
+fi
+
+if [ "$1" == "--worker" -o "$ETCD_NAME" == "worker" ]; then
     remove_eii_containers
     log_info "Provisioning is Successful..."
-    exit -1
+    exit 0
 fi
 
 #############################################################

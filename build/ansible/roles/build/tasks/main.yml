@@ -19,15 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-- name: Loading env template & updating build/.env
-  template:
-    src: env.j2
-    dest: "{{ EII_SOURCE_PATH }}/build/.env"
-
-- name: Loading provisioning env template & updating build/provision/.env
-  template:
-    src: provision_env.j2
-    dest: "{{ EII_SOURCE_PATH }}/build/provision/.env"
 
 - name: "Generating docker-compose file & config files builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
   shell: "python3 builder.py"
@@ -69,22 +60,22 @@
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
-  when: no_cache == false
+  when: no_cache == false and build == true
 
 - debug:
     msg: "Status of building containers {{ command_out.stdout }}"
-  when: no_cache == false
+  when: no_cache == false and build == true
 
 - name: "Building containers for {{ usecase }} usecase"
   shell: "docker-compose -f docker-compose-build.yml build --no-cache"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
-  when: no_cache == true
+  when: no_cache == true and build == true
 
 - debug:
     msg: "Status of building containers {{ command_out.stdout }}"
-  when: no_cache == true
+  when: no_cache == true and build == true
 
 - name: docker login in leader node
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
@@ -97,15 +88,15 @@
 
 - debug:
     msg: "Push images to the docker_registry will take some time"
-  when: docker_registry != ""
+  when: multi_node == true and docker_registry != "" and build == true
 
 - name: "Push Containers to the registry {{ docker_registry }}"
   shell: "docker-compose -f docker-compose-push.yml push"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
-  when: docker_registry != ""
+  when: docker_registry != "" and build == true
 
 - debug:
     msg: "docker push containers {{ command_out.stdout }}"
-  when: docker_registry != ""
+  when: docker_registry != "" and build == true

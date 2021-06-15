@@ -20,29 +20,19 @@
 # SOFTWARE.
 
 
-- name: Include vars of ansible/vars/vars.yaml
-  include_vars: vars.yml
+- name: get HOST_IP of leader node
+  shell: ip route get 1 | awk '{print $7}'|head -1
+  register: host_ip
 
-- name: Generate eii_bundle for multi node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}}"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  loop: "{{ query('dict', nodes) }}"
-  when: multi_node == true and docker_registry != ""
+- debug:
+    msg: "host ip: {{ host_ip.stdout }} "
 
-- name: Generate eii_bundle, docker save for multi node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}} -ds -dl -v {{ EII_VERSION }}"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  loop: "{{ query('dict', nodes) }}"
-  when: multi_node == true and docker_registry == "" and build == true
+- name: Loading env template & updating build/.env
+  template:
+    src: env.j2
+    dest: "{{ EII_SOURCE_PATH }}/build/.env"
 
-- name: Generate eii_bundle for single node deployment
-  become: yes
-  shell: "python3 generate_eii_bundle.py -u -t leader"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
-  when: multi_node == false
-  
+- name: Loading provisioning env template & updating build/provision/.env
+  template:
+    src: provision_env.j2
+    dest: "{{ EII_SOURCE_PATH }}/build/provision/.env"

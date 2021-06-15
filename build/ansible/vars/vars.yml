@@ -24,5 +24,6 @@ nodes:
       - ia_video_ingestion
       - ia_video_analytics
       - ia_etcd_ui
+      - ia_visualizer
       - ia_web_visualizer
 

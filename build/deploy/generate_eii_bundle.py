@@ -163,12 +163,14 @@ class EiiBundleGenerator:
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
-            env = open(self.bundle_tag_name + "/.env", "r+")
-            envdata = env.read()
-            newenvdata = envdata.replace("ETCD_NAME=leader",
-                                         "ETCD_NAME=worker")
-            env.write(newenvdata)
-            env.close()
+
+            with open(self.bundle_tag_name + "/.env", "r") as env:
+                filedata = env.read()
+            filedata = filedata.replace("ETCD_NAME=leader",
+                                    "ETCD_NAME=worker")
+            with open(self.bundle_tag_name + "/.env", "w") as env:
+                env.write(filedata)
+
             cmdlist = []
 
             tar_file = self.bundle_tag_name + ".tar.gz"
@@ -235,6 +237,8 @@ class EiiBundleGenerator:
                                             "ETCD_NAME=worker")
                 env.write(newenvdata)
                 env.close()
+
+
             cmdlist = []
             tar_file = provision_tag_name + ".tar.gz"
             cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
