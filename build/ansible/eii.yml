@@ -49,6 +49,13 @@
         tags:
           - always
       - meta: end_play
+
+    - name: "Set control node time to all nodes"
+      become: yes
+      shell: "date --set=\"{{ hostvars['control']['ansible_date_time']['date'] }} {{ hostvars['control']['ansible_date_time']['time'] }}\" "
+      tags:
+        - always
+
   roles:
     - role: prerequisites
       tags: [prerequisites]
@@ -102,6 +109,7 @@
         role: helm_k8s_deploy,
         tags: ["helm_k8s_deploy"],
         when: DEPLOYMENT_MODE == "k8s"
+
       }
 
 # Executes roles in worker machines
