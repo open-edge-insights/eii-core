@@ -1017,6 +1017,9 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
     LOG_DEBUG("Env publisher Config is : %s \n", config_value_cr);
 
 err:
+    if (end_point != NULL) {
+        free(end_point);
+    }
     if (config_value_cr != NULL) {
         free(config_value_cr);
     }

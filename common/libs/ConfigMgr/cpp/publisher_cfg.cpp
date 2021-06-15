@@ -75,6 +75,7 @@ std::string PublisherCfg::getEndpoint() {
 
     std::string s(value);
     // Destroying ep
+    free(value);
     config_value_destroy(ep);
     return s;
 }
