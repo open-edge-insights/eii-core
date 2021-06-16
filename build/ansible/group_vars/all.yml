@@ -36,7 +36,7 @@ build: true
 
 ## ENV Variable Update
 DEV_MODE: false
-EII_VERSION: "2.6-RC1"
+EII_VERSION: "2.6-RC2"
 
 # default enable_system_proxy is true, for setting up system proxy
 enable_system_proxy: true
