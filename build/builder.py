@@ -882,6 +882,9 @@ def yaml_parser(args):
                     prefix_path = eii_dir + service
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
+                else:
+                    print("[WARN] {0} directory doesn't exist. Skipping fetching required files"
+                          " from {0}".format(service))
     else:
         # Fetching list of subdirectories
         print("Parsing through directory to fetch required services...")
