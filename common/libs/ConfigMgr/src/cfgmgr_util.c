@@ -52,7 +52,6 @@ char* cvt_to_char(config_value_t* config) {
         LOG_ERROR_0("config_value_cr object is NULL");
         return NULL;
     }
-    cJSON_Delete(c_json);
     return config_value_cr;
 }
 
@@ -97,7 +96,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
             LOG_ERROR_0("topics_list initialization failed");
             goto err;
         }
-        config_value_destroy(topics_list);
     }
 
     if (json_endpoint->type == CVT_OBJECT) {
@@ -200,18 +198,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
             if (arr_len == 0) {
                 LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
             }
-
-            sock_file_cvt = config_value_new_string(sock_file);
-            if (sock_file_cvt == NULL) {
-                LOG_ERROR_0("sock_file_cvt initialization failed");
-                goto err;
-            }
-
-            brokered_value = config_value_object_get(config, BROKERED);
-            if (brokered_value == NULL) {
-                LOG_DEBUG_0("Broker is not used.");
-            }
-
             // getting the topic list and mapping multiple topics to the socket file
             for (size_t i=0; i < arr_len; ++i) {
                 socket_file_obj = json_config_new_from_buffer("{}");
@@ -227,12 +213,17 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
 
                 strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
 
+                sock_file_cvt = config_value_new_string(sock_file);
+                if (sock_file_cvt == NULL) {
+                    LOG_ERROR_0("sock_file_cvt initialization failed");
+                    goto err;
+                }
                 config_set_result = config_set(socket_file_obj, SOCKET_FILE, sock_file_cvt);
                 if (!config_set_result) {
                     LOG_ERROR("Unable to set config value");
                 }
-                
                 // Adding brokered value if available
+                brokered_value = config_value_object_get(config, BROKERED);
                 if (brokered_value != NULL) {
                     if (brokered_value->type != CVT_BOOLEAN) {
                         LOG_ERROR_0("brokered_value type is not boolean");
@@ -262,9 +253,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                             }
                         }
                     }
-                    if (brokered_cvt != NULL) {
-                        config_value_destroy(brokered_cvt);
-                    }
                 }
                 socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);;
                 if (socket_file_obj_cvt == NULL) {
@@ -284,16 +272,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                         goto err;
                     }
                 }
-                if (socket_file_obj_cvt != NULL){
-                    config_value_destroy(socket_file_obj_cvt);
-                }
-                if (socket_file_obj != NULL){
-                    config_destroy(socket_file_obj);
-                }
-                if (topics != NULL){
-                    config_value_destroy(topics);
-                }
-                
             }
         } else {
             // For Server & Client use case
@@ -389,30 +367,6 @@ err:
     }
     if (sock_dir_cvt != NULL) {
         config_value_destroy(sock_dir_cvt);
-    }
-    if (sock_file_cvt != NULL) {
-        config_value_destroy(sock_file_cvt);
-    }
-    if (socket_file_obj_cvt != NULL) {
-        config_value_destroy(socket_file_obj_cvt);
-    }
-    if (socket_file_obj != NULL) {
-        config_destroy(socket_file_obj);
-    }
-    if (topics != NULL) {
-        config_value_destroy(topics);
-    }
-    if (socketdir_cvt != NULL) {
-        config_value_destroy(socketdir_cvt);
-    }
-    if (socketfile_cvt != NULL) {
-        config_value_destroy(socketfile_cvt);
-    }
-    if (brokered_value != NULL) {
-        config_value_destroy(brokered_value);
-    }
-    if (brokered_cvt != NULL) {
-        config_value_destroy(brokered_cvt);
     }
     return result;
 }
