@@ -82,7 +82,7 @@ function set_docker_host_time_zone() {
     # Setting RTC to UTC
     timedatectl set-local-rtc 0
     # Get Docker Host timezone
-    hostTimezone=`cat /etc/timezone`
+    hostTimezone=`timedatectl | grep "zone" | awk '{print $3}'`
     hostTimezone=`echo $hostTimezone`
     # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
     sed -i '/HOST_TIME_ZONE/d' ../.env && echo "HOST_TIME_ZONE=$hostTimezone" >> ../.env
