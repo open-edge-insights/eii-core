@@ -24,12 +24,15 @@ __pycache__/
 # app spec json for CSL
 build/docker-compose.yml
 build/docker-compose.override.yml
+build/docker-compose-build.yml
+build/docker-compose-push.yml
 build/provision/Certificates/
 build/provision/config/eii_config.json
 build/provision/rootca/
 build/provision/server
 build/provision/client
-build/k8s/eii-k8s-deploy.yml
+build/helm-eii/eii-deploy/values.yaml
+build/helm-eii/eii-deploy/templates
 
 # Adding these folder names as eii-core repo
 # is pulled onto IEdgeInsights folder making
@@ -39,6 +42,7 @@ common/util/c/
 common/libs/EIIMessageBus/
 common/libs/EIIMsgEnv/
 common/libs/DynLibLoad/
+EtcdUI/
 FactoryControlApp/
 Grafana/
 ImageStore/
