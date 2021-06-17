@@ -34,7 +34,7 @@ services:
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
           GO_VERSION: ${GO_VERSION}
           PYTHON_VERSION: ${PYTHON_VERSION}
-    image: ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION}
+    image: ia_eiibase:${EII_VERSION}
     ipc: "none"
 
   ## Define ia_common service
@@ -53,7 +53,7 @@ services:
           RUN_TESTS: "OFF"
           DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EII_VERSION}
+    image: ia_common:${EII_VERSION}
     ipc: "none"
 
   ##----End: EII Base Images---- -- This Base images must be included for building any EII servcies ----

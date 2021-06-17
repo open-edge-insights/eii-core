@@ -36,7 +36,7 @@ COPY dep/requirements.txt .
 RUN pip3 install --user -r requirements.txt && \
     rm -rf requirements.txt
 
-FROM ${DOCKER_REGISTRY}ia_etcd:${EII_VERSION} as ia_etcd
+FROM ${DOCKER_REGISTRY}openedgeinsights/ia_etcd:${EII_VERSION} as ia_etcd
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 
 # Setting python runtime
