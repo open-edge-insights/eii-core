@@ -118,9 +118,10 @@ function create_eii_install_dir() {
 
     mkdir -p $EII_INSTALL_PATH/sockets/
     check_error "Failed to create dir '$EII_INSTALL_PATH/sockets'"
-    if grep -q "ia_timeseries_profiler" "$docker_compose"; then
-        mkdir -p $EII_INSTALL_PATH/TimeSeriesProfiler
-    fi
+    
+    mkdir -p $EII_INSTALL_PATH/tools_output
+    check_error "Failed to create dir '$EII_INSTALL_PATH/tools_output'"
+    
     mkdir -p $EII_INSTALL_PATH/model_repo
     chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
 
