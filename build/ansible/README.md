@@ -129,6 +129,7 @@ Please follow below steps to update the details of leader/worker nodes for multi
     > * To deploy EII in single , `ansible_connection=local` and `ansible_host=localhost`
     > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
+
 ### Updating docker registry details in hosts file
 
 Update the below information for using docker registry for deploying the images from control node to other nodes in multi node deployment.
@@ -147,72 +148,6 @@ Update the below information for using docker registry for deploying the images 
     ```
     > **Note**:
     >    1. If the `registry` is a no password  registry, not required to update the `docker_login_user` & `docker_login_passwd` details.
-
-### Steps to encrypt `hosts` file using Password
-
-> **Note**
-> Ansible `hosts` file contains the credential information such as host ip, user password & sudo user password.
-> It is advised to encrypt the file to make secure.
-
-*   In Control machine, Navigate to `[EII_WORKDIR]/IEdgeInsights/build/ansible` directory and execute following command, 
-    ```sh
-    $ ansible-vault encrypt hosts
-    ```
-*   It will prompt `New Password` input to set password for securing `hosts` file.
-    For Eg:   
-
-    ```sh
-    $ ansible-vault encrypt hosts
-    $ New Password:
-    <Enter password to encrypt the file>
-    ```
-    >**Note:** This password should be remembered for decrypting the file & also using with ansible-playbook.
-    
-### Steps to execute ansible playbook with `Encrypted hosts` file
-
-> **Note**
-> Ansible `hosts` file can be encrypted using `ansible-vault` utility with a password.
-> Encrypted `hosts` file can be decrypted while executing playbook using `--ask-vault-pass` argument.
-
-* For running playbook with encrypted `hosts` file. 
-    ```sh
-    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
-    ```
-    **Note:** The above step prompts password. The password should be the same used to `encrypt` the `hosts` file.
-For Eg:
-
->* For using encrypted `hosts` file
->    ```sh
->    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
->    ```
->
->  
->* For using Unencrypted `hosts` file
->    ```sh
->    $   ansible-playbook -i hosts eii.yml
->    ```
->
-
-### Steps to decrypt `hosts` file using Password
-
-    **Note** This steps is required to decrypt the `hosts` file in to human readable format. 
-    So that editing the `hosts` file further is possible.
-
-*   In Control machine, Navigate to `[EII_WORKDIR]/IEdgeInsights/build/ansible` directory and execute following command, 
-    ```sh
-    $ ansible-vault decrypt hosts
-    ```
-*   It will prompt `Password` input to decrypt `hosts` file.
-    For Eg:   
-
-    ```sh
-    $ ansible-vault decrypt hosts
-    $ Password:
-    <Enter password to decrypt the file>
-    ```
-    >**Note:** This password should be same as used while encrypting the file.
-    > Once file decrypted & edited. For encrypting follow the previous section for `encrypt'.
-    > It is recommended to keep the hosts file encrypted always and do the decrypt only for editing it.
 
 ## Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables
 
@@ -267,17 +202,16 @@ For Eg:
 
 > **Note**: If a service is not added to `include_services` list, that service will not deployed on a particular node
 
-## Information to be checked in single node deployment
-1. Set `multi_node: false` in `group_vars/all.yml`
-2. Make sure leader node's `ansible_connection` is set to `local` and `ansible_host` is set to `localhost`
-3. All the services from the usecase selected from `group_vars/all.yml` will be deployed
+## Non-orchestrated multi node deployment (without k8s)
+ 
+Below configuration changes need to be made for multi node deployment without k8s
 
-## Information to be checked in multi node deployment
 1. Set `multi_node: true` in `group_vars/all.yml`
-2. Update `docker_registry` and `build` flags
-    * Update `docker_registry` details to use docker images from registry, optionally set `build: true` to push docker images to the registry
-    * Unset `docker_registry` details if you don't want to use registry and set `build: true` to save and load docker images from one node to another node
-4. If you have latest images available in all nodes, set `build: false` and unset `docker_registry` details
+2. Use of `docker_registry` and `build` flags
+    * Update `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
+    * Unset `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
+3. If you are using images from docker hub, then set `build: false` and unset `docker_registry` details
+
 
 ## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes
 

@@ -33,12 +33,3 @@ leader ansible_connection=local ansible_host=localhost
 # Add worker node details from here onwards
 #worker1 ansible_connection=ssh ansible_host= ansible_user=
 #worker2 ansible_connection=ssh ansible_host= ansible_user=
-
-
-[targets:vars]
-# Varibles to login to docker registry
-docker_registry=""
-docker_login_user=""
-docker_login_passwd=""
-
-

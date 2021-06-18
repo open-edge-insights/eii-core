@@ -30,14 +30,25 @@ instances: 1
 # set true to enable multi node deployment without kubernetes
 multi_node: false
 
-# set build to false to skip docker build, push
-# default docker images from docker hub will be used
-# Set the build to true for saving & loading images to all nodes to use without registry, when you have enabled multi_node as true.
+# Enable/ Disable docker images build from source
+# set build to false to skip docker build push
+# Set to false to use default images from docker hub
 build: true
 
 ## ENV Variable Update
 DEV_MODE: false
-EII_VERSION: "2.6-RC2"
+
+# Use a custom docker registry
+# With build: true, the images built from source will be pushed to registry
+# If left blank, docker images will be copied using scp for multi node deployments
+docker_registry: ""
+
+# Login credentials for secured registry
+docker_login_user: ""
+docker_login_passwd: ""
+
+## Deployment mode, default, docker-compose, update deployment mode to k8s for helm based k8s deployment
+DEPLOYMENT_MODE: "docker-compose"
 
 # default enable_system_proxy is true, for setting up system proxy
 enable_system_proxy: true
@@ -47,23 +58,15 @@ http_proxy: ""
 https_proxy: ""
 no_proxy: ""
 
+# EII version number
+EII_VERSION: "2.6-RC2"
+
 # docker-compose version
 docker_compose_version: "1.24.0"
-
-#Environment Variables for Provisioning
-# To Provision with k8s, Input is k8s.
-# By Default for Host Mode Provisioning PROVISION_MODE will be None.
-# Eg. PROVISION_MODE: "k8s"
-PROVISION_MODE: ""
-
-# Update no_cache: true if you want to build eii docker images with --no-cache
-no_cache: false
 
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
 ## EII Deploy path
 EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
-## Deployment mode, default, docker-compose, update deployment mode to k8s for helm based k8s deployment
-DEPLOYMENT_MODE: "docker-compose"
 ## Enable this to true, if you want retain the certificates in k8s leader machine
 retain_certs_in_k8s_leader_machine: false
