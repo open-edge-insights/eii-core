@@ -301,30 +301,30 @@ validate_action_user_input()
 proxy_enabled_network()
 {
     # 1. Configure the Docker client for http and https proxy
-    mkdir -p ~/.docker
-    DOCKER_CONFIG_FILE=~/.docker/config.json
-    DOCKER_CLIENT_PROXY="{
-    \"default\":
-    {
-    \"httpProxy\": \"http://${USER_PROXY}\",
-    \"httpsProxy\": \"http://${USER_PROXY}\",
-    \"noProxy\": \"127.0.0.1,localhost\"
-    }
-    }"
-
-	echo "Docker client proxy: $DOCKER_CLIENT_PROXY"
-	# Truncating any new lines
-	DOCKER_CLIENT_PROXY=`echo $DOCKER_CLIENT_PROXY | tr -d '\n'`
-
-    if [ -f $DOCKER_CONFIG_FILE ]; then
-        echo "${INFO} $DOCKER_CONFIG_FILE exists, updating the \"proxies\" key"
-        jq --arg var "$DOCKER_CLIENT_PROXY" '.proxies = $var' $DOCKER_CONFIG_FILE > tmp.$$.json && mv tmp.$$.json $DOCKER_CONFIG_FILE
-    else
+    if [ ! -s "$HOME/.docker/config.json" ]
+    then  # if file is empty or if file does not exist
         echo "{
-        \"proxies\":
-            $DOCKER_CLIENT_PROXY
-        }" > $DOCKER_CONFIG_FILE
+            \"proxies\":
+            {
+                \"default\":
+                {
+                    \"httpProxy\": \"http://${USER_PROXY}\",
+                    \"httpsProxy\": \"http://${USER_PROXY}\",
+                    \"noProxy\": \"127.0.0.1,localhost\"
+                }
+            }
+        }" > ~/.docker/config.json
+    else  # if the file already exists && also has some JSON content in it, then append the below JSON object
+        HTTP_USER_PROXY="http://${USER_PROXY}"
+        jq -r --arg UPROXY ${HTTP_USER_PROXY} '.proxies = {
+            "default": {
+            "httpProxy": $UPROXY,
+            "httpsProxy": $UPROXY,
+            "noProxy": "127.0.0.1,localhost"
+            }
+            }'  ~/.docker/config.json > tmp && mv tmp ~/.docker/config.json
     fi
+
 
     # 2. Configure the Docker daemon for http and https proxy
     DOCKER_SERVICE_DIR="/etc/systemd/system/docker.service.d"
