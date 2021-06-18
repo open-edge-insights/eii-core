@@ -22,7 +22,7 @@ version: '3.6'
 services:
   ia_etcd:
     read_only: true
-    image: ${DOCKER_REGISTRY}openedgeinsights/ia_etcd:$EII_VERSION
+    image: openedgeinsights/ia_etcd:$EII_VERSION
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m
