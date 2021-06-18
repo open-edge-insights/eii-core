@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: ia-etcd
-        image: {{ .Values.DOCKER_REGISTRY }}ia_etcd:{{ .Values.EII_VERSION }}
+        image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_etcd:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         volumeMounts:
         - name: {{ .Values.volumes.etcd_data.name }}
@@ -88,7 +88,7 @@ spec:
         {{ end }}
 
       - name: ia-etcd-provision
-        image: {{ .Values.DOCKER_REGISTRY }}ia_etcd_provision:{{ .Values.EII_VERSION }}
+        image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_etcd_provision:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         env:
         - name: DEV_MODE
