@@ -16,21 +16,20 @@ We need one control node where ansible is installed and optional hosts. We can a
         $ sudo apt-add-repository --yes --update ppa:ansible/ansible
         $ sudo apt install ansible
 
-        # To maske ssh connection from control node to other nodes
+        # To make ssh connection from control node to other nodes
         $ sudo apt install sshpass
     ```
 
 ## Prerequisite step needed for all the control/worker nodes.
 ### Generate SSH KEY for all nodes
 
-Generate the SSH KEY for all nodes using following command (to be executed in the respective node)
+Generate the SSH KEY for all nodes using following command (to be executed in the only control node), ignore to run this command if you already have ssh keys generated in your system without id and passphrase,
 
 ```sh
     $ ssh-keygen
 ```
 > **Note**:
 >   * Dont give any passphrase and id, just press `Enter` for all the prompt which will generate the key.
->   * The above step should be done for all the machines including `control` node.
 
 For Eg.
 ```sh
@@ -58,36 +57,11 @@ The key's randomart image is:
 +----[SHA256]-----+
 ```
 
-### Configure Sudoers file to accept NO PASSWORD for sudo operation.
+## Adding SSH Authorized Key from control node to all the nodes
 
-> **Note**: Ansible need to execute some commands as `sudo`. The below configuration is needed so that `passwords` need not be saved in the ansible `hosts` file as a variable.
+Please follow the steps to copy the generated keys from control node to all other nodes
 
-Update `sudoers` file
-
-1. Open the `sudoers` file.
-    ```sh
-        $ sudo visudo
-    ```
-2. Append the following to the `sudoers` file
-   ```sh
-       $ <ansible_non_root_user>  ALL=(ALL:ALL) NOPASSWD: ALL
-   ```
-   For E.g:
-
-   In control node the executing not root user name is `user1`, you should append as follows
-   ```sh
-      $ user1 ALL=(ALL:ALL) NOPASSWD: ALL
-   ```
-   Now the above line authorizes `user1` user to do `sudo` operation in the control node without `PASSWORD` ask.
-   > **Note**: The same procedure applies to all other nodes where ansible connection is involved.
-
-
-3. Save & Close the file
-
-## Adding SSH Authorized Key of all the nodes to control node
-
-Please follow the steps to copy the generated keys from all other nodes to the control node.
-1. Execute the following command from `control` node.
+Execute the following command from `control` node.
 ```sh
     $ ssh-copy-id <USER_NAME>@<HOST_IP>
 ```
@@ -103,13 +77,40 @@ For Eg.
     Now try logging into the machine, with:   "ssh 'test@192.0.0.1'"
     and check to make sure that only the key(s) you wanted were added.
 ```
-## Updating the Leader & Worker node Information for using remote hosts
 
->**Note**: By `default` both control/leader node `ansible_connection` will be `localhost` for executing in same node.
+### Configure Sudoers file to accept NO PASSWORD for sudo operation.
 
-Please follow below steps to update the details of leader / worker nodes for multi node scenario.
+> **Note**: Ansible need to execute some commands as `sudo`. The below configuration is needed so that `passwords` need not be saved in the ansible inventory file `hosts`
 
-*   Update the hosts information in the inventory file `build/ansible/hosts`
+Update `sudoers` file
+
+1. Open the `sudoers` file.
+    ```sh
+        $ sudo visudo
+    ```
+
+2. Append the following to the `sudoers` file
+   ```sh
+       $ <ansible_non_root_user>  ALL=(ALL:ALL) NOPASSWD: ALL
+   ```
+   For E.g:
+
+   If in control node, the current non root user is `user1`, you should append as follows
+   ```sh
+      $ user1 ALL=(ALL:ALL) NOPASSWD: ALL
+   ```
+   Now the above line authorizes `user1` user to do `sudo` operation in the control node without `PASSWORD` ask.
+   > **Note**: The same procedure applies to all other nodes where ansible connection is involved.
+
+3. Save & Close the file
+
+## Updating the leader & worker node's information for using remote hosts
+
+>**Note**: By `default` both control/leader node `ansible_connection` will be `localhost` in single node deployment.
+
+Please follow below steps to update the details of leader/worker nodes for multi node scenario.
+
+*   Update the hosts information in the inventory file `hosts`
     ```
         [group_name]
         <nodename> ansible_connection=ssh ansible_host=<ipaddress> ansible_user=<machine_user_name>
@@ -123,21 +124,21 @@ Please follow below steps to update the details of leader / worker nodes for mul
     
     > **Note**: 
     > * `ansible_connection=ssh` is mandatory when you are updating any remote hosts, which makes ansible to connect via `ssh`.
-    > * The above information is used by ansible to establish ssh  connection to the nodes.
-    > * control node will always be `ansible_connection = local`, Don't update the control node
-    > * For single node installation, control and leader nodes can be same or different
+    > * The above information is used by ansible to establish ssh connection to the nodes.
+    > * control node will always be `ansible_connection=local`, **don't update the control node's information**
+    > * To deploy EII in single , `ansible_connection=local` and `ansible_host=localhost`
     > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
 ### Updating docker registry details in hosts file
 
-Update the below information for using docker registry for deploying the images from control node to other nodes in multi node scenario.
+Update the below information for using docker registry for deploying the images from control node to other nodes in multi node deployment.
 
 1. Open the `hosts` file.
     ```sh
         $ vi hosts
     ```
 2. Update `docker` registry details in following section
-    ```yml
+    ``` sh
         [targets:vars]
         # Varibles to login to docker registry
         docker_registry="<regsitry_url>"
@@ -145,7 +146,7 @@ Update the below information for using docker registry for deploying the images 
         docker_login_passwd="<password>"
     ```
     > **Note**:
-    >    1. If you `registry` is a no password  registry, not required to update the `docker_login_user` & `docker_login_passwd` details.
+    >    1. If the `registry` is a no password  registry, not required to update the `docker_login_user` & `docker_login_passwd` details.
 
 ### Steps to encrypt `hosts` file using Password
 
@@ -167,6 +168,31 @@ Update the below information for using docker registry for deploying the images 
     ```
     >**Note:** This password should be remembered for decrypting the file & also using with ansible-playbook.
     
+### Steps to execute ansible playbook with `Encrypted hosts` file
+
+> **Note**
+> Ansible `hosts` file can be encrypted using `ansible-vault` utility with a password.
+> Encrypted `hosts` file can be decrypted while executing playbook using `--ask-vault-pass` argument.
+
+* For running playbook with encrypted `hosts` file. 
+    ```sh
+    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
+    ```
+    **Note:** The above step prompts password. The password should be the same used to `encrypt` the `hosts` file.
+For Eg:
+
+>* For using encrypted `hosts` file
+>    ```sh
+>    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
+>    ```
+>
+>  
+>* For using Unencrypted `hosts` file
+>    ```sh
+>    $   ansible-playbook -i hosts eii.yml
+>    ```
+>
+
 ### Steps to decrypt `hosts` file using Password
 
     **Note** This steps is required to decrypt the `hosts` file in to human readable format. 
@@ -196,18 +222,19 @@ Update the below information for using docker registry for deploying the images 
     ```
 2. Update Proxy Settings
     ```sh
+        enable_system_proxy: true
         http_proxy: <proxy_server_details>
         https_proxy: <proxy_server_details>
         no_proxy: <managed_node ip>,<controller node ip>,<worker nodes ip>,localhost,127.0.0.1
     ```
-3. Update the `usecase` variable, based on this `builder.py` generates the EII deployment & config files.
-    **Note** By default it will be `video`, For other usecases refer the `build/usecases` folder and update only names without `.yml` extension
+3. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
+    **Note** By default it will be `video-streaming`, For other usecases refer the `../usecases` folder and update only names without `.yml` extension
     
-    For Eg. If you want build & deploy for `build/usecases/video.yml` update the `usecase` key value as `video`
+    For Eg. If you want build & deploy for `../usecases/video.yml` update the `usecase` key value as `video`
     ```sh
         usecase: <video>
     ```
-4. Optionally you can choose number of video pipeline instances to be created by updating `instances`
+4. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
 
 5. Set `multi_node` to `true` to enable multinode deployment without k8s and `false` to enable single node deployment. Update `vars/vars.yml` to the services to run on a specific node in case of multi_node deployment by following [this](#Select-EII-services-to-run-on-a-particular-node-in-multinode-deployment), where in single node deployment all the services based on the `usecase` chosen will be deployed. 
 
@@ -217,7 +244,7 @@ Update the below information for using docker registry for deploying the images 
 
 * Edit `vars/vars.yml` -> under `nodes` add a specific a node which was defined in the inventory file(`hosts`) and add EII services to `include_services` list
 
-    Eg. if you want leader to run ia_video_ingesstion, `vars/vars.yml` should be
+    Eg. if you want leader to run ia_video_ingestion, `vars/vars.yml` should be
 
     ```yml
         nodes:
@@ -238,50 +265,43 @@ Update the below information for using docker registry for deploying the images 
             - ia_visualizer
     ```
 
+> **Note**: If a service is not added to `include_services` list, that service will not deployed on a particular node
 
-### Steps to execute ansible playbook with `Encrypted hosts` file
+## Information to be checked in single node deployment
+1. Set `multi_node: false` in `group_vars/all.yml`
+2. Make sure leader node's `ansible_connection` is set to `local` and `ansible_host` is set to `localhost`
+3. All the services from the usecase selected from `group_vars/all.yml` will be deployed
 
-> **Note**
-> Ansible `hosts` file can be encrypted using `ansible-vault` utility with a password.
-> Encrypted `hosts` file can be decrypted while executing playbook using `--ask-vault-pass` argument.
+## Information to be checked in multi node deployment
+1. Set `multi_node: true` in `group_vars/all.yml`
+2. Update `docker_registry` and `build` flags
+    * Update `docker_registry` details to use docker images from registry, optionally set `build: true` to push docker images to the registry
+    * Unset `docker_registry` details if you don't want to use registry and set `build: true` to save and load docker images from one node to another node
+4. If you have latest images available in all nodes, set `build: false` and unset `docker_registry` details
 
-* For running playbook with encrypted `hosts` file. 
-    ```sh
-    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
-    ```
-    **Note:** The above step prompts password. The password should be the same used to `encrypt` the `hosts` file.
-For Eg:
+## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes
 
->* For using encrypted `hosts` file
->    ```sh
->    $ ansible-playbook -i hosts eii.yml --ask-vault-pass
->    ```
->
->  
->* For using Unencrypted `hosts` file
->    ```sh
->    $   ansible-playbook -i hosts eii.yml
->    ```
->
+ > **Note**: Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
 
-## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node}
+**For Single Point of Execution**
 
-*  For Single Point of Execution
    > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup leader node for multinode deployement usecase in one shot sequentialy.
-    > * Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
+    > * 
+
 
     ```sh
     $ ansible-playbook -i hosts eii.yml
     ```
   
- > **Note**: Below steps are the individual execution of setups.
+ **Below steps are the individual execution of setups.**
+
 * For EII Prequisite Setup
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "prerequisites"
     ```
  
-* For building EII containers
+* To generate builder and config files, build images and push to registry
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "build"
@@ -298,7 +318,7 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "gen_leader_provision_bundle"
     ```
 
-* To generate provision bundle for worker
+* To generate provision bundle for worker nodes
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "gen_worker_provision_bundle"
@@ -310,13 +330,13 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "gen_bundles"
     ```
 
-* provision leader and bring up ETCD server
+* Provision leader and bring up ETCD server
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "leader_provision"
     ```
 
-* provision worker node
+* Provision worker node
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "worker_provsion"
@@ -327,14 +347,11 @@ For Eg:
     $ ansible-playbook -i hosts eii.yml --tags "etcd_provision"
     ```
 
-* To generate eii bundles for leader, worker nodes
+* To generate deploy selected services to leader, worker nodes
 
     ```sh
     $ ansible-playbook -i hosts eii.yml --tags "deploy"
     ```
-
-    > **Note**: 
-    > * To skip running a particular tag permenantly update `ansible.cfg` under `[tags]` section
 
 ### Deploying EII Using Helm in Kubernetes (k8s) environment
 
