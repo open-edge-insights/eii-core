@@ -41,7 +41,7 @@ DOCKER_GPG_KEY="0EBFCD88"
 PROXY_EXIST="no"
 
 REQ_DOCKER_COMPOSE_VERSION=1.24.0
-REQ_DOCKER_VERSION=19.03.8
+REQ_DOCKER_VERSION=20.10.6
 
 #------------------------------------------------------------------------------
 # system_info

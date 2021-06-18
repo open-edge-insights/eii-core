@@ -53,6 +53,11 @@ For time-series ingestion and analytics, a 2GB RAM is sufficient.
 The EII is validated on Ubuntu 18.04 and though it can run on other platforms supporting docker, it is not recommended.
 
 # EII Prerequisites installation
+
+> **Note**
+>   * Recommended `Docker CLI & Daemon version` is `20.10.6`
+>   * Recommended `docker-compose version` is `1.24.0`
+
 The installer script automates the installation & configuration of all the prerequisite software needed to be installed on a system with a freshly installed Operating system to make the system ready for provisioning, building and running EII stack. These pre-requisite softwares include:
 1. **docker daemon**
 2. **docker client**
