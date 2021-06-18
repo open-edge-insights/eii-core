@@ -21,7 +21,7 @@
 
 # This will be passed as an argument to builder.py to generate required services files. default: video
 # If usercase: video, this would generate builder files for build/usecases/video.yml
-usecase: "video"
+usecase: "video-streaming"
 
 # Optional number of video pipeline instances to be created, default is 1
 instances: 1
@@ -32,6 +32,7 @@ multi_node: false
 
 # set build to false to skip docker build, push
 # default docker images from docker hub will be used
+# Set the build to true for saving & loading images to all nodes to use without registry, when you have enabled multi_node as true.
 build: true
 
 ## ENV Variable Update

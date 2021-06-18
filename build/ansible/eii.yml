@@ -20,6 +20,20 @@
 # SOFTWARE.
 
 # Executes roles in all nodes
+
+- hosts: control
+  pre_tasks:
+    - name: "Get the Hostnode timeZone"
+      shell: timedatectl | grep "zone" | awk '{print $3}'
+      register: controlnodetimezone
+      tags:
+        - always
+
+    - name: "Setting Fact of the timezone"
+      set_fact: controlnodetimezone="{{ controlnodetimezone.stdout }}"
+      tags:
+        - always
+
 - hosts: all
   pre_tasks:
     - name: "Getting Current user name"
@@ -50,9 +64,15 @@
           - always
       - meta: end_play
 
+    - name: Setting NTP to False
+      become: yes
+      shell: "timedatectl set-ntp false"
+      tags:
+        - always
+
     - name: "Set control node time to all nodes"
       become: yes
-      shell: "date --set=\"{{ hostvars['control']['ansible_date_time']['date'] }} {{ hostvars['control']['ansible_date_time']['time'] }}\" "
+      shell: "timedatectl set-time  \"{{ hostvars['control']['ansible_date_time']['date'] }} {{ hostvars['control']['ansible_date_time']['time'] }} {{ hostvars['control']['controlnodetimezone'] }}\" "
       tags:
         - always
 

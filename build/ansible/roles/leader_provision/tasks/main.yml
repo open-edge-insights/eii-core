@@ -64,11 +64,3 @@
 - debug:
     msg: "Status of docker login, {{ command_out.stdout }}"
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
-  
-- name: "Pushing Etcd Container to the registry {{ docker_registry }}"
-  shell: "docker push {{ docker_registry }}ia_etcd:{{ EII_VERSION }}"
-  args:
-    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
-  register: command_out
-  when: docker_registry != ""
-

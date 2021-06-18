@@ -40,17 +40,20 @@
     chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
   register: command_out
 
+# This task load the docker containers to the deployment nodes when multi_node and build flag set to true.
+# If docker_registry is set, docker load task will not be executed
+# if build is set to false and multi_node is set to true, then also this task will not be executed
 - name: docker load
   become: yes
   shell: " python3 docker_load.py -dl"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
   register: command_out
-  when: multi_node == true and docker_registry == ""
+  when: multi_node == true and docker_registry == "" and build == true
 
 - debug:
     msg: "{{ command_out.stdout }}"
-  when: multi_node == true and docker_registry == ""
+  when: multi_node == true and docker_registry == "" and build == true
 
 - name: docker login
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"

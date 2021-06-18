@@ -29,7 +29,7 @@
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
   loop: "{{ query('dict', nodes) }}"
-  when: multi_node == true and docker_registry != ""
+  when: multi_node == true
 
 - name: Generate eii_bundle, docker save for multi node deployment
   become: yes
@@ -45,4 +45,3 @@
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build/deploy"
   when: multi_node == false
-  
