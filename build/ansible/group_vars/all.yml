@@ -35,6 +35,9 @@ multi_node: false
 # Set to false to use default images from docker hub
 build: true
 
+# Set to true to build docker conatiners with --no-cache option
+no_cache: false
+
 ## ENV Variable Update
 DEV_MODE: false
 
