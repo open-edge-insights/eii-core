@@ -8,14 +8,14 @@ For deployment of EII, helm charts are provided for both provision and deploymen
 
 ## Pre requisites
 
-For preparing the necessary files required for the provision and deployment, user needs to execute the build and provision steps on an Ubuntu 18.04 machine.
+For preparing the necessary files required for the provision and deployment, user needs to execute the build and provision steps on an Ubuntu 18.04 / 20.04 machine.
 Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build and Run EII mentioned in [README.md](../../README.md) on the Ubuntu dev machine.
 
   > **Note**:
  
-  > Provisioning step can be done for a normal single node deployment without k8s. This step is executed only for getting the Certificates generated.
-
   > K8s installation on single or multi node should be done as pre-requisite to continue the following deployment.
+  
+  > builder.py need to be executed with the preferred usecase for generating the consolidated helm charts for the provisioning and deployment.
 
   > For helm installation refer [helm website](https://helm.sh/docs/intro/install/).
 
@@ -57,23 +57,8 @@ Copy the helm charts in helm-eii/ directory to the node.
   NAME                       READY   STATUS    RESTARTS   AGE
   ia-etcd-58866469b9-dl66k   2/2     Running   0          8s
   ```
-2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
-  ```sh
-  $ python3 builder.py
-  ```
-> **Note**:
-> If user wants to include only a certain number of services in the EII stack, he can opt to provide the -f or yml_file flag of builder.py to allow only the services provided in the yml file mentioned with the -f or yml_file.
-> Example:
->```sh
->  $ python3 builder.py -f usecases/video-streaming.yml
->  ```
->
-> If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the -v or video_pipeline_instances flag of builder.
-> Example:
->```sh
->  $ python3 builder.py -v 3 -f usecases/video-streaming.yml
->  ```
-3. Install deploy helm chart
+
+2. Install deploy helm chart
   ```sh
   $ cd [WORKDIR]/IEdgeInsights/build/helm-eii/
   $ helm install eii-deploy eii-deploy/
