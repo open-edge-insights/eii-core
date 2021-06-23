@@ -64,7 +64,7 @@ def source_env(file):
                 # Checking if line has = in env
                 if "=" in line:
                     # Emulating sourcing an env
-                    key, value = line.strip().split("=")
+                    key, value = line.strip().split("=", 1)
                     os.environ[key] = value
     except Exception as err:
         print("Exception occured {}".format(err))

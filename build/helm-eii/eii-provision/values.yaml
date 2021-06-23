@@ -20,7 +20,9 @@
 
 namespace: default
 EII_VERSION:
-DOCKER_REGISTRY: 
+DOCKER_REGISTRY:
+DOCKER_USERNAME:
+DOCKER_PASSWORD:
 imagePullPolicy: IfNotPresent
 storageClassName: manual
 
