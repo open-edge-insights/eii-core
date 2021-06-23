@@ -293,6 +293,7 @@ elif [ "$2" = "--generate_certs" ] ; then
     prod_mode_gen_certs
 elif [ "$ETCD_NAME" = "leader" ]; then
     remove_eii_containers
+    install_pip_requirements
     copy_docker_compose_file
 
     echo "Clearing existing Certificates..."
