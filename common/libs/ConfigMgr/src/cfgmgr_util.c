@@ -199,6 +199,7 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                 LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
             }
             // getting the topic list and mapping multiple topics to the socket file
+            bool flag = false;
             for (size_t i=0; i < arr_len; ++i) {
                 socket_file_obj = json_config_new_from_buffer("{}");
                 if (socket_file_obj == NULL) {
@@ -209,6 +210,26 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                 if (topics == NULL) {
                     LOG_ERROR("Failed to fetch topic at %d", i);
                     goto err;
+                }
+
+                // flag is set to 1 in the last iteration for adding "":socketfile mapping which looks like:
+                //
+                //   {
+                //       "" : {
+                //               "socket_file":"sample_socket_file"
+                //            }
+                //    }
+                //
+                // Hence copying "*" string to last topic, so that the code for constructing 
+                // config when topic is "*" can be re-used
+                if (flag) {
+                    const char* topic_star = "*";
+                    int len = strlen(topic_star);
+                    ret = strncpy_s(topics->body.string, len + 1, topic_star, len);
+                    if (ret != 0) {
+                        LOG_ERROR_0("String copy (strncpy_s) failed for \"*\" ");
+                        goto err;
+                    }
                 }
 
                 strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
@@ -254,7 +275,7 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                         }
                     }
                 }
-                socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);;
+                socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);
                 if (socket_file_obj_cvt == NULL) {
                     LOG_ERROR_0("socket_file_obj_cvt initialization failed");
                     goto err;
@@ -270,6 +291,14 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                     if (!config_set_result) {
                         LOG_ERROR("Unable to set config value");
                         goto err;
+                    }
+
+                    if (i == (arr_len - 1 )) {
+                        // iterating the loop again when all the topics-socketfile mapping
+                        // have been added and need to add empty topic-socketfile in the end
+                        // of the config file.
+                        i--;
+                        flag = true;
                     }
                 }
             }
