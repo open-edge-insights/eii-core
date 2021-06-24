@@ -1028,7 +1028,7 @@ def yaml_parser(args):
     # provision the node to run EII
     $ cd provision && sudo ./provision.sh ../docker-compose.yml
     # For building EII services
-    $ docker-compose -f docker-compose-build.yml build
+    $ cd .. && docker-compose -f docker-compose-build.yml build
     # For running EII services
     $ docker-compose up -d
     # For pushing EII docker images to registry
