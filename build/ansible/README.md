@@ -90,6 +90,8 @@ Update `sudoers` file
     ```
 
 2. Append the following to the `sudoers` file
+   > **Note**: Please append to the last line of the `sudoers` file.
+
    ```sh
        $ <ansible_non_root_user>  ALL=(ALL:ALL) NOPASSWD: ALL
    ```
@@ -97,12 +99,17 @@ Update `sudoers` file
 
    If in control node, the current non root user is `user1`, you should append as follows
    ```sh
-      $ user1 ALL=(ALL:ALL) NOPASSWD: ALL
+      user1 ALL=(ALL:ALL) NOPASSWD: ALL
+   ```
+3. Save & Close the file
+
+4. For checking the `sudo` access for the enabled `user`, please logout and login to the session again
+   check the following command.
+   ```sh
+      $ sudo -l -U <ansible_non_root_user> 
    ```
    Now the above line authorizes `user1` user to do `sudo` operation in the control node without `PASSWORD` ask.
    > **Note**: The same procedure applies to all other nodes where ansible connection is involved.
-
-3. Save & Close the file
 
 ## Updating the leader & worker node's information for using remote hosts
 
@@ -134,9 +141,9 @@ Please follow below steps to update the details of leader/worker nodes for multi
 
 Update the below information for using docker registry for deploying the images from control node to other nodes in multi node deployment.
 
-1. Open the `hosts` file.
+1. Open the `group_vars/all.yml` file.
     ```sh
-        $ vi hosts
+        $ vi group_vars/all.yml
     ```
 2. Update `docker` registry details in following section
     ``` sh
@@ -147,7 +154,9 @@ Update the below information for using docker registry for deploying the images 
         docker_login_passwd="<password>"
     ```
     > **Note**:
-    >    1. If the `registry` is a no password  registry, not required to update the `docker_login_user` & `docker_login_passwd` details.
+    >   Add docker_registry for any private hosted registry other than hub.docker.com.
+    >   docker_login_user and docker_login_passwd can be provided for secured private registry or for non-public images in docker hub.
+
 
 ## Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables
 
@@ -293,6 +302,8 @@ Below configuration changes need to be made for multi node deployment without k8
 >   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
 >   2. You need update the `k8s` leader machine as leader node in `hosts` file.
 >   3. Non `k8s` leader machine the `helm` deployment will fail.
+>   4. For `helm` deployment `ansible-multinode` parameters will not applicable, Since
+>   node selection & pod selection will be done by `k8s` orchestrator.
 
 * Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
     *   Open `group_vars/all.yml` file

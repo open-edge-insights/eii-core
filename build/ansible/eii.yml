@@ -77,14 +77,14 @@
         - always
 
   roles:
-    - role: prerequisites
-      tags: [prerequisites]
+    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname == 'control' }
+    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname != 'control' and multi_node == true }
 
   tasks:
     - name: Remove deploy bundles
       become: yes
       shell: "rm -rf {{ EII_DEPLOY_PATH }}"
-
+      tags: [deploy]
 # Executes roles only control machine
 - hosts: control
   roles:

@@ -19,6 +19,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+- name: apt install python3-distutils
+  become: yes
+  apt: name=python3-distutils state=latest
+
+- name: apt install python3-pip
+  become: yes
+  apt: name=python3-pip state=latest
+
+- name: pip3 install requirements.txt
+  shell: "pip3 install -r requirements.txt"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
 
 - name: "Generating docker-compose file & config files builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
   shell: "python3 builder.py"
@@ -82,9 +98,14 @@
   register: command_out
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
 
+- name: docker login in leader node to docker hub
+  shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
+
 - debug:
     msg: "Status of docker login, {{ command_out.stdout }}"
-  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+  when: docker_login_user != "" and docker_login_passwd != ""
 
 - debug:
     msg: "Push images to the docker_registry will take some time"
