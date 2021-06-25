@@ -157,7 +157,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
 | values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII service via helm                                                       |
-| Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII service via helm                                             
+| Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII service via helm
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
      or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
@@ -451,6 +451,8 @@ EII supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devic
 key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eii_config.json](build/provision/config/eii_config.json)
 before provisioning (or reprovision it again after the change) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](common/udfs/README.md).
+
+**Note**: There is an initial delay of upto ~30s while running inference on `GPU` (only for the first frame) as dynamically certain packages get created during runtime.
 
 * For actual deployment in case USB camera is required then mount the device node of the USB camera for `ia_video_ingestion` service. When multiple USB cameras are connected to host m/c the required camera should be identified with the device node and mounted.
 
