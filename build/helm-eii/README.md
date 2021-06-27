@@ -19,6 +19,23 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
 
   > For helm installation refer [helm website](https://helm.sh/docs/intro/install/).
 
+  > **Note**:
+  > To run eii services with helm in fresh system where EII services are going to run for the first time(no eiiuser is present on that system), user needs to run below steps:
+  > 1. Create eii user if not exists:
+  >```sh
+  >  $ set -a
+  >  $ source ../.env
+  >  $ set +a
+  >  $ groupadd $EII_USER_NAME -g $EII_UID
+  >  $ useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
+  >  ```
+  > 2. Create required directory and change ownership to eiiuser
+  >```sh
+  >  $ mkdir -p $EII_INSTALL_PATH/data/influxdata
+  >  $ mkdir -p $EII_INSTALL_PATH/sockets/
+  >  $ chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
+  >  ```
+
 ## Update the helm charts directory
 
 1. Copy the docker-compose.yml, eii_config.json into the eii-provision helm chart.
