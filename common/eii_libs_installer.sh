@@ -118,6 +118,8 @@ EIIMessageBus="$CUR_DIR/libs/EIIMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 GrpcProtoPath="$CMAKE_INSTALL_PREFIX/lib"
 
+# Disabling error exit for this block for avoiding error out if package not available
+set +e
 CMAKE_EXISTS=`cmake --version`
 if [ $? -ne 0 ]; then
     log_info "----Installing cmake----"
@@ -129,6 +131,12 @@ DISTUTILS_INSTALLED=`dpkg --list|grep distutils`
 if [ $? -ne 0 ]; then
     apt-get install -y python3-distutils
 fi
+
+PIP_INSTALLED=`dpkg --list|grep python3-pip`
+if [ $? -ne 0 ]; then
+    apt-get -y install python3-pip
+fi
+set -e
 
 # Install ConfigMgr requirements
 log_info "----Installing ConfigMgr dependencies----"
