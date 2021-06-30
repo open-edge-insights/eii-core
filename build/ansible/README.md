@@ -7,6 +7,7 @@ We need one control node where ansible is installed and optional hosts. We can a
 > * Ansible can execute the tasks on control node based on the playbooks defined
 > * There are 3 types of nodes - control node where ansible must be installed, EII leader node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on leader node. Control node and EII leader node can be same.
 
+
 ## Installing Ansible on Ubuntu {Control node} 
 
 1.  Execute the following command in the identified control node machine.
@@ -15,10 +16,8 @@ We need one control node where ansible is installed and optional hosts. We can a
         $ sudo apt install software-properties-common
         $ sudo apt-add-repository --yes --update ppa:ansible/ansible
         $ sudo apt install ansible
-
-        # To make ssh connection from control node to other nodes
-        $ sudo apt install sshpass
     ```
+
 
 ## Prerequisite step needed for all the control/worker nodes.
 ### Generate SSH KEY for all nodes
@@ -56,6 +55,7 @@ The key's randomart image is:
 |       =O==.o.o  |
 +----[SHA256]-----+
 ```
+
 
 ## Adding SSH Authorized Key from control node to all the nodes
 
@@ -137,27 +137,6 @@ Please follow below steps to update the details of leader/worker nodes for multi
     > * To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
 
 
-### Updating docker registry details in hosts file
-
-Update the below information for using docker registry for deploying the images from control node to other nodes in multi node deployment.
-
-1. Open the `group_vars/all.yml` file.
-    ```sh
-        $ vi group_vars/all.yml
-    ```
-2. Update `docker` registry details in following section
-    ``` sh
-        [targets:vars]
-        # Varibles to login to docker registry
-        docker_registry="<regsitry_url>"
-        docker_login_user="<username>"
-        docker_login_passwd="<password>"
-    ```
-    > **Note**:
-    >   Add docker_registry for any private hosted registry other than hub.docker.com.
-    >   docker_login_user and docker_login_passwd can be provided for secured private registry or for non-public images in docker hub.
-
-
 ## Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables
 
 1. Open `group_vars/all.yml` file
@@ -174,15 +153,31 @@ Update the below information for using docker registry for deploying the images 
 3. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
     **Note** By default it will be `video-streaming`, For other usecases refer the `../usecases` folder and update only names without `.yml` extension
     
-    For Eg. If you want build & deploy for `../usecases/video.yml` update the `usecase` key value as `video`
+    For Eg. If you want build & deploy for `../usecases/time-series.yml` update the `usecase` key value as `time-series`
     ```sh
-        usecase: <video>
+        usecase: <time-series>
     ```
 4. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
+ 
+5. Update other optional variables provided if required
 
-5. Set `multi_node` to `true` to enable multinode deployment without k8s and `false` to enable single node deployment. Update `vars/vars.yml` to the services to run on a specific node in case of multi_node deployment by following [this](#Select-EII-services-to-run-on-a-particular-node-in-multinode-deployment), where in single node deployment all the services based on the `usecase` chosen will be deployed. 
 
-6. Update other optional variables provided if required
+## Non-orchestrated multi node deployment (without k8s)
+ 
+Below configuration changes need to be made for multi node deployment without k8s
+
+1. Set `multi_node: true` in `group_vars/all.yml` to enable multinode deployment and `false` to enable single node deployment. Update `vars/vars.yml` to the services to run on a specific node in case of multi_node deployment by following [this](#Select-EII-services-to-run-on-a-particular-node-in-multinode-deployment), where in single node deployment all the services based on the `usecase` chosen will be deployed. 
+2. Update `docker` registry details in following section if using a custom/private registry
+    ``` sh
+        docker_registry="<regsitry_url>"
+        docker_login_user="<username>"
+        docker_login_passwd="<password>"
+    ```
+    > **Note**: Use of `docker_registry` and `build` flags
+    > * Update `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
+    > * Unset `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
+3. If you are using images from docker hub, then set `build: false` and unset `docker_registry` details
+
 
 ## Select EII services to run on a particular node in multinode deployment
 
@@ -211,16 +206,6 @@ Update the below information for using docker registry for deploying the images 
 
 > **Note**: If a service is not added to `include_services` list, that service will not deployed on a particular node
 
-## Non-orchestrated multi node deployment (without k8s)
- 
-Below configuration changes need to be made for multi node deployment without k8s
-
-1. Set `multi_node: true` in `group_vars/all.yml`
-2. Use of `docker_registry` and `build` flags
-    * Update `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
-    * Unset `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
-3. If you are using images from docker hub, then set `build: false` and unset `docker_registry` details
-
 
 ## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes
 
@@ -231,9 +216,8 @@ Below configuration changes need to be made for multi node deployment without k8
    > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy & setup leader node for multinode deployement usecase in one shot sequentialy.
     > * 
 
-
     ```sh
-    $ ansible-playbook -i hosts eii.yml
+    $ ansible-playbook eii.yml
     ```
   
  **Below steps are the individual execution of setups.**
@@ -241,59 +225,59 @@ Below configuration changes need to be made for multi node deployment without k8
 * For EII Prequisite Setup
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "prerequisites"
+    $ ansible-playbook eii.yml --tags "prerequisites"
     ```
  
 * To generate builder and config files, build images and push to registry
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "build"
+    $ ansible-playbook eii.yml --tags "build"
     ```
 
 * To generate Certificates in control node
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_certs"
+    $ ansible-playbook eii.yml --tags "gen_certs"
     ```
 
 * To generate provision bundle for leader
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_leader_provision_bundle"
+    $ ansible-playbook eii.yml --tags "gen_leader_provision_bundle"
     ```
 
 * To generate provision bundle for worker nodes
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_worker_provision_bundle"
+    $ ansible-playbook eii.yml --tags "gen_worker_provision_bundle"
     ```
 
 * To generate eii bundles for leader, worker nodes
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_bundles"
+    $ ansible-playbook eii.yml --tags "gen_bundles"
     ```
 
 * Provision leader and bring up ETCD server
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "leader_provision"
+    $ ansible-playbook eii.yml --tags "leader_provision"
     ```
 
 * Provision worker node
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "worker_provsion"
+    $ ansible-playbook eii.yml --tags "worker_provsion"
     ```
 * Provision EIS Config values to etcd
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "etcd_provision"
+    $ ansible-playbook eii.yml --tags "etcd_provision"
     ```
 
 * To generate deploy selected services to leader, worker nodes
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "deploy"
+    $ ansible-playbook eii.yml --tags "deploy"
     ```
 
 ### Deploying EII Using Helm in Kubernetes (k8s) environment
@@ -323,32 +307,32 @@ Below configuration changes need to be made for multi node deployment without k8
    > **Note**: This will execute all the steps of EII as prequisite, build, provision, deploy for a usecase in one shot sequentialy.
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml
+    $ ansible-playbook eii.yml
     ```
 
 > **Note**: Below steps are the individual execution of setups.
 * For EII Prequisite Setup
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "prerequisites"
+    $ ansible-playbook eii.yml --tags "prerequisites"
     ```
 
 * For building EII containers
 
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "build"
+    $ ansible-playbook eii.yml --tags "build"
     ```
 
 * To generate Certificates in control node
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "gen_certs"
+    $ ansible-playbook eii.yml --tags "gen_certs"
     ```
 
 * Prerequisites for deploy EII using Ansible helm environment.
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "helm_k8s_prerequisites"
+    $ ansible-playbook eii.yml --tags "helm_k8s_prerequisites"
     ```
 * Provision & Deploy EII Using Ansible helm environment
     ```sh
-    $ ansible-playbook -i hosts eii.yml --tags "helm_k8s_deploy"
+    $ ansible-playbook eii.yml --tags "helm_k8s_deploy"
     ```

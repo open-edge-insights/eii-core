@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 # This will be passed as an argument to builder.py to generate required services files. default: video
-# If usercase: video, this would generate builder files for build/usecases/video.yml
+# If usercase: video-streaming, this would generate builder files for build/usecases/video-streaming.yml
 usecase: "video-streaming"
 
 # Optional number of video pipeline instances to be created, default is 1
@@ -60,6 +60,8 @@ enable_system_proxy: true
 http_proxy: ""
 https_proxy: ""
 no_proxy: ""
+
+## Below params are for advanced users and are not recommended to edit for normal deployments.
 
 # EII version number
 EII_VERSION: "2.6-RC3"
