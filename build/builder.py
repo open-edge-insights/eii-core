@@ -251,14 +251,16 @@ def create_multi_subscribe_interface(head, temp, client_type):
             # Updating EndPoint if mode is tcp
             if ":" in client["EndPoint"]:
                 ip = client["EndPoint"].split(":")[0]
-                if ip != "localhost" and ip != "127.0.0.1":
+                new_ip = None
+                if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
                     new_ip = ip + str(i+1)
                 port = client["EndPoint"].split(":")[1]
                 new_port = str(int(port)+i)
                 cli_instance["EndPoint"] = \
                     client["EndPoint"].replace(port, new_port)
-                cli_instance["EndPoint"] = \
-                    cli_instance["EndPoint"].replace(ip, new_ip)
+                if new_ip is not None:
+                    cli_instance["EndPoint"] = \
+                        cli_instance["EndPoint"].replace(ip, new_ip)
             # Appending client multi instances
             temp["interfaces"][client_type].append(cli_instance)
         # Remove existing instances
