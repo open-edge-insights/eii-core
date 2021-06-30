@@ -207,6 +207,13 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
                     port = x["EndPoint"].split(':')[1]
                     new_port = str(int(port) + (i))
                     x["EndPoint"] = x["EndPoint"].replace(port, new_port)
+                    # Update IP if it is not localhost/127.0.0.1
+                    ip = x["EndPoint"].split(":")[0]
+                    new_ip = None
+                    if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
+                        new_ip = ip + str(i+1)
+                    if new_ip is not None:
+                        x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
     return config
 
 
