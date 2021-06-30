@@ -27,7 +27,6 @@ AppContexts:
 - tools/EmbPublisher
 - tools/TimeSeriesProfiler
 - tools/DiscoverHistory
-- tools/mqtt/publisher
 - tools/JupyterNotebook
 - tools/SWTriggerUtility
 - tools/VideoProfiler
