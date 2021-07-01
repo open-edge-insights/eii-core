@@ -62,13 +62,18 @@ https_proxy: ""
 no_proxy: ""
 
 # EII version number
-EII_VERSION: "2.6-RC2"
+EII_VERSION: "2.6-RC3"
+# EII USER & EII GROUP ID
+EII_USER_NAME: "eiiuser"
+EII_UID: 5315
 
 # docker-compose version
 docker_compose_version: "1.24.0"
 
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
+## EII Install path
+EII_INSTALL_PATH: "/opt/intel/eii/"
 ## EII Deploy path
 EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
 ## Enable this to true, if you want retain the certificates in k8s leader machine

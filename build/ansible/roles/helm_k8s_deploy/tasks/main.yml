@@ -22,6 +22,40 @@
 - debug:
     msg: "Installing Helm base in K8s leader node"
 
+- name: Ensure group "{{ EII_USER_NAME }}" exists with correct gid "{{ EII_UID }}"
+  become: yes
+  ansible.builtin.group:
+    name: "{{ EII_USER_NAME }}"
+    gid: "{{ EII_UID }}"
+    state: present
+
+- name: Ensure user "{{ EII_USER_NAME }}" exists with correct uid "{{ EII_UID }}"
+  become: yes
+  ansible.builtin.user:
+    name: "{{ EII_USER_NAME }}"
+    uid: "{{ EII_UID }}"
+    group: "{{ EII_USER_NAME }}"
+    state: present
+
+- name: Create EII Installation {{ EII_INSTALL_PATH }}/data/influxdata directory if it does not exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/data/influxdata"
+    state: directory
+
+- name: Create EII Installation {{ EII_INSTALL_PATH }}/sockets directory if it does not exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/sockets"
+    state: directory
+
+- name: Updating User & Group OWnership for {{ EII_INSTALL_PATH }} directory for {{ EII_USER_NAME }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}"
+    owner: "{{ EII_USER_NAME }}"
+    group: "{{ EII_USER_NAME }}"
+
 - name: "Adding helm key"
   become: yes
   shell: "curl https://baltocdn.com/helm/signing.asc | sudo apt-key add - && sudo apt-get install apt-transport-https --yes"
