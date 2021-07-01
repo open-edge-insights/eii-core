@@ -53,9 +53,8 @@ Follow below steps:
 * Building EII images and pushing the same to docker registry.
 
       ```sh
-      docker-compose build
-      docker-compose push
-
+      docker-compose -f docker-compose-build.yml build
+      docker-compose -f docker-compose-push.yml push
       ```
 
 > **NOTE**: Please copy only build folder on node on which EII is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
@@ -103,8 +102,8 @@ Follow below steps:
 
 ```
     # commands to be executed on worker node.
-    $ tar -xvzf provisioning.tar.gz
-    $ cd provisioning/provision/
+    $ tar -xvzf worker_provisioning.tar.gz
+    $ cd worker_provisioning/provision/
     $ sudo ./provision.sh
 ```
 

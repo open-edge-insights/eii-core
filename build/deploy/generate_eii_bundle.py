@@ -288,6 +288,7 @@ class EiiBundleGenerator:
             self.generate_docker_composeyml()
             if args.provisioning:
                 self.generate_provision_bundle()
+                sys.exit(0)
             self.add_docker_save_option(args.docker_save, args.docker_load)
             self.generate_eii_bundle()
 
