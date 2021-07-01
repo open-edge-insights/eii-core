@@ -1020,6 +1020,9 @@ err:
     if (config_value_cr != NULL) {
         free(config_value_cr);
     }
+    if (zmq_tcp_publish != NULL) {
+        config_value_destroy(zmq_tcp_publish);
+    }
     if (publish_config_type != NULL) {
         config_value_destroy(publish_config_type);
     }

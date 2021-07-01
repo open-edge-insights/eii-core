@@ -99,7 +99,6 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
     }
 
     if (json_endpoint->type == CVT_OBJECT) {
-
         socketdir_cvt = config_value_object_get(json_endpoint, "SocketDir");
         if (socketdir_cvt == NULL || socketdir_cvt->body.string == NULL) {
             LOG_ERROR_0("socketdir_cvt initialization failed");
@@ -111,16 +110,25 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
             goto err;
         }
 
-        if (sock_dir != NULL) {
-            LOG_DEBUG_0("Re-assign the sock_dir with new allocation, hence freeing the old one.");
-            free(sock_dir);
+        ret = strncpy_s(sock_dir, strlen(socketdir_cvt->body.string) + 1, socketdir_cvt->body.string, strlen(socketdir_cvt->body.string));
+        if (ret != 0) {
+            LOG_ERROR("String copy failed (errno: %d): Failed to copy data \" %s \" to socket directory", ret, socketdir_cvt->body.string);
+            goto err;
         }
 
-        sock_dir = socketdir_cvt->body.string;
-
+        sock_file = (char*) malloc(MAX_CONFIG_KEY_LENGTH);
+        if (sock_file == NULL) {
+            LOG_ERROR_0("Malloc failed for sock_file");
+            goto err;
+        }
+    
         strcmp_s(socketfile_cvt->body.string, strlen(socketfile_cvt->body.string), "*", &ret);
         if (ret != 0) {
-            sock_file = socketfile_cvt->body.string;
+            ret = strncpy_s(sock_file, strlen(socketfile_cvt->body.string) + 1, socketfile_cvt->body.string, strlen(socketfile_cvt->body.string));
+            if (ret != 0) {
+                LOG_ERROR("String copy failed (errno: %d): Failed to copy data \" %s \" to socket file", ret, socketfile_cvt->body.string);
+                goto err;
+            }
         }
     } else {
         char* data = NULL;
@@ -188,18 +196,25 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
         LOG_INFO("socket_ep file explicitly given by application");
         // For Publisher & Subscriber use case
         if (type != CFGMGR_SERVER && type != CFGMGR_CLIENT) {
-            topics_list = config_value_object_get(config, "Topics");
-            if (topics_list == NULL) {
-                LOG_ERROR_0("topics_list initialization failed");
-                goto err;
-            }
-
             size_t arr_len = config_value_array_len(topics_list);
             if (arr_len == 0) {
                 LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
             }
+
+             sock_file_cvt = config_value_new_string(sock_file);
+            if (sock_file_cvt == NULL) {
+                LOG_ERROR_0("sock_file_cvt initialization failed");
+                goto err;
+            }
+
+            brokered_value = config_value_object_get(config, BROKERED);
+            if (brokered_value == NULL) {
+                LOG_DEBUG_0("Broker is not used.");
+            }
+
             // getting the topic list and mapping multiple topics to the socket file
             bool flag = false;
+            config_value_t* socket_file_obj_cvt_temp = NULL;
             for (size_t i=0; i < arr_len; ++i) {
                 socket_file_obj = json_config_new_from_buffer("{}");
                 if (socket_file_obj == NULL) {
@@ -234,17 +249,11 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
 
                 strcmp_s(topics->body.string, strlen(topics->body.string), "*", &ret);
 
-                sock_file_cvt = config_value_new_string(sock_file);
-                if (sock_file_cvt == NULL) {
-                    LOG_ERROR_0("sock_file_cvt initialization failed");
-                    goto err;
-                }
                 config_set_result = config_set(socket_file_obj, SOCKET_FILE, sock_file_cvt);
                 if (!config_set_result) {
                     LOG_ERROR("Unable to set config value");
                 }
                 // Adding brokered value if available
-                brokered_value = config_value_object_get(config, BROKERED);
                 if (brokered_value != NULL) {
                     if (brokered_value->type != CVT_BOOLEAN) {
                         LOG_ERROR_0("brokered_value type is not boolean");
@@ -275,19 +284,19 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                         }
                     }
                 }
-                socket_file_obj_cvt = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);
-                if (socket_file_obj_cvt == NULL) {
-                    LOG_ERROR_0("socket_file_obj_cvt initialization failed");
+                socket_file_obj_cvt_temp = config_value_new_object(socket_file_obj->cfg, get_config_value, NULL);
+                if (socket_file_obj_cvt_temp == NULL) {
+                    LOG_ERROR_0("socket_file_obj_cvt_temp initialization failed");
                     goto err;
                 }
                 if (ret == 0) {
-                    config_set_result = config_set(c_json, "", socket_file_obj_cvt);
+                    config_set_result = config_set(c_json, "", socket_file_obj_cvt_temp);
                     if (!config_set_result) {
                         LOG_ERROR("Unable to set config value");
                         goto err;
                     }
                 } else {
-                    config_set_result = config_set(c_json, topics->body.string, socket_file_obj_cvt);
+                    config_set_result = config_set(c_json, topics->body.string, socket_file_obj_cvt_temp);
                     if (!config_set_result) {
                         LOG_ERROR("Unable to set config value");
                         goto err;
@@ -300,6 +309,13 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                         i--;
                         flag = true;
                     }
+                }
+
+                if (socket_file_obj_cvt_temp != NULL){
+                    config_value_destroy(socket_file_obj_cvt_temp);
+                }
+                if (topics != NULL){
+                    config_value_destroy(topics);
                 }
             }
         } else {
@@ -396,6 +412,25 @@ err:
     }
     if (sock_dir_cvt != NULL) {
         config_value_destroy(sock_dir_cvt);
+    }
+
+    if (sock_file_cvt != NULL) {
+        config_value_destroy(sock_file_cvt);
+    }
+    if (socket_file_obj_cvt != NULL) {
+        config_value_destroy(socket_file_obj_cvt);
+    }
+    if (brokered_value != NULL) {
+        config_value_destroy(brokered_value);
+    }
+    if (brokered_cvt != NULL) {
+        config_value_destroy(brokered_cvt);
+    }
+    if (socketfile_cvt != NULL) {
+        config_value_destroy(socketfile_cvt);
+    }
+    if (socketdir_cvt != NULL) {
+        config_value_destroy(socketdir_cvt);
     }
     return result;
 }
@@ -563,6 +598,12 @@ bool construct_tcp_publisher_prod(char* app_name, config_t* c_json, config_t* in
     ret_val = true;
 
     err:
+        if (temp_array_value != NULL) {
+            config_value_destroy(temp_array_value);
+        }
+        if (all_clients != NULL) {
+            free_mem(all_clients);
+        }
         if (value != NULL) {
             config_value_destroy(value);
         }
@@ -698,6 +739,15 @@ bool add_keys_to_config(config_t* sub_topic, char* app_name, kv_store_client_t* 
         }
         if(sub_pri_key != NULL) {
             free(sub_pri_key);
+        }
+        if (pub_public_key_cvt != NULL){
+            config_value_destroy(pub_public_key_cvt);
+        }
+        if (sub_public_key_cvt != NULL){
+            config_value_destroy(sub_public_key_cvt);
+        }
+        if (sub_pri_key_cvt != NULL){
+            config_value_destroy(sub_pri_key_cvt);
         }
 
     return ret_val;
