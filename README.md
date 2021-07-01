@@ -56,7 +56,7 @@ The EII is validated on Ubuntu 18.04 and though it can run on other platforms su
 
 > **Note**
 >   * Recommended `Docker CLI & Daemon version` is `20.10.6`
->   * Recommended `docker-compose version` is `1.24.0`
+>   * Recommended `docker-compose version` is `1.29.0`
 
 The installer script automates the installation & configuration of all the prerequisite software needed to be installed on a system with a freshly installed Operating system to make the system ready for provisioning, building and running EII stack. These pre-requisite softwares include:
 1. **docker daemon**
@@ -69,6 +69,22 @@ If docker and/or docker-compose are already installed in the system but the inst
 
 The [build/pre_requisites.sh](build/pre_requisites.sh) script also does proxy setting configuration for both system wide proxy & docker proxy. The script prompts for the proxy address to be entered by the user, if the system is behind a proxy.
 The script also configures proxy setting system wide `/etc/environment` and for docker by taking the proxy value as user input if the system is running behind proxy. The proxy settings for `/etc/apt/apt.conf` is also set by this script to enable apt updates & installations.
+
+> **Note**:
+>  * It is recommended to install the required `docker-compose version` which is `1.29.0`. Older version of docker-compose binary less than 1.29.0 may not work with the video-usecase docker-compose.yml files. It is observed that `device_cgroup_rules` command is not supported in certain docker-compose binaries versions less than `1.29.0`.
+
+>  * If one still needs to use the older versions of docker-compose then `device_cgroup_rules` command needs to be commented in `ia_video_ingestion` and `ia_video_analytics` service which could result in limited inference and device support.
+
+    ```yaml
+        ia_video_ingestion:
+          ...
+          #device_cgroup_rules:
+            #- 'c 189:* rmw'
+            #- 'c 209:* rmw'
+
+    ```
+    After making changes to the docker-compose.yml file refer `Using builder script` section to re-run `builder.py` script before running the services using `docker-compose up`
+
 
 1. **Steps to run the installer script is as follows**:
 
@@ -457,16 +473,29 @@ check [common/udfs/README.md](common/udfs/README.md).
 * For actual deployment in case USB camera is required then mount the device node of the USB camera for `ia_video_ingestion` service. When multiple USB cameras are connected to host m/c the required camera should be identified with the device node and mounted.
 
     Eg: Mount the two USB cameras connected to the host m/c with device node as `video0` and `video1`
-    ```
+
+    ```yaml
      ia_video_ingestion:
-        ...
-        devices:
-               - "/dev/dri"
-               - "/dev/video0:/dev/video0"
-               - "/dev/video1:/dev/video1"
+       ...
+       devices:
+         - "/dev/dri"
+         - "/dev/video0:/dev/video0"
+         - "/dev/video1:/dev/video1"
     ```
 
     Note: /dev/dri is needed for Graphic drivers
+
+* **To run on MYRIAD devices**
+
+  * To run inference on `MYRIAD` device `root` user permissions needs to be used at runtime. To enable root user at runtime in either `ia_video_ingestion`, `ia_video_analytics` or any of the custom udf services add `user: root` command in the respective docker-compose.yml file.
+
+    Eg: To use `MYRAID` device in `ia_video_analytics` service refer the below example
+
+    ```yaml
+     ia_video_analytics:
+       ...
+       user: root
+    ```
 
 * **To run on HDDL devices**
 

@@ -70,7 +70,7 @@ EII_USER_NAME: "eiiuser"
 EII_UID: 5315
 
 # docker-compose version
-docker_compose_version: "1.24.0"
+docker_compose_version: "1.29.0"
 
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
