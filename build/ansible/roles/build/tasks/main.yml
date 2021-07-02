@@ -28,6 +28,7 @@
   apt: name=python3-pip state=latest
 
 - name: pip3 install requirements.txt
+  become: yes
   shell: "pip3 install -r requirements.txt"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build"

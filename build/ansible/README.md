@@ -222,6 +222,11 @@ Below configuration changes need to be made for multi node deployment without k8
   
  **Below steps are the individual execution of setups.**
 
+* Load `.env` values from template
+    ```sh
+    $ ansible-playbook eii.yml --tags "load_env"
+    ```
+
 * For EII Prequisite Setup
 
     ```sh
@@ -311,6 +316,12 @@ Below configuration changes need to be made for multi node deployment without k8
     ```
 
 > **Note**: Below steps are the individual execution of setups.
+
+* Load `.env` values from template
+    ```sh
+    $ ansible-playbook eii.yml --tags "load_env"
+    ```
+
 * For EII Prequisite Setup
 
     ```sh

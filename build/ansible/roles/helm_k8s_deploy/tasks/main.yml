@@ -22,6 +22,12 @@
 - debug:
     msg: "Installing Helm base in K8s leader node"
 
+- name: Cleaning directory {{ EII_DEPLOY_PATH }} if it exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: absent
+
 - name: Ensure group "{{ EII_USER_NAME }}" exists with correct gid "{{ EII_UID }}"
   become: yes
   ansible.builtin.group:
