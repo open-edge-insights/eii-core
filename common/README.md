@@ -4,11 +4,16 @@ This script installs all the EII libraries & their respective required dependenc
 
 ## Running the install script
 
-**Note** : The installer needs specific versions of grpc and protobuf to be installed. If these libraries are already present in the /usr/local/lib, the installation will skip build and install of these. It is recommended to remove grpc before proceeding as it can cause version conflicts.
+**Note** : 
+- The installer needs specific versions of grpc and protobuf to be installed. If these libraries are already present in the /usr/local/lib, the installation will skip build and install of these. It is recommended to remove grpc before proceeding as it can cause version conflicts.
 
 ```sh
     $ sudo apt-get remove --auto-remove --purge -y grpc
 ```
+
+- Also, make sure all the eii occurances are removed from `/usr/local/lib` and `/usr/local/include`
+
+#### Steps:
 
 1. To install all of EII libraries and their dependencies, run the command mentioned below
 

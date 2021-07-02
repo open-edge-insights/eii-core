@@ -86,11 +86,7 @@ int ConfigMgr::getNumClients() {
 
 bool ConfigMgr::isDevMode() {
     // Calling the base C cfgmgr_is_dev_mode_base API
-    int result = cfgmgr_is_dev_mode(m_cfgmgr);
-    if (result == 0) {
-        return true;
-    }
-    return false;
+    return cfgmgr_is_dev_mode(m_cfgmgr);
 }
 
 std::string ConfigMgr::getAppName() {
