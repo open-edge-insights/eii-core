@@ -99,6 +99,10 @@
   register: command_out
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
 
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
 - name: docker login in leader node to docker hub
   shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
   register: command_out
@@ -106,11 +110,11 @@
 
 - debug:
     msg: "Status of docker login, {{ command_out.stdout }}"
-  when: docker_login_user != "" and docker_login_passwd != ""
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
 
 - debug:
     msg: "Push images to the docker_registry will take some time"
-  when: multi_node == true and docker_registry != "" and build == true
+  when: docker_registry != "" and build == true
 
 - name: "Push Containers to the registry {{ docker_registry }}"
   shell: "docker-compose -f docker-compose-push.yml push"

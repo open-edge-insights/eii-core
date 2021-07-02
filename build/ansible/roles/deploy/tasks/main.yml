@@ -60,6 +60,10 @@
   register: command_out
   when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
 
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
 - name: docker login to docker hub
   shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
   register: command_out
@@ -67,7 +71,7 @@
 
 - debug:
     msg: "Status of docker login, {{ command_out.stdout }}"
-  when: docker_login_user != "" and docker_login_passwd != ""
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
 
 - name: "Executing docker-compose up for {{ usecase }} Usecase"
   shell: "docker-compose up -d"
