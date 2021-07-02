@@ -601,9 +601,6 @@ bool construct_tcp_publisher_prod(char* app_name, config_t* c_json, config_t* in
         if (temp_array_value != NULL) {
             config_value_destroy(temp_array_value);
         }
-        if (all_clients != NULL) {
-            free_mem(all_clients);
-        }
         if (value != NULL) {
             config_value_destroy(value);
         }
