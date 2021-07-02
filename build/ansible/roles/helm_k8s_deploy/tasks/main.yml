@@ -102,20 +102,6 @@
     dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
     follow: yes
 
-- name: docker login
-  shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
-  register: command_out
-  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
-
-- name: docker login to docker hub
-  shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
-  register: command_out
-  when: docker_login_user != "" and docker_login_passwd != ""
-
-- debug:
-    msg: "Status of docker login, {{ command_out.stdout }}"
-  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
-
 - name: Getting Number of Existing Helm deployments
   shell: "helm ls --all --short | wc -l"
   args:
