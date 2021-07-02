@@ -78,13 +78,13 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 The EII is now successfully deployed.
 
-## Provision and deploy mode in times switching between dev and prodmode 
+## Provision and deploy mode in times switching between dev and prodmode OR changing the usecase
 
 1. Set the DEV_MODE as "true/false" in  [.env](../.env) depending on dev or prod mode.
 
 2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
   ```sh
-  $ python3 builder.py
+  $ python3 builder.py -f usecases/<usecase>.yml
   ```
 2. Remove the etcd storage directory
   ```sh
