@@ -114,10 +114,13 @@ class EiiBundleGenerator:
             cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
             cmdlist.append(["mkdir", "-p", self.docker_images_dir])
             for service in self.config['services'].keys():
-                print("docker service to save:{} ".format(service))
+                image_name = service
+                if "openedgeinsights" in self.config['services'][service]['image']:
+                    image_name = "openedgeinsights/" + service
                 cmdlist.append(["docker", "save", "-o",
                         self.docker_images_dir + "/" + service + ".tar",
-                        service + ":" + self.eii_version])
+                        image_name + ":" + self.eii_version])
+
             if docker_load:
                 cmdlist.append(["cp", "-rf", "docker_load.py", self.bundle_tag_name])
             for cmd in cmdlist:
