@@ -239,6 +239,10 @@ Do helm install of provision and deploy charts as per previous section.
   $ cd [WORKDIR]/IEdgeInsights/build/helm-eii/gige_setup
   $ sudo -E sh ./multus_setup.sh <interface_name>
   ```
+  > **Note**: Verify `multus` pod is in `Running` state
+  > ```sh
+  >   $ kubectl get pods --all-namespaces | grep -i multus
+  > ```
 
   3. Set gige_camera to true in values.yaml
 
