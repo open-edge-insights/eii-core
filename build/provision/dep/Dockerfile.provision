@@ -1,4 +1,4 @@
-# Copyright (c) 2020 Intel Corporation.
+# Copyright (c) 2021 Intel Corporation.
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@ COPY dep/requirements.txt .
 RUN pip3 install --user -r requirements.txt && \
     rm -rf requirements.txt
 
-FROM ${DOCKER_REGISTRY}openedgeinsights/ia_etcd:${EII_VERSION} as ia_etcd
+FROM openedgeinsights/ia_etcd:${EII_VERSION} as ia_etcd
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
 
 # Setting python runtime
