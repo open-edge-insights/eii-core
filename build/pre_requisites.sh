@@ -220,25 +220,27 @@ change_file_permissions()
 endOfScript()
 {
     echo "${GREEN}>>>>>${NC}"
-	echo "${GREEN}====================================================================="
-	echo "${GREEN}============= All pre-requisites are successfully installed ========="
-    echo "${GREEN}============= SYSTEM NEEDS TO REBOOT NOW TO APPLY CHANGES TO SYSTEM WIDE ENVIRONMENTAL VARIABLES INCLUDING SYSTEM PROXY & APT PROXY ========="
-    echo "Please choose either 1 for 'sript to reboot system' or press any other key if you don't want script to reboot." 
-    echo "1) Yes, reboot"
-    echo "Any other key) No, system not to be rebooted now"
+        echo "${GREEN}====================================================================="
+        echo "${GREEN}============= All pre-requisites are successfully installed ========="
+    echo "${GREEN}============= SYSTEM NEEDS A RE-LOGIN NOW TO APPLY CHANGES TO SYSTEM WIDE ENVIRONMENTAL VARIABLES INCLUDING SYSTEM PROXY & APT PROXY ========="
+    echo "Please choose either 1 for 'sript to re-login into the system' or press any other key if you don't want script to re-login."
+    echo "1) Yes, re-login"
+    echo "Any other key) No, system not to be re-login now"
 
     read yn
 
     case ${yn} in
         1)
             #Reboot the system
-            echo "System rebooting now"
-            reboot
+            echo "Login out of the system"
+            logout
+            echo "Login to the system"
+            login
             break;;
         *)
             echo "System did not reboot as per user choice. Kindly note that the system needs to be manually rebooted later to apply system-wide proxy & other environment settings: ${yn}"
     esac
-	echo "${GREEN}====================================================================="
+        echo "${GREEN}====================================================================="
 }
 
 
