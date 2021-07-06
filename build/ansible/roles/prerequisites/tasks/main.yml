@@ -123,12 +123,32 @@
       notify:
           - "enablestartdocker"
 
-- name: Download Docker-Compose
+- name: Uninstalling docker-compose pip library if exists
+  become: yes
+  pip:
+    name: docker-compose
+    state: absent
+    executable: pip3
+
+- name: Removing existing docker-compose {{ docker_compose_version }}
+  become: yes
+  ansible.builtin.file:
+    path: /usr/local/bin/docker-compose
+    state: absent
+
+- name: Download docker-Compose {{ docker_compose_version }}
   become: yes
   get_url:
     url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-Linux-x86_64
     dest: /usr/local/bin/docker-compose
     mode: 0755
+
+- name: Creating symbolic link docker-compose to /usr/bin
+  become: yes
+  ansible.builtin.file:
+    src: /usr/local/bin/docker-compose
+    dest: /usr/bin/docker-compose
+    state: link
 
 - name: Ensure group "docker" exists with correct gid
   become: yes
