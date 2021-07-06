@@ -574,6 +574,9 @@ check [common/udfs/README.md](common/udfs/README.md).
      [ 3831.283439] usb 3-4: SerialNumber: 03e72485
      [ 3906.460590] usb 3-4: USB disconnect, device number 11
 
+  * The below link can be referred in case user observes `global mutex initialization failed` during device initialization of NCS2 stick
+    https://www.intel.com/content/www/us/en/support/articles/000033390/boards-and-kits.html
+
 * **Troubleshooting issues for HDDL devices**
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
