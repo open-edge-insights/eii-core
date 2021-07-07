@@ -102,25 +102,55 @@
     dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
     follow: yes
 
-- name: Getting Number of Existing Helm deployments
-  shell: "helm ls --all --short | wc -l"
+- name: Getting Existing eii-deploy status
+  shell: "helm list -q | grep eii-deploy | wc -l"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
-  register: command_out
+  register: helm_eii_deploy
 
 - debug:
-    msg: "{{ command_out.stdout }}"
+    msg: "{{ helm_eii_deploy.stdout }}"
 
-- name: Stopping/Uninstalling existing Helm Chart installations/deployments
-  shell: "helm uninstall eii-provision eii-deploy"
+- name: Stopping/Uninstalling existing helm eii-deploy chart
+  shell: "helm uninstall eii-deploy"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
-  register: command_out
-  when: command_out.stdout != "0"
+  register: helm_eii_deploy_uninstall_status
+  when: helm_eii_deploy.stdout != "0"
 
-- name: Sleep for 20 seconds and continue with play
-  wait_for:
-    timeout: 20
+- name: Getting Existing eii-provision status
+  shell: "helm list -q | grep eii-provision | wc -l"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_provision
+
+- debug:
+    msg: "{{ helm_eii_provision.stdout }}"
+
+- name: Stopping/Uninstalling existing helm eii-provision chart
+  shell: "helm uninstall eii-provision"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_provision_uninstall_status
+  when: helm_eii_provision.stdout != "0"
+
+- name: Get the ia-etcd container name
+  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: get_etcd_container_name
+  when: helm_eii_provision.stdout != "0"
+
+- debug:
+    msg: "Waiting for Terminating Existing ia-etcd container"
+  when: helm_eii_provision.stdout != "0"
+
+- name: "Wait for ia-etcd container in Terminated/deleted state"
+  shell: "kubectl wait --for=delete pod/{{ get_etcd_container_name.stdout }} --timeout=60s"
+  when: helm_eii_provision.stdout != "0"
+
+- debug:
+    msg: "Old ia_etcd container is terminated succesfully"
 
 - name: "Provisioning EII Using Helm"
   shell: "helm install eii-provision eii-provision/"
@@ -131,9 +161,20 @@
 - debug:
     msg: "{{ command_out.stdout }}"
 
-- name: Sleep for 20 seconds and continue with play
-  wait_for:
-    timeout: 20
+- name: Get the ia-etcd container name
+  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: get_ia_etcd_name
+
+- debug:
+    msg: "Waiting for ia-etcd container to up"
+
+- name: "Wait for ia-etcd container to be in running state"
+  shell: "kubectl wait --for=condition=ready pod/{{ get_ia_etcd_name.stdout }} --timeout=-1s"
+
+- debug:
+    msg: "ia-etcd container is up and running fine"
 
 - name: "Deploy EII Using Helm"
   shell: "helm install eii-deploy eii-deploy/"
