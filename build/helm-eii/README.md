@@ -264,6 +264,24 @@ Do helm install of provision and deploy charts as per previous section.
   ```sh
   $ kubectl -n eii exec -it <pod_name> -- ip -d address      
   ```
+**Note:**
+ 
+ User needs to deploy as root user for MYRIAD(NCS2) device and GenICam USB3.0 interface cameras.
+
+```
+apiVersion: apps/v1
+kind: Deployment
+...
+spec:
+    ...
+    spec:
+      ...
+      containers:
+        ....
+        securityContext:
+          runAsUser: 0
+
+```
 
 ## Accessing Web Visualizer and EtcdUI
   Environment EtcdUI & WebVisualizer will be running in Following ports. 
