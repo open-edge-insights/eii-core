@@ -34,6 +34,8 @@ Edge Insights for Industrials (EII) is the framework for enabling smart manufact
 
 16. [EII Uninstaller](#eii-uninstaller)
 
+17. [Distribution of EII container images](#distribution-of-eii-container-images)
+
 # Minimum System Requirements
 
 EII software will run on the below mentioned Intel platforms:
@@ -715,3 +717,20 @@ Usage: ./eii_uninstaller.sh [-h] [-d]
     above example will delete EII containers, volumes and all the docker images having 2.4 version.
 
 ```
+
+# Distribution of EII container images
+
+EII services are available as pre-built container images in docker hub at https://hub.docker.com/orgs/openedgeinsights/repositories
+and for the ones not listed there, one needs to do the build from source before running `docker-compose up -d` command.
+
+Eg: 
+```sh
+$ cd [WORKDIR]/IEdgeInsights/build
+$ # Assuming here the `python3 builder.py` step is been executed and ia_kapacitor
+$ # service exists in the generated compose files. Also, provisioning step done
+$ docker-compose -f docker-compose-build.yml ia_kapacitor
+$ docker-compose up -d
+```
+
+Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at the above docker hub
+location which consists of source code of GPL/LGPL/AGPL components of EII stack.
