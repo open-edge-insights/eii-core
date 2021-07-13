@@ -19,10 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-
-- name: Include vars of ansible/vars/vars.yaml
-  include_vars: vars.yml
-
 - name: Generate eii_bundle for multi node deployment
   become: yes
   shell: "python3 generate_eii_bundle.py -c '{{item.value | to_json}}' -t  {{item.key}}"

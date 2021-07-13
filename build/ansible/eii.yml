@@ -36,6 +36,9 @@
 
 - hosts: all
   pre_tasks:
+    - name: Include vars of ansible/vars/vars.yaml
+      include_vars: vars.yml
+
     - name: "Getting Current user name"
       shell: "whoami"
       register: username
@@ -150,8 +153,11 @@
 # Executes roles in worker machines
 - hosts: targets[1:]
   roles:
-    - role: deploy
-      tags: [deploy]
+    - {
+        role: deploy,
+        tags: [deploy],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
 
 - hosts: control
   tags: [helm_deploy]
