@@ -39,6 +39,9 @@ def parse_args():
     a_p.add_argument('--etcd_root_key',
                      default="./Certificates/root/root_client_key.pem",
                      help='root key')
+    a_p.add_argument('--etcd_endpoints',
+                     default="127.0.0.1:2379",
+                     help='etcd_host:port')
     return a_p.parse_args()
 
 
@@ -52,16 +55,14 @@ def main():
     """
 
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
-    etcdctl_ep = os.getenv('ETCD_HOST', 'localhost') + ":" \
-        + os.getenv('ETCD_CLIENT_PORT', '2379')
     args = parse_args()
     if dev_mode:
         cmd = _execute_cmd(["./etcd/etcdctl", "get",
-                            "--endpoints", etcdctl_ep,
+                            "--endpoints", args.etcd_endpoints,
                             "--from-key", "''", "--keys-only"])
     else:
         cmd = _execute_cmd(["./etcd/etcdctl",
-                            "--endpoints", etcdctl_ep,
+                            "--endpoints", args.etcd_endpoints,
                             "--cacert", args.ca_etcd,
                             "--cert", args.etcd_root_cert,
                             "--key", args.etcd_root_key, "get",
@@ -80,11 +81,11 @@ def main():
     for key in key_list:
         if dev_mode:
             cmd = _execute_cmd(["./etcd/etcdctl", "get",
-                                "--endpoints", etcdctl_ep,
+                                "--endpoints", args.etcd_endpoints,
                                 "--print-value-only", key])
         else:
             cmd = _execute_cmd(["./etcd/etcdctl",
-                                "--endpoints", etcdctl_ep,
+                                "--endpoints", args.etcd_endpoints,
                                 "--cacert", args.ca_etcd,
                                 "--cert", args.etcd_root_cert,
                                 "--key", args.etcd_root_key, "get",

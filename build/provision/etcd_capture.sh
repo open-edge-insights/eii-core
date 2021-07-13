@@ -23,7 +23,7 @@
 #Script to write back data from ETCD Cluster to JSON file.
 function helpFunction {
     echo >&2
-    echo "Usage: ./etcd_capture.sh --ca_etcd ca_certificate --etcd_root_cert root_cert --etcd_root_key root_key" >&2
+    echo "Usage: ./etcd_capture.sh --ca_etcd ca_certificate --etcd_root_cert root_cert --etcd_root_key root_key --etcd_endpoints etcd_host:port" >&2
     echo >&2
     echo "SUMMARY": >&2
     echo >&2
@@ -32,6 +32,8 @@ function helpFunction {
     echo "  --etcd_root_cert  root client certificate" >&2
     echo >&2
     echo "  --etcd_root_key  root client key" >&2
+    echo >&2
+    echo "  --etcd_endpoints  etcd_host:port" >&2
     echo >&2
     exit 1
 }
