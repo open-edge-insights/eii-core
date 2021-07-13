@@ -363,7 +363,7 @@ $ sudo -E ./provision.sh <path_to_eii_docker_compose_file> --build
 $ ./etcd_capture.sh
 ```
 
-# Build and Run EII PCB video/timeseries use cases
+# Build and Run EII video/timeseries use cases
 
   ---
   > **Note:**
@@ -372,6 +372,17 @@ $ ./etcd_capture.sh
      In [docker-compose.yml](build/docker-compose.yml) if `user: ${EII_UID}` is in publisher service, then the
      same `user: ${EII_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
+  > * If services needs to be running in multiple nodes in TCP mode of communication, msgbus subscribers and clients of `AppName` are required to configure the "EndPoint" in config.json with HOST_IP and PORT under "Subscribers/Publishers" or "Clients/Servers" interfaces section.
+  > * Make sure the PORT is being exposed in [docker-compose.yml](build/docker-compose.yml) of the respective `AppName`
+    Eg: If the `"EndPoint": <HOST_IP>:60012` is configured in `config.json`, then expose the port 60012 in [docker-compose.yml](build/docker-compose.yml) of the service `ia_video_ingestion`
+
+    ```yaml
+      ia_video_ingestion:
+        ...
+        ports:
+          - 65012:65012
+    ```
+
   ---
 
 All the below EII build and run commands needs to be executed from the `[WORKDIR]/IEdgeInsights/build/` directory.
