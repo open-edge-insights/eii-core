@@ -43,6 +43,7 @@
 #define PRIVATE_KEY "/private_key"
 
 #define MAX_CONFIG_KEY_LENGTH 250
+#define MAX_ENDPOINT_LENGTH 40
 
 #ifndef _EII_C_BASE_CFG_H
 #define _EII_C_BASE_CFG_H

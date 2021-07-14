@@ -1161,16 +1161,26 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
 
     // Overriding endpoint with SUBSCRIBER_ENDPOINT if set
     // Note: This overrides all the subscriber type if set
-    char* subscriber_ep = getenv("SUBSCRIBER_ENDPOINT");
-    if (subscriber_ep != NULL) {
-        LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_ENDPOINT");
-        if (strlen(subscriber_ep) != 0) {
-            end_point = subscriber_ep;
+    char subscriber_ep[MAX_ENDPOINT_LENGTH] = "";
+    char* sub_ep_env = getenv("SUBSCRIBER_ENDPOINT");
+    if (sub_ep_env != NULL) {
+        int ret = strncpy_s(subscriber_ep, MAX_ENDPOINT_LENGTH + 1,
+                        sub_ep_env, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR_0("failed to copy SUBSCRIBER_ENDPOINT env value");
+            goto err;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding SUBSCRIBER_ENDPOINT, and hence endpoint taking from interface ");
     }
 
+    LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_ENDPOINT");
+    if (strlen(subscriber_ep) != 0) {
+        end_point = subscriber_ep;
+        LOG_DEBUG("end_point: %s", end_point);
+    }
+
+    LOG_DEBUG("subscriber_ep: %s", subscriber_ep);
     // Overriding endpoint with SUBSCRIBER_<Name>_TYPE if set
     init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_TYPE") + 2;
     type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
@@ -1223,7 +1233,6 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             LOG_ERROR("Unable to set config value");
         }
     }
-
     if(!strcmp(type, "zmq_ipc")) {
         bool ret = get_ipc_config(c_json, sub_config, end_point, CFGMGR_SUBSCRIBER);
         if (ret == false) {
@@ -1231,25 +1240,23 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             goto err;
         }
     } else if(!strcmp(type, "zmq_tcp")) {
-
         // Fetching Topics from config
         topic_array = config_value_object_get(sub_config, TOPICS);
         if (topic_array == NULL) {
             LOG_ERROR_0("topic_array initialization failed");
             goto err;
         }
-
         size_t arr_len = config_value_array_len(topic_array);
         if(arr_len == 0){
             LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
             goto err;
         }
-
         host_port = get_host_port(end_point);
         if (host_port == NULL){
             LOG_ERROR_0("Get host and port failed");
             goto err;
         }
+        LOG_DEBUG("host_port: %s", host_port);
         host = host_port[0];
         trim(host);
         port = host_port[1];
@@ -1274,12 +1281,10 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             LOG_ERROR("%s initialization failed", PUBLISHER_APPNAME);
             goto err;
         }
-
         if(publisher_appname->type != CVT_STRING || publisher_appname->body.string == NULL){
             LOG_ERROR("PublisherAppName type mismatch or the string is NULL");
             goto err;
         }
-
         for (size_t i = 0; i < arr_len; i++) {
             // Creating empty config object
             topics = json_config_new_from_buffer("{}");
