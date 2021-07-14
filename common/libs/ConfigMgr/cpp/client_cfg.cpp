@@ -32,6 +32,16 @@ ClientCfg::ClientCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {
     m_cfgmgr_interface = cfgmgr_interface;
 }
 
+ClientCfg::ClientCfg(const ClientCfg& src) :
+    AppCfg(NULL)
+{
+    throw "This object should not be copied";
+}
+
+ClientCfg& ClientCfg::operator=(const ClientCfg& src) {
+    return *this;
+}
+
 // m_cfgmgr_interface getter
 cfgmgr_interface_t* ClientCfg::getCfg() {
     return m_cfgmgr_interface;

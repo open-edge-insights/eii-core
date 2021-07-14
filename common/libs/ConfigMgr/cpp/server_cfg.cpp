@@ -33,6 +33,16 @@ ServerCfg::ServerCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {
     m_cfgmgr_interface = cfgmgr_interface;
 }
 
+ServerCfg::ServerCfg(const ServerCfg& src) :
+    AppCfg(NULL)
+{
+    throw "This object should not be copied";
+}
+
+ServerCfg& ServerCfg::operator=(const ServerCfg& src) {
+    return *this;
+}
+
 // m_cfgmgr_interface getter
 cfgmgr_interface_t* ServerCfg::getServCfg() {
     return m_cfgmgr_interface;

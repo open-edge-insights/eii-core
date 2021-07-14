@@ -43,6 +43,14 @@ ConfigMgr::ConfigMgr() {
     }
 }
 
+ConfigMgr::ConfigMgr(const ConfigMgr& src) {
+    throw "This object should not be copied";
+}
+
+ConfigMgr& ConfigMgr::operator=(const ConfigMgr& src) {
+    return *this;
+}
+
 AppCfg* ConfigMgr::getAppConfig() {
     LOG_DEBUG_0("ConfigMgr getAppConfig  method");
     return m_app_cfg_handler;

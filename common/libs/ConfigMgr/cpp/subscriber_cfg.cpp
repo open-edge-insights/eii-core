@@ -33,6 +33,16 @@ SubscriberCfg::SubscriberCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) 
     m_cfgmgr_interface = cfgmgr_interface;
 }
 
+SubscriberCfg::SubscriberCfg(const SubscriberCfg& src) :
+    AppCfg(NULL)
+{
+    throw "This object should not be copied";
+}
+
+SubscriberCfg& SubscriberCfg::operator=(const SubscriberCfg& src) {
+    return *this;
+}
+
 // m_cfgmgr_interface getter
 cfgmgr_interface_t* SubscriberCfg::getSubCfg() {
     return m_cfgmgr_interface;

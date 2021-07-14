@@ -55,6 +55,16 @@ namespace eii {
                 // cfgmgr_ctx_t object
                 cfgmgr_ctx_t* m_cfgmgr;
 
+                /**
+                 * Private @c ConfigMgr copy constructor.
+                 */
+                ConfigMgr(const ConfigMgr& src);
+
+                /**
+                 * Private @c ConfigMgr assignment operator.
+                 */
+                ConfigMgr& operator=(const ConfigMgr& src);
+
             public:
 
                 /**

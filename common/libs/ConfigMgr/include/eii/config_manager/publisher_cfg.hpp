@@ -48,6 +48,16 @@ namespace eii {
                 // cfgmgr_interface_t object
                 cfgmgr_interface_t* m_cfgmgr_interface;
 
+                /**
+                 * Private @c PublisherCfg copy constructor.
+                 */
+                PublisherCfg(const PublisherCfg& src);
+
+                /**
+                 * Private @c PublisherCfg assignment operator.
+                 */
+                PublisherCfg& operator=(const PublisherCfg& src);
+
             public:
 
                 /**

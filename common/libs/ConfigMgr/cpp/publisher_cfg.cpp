@@ -33,6 +33,16 @@ PublisherCfg::PublisherCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {
     m_cfgmgr_interface = cfgmgr_interface;
 }
 
+PublisherCfg::PublisherCfg(const PublisherCfg& src) :
+    AppCfg(NULL)
+{
+    throw "This object should not be copied";
+}
+
+PublisherCfg& PublisherCfg::operator=(const PublisherCfg& src) {
+    return *this;
+}
+
 // m_cfgmgr_interface getter
 cfgmgr_interface_t* PublisherCfg::getPubCfg() {
     return m_cfgmgr_interface;

@@ -1815,11 +1815,12 @@ err:
     if (all_clients_cvt != NULL) {
         free(all_clients_cvt);
     }
-    // TODO: Fix double free issues
-    // when trying to free this variable
-    // if (all_clients != NULL) {
-    //     free_mem(all_clients);
-    // }
+    // Only freeing the calloc for all_clients
+    // since overall freeing of all_clients
+    // will be handled by all_clients_cvt
+    if (all_clients != NULL) {
+        free(all_clients);
+    }
     if (server_secret_key_cvt != NULL) {
         config_value_destroy(server_secret_key_cvt);
     }

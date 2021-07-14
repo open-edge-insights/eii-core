@@ -325,7 +325,7 @@ cdef class ConfigMgr:
         """
         result = cfgmgr_get_num_publishers(self.cfgmgr)
         if result == -1:
-            raise Exception("[Publisher] Failed to get number of elements from base c layer")
+            raise Exception("[Publisher] No publisher instances found")
         return result
 
     def get_num_subscribers(self):
@@ -336,7 +336,7 @@ cdef class ConfigMgr:
         """
         result = cfgmgr_get_num_subscribers(self.cfgmgr)
         if result == -1:
-            raise Exception("[Subscriber] Failed to get number of elements from base c layer")
+            raise Exception("[Subscriber] No subscriber instances found")
         return result
 
     def get_num_servers(self):
@@ -347,7 +347,7 @@ cdef class ConfigMgr:
         """
         result = cfgmgr_get_num_servers(self.cfgmgr)
         if result == -1:
-            raise Exception("[Server] Failed to get number of elements from base c layer")
+            raise Exception("[Server] No server instances found")
         return result
 
     def get_num_clients(self):
@@ -358,5 +358,5 @@ cdef class ConfigMgr:
         """
         result = cfgmgr_get_num_clients(self.cfgmgr)
         if result == -1:
-            raise Exception("[Client] Failed to get number of elements from base c layer")
+            raise Exception("[Client] No client instances found")
         return result

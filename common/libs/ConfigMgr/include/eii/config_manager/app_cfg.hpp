@@ -61,6 +61,16 @@ namespace eii {
                 // cfgmgr_ctx_t object
                 cfgmgr_ctx_t* m_cfgmgr;
 
+                /**
+                 * Private @c AppCfg copy constructor.
+                 */
+                AppCfg(const AppCfg& src);
+
+                /**
+                 * Private @c AppCfg assignment operator.
+                 */
+                AppCfg& operator=(const AppCfg& src);
+
             protected:
 
                 /**

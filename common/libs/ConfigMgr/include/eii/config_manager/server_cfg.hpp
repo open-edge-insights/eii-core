@@ -46,6 +46,16 @@ namespace eii {
 
                 // cfgmgr_interface_t object
                 cfgmgr_interface_t* m_cfgmgr_interface;
+
+                /**
+                 * Private @c ServerCfg copy constructor.
+                 */
+                ServerCfg(const ServerCfg& src);
+
+                /**
+                 * Private @c SubscriberCfg assignment operator.
+                 */
+                ServerCfg& operator=(const ServerCfg& src);
             public:
                 /**
                 * ServerCfg Constructor

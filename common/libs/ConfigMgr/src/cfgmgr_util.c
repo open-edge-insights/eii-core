@@ -607,6 +607,12 @@ bool construct_tcp_publisher_prod(char* app_name, config_t* c_json, config_t* in
         if (publisher_secret_key != NULL) {
             free(publisher_secret_key);
         }
+        // Only freeing the calloc for all_clients
+        // since overall freeing of all_clients
+        // will be handled by destroying c_json
+        if (all_clients != NULL) {
+            free(all_clients);
+        }
         if (pub_pri_key != NULL) {
             free(pub_pri_key);
         }

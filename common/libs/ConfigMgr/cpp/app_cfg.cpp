@@ -37,6 +37,14 @@ AppCfg::AppCfg(cfgmgr_ctx_t* cfgmgr) {
     m_cfgmgr = cfgmgr;
 }
 
+AppCfg::AppCfg(const AppCfg& src) {
+    throw "This object should not be copied";
+}
+
+AppCfg& AppCfg::operator=(const AppCfg& src) {
+    return *this;
+}
+
 config_t* AppCfg::getConfig() {
     m_app_config = cfgmgr_get_app_config(m_cfgmgr);
     if (m_app_config == NULL) {
