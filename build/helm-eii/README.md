@@ -95,14 +95,21 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 The EII is now successfully deployed.
 
-## Provision and deploy mode in times switching between dev and prodmode OR changing the usecase
+## Provision and deploy mode in times switching between dev and prod mode OR changing the usecase
 
 1. Set the DEV_MODE as "true/false" in  [.env](../.env) depending on dev or prod mode.
 
 2. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
   ```sh
+  $ cd [WORKDIR]/IEdgeInsights/build
   $ python3 builder.py -f usecases/<usecase>.yml
   ```
+
+> **NOTE**:
+> `ia_kapacitor` and `ia_telegraf` container images are not distributed via docker hub, so one won't be able to pull these images
+> for time-series use case upon using [../usecases/time-series.yml](../usecases/time-series.yml`) for deployment. For more details,
+> refer: [../README.md#distribution-of-eii-container-images]> (../README.md#distribution-of-eii-container-images).
+
 2. Remove the etcd storage directory
   ```sh
   $sudo rm -rf /opt/intel/eii/data/*

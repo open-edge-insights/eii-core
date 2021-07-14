@@ -10,31 +10,31 @@ Edge Insights for Industrials (EII) is the framework for enabling smart manufact
 
 4. [Provision](#provision)
 
-5. [Build / Run EII PCB Demo Example](#build-and-run-eii-pcb-demo-example)
+5. [Distribution of EII container images](#distribution-of-eii-container-images)
 
-6. [Custom Udfs](#custom-udfs)
+6. [Build / Run EII PCB Demo Example](#build-and-run-eii-pcb-demo-example)
 
-7. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-messagebus-endpoint-configuration)
+7. [Custom Udfs](#custom-udfs)
 
-8. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
+8. [Etcd Secrets and MessageBus Endpoint Configuration](#etcd-secrets-and-messagebus-endpoint-configuration)
 
-9. [Using video accelerators](#using-video-accelerators)
+9. [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
 
-10. [Time-series Analytics](#time-series-analytics)
+10. [Using video accelerators](#using-video-accelerators)
 
-11. [List of All EII services](#list-of-all-eii-services)
+11. [Time-series Analytics](#time-series-analytics)
 
-12. [EII multi node cluster provision and deployment using Turtlecreek](#eii-multi-node-cluster-provision-and-deployment-using-turtlecreek)
+12. [List of All EII services](#list-of-all-eii-services)
 
-13. [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
+13. [EII multi node cluster provision and deployment using Turtlecreek](#eii-multi-node-cluster-provision-and-deployment-using-turtlecreek)
 
-14. [EII workload orchestration using kubernetes](#eii-workload-orchestration-using-kubernetes)
+14. [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
 
-15. [Debugging options](#debugging-options)
+15. [EII workload orchestration using kubernetes](#eii-workload-orchestration-using-kubernetes)
 
-16. [EII Uninstaller](#eii-uninstaller)
+16. [Debugging options](#debugging-options)
 
-17. [Distribution of EII container images](#distribution-of-eii-container-images)
+17. [EII Uninstaller](#eii-uninstaller)
 
 # Minimum System Requirements
 
@@ -173,15 +173,18 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | ---------------------------- | ------------- |
 | docker-compose.yml           | Consolidated `docker-compose.yml` file used to launch EII docker containers in a given single node using `docker-compose` tool                                       |
 | docker-compose.override.yml  | Consolidated `docker-compose-dev.override.yml` of every app that is generated only in DEV mode for EII deployment on a given single node using `docker-compose` tool |
+| docker-compose-build.yml     | Consolidated `docker-compose-build.yml` file having EII base images and `depends_on` and `build` keys required for building EII services                             |
+| docker-compose-push.yml      | Consolidated `docker-compose-push.yml` file (same as `docker-compose.yml` file with just dummy `build` key added), used for pushing EII services to docker registry  |
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
-| values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII service via helm                                                       |
-| Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII service via helm
+| values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII services via helm                                      |
+| Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII services via helm               |
+
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
      or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
      the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
-     respective files in EII app/service directories and use Builder script to generate the conslidated ones.
+     respective files in EII app/service directories and use [build/builder.py](build/builder.py) script to generate the conslidated ones.
 
 ### 2. Using builder script
 #### * Running builder
@@ -363,7 +366,55 @@ $ sudo -E ./provision.sh <path_to_eii_docker_compose_file> --build
 $ ./etcd_capture.sh
 ```
 
-# Build and Run EII video/timeseries use cases
+# Distribution of EII container images
+
+EII services are available as pre-built container images in docker hub at https://hub.docker.com/orgs/openedgeinsights/repositories
+and for the ones not listed there, one needs to do the build from source before running `docker-compose up -d` command.
+
+Eg:
+```sh
+$ cd [WORKDIR]/IEdgeInsights/build
+$ # Base images that needs to be built
+$ docker-compose -f docker-compose-build.yml ia_eiibase
+$ docker-compose -f docker-compose-build.yml ia_common
+$ # Assuming here that the `python3 builder.py` step is been executed and ia_kapacitor
+$ # service exists in the generated compose files and also, provisioning step is done
+$ docker-compose -f docker-compose-build.yml ia_kapacitor
+$ docker-compose up -d
+```
+
+Below are the list of pre-built container images that are accessible at https://hub.docker.com/orgs/openedgeinsights/repositories:
+
+1. **Provisioning images**
+
+  * openedgeinsights/ia_etcd_provision
+  * openedgeinsights/ia_etcd
+
+2. **Common EII images applicable for video and timeseries use cases**
+
+  * openedgeinsights/ia_etcd_ui
+  * openedgeinsights/ia_influxdbconnector
+  * openedgeinsights/ia_rest_export
+  * openedgeinsights/ia_opcua_export
+
+3. **Video pipeline images**
+
+  * openedgeinsights/ia_video_ingestion
+  * openedgeinsights/ia_video_analytics
+  * openedgeinsights/ia_web_visualizer
+  * openedgeinsights/ia_visualizer
+  * openedgeinsights/ia_imagestore
+  * openedgeinsights/ia_azure_bridge
+  * openedgeinsights/ia_azure_simple_subscriber
+
+4. **Timeseries pipeline images**
+
+  * openedgeinsights/ia_grafana
+
+Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at the above docker hub
+location which consists of source code of GPL/LGPL/AGPL components of EII stack.
+
+# Build and Run EII PCB video/timeseries use cases
 
   ---
   > **Note:**
@@ -409,14 +460,20 @@ yaml file.
 
 ## Build EII stack
 
+> **NOTE**:
+>
+> 1. This step is optional if one wants to use the EII pre-built
+>    container images itself and doesn't want to build from source.
+>    For more details, refer: [Distribution of EII container images](#distribution-of-eii-container-images)
+> 2. Base EII services like ia_eiibase, ia_video_common etc., are required only at the build time and not at
+>    the runtime.
+
 Builds all EII services in the [docker-compose-build.yml](build/docker-compose-build.yml) along with the base EII services.
 
 ```sh
 $ xhost +
 $ docker-compose -f docker-compose-build.yml build
 ```
-
-> **NOTE**: Base EII services like ia_eiibase, ia_video_common etc., are required only at the build time and not at the runtime.
 
 If any of the services fails during build, it can be built using below command
 
@@ -426,15 +483,16 @@ $ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 
 ## Run EII services
 
+> **NOTE**:
+>
+> If the images tagged with EII_VERSION as in [build/.env](build/.env) does not exist locally on the system, 
+> they would be pulled if those images exist int he docker hub during `docker-compose up`.
+
 Runs all the EII services in the [docker-compose.yml](build/docker-compose.yml)
 
 ```sh
 $ docker-compose up -d
 ```
-
-> **NOTE**: The [docker-compose.yml](build/docker-compose.yml) is same as [docker-compose-build.yml](build/docker-compose-build.yml) with only difference it doesn't contain the base EII services.
-
-Please note that the first time build of EII containers may take ~70 minutes depending on the n/w speed.
 
 A successful run will open Visualizer UI with results of video analytics for all video usecases.
 
@@ -444,7 +502,6 @@ Pushes all the EII service docker images in the [docker-compose-push.yml](build/
 ```sh
 $ docker-compose -f docker-compose-push.yml push
 ```
-> **NOTE**: The [docker-compose-push.yml](build/docker-compose-push.yml) is same as [docker-compose.yml](build/docker-compose.yml) with only difference it contains the dummy **build: .** key which is required to push the EII service docker images.
 
 # Custom Udfs
 
@@ -702,6 +759,7 @@ $ pip3 install -r requirements.txt
 # EII Uninstaller
 
 The uninstaller script automates the removal of all the EII Docker configuration installed on a system. This uninstaller will perform the following tasks:
+
 1. **Stops and removes all EII running and stopped containers**
 2. **Removes all EII docker volumes**
 3. **Removes all EII docker images \[Optional\]**
@@ -728,20 +786,3 @@ Usage: ./eii_uninstaller.sh [-h] [-d]
     above example will delete EII containers, volumes and all the docker images having 2.4 version.
 
 ```
-
-# Distribution of EII container images
-
-EII services are available as pre-built container images in docker hub at https://hub.docker.com/orgs/openedgeinsights/repositories
-and for the ones not listed there, one needs to do the build from source before running `docker-compose up -d` command.
-
-Eg: 
-```sh
-$ cd [WORKDIR]/IEdgeInsights/build
-$ # Assuming here the `python3 builder.py` step is been executed and ia_kapacitor
-$ # service exists in the generated compose files. Also, provisioning step done
-$ docker-compose -f docker-compose-build.yml ia_kapacitor
-$ docker-compose up -d
-```
-
-Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at the above docker hub
-location which consists of source code of GPL/LGPL/AGPL components of EII stack.
