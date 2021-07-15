@@ -30,7 +30,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 >   4. Generating bundles to deploy EII services on new/worker nodes.
 
 
-For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `leader` node). For a leader node, ETCD_NAME in [build/.env](../.env) must be set to `leader`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Leader` node only.
+For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `leader` node). For a leader node, ETCD_NAME in [build/.env](../.env) must be set to `leader`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Leader` node only. Make sure the `date` and `time` are in sync in all nodes.
 
 Provision the Leader node using the below command,
 
@@ -57,9 +57,6 @@ Follow below steps:
       docker-compose -f docker-compose-push.yml push
       ```
 
-> **NOTE**: Please copy only build folder on node on which EII is being launched through docker-registry and make sure all build dependencies are commented/removed form docker compose file before executing below commands.
-> **NOTE**: Above commenting/removing build dependencies is not required if entire EII repo is present on the node on which EII is being launched through registry.
-
 # Step 3 Choosing the EII services to run on worker node.
 
 >Note: This deployment bundle generated can be used to provision and also to deploy EII stack on new node
@@ -81,9 +78,6 @@ Follow below steps:
 
     > 2. Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
 
-    > 3. Ensure "ia_etcd_ui" service is not added as part of "include_services" in [config.json](./config.json). EtcdUI would run only in leader node and it can be accessed from worker nodes at: http://[leader_node_ip]:7070/etcdkeeper.<br/>
-    > Follow [EtcdUI/README](../../EtcdUI/README.md) for more inofrmation.
-
 # Step 4 Provisioning the worker node
 
 ```
@@ -95,7 +89,7 @@ Follow below steps:
     $ cd build/deploy
     $ sudo python3 generate_eii_bundle.py -p
 
-    This will generate the 'provisioning.tar.gz'.
+    This will generate the 'worker_provisioning.tar.gz'.
     Do a manual copy of this bundle on worker node. And then follow below commands
     on worker node.
 ```
