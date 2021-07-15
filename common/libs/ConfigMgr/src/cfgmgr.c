@@ -32,7 +32,7 @@ config_t* create_kv_store_config() {
     char* c_type_name = NULL;
     char* c_app_name = NULL;
     char* config_manager_type = NULL;
-    char* dev_mode_var = NULL;
+    char dev_mode_var[MAX_ENDPOINT_LENGTH] = "";
     char* app_name_var = NULL;
     bool config_set_result = false;
     config_t* config = NULL;
@@ -116,12 +116,20 @@ config_t* create_kv_store_config() {
 
     // Fetching & intializing dev mode variable
     int result = 0;
-    dev_mode_var = getenv("DEV_MODE");
-    if (dev_mode_var == NULL) {
+    char* dev_mode_env = getenv("DEV_MODE");
+    if (dev_mode_env == NULL) {
         LOG_DEBUG_0("DEV_MODE env not set, defaulting to true");
         result = 0;
     } else {
         int ind_dev_mode;
+
+        ind_dev_mode = strncpy_s(dev_mode_var, MAX_ENDPOINT_LENGTH + 1,
+                        dev_mode_env, MAX_ENDPOINT_LENGTH);
+        if (ind_dev_mode != 0) {
+            LOG_ERROR_0("failed to copy DEV_MODE env value");
+            goto err;
+        }
+
         strcmp_s(dev_mode_var, strlen(dev_mode_var), "", &ind_dev_mode);
         if (ind_dev_mode == 0) {
             LOG_DEBUG_0("DEV_MODE env is set to empty, defaulting to true");
@@ -311,12 +319,6 @@ err:
     }
     if (config_manager_type != NULL) {
         free(config_manager_type);
-    }
-    if (dev_mode_var != NULL) {
-        free(dev_mode_var);
-    }
-    if (app_name_var != NULL) {
-        free(app_name_var);
     }
     if (config != NULL) {
         config_destroy(config);
@@ -831,11 +833,20 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
+    char publisher_ep[MAX_ENDPOINT_LENGTH] = "";
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
-        if (strlen(ep_override) != 0) {
+
+        int ret = strncpy_s(publisher_ep, MAX_ENDPOINT_LENGTH + 1,
+                        ep_override, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR("failed to copy PUBLISHER_%s_ENDPOINT env value", publish_config_name->body.string);
+            goto err;
+        }
+
+        if (strlen(publisher_ep) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = ep_override;
+            end_point = publisher_ep;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -844,8 +855,16 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
 
     // Overriding endpoint with PUBLISHER_ENDPOINT if set
     // Note: This overrides all the publisher endpoints if set
-    char* publisher_ep = getenv("PUBLISHER_ENDPOINT");
-    if (publisher_ep != NULL) {
+    char* pub_ep_env  = getenv("PUBLISHER_ENDPOINT");
+    if (pub_ep_env != NULL) {
+
+        int ret = strncpy_s(publisher_ep, MAX_ENDPOINT_LENGTH + 1,
+                        pub_ep_env, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR_0("failed to copy PUBLISHER_ENDPOINT env value");
+            goto err;
+        }
+
         LOG_DEBUG_0("Overriding endpoint with PUBLISHER_ENDPOINT");
         if (strlen(publisher_ep) != 0) {
             end_point = publisher_ep;
@@ -1149,11 +1168,21 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
+
+    char subscriber_ep[MAX_ENDPOINT_LENGTH] = "";
     ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
-        if (strlen(ep_override) != 0) {
+
+        int ret = strncpy_s(subscriber_ep, MAX_ENDPOINT_LENGTH + 1,
+                        ep_override, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR("failed to copy SUBSCRIBER_%s_ENDPOINT env value", subscribe_config_name->body.string);
+            goto err;
+        }
+
+        if (strlen(subscriber_ep) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = ep_override;
+            end_point = subscriber_ep;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -1161,7 +1190,6 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
 
     // Overriding endpoint with SUBSCRIBER_ENDPOINT if set
     // Note: This overrides all the subscriber type if set
-    char subscriber_ep[MAX_ENDPOINT_LENGTH] = "";
     char* sub_ep_env = getenv("SUBSCRIBER_ENDPOINT");
     if (sub_ep_env != NULL) {
         int ret = strncpy_s(subscriber_ep, MAX_ENDPOINT_LENGTH + 1,
@@ -1177,10 +1205,8 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
     LOG_DEBUG_0("Overriding endpoint with SUBSCRIBER_ENDPOINT");
     if (strlen(subscriber_ep) != 0) {
         end_point = subscriber_ep;
-        LOG_DEBUG("end_point: %s", end_point);
     }
 
-    LOG_DEBUG("subscriber_ep: %s", subscriber_ep);
     // Overriding endpoint with SUBSCRIBER_<Name>_TYPE if set
     init_len = strlen("SUBSCRIBER_") + strlen(subscribe_config_name->body.string) + strlen("_TYPE") + 2;
     type_override_env = concat_s(init_len, 3, "SUBSCRIBER_", subscribe_config_name->body.string, "_TYPE");
@@ -1256,7 +1282,6 @@ config_t* cfgmgr_get_msgbus_config_sub(cfgmgr_interface_t* ctx) {
             LOG_ERROR_0("Get host and port failed");
             goto err;
         }
-        LOG_DEBUG("host_port: %s", host_port);
         host = host_port[0];
         trim(host);
         port = host_port[1];
@@ -1489,11 +1514,21 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
+
+    char server_ep[MAX_ENDPOINT_LENGTH] = "";
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
-        if (strlen(ep_override) != 0) {
+
+        int ret = strncpy_s(server_ep, MAX_ENDPOINT_LENGTH + 1,
+                        ep_override, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR("failed to copy SERVER_%s_ENDPOINT env value", server_name->body.string);
+            goto err;
+        }
+
+        if (strlen(server_ep) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = ep_override;
+            end_point = server_ep;
         }
     } else {
         LOG_DEBUG_0("env not set for overridding endpoint, hence endpoint is taken from interface");
@@ -1501,8 +1536,16 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
 
     // Overriding endpoint with SERVER_ENDPOINT if set
     // Note: This overrides all the server endpoints if set
-    char* server_ep = getenv("SERVER_ENDPOINT");
-    if (server_ep != NULL) {
+    char* server_ep_env = getenv("SERVER_ENDPOINT");
+    if (server_ep_env != NULL) {
+
+        int ret = strncpy_s(server_ep, MAX_ENDPOINT_LENGTH + 1,
+                        server_ep_env, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR_0("failed to copy SERVER_ENDPOINT env value");
+            goto err;
+        }
+
         LOG_DEBUG_0("Overriding endpoint with SERVER_ENDPOINT");
         if (strlen(server_ep) != 0) {
             end_point = server_ep;
@@ -1914,11 +1957,20 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
         LOG_ERROR_0("concatenation for ep_override_env failed");
         goto err;
     }
+    char client_ep[MAX_ENDPOINT_LENGTH] = "";
     char* ep_override = getenv(ep_override_env);
     if (ep_override != NULL) {
-        if (strlen(ep_override) != 0) {
+
+        int ret = strncpy_s(client_ep, MAX_ENDPOINT_LENGTH + 1,
+                        ep_override, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR("failed to copy CLIENT_%s_ENDPOINT env value", client_name->body.string);
+            goto err;
+        }
+
+        if (strlen(client_ep) != 0) {
             LOG_DEBUG("Overriding endpoint with %s", ep_override_env);
-            end_point = ep_override;
+            end_point = client_ep;
         }
     } else {
         LOG_DEBUG("env not set for overridding %s, and hence endpoint taking from interface ", ep_override_env);
@@ -1926,8 +1978,16 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
 
     // Overriding endpoint with CLIENT_ENDPOINT if set
     // Note: This overrides all the client endpoints if set
-    char* client_ep = getenv("CLIENT_ENDPOINT");
-    if (client_ep != NULL) {
+    char* client_ep_env = getenv("CLIENT_ENDPOINT");
+    if (client_ep_env != NULL) {
+
+        int ret = strncpy_s(client_ep, MAX_ENDPOINT_LENGTH + 1,
+                        client_ep_env, MAX_ENDPOINT_LENGTH);
+        if (ret != 0) {
+            LOG_ERROR_0("failed to copy CLIENT_ENDPOINT env value");
+            goto err;
+        }
+
         LOG_DEBUG_0("Overriding endpoint with CLIENT_ENDPOINT");
         if (strlen(client_ep) != 0) {
             end_point = client_ep;
@@ -2351,7 +2411,7 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
     char* env_var = NULL;
     kv_store_client_t* kv_store_client = NULL;
     config_t* kv_store_config = NULL;
-    char* dev_mode_var = NULL;
+    char dev_mode_var[MAX_MODE_LENGTH] = "";
     char* app_name_var = NULL;
 
     cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)malloc(sizeof(cfgmgr_ctx_t));
@@ -2363,8 +2423,16 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
     cfg_mgr->env_var = NULL;
 
     // Fetching & intializing dev mode variable
-    dev_mode_var = getenv("DEV_MODE");
-    if (dev_mode_var != NULL) {
+    char* dev_mode_env = getenv("DEV_MODE");
+    if (dev_mode_env != NULL) {
+
+        int ind_dev_mode = strncpy_s(dev_mode_var, MAX_ENDPOINT_LENGTH + 1,
+                        dev_mode_env, MAX_ENDPOINT_LENGTH);
+        if (ind_dev_mode != 0) {
+            LOG_ERROR_0("failed to copy SUBSCRIBER_ENDPOINT env value");
+            goto err;
+        }
+
         to_lower(dev_mode_var);
         strcmp_s(dev_mode_var, strlen(dev_mode_var), "true", &result);
     } else {
