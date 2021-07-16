@@ -30,3 +30,9 @@ AppContexts:
 - tools/JupyterNotebook
 - tools/SWTriggerUtility
 - tools/VideoProfiler
+- Samples/cpp_sample_app/publisher
+- Samples/cpp_sample_app/subscriber
+- Samples/go_sample_app/publisher
+- Samples/go_sample_app/subscriber
+- Samples/python_sample_app/publisher
+- Samples/python_sample_app/subscriber
