@@ -1,3 +1,11 @@
+**Contents**
+
+- [Troubleshooting](#troubleshooting)
+  - [Contents](#contents)
+  - [1. "host" network_mode is incompatible with port_bindings during docker-compose up](#1-host-network_mode-is-incompatible-with-port_bindings-during-docker-compose-up)
+  - [2. eii_libs_installer.sh script failing during bare-metal execution](#2-eii_libs_installersh-script-failing-during-bare-metal-execution)
+
+
 # Troubleshooting
 
 The troubleshooting guide here talks about the useful tips to address some of the EII configuration and installation issues.

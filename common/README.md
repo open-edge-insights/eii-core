@@ -1,3 +1,10 @@
+**Contents**
+
+- [eii_libs_installer](#eii_libs_installer)
+  - [Running the install script](#running-the-install-script)
+      - [Steps:](#steps)
+
+
 # eii_libs_installer
 
 This script installs all the EII libraries & their respective required dependencies.

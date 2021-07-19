@@ -1,3 +1,11 @@
+**Contents**
+
+- [ConfigMgr cpp examples](#configmgr-cpp-examples)
+  - [Pre-requisites](#pre-requisites)
+  - [Running C API examples](#running-c-api-examples)
+  - [Running Cpp API examples](#running-cpp-api-examples)
+
+
 # ConfigMgr cpp examples
 
 ## Pre-requisites

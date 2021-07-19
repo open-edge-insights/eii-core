@@ -1035,7 +1035,7 @@ def yaml_parser(args):
     Please run the below commands to bring up the EII stack:
     Run:
     # provision the node to run EII
-    $ cd provision && sudo ./provision.sh ../docker-compose.yml
+    $ cd provision && sudo -E ./provision.sh ../docker-compose.yml
     # For building EII services
     $ cd .. && docker-compose -f docker-compose-build.yml build
     # For running EII services

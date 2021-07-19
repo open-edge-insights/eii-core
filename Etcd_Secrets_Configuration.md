@@ -1,6 +1,7 @@
-# `EII Etcd Secrets and MsgBus Endpoints Configuration`
+# `EII Etcd Secrets Configuration`
 
-## `Etcd Secrets Configuration`
+Etcd Secrets configuration are done to establish the data path
+of various EII containers.
 
 The below are the ENV's that should be present in the environment section
 of every service in [docker-compose.yml](build/docker-compose.yml):
@@ -60,6 +61,7 @@ Post provisioning this secrets should be mentioned in following two places for e
   ---
 
 ## `Other X509 Certificates`
+
 If any of the Services needs to generate other X509 Certificates(pem or der format), please use below option and provisioining will generate certificates and put them in ETCD key for the App.
 
 ```

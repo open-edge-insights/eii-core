@@ -1,3 +1,9 @@
+**Contents**
+
+- [**Configuring the Host as per Docker security recommendations.**](#configuring-the-host-as-per-docker-security-recommendations)
+- [Configuring the Docker Daemon as per Docker security recommendations](#configuring-the-docker-daemon-as-per-docker-security-recommendations)
+
+
 ## **Configuring the Host as per Docker security recommendations.**
 
 **1) Ensure a separate partition for containers has been created**

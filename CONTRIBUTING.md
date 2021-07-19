@@ -1,3 +1,12 @@
+**Contents**
+
+- [Contributing to IEdgeInsights](#contributing-to-iedgeinsights)
+  - [Merge Requests](#merge-requests)
+    - [Commit and MR Hygiene](#commit-and-mr-hygiene)
+    - [Minimum requirements for a MR](#minimum-requirements-for-a-mr)
+    - [Review Process](#review-process)
+
+
 # Contributing to IEdgeInsights
 
 ## Merge Requests

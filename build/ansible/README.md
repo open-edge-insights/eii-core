@@ -1,3 +1,19 @@
+**Contents**
+
+- [Ansible based EII Prequisites setup, provisioning, build & deployment](#ansible-based-eii-prequisites-setup-provisioning-build--deployment)
+- [Installing Ansible on Ubuntu {Control node}](#installing-ansible-on-ubuntu-control-node)
+- [Prerequisite step needed for all the control/worker nodes.](#prerequisite-step-needed-for-all-the-controlworker-nodes)
+  - [Generate SSH KEY for all nodes](#generate-ssh-key-for-all-nodes)
+- [Adding SSH Authorized Key from control node to all the nodes](#adding-ssh-authorized-key-from-control-node-to-all-the-nodes)
+  - [Configure Sudoers file to accept NO PASSWORD for sudo operation.](#configure-sudoers-file-to-accept-no-password-for-sudo-operation)
+- [Updating the leader & worker node's information for using remote hosts](#updating-the-leader--worker-nodes-information-for-using-remote-hosts)
+- [Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables](#updating-the-eii-source-folder-usecase--proxy-settings-in-group-variables)
+- [Non-orchestrated multi node deployment (without k8s)](#non-orchestrated-multi-node-deployment-without-k8s)
+- [Select EII services to run on a particular node in multinode deployment](#select-eii-services-to-run-on-a-particular-node-in-multinode-deployment)
+- [Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes](#execute-ansible-playbook-from-eii_workdiriedgeinsightsbuildansible-control-node-to-deploy-eii-services-in-singlemulti-nodes)
+  - [Deploying EII Using Helm in Kubernetes (k8s) environment](#deploying-eii-using-helm-in-kubernetes-k8s-environment)
+
+
 ## Ansible based EII Prequisites setup, provisioning, build & deployment
 
 Ansible is the automation engine which can enable EII deployment across single/multi nodes.

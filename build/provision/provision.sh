@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 # Provision
-# Usage: sudo ./provision <path-of-docker-compose-file>
+# Usage: sudo -E ./provision <path-of-docker-compose-file>
 
 docker_compose=$1
 RED='\033[0;31m'
@@ -154,7 +154,7 @@ function copy_docker_compose_file() {
     # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
     if ! [ -f $docker_compose ] || [ -z $docker_compose ]; then
         log_error "Supplied docker compose file '$docker_compose' does not exists"
-        log_fatal "Usage: $ sudo ./provision.sh <path_to_eii_docker_compose_file>"
+        log_fatal "Usage: $ sudo -E ./provision.sh <path_to_eii_docker_compose_file>"
     else
         cp $docker_compose ./docker-compose.yml
     fi

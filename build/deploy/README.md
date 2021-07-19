@@ -32,16 +32,16 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 
 For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `leader` node). For a leader node, ETCD_NAME in [build/.env](../.env) must be set to `leader`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Leader` node only. Make sure the `date` and `time` are in sync in all nodes.
 
-Provision the Leader node using the below command,
+Provision the Leader node using the below command:
 
-        ```
-        $ cd [WORK_DIR]/IEdgeInsights/build/provision
-        $ sudo ./provision.sh <path_to_eii_docker_compose_file>
+```sh
+$ cd [WORK_DIR]/IEdgeInsights/build/provision
+$ sudo -E ./provision.sh <path_to_eii_docker_compose_file>
 
-        eq. $ sudo ./provision.sh ../docker-compose.yml
+$ # eq. $ sudo -E ./provision.sh ../docker-compose.yml
+```
 
-        ```
-    This creates the ETCD server (Container ia_etcd) on the leader edge node.
+This creates the ETCD server (Container ia_etcd) on the leader edge node.
 
 # Step 2 Set up Docker Registry URL then Build and Push Images
 EII Deployment on multiple node must be done using a docker registry.
@@ -98,7 +98,7 @@ Follow below steps:
     # commands to be executed on worker node.
     $ tar -xvzf worker_provisioning.tar.gz
     $ cd worker_provisioning/provision/
-    $ sudo ./provision.sh
+    $ sudo -E ./provision.sh
 ```
 
 # Step 5 Creating eii bundle for worker node

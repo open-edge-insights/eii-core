@@ -1,3 +1,10 @@
+**Contents**
+
+- [ConfigMgr python examples](#configmgr-python-examples)
+  - [Pre-requisites](#pre-requisites)
+  - [Running examples](#running-examples)
+
+
 # ConfigMgr python examples
 
 ## Pre-requisites
