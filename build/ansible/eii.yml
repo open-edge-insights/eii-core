@@ -34,6 +34,17 @@
       tags:
         - always
 
+    - name: "Getting the Hostnode Universal time"
+      shell: "timedatectl | grep 'Universal time' | awk -F 'time: ' '{print $2}'"
+      register: controlnodeuniversaltime
+      tags:
+        - always
+
+    - name: "Setting Fact of the Control Node Universal time"
+      set_fact: controlnodeuniversaltime="{{ controlnodeuniversaltime.stdout }}"
+      tags:
+        - always
+
 - hosts: all
   pre_tasks:
     - name: Include vars of ansible/vars/vars.yaml
@@ -75,7 +86,7 @@
 
     - name: "Set control node time to all nodes"
       become: yes
-      shell: "timedatectl set-time  \"{{ hostvars['control']['ansible_date_time']['date'] }} {{ hostvars['control']['ansible_date_time']['time'] }} {{ hostvars['control']['controlnodetimezone'] }}\" "
+      shell: "timedatectl set-time '{{ hostvars['control']['controlnodeuniversaltime'] }}' && timedatectl set-timezone '{{ hostvars['control']['controlnodetimezone'] }}'"
       tags:
         - always
 
