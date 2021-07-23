@@ -300,7 +300,7 @@ proxy_enabled_network()
                     \"noProxy\": \"127.0.0.1,localhost\"
                 }
             }
-        }" > ~/.docker/config.json
+        }" > $HOME/.docker/config.json
     else  # if the file already exists && also has some JSON content in it, then append the below JSON object
         HTTP_USER_PROXY="http://${USER_PROXY}"
         jq -r --arg UPROXY ${HTTP_USER_PROXY} '.proxies = {
@@ -309,9 +309,11 @@ proxy_enabled_network()
             "httpsProxy": $UPROXY,
             "noProxy": "127.0.0.1,localhost"
             }
-            }'  ~/.docker/config.json > tmp && mv tmp ~/.docker/config.json
+            }'  $HOME/.docker/config.json > tmp && mv tmp $HOME/.docker/config.json
     fi
 
+    # Change the ownership of the files in .docker file from root to current user
+    chown -R ${SUDO_USER}:docker $HOME/.docker
 
     # 2. Configure the Docker daemon for http and https proxy
     DOCKER_SERVICE_DIR="/etc/systemd/system/docker.service.d"
