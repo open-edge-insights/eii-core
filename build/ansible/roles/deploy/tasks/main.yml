@@ -34,6 +34,13 @@
     dest: "{{ EII_DEPLOY_PATH }}"
     remote_src: yes
 
+- name: Change permission of Certificates to 750
+  become: yes
+  shell: "chmod -R 0750 Certificates/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}/provision"
+  when: DEV_MODE == false
+
 - name: "Bring down all containers"
   shell: "docker-compose down"
   args:

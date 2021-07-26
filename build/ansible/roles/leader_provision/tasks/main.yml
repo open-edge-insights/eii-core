@@ -46,6 +46,13 @@
     dest: "{{ EII_DEPLOY_PATH }}"
     remote_src: yes
 
+- name: Change permission of Certificates to 750
+  become: yes
+  shell: "chmod -R 0750 Certificates/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
+  when: DEV_MODE == false
+
 - name: docker login
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
   register: command_out
