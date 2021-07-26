@@ -1,4 +1,4 @@
-# `EII Etcd Secrets Configuration`
+# EII Etcd Secrets Configuration
 
 Etcd Secrets configuration are done to establish the data path
 of various EII containers.
@@ -60,7 +60,7 @@ Post provisioning this secrets should be mentioned in following two places for e
   
   ---
 
-## `Other X509 Certificates`
+## Other X509 Certificates
 
 If any of the Services needs to generate other X509 Certificates(pem or der format), please use below option and provisioining will generate certificates and put them in ETCD key for the App.
 

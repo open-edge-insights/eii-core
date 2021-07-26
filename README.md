@@ -4,13 +4,13 @@
 - [Minimum System Requirements](#minimum-system-requirements)
 - [EII Prerequisites installation](#eii-prerequisites-installation)
 - [Generate deployment and configuration files](#generate-deployment-and-configuration-files)
-  - [1. Generating consolidated docker-compose.yml and eii_config.json files:](#1-generating-consolidated-docker-composeyml-and-eii_configjson-files)
+  - [1. Generating consolidated docker-compose.yml and eii_config.json files:](#generating-consolidated-docker-composeyml-and-eii_configjson-files)
   - [2. Using builder script](#2-using-builder-script)
-    - [2.1 Running builder to generate the above listed consolidated files for all applicable EII services](#21-running-builder-to-generate-the-above-listed-consolidated-files-for-all-applicable-eii-services)
-    - [2.2 Running builder to generate the above listed consolidated files for a subset of EII services:](#22-running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services)
-    - [2.3 Running builder to generate multi instance configs:](#23-running-builder-to-generate-multi-instance-configs)
-    - [2.4 Running builder to generate benchmarking configs:](#24-running-builder-to-generate-benchmarking-configs)
-  - [3. Adding new EII service so it gets picked up by Builder](#3-adding-new-eii-service-so-it-gets-picked-up-by-builder)
+    - [2.1 Running builder to generate the above listed consolidated files for all applicable EII services](#running-builder-to-generate-the-above-listed-consolidated-files-for-all-applicable-eii-services)
+    - [2.2 Running builder to generate the above listed consolidated files for a subset of EII services:](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services)
+    - [2.3 Running builder to generate multi instance configs:](#running-builder-to-generate-multi-instance-configs)
+    - [2.4 Running builder to generate benchmarking configs:](#running-builder-to-generate-benchmarking-configs)
+  - [3. Adding new EII service so it gets picked up by Builder](#adding-new-eii-service-so-it-gets-picked-up-by-builder)
 - [Distribution of EII container images](#distribution-of-eii-container-images)
 - [Provision](#provision)
 - [Build and Run EII video/timeseries use cases](#build-and-run-eii-videotimeseries-use-cases)
@@ -173,7 +173,7 @@ Different use cases...
 The section assumes the EII software is already downloaded from the release package or from git.
 Run all the below commands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
-## 1. Generating consolidated docker-compose.yml and eii_config.json files:
+## Generating consolidated docker-compose.yml and eii_config.json files:
 
 EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
@@ -194,7 +194,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use [build/builder.py](build/builder.py) script to generate the conslidated ones.
 
-## 2. Using builder script
+## Using builder script
 
 Builder script usage:
 
@@ -221,7 +221,7 @@ optional arguments:
 ```
 
 
-### 2.1 Running builder to generate the above listed consolidated files for all applicable EII services
+### Running builder to generate the above listed consolidated files for all applicable EII services
 
   Builder will parse the top level directories under **IEdgeInsights** to generate the above listed consolidated files.
 
@@ -229,7 +229,7 @@ optional arguments:
   $ python3 builder.py
   ```
 
-### 2.2 Running builder to generate the above listed consolidated files for a subset of EII services:
+### Running builder to generate the above listed consolidated files for a subset of EII services:
 
   This is achieved by providing a yml file to Builder as config which has list of services to include. User can mention the service name as path relative to **IEdgeInsights** or Full path to the service in the config yml file.
 
@@ -259,7 +259,7 @@ optional arguments:
 
 ----
 
-### 2.3 Running builder to generate multi instance configs:
+### Running builder to generate multi instance configs:
 
   Based on the user's requirements, builder can also generate multi-instance docker-compose.yml, config.json respectively.
 
@@ -273,7 +273,7 @@ optional arguments:
 
   > **NOTE**: This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
-### 2.4 Running builder to generate benchmarking configs:
+### Running builder to generate benchmarking configs:
 
   If user wants to provide a different set of docker-compose.yml, config.json other than the ones present in every service directory, he can opt to provide the **-d or override_directory** flag which indicates to search for these required set of files within a directory provided by the flag. For example, if user wants to pick up these files from a directory named **benchmarking**, he can run the command provided below:
 
@@ -286,7 +286,7 @@ optional arguments:
   > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [builder_config.json](build/builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [builder_config.json](build/builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
   For eg: If builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [builder_config.json](build/builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [builder_config.json](build/builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
 
-## 3. Adding new EII service so it gets picked up by Builder
+## Adding new EII service so it gets picked up by Builder
 
 > **NOTE**:
 > Please refer EII sample apps at [Samples](./Samples) written in C++, python and golang using EII Core libraries for more details on adding new EII services
