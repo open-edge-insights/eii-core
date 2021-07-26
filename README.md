@@ -617,7 +617,7 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
 
 ### **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2021.4" 
+  * Download the full package for OpenVINO toolkit for Linux version "2021.4"
     (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
     (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
     Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
@@ -627,25 +627,32 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
     2. HDDL daemon setup:
       https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
-    **NOTE**:
-    ----
-    * OpenVINO 2021.4 installation creates a symbolic link to latest installation with
-      filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+      **NOTE**:
+      ----
+      * OpenVINO 2021.4 installation creates a symbolic link to latest installation with
+        filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
 
-      ```sh
-      $ cd /opt/intel
-      $ sudo ln -s <OpenVINO latest installation> openvino
-      ```
-      Eg: sudo ln -s openvino_2021.4.394 openvino
+        ```sh
+        $ cd /opt/intel
+        $ sudo ln -s <OpenVINO latest installation> openvino
+        ```
+        Eg: sudo ln -s openvino_2021.4.582 openvino
 
-      In case there are older versions of OpenVINO installed on the host system please un-install them.
+        In case there are older versions of OpenVINO installed on the host system please un-install them.
 
-      When running on HDDL devices, the HDDL daemon should be running in a different terminal, or in the background like shown below on the host m/c.
-
+    3. Running hddldaemon:
+      Refer the below command to run the hddldaemon once the setup is done(it should run in a different terminal or in the background on the host system where inference would be done)
       ```sh
       $ source /opt/intel/openvino/bin/setupvars.sh
       $ $HDDL_INSTALL_DIR/bin/hddldaemon
+       ```
+    4. Changing ownership of hddl files on host system.
+      Before running inference with EII, ownership of hddl files should be changed to the value of `EII_USER_NAME` key set in [build/.env](build/.env).
+      Refer the below command to set the ownership of hddl files on the host system.`EII_USER_NAME=eiiuser` in [build/.env](build/.env).
       ```
+      $ sudo chown -R eiiuser /var/tmp/hddl_*
+      ```
+
     * For actual deployment one could choose to mount only the required devices for
       services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in [docker-compose.yml](build/docker-compose.yml).
 
