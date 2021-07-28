@@ -145,7 +145,9 @@ class EiiBundleGenerator:
             cmdlist.append(["mkdir", "-p", eii_cert_dir + "/ca"])
             for service in self.config['services'].keys():
                 if 'environment' not in self.config['services'][service]:
-                    break
+                    print("'environment' is not set in dokcer-compose for the service {}\
+                            ".format(service))
+                    continue
 
                 servicename =\
                     self.config['services'][service]['environment']['AppName']
@@ -179,7 +181,7 @@ class EiiBundleGenerator:
             tar_file = self.bundle_tag_name + ".tar.gz"
             cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
             cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-            if self.bundle_folder is False:
+            if self.bundle_folder == False:
                 cmdlist.append(["rm", "-rf", self.bundle_tag_name])
 
             for cmd in cmdlist:
@@ -196,7 +198,7 @@ class EiiBundleGenerator:
             it generates the bundle
         '''
         provision_tag_name = 'leader_provisioning'
-        if node is 'worker':
+        if node == 'worker':
             provision_tag_name = 'worker_provisioning'
 
         provision_dir = "./" + provision_tag_name + "/provision/"
@@ -209,7 +211,7 @@ class EiiBundleGenerator:
         cmdlist.append(["mkdir", "-p", provision_dir])
         
         try:
-            if node is 'leader':
+            if node == 'leader':
                 cmdlist.append(["mkdir", "-p", dep_dir])
                 cmdlist.append(["cp", "-f", "../provision/dep/docker-compose-etcd.yml",
                                 dep_dir])
@@ -233,7 +235,7 @@ class EiiBundleGenerator:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
 
-            if node is 'worker':
+            if node == 'worker':
                 env = open(provision_tag_name + "/.env", "r+")
                 envdata = env.read()
                 newenvdata = envdata.replace("ETCD_NAME=leader",
@@ -245,7 +247,7 @@ class EiiBundleGenerator:
             cmdlist = []
             tar_file = provision_tag_name + ".tar.gz"
             cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
-            if self.bundle_folder is False:
+            if self.bundle_folder == False:
                 cmdlist.append(["rm", "-rf", provision_tag_name])
 
             for cmd in cmdlist:
