@@ -289,9 +289,9 @@ optional arguments:
 ## Adding new EII service so it gets picked up by Builder
 
 > **NOTE**:
-> Please refer EII sample apps at [Samples](./Samples) written in C++, python and golang using EII Core libraries for more details on adding new EII services
+> Please refer EII sample apps at [Samples](https://github.com/open-edge-insights/eii-samples/blob/master/README.md) written in C++, python and golang using EII Core libraries for more details on adding new EII services
 
-Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service into the EII stack, subscribe to [VideoAnalytics](./VideoAnalytics) and publish on a new port.
+Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service into the EII stack, subscribe to [VideoAnalytics](https://github.com/open-edge-insights/video-analytics) and publish on a new port.
 
 Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json).
 
@@ -345,7 +345,7 @@ The **Publishers** value in the **interfaces** section denotes that this service
 the endpoint mentioned in value of **EndPoint** key on topics mentioned in the value of **Topics** key. The services mentioned in the value of **AllowedClients** are the only clients able to
 subscribe to the published stream if being published securely over the EIIMessageBus.
 
-Similar to above interface keys, EII services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](VideoIngestion/config.json) of VideoIngestion service and [config.json](tools/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
+Similar to above interface keys, EII services can also have "Servers" and "Clients" interface keys too. For example, check [config.json](https://github.com/open-edge-insights/video-ingestion/blob/master/config.json) of VideoIngestion service and [config.json](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/config.json) of SWTriggerUtility tool on how to use.
 
 More details on the `interfaces` key responsible for the EII MessageBus endpoint configuration
 can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces). For more details on Etcd secrets configuration, visit [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md)
@@ -401,7 +401,7 @@ location which consists of source code of GPL/LGPL/AGPL components of EII stack.
 # Provision
 
 <b>`By default EII is provisioned in Secure mode`</b>.
-
+]
 Follow below steps to provision. Provisioning must be done before deploying EII on any node. It will start ETCD as a container and load it with configuration required to run EII for single node or multi node cluster set up.
 
 Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
@@ -521,38 +521,38 @@ EII stack comes with following services, which can be included/excluded in docke
 ## Common EII services
 
 1. [EtcdUI](EtcdUI/README.md)
-2. [InfluxDBConnector](InfluxDBConnector/README.md)
-3. [OpcuaExport](OpcuaExport/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua clients
-4. [RestDataExport](RestDataExport/README.md) - Optional service to read the metadata and image blob from InfluxDBConnector and ImageStore services respectively
+2. [InfluxDBConnector](https://github.com/open-edge-insights/eii-influxdb-connector/blob/master/README.md)
+3. [OpcuaExport](https://github.com/open-edge-insights/eii-opcua-export/blob/master/README.md) - Optional service to read from VideoAnalytics container to publish data to opcua clients
+4. [RestDataExport](https://github.com/open-edge-insights/eii-rest-data-export/blob/master/README.md) - Optional service to read the metadata and image blob from InfluxDBConnector and ImageStore services respectively
 
 ## Video related services
 
-1. [VideoIngestion](VideoIngestion/README.md)
-2. [VideoAnalytics](VideoAnalytics/README.md)
-3. [Visualizer](Visualizer/README.md)
-4. [WebVisualizer](WebVisualizer/README.md)
-5. [ImageStore](ImageStore/README.md)
-6. [AzureBridge](AzureBridge/README.md)
-7. [FactoryControlApp](FactoryControlApp/README.md) - Optional service to read from VideoAnalytics container if one wants to control the light based on defective/non-defective data
+1. [VideoIngestion](https://github.com/open-edge-insights/video-ingestion/blob/master/README.md)
+2. [VideoAnalytics](https://github.com/open-edge-insights/video-analytics/blob/master/README.md)
+3. [Visualizer](https://github.com/open-edge-insights/video-native-visualizer/blob/master/README.md)
+4. [WebVisualizer](https://github.com/open-edge-insights/video-web-visualizer/blob/master/README.md)
+5. [ImageStore](https://github.com/open-edge-insights/video-imagestore/blob/master/README.md)
+6. [AzureBridge](https://github.com/open-edge-insights/eii-azure-bridge/blob/master/README.md)
+7. [FactoryControlApp](https://github.com/open-edge-insights/eii-factoryctrl/blob/master/README.md) - Optional service to read from VideoAnalytics container if one wants to control the light based on defective/non-defective data
 
 ## Timeseries related services
 
-1. [Telegraf](Telegraf/README.md)
-2. [Kapacitor](Kapacitor/README.md)
-3. [Grafana](Grafana/README.md)
-4. [ZMQ Broker](ZmqBroker/README.md)
+1. [Telegraf](https://github.com/open-edge-insights/ts-telegraf/blob/master/README.md)
+2. [Kapacitor](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
+3. [Grafana](https://github.com/open-edge-insights/ts-grafana/blob/master/README.md)
+4. [ZMQ Broker](https://github.com/open-edge-insights/eii-zmq-broker/blob/master/README.md)
 
 # Video pipeline Analytics
 ## Enable camera based Video Ingestion
 
-For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](VideoIngestion/README.md).
+For detailed description on configuring different types of cameras and  filter algorithms, refer to the [VideoIngestion/README.md](https://github.com/open-edge-insights/video-ingestion/blob/master/README.md).
 
 ## Using video accelerators in ingestion/analytics containers
 
 EII supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in `udfs`
 key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eii_config.json](build/provision/config/eii_config.json)
 before provisioning (or re-provision it again after the change to the apps config.json, re-running `builder.py` script and then re-running the provisioning script) or at run-time via EtcdUI. For more details on the udfs config,
-check [common/udfs/README.md](common/udfs/README.md).
+check [common/udfs/README.md](https://github.com/open-edge-insights/video-common/blob/master/udfs/README.md).
 
 **Note**: There is an initial delay of upto ~30s while running inference on `GPU` (only for the first frame) as dynamically certain packages get created during runtime.
 
@@ -687,11 +687,11 @@ The following are the two Custom Udfs workflow which EII supports:
 
 1. Build / Run custom udfs as standalone applications
 
-   For running custom udfs as standalone application one must download the video-custom-udfs repo and refer [CustomUdfs/README.md](CustomUdfs/README.md)
+   For running custom udfs as standalone application one must download the video-custom-udfs repo and refer [CustomUdfs/README.md](https://github.com/open-edge-insights/video-custom-udfs/blob/master/README.md)
 
 2. Build / Run custom udfs in VI or VA
 
-   For running custom udfs either in VI or VA one must refer [VideoIngestion/docs/custom_udfs_doc.md](VideoIngestion/docs/custom_udfs_doc.md)
+   For running custom udfs either in VI or VA one must refer [VideoIngestion/docs/custom_udfs_doc.md](https://github.com/open-edge-insights/video-ingestion/blob/master/docs/custom_udfs_doc.md)
 
 # Time-series Analytics
 
@@ -700,9 +700,9 @@ For time-series data, a sample analytics flow uses Telegraf for ingestion, Influ
 The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eii_config.json](build/eii_config.json) of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
-More details on enabling this mode can be referred from [Kapacitor/README.md](Kapacitor/README.md)
+More details on enabling this mode can be referred from [Kapacitor/README.md](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
 
-The sample temperature sensor can be simulated using the [tools/mqtt/README.md](tools/mqtt/README.md) application.
+The sample temperature sensor can be simulated using the [tools/mqtt/README.md](https://github.com/open-edge-insights/eii-tools/blob/master/mqtt-publisher/README.md) application.
 
 # EII multi node cluster provision and deployment
 
@@ -725,18 +725,18 @@ One of the below options could be tried out:
 
 EII stack has below set of tools which run as containers too:
 * Benchmarking
-  * [Video Benchmarking](tools/Benchmarking/video-benchmarking-tools/README.md)
-  * [Time-series Benchmarking](tools/Benchmarking/time-series-benchmarking-tools/README.md)
-* [DiscoverHistory](tools/DiscoverHistory/README.md)
-* [EmbPublisher](tools/EmbPublisher/README.md)
-* [EmbSubscriber](tools/EmbSubscriber/README.md)
-* [GigEConfig](tools/GigEConfig/README.md)
-* [HttpTestServer](tools/HttpTestServer/README.md)
-* [JupyterNotebook](tools/JupyterNotebook/README.md)
-* [mqtt](tools/mqtt/README.md)
-* [SWTriggerUtility](tools/SWTriggerUtility/README.md)
-* [TimeSeriesProfiler](tools/TimeSeriesProfiler/README.md)
-* [VideoProfiler](tools/VideoProfiler/README.md)
+  * [Video Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/video-benchmarking-tool/README.md)
+  * [Time-series Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/time-series-benchmarking-tool/README.md)
+* [DiscoverHistory](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md)
+* [EmbPublisher](https://github.com/open-edge-insights/eii-tools/blob/master/EmbPublisher/README.md)
+* [EmbSubscriber](https://github.com/open-edge-insights/eii-tools/blob/master/EmbSubscriber/README.md)
+* [GigEConfig](https://github.com/open-edge-insights/eii-tools/blob/master/GigEConfig/README.md)
+* [HttpTestServer](https://github.com/open-edge-insights/eii-tools/blob/master/HttpTestServer/README.md)
+* [JupyterNotebook](https://github.com/open-edge-insights/eii-tools/blob/master/JupyterNotebook/README.md)
+* [mqtt](https://github.com/open-edge-insights/eii-tools/blob/master/mqtt-publisher/README.md)
+* [SWTriggerUtility](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/README.md)
+* [TimeSeriesProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/TimeSeriesProfiler/README.md)
+* [VideoProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/VideoProfiler/README.md)
 
 # EII Uninstaller
 

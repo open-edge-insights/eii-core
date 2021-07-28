@@ -189,7 +189,7 @@ Do helm install of provision and deploy charts as per previous section.
       .
   ```
 
-5. set device as "MYRIAD" in case of ncs2 and as HDDL in case of hddl in the [VA config](../../VideoAnalytics/config.json)
+5. set device as "MYRIAD" in case of ncs2 and as HDDL in case of hddl in the [VA config](https://github.com/open-edge-insights/video-analytics/blob/master/config.json)
   
   * In case of ncs2.
 
