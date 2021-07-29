@@ -228,7 +228,9 @@ Below configuration changes need to be made for multi node deployment without k8
 
 ## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes
 
- > **Note**: Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
+ > **Note**:
+ >* Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
+ >* After `pre-requisites` are successfully installed, please do logout and login to apply the changes
 
 **For Single Point of Execution**
 
@@ -251,7 +253,8 @@ Below configuration changes need to be made for multi node deployment without k8
     ```sh
     $ ansible-playbook eii.yml --tags "prerequisites"
     ```
- 
+    > **Note**: After `pre-requisites` are successfully installed, please do logout and login to apply the changes
+
 * To generate builder and config files, build images and push to registry
 
     ```sh
