@@ -367,7 +367,7 @@ $ docker-compose -f docker-compose-build.yml build ia_kapacitor
 $ docker-compose up -d
 ```
 
-Below are the list of pre-built container images that are accessible at https://hub.docker.com/orgs/openedgeinsights/repositories:
+Below are the list of pre-built container images that are accessible at https://hub.docker.com/u/openedgeinsights:
 
 1. **Provisioning images**
 
