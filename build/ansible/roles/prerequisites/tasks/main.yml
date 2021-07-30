@@ -123,12 +123,25 @@
       notify:
           - "enablestartdocker"
 
-- name: Uninstalling docker-compose pip library if exists
+- name: apt install python3-distutils
   become: yes
-  pip:
-    name: docker-compose
-    state: absent
-    executable: pip3
+  apt: name=python3-distutils state=latest
+
+- name: apt install python3-pip
+  become: yes
+  apt: name=python3-pip state=latest
+
+- name: Uninstalling docker-compose pip library if exists
+  block:
+  - name: Removing docker-compose pip
+    become: yes
+    pip:
+      name: docker-compose
+      state: absent
+      executable: pip3
+  rescue:
+  - name: Make sure all handlers run
+    meta: flush_handlers
 
 - name: Removing existing docker-compose {{ docker_compose_version }}
   become: yes
