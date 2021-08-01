@@ -28,6 +28,12 @@
     path: "{{ EII_DEPLOY_PATH }}"
     state: absent
 
+- name: Cleaning directory {{ EII_INSTALL_PATH }}/data if it exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/data"
+    state: absent
+
 - name: Ensure group "{{ EII_USER_NAME }}" exists with correct gid "{{ EII_UID }}"
   become: yes
   ansible.builtin.group:
