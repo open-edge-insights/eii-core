@@ -2549,13 +2549,13 @@ cfgmgr_ctx_t* cfgmgr_initialize() {
 
     interface = kv_store_client->get(handle, interface_char);
     if (interface == NULL) {
-        LOG_ERROR("Value is not found for the key: %s", interface_char);
+        LOG_ERROR("Failed to fetch value for the key: %s", interface_char);
         goto err;
     }
 
     value = kv_store_client->get(handle, config_char);
     if (value == NULL) {
-        LOG_ERROR("Value is not found for the key: %s", config_char);
+        LOG_ERROR("Failed to fetch value for the key: %s", config_char);
         goto err;
     }
 

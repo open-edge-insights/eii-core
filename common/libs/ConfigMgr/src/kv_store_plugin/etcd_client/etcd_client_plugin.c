@@ -130,9 +130,13 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         }
         // Fetching ETCD_CLIENT_PORT type from env
         src_etcd_port = getenv("ETCD_CLIENT_PORT");
-        size_t port_len = strlen(ETCD_PORT);
+        size_t port_len = 0;
+        if (src_etcd_port != NULL) {
+            port_len = strlen(src_etcd_port);
+        }
         if ((src_etcd_port == NULL) || (strlen(src_etcd_port) == 0)) {
             LOG_DEBUG_0("ETCD_CLIENT_PORT env not set or a empty string, defaulting to 2379");
+            port_len = strlen(ETCD_PORT);
             etcd_port = (char*)calloc((port_len + 1), sizeof(char));
             if (etcd_port == NULL) {
                 LOG_ERROR_0("Failed to calloc etcd_port");

@@ -116,16 +116,17 @@ std::string EtcdClient::get(std::string& key) {
                 kvs.CopyFrom(reply.kvs(0));
             }
         } else {
-            LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
             return "(NULL)";
         }
     } catch(std::exception const & ex) {
-        LOG_DEBUG("Exception Occurred in get() API with the Error: %s", ex.what());
+        LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
         int no_val_error;
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
+        // Report due to what error the key could not be found
         if(no_val_error == 0) {
-            LOG_DEBUG("Value for the key %s is not found", key.c_str());
+            LOG_ERROR("Value for the key %s is not found %s", key.c_str(), ex.what());
         }
         return "(NULL)";
     }
@@ -175,15 +176,16 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
                 }
             }
         } else {
-            LOG_DEBUG("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
                 status.error_message().c_str(), status.error_code());
         }
     } catch(std::exception const & ex) {
         int no_val_error;
-        LOG_DEBUG("Exception Occurred in get() API with the Error: %s", ex.what());
+        LOG_ERROR("Exception Occurred in get() API with the Error: %s", ex.what());
         strcmp_s(NO_VALUE_ERROR, strlen(NO_VALUE_ERROR), ex.what(), &no_val_error);
+        // Report due to what error the key could not be found
         if(no_val_error == 0) {
-            LOG_DEBUG("Value for the key %s is not found", key_prefix.c_str());
+            LOG_ERROR("Value for the key %s is not found %s", key_prefix.c_str(), ex.what());
         }
     }
 
