@@ -352,7 +352,8 @@ can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigM
 
 # Distribution of EII container images
 
-EII services are available as pre-built container images in docker hub at https://hub.docker.com/orgs/openedgeinsights/repositories
+EII services are available as pre-built container images in docker hub at https://hub.docker.com/u/openedgeinsights
+
 and for the ones not listed there, one needs to do the build from source before running `docker-compose up -d` command.
 
 Eg:
