@@ -169,7 +169,8 @@ Please follow below steps to update the details of leader/worker nodes for multi
 3. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
 > **Note**:
 > 1. By default it will be `video-streaming`, For other usecases refer the `../usecases` folder and update only names without `.yml` extension
-> 2. `ia_kapacitor` and `ia_telegraf` container images are not distributed via docker hub, so one won't be able to pull these images
+> 2. For `all` usecase, it will bring up all `default` services of eii.
+> 3. `ia_kapacitor` and `ia_telegraf` container images are not distributed via docker hub, so one won't be able to pull these images
 >    for time-series use case upon using [../usecases/time-series.yml](../usecases/time-series.yml`) for deployment. For more details,
 >    refer: [../README.md#distribution-of-eii-container-images]> (../README.md#distribution-of-eii-container-images).
 
@@ -315,6 +316,8 @@ Below configuration changes need to be made for multi node deployment without k8
 >   3. Non `k8s` leader machine the `helm` deployment will fail.
 >   4. For `helm` deployment `ansible-multinode` parameters will not applicable, Since
 >   node selection & pod selection will be done by `k8s` orchestrator.
+>   5. Make sure you are deleting `/opt/intel/eii/data` when switch from `prod` mode to
+>   `dev` mode in all your `k8s` `worker` nodes.
 
 * Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
     *   Open `group_vars/all.yml` file
