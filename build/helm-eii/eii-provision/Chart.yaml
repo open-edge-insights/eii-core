@@ -20,7 +20,7 @@
 
 apiVersion: v2
 name: eii-provision
-description: A Helm chart for EII 2.4 provisioning
+description: A Helm chart for EII provisioning
 
 # A chart can be either an 'application' or a 'library' chart.
 #
