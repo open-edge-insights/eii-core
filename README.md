@@ -293,7 +293,7 @@ optional arguments:
 
 Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service into the EII stack, subscribe to [VideoAnalytics](https://github.com/open-edge-insights/video-analytics) and publish on a new port.
 
-Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main [eii_config.json](build/provision/config/eii_config.json).
+Any service that needs to be added into the EII stack should be added as a new directory in the [IEdgeInsights](./) directory. The directory should contain a **docker-compose.yml** which will be used to deploy the service as a docker container and it should also contain a **config.json** which contains the required config for the service to run once it is deployed. The **config.json** will mainly consist of a **config** section which includes the configuration related parameters required to run the application and an **interfaces** section which includes the configuration of how this service interacts with other services of the EII stack. The **AppName** present in **environment** section in **docker-compose.yml** file is appended to the **config** & **interfaces** like **/AppName/config** & **/AppName/interfaces** before being put into the main `build/provision/config/eii_config.json`.
 
 An example has been provided below on how to write the **config.json** for any new service, subscribe to **VideoAnalytics** and publish on a new port:
 
@@ -412,7 +412,7 @@ Please follow below steps to provision in Developer mode. Developer mode will ha
 
 Following actions will be performed as part of Provisioning
 
- * Loading initial ETCD values from json file located at [build/provision/config/eii_config.json](build/provision/config/eii_config.json).
+ * Loading initial ETCD values from json file located at `build/provision/config/eii_config.json`.
  * For Secure mode only, Generating ZMQ secret/public keys for each app and putting them in ETCD.
  * Generating required X509 certs and putting them in etcd.
  * All server certificates will be generated with 127.0.0.1, localhost and HOST_IP mentioned in [build/.env](build/.env).
@@ -449,12 +449,12 @@ $ ./etcd_capture.sh
   > **Note:**
   > * For running EII services in IPC mode, make sure that the same user should be there in publisher and subscriber.
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
-     In [docker-compose.yml](build/docker-compose.yml) if `user: ${EII_UID}` is in publisher service, then the
+     In `build/docker-compose.yml` if `user: ${EII_UID}` is in publisher service, then the
      same `user: ${EII_UID}` has to be in subscriber service. If the publisher doesn't have the user specified like above,
      then the subscriber service should not have that too.
   > * If services needs to be running in multiple nodes in TCP mode of communication, msgbus subscribers and clients of `AppName` are required to configure the "EndPoint" in config.json with HOST_IP and PORT under "Subscribers/Publishers" or "Clients/Servers" interfaces section.
-  > * Make sure the PORT is being exposed in [docker-compose.yml](build/docker-compose.yml) of the respective `AppName`
-    Eg: If the `"EndPoint": <HOST_IP>:65012` is configured in `config.json`, then expose the port 65012 in [docker-compose.yml](build/docker-compose.yml) of the service `ia_video_ingestion`
+  > * Make sure the PORT is being exposed in `build/docker-compose.yml` of the respective `AppName`
+    Eg: If the `"EndPoint": <HOST_IP>:65012` is configured in `config.json`, then expose the port 65012 in `build/docker-compose.yml` of the service `ia_video_ingestion`
 
     ```yaml
       ia_video_ingestion:
@@ -480,7 +480,7 @@ yaml file.
 > 2. Base EII services like ia_eiibase, ia_video_common etc., are required only at the build time and not at
 >    the runtime.
 
-Builds all EII services in the [docker-compose-build.yml](build/docker-compose-build.yml) along with the base EII services.
+Builds all EII services in the `build/docker-compose-build.yml` along with the base EII services.
 
 ```sh
 $ docker-compose -f docker-compose-build.yml build
@@ -499,7 +499,7 @@ $ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 > If the images tagged with EII_VERSION as in [build/.env](build/.env) does not exist locally on the system,
 > they would be pulled if those images exist int he docker hub during `docker-compose up`.
 
-Runs all the EII services in the [docker-compose.yml](build/docker-compose.yml)
+Runs all the EII services in the `build/docker-compose.yml`
 
 ```sh
 $ xhost +
@@ -510,7 +510,7 @@ A successful run will open Visualizer UI with results of video analytics for all
 
 ## Push required EII images to docker registry
 
-Pushes all the EII service docker images in the [docker-compose-push.yml](build/docker-compose-push.yml). Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
+Pushes all the EII service docker images in the `build/docker-compose-push.yml`. Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
 ```sh
 $ docker-compose -f docker-compose-push.yml push
 ```
@@ -551,7 +551,7 @@ For detailed description on configuring different types of cameras and  filter a
 ## Using video accelerators in ingestion/analytics containers
 
 EII supports running inference on `CPU`, `GPU`, `MYRIAD`(NCS2), and `HDDL` devices by accepting `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in `udfs`
-key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the [eii_config.json](build/provision/config/eii_config.json)
+key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `VideoAnalytics` configs can either be changed in the `build/provision/config/eii_config.json`
 before provisioning (or re-provision it again after the change to the apps config.json, re-running `builder.py` script and then re-running the provisioning script) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](https://github.com/open-edge-insights/video-common/blob/master/udfs/README.md).
 
@@ -655,7 +655,7 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
       ```
 
     * For actual deployment one could choose to mount only the required devices for
-      services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in [docker-compose.yml](build/docker-compose.yml).
+      services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in `build/docker-compose.yml`.
 
       Eg: Mount only the Graphics and HDDL ion device for `ia_video_anaytics` service
 
@@ -698,7 +698,7 @@ The following are the two Custom Udfs workflow which EII supports:
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated [build/docker-compose.yml](build/docker-compose.yml) and consolidated [build/eii_config.json](build/eii_config.json) of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
+The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated `build/docker-compose.yml` and consolidated `build/provision/config/eii_config.json` of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
