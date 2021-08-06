@@ -23,7 +23,7 @@
 #Script to write back data from ETCD Cluster to JSON file.
 function helpFunction {
     echo >&2
-    echo "Usage: ./etcd_capture.sh --ca_etcd ca_certificate --etcd_root_cert root_cert --etcd_root_key root_key" >&2
+    echo "Usage: ./etcd_capture.sh --ca_etcd ca_certificate --etcd_root_cert root_cert --etcd_root_key root_key --etcd_endpoints etcd_host:port" >&2
     echo >&2
     echo "SUMMARY": >&2
     echo >&2
@@ -32,6 +32,8 @@ function helpFunction {
     echo "  --etcd_root_cert  root client certificate" >&2
     echo >&2
     echo "  --etcd_root_key  root client key" >&2
+    echo >&2
+    echo "  --etcd_endpoints  etcd_host:port" >&2
     echo >&2
     exit 1
 }
@@ -48,14 +50,14 @@ function etcdCapture {
     fi
     if [ ! -f ./etcd/etcdctl ]; then
         # Fetching etcd package to use etcdctl
-        echo "Downloading etcd package"  
+        echo "Downloading etcd package"
         mkdir -p etcd
         curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o ./etcd/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
             tar -xvf ./etcd/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C ./etcd --strip 1 && \
             rm -f ./etcd/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     fi
 
-    python3.6 etcd_capture.py $@
+    python3 etcd_capture.py $@
 }
 
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then

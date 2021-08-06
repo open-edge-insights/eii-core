@@ -46,13 +46,14 @@ try:
     # get applictaion's AppName
     app_name = ctx.get_app_name()
     print('[INFO] App name {}'.format(app_name))
-    print('[INFO] Total number of publishers in interface is {}'.format(ctx.get_num_publishers()))
+    print('[INFO] Total number of publishers in interface is {}'
+          .format(ctx.get_num_publishers()))
 
     # get the publisher object where publisher's interface 'Name' is 'default'
     pub_ctx = ctx.get_publisher_by_name("default")
 
     # get 0th publisher interface object
-    #pub_ctx = ctx.get_publisher_by_index(0)
+    # pub_ctx = ctx.get_publisher_by_index(0)
 
     # get publisher msgbus config for application to communicate over EII message bus
     config = pub_ctx.get_msgbus_config()
@@ -66,15 +67,16 @@ try:
     print('[INFO] Obtained endpoint is {}'.format(pub_ctx.get_endpoint()))
 
     # get 'AllowedClients' from publisher interface
-    print('[INFO] Obtained allowed clients is {}'.format(pub_ctx.get_allowed_clients()))
+    print('[INFO] Obtained allowed clients is {}'
+          .format(pub_ctx.get_allowed_clients()))
     topics = pub_ctx.get_topics()
     print('[INFO] Obtained topics is {}'.format(topics))
-    new_topics = ["camera2_stream_results", "camera3_stream_results", "camera4_stream_results"]
+    new_topics = ["camera2_stream_results", "camera3_stream_results",
+                  "camera4_stream_results"]
 
     # Update new set of topic for publisher's interface
     print('[INFO] Topics set {}'.format(pub_ctx.set_topics(new_topics)))
     print('[INFO] Obtained new topics is {}'.format(pub_ctx.get_topics()))
-    
 
     print('[INFO] Initializing message bus context')
     msgbus = mb.MsgbusContext(config)

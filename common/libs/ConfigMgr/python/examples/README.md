@@ -1,3 +1,10 @@
+**Contents**
+
+- [ConfigMgr python examples](#configmgr-python-examples)
+  - [Pre-requisites](#pre-requisites)
+  - [Running examples](#running-examples)
+
+
 # ConfigMgr python examples
 
 ## Pre-requisites
@@ -42,5 +49,5 @@
 5. Running the GetConfig example:
 
     ```sh
-        $ sample_get_value.py
+        $ python3 sample_get_value.py
     ```

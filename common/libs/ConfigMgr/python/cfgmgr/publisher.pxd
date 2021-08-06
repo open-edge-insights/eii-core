@@ -20,15 +20,14 @@
 """EII ConfigManager Publisher wrapper object Cython declaration
 """
 
-from .libeiiconfigmanager cimport pub_cfg_t
-from .libeiiconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport cfgmgr_interface_t
+
 
 
 cdef class Publisher:
     """EII ConfigManager Publisher object
     """
-    cdef app_cfg_t* app_cfg
-    cdef pub_cfg_t* pub_cfg
+    cdef cfgmgr_interface_t* cfgmgr_interface
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, pub_cfg_t* pub_cfg)
+    cdef create(cfgmgr_interface_t* cfgmgr_interface)

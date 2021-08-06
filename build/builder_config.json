@@ -4,7 +4,8 @@
         "WebVisualizer": "",
         "VideoProfiler": "",
         "EtcdUI": "",
-        "SWTriggerUtility": ""
+        "ImageStore": "",
+        "InfluxDBConnector": ""
     },
     "publisher_list": {
         "VideoAnalytics": "outputVA",

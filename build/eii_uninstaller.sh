@@ -104,11 +104,12 @@ removeVolumes()
 #------------------------------------------------------------------
 removeImages()
 {
+    docker_hub_org_name="openedgeinsights"
     echo "==============================="
     echo "Removing the EII docker Images ..."
     echo "==============================="
-
-    imageId=$(docker images --filter "reference=ia_*:$1" --format '{{.Repository}}:{{.Tag}}')
+    
+    imageId=$(docker images --filter "reference=ia_*:$1" --filter "reference=$docker_hub_org_name/*:$1" --format '{{.Repository}}:{{.Tag}}')
 
     if [[ ! $imageId ]]
     then

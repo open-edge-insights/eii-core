@@ -35,14 +35,20 @@ from jsonschema import validate
 import ruamel.yaml
 import io
 from ruamel.yaml.comments import CommentedMap
+import shutil
 
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
+DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
+DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
 SCAN_DIR = ".."
 dev_mode = False
 # Initializing multi instance related variables
 num_multi_instances = 0
-override_apps_list, override_k8s_apps_list = ([] for _ in range(2))
-dev_override_list, app_list, k8s_app_list = ([] for _ in range(3))
+used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
+override_apps_list, override_helm_apps_list = \
+    ([] for _ in range(2))
+dev_override_list, app_list, helm_app_list = \
+    ([] for _ in range(3))
 used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
 
 
@@ -58,7 +64,7 @@ def source_env(file):
                 # Checking if line has = in env
                 if "=" in line:
                     # Emulating sourcing an env
-                    key, value = line.strip().split("=")
+                    key, value = line.strip().split("=", 1)
                     os.environ[key] = value
     except Exception as err:
         print("Exception occured {}".format(err))
@@ -168,10 +174,11 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
                         # Update AllowedClients AppName if they are not
                         # in subscriber list
                         if x["AllowedClients"][index] not in subscriber_list:
-                            if bool(re.search(r'\d', x["AllowedClients"][index])):
+                            if bool(re.search(r'\d', x["AllowedClients"
+                                                       ][index])):
                                 x["AllowedClients"][index] = \
                                     re.sub(r'\d+', str(i+1),
-                                        x["AllowedClients"][index])
+                                           x["AllowedClients"][index])
                             else:
                                 x["AllowedClients"][index] = \
                                     x["AllowedClients"][index] + str(i+1)
@@ -200,6 +207,13 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
                     port = x["EndPoint"].split(':')[1]
                     new_port = str(int(port) + (i))
                     x["EndPoint"] = x["EndPoint"].replace(port, new_port)
+                    # Update IP if it is not localhost/127.0.0.1
+                    ip = x["EndPoint"].split(":")[0]
+                    new_ip = None
+                    if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
+                        new_ip = ip + str(i+1)
+                    if new_ip is not None:
+                        x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
     return config
 
 
@@ -228,22 +242,32 @@ def create_multi_subscribe_interface(head, temp, client_type):
             cli_instance["Name"] = client["Name"] + str(i+1)
             # Updating PublisherAppName of subscriber instance
             if "PublisherAppName" in client.keys():
-                cli_instance["PublisherAppName"] = client["PublisherAppName"] + str(i+1)
+                cli_instance["PublisherAppName"] = \
+                    client["PublisherAppName"] + str(i+1)
             # Updating ServerAppName of client instance
             if "ServerAppName" in client.keys():
-                cli_instance["ServerAppName"] = client["ServerAppName"] + str(i+1)
+                cli_instance["ServerAppName"] = \
+                    client["ServerAppName"] + str(i+1)
             # Updating Topics of subscriber instance
             if "Topics" in client.keys():
                 if bool(re.search(r'\d', client["Topics"][0])):
                     cli_instance["Topics"][0] = re.sub(r'\d+', str(i+1),
-                                                client["Topics"][0])
+                                                       client["Topics"][0])
                 else:
                     cli_instance["Topics"][0] = client["Topics"][0] + str(i+1)
             # Updating EndPoint if mode is tcp
             if ":" in client["EndPoint"]:
+                ip = client["EndPoint"].split(":")[0]
+                new_ip = None
+                if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
+                    new_ip = ip + str(i+1)
                 port = client["EndPoint"].split(":")[1]
                 new_port = str(int(port)+i)
-                cli_instance["EndPoint"] = client["EndPoint"].replace(port, new_port)
+                cli_instance["EndPoint"] = \
+                    client["EndPoint"].replace(port, new_port)
+                if new_ip is not None:
+                    cli_instance["EndPoint"] = \
+                        cli_instance["EndPoint"].replace(ip, new_ip)
             # Appending client multi instances
             temp["interfaces"][client_type].append(cli_instance)
         # Remove existing instances
@@ -264,7 +288,7 @@ def fetch_appname(app_path):
     if os.path.isdir(app_path):
         with open(app_path+'/docker-compose.yml', 'rb') as infile:
             data = ruamel.yaml.round_trip_load(infile,
-                                            preserve_quotes=True)
+                                               preserve_quotes=True)
             # Iterate through the yaml file and
             # return AppName if found
             for x in data:
@@ -341,8 +365,8 @@ def json_parser(app_list, args):
                         # Create multi instance interfaces
                         head = \
                             create_multi_instance_interfaces(head,
-                                                            i,
-                                                            bm_apps_list)
+                                                             i,
+                                                             bm_apps_list)
                         # merge config of multi instance config
                         if 'config' in head.keys():
                             data['/' + app_name + str(i+1) + '/config'] = \
@@ -354,7 +378,7 @@ def json_parser(app_list, args):
                                 head['interfaces']
                         # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
-            # This condition is to handle not creating multi instance for 
+            # This condition is to handle not creating multi instance for
             # subscriber services
             else:
                 with open(app_path + '/config.json', "rb") as infile:
@@ -364,19 +388,26 @@ def json_parser(app_list, args):
                     if 'interfaces' in head.keys():
                         if "Subscribers" in head["interfaces"]:
                             # Generate multi subscribe interface
-                            temp = create_multi_subscribe_interface(head, temp, "Subscribers")
+                            temp = \
+                                create_multi_subscribe_interface(head, temp,
+                                                                 "Subscribers")
                             data['/' + app_name + '/config'] = head['config']
-                            data['/' + app_name + '/interfaces'] = temp['interfaces']
+                            data['/' + app_name + '/interfaces'] = \
+                                temp['interfaces']
                             config_json = merge(config_json, data)
                         if "Clients" in head["interfaces"]:
                             # Generate multi client interface
-                            temp = create_multi_subscribe_interface(head, temp, "Clients")
+                            temp = \
+                                create_multi_subscribe_interface(head, temp,
+                                                                 "Clients")
                             data['/' + app_name + '/config'] = head['config']
-                            data['/' + app_name + '/interfaces'] = temp['interfaces']
+                            data['/' + app_name + '/interfaces'] = \
+                                temp['interfaces']
                             config_json = merge(config_json, data)
                         # This is to handle empty interfaces cases like EtcdUI
                         data['/' + app_name + '/config'] = head['config']
-                        data['/' + app_name + '/interfaces'] = temp['interfaces']
+                        data['/' + app_name + '/interfaces'] = \
+                            temp['interfaces']
                         config_json = merge(config_json, data)
         # This condition is to handle the default non multi instance flow
         else:
@@ -395,52 +426,6 @@ def json_parser(app_list, args):
     # Writing consolidated json into desired location
     with open(eii_config_path, "w") as json_file:
         json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
-        print("Successfully created consolidated config json at {}".format(
-              eii_config_path))
-
-def k8s_yaml_remove_secrets(yaml_data):
-    """This method takes input as a yml data and removes
-       the secrets from volume mounts and envs and returns
-       non-secrets yml data of k8s yml file
-
-    :param yaml_data: Yaml value
-    :type yaml_data: str
-    """
-    string_io_data = io.StringIO(yaml_data)
-    if "---" in yaml_data:
-        yaml_data_list = yaml_data.split("---")
-        string_io_data = io.StringIO(yaml_data_list[1])
-    yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
-                                            preserve_quotes=True)
-    yaml_dict = dict()
-    for k, v in yaml_prod.items():
-        yaml_dict[k] = v
-
-    vol_removal_list = []
-    for d in yaml_dict['spec']['template']['spec']['volumes']:
-        if 'cert' in d['name']:
-            vol_removal_list.append(d)
-        elif 'key' in d['name']:
-            vol_removal_list.append(d)
-
-    con_vol_removal_list = []
-    for d in yaml_dict['spec']['template']['spec']['containers'][0]['volumeMounts']:
-        if 'cert' in d['name']:
-            con_vol_removal_list.append(d)
-        elif 'key' in d['name']:
-            con_vol_removal_list.append(d)
-
-    for r in vol_removal_list:
-        yaml_dict['spec']['template']['spec']['volumes'].remove(r)
-    for r in con_vol_removal_list:
-        yaml_dict['spec']['template']['spec']['containers'][0]['volumeMounts'].remove(r)
-
-    kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
-
-    if "---" in yaml_data:
-        kube_yaml = yaml_data_list[0] + "---\n" + kube_yaml
-
-    return kube_yaml
 
 
 def get_available_port(curr_port, ports_dict):
@@ -465,345 +450,144 @@ def get_available_port(curr_port, ports_dict):
         return curr_port
 
 
-def multi_instance_k8s_deployment(yaml_dict, i):
-    """Method to update multi instance k8s yml for
-       deployment section
-
-    :param yaml_dict: k8s yaml dict
-    :type yaml_dict: dict
-    :param i: index of multi instance
-    :type i: int
-    :return: updated yml_dict
-    :rtype: dict
-    """
-    # Updating appname
-    yaml_dict["spec"]["selector"]["matchLabels"]["app"] = yaml_dict["spec"]["selector"]["matchLabels"]["app"] + str(i+1)
-    yaml_dict["spec"]["template"]["metadata"]["labels"]["app"] = yaml_dict["spec"]["template"]["metadata"]["labels"]["app"] + str(i+1)
-    yaml_dict["spec"]["template"]["spec"]["containers"][0]["name"] = yaml_dict["spec"]["template"]["spec"]["containers"][0]["name"] + str(i+1)
-
-    # Updating volume mount part of k8s yaml dict
-    volume_mount_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["volumeMounts"]
-    for v in range(len(volume_mount_dict)):
-        # Update cert section
-        if "cert" in volume_mount_dict[v]["name"] and "ca-cert" not in volume_mount_dict[v]["name"]:
-            cert_temp = volume_mount_dict[v]["mountPath"].split('_cert')[0]
-            new_cert = re.sub(r'\d+', '', cert_temp) + str(i+1) + '_cert'
-            volume_mount_dict[v]["mountPath"] = new_cert
-            volume_mount_dict[v]["name"] = volume_mount_dict[v]["name"] + str(i+1)
-        # Update key section
-        if "key" in volume_mount_dict[v]["name"] and "ca-cert" not in volume_mount_dict[v]["name"]:
-            key_temp = volume_mount_dict[v]["mountPath"].split('_key')[0]
-            new_key = re.sub(r'\d+', '', key_temp) + str(i+1) + '_key'
-            volume_mount_dict[v]["mountPath"] = new_key
-            volume_mount_dict[v]["name"] = volume_mount_dict[v]["name"] + str(i+1)
-    # Updating env part of k8s yaml dict
-    env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
-    for v in range(len(env_dict)):
-        # Update AppName
-        if env_dict[v]["name"] == "AppName":
-            env_dict[v]["value"] = env_dict[v]["value"] + str(i+1)
-        # Update CONFIGMGR_CERT & CONFIGMGR_KEY section
-        if env_dict[v]["name"] == "CONFIGMGR_CERT" or env_dict[v]["name"] == "CONFIGMGR_KEY":
-            app_name = env_dict[v]["value"].split("/")[-1].split("_")[0]
-            new_app_name = app_name + str(i+1)
-            env_dict[v]["value"] = env_dict[v]["value"].replace(app_name, new_app_name)
-        # Update tcp ports section
-        if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
-            # Updating ports for PUBLISHER/SERVER ENDPOINTS
-            if "SERVER" in env_dict[v]["name"] or "PUBLISHER" in env_dict[v]["name"]:
-                port = env_dict[v]["value"].split(":")[-1]
-                new_port = get_available_port(port, used_ports_dict["send_ports"])
-                env_dict[v]["value"] = env_dict[v]["value"].replace(port, new_port)
-            # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
-            if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
-                port = env_dict[v]["value"].split(":")[-1]
-                new_port = get_available_port(port, used_ports_dict["recv_ports"])
-                env_dict[v]["value"] = env_dict[v]["value"].replace(port, new_port)
-                # Update appnames in ENDPOINTS
-                appname = env_dict[v]["value"].split(":")[0]
-                env_dict[v]["value"] = env_dict[v]["value"].replace(appname, appname + str(i+1))
-                # Update endpoint name if it has a unique name
-                if env_dict[v]["name"].count("_") > 1:
-                    ep_name = env_dict[v]["name"].split("_")[1]
-                    env_dict[v]["name"] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
-    # Updating volumes section of k8s yaml dict
-    volume_dict = yaml_dict["spec"]["template"]["spec"]["volumes"]
-    for v in range(len(volume_dict)):
-        # Update cert section
-        if "cert" in volume_dict[v]["name"] and "ca-cert" not in volume_dict[v]["name"]:
-            volume_dict[v]["name"] = volume_dict[v]["name"] + str(i+1)
-            app_name = volume_dict[v]["secret"]["secretName"].split("-")[0]
-            new_app_name = app_name + str(i+1)
-            volume_dict[v]["secret"]["secretName"] = volume_dict[v]["secret"]["secretName"].replace(app_name, new_app_name)
-        # Update key section
-        if "key" in volume_dict[v]["name"]:
-            volume_dict[v]["name"] = volume_dict[v]["name"] + str(i+1)
-            app_name = volume_dict[v]["secret"]["secretName"].split("-")[0]
-            new_app_name = app_name + str(i+1)
-            volume_dict[v]["secret"]["secretName"] = volume_dict[v]["secret"]["secretName"].replace(app_name, new_app_name)
-    return yaml_dict
-
-
-def create_multi_subscribe_k8s_yml(k8s_path, dev_mode):
-    """Method to create multi subscribe instance k8s yml
-
-    :param k8s_path: path of yml dict
-    :type k8s_path: str
-    :param dev_mode: dev mode variable
-    :type dev_mode: bool
-    :return: multi subscribe instance k8s yml
-    :rtype: str
-    """
-    merged_yaml = ""
-    data = ""
-    with open(k8s_path) as yaml_file:
-        file_contents = yaml_file.read()
-        string_io_data = io.StringIO(file_contents)
-        # Create multi instance if app has both service & deployment section
-        if "---" in file_contents:
-            yaml_data_list = file_contents.split("---")
-            string_io_data_one = io.StringIO(yaml_data_list[0])
-            string_io_data = io.StringIO(yaml_data_list[1])
-            yaml_prod_srvc = ruamel.yaml.round_trip_load(string_io_data_one,
-                                                        preserve_quotes=True)
-            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
-                                                    preserve_quotes=True)
-
-            # dict to update service section
-            yaml_dict_srvc = dict()
-            for k, v in yaml_prod_srvc.items():
-                yaml_dict_srvc[k] = v
-
-            # dict to update deployment section
-            yaml_dict = dict()
-            for k, v in yaml_prod.items():
-                yaml_dict[k] = v
-
-            env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
-
-            for v in range(len(env_dict)):
-                # Update tcp ports section
-                if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
-                    # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
-                    if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
-                        for i in range(num_multi_instances):
-                            # Create a CommentedMap() to store updated values
-                            new_env_dict = CommentedMap()
-                            # Update ports
-                            port = env_dict[v]["value"].split(":")[-1]
-                            new_port = get_available_port(port, used_ports_dict["recv_ports"])
-                            # Update appname in endpoint
-                            appname = env_dict[v]["value"].split(":")[0]
-                            temp_value = env_dict[v]["value"].replace(port, new_port)
-                            new_env_dict["value"] = temp_value.replace(appname, appname + str(i+1))
-                            # Update endpoint name if it has a unique name
-                            if env_dict[v]["name"].count("_") > 1:
-                                ep_name = env_dict[v]["name"].split("_")[1]
-                                new_env_dict['name'] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
-                            # Append CommentedMap() to CommentedSeq()
-                            env_dict.append(new_env_dict)
-                        # Condition to remove recv_ports last few entries if multiple
-                        # subscribers are subcribing to same publisher
-                        used_ports_dict["recv_ports"] = \
-                            used_ports_dict["recv_ports"][:len(used_ports_dict["recv_ports"])-num_multi_instances]
-                        del env_dict[v]
-
-            # Merging deployment section updates
-            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
-            # Merging service section updates
-            kube_yml_srvc = ruamel.yaml.round_trip_dump(yaml_dict_srvc)
-            # Creating final k8s yml
-            data = kube_yml_srvc + "---\n" + kube_yaml
-        # Create multi instance if app has only deployment section
-        else:
-            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
-                                                    preserve_quotes=True)
-            # dict to update deployment section
-            yaml_dict = dict()
-            for k, v in yaml_prod.items():
-                yaml_dict[k] = v
-
-            env_dict = yaml_dict["spec"]["template"]["spec"]["containers"][0]["env"]
-
-            for v in range(len(env_dict)):
-                # Update tcp ports section
-                if "ENDPOINT" in env_dict[v]["name"] and ":" in env_dict[v]["value"]:
-                    # Updating ports, appname for SUBSCRIBER/CLIENT ENDPOINTS
-                    if "SUBSCRIBER" in env_dict[v]["name"] or "CLIENT" in env_dict[v]["name"]:
-                        for i in range(num_multi_instances):
-                            # Create a CommentedMap() to store updated values
-                            new_env_dict = CommentedMap()
-                            # Update ports
-                            port = env_dict[v]["value"].split(":")[-1]
-                            new_port = get_available_port(port, used_ports_dict["recv_ports"])
-                            # Update appname in endpoint
-                            appname = env_dict[v]["value"].split(":")[0]
-                            temp_value = env_dict[v]["value"].replace(port, new_port)
-                            new_env_dict["value"] = temp_value.replace(appname, appname + str(i+1))
-                            # Update endpoint name if it has a unique name
-                            if env_dict[v]["name"].count("_") > 1:
-                                ep_name = env_dict[v]["name"].split("_")[1]
-                                new_env_dict['name'] = env_dict[v]["name"].replace(ep_name, ep_name + str(i+1))
-                            # Append CommentedMap() to CommentedSeq()
-                            env_dict.append(new_env_dict)
-                        # Condition to remove recv_ports last few entries if multiple
-                        # subscribers are subcribing to same publisher
-                        used_ports_dict["recv_ports"] = \
-                            used_ports_dict["recv_ports"][:len(used_ports_dict["recv_ports"])-num_multi_instances]
-                        del env_dict[v]
-
-            # Merging deployment section updates
-            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
-            # Creating final k8s yml
-            data = kube_yaml
-        # Updating yml based on dev_mode
-        if dev_mode:
-            merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
-        else:
-            merged_yaml = merged_yaml + "---\n" + data
-
-    return merged_yaml
-
-
-def create_multi_instance_k8s_yml(k8s_path, dev_mode, i):
-    """Method to create multi instance k8s yml
-
-    :param k8s_path: path of yml dict
-    :type k8s_path: str
-    :param dev_mode: dev mode variable
-    :type dev_mode: bool
-    :param i: index of multi instance
-    :type i: int
-    :return: multi instance k8s yml
-    :rtype: str
-    """
-    merged_yaml = ""
-    data = ""
-    with open(k8s_path) as yaml_file:
-        file_contents = yaml_file.read()
-        string_io_data = io.StringIO(file_contents)
-        # Create multi instance if app has both service & deployment section
-        if "---" in file_contents:
-            yaml_data_list = file_contents.split("---")
-            string_io_data_one = io.StringIO(yaml_data_list[0])
-            string_io_data = io.StringIO(yaml_data_list[1])
-            yaml_prod_srvc = ruamel.yaml.round_trip_load(string_io_data_one,
-                                                        preserve_quotes=True)
-            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
-                                                    preserve_quotes=True)
-
-            # dict to update service section
-            yaml_dict_srvc = dict()
-            for k, v in yaml_prod_srvc.items():
-                yaml_dict_srvc[k] = v
-            # Updating app name
-            yaml_dict_srvc['metadata']['name'] = yaml_dict_srvc['metadata']['name'] + str(i+1)
-            yaml_dict_srvc['spec']['selector']['app'] = yaml_dict_srvc['spec']['selector']['app'] + str(i+1)
-            # Updating ports in service section
-            ports_dict = yaml_dict_srvc['spec']['ports']
-            for v in range(len(ports_dict)):
-                # Update port
-                if "port" in ports_dict[v]:
-                    if "$" not in str(ports_dict[v]['port']):
-                        port = ports_dict[v]['port']
-                        new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
-                        ports_dict[v]['port'] = int(new_port)
-                    # Update targetPort if it exists
-                    if "targetPort" in ports_dict[v]:
-                        if "$" not in str(ports_dict[v]['targetPort']):
-                            ports_dict[v]['targetPort'] = int(new_port)
-                    # Update nodePort if it exists
-                    if "nodePort" in ports_dict[v]:
-                        if "$" not in str(ports_dict[v]['nodePort']):
-                            port = ports_dict[v]['nodePort']
-                            new_port = get_available_port(str(port), used_ports_dict['srvc_ports'])
-                            ports_dict[v]['nodePort'] = int(new_port)
-
-            # dict to update deployment section
-            yaml_dict = dict()
-            for k, v in yaml_prod.items():
-                yaml_dict[k] = v
-
-            # Update deployment section app name
-            yaml_dict["metadata"]["labels"]["app"] = yaml_dict["metadata"]["labels"]["app"] + str(i+1)
-            yaml_dict["metadata"]["name"] = yaml_dict["metadata"]["name"] + str(i+1)
-            # Update deployment section
-            yaml_dict = multi_instance_k8s_deployment(yaml_dict, i)
-
-            # Merging deployment section updates
-            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
-            # Merging service section updates
-            kube_yml_srvc = ruamel.yaml.round_trip_dump(yaml_dict_srvc)
-            # Creating final k8s yml
-            data = kube_yml_srvc + "---\n" + kube_yaml
-        # Create multi instance if app has only deployment section
-        else:
-            yaml_prod = ruamel.yaml.round_trip_load(string_io_data,
-                                                    preserve_quotes=True)
-            # dict to update deployment section
-            yaml_dict = dict()
-            for k, v in yaml_prod.items():
-                yaml_dict[k] = v
-            # Update deployment section app name
-            yaml_dict["metadata"]["labels"]["app"] = yaml_dict["metadata"]["labels"]["app"] + str(i+1)
-            yaml_dict["metadata"]["name"] = yaml_dict["metadata"]["name"] + str(i+1)
-            # Update deployment section
-            yaml_dict = multi_instance_k8s_deployment(yaml_dict, i)
-
-            # Merging deployment section updates
-            kube_yaml = ruamel.yaml.round_trip_dump(yaml_dict)
-            # Creating final k8s yml
-            data = kube_yaml
-        # Updating yml based on dev_mode
-        if dev_mode:
-            merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
-        else:
-            merged_yaml = merged_yaml + "---\n" + data
-
-    return merged_yaml
-
-
-def k8s_yaml_merger(app_list, dev_mode, args):
-    """Method merges the k8s yml files of each eii
-       modules and generates a consolidated ymlfile.
+def helm_yaml_merger(app_list, args):
+    """Method merges the values.yaml files of each eii
+       modules and generates a consolidated values.yaml
+       file. copy all templates files of each eii
+       modules to ./helm-eii/eii-deploy/templates.
 
     :param app_list: List of services
     :type app_list: list
-    :param dev_mode: Dev Mode key
-    :type dev_mode: bool
+    :type args: argparse
     """
-    app_list.extend(override_k8s_apps_list)
-    merged_yaml = ""
-    # Iterate through app_list & merge k8s yaml
-    # and create multi instance yaml if multi
-    # instance is required
-    for kube_yaml in app_list:
-        app_name = kube_yaml.split("/")[-2]
-        if args.override_directory is not None:
-            if args.override_directory in kube_yaml:
-                app_name = kube_yaml.split("/")[-3]
-        # Generating multi instance for Publishers/Servers
-        if num_multi_instances > 1 and app_name not in subscriber_list.keys():
-            for i in range(num_multi_instances):
-                multi_instance_yml = create_multi_instance_k8s_yml(kube_yaml, dev_mode, i)
-                merged_yaml = merged_yaml + "---\n" + multi_instance_yml
-        # Generating multi instance for Subscribers/Clients
-        elif num_multi_instances > 1 and app_name in subscriber_list.keys():
-            multi_instance_yml = create_multi_subscribe_k8s_yml(kube_yaml, dev_mode)
-            merged_yaml = merged_yaml + "---\n" + multi_instance_yml
-        else:
-            with open(kube_yaml) as yaml_file:
-                data = yaml_file.read()
-                if dev_mode:
-                    merged_yaml = merged_yaml + "---\n" + k8s_yaml_remove_secrets(data)
-                else:
-                    merged_yaml = merged_yaml + "---\n" + data
+    pv_merged_yaml = ""
+    pvc_merged_yaml = ""
+    helm_values_dict = []
+    value_keys = ["env", "config", "volumes"]
+    helm_provision_values_dict = []
+    ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
+    helm_deploy_dir = "./helm-eii/eii-deploy/"
+    helm_provision_dir = "./helm-eii/eii-provision"
+    # Load the common values.yaml
+    if os.path.isdir(helm_deploy_dir + "templates"):
+        shutil.rmtree(helm_deploy_dir + "templates")
+    os.mkdir(helm_deploy_dir + "templates")
+    with open(helm_deploy_dir +"../common-values.yaml", 'r') as \
+        values_file:
+        data = ruamel.yaml.round_trip_load(values_file,
+                                           preserve_quotes=True)
+        helm_values_dict.append(data)
 
-    k8s_service_yaml = './k8s/eii-k8s-deploy.yml'
-    with open(k8s_service_yaml, 'w') as final_yaml:
-        final_yaml.write(merged_yaml)
-    # Substituting sourced env in k8s_service_yaml
-    env_subst(k8s_service_yaml, k8s_service_yaml)
+    # Read persistent volume yaml
+    with open(helm_deploy_dir +"../common-eii-pv.yaml") as pv_yaml_file:
+        data = pv_yaml_file.read()
+        pv_merged_yaml = pv_merged_yaml + "---\n" + data
+
+    # Read persistent volume claim yaml
+    with open(helm_deploy_dir +"../common-eii-pvc.yaml") as pvc_yaml_file:
+        data = pvc_yaml_file.read()
+        pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
+
+    app_list.extend(override_helm_apps_list)
+    for app_path in app_list:
+        helm_app_path = os.path.join(app_path + "/helm")
+        app_name = app_path.split("/")[-1]
+        if args.override_directory is not None:
+            if args.override_directory in helm_app_path:
+                app_name = app_path.split("/")[-2]
+
+        # Copying all templates files of each eii modules to
+        # ./helm-eii/eii-deploy/templates.
+        yaml_files = os.listdir(helm_app_path + "/templates")
+        for yaml_file in yaml_files:
+            helm_yaml_file = os.path.join(helm_app_path, "templates", yaml_file)
+            if os.path.isfile(helm_yaml_file) and yaml_file \
+                not in ignore_template_copy:
+                shutil.copy(helm_yaml_file, helm_deploy_dir + "templates")
+
+        # Load the required values.yaml files
+        with open(helm_app_path + "/values.yaml", 'r') as values_file:
+            data = ruamel.yaml.round_trip_load(values_file,
+                                               preserve_quotes=True)
+
+            helm_values_dict.append(data)
+
+
+        # Reading persistent volume yaml if present
+        if os.path.isfile(helm_app_path + "/templates/eii-pv.yaml"):
+            with open(helm_app_path + "/templates/eii-pv.yaml") as pv_yaml_file:
+                data = pv_yaml_file.read()
+                pv_merged_yaml = pv_merged_yaml + "---\n" + data
+
+        # Writing final persistent volume yaml file
+        with open(helm_deploy_dir + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
+            final_pv_yaml.write(pv_merged_yaml)
+
+        # Reading persistent volume claim yaml if present
+        if os.path.isfile(helm_app_path + "/templates/eii-pvc.yaml"):
+            with open(helm_app_path + "/templates/eii-pvc.yaml") as pvc_yaml_file:
+                data = pvc_yaml_file.read()
+                pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
+
+        # Writing final persistent volume claim yaml file
+        with open(helm_deploy_dir + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
+            final_pvc_yaml.write(pvc_merged_yaml)
+
+
+    # Updating values.yaml for provision
+    with open(helm_provision_dir +"/values.yaml", 'r') as \
+        values_file:
+        data = ruamel.yaml.round_trip_load(values_file,
+                                           preserve_quotes=True)
+        helm_provision_values_dict.append(data)
+
+    # helm_provision_dict contains the provisioning values for helm
+    helm_provision_dict = helm_provision_values_dict[0]
+    for var in helm_provision_dict:
+        if var not in value_keys:
+            if os.environ.get(var) is not None:
+                # Updating outer variables in values yaml file for provision
+                helm_provision_dict.update({var: os.getenv(var)})
+        elif var == "env":
+            for i in helm_provision_dict[var]:
+                # Updating environment variables inside env key in values yaml file for provision
+                if os.environ.get(i) is not None:
+                    if i == "DEV_MODE" or i == "PROFILING_MODE":
+                        helm_provision_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                    else:
+                        helm_provision_dict[var].update({i: os.getenv(i)})
+    with open(helm_provision_dir +"/values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_provision_dict, value_file)
+
+
+
+    # Updating final helm values dict
+    helm_dict = helm_values_dict[0]
+    for var in helm_dict:
+        if var not in value_keys:
+            if os.environ.get(var) is not None:
+                # Updating outer variables in values yaml file for deploy
+                helm_dict.update({var: os.getenv(var)})
+        elif var == "env":
+            for i in helm_dict[var]:
+                # Updating environment variables inside env key in values yaml file for deploy
+                if os.environ.get(i) is not None:
+                    if i == "DEV_MODE" or i == "PROFILING_MODE":
+                        helm_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                    else:
+                        helm_dict[var].update({i: os.getenv(i)})
+
+
+    if num_multi_instances > 1:
+        helm_dict.update({"num_video_instances": num_multi_instances})
+    for var in helm_values_dict[1:]:
+        for k in var:
+            for i in var[k]:
+                helm_dict[k].update({i: var[k][i]})
+
+    # Writing consolidated values.yaml file to ./helm-eii/eii-deploy/ dir
+    with open(helm_deploy_dir +"values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_dict, value_file)
 
 
 def create_multi_instance_yml_dict(data, i):
@@ -839,6 +623,16 @@ def create_multi_instance_yml_dict(data, i):
             # Update hostname
             elif k2 == 'hostname':
                 v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
+            # Update ports
+            elif k2 == 'ports':
+                # Iterate through all ports
+                for j in list(v['ports']):
+                    # Update new ports & remove
+                    # existing ports to avoid duplication
+                    port = j.split(':')[0]
+                    new_port = str(int(port) + (i-1))
+                    v['ports'].append(new_port+':'+new_port)
+                    v['ports'].remove(port+':'+port)
             # Update secrets section of yml
             elif k2 == 'secrets':
                 for v3 in v['secrets']:
@@ -872,8 +666,9 @@ def create_multi_instance_yml_dict(data, i):
                     new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
                     for k2 in v.items():
                         yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                                    new_app_name))
+                        yml_map.insert(1, 'file',
+                                       list(k2)[1].replace(app_name,
+                                                           new_app_name))
                     temp['secrets'][new_cert] = yml_map
                     del temp['secrets'][k]
                 if 'key' in k:
@@ -881,8 +676,9 @@ def create_multi_instance_yml_dict(data, i):
                     new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
                     for k2 in v.items():
                         yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file', list(k2)[1].replace(app_name,
-                                                                    new_app_name))
+                        yml_map.insert(1, 'file',
+                                       list(k2)[1].replace(app_name,
+                                                           new_app_name))
                     temp['secrets'][new_key] = yml_map
                     del temp['secrets'][k]
 
@@ -926,10 +722,15 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 if args.override_directory is not None:
                     if args.override_directory in k:
                         appname = k.split("/")[-2]
-                # Create single instance only for services in subscriber_list and 
-                # for corner case of common/video, create multi instance otherwise
-                # TODO: Support AzureBridge multi instance creation if applicable
-                if appname not in subscriber_list.keys() and appname != "video" and appname != "common" and appname != "AzureBridge":
+                # Create single instance only for services in subscriber_list
+                # and for corner case of common/video,
+                # create multi instance otherwise
+                # TODO: Support AzureBridge
+                # multi instance creation if applicable
+                if (appname not in subscriber_list.keys() and
+                        appname != "video" and
+                        appname != "common" and
+                        appname != "AzureBridge"):
                     for i in range(num_multi_instances):
                         data_two = create_multi_instance_yml_dict(data, i+1)
                         yaml_files_dict.append(data_two)
@@ -972,7 +773,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
     return yaml_dict
 
 
-def create_docker_compose_override(app_list, dev_mode, args):
+def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images):
     """Consolidated docker-compose.override.yml
 
     :param app_list: List of docker-compose-dev.override.yml file
@@ -988,9 +789,79 @@ def create_docker_compose_override(app_list, dev_mode, args):
                                         'docker-compose-dev.override.yml',
                                         dev_mode,
                                         args)
+        temp = copy.deepcopy(override_data)
+        for k, v in override_data.items():
+            if(k == "services"):
+                for service, service_dict in v.items():
+                    if(service in run_exclude_images):
+                        del temp["services"][service]
+            elif (k != "version"):
+                del temp[k]
+        if temp["services"]:
+            with open("./docker-compose.override.yml", 'w') as fp:
+                ruamel.yaml.round_trip_dump(temp, fp)
 
-        with open("./docker-compose.override.yml", 'w') as fp:
-            ruamel.yaml.round_trip_dump(override_data, fp)
+
+def get_service_dependency_tree(yml_dict, run_exclude_images):
+    """Method to generate a dict of services and services it depends on 
+
+    :param yml_dict: dict generated from docker-compose yml
+    :type yml_dict: dict
+    :param run_exclude_images: List of name of dependency services which
+                               are excluded from run
+    :type run_exclude_images: array
+    :return dep_tree: the dependency tree dict
+    :rtype: dict
+    """
+    dep_tree = {}
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                if service not in run_exclude_images:
+                    dep_tree[service] = []
+                for service_key, service_vals in list(service_dict.items()):
+                    if service_key == "depends_on":
+                        dep_tree[service] = service_vals
+    return dep_tree
+
+
+def update_dependency_service(service, dep_tree, req_services):
+    """Method to append the provided dict with nested dependencies of the 
+       provided service
+    :param service: Name of the service of which the dependencies need to be 
+                    fetched
+    :type service: str
+    :param dep_tree: The dependency tree dict returned by 
+                     get_service_dependency_tree() method
+    :type dep_tree: dict
+    :param req_services: The list where the dependencies names to be appended
+    :type req_services: dict
+    """ 
+    req_services[service] = "1"
+    if service in dep_tree:
+        deps = dep_tree[service]
+        for i in range(len(deps)):
+            update_dependency_service(deps[i], dep_tree, req_services)
+        
+
+def get_required_services_list(dep_tree, run_exclude_images):
+    """Method to get the list of required services along with the services
+       it depends on
+    :param dep_tree: The dependency tree dict returned by 
+                     get_service_dependency_tree() method
+    :type dep_tree: dict
+    :param run_exclude_images: List of name of dependency services which
+                               are excluded from run
+    :type run_exclude_images: array
+    :return req_services: dict of required services
+    :rtype: dict
+    """ 
+    req_services = {}
+    for service in dep_tree:
+        if service not in run_exclude_images:
+            update_dependency_service(service, dep_tree, req_services)
+        
+    return req_services
 
 
 def yaml_parser(args):
@@ -1003,13 +874,15 @@ def yaml_parser(args):
     # Fetching EII directory path
     eii_dir = os.getcwd() + '/../'
     dir_list = []
+    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base"]
+    build_params = ["depends_on", "build", "image"]
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
         print("Fetching required services from {}...".format(args.yml_file))
         with open(args.yml_file, 'r') as sub_dir_file:
             yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
                                                     preserve_quotes=True)
-            for service in yaml_data['AppName']:
+            for service in yaml_data['AppContexts']:
                 # In case user mentions the service as full path instead of
                 # relative to IEdgeInsights.
                 if service.startswith("/"):
@@ -1018,6 +891,9 @@ def yaml_parser(args):
                     prefix_path = eii_dir + service
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
+                else:
+                    print("[WARN] {0} directory doesn't exist. Skipping fetching required files"
+                          " from {0}".format(service))
     else:
         # Fetching list of subdirectories
         print("Parsing through directory to fetch required services...")
@@ -1047,29 +923,32 @@ def yaml_parser(args):
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
             if os.path.isdir(override_dir):
-                if os.path.isfile(override_dir + '/docker-compose.yml') and \
-                   os.path.isfile(override_dir + '/config.json'):
+                if (os.path.isfile(override_dir + '/docker-compose.yml') and
+                   os.path.isfile(override_dir + '/config.json')):
                     override_apps_list.append(override_dir)
-            elif os.path.isfile(prefix_path + '/docker-compose.yml') and\
-                 os.path.isfile(prefix_path + '/config.json'):
+            elif (os.path.isfile(prefix_path + '/docker-compose.yml') and
+                  os.path.isfile(prefix_path + '/config.json')):
                 app_list.append(prefix_path)
         else:
-            if os.path.isfile(prefix_path + '/docker-compose.yml') and \
-               os.path.isfile(prefix_path + '/config.json'):
+            if (os.path.isfile(prefix_path + '/docker-compose.yml') and
+               os.path.isfile(prefix_path + '/config.json')):
                 app_list.append(prefix_path)
-        # Append to k8s_app_list if dir has k8s-service.yml
-        # & append to override_k8s_apps_list if
-        # override_directory has k8s-service.yml
+
+        # Append to helm_app_list if dir has deployment.yaml
+        # and values.yaml files.
+        # & append to override_helm_apps_list if
+        # override_directory has deployment.yaml
+        # and values.yaml files.
         if args.override_directory is not None:
             override_dir = prefix_path + '/' + args.override_directory
             if os.path.isdir(override_dir):
-                if os.path.isfile(override_dir + '/k8s-service.yml'):
-                    override_k8s_apps_list.append(override_dir + '/k8s-service.yml')
-            elif os.path.isfile(prefix_path + '/k8s-service.yml'):
-                k8s_app_list.append(prefix_path + '/k8s-service.yml')
+                if (os.path.isdir(override_dir + '/helm')):
+                    override_helm_apps_list.append(override_dir)
+            elif (os.path.isdir(prefix_path + '/helm')):
+                helm_app_list.append(prefix_path)
         else:
-            if os.path.isfile(prefix_path + '/k8s-service.yml'):
-                k8s_app_list.append(prefix_path + '/k8s-service.yml')
+            if (os.path.isdir(prefix_path + '/helm')):
+                helm_app_list.append(prefix_path)
 
         # Append to override_list if dir has docker-compose-dev.override.yml
         if os.path.isfile(prefix_path + '/docker-compose-dev.override.yml'):
@@ -1090,33 +969,106 @@ def yaml_parser(args):
                 break
 
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
+    temp = copy.deepcopy(yml_dict)
+
+    deps = get_service_dependency_tree(yml_dict, run_exclude_images)
+    # Get the list of services that needs to be written to docker-compose-build.yml
+    required_services = get_required_services_list(deps, run_exclude_images)
+
+    # Writing docker-compose-build.yml file. This yml will have services which will only
+    # contain the build_params keys for all services.
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                if service not in required_services:
+                    del temp["services"][service]
+                    continue
+                for service_keys, _ in list(service_dict.items()):
+                    if(service_keys not in build_params):
+                        del temp["services"][service][service_keys]
+        elif (k != "version"):
+            del temp[k]
+    with open(DOCKER_COMPOSE_BUILD_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
+    temp = copy.deepcopy(yml_dict)
+    build_params.remove("image")
+    # Writing docker-compose.yml file.
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                for service_keys, _ in list(service_dict.items()):
+                    if(service_keys in build_params):
+                        del temp["services"][service][service_keys]
+                if(service in run_exclude_images):
+                    del temp["services"][service]
 
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
-        ruamel.yaml.round_trip_dump(yml_dict, docker_compose_file)
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
+    # Writing docker-compose-push.yml file.
+    for k, v in temp.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                # The docker-compose-push.yml contains the dummy build: . key
+                # which is required to push the EII service docker images
+                temp["services"][service]["build"] = "."
+                temp["services"][service].move_to_end("build", last=False)
+    with open(DOCKER_COMPOSE_PUSH_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
 
     dev_mode_str = "PROD"
     if dev_mode:
         dev_mode_str = "DEV"
         # Creating docker-compose-dev.override.yml only in DEV mode
-        create_docker_compose_override(dev_override_list, True, args)
-    print("Successfully created docker-compose.yml"
-          " file for {} mode".format(dev_mode_str))
+        create_docker_compose_override(dev_override_list, True, args, run_exclude_images)
 
     # Starting json parser
     json_parser(app_list, args)
-
+    log_msg = """
+    For deployment on single/multiple nodes,
+    successfully created below consolidated files:
+    * Required docker compose files: `docker-compose-build.yml`
+      `docker-compose.yml` and `docker-compose-push.yml`
+    * Consolidated config json of required EII services in
+      `docker-compose.yml` at ./provision/config/eii_config.json
+    Please run the below commands to bring up the EII stack:
+    Run:
+    # provision the node to run EII
+    $ cd provision && sudo -E ./provision.sh ../docker-compose.yml
+    # For building EII services
+    $ cd .. && docker-compose -f docker-compose-build.yml build
+    # For running EII services
+    $ docker-compose up -d
+    # For pushing EII docker images to registry
+    (useful in multi-node deployment scenarios)
+    $ docker-compose -f docker-compose-push.yml push
+    """
+    print(log_msg)
     # Sourcing required env from .env & provision/.env
     source_env("./.env")
     source_env("./provision/.env")
 
-    # Generating Consolidated k8s yaml file for deployment
     try:
-        k8s_yaml_merger(k8s_app_list, dev_mode, args)
-        print("Successfully created consolidated Kubernetes "
-              "deployment yml at ./k8s/eii-k8s-deploy.yml")
+        helm_yaml_merger(helm_app_list, args)
     except Exception as e:
-        print("Exception Occured at Kubernetes yml generation {}".format(e))
+        print("Exception Occured at helm yml generation {}".format(e))
         sys.exit(1)
+    log_msg = """
+    For deployment via helm, successfully created consolidated
+    values.yaml at ./helm-eii/eii-deploy/.
+    Successfully copied all templates files of each eii modules to
+    ./helm-eii/eii-deploy/templates/.
+    Refer `./helm-eii/README.md` for deployment details.
+    """
+    print(log_msg)
+    log_msg = """
+    **NOTE**:
+    Please re-run the `builder.py` whenever the individual docker-compose.yml,
+    config.json files of individual services are updated
+    and you need them to be considered
+    """
+    print(log_msg)
 
 
 def parse_args():
@@ -1127,18 +1079,18 @@ def parse_args():
     arg_parse.add_argument('-f', '--yml_file', default=None,
                            help='Optional config file for list of services'
                            ' to include.\
-                           Eg: python3.6 builder.py -f\
-                           video-streaming.yml')
+                           Eg: python3 builder.py -f\
+                           usecases/video-streaming.yml')
     arg_parse.add_argument('-v', '--video_pipeline_instances', default=1,
                            help='Optional number of video pipeline '
                                 'instances to be created.\
-                           Eg: python3.6 builder.py -v 6')
+                           Eg: python3 builder.py -v 6')
     arg_parse.add_argument('-d', '--override_directory',
                            default=None,
                            help='Optional directory consisting of '
                            'of benchmarking configs to be present in'
                            'each app directory.\
-                           Eg: python3.6 builder.py -d benchmarking')
+                           Eg: python3 builder.py -d benchmarking')
     return arg_parse.parse_args()
 
 

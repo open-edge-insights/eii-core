@@ -1,12 +1,12 @@
 /*
-Copyright (c) 2020 Intel Corporation.
+Copyright (c) 2021 Intel Corporation
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
@@ -31,7 +31,7 @@ package eiiconfigmgr
 #include <stdlib.h>
 #include <safe_lib.h>
 #include <eii/utils/logger.h>
-#include <eii/config_manager/cfg_mgr.h>
+#include <eii/config_manager/cfgmgr.h>
 
 typedef struct {
 	char** arr;
@@ -153,7 +153,7 @@ static inline void destroy_config_val(config_val_t* config_val) {
 	}
 }
 
-inline char** parse_config_value(config_value_t* config_value, int num_of_items) {
+static inline char** parse_config_value(config_value_t* config_value, int num_of_items) {
 	char** char_config_value = NULL;
 	char_config_value = (char**)malloc(num_of_items * sizeof(char*));
 	if(char_config_value == NULL){
@@ -228,31 +228,32 @@ static inline void destroy_char_arr(char_arr_t* char_arr) {
 
 // ---------------CONFIG MANGER--------------------
 static inline void* create_new_cfg_mr() {
-	app_cfg_t* app_cfg = app_cfg_new();
-	if (app_cfg == NULL){
-		LOG_ERROR_0("App Cfg failed in base c layer");
+
+	cfgmgr_ctx_t* cfgmgr = cfgmgr_initialize();
+	if (cfgmgr == NULL){
+		LOG_ERROR_0("ConfigMgr initialization failed in base c layer");
 		return NULL;
 	}
-	return app_cfg;
+	return cfgmgr;
 }
 
-static inline char* get_env_var(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->env_var == NULL){
-		LOG_ERROR_0(" c_app_cfg or Env_Var is NULL");
+static inline char* get_env_var(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL || c_cfgmgr->env_var == NULL){
+		LOG_ERROR_0(" c_cfgmgr or Env_Var is NULL");
 		return NULL;
 	}
-	return c_app_cfg->env_var;
+	return c_cfgmgr->env_var;
 }
 
-static inline char* get_app_name(void* app_cfg) {
+static inline char* get_app_name(void* cfg_mgr) {
 	int ret;
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return NULL;
 	}
-	config_value_t* appname = cfgmgr_get_appname_base(c_app_cfg->base_cfg);
+	config_value_t* appname = cfgmgr_get_appname(c_cfgmgr);
 	if (appname == NULL) {
 		LOG_ERROR_0("Getting App name from base c layer failed");
 		return NULL;
@@ -281,56 +282,56 @@ static inline char* get_app_name(void* app_cfg) {
     return c_appname;
 }
 
-static inline int is_dev_mode(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	int result = cfgmgr_is_dev_mode_base(c_app_cfg->base_cfg);
+static inline bool is_dev_mode(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	bool result = cfgmgr_is_dev_mode(c_cfgmgr);
 	return result;
 }
 
-static inline int get_num_publihers(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+static inline int get_num_publihers(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return -1;
 	}
-	return cfgmgr_get_num_elements_base("Publishers", c_app_cfg->base_cfg);
+	return cfgmgr_get_num_publishers(c_cfgmgr);
 }
 
-static inline int get_num_subscribers(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+static inline int get_num_subscribers(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return -1;
 	}
-	return cfgmgr_get_num_elements_base("Subscribers", c_app_cfg->base_cfg);
+	return cfgmgr_get_num_subscribers(c_cfgmgr);
 }
 
-static inline int get_num_servers(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+static inline int get_num_servers(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return -1;
 	}
-	return cfgmgr_get_num_elements_base("Servers", c_app_cfg->base_cfg);
+	return cfgmgr_get_num_servers( c_cfgmgr);
 }
 
-static inline int get_num_clients(void* app_cfg) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+static inline int get_num_clients(void* cfg_mgr) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return -1;
 	}
-	return cfgmgr_get_num_elements_base("Clients", c_app_cfg->base_cfg);
+	return cfgmgr_get_num_clients(c_cfgmgr);
 }
 
 // ---------------APP CONFIG-----------------------
-static inline void* get_apps_config(void* app_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	if (c_app_cfg == NULL || c_app_cfg->base_cfg == NULL){
-		LOG_ERROR_0("App or base config is NULL");
+static inline void* get_apps_config(void* cfg_mgr){
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	if (c_cfgmgr == NULL){
+		LOG_ERROR_0("App config is NULL");
 		return NULL;
 	}
-	config_t* config = c_app_cfg->base_cfg->m_app_config;
+	config_t* config = c_cfgmgr->app_config;
 	if(config == NULL) {
 		LOG_ERROR_0("Config value is NULL");
 		return NULL;
@@ -338,126 +339,91 @@ static inline void* get_apps_config(void* app_cfg){
 	return (void*)config;
 }
 
-static inline void destroy_cfg_mgr(void* app_cfg, void* app_config) {
+static inline void destroy_cfg_mgr(void* cfg_mgr) {
 	LOG_DEBUG_0("ConfigManager: destroy_cfg_mgr");
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	config_t* c_app_config = (config_t*) app_config;
-	if (c_app_config != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy application specific config");
-		config_destroy(c_app_config);
-	}
-	if (c_app_cfg->base_cfg != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy base_cfg");
-		// TODO: fix double_free() issue
-		// base_cfg_config_destroy(c_app_cfg->base_cfg);
-	}
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
 
-	if(c_app_cfg != NULL){
-		LOG_DEBUG_0("ConfigManager: destroy app_cfg");
-		app_cfg_config_destroy(c_app_cfg);
+	if(c_cfgmgr != NULL){
+		LOG_DEBUG_0("ConfigManager: destroy cfgmgr");
+		cfgmgr_destroy(c_cfgmgr);
 	}
 }
 
-static inline void destroy_publisher(void* pub_cfg, void* msgbus_config) {
+static inline void destroy_publisher(void* cfgmgr_ctx) {
 	LOG_DEBUG_0("ConfigManager: destroy publisher context");
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
-	config_t* c_msgbus_config = (config_t*)msgbus_config;
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	if (c_msgbus_config != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy publisher msgbus config");
-		config_destroy(c_msgbus_config);
-	}
-
-	if (c_pub_cfg->pub_config != NULL) {
+	if (c_cfgmgr_ctx->interface != NULL) {
 		LOG_DEBUG_0("ConfigManager: destroy publisher config");
-		config_value_destroy(c_pub_cfg->pub_config);
-		free(c_pub_cfg);
+		config_value_destroy(c_cfgmgr_ctx->interface);
+		free(c_cfgmgr_ctx);
 	}
 }
 
-static inline void destroy_subscriber(void* sub_cfg, void* msgbus_config) {
+static inline void destroy_subscriber(void* cfgmgr_ctx) {
 	LOG_DEBUG_0("ConfigManager: destroy subscriber context");
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
-	config_t* c_msgbus_config = (config_t*)msgbus_config;
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	if (c_msgbus_config != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy subscriber msgbus config");
-		config_destroy(c_msgbus_config);
-	}
-
-	if (c_sub_cfg->sub_config != NULL) {
+	if (c_cfgmgr_ctx->interface != NULL) {
 		LOG_DEBUG_0("ConfigManager: destroy subscriber config");
-		config_value_destroy(c_sub_cfg->sub_config);
-		free(c_sub_cfg);
+		config_value_destroy(c_cfgmgr_ctx->interface);
+		free(c_cfgmgr_ctx);
 	}
 }
 
-static inline void destroy_client(void* client_cfg, void* msgbus_config) {
+static inline void destroy_client(void* cfgmgr_ctx) {
 	LOG_DEBUG_0("ConfigManager: destroy client context");
-	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
-	config_t* c_msgbus_config = (config_t*)msgbus_config;
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	if (c_msgbus_config != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy client msgbus config");
-		config_destroy(c_msgbus_config);
-	}
-
-	if (c_client_cfg->client_config != NULL) {
+	if (c_cfgmgr_ctx->interface != NULL) {
 		LOG_DEBUG_0("ConfigManager: destroy client config");
-		config_value_destroy(c_client_cfg->client_config);
-		free(c_client_cfg);
+		config_value_destroy(c_cfgmgr_ctx->interface);
+		free(c_cfgmgr_ctx);
 	}
 }
 
-static inline void destroy_server(void* server_cfg, void* msgbus_config) {
+static inline void destroy_server(void* cfgmgr_ctx) {
 	LOG_DEBUG_0("ConfigManager: destroy server context");
-	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
-	config_t* c_msgbus_config = (config_t*)msgbus_config;
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	if (c_msgbus_config != NULL) {
-		LOG_DEBUG_0("ConfigManager: destroy server msgbus config");
-		config_destroy(c_msgbus_config);
-	}
-
-	if (c_server_cfg->server_config != NULL) {
+	if (c_cfgmgr_ctx->interface != NULL) {
 		LOG_DEBUG_0("ConfigManager: destroy server config");
-		config_value_destroy(c_server_cfg->server_config);
-		free(c_server_cfg);
+		config_value_destroy(c_cfgmgr_ctx->interface);
+		free(c_cfgmgr_ctx);
 	}
 }
 
 // -----------------PUBLISHER----------------------
 static inline void* get_publisher_by_name(void* ctx, char *name){
-	pub_cfg_t* pub_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	pub_cfg = cfgmgr_get_publisher_by_name(app_cfg, name);
-	if(pub_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_publisher_by_name(cfg_mgr, name);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Publisher]: Get publisher by name from base C layer failed");
 		return NULL;
 	}
-	return pub_cfg;
+	return cfgmgr_ctx;
 }
 
 static inline void* get_publisher_by_index(void* ctx, int index){
-	pub_cfg_t* pub_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	pub_cfg = cfgmgr_get_publisher_by_index(app_cfg, index);
-	if(pub_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_publisher_by_index(cfg_mgr, index);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Publisher]: Get publisher by index from base C layer failed");
 		return NULL;
 	}
-	return pub_cfg;
+	return cfgmgr_ctx;
 }
 
-static inline int set_pub_topics(void* app_cfg, void* pub_cfg, char **topics, int len) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
-	int ret = c_pub_cfg->cfgmgr_set_topics_pub(topics, len, c_app_cfg->base_cfg, c_pub_cfg);
+static inline bool set_pub_topics(void* cfgmgr_ctx, char **topics, int len) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	bool ret = cfgmgr_set_topics(c_cfgmgr_ctx, topics, len);
 	return ret;
 }
 
-static inline char_arr_t* get_pub_end_points(void* pub_cfg){
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+static inline char_arr_t* get_pub_end_points(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL){
@@ -465,7 +431,7 @@ static inline char_arr_t* get_pub_end_points(void* pub_cfg){
 		return NULL;
 	}
 
-	config_value_t* endpoints = c_pub_cfg->cfgmgr_get_endpoint_pub(c_pub_cfg);
+	config_value_t* endpoints = cfgmgr_get_endpoint(c_cfgmgr_ctx);
 	if (endpoints == NULL){
 		destroy_char_arr(char_arr);
 		LOG_ERROR_0("[Publisher]: Getting endpoint from base c layer failed");
@@ -510,10 +476,9 @@ static inline char_arr_t* get_pub_end_points(void* pub_cfg){
 	return char_arr;
 }
 
-static inline void* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
-	config_t* config = c_pub_cfg->cfgmgr_get_msgbus_config_pub(c_app_cfg->base_cfg, c_pub_cfg);
+static inline void* get_pub_msgbus_config(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	config_t* config = cfgmgr_get_msgbus_config(c_cfgmgr_ctx);
 	if (config == NULL){
 		LOG_ERROR_0("[Publisher] Getting message bus config failed");
 		return NULL;
@@ -521,15 +486,15 @@ static inline void* get_pub_msgbus_config(void* app_cfg, void* pub_cfg){
 	return (void*)config;
 }
 
-static inline string_arr_t* get_pub_topics(void* pub_cfg){
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+static inline string_arr_t* get_pub_topics(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL){
 		LOG_ERROR_0("[Publisher] Malloc failed for str_arr");
 		return NULL;
 	}
 
-	config_value_t* topics = c_pub_cfg->cfgmgr_get_topics_pub(c_pub_cfg);
+	config_value_t* topics = cfgmgr_get_topics(c_cfgmgr_ctx);
 	if (topics == NULL) {
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Publisher]: Get topics from base c layer failed")
@@ -549,15 +514,15 @@ static inline string_arr_t* get_pub_topics(void* pub_cfg){
 	return str_arr;
 }
 
-static inline string_arr_t* get_pub_allowed_clients(void* pub_cfg){
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+static inline string_arr_t* get_pub_allowed_clients(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL){
 		LOG_ERROR_0("[Publisher]: Malloc failed for str_arr");
 		return NULL;
 	}
 
-	config_value_t* allowed_clients = c_pub_cfg->cfgmgr_get_allowed_clients_pub(c_pub_cfg);
+	config_value_t* allowed_clients = cfgmgr_get_allowed_clients(c_cfgmgr_ctx);
 	if (allowed_clients == NULL){
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Publisher]: Getting Allowed clients from base c layer failed");
@@ -577,10 +542,10 @@ static inline string_arr_t* get_pub_allowed_clients(void* pub_cfg){
 	return str_arr;
 }
 
-static inline config_val_t* get_pub_interface_value(void* pub_cfg, char *key) {
-	pub_cfg_t* c_pub_cfg = (pub_cfg_t *)pub_cfg;
+static inline config_val_t* get_pub_interface_value(void* cfgmgr_ctx, char *key) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	config_value_t* value = c_pub_cfg->cfgmgr_get_interface_value_pub(c_pub_cfg, key);
+	config_value_t* value = cfgmgr_get_interface_value(c_cfgmgr_ctx, key);
 	if(value == NULL){
 		LOG_ERROR_0("[Publisher]: Get interface value from base C layer failed");
 		return NULL;
@@ -598,29 +563,29 @@ static inline config_val_t* get_pub_interface_value(void* pub_cfg, char *key) {
 //-----------------SUBSCRIBER----------------------
 
 static inline void* get_subscriber_by_name(void* ctx, char *name){
-	sub_cfg_t* sub_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	sub_cfg = cfgmgr_get_subscriber_by_name(app_cfg, name);
-	if(sub_cfg == NULL){
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_subscriber_by_name(cfg_mgr, name);
+	if(cfgmgr_ctx == NULL){
 		LOG_ERROR_0("[Subscriber]: Get subscriber by name from base C layer failed");
 		return NULL;
 	}
-	return sub_cfg;
+	return cfgmgr_ctx;
 }
 
 static inline void* get_subscriber_by_index(void* ctx, int index){
-	sub_cfg_t* sub_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	sub_cfg = cfgmgr_get_subscriber_by_index(app_cfg, index);
-	if(sub_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_subscriber_by_index(cfg_mgr, index);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Subscriber]: Get subscriber by index from base C layer failed");
 		return NULL;
 	}
-	return sub_cfg;
+	return cfgmgr_ctx;
 }
 
-static inline char_arr_t* get_sub_end_points(void* sub_cfg){
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
+static inline char_arr_t* get_sub_end_points(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL){
@@ -628,7 +593,7 @@ static inline char_arr_t* get_sub_end_points(void* sub_cfg){
 		return NULL;
 	}
 
-	config_value_t* endpoints = c_sub_cfg->cfgmgr_get_endpoint_sub(c_sub_cfg);
+	config_value_t* endpoints = cfgmgr_get_endpoint(c_cfgmgr_ctx);
 	if (endpoints == NULL){
 		destroy_char_arr(char_arr);
 		LOG_ERROR_0("[Subscriber]: Getting endpoint from base c layer failed");
@@ -673,10 +638,9 @@ static inline char_arr_t* get_sub_end_points(void* sub_cfg){
 	return char_arr;
 }
 
-static inline void* get_msgbus_config_subscriber(void* app_cfg, void* sub_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
-	config_t* config = c_sub_cfg->cfgmgr_get_msgbus_config_sub(c_app_cfg->base_cfg, c_sub_cfg);
+static inline void* get_msgbus_config_subscriber(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	config_t* config = cfgmgr_get_msgbus_config(c_cfgmgr_ctx);
 	if (config == NULL){
 		LOG_ERROR_0("[Subscriber] Getting message bus config failed");
 		return NULL;
@@ -684,15 +648,15 @@ static inline void* get_msgbus_config_subscriber(void* app_cfg, void* sub_cfg){
 	return (void*)config;
 }
 
-static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
+static inline string_arr_t* get_topics_subscriber(void* cfgmgr_ctx) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL){
 		LOG_ERROR_0("[Subscriber]: Malloc failed to str_arr");
 		return NULL;
 	}
 
-	config_value_t* topics = c_sub_cfg->cfgmgr_get_topics_sub(c_sub_cfg);
+	config_value_t* topics = cfgmgr_get_topics(c_cfgmgr_ctx);
 	if (topics == NULL){
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Subscriber]: Get topics from base c layer failed");
@@ -712,17 +676,16 @@ static inline string_arr_t* get_topics_subscriber(void* sub_cfg) {
 	return str_arr;
 }
 
-static inline int set_sub_topics(void* app_cfg, void* sub_cfg, char **topics, int len) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
-	int ret = c_sub_cfg->cfgmgr_set_topics_sub(topics, len, c_app_cfg->base_cfg, c_sub_cfg);
+static inline bool set_sub_topics(void* cfgmgr_ctx, char **topics, int len) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	bool ret = cfgmgr_set_topics(c_cfgmgr_ctx, topics, len);
 	return ret;
 }
 
-static inline config_val_t* get_sub_interface_value(void* sub_cfg, char *key) {
-	sub_cfg_t* c_sub_cfg = (sub_cfg_t *)sub_cfg;
+static inline config_val_t* get_sub_interface_value(void* cfgmgr_ctx, char *key) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	config_value_t* value = c_sub_cfg->cfgmgr_get_interface_value_sub(c_sub_cfg, key);
+	config_value_t* value = cfgmgr_get_interface_value(c_cfgmgr_ctx, key);
 	if(value == NULL){
 		LOG_ERROR_0("[Subscriber]: Get interface value from base C layer failed");
 		return NULL;
@@ -739,29 +702,29 @@ static inline config_val_t* get_sub_interface_value(void* sub_cfg, char *key) {
 //-----------------SERVER--------------------------
 
 static inline void* get_server_by_name(void* ctx, char *name){
-	server_cfg_t* server_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	server_cfg = cfgmgr_get_server_by_name(app_cfg, name);
-	if(server_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_server_by_name(cfg_mgr, name);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Server]: Get publisher by name from base C layer failed");
 		return NULL;
 	}
-	return server_cfg;
+	return cfgmgr_ctx;
 }
 
 static inline void* get_server_by_index(void* ctx, int index){
-	server_cfg_t* server_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	server_cfg = cfgmgr_get_server_by_index(app_cfg, index);
-	if(server_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_server_by_index(cfg_mgr, index);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Server]: Get publisher by index from base C layer failed");
 		return NULL;
 	}
-	return server_cfg;
+	return cfgmgr_ctx;
 }
 
-static inline char_arr_t* get_server_end_points(void* server_cfg){
-	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
+static inline char_arr_t* get_server_end_points(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL){
@@ -769,7 +732,7 @@ static inline char_arr_t* get_server_end_points(void* server_cfg){
 		return NULL;
 	}
 
-	config_value_t* endpoints = c_server_cfg->cfgmgr_get_endpoint_server(c_server_cfg);
+	config_value_t* endpoints = cfgmgr_get_endpoint(c_cfgmgr_ctx);
 	if (endpoints == NULL){
 		destroy_char_arr(char_arr);
 		LOG_ERROR_0("[Server]: Getting endpoint from base c layer failed");
@@ -814,10 +777,9 @@ static inline char_arr_t* get_server_end_points(void* server_cfg){
 	return char_arr;
 }
 
-static inline void* get_msgbus_config_server(void* app_cfg, void* server_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
-	config_t* config = c_server_cfg->cfgmgr_get_msgbus_config_server(c_app_cfg->base_cfg, c_server_cfg);
+static inline void* get_msgbus_config_server(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	config_t* config = cfgmgr_get_msgbus_config(c_cfgmgr_ctx);
 	if (config == NULL){
 		LOG_ERROR_0("[Server] Getting message bus config failed");
 		return NULL;
@@ -825,15 +787,15 @@ static inline void* get_msgbus_config_server(void* app_cfg, void* server_cfg){
 	return (void*)config;
 }
 
-static inline string_arr_t* get_allowed_clients_server(void* server_cfg){
-	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
+static inline string_arr_t* get_allowed_clients_server(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 	string_arr_t* str_arr = (string_arr_t*) malloc(sizeof(string_arr_t));
 	if(str_arr == NULL){
 		LOG_ERROR_0("[Server]: Malloc failed for str_arr");
 		return NULL;
 	}
 
-	config_value_t* allowed_clients = c_server_cfg->cfgmgr_get_allowed_clients_server(c_server_cfg);
+	config_value_t* allowed_clients = cfgmgr_get_allowed_clients(c_cfgmgr_ctx);
 	if (allowed_clients == NULL){
 		destroy_string_arr(str_arr);
 		LOG_ERROR_0("[Server]: Getting Allowed clients from base c layer failed");
@@ -854,10 +816,10 @@ static inline string_arr_t* get_allowed_clients_server(void* server_cfg){
 	return str_arr;
 }
 
-static inline config_val_t* get_server_interface_value(void* server_cfg, char *key) {
-	server_cfg_t* c_server_cfg = (server_cfg_t *)server_cfg;
+static inline config_val_t* get_server_interface_value(void* cfgmgr_ctx, char *key) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	config_value_t* value = c_server_cfg->cfgmgr_get_interface_value_server(c_server_cfg, key);
+	config_value_t* value = cfgmgr_get_interface_value(c_cfgmgr_ctx, key);
 	if(value == NULL){
 		LOG_ERROR_0("[Server]: Get interface value from base C layer failed");
 		return NULL;
@@ -874,29 +836,29 @@ static inline config_val_t* get_server_interface_value(void* server_cfg, char *k
 
 //-----------------CLIENT--------------------------
 static inline void* get_client_by_name(void* ctx, char *name){
-	client_cfg_t* client_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	client_cfg = cfgmgr_get_client_by_name(app_cfg, name);
-	if(client_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_client_by_name(cfg_mgr, name);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Client]: Get publisher by name from base C layer failed");
 		return NULL;
 	}
-	return client_cfg;
+	return cfgmgr_ctx;
 }
 
 static inline void* get_client_by_index(void* ctx, int index){
-	client_cfg_t* client_cfg = NULL;
-	app_cfg_t *app_cfg = (app_cfg_t *)ctx;
-	client_cfg = cfgmgr_get_client_by_index(app_cfg, index);
-	if(client_cfg == NULL) {
+	cfgmgr_interface_t* cfgmgr_ctx = NULL;
+	cfgmgr_ctx_t *cfg_mgr = (cfgmgr_ctx_t *)ctx;
+	cfgmgr_ctx = cfgmgr_get_client_by_index(cfg_mgr, index);
+	if(cfgmgr_ctx == NULL) {
 		LOG_ERROR_0("[Client]: Get publisher by index from base C layer failed");
 		return NULL;
 	}
-	return client_cfg;
+	return cfgmgr_ctx;
 }
 
-static inline char_arr_t* get_client_end_points(void* client_cfg){
-	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
+static inline char_arr_t* get_client_end_points(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
 	char_arr_t* char_arr = (char_arr_t*) malloc(sizeof(char_arr_t));
 	if(char_arr == NULL){
@@ -904,7 +866,7 @@ static inline char_arr_t* get_client_end_points(void* client_cfg){
 		return NULL;
 	}
 
-	config_value_t* endpoints = c_client_cfg->cfgmgr_get_endpoint_client(c_client_cfg);
+	config_value_t* endpoints = cfgmgr_get_endpoint(c_cfgmgr_ctx);
 	if (endpoints == NULL){
 		destroy_char_arr(char_arr);
 		LOG_ERROR_0("[Client]: Getting endpoint from base c layer failed");
@@ -949,10 +911,9 @@ static inline char_arr_t* get_client_end_points(void* client_cfg){
 	return char_arr;
 }
 
-static inline void* get_msgbus_config_client(void* app_cfg, void* client_cfg){
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	client_cfg_t* c_client_cfg= (client_cfg_t *)client_cfg;
-	config_t* config = c_client_cfg->cfgmgr_get_msgbus_config_client(c_app_cfg->base_cfg, c_client_cfg);
+static inline void* get_msgbus_config_client(void* cfgmgr_ctx){
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
+	config_t* config = cfgmgr_get_msgbus_config(c_cfgmgr_ctx);
 	if (config == NULL){
 		LOG_ERROR_0("[Client] Getting message bus config failed");
 		return NULL;
@@ -960,10 +921,10 @@ static inline void* get_msgbus_config_client(void* app_cfg, void* client_cfg){
 	return (void*)config;
 }
 
-static inline config_val_t* get_client_interface_value(void* client_cfg, char *key) {
-	client_cfg_t* c_client_cfg = (client_cfg_t *)client_cfg;
+static inline config_val_t* get_client_interface_value(void* cfgmgr_ctx, char *key) {
+	cfgmgr_interface_t* c_cfgmgr_ctx = (cfgmgr_interface_t *)cfgmgr_ctx;
 
-	config_value_t* value = c_client_cfg->cfgmgr_get_interface_value_client(c_client_cfg, key);
+	config_value_t* value = cfgmgr_get_interface_value(c_cfgmgr_ctx, key);
 	if(value == NULL){
 		LOG_ERROR_0("[Client]: Get interface value from base C layer failed");
 		return NULL;
@@ -980,18 +941,18 @@ static inline config_val_t* get_client_interface_value(void* client_cfg, char *k
 
 //-----------------WATCH--------------------------
 
-typedef void (*callback_t)(const char *key, config_t* value, void* cb_user_data);
+typedef void (*cfgmgr_watch_callback_t)(const char *key, config_t* value, void* cb_user_data);
 void cCallback(const char *key, config_t* value, void* cb_user_data);
 
-static inline void watch(void* app_cfg, char* key, callback_t callback_fn, void* user_data) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
-	cfgmgr_watch(c_app_cfg->base_cfg, key, callback_fn, user_data);
+static inline void watch(void* cfg_mgr, const char* key, cfgmgr_watch_callback_t callback_fn, void* user_data) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
+	cfgmgr_watch(c_cfgmgr, key, callback_fn, user_data);
 }
 
-static inline void watch_prefix(void* app_cfg, char* prefix, callback_t callback_fn, void* user_data) {
-	app_cfg_t* c_app_cfg = (app_cfg_t *)app_cfg;
+static inline void watch_prefix(void* cfg_mgr, char* prefix, cfgmgr_watch_callback_t callback_fn, void* user_data) {
+	cfgmgr_ctx_t* c_cfgmgr = (cfgmgr_ctx_t *)cfg_mgr;
 	// Calling the base cfgmgr_watch_prefix C API
-	cfgmgr_watch_prefix(c_app_cfg->base_cfg, prefix, callback_fn, user_data);
+	cfgmgr_watch_prefix(c_cfgmgr, prefix, callback_fn, user_data);
 }
 
 */
@@ -1008,19 +969,14 @@ import (
 	"github.com/golang/glog"
 )
 
-type ConfigMgrContext struct {
-	cfgmgrCtx unsafe.Pointer
-}
-
 // ConfigMgr object
 type ConfigMgr struct {
-	ctx       *ConfigMgrContext
-	appConfig unsafe.Pointer
+	cfgMgr unsafe.Pointer
 }
 
 // WatchObj context
 type WatchObj struct {
-	appCfg unsafe.Pointer
+	cfgMgr unsafe.Pointer
 }
 
 // goCallbacktype variable to define the go Callback Type
@@ -1099,20 +1055,20 @@ func getConfigVal(interfaceVal *C.config_val_t) (*ConfigValue, error) {
 }
 
 // Initialize a new config manager context.
-// 
+//
 // Returns:
 // 1. ConfigMgr : ConfigMgr object
 //    ConfigManager instance
 // 2. error
 //    Error on failure,  nil on success
 func ConfigManager() (*ConfigMgr, error) {
-	// Fetching app_cfg object
-	appCfg := C.create_new_cfg_mr()
-	if appCfg == nil {
+	// Fetching cfg_mgr object
+	cfgMgr := C.create_new_cfg_mr()
+	if cfgMgr == nil {
 		return nil, errors.New("Creating ConfigMgr instance failed in CGO\n")
 	}
-	// Fetching env_var from appCfg object
-	cEnvVar := C.get_env_var(appCfg)
+	// Fetching env_var from cfgMgr object
+	cEnvVar := C.get_env_var(cfgMgr)
 	if cEnvVar == nil {
 		return nil, errors.New("Getting env var failed in CGO\n")
 	}
@@ -1129,24 +1085,20 @@ func ConfigManager() (*ConfigMgr, error) {
 	for key, value := range jsonEnvVar {
 		os.Setenv(key, value.(string))
 	}
-	cfgmgrContext := new(ConfigMgrContext)
-	cfgmgrContext.cfgmgrCtx = appCfg
 	config_mgr := new(ConfigMgr)
-	config_mgr.appConfig = nil
-	config_mgr.ctx = cfgmgrContext
+	config_mgr.cfgMgr = cfgMgr
 	return config_mgr, nil
 }
 
 // Gets value from respective application's config
-// 
+//
 // Returns:
 // 1. appConfig : map[string]interface{}
 // 2. error
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
-	appCfg := C.get_apps_config(ctx.ctx.cfgmgrCtx)
-	ctx.appConfig = appCfg
-	cAppConfig := (*C.config_t)(appCfg)
+	cfgMgr := C.get_apps_config(ctx.cfgMgr)
+	cAppConfig := (*C.config_t)(cfgMgr)
 	cAppConf := C.configt_to_char(cAppConfig)
 	if cAppConf == nil {
 		return nil, errors.New("[AppConfig] Converting configt to char failed")
@@ -1166,7 +1118,7 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 }
 
 // Get Applications name.
-// 
+//
 // Returns:
 // 1. App name : string
 //    Applications name
@@ -1174,7 +1126,7 @@ func (ctx *ConfigMgr) GetAppConfig() (map[string]interface{}, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetAppName() (string, error) {
 	// Fetching app_name
-	cAppName := C.get_app_name(ctx.ctx.cfgmgrCtx)
+	cAppName := C.get_app_name(ctx.cfgMgr)
 	if cAppName == nil {
 		return "", errors.New("Getting app name failed in CGO\n")
 	}
@@ -1185,7 +1137,7 @@ func (ctx *ConfigMgr) GetAppName() (string, error) {
 }
 
 // To check if application running in dev_mode or prod_mode
-// 
+//
 // Returns:
 // 1. bool value : bool
 //    true is dev_mode, false if prod_mode
@@ -1193,9 +1145,9 @@ func (ctx *ConfigMgr) GetAppName() (string, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) IsDevMode() (bool, error) {
 	// Fetching dev mode
-	devMode := C.is_dev_mode(ctx.ctx.cfgmgrCtx)
+	devMode := C.is_dev_mode(ctx.cfgMgr)
 	// Return true if dev_mode variable is 0
-	if int(devMode) == 0 {
+	if devMode {
 		return true, nil
 	} else {
 		return false, nil
@@ -1204,7 +1156,7 @@ func (ctx *ConfigMgr) IsDevMode() (bool, error) {
 
 func (configMgr *ConfigMgr) GetWatchObj() (*WatchObj, error) {
 	watchCtx := new(WatchObj)
-	watchCtx.appCfg = configMgr.ctx.cfgmgrCtx
+	watchCtx.cfgMgr = configMgr.cfgMgr
 	return watchCtx, nil
 }
 
@@ -1252,7 +1204,7 @@ func (watchCtx *WatchObj) Watch(key string, callbackFunc goCallbacktype, user_da
 		return
 	}
 	// Calling the C watch API
-	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	C.watch(watchCtx.cfgMgr, C.CString(key), (C.cfgmgr_watch_callback_t)(unsafe.Pointer(C.cCallback)), ptr)
 	return
 }
 
@@ -1266,7 +1218,7 @@ func (watchCtx *WatchObj) WatchPrefix(prefix string, callbackFunc goCallbacktype
 		return
 	}
 	// Calling the C watch_prefix API
-	C.watch_prefix(watchCtx.appCfg, C.CString(prefix), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	C.watch_prefix(watchCtx.cfgMgr, C.CString(prefix), (C.cfgmgr_watch_callback_t)(unsafe.Pointer(C.cCallback)), ptr)
 	return
 }
 
@@ -1280,7 +1232,7 @@ func (watchCtx *WatchObj) WatchConfig(callbackFunc goCallbacktype, user_data int
 		return
 	}
 	// Calling the C get_app_name API to fetch AppName
-	cAppName := C.get_app_name(watchCtx.appCfg)
+	cAppName := C.get_app_name(watchCtx.cfgMgr)
 	if cAppName == nil {
 		glog.Errorf("Failed to fetch appname")
 		return
@@ -1292,7 +1244,7 @@ func (watchCtx *WatchObj) WatchConfig(callbackFunc goCallbacktype, user_data int
 	// Creating /<AppName>/config key
 	key := "/" + goAppName + "/config"
 	// Calling the C watch API
-	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	C.watch(watchCtx.cfgMgr, C.CString(key), (C.cfgmgr_watch_callback_t)(unsafe.Pointer(C.cCallback)), ptr)
 	return
 }
 
@@ -1306,7 +1258,7 @@ func (watchCtx *WatchObj) WatchInterface(callbackFunc goCallbacktype, user_data 
 		return
 	}
 	// Calling the C get_app_name API to fetch AppName
-	cAppName := C.get_app_name(watchCtx.appCfg)
+	cAppName := C.get_app_name(watchCtx.cfgMgr)
 	if cAppName == nil {
 		glog.Errorf("Failed to fetch appname")
 		return
@@ -1318,12 +1270,12 @@ func (watchCtx *WatchObj) WatchInterface(callbackFunc goCallbacktype, user_data 
 	// Creating /<AppName>/interfaces key
 	key := "/" + goAppName + "/interfaces"
 	// Calling the C watch API
-	C.watch(watchCtx.appCfg, C.CString(key), (C.callback_t)(unsafe.Pointer(C.cCallback)), ptr)
+	C.watch(watchCtx.cfgMgr, C.CString(key), (C.cfgmgr_watch_callback_t)(unsafe.Pointer(C.cCallback)), ptr)
 	return
 }
 
 // Get number of publishers in Publisher array in interface
-// 
+//
 // Returns:
 // 1. num_of_publishers : int
 //    Number of publishers
@@ -1331,12 +1283,12 @@ func (watchCtx *WatchObj) WatchInterface(callbackFunc goCallbacktype, user_data 
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumPublishers() (int, error) {
 	// Fetching dev mode
-	numPublihers := C.get_num_publihers(ctx.ctx.cfgmgrCtx)
+	numPublihers := C.get_num_publihers(ctx.cfgMgr)
 	return int(numPublihers), nil
 }
 
 // Get number of subscribers in Subscriber array in interface
-// 
+//
 // Returns:
 // 1. num_of_subscribers : int
 //    Number of subscribers
@@ -1344,12 +1296,12 @@ func (ctx *ConfigMgr) GetNumPublishers() (int, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumSubscribers() (int, error) {
 	// Fetching dev mode
-	numSubscribers := C.get_num_subscribers(ctx.ctx.cfgmgrCtx)
+	numSubscribers := C.get_num_subscribers(ctx.cfgMgr)
 	return int(numSubscribers), nil
 }
 
 // Get number of servers in Server array in interface
-// 
+//
 // Returns:
 // 1. num_of_servers : int
 //    Number of servers
@@ -1357,12 +1309,12 @@ func (ctx *ConfigMgr) GetNumSubscribers() (int, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumServers() (int, error) {
 	// Fetching dev mode
-	numServers := C.get_num_servers(ctx.ctx.cfgmgrCtx)
+	numServers := C.get_num_servers(ctx.cfgMgr)
 	return int(numServers), nil
 }
 
 // Get number of clients in Client array in interface
-// 
+//
 // Returns:
 // 1. num_of_client : int
 //    Number of client
@@ -1370,12 +1322,12 @@ func (ctx *ConfigMgr) GetNumServers() (int, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetNumClients() (int, error) {
 	// Fetching dev mode
-	num_clients := C.get_num_clients(ctx.ctx.cfgmgrCtx)
+	num_clients := C.get_num_clients(ctx.cfgMgr)
 	return int(num_clients), nil
 }
 
 // Get the respective publisher based on the name
-// 
+//
 // Returns:
 // 1. PublisherCfg : PublisherCfg obj
 //    PublisherCfg instance
@@ -1383,9 +1335,7 @@ func (ctx *ConfigMgr) GetNumClients() (int, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
-	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
-	pubCtx.msgBusCfg = nil
-	goPubCfg := C.get_publisher_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
+	goPubCfg := C.get_publisher_by_name(ctx.cfgMgr, C.CString(name))
 	if goPubCfg == nil {
 		return nil, errors.New("[Publisher]: Failed to get publisher by name from CGO\n")
 	}
@@ -1394,7 +1344,7 @@ func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 }
 
 // Get the respective publisher based on the index
-// 
+//
 // Returns:
 // 1. PublisherCfg : PublisherCfg obj
 //    PublisherCfg instance
@@ -1402,9 +1352,7 @@ func (ctx *ConfigMgr) GetPublisherByName(name string) (*PublisherCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 	pubCtx := new(PublisherCfg)
-	pubCtx.appCfg = ctx.ctx.cfgmgrCtx
-	pubCtx.msgBusCfg = nil
-	goPubCfg := C.get_publisher_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
+	goPubCfg := C.get_publisher_by_index(ctx.cfgMgr, C.int(index))
 	if goPubCfg == nil {
 		return nil, errors.New("[Publisher]: Failed to get publisher by index from CGO\n")
 	}
@@ -1413,7 +1361,7 @@ func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 }
 
 // Get the respective subscriber based on the name
-// 
+//
 // Returns:
 // 1. SubscriberCfg : SubscriberCfg obj
 //    SubscriberCfg instance
@@ -1421,9 +1369,7 @@ func (ctx *ConfigMgr) GetPublisherByIndex(index int) (*PublisherCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
-	subCtx.appCfg = ctx.ctx.cfgmgrCtx
-	subCtx.msgBusCfg = nil
-	goSubCfg := C.get_subscriber_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
+	goSubCfg := C.get_subscriber_by_name(ctx.cfgMgr, C.CString(name))
 	if goSubCfg == nil {
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by name from CGO\n")
 	}
@@ -1432,7 +1378,7 @@ func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 }
 
 // Get the respective subscriber based on the index
-// 
+//
 // Returns:
 // 1. SubscriberCfg : SubscriberCfg obj
 //    SubscriberCfg instance
@@ -1440,9 +1386,7 @@ func (ctx *ConfigMgr) GetSubscriberByName(name string) (*SubscriberCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 	subCtx := new(SubscriberCfg)
-	subCtx.appCfg = ctx.ctx.cfgmgrCtx
-	subCtx.msgBusCfg = nil
-	goSubCfg := C.get_subscriber_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
+	goSubCfg := C.get_subscriber_by_index(ctx.cfgMgr, C.int(index))
 	if goSubCfg == nil {
 		return nil, errors.New("[Subscriber]: Failed to get subscriber by index from CGO\n")
 	}
@@ -1451,7 +1395,7 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 }
 
 // Get the respective server based on the name
-// 
+//
 // Returns:
 // 1. ServerCfg : ServerCfg obj
 //    ServerCfg instance
@@ -1459,9 +1403,7 @@ func (ctx *ConfigMgr) GetSubscriberByIndex(index int) (*SubscriberCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
-	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
-	serverCtx.msgBusCfg = nil
-	goServerCfg := C.get_server_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
+	goServerCfg := C.get_server_by_name(ctx.cfgMgr, C.CString(name))
 	if goServerCfg == nil {
 		return nil, errors.New("[Server]: Failed to get publisher by name from CGO\n")
 	}
@@ -1470,7 +1412,7 @@ func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 }
 
 // Get the respective server based on the index
-// 
+//
 // Returns:
 // 1. ServerCfg : ServerCfg obj
 //    ServerCfg instance
@@ -1478,9 +1420,7 @@ func (ctx *ConfigMgr) GetServerByName(name string) (*ServerCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 	serverCtx := new(ServerCfg)
-	serverCtx.appCfg = ctx.ctx.cfgmgrCtx
-	serverCtx.msgBusCfg = nil
-	goServerCfg := C.get_server_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
+	goServerCfg := C.get_server_by_index(ctx.cfgMgr, C.int(index))
 	if goServerCfg == nil {
 		return nil, errors.New("[Server]: Failed to get publisher by index from CGO\n")
 	}
@@ -1489,7 +1429,7 @@ func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 }
 
 // Get the respective client based on the name
-// 
+//
 // Returns:
 // 1. ClientCfg : ClientCfg obj
 //    ClientCfg instance
@@ -1497,15 +1437,13 @@ func (ctx *ConfigMgr) GetServerByIndex(index int) (*ServerCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
-	clientCtx.appCfg = ctx.ctx.cfgmgrCtx
-	clientCtx.msgBusCfg = nil
-	goClientCfg := C.get_client_by_name(ctx.ctx.cfgmgrCtx, C.CString(name))
+	goClientCfg := C.get_client_by_name(ctx.cfgMgr, C.CString(name))
 	clientCtx.clientCfg = goClientCfg
 	return clientCtx, nil
 }
 
 // Get the respective client based on the index
-// 
+//
 // Returns:
 // 1. ClientCfg : ClientCfg obj
 //    ClientCfg instance
@@ -1513,15 +1451,13 @@ func (ctx *ConfigMgr) GetClientByName(name string) (*ClientCfg, error) {
 //    Error on failure,  nil on success
 func (ctx *ConfigMgr) GetClientByIndex(index int) (*ClientCfg, error) {
 	clientCtx := new(ClientCfg)
-	clientCtx.appCfg = ctx.ctx.cfgmgrCtx
-	clientCtx.msgBusCfg = nil
-	goClientCfg := C.get_client_by_index(ctx.ctx.cfgmgrCtx, C.int(index))
+	goClientCfg := C.get_client_by_index(ctx.cfgMgr, C.int(index))
 	clientCtx.clientCfg = goClientCfg
 	return clientCtx, nil
 }
 
 func (ctx *ConfigMgr) Destroy() {
-	C.destroy_cfg_mgr(ctx.ctx.cfgmgrCtx, ctx.appConfig)
+	C.destroy_cfg_mgr(ctx.cfgMgr)
 }
 
 func (pubctx *PublisherCfg) getEndPoints() (string, error) {
@@ -1555,12 +1491,11 @@ func (pubctx *PublisherCfg) getAllowedClients() ([]string, error) {
 }
 
 func (pubctx *PublisherCfg) getMsgbusConfig() (string, error) {
-	conf := C.get_pub_msgbus_config(pubctx.appCfg, pubctx.pubCfg)
+	conf := C.get_pub_msgbus_config(pubctx.pubCfg)
 	if conf == nil {
 		return "", errors.New("[Publisher]: Failed to get message bus config from CGO\n")
 	}
 
-	pubctx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
 	cConf := C.configt_to_char(cConfig)
 	if cConf == nil {
@@ -1581,8 +1516,8 @@ func (pubctx *PublisherCfg) setTopics(topics []string) bool {
 		topicsList[i] = cs
 	}
 
-	topicsSet := C.set_pub_topics(pubctx.appCfg, pubctx.pubCfg, &topicsList[0], C.int(len(topics)))
-	if topicsSet == 0 {
+	topicsSet := C.set_pub_topics(pubctx.pubCfg, &topicsList[0], C.int(len(topics)))
+	if topicsSet {
 		return true
 	} else {
 		return false
@@ -1605,7 +1540,7 @@ func (pubctx *PublisherCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 }
 
 func (pubctx *PublisherCfg) destroyPublisher() {
-	C.destroy_publisher(pubctx.pubCfg, pubctx.msgBusCfg)
+	C.destroy_publisher(pubctx.pubCfg)
 }
 
 func (subctx *SubscriberCfg) getEndPoints() (string, error) {
@@ -1618,12 +1553,11 @@ func (subctx *SubscriberCfg) getEndPoints() (string, error) {
 }
 
 func (subctx *SubscriberCfg) getMsgbusConfig() (string, error) {
-	conf := C.get_msgbus_config_subscriber(subctx.appCfg, subctx.subCfg)
+	conf := C.get_msgbus_config_subscriber(subctx.subCfg)
 	if conf == nil {
 		return "", errors.New("[Subscriber]: Failed to get message bus config from CGO\n")
 	}
 
-	subctx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
 	cConf := C.configt_to_char(cConfig)
 	if cConf == nil {
@@ -1655,8 +1589,8 @@ func (subctx *SubscriberCfg) setTopics(topics []string) bool {
 		topicsList[i] = cs
 	}
 
-	topicsSet := C.set_sub_topics(subctx.appCfg, subctx.subCfg, &topicsList[0], C.int(len(topics)))
-	if topicsSet == 0 {
+	topicsSet := C.set_sub_topics(subctx.subCfg, &topicsList[0], C.int(len(topics)))
+	if topicsSet {
 		return true
 	} else {
 		return false
@@ -1679,7 +1613,7 @@ func (subctx *SubscriberCfg) getInterfaceValue(key string) (*ConfigValue, error)
 }
 
 func (subctx *SubscriberCfg) destroySubscriber() {
-	C.destroy_subscriber(subctx.subCfg, subctx.msgBusCfg)
+	C.destroy_subscriber(subctx.subCfg)
 }
 
 func (serverCtx *ServerCfg) getEndPoints() (string, error) {
@@ -1692,12 +1626,11 @@ func (serverCtx *ServerCfg) getEndPoints() (string, error) {
 }
 
 func (serverCtx *ServerCfg) getMsgbusConfig() (string, error) {
-	conf := C.get_msgbus_config_server(serverCtx.appCfg, serverCtx.serverCfg)
+	conf := C.get_msgbus_config_server(serverCtx.serverCfg)
 	if conf == nil {
 		return "", errors.New("[Server]: Failed to get message bus config from CGO\n")
 	}
 
-	serverCtx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
 	cConf := C.configt_to_char(cConfig)
 	if cConf == nil {
@@ -1736,7 +1669,7 @@ func (serverCtx *ServerCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 }
 
 func (serverCtx *ServerCfg) destroyServer() {
-	C.destroy_server(serverCtx.serverCfg, serverCtx.msgBusCfg)
+	C.destroy_server(serverCtx.serverCfg)
 }
 
 func (clientCtx *ClientCfg) getEndPoints() (string, error) {
@@ -1749,12 +1682,10 @@ func (clientCtx *ClientCfg) getEndPoints() (string, error) {
 }
 
 func (clientCtx *ClientCfg) getMsgbusConfig() (string, error) {
-	conf := C.get_msgbus_config_client(clientCtx.appCfg, clientCtx.clientCfg)
+	conf := C.get_msgbus_config_client(clientCtx.clientCfg)
 	if conf == nil {
 		return "", errors.New("[Client]: Failed to get message bus config from CGO\n")
 	}
-
-	clientCtx.msgBusCfg = conf
 	cConfig := (*C.config_t)(conf)
 	cConf := C.configt_to_char(cConfig)
 	if cConf == nil {
@@ -1782,5 +1713,5 @@ func (clientCtx *ClientCfg) getInterfaceValue(key string) (*ConfigValue, error) 
 }
 
 func (clientCtx *ClientCfg) destroyClient() {
-	C.destroy_client(clientCtx.clientCfg, clientCtx.msgBusCfg)
+	C.destroy_client(clientCtx.clientCfg)
 }

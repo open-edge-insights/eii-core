@@ -41,23 +41,19 @@ cdef class Subscriber:
     def __cinit__(self, *args, **kwargs):
         """Cython base constructor
         """
-        self.app_cfg = NULL
-        self.sub_cfg = NULL
+        self.cfgmgr_interface = NULL
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, sub_cfg_t* sub_cfg):
+    cdef create(cfgmgr_interface_t* cfgmgr_interface):
         """Helper method for initializing the client object.
 
-        :param app_cfg: Applications config struct
-        :type: struct
-        :param sub_cfg: Subscriber config struct
+        :param cfgmgr_interface: Subscriber config struct
         :type: struct
         :return: Subscriber class object
         :rtype: obj
         """
         s = Subscriber()
-        s.app_cfg = app_cfg
-        s.sub_cfg = sub_cfg
+        s.cfgmgr_interface = cfgmgr_interface
         return s
 
     def __dealloc__(self):
@@ -68,8 +64,8 @@ cdef class Subscriber:
     def destroy(self):
         """Close the subscriber.
         """
-        if self.sub_cfg != NULL:
-            sub_cfg_config_destroy(self.sub_cfg)
+        if self.cfgmgr_interface != NULL:
+            cfgmgr_interface_destroy(self.cfgmgr_interface)
 
     def get_msgbus_config(self):
         """Constructs message bus config for Subscriber
@@ -80,7 +76,7 @@ cdef class Subscriber:
         cdef char* config
         cdef config_t* msgbus_config
         try:
-            msgbus_config = self.sub_cfg.cfgmgr_get_msgbus_config_sub(self.app_cfg.base_cfg, self.sub_cfg)
+            msgbus_config = cfgmgr_get_msgbus_config(self.cfgmgr_interface)
             if msgbus_config is NULL:
                 raise Exception("[Subscriber] Getting msgbus config from base c layer failed")
 
@@ -107,7 +103,7 @@ cdef class Subscriber:
         cdef char* config
         try:
             interface_value = None
-            value = self.sub_cfg.cfgmgr_get_interface_value_sub(self.sub_cfg, key.encode('utf-8'))
+            value = cfgmgr_get_interface_value(self.cfgmgr_interface, key.encode('utf-8'))
             if value is NULL:
                 raise Exception("[Subscriber] Getting interface value from base c layer failed")
 
@@ -130,7 +126,7 @@ cdef class Subscriber:
         cdef config_value_t* ep
         cdef char* c_endpoint
         try:
-            ep = self.sub_cfg.cfgmgr_get_endpoint_sub(self.sub_cfg)
+            ep = cfgmgr_get_endpoint(self.cfgmgr_interface)
             if ep is NULL:
                 raise Exception("[Subscriber] Getting end point from base c layer failed")
 
@@ -170,7 +166,7 @@ cdef class Subscriber:
         cdef config_value_t* topic_value
         cdef char* c_topic_value
         try:
-            topics = self.sub_cfg.cfgmgr_get_topics_sub(self.sub_cfg)
+            topics = cfgmgr_get_topics(self.cfgmgr_interface)
             if topics is NULL:
                 raise Exception("[Subscriber] Getting topics from base c layer failed")
 
@@ -214,10 +210,10 @@ cdef class Subscriber:
                 topics_list[i] = topics_list[i].encode()
                 topics_to_be_set[i] = topics_list[i]
 
-            # Calling the base C cfgmgr_set_topics_sub() API
-            topics_set = self.sub_cfg.cfgmgr_set_topics_sub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.sub_cfg)
-            if topics_set is not 0 :
-                    raise Exception("[Subscriber] Set Topics in base c layer failed")
+            # Calling the base C cfgmgr_set_topics() API
+            topics_set = cfgmgr_set_topics(self.cfgmgr_interface, topics_to_be_set, len(topics_list))
+            if not topics_set :
+                raise Exception("[Subscriber] Set Topics in base c layer failed")
             free(topics_to_be_set)
             return topics_set
         except Exception as ex:

@@ -36,30 +36,37 @@
 #include "eii/utils/json_config.h"
 #include "eii/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eii/config_manager/app_cfg.hpp"
-#include "eii/config_manager/pub_cfg.h"
-#include "eii/config_manager/util_cfg.h"
 
-#include "eii/config_manager/cfg_mgr.h"
+#include "eii/config_manager/cfgmgr.h"
 
 namespace eii {
     namespace config_manager {
 
         class PublisherCfg : public AppCfg {
             private:
-                // pub_cfg_t object
-                pub_cfg_t* m_pub_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
+
+                /**
+                 * Private @c PublisherCfg copy constructor.
+                 */
+                PublisherCfg(const PublisherCfg& src);
+
+                /**
+                 * Private @c PublisherCfg assignment operator.
+                 */
+                PublisherCfg& operator=(const PublisherCfg& src);
 
             public:
 
                 /**
                 * PublisherCfg Constructor
-                * @param pub_config - The config associated with a client
-                * @param app_cfg    - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a publisher
                 */
-                explicit PublisherCfg(pub_cfg_t* pub_cfg, app_cfg_t* app_cfg);
+                explicit PublisherCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Publisher
@@ -107,14 +114,9 @@ namespace eii {
                 std::vector<std::string> getAllowedClients() override;
 
                 /**
-                * pub_cfg_t getter to get private m_pub_cfg
+                * cfgmgr_interface_t getter to get publisher interface
                 */
-                pub_cfg_t* getPubCfg();
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+                cfgmgr_interface_t* getPubCfg();
 
                 /**
                 * Destructor

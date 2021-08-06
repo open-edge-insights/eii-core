@@ -52,8 +52,18 @@ namespace eii {
                 // AppCfg handler
                 AppCfg* m_app_cfg_handler;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_ctx_t object
+                cfgmgr_ctx_t* m_cfgmgr;
+
+                /**
+                 * Private @c ConfigMgr copy constructor.
+                 */
+                ConfigMgr(const ConfigMgr& src);
+
+                /**
+                 * Private @c ConfigMgr assignment operator.
+                 */
+                ConfigMgr& operator=(const ConfigMgr& src);
 
             public:
 

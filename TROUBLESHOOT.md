@@ -1,3 +1,11 @@
+**Contents**
+
+- [Troubleshooting](#troubleshooting)
+  - [Contents](#contents)
+  - [1. "host" network_mode is incompatible with port_bindings during docker-compose up](#1-host-network_mode-is-incompatible-with-port_bindings-during-docker-compose-up)
+  - [2. eii_libs_installer.sh script failing during bare-metal execution](#2-eii_libs_installersh-script-failing-during-bare-metal-execution)
+
+
 # Troubleshooting
 
 The troubleshooting guide here talks about the useful tips to address some of the EII configuration and installation issues.
@@ -11,16 +19,16 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
 - Problem Description:
 
-  Issue in starting InfluxDBConnector, Kapacitor and Grafana Services like InfluxDBConnector, Kapacitor, Grafana whose ports   
+  Issue in starting InfluxDBConnector, Kapacitor and Grafana Services like InfluxDBConnector, Kapacitor, Grafana whose ports
   are exposed to start the service might fail to start during "docker-compose up".
 
 - Error description:
 
         ERROR: for ia_kapacitor  "host" network_mode is incompatible with port_bindings 
 
-        ERROR: for ia_grafana  "host" network_mode is incompatible with port_bindings  
+        ERROR: for ia_grafana  "host" network_mode is incompatible with port_bindings 
 
-        ERROR: for ia_influxdbconnector "host" network_mode is incompatible with port_bindings  
+        ERROR: for ia_influxdbconnector "host" network_mode is incompatible with port_bindings 
 
         docker.errors.InvalidArgument: "host" network_mode is incompatible with port_bindings
 
@@ -31,11 +39,11 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
 - Solution:
 
-  Installation of docker-compose using "curl" as mentiond in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md) will solve the    
+  Installation of docker-compose using "curl" as mentiond in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md) will solve the
   issue. Also, following the below command should solve the issue.
 
   ```sh
-  $ sudo rm /usr/local/bin/docker-compose 
+  $ sudo rm /usr/local/bin/docker-compose
   $ pip3 uninstall docker-compose
   $ sudo curl L https://github.com/docker/compose/releases/download/1.27.4/docker-compose-`uname -s``uname -m` -o /usr/local/bin/docker-compose
   $ sudo chmod +x /usr/local/bin/docker-compose
@@ -54,16 +62,16 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
         – Configuring incomplete, errors occurred!
 
-        See also "/home/eiival-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeOutput.log".
-        See also "/home/eiival-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeError.log".
+        See also "/home/eisval-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeOutput.log".
+        See also "/home/eisval-desk6/FOG/EIIv2.4_RC6/IEdgeInsights/common/libs/ConfigMgr/build/CMakeFiles/CMakeError.log".
         running install
         running build
         running build_py
         running build_ext
         building 'cfgmgr.app_config' extension
-        x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/include/python3.6m -c ./build/cython/./cfgmgr/app_config.c -o build/temp.linux-x86_64-3.6/./build/cython/./cfgmgr/app_config.o
-        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eii/config_manager/cfg_mgr.h: No such file or directory
-        #include "eii/config_manager/cfg_mgr.h"
+        x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/include/python3.8 -c ./build/cython/./cfgmgr/app_config.c -o build/temp.linux-x86_64-3.6/./build/cython/./cfgmgr/app_config.o
+        ./build/cython/./cfgmgr/app_config.c:626:10: fatal error: eii/config_manager/cfgmgr.h: No such file or directory
+        #include "eii/config_manager/cfgmgr.h"
         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         compilation terminated.
         error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
@@ -76,7 +84,7 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
 - Solution:
 
-  Installing GO through eii_libs_installer script will install GO and set the required env variables like GOPATH. If not, then one need to set GOPATH    
+  Installing GO through eii_libs_installer script will install GO and set the required env variables like GOPATH. If not, then one need to set GOPATH
   environment variable with appropriate path.
 
   ```sh

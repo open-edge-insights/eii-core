@@ -1,8 +1,0 @@
-AppName:
-- EtcdUI
-- Telegraf
-- InfluxDBConnector
-- Kapacitor
-- Grafana
-- OpcuaExport
-- RestDataExport

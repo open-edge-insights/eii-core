@@ -35,26 +35,34 @@
 #include "eii/utils/json_config.h"
 #include "eii/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eii/config_manager/app_cfg.hpp"
-#include "eii/config_manager/util_cfg.h"
-#include "eii/config_manager/cfg_mgr.h"
+#include "eii/config_manager/cfgmgr.h"
 
 namespace eii {
     namespace config_manager {
 
         class ClientCfg: public AppCfg {
             private:
-                // client_cfg_t object
-                client_cfg_t* m_cli_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
+
+                /**
+                 * Private @c ClientCfg copy constructor.
+                 */
+                ClientCfg(const ClientCfg& src);
+
+                /**
+                 * Private @c ClientCfg assignment operator.
+                 */
+                ClientCfg& operator=(const ClientCfg& src);
             public:
                 /**
                 * ClientCfg Constructor
-                * @param client_config - The config associated with a client
-                * @param app_cfg       - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a client
                 */
-                explicit ClientCfg(client_cfg_t* cli_cfg, app_cfg_t* app_cfg);
+                explicit ClientCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Client
@@ -78,14 +86,9 @@ namespace eii {
                 std::string getEndpoint() override;
 
                 /**
-                * client_cfg_t getter to get private m_pub_cfg
+                * cfgmgr_interface_t getter to get client interface
                 */
-                client_cfg_t* getCfg();
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+                cfgmgr_interface_t* getCfg();
 
                 /**
                 * Destructor

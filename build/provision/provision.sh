@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 # Provision
-# Usage: sudo ./provision <path-of-docker-compose-file>
+# Usage: sudo -E ./provision <path-of-docker-compose-file>
 
 docker_compose=$1
 RED='\033[0;31m'
@@ -54,15 +54,15 @@ function check_error() {
 
 function souce_env() {
     EII_ENV="../.env"
-    EII_PROVISIONING_ENV=".env"
+    PROVISIONING_ENV=".env"
 
     set -a
     if [ -f $EII_ENV ]; then
         source $EII_ENV
     fi
 
-    if [ -f $EII_PROVISIONING_ENV ]; then
-        source $EII_PROVISIONING_ENV
+    if [ -f $PROVISIONING_ENV ]; then
+        source $PROVISIONING_ENV
     fi
     set +a
 }
@@ -70,7 +70,7 @@ function souce_env() {
 
 function export_host_ip() {
     if [ -z $HOST_IP ]; then
-	hostIP=$(ip -4 addr list | grep "state UP" -A1 | tail -n1 | awk {'print $2'} | cut -f1 -d'/')
+	hostIP=$(ip route get 1 | awk '{print $7}'|head -1)
         export HOST_IP=$hostIP
     fi
     echo 'System IP Address is:' $HOST_IP
@@ -79,8 +79,10 @@ function export_host_ip() {
 
 function set_docker_host_time_zone() {
     echo "Updating .env for container timezone..."
+    # Setting RTC to UTC
+    timedatectl set-local-rtc 0
     # Get Docker Host timezone
-    hostTimezone=`timedatectl status | grep "zone" | sed -e 's/^[ ]*Time zone: \(.*\) (.*)$/\1/g'`
+    hostTimezone=`timedatectl | grep "zone" | awk '{print $3}'`
     hostTimezone=`echo $hostTimezone`
     # This will remove the HOST_TIME_ZONE entry if it exists and adds a new one with the right timezone
     sed -i '/HOST_TIME_ZONE/d' ../.env && echo "HOST_TIME_ZONE=$hostTimezone" >> ../.env
@@ -117,6 +119,9 @@ function create_eii_install_dir() {
     mkdir -p $EII_INSTALL_PATH/sockets/
     check_error "Failed to create dir '$EII_INSTALL_PATH/sockets'"
     
+    mkdir -p $EII_INSTALL_PATH/tools_output
+    check_error "Failed to create dir '$EII_INSTALL_PATH/tools_output'"
+    
     mkdir -p $EII_INSTALL_PATH/model_repo
     chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
 
@@ -126,12 +131,30 @@ function create_eii_install_dir() {
     fi
 }
 
+function create_docker_network() {
+	echo "Checking eii docker network.."
+	docker_networks=$(docker network ls --filter name=eii| awk '{print $2}')
+	docker_net_list=(`echo ${docker_networks}`);
+	network_present=false
+	for dn in "${docker_net_list[@]}"
+	do
+	    if [[ "$dn" = "eii" ]];then
+	        network_present=true
+	        break
+	    fi
+	done
+	if [[ "$network_present" = false ]]; then
+		echo "Creating eii docker bridge network as it is not present.."
+		docker network create eii
+	fi
+}
+
 function copy_docker_compose_file() {
     echo "Copying docker compose yaml file which is provided as an argument."
     # This file will be volume mounted inside the provisioning container and deleted once privisioning it done
     if ! [ -f $docker_compose ] || [ -z $docker_compose ]; then
         log_error "Supplied docker compose file '$docker_compose' does not exists"
-        log_fatal "Usage: $ sudo ./provision.sh <path_to_eii_docker_compose_file>"
+        log_fatal "Usage: $ sudo -E ./provision.sh <path_to_eii_docker_compose_file>"
     else
         cp $docker_compose ./docker-compose.yml
     fi
@@ -186,32 +209,25 @@ function install_pip_requirements() {
     log_info "Installing dependencies.."
     pip3 install -r cert_requirements.txt
 }
-function check_k8s_secrets() {
-    echo "Checking if already exists k8s secrets, if yes-delete them"
-    secret_generic_list=$(kubectl get secrets | grep -E "cert|key|ca-etcd" | awk '{print $1}')
-    if [ "$secret_generic_list" ] ; then
-        kubectl delete secrets $secret_generic_list
-    fi
-}
 
-function check_k8s_namespace() {
-    echo "Checking if already exists eii namespace, will delete to remove all existing pods and services"
-    ns_str=$(kubectl get namespace | grep -w ^eii| awk '{print $1}' )
-    ns_list=(`echo ${ns_str}`);
-    for ns in "${ns_list[@]}"
+
+function remove_eii_containers() {
+    log_info "Bringing down running eii containers"
+    for container_id in $(docker ps  --filter="name=ia_" -q -a)
     do
-	if [[ "$ns" = "eii" ]];then
-            echo "Deleting namespace so that all existing pods and services within that namespace are deleted.\nIt may take sometime."
-            kubectl delete namespace eii
-        fi
+        docker rm -f $container_id
     done
 }
 
 souce_env
 export_host_ip
 set_docker_host_time_zone
-create_eii_user
-create_eii_install_dir
+
+if [ "$2" != "--run_etcd_provision" ]; then
+    create_eii_user
+    create_eii_install_dir
+    create_docker_network
+fi
 
 if [ $DEV_MODE = 'false' ]; then
     chmod -R 760 $EII_INSTALL_PATH/data
@@ -221,42 +237,63 @@ else
     chmod -R 755 $EII_INSTALL_PATH/sockets
 fi
 
+if [ "$1" == "--worker" -o "$ETCD_NAME" == "worker" ]; then
+    remove_eii_containers
+    log_info "Provisioning is Successful..."
+    exit 0
+fi
+
 #############################################################
+function build_etcd_and_etcd_provision() {
+    echo "Building etcd and etcd_provision images..."
+    docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.build.yml build
+    docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.build.yml build
+}
 
-if [ "$PROVISION_MODE" = 'k8s' -a "$ETCD_NAME" = 'master' ]; then
-     log_info "Provisioning with KUBERNETES enabled mode... "
-     check_k8s_secrets
-     check_k8s_namespace
-     
-     echo "Creating a new namespace"
-     kubectl create namespace eii
-     pip3 install -r cert_requirements.txt
-     
-     echo "Clearing existing Certificates..."
-     rm -rf Certificates
-     
-     copy_docker_compose_file
+for arg in "$@"
+do
+    if [ "$arg" == "--build" ]
+    then
+        build_etcd_and_etcd_provision
+    fi
+done
+if [ "$1" == "--run_etcd" ] ; then
+    remove_eii_containers
+    echo "Checking ETCD port..."
+    check_ETCD_port
 
-     echo "Checking ETCD port..."
-     check_ETCD_port
+    if [ $DEV_MODE = 'true' ]; then
+        log_info "EII is not running in Secure mode. Generating certificates is not required.. "
+        log_info "Starting ETCD ..."
+        docker-compose -f dep/docker-compose-etcd.yml up -d
+    else
+        log_info "Starting ETCD ..."
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up -d
+    fi
+elif [ "$2" = "--run_etcd_provision" ] ; then
+    echo "Checking ETCD health..."
+    ./dep/etcd_health_check.sh
 
-     if [ $DEV_MODE = 'true' ]; then
-	docker-compose -f dep/docker-compose-provision.yml build
-        envsubst < dep/k8s/k8s_etcd_devmode.yml > dep/k8s_etcd_devmode.yml
-        kubectl apply -f dep/k8s_etcd_devmode.yml
-        docker-compose -f dep/docker-compose-k8sprovision.yml up -d
-     else
-        prod_mode_gen_certs
-	docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml build
-        envsubst < dep/k8s/k8s_etcd_prodmode.yml > dep/k8s_etcd_prodmode.yml
-        kubectl apply -f dep/k8s_etcd_prodmode.yml
-        docker-compose -f dep/docker-compose-k8sprovision.yml -f dep/docker-compose-k8sprovision.override.prod.yml up -d
-     fi
-elif [ $ETCD_NAME = 'master' ]; then
+    copy_docker_compose_file
+
+    if [ $DEV_MODE = 'true' ]; then
+        log_info "EII is not running in Secure mode. Generating certificates is not required.. "
+        log_info "Starting etcd_provision..."
+        docker-compose -f dep/docker-compose-etcd-provision.yml up
+    else
+        log_info "Starting etcd_provision..."
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up
+    fi
+elif [ "$2" = "--generate_certs" ] ; then
+    echo "Clearing existing Certificates..."
+    rm -rf Certificates
+
     install_pip_requirements
-    log_info "Bringing down existing ETCD container"
-    python3 stop_and_remove_existing_eii.py --f dep/docker-compose-provision.yml
-
+    copy_docker_compose_file
+    prod_mode_gen_certs
+elif [ "$ETCD_NAME" = "leader" ]; then
+    remove_eii_containers
+    install_pip_requirements
     copy_docker_compose_file
 
     echo "Clearing existing Certificates..."
@@ -268,15 +305,14 @@ elif [ $ETCD_NAME = 'master' ]; then
     if [ $DEV_MODE = 'true' ]; then
         log_info "EII is not running in Secure mode. Generating certificates is not required.. "
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-provision.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml up -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml up -d
     else
         prod_mode_gen_certs
         log_info "Starting and provisioning ETCD ..."
-        docker-compose -f dep/docker-compose-provision.yml -f dep/docker-compose-provision.override.prod.yml up --build -d
+        docker-compose -f dep/docker-compose-etcd.yml -f dep/docker-compose-etcd.override.prod.yml up -d
+        docker-compose -f dep/docker-compose-etcd-provision.yml -f dep/docker-compose-etcd-provision.override.prod.yml up
     fi
-
-    echo "Bringing down existing EII containers"
-    python3 stop_and_remove_existing_eii.py --f $docker_compose
 fi
 
 remove_client_server

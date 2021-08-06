@@ -1,0 +1,23 @@
+---
+
+- name: Set Directory permission for Certificates as accesible to leader
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_SOURCE_PATH }}/build/provision/Certificates/"
+    state: directory
+    recurse: yes
+    mode: '0755'
+    
+- name: Set Directory permission for Certificates as accesible to leader
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_SOURCE_PATH }}/build/provision/rootca/"
+    state: directory
+    recurse: yes
+    mode: '0755'
+    
+- name: Copy Certificates to eii-helm provision
+  become: yes
+  shell: "cp -rf Certificates/ {{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build/provision/"

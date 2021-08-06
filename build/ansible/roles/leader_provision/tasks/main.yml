@@ -1,0 +1,81 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+- name: Remove old copied bundles
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}/"
+    state: absent
+
+- name: Create directory {{ EII_DEPLOY_PATH }} if it does not exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy leader_provisioning.tar.gz from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/deploy/leader_provisioning.tar.gz"
+    dest: "{{ EII_DEPLOY_PATH }}"
+    follow: yes
+
+- name: Extract leader_provisioning.tar.gz to {{ EII_DEPLOY_PATH }}
+  become: yes
+  ansible.builtin.unarchive:
+    src: "{{ EII_DEPLOY_PATH }}/leader_provisioning.tar.gz"
+    dest: "{{ EII_DEPLOY_PATH }}"
+    remote_src: yes
+
+- name: Change permission of Certificates to 750
+  become: yes
+  shell: "chmod -R 0750 Certificates/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
+  when: DEV_MODE == false
+
+- name: docker login
+  shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- name: docker login to docker hub
+  shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
+
+- name: "Bring up etcd server"
+  shell: "sudo -E ./provision.sh --run_etcd"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/leader_provisioning/provision"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"

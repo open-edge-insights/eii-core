@@ -54,12 +54,14 @@ def configure_logging(log_level, module_name, dev_mode):
     if log_level not in LOG_LEVELS:
         raise Exception('Unknown log level: {}'.format(log_level))
 
-    if dev_mode == True:
-        fmt_str = ('%(asctime)s : %(levelname)s  : {} : %(name)s : [%(filename)s] :' .format("Insecure Mode")+
-               '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+    if dev_mode:
+        fmt_str = ('%(asctime)s : %(levelname)s  : {} : %(name)s : ' +
+                   '[%(filename)s] :' .format("Insecure Mode") +
+                   '%(funcName)s : in line : [%(lineno)d] : %(message)s')
     else:
-        fmt_str = ('%(asctime)s : %(levelname)s : %(name)s : [%(filename)s] :' +
-               '%(funcName)s : in line : [%(lineno)d] : %(message)s')
+        fmt_str = ('%(asctime)s : %(levelname)s : %(name)s : ' +
+                   '[%(filename)s] :' +
+                   '%(funcName)s : in line : [%(lineno)d] : %(message)s')
 
     log_lvl = LOG_LEVELS[log_level]
     logging.basicConfig(format=fmt_str, level=log_lvl)
@@ -68,7 +70,7 @@ def configure_logging(log_level, module_name, dev_mode):
 
     # Do basic configuration of logging (just for stdout config)
     logging.basicConfig(format=fmt_str, level=log_lvl)
-    
+
     logger = logging.getLogger()
     logger.setLevel(log_lvl)
     handler = logging.StreamHandler(sys.stdout)
@@ -81,4 +83,3 @@ def configure_logging(log_level, module_name, dev_mode):
     logger.addHandler(handler)
 
     return logger
-    

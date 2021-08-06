@@ -40,23 +40,19 @@ cdef class Server:
     def __cinit__(self, *args, **kwargs):
         """Cython base constructor
         """
-        self.app_cfg = NULL
-        self.server_cfg = NULL
+        self.cfgmgr_interface = NULL
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, server_cfg_t* server_cfg):
+    cdef create(cfgmgr_interface_t* cfgmgr_interface):
         """Helper method for initializing the client object.
 
-        :param app_cfg: Applications config struct
-        :type: struct
-        :param server_cfg: Server config struct
+        :param cfgmgr_interface: Server config struct
         :type: struct
         :return: Server class object
         :rtype: obj
         """
         s = Server()
-        s.app_cfg = app_cfg
-        s.server_cfg = server_cfg
+        s.cfgmgr_interface = cfgmgr_interface
         return s
 
     def __dealloc__(self):
@@ -67,8 +63,8 @@ cdef class Server:
     def destroy(self):
         """Destroy the server.
         """
-        if self.server_cfg != NULL:
-            server_cfg_config_destroy(self.server_cfg)
+        if self.cfgmgr_interface != NULL:
+            cfgmgr_interface_destroy(self.cfgmgr_interface)
 
     def get_msgbus_config(self):
         """Constructs message bus config for Server
@@ -79,7 +75,7 @@ cdef class Server:
         cdef char* config
         cdef config_t* msgbus_config
         try:
-            msgbus_config = self.server_cfg.cfgmgr_get_msgbus_config_server(self.app_cfg.base_cfg, self.server_cfg)
+            msgbus_config = cfgmgr_get_msgbus_config(self.cfgmgr_interface)
             if msgbus_config is NULL:
                 raise Exception("[Server] Getting msgbus config from base c layer failed")
         
@@ -106,7 +102,7 @@ cdef class Server:
         cdef char* config
         try:
             interface_value = None
-            value = self.server_cfg.cfgmgr_get_interface_value_server(self.server_cfg, key.encode('utf-8'))
+            value = cfgmgr_get_interface_value(self.cfgmgr_interface, key.encode('utf-8'))
             if value is NULL:
                 raise Exception("[Server] Getting interface value from base c layer failed")
 
@@ -129,7 +125,7 @@ cdef class Server:
         cdef config_value_t* ep
         cdef char* c_endpoint
         try:
-            ep = self.server_cfg.cfgmgr_get_endpoint_server(self.server_cfg)
+            ep = cfgmgr_get_endpoint(self.cfgmgr_interface)
             if ep is NULL:
                 raise Exception("[Server] Getting end point from base c layer failed")
 
@@ -164,13 +160,13 @@ cdef class Server:
         :return: List of clients
         :rtype: List
         """
-        # Calling the base C cfgmgr_get_allowed_clients_server() API
+        # Calling the base C cfgmgr_get_allowed_clients() API
         clients_list = []
         cdef config_value_t* clients
         cdef config_value_t* client_value
         cdef char* c_client_value
         try:
-            clients = self.server_cfg.cfgmgr_get_allowed_clients_server(self.server_cfg)
+            clients = cfgmgr_get_allowed_clients(self.cfgmgr_interface)
             if clients is NULL:
                 raise Exception("[Server] Getting alowed clients from base c layer failed")
 

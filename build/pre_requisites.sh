@@ -40,8 +40,8 @@ DOCKER_GPG_KEY="0EBFCD88"
 # vars
 PROXY_EXIST="no"
 
-REQ_DOCKER_COMPOSE_VERSION=1.24.0
-REQ_DOCKER_VERSION=19.03.8
+REQ_DOCKER_COMPOSE_VERSION=1.29.0
+REQ_DOCKER_VERSION=20.10.6
 
 #------------------------------------------------------------------------------
 # system_info
@@ -118,7 +118,7 @@ check_for_errors()
 
 check_root_user()
 {
-   echo "${INFO}Checking for root user...${NC}"    
+   echo "${INFO}Checking for root user...${NC}"
    if [[ $EUID -ne 0 ]]; then
     	echo "${RED}This script must be run as root.${NC}"
 	echo "${GREEN}E.g. sudo ./<script_name>${NC}"
@@ -128,7 +128,7 @@ check_root_user()
 	dpkg --configure -a
    fi
    return 0
-   
+
 }
 
 #------------------------------------------------------------------------------
@@ -142,9 +142,9 @@ check_root_user()
 check_internet_connection()
 {
 	if [ ! -z $USER_PROXY ] && [ $PROXY_EXIST == "yes" ]
-	then 
+	then
 		echo "${GREEN}Script is running with --proxy mode ${NC}"
-		
+
 		sed '/httpProxy/d;/httpsProxy/d;/noProxy/d' -i /etc/environment
         sed '/http_proxy/d;/https_proxy/d;/no_proxy/d' -i /etc/environment
 		echo "http_proxy=\"http://${USER_PROXY}\"
@@ -157,7 +157,7 @@ check_internet_connection()
         export https_proxy=${http_proxy}
         export no_proxy="localhost,127.0.0.1"
 	fi
-	    echo "${INFO}Checking for Internet Connection...${NC}"    
+	    echo "${INFO}Checking for Internet Connection...${NC}"
 	    wget http://www.google.com > /dev/null 2>&1
 	if [ "$?" != 0 ]; then
 		echo "${RED}No Internet Connection. Please check your internet connection and proxy configuration...!${NC}"
@@ -247,9 +247,9 @@ validate_action_user_input()
 		echo "${GREEN}Script is running in interactive mode to take proxy from user${NC}"
 		proxy_settings
 	elif [ $PROXY_EXIST == "yes" ] && [ ! -z USER_PROXY ]
-	then 
+	then
 		echo "${GREEN}Script is running with --proxy mode ${NC}"
-		
+
 		#Creating config.json
 		if [ ! -d ~/.docker ];then
 			mkdir ~/.docker
@@ -258,7 +258,7 @@ validate_action_user_input()
 			touch ~/.docker/config.json
 			chmod 766 ~/.docker/config.json
 		fi
-		
+
 		echo "${GREEN}Configuring proxy setting in the system${NC}"
 		echo "Docker services will be restarted after proxy settings configured"
 		proxy_enabled_network
@@ -279,7 +279,7 @@ validate_action_user_input()
 # proxy_enabled_network
 #
 # Description:
-#        Configure proxy settings for docker client and docker daemon to connect 
+#        Configure proxy settings for docker client and docker daemon to connect
 #        to internet and also for containers to access internet
 # Usage:
 #        proxy_enabled_network
@@ -299,7 +299,7 @@ proxy_enabled_network()
                     \"noProxy\": \"127.0.0.1,localhost\"
                 }
             }
-        }" > ~/.docker/config.json
+        }" > $HOME/.docker/config.json
     else  # if the file already exists && also has some JSON content in it, then append the below JSON object
         HTTP_USER_PROXY="http://${USER_PROXY}"
         jq -r --arg UPROXY ${HTTP_USER_PROXY} '.proxies = {
@@ -308,9 +308,11 @@ proxy_enabled_network()
             "httpsProxy": $UPROXY,
             "noProxy": "127.0.0.1,localhost"
             }
-            }'  ~/.docker/config.json > tmp && mv tmp ~/.docker/config.json
+            }'  $HOME/.docker/config.json > tmp && mv tmp $HOME/.docker/config.json
     fi
 
+    # Change the ownership of the files in .docker file from root to current user
+    chown -R ${SUDO_USER}:docker $HOME/.docker
 
     # 2. Configure the Docker daemon for http and https proxy
     DOCKER_SERVICE_DIR="/etc/systemd/system/docker.service.d"
@@ -390,14 +392,14 @@ dns_server_settings()
 # Usage:
 #        uninstall_docker <file or directory path>
 #------------------------------------------------------------------------------
-del_file() 
+del_file()
 {
     if [[ -f $1 ]]; then
         rm -rf $1
         if [[ $? -ne 0 ]]; then
             clean_exit
         fi
-    fi 
+    fi
 }
 
 #------------------------------------------------------------------------------
@@ -410,22 +412,22 @@ del_file()
 #------------------------------------------------------------------------------
 function uninstall_docker()
 {
-    # UNINSTALLING DOCKER 
+    # UNINSTALLING DOCKER
     echo -e "${INFO}---------------------------------------Uninstalling Docker---------------------------------------${NC}"
-    
+
     dpkg --purge --force-all docker-ce docker-ce-cli containerd.io
-    apt-get purge -y docker docker.io 
-    
+    apt-get purge -y docker docker.io
+
     # Removing Docker GPG and removing the repository from sources
     apt-key del $DOCKER_GPG_KEY
     add-apt-repository --remove "$DOCKER_REPO"
-    echo -e "${GREEN}-------------------------------Docker uninstalled successfully-----------------------------------${NC}" 
-    
-    #RESET THE PROXY SETTING 
+    echo -e "${GREEN}-------------------------------Docker uninstalled successfully-----------------------------------${NC}"
+
+    #RESET THE PROXY SETTING
     echo -e "${INFO}---------------------------------------Resetting proxy setting-----------------------------------${NC}"
     del_file /etc/docker/daemon.json
     del_file /etc/systemd/system/docker.service.d/http-proxy.conf
-    del_file /etc/systemd/system/docker.service.d/https-proxy.conf      
+    del_file /etc/systemd/system/docker.service.d/https-proxy.conf
     del_file $HOME/.docker/config.json
     del_file /etc/systemd/system/docker.service.d
     echo -e "${GREEN}-------------------------------Proxy setting reset to default------------------------------------${NC}"
@@ -470,7 +472,7 @@ proxy_settings()
 						echo "${RED}Proxy is empty, please enter again${NC}"
 						read USER_PROXY
 				done
-			
+
                 echo "${GREEN}Configuring proxy setting in the system${NC}"
                 echo "Docker services will be restarted after proxy settings configured"
                 proxy_enabled_network
@@ -532,7 +534,7 @@ docker_install()
     # If there is any issue try one of the commands 'uname -m' or 'uname -p'
     hw_arch=$(uname --hardware-platform)    # uname -i
     if [ ${hw_arch}='amd64' ] || [ ${hw_arch}='x86_64' ]
-    then 
+    then
         hw_arch='amd64'
     fi
 
@@ -542,7 +544,7 @@ docker_install()
        stable"
     echo "${GREEN}Setting up the stable repository is done successfully.${NC}"
     # Stable repositoty set up done successfully
-   
+
     apt-get install -y docker-ce docker-ce-cli containerd.io
     check_for_errors "$?" "Docker CE installation failed. Please check logs" \
                     "${GREEN}Installed Docker CE successfully.${NC}"
@@ -624,7 +626,7 @@ docker_compose_install()
     # Downloading docker-compose using curl utility.
     curl -L "https://github.com/docker/compose/releases/download/${REQ_DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     if [ "$?" -eq "0" ];then
-        # Making the docker-compose executable. 
+        # Making the docker-compose executable.
         chmod +x /usr/local/bin/docker-compose
         ln -sf /usr/local/bin/docker-compose /usr/bin/docker-compose
         echo "${GREEN}Installed docker-compose successfully.${NC}"
@@ -632,13 +634,13 @@ docker_compose_install()
         echo "${RED}ERROR: Docker-compose Downloading Failed.Please Check Manually.${NC}"
         exit 1
     fi
-    return 0  
+    return 0
 }
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 # docker_compose_verify_installation
 #
-# Description: 
+# Description:
 #       Verify if docker-compose already exists and if the existing version is older than the intended version
 # Args:
 #       None
@@ -666,7 +668,7 @@ docker_compose_verify_installation()
 			read -p "Do you want to proceed with the installation of above required version of docker-compose tool?[y/n]" yn
 			case $yn in
 				[Yy] ) docker_compose_install;;
-				[Nn] ) ;;
+				[Nn] ) echo "Without the required version video-usecase services might not work";;
 			esac
 		fi
 	fi
@@ -675,10 +677,10 @@ docker_compose_verify_installation()
 }
 
 
-#------------------------------------------------------------------------------ 
+#------------------------------------------------------------------------------
 # docker_verification_installation
 #
-# Description: 
+# Description:
 #       verifies the docker installation.
 # Args:
 #       None
@@ -731,26 +733,26 @@ parse_commandLine_Args()
 	if [ $# == "0" ];then
 		return;
 	fi
-	
+
 	echo "${INFO}Reading the command line args...${NC}"
 	for ARGUMENT in "$@"
 	do
 	    KEY=$(echo $ARGUMENT | cut -f1 -d=)
-	    VALUE=$(echo $ARGUMENT | cut -f2 -d=)   
+	    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
 	   #echo ${GREEN}$KEY "=" $VALUE${NC}
 	   #echo "${GREEN}==========================================${NC}"
 
 	    case "$KEY" in
-		    --proxy) USER_PROXY=${VALUE} PROXY_EXIST="yes";;   
-		    --help) Usage ;; 
-            -h) Usage ;; 
-		     *) echo "${RED}Invalid arguments passed..${NC}"; Usage; ;;  
-	    esac    
+		    --proxy) USER_PROXY=${VALUE} PROXY_EXIST="yes";;
+		    --help) Usage ;;
+            -h) Usage ;;
+		     *) echo "${RED}Invalid arguments passed..${NC}"; Usage; ;;
+	    esac
 	done
-	
+
 	print_all_args
-	
+
 	#echo "${GREEN}==========================================${NC}"
 }
 
@@ -758,7 +760,7 @@ parse_commandLine_Args()
 # Usage
 #
 # Description:
-#        Help function 
+#        Help function
 # Return:
 #        None
 # Usage:
@@ -766,7 +768,7 @@ parse_commandLine_Args()
 #------------------------------------------------------------------
 Usage()
 {
-	echo 
+	echo
 	echo "${BOLD}${INFO}==================================================================================${NC}"
 	echo
 	echo "${BOLD}${GREEN}Usage :: sudo ./pre_requisites.sh [OPTION...] ${NC}"
@@ -781,7 +783,7 @@ Usage()
 	echo
 	echo "Different use cases..."
 	echo "${BOLD}${MAGENTA}
-		
+
 		1. RUNS WITHOUT PROXY
 		sudo ./pre_requisites.sh
 
@@ -796,7 +798,7 @@ Usage()
 # print_all_args
 #
 # Description:
-#        This function is used to print all given values on console 
+#        This function is used to print all given values on console
 # Return:
 #        None
 # Usage:

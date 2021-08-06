@@ -98,6 +98,11 @@ install_go () {
     export PATH=$PATH:/usr/local/go/bin
 }
 
+# Verify that the CMAKE_INSTALL_PREFIX is set
+if [[ -z "${CMAKE_INSTALL_PREFIX}" ]] ; then
+    log_fatal "CMAKE_INSTALL_PREFIX must be set in the environment"
+fi
+
 if service_exists go ; then
     log_info "----Golang already installed----"
     install_go_dependencies
@@ -109,11 +114,12 @@ fi
 # with GOPATH set
 unset GOROOT
 
-DynLibLoad="$CUR_DIR/libs/DynLibLoad"
 EIIMessageBus="$CUR_DIR/libs/EIIMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
-LIBS_INSTALL_PATH="/usr/local/lib"
+GrpcProtoPath="$CMAKE_INSTALL_PREFIX/lib"
 
+# Disabling error exit for this block for avoiding error out if package not available
+set +e
 CMAKE_EXISTS=`cmake --version`
 if [ $? -ne 0 ]; then
     log_info "----Installing cmake----"
@@ -125,6 +131,12 @@ DISTUTILS_INSTALLED=`dpkg --list|grep distutils`
 if [ $? -ne 0 ]; then
     apt-get install -y python3-distutils
 fi
+
+PIP_INSTALLED=`dpkg --list|grep python3-pip`
+if [ $? -ne 0 ]; then
+    apt-get -y install python3-pip
+fi
+set -e
 
 # Install ConfigMgr requirements
 log_info "----Installing ConfigMgr dependencies----"
@@ -139,12 +151,11 @@ cd $EIIMessageBus &&
 
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
-   rm -rf IntelSafeString/build && \
    ./install.sh && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
    make && \
    if [ "${RUN_TESTS}" = "ON" ] ; then cd ./tests  && \
    ./config-tests
@@ -156,18 +167,18 @@ cd $EIIMessageBus/../../util/c/ &&
    make install
 check_error "----Failed to install Util lib----"
 
-log_info "----Installing EIIMessageBus c library----"
+log_info "----Installing EIIMessageBus library----"
 cd $EIIMessageBus && \
     rm -rf build/ && \
     mkdir build/ && \
     cd build/ && \
-    cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE .. && \
     make install
-check_error "----Failed to install EIIMessageBus c lib----"
+check_error "----Failed to install EIIMessageBus library----"
 
 log_info "----Installing EIIMessageBus python binding----"
 cd $EIIMessageBus/python &&
-   python3 setup.py install
+   python3 setup.py install --user
 check_error "----Failed to install EIIMessageBus python binding----"
 
 log_info "----Installing EIIMessageBus Golang binding----"
@@ -179,15 +190,14 @@ log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
    # Installing grpc from DEB package
    apt install ./grpc-1.29.0-Linux.deb && \
-   # Install ConfigMgr and kv_store_plugin
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
+   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
 check_error "----Failed to install ConfigMgr C and golang libs----"
 
-log_info "----Installing CofigMgr python binding----"
-cd $ConfigMgr/python && \
-   python3 setup.py install
+log_info "----Installing ConfigMgr python bindings----"
+cd $ConfigMgr/python &&
+   python3 setup.py.in install --user
 check_error "----Failed to install ConfigMgr python binding----"

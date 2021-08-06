@@ -1,0 +1,23 @@
+# AppContexts is a list of the docker build context directory
+# of the apps/services to be brought up
+# 
+# builder looks for docker-compose.yml & config.json
+# in the below directories to include in the build
+AppContexts:
+# Common video and time-series services
+- EtcdUI
+- OpcuaExport
+- RestDataExport
+- InfluxDBConnector
+# Video services
+- VideoIngestion
+- VideoAnalytics
+- Visualizer
+- WebVisualizer
+- ImageStore
+- FactoryControlApp
+- AzureBridge
+# Time-series services
+- Telegraf
+- Kapacitor
+- Grafana

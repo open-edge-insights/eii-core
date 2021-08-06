@@ -20,13 +20,13 @@
 """EII ConfigManager Watch wrapper object Cython declaration
 """
 
-from .libeiiconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport cfgmgr_ctx_t
 
 
 cdef class Watch:
     """EII ConfigManager Watch class
     """
-    cdef app_cfg_t* app_cfg
+    cdef cfgmgr_ctx_t* cfg_mgr
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg)
+    cdef create(cfgmgr_ctx_t* cfgmgr)

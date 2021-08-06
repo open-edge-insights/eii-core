@@ -1,12 +1,12 @@
 /*
-Copyright (c) 2020 Intel Corporation.
+Copyright (c) 2021 Intel Corporation
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
@@ -27,8 +27,6 @@ import "unsafe"
 // SubscriberCfg context
 type SubscriberCfg struct {
 	subCfg unsafe.Pointer
-	appCfg unsafe.Pointer
-	msgBusCfg unsafe.Pointer
 }
 
 // GetEndPoints for application to fetch Endpoint associated with message bus config
@@ -39,7 +37,7 @@ type SubscriberCfg struct {
 // 2. error
 //    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetEndPoints() (string, error) {
-	endPoint, err:=  subctx.getEndPoints()
+	endPoint, err := subctx.getEndPoints()
 	if err != nil {
 		return "", err
 	}
@@ -49,11 +47,11 @@ func (subctx *SubscriberCfg) GetEndPoints() (string, error) {
 // GetTopics gets topics from subscriber interface config on which subscriber receives data
 // Returns:
 // 1. topics : string array
-//    array of topics 
+//    array of topics
 // 2. error
 //    Error on failure,  nil on success
-func (subctx *SubscriberCfg) GetTopics() ([]string, error) {	 
-	topics, err:=  subctx.getTopics()
+func (subctx *SubscriberCfg) GetTopics() ([]string, error) {
+	topics, err := subctx.getTopics()
 	if err != nil {
 		return []string{""}, err
 	}
@@ -71,7 +69,7 @@ func (subctx *SubscriberCfg) GetMsgbusConfig() (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	config, err :=  string_to_map_interface(conf)
+	config, err := string_to_map_interface(conf)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +100,7 @@ func (subctx *SubscriberCfg) SetTopics(topics []string) bool {
 // 2. error
 //    Error on failure,  nil on success
 func (subctx *SubscriberCfg) GetInterfaceValue(key string) (*ConfigValue, error) {
-	interfaceVal, err:= subctx.getInterfaceValue(key)
+	interfaceVal, err := subctx.getInterfaceValue(key)
 	if err != nil {
 		return nil, err
 	}

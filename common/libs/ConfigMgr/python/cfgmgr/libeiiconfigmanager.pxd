@@ -25,7 +25,7 @@ from libc.stdint cimport *
 cdef extern from "stdbool.h":
     ctypedef bint bool
 
-cdef extern from "eii/config_manager/cfg_mgr.h" nogil:
+cdef extern from "eii/config_manager/cfgmgr.h" nogil:
     ctypedef struct config_t:
         pass
 
@@ -66,81 +66,56 @@ cdef extern from "eii/config_manager/cfg_mgr.h" nogil:
         config_value_type_t type
         config_value_type_body_union_t body
 
-    ctypedef struct base_cfg_t:
-        config_t* m_app_config
-        config_t* m_app_interface
-        char* app_name
-
-    ctypedef struct pub_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_pub)(base_cfg_t* base_cfg, void* pub_config)
-        config_value_t* (*cfgmgr_get_interface_value_pub)(void* pub_config, const char* key)
-        config_value_t*(*cfgmgr_get_endpoint_pub)(void* pub_config)
-        config_value_t* (*cfgmgr_get_topics_pub)(void* pub_config)
-        int (*cfgmgr_set_topics_pub)(char** topics_list, int len, base_cfg_t* base_cfg, void* pub_config)
-        config_value_t* (*cfgmgr_get_allowed_clients_pub)(void* pub_config)
-
-    ctypedef struct sub_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_sub)(base_cfg_t* base_cfg, void* sub_config)
-        config_value_t* (*cfgmgr_get_interface_value_sub)(void* sub_config, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_sub)(void* sub_config)
-        config_value_t* (*cfgmgr_get_topics_sub)(void* sub_config)
-        int (*cfgmgr_set_topics_sub)(char** topics_list, int len, base_cfg_t* base_cfg, void* sub_config)
-
-    ctypedef struct server_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_server)(base_cfg_t* base_cfg, void* server_config)
-        config_value_t* (*cfgmgr_get_interface_value_server)(void* server_config, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_server)(void* server_config)
-        config_value_t* (*cfgmgr_get_allowed_clients_server)(void* server_config)
-
-    ctypedef struct client_cfg_t:
-        config_t* (*cfgmgr_get_msgbus_config_client)(base_cfg_t* base_cfg, void* cli_cfg)
-        config_value_t* (*cfgmgr_get_interface_value_client)(void* client_config, const char* key)
-        config_value_t* (*cfgmgr_get_endpoint_client)(void* client_config)
-
-    ctypedef struct app_cfg_t:
-        base_cfg_t* base_cfg
+    ctypedef struct cfgmgr_ctx_t:
         char* env_var
+        config_t* app_config
+        config_t* app_interface
+        char* app_name
+    
+    ctypedef struct cfgmgr_interface_t:
+        config_value_t* interface
+        cfgmgr_ctx_t* cfg_mgr
 
     # C callback type definition
-    ctypedef void (*callback_t)(const char* key, config_t* value, void* cb_user_data)
+    ctypedef void (*cfgmgr_watch_callback_t)(const char* key, config_t* value, void* cb_user_data)
 
-    # watch APIs
-    void cfgmgr_watch(base_cfg_t* base_cfg, char* key, callback_t watch_callback, void* user_data)
-    void cfgmgr_watch_prefix(base_cfg_t* base_cfg, char* prefix, callback_t watch_callback, void* user_data)
-
-    # base_cfg_t APIs
+    # cfg_mgr APIs
+    bool cfgmgr_is_dev_mode(cfgmgr_ctx_t* cfgmgr)
+    config_value_t* cfgmgr_get_appname(cfgmgr_ctx_t* cfgmgr)
+    config_t* cfgmgr_get_app_config(cfgmgr_ctx_t* cfgmgr)
+    config_t* cfgmgr_get_app_interface(cfgmgr_ctx_t* cfgmgr)
+    config_value_t* cfgmgr_get_interface_value(cfgmgr_interface_t* cfgmgr_interface, const char* key)
+    config_value_t* cfgmgr_get_app_config_value(cfgmgr_ctx_t* cfgmgr, const char* key)
+    config_value_t* cfgmgr_get_app_interface_value(cfgmgr_ctx_t* cfgmgr, const char* key)
+    config_t* cfgmgr_get_msgbus_config(cfgmgr_interface_t* ctx)
+    config_value_t* cfgmgr_get_endpoint(cfgmgr_interface_t* ctx)
+    config_value_t* cfgmgr_get_topics(cfgmgr_interface_t* ctx)
+    bool cfgmgr_set_topics(cfgmgr_interface_t* ctx, char** topics_list, int len)
+    config_value_t* cfgmgr_get_allowed_clients(cfgmgr_interface_t* ctx)
+    int cfgmgr_get_num_publishers(cfgmgr_ctx_t* cfgmgr)
+    int cfgmgr_get_num_subscribers(cfgmgr_ctx_t* cfgmgr)
+    int cfgmgr_get_num_servers(cfgmgr_ctx_t* cfgmgr)
+    int cfgmgr_get_num_clients(cfgmgr_ctx_t* cfgmgr)
+    cfgmgr_interface_t* cfgmgr_get_publisher_by_name(cfgmgr_ctx_t* cfgmgr, const char* name)
+    cfgmgr_interface_t* cfgmgr_get_publisher_by_index(cfgmgr_ctx_t* cfgmgr, int index)
+    cfgmgr_interface_t* cfgmgr_get_subscriber_by_name(cfgmgr_ctx_t* cfgmgr, const char* name)
+    cfgmgr_interface_t* cfgmgr_get_subscriber_by_index(cfgmgr_ctx_t* cfgmgr, int index)
+    cfgmgr_interface_t* cfgmgr_get_server_by_name(cfgmgr_ctx_t* cfgmgr, const char* name)
+    cfgmgr_interface_t* cfgmgr_get_server_by_index(cfgmgr_ctx_t* cfgmgr, int index)
+    cfgmgr_interface_t* cfgmgr_get_client_by_name(cfgmgr_ctx_t* cfgmgr, const char* name)
+    cfgmgr_interface_t* cfgmgr_get_client_by_index(cfgmgr_ctx_t* cfgmgr, int index)
+    cfgmgr_ctx_t* cfgmgr_initialize()
+    void cfgmgr_destroy(cfgmgr_ctx_t *cfg_mgr)
+    cfgmgr_interface_t* cfgmgr_interface_initialize()
+    void cfgmgr_interface_destroy(cfgmgr_interface_t *cfg_mgr_interface)
+    
+    # CfgMgr Util APIs
     char* configt_to_char(config_t* config)
     char* cvt_to_char(config_value_t* config)
-    config_t* get_app_config(base_cfg_t* base_cfg) 
-    config_t* get_app_interface(base_cfg_t* base_cfg) 
-    void base_cfg_config_destroy(base_cfg_t* base_cfg_config)
-    int cfgmgr_get_num_elements_base(const char* type, base_cfg_t* base_cfg)
-    int cfgmgr_is_dev_mode_base(base_cfg_t* base_cfg)
-    config_value_t* cfgmgr_get_appname_base(base_cfg_t* base_cfg)
 
-    # pub_cfg_t APIs
-    void pub_cfg_config_destroy(pub_cfg_t *pub_cfg_config)
-
-    # sub_cfg_t APIs
-    void sub_cfg_config_destroy(sub_cfg_t *sub_cfg_config)
-
-    # server_cfg_t APIs
-    void server_cfg_config_destroy(server_cfg_t *server_cfg_config)
-
-    # client_cfg_t APIs
-    void client_cfg_config_destroy(client_cfg_t *cli_cfg_config)
-
-    # app_cfg_t APIs
-    pub_cfg_t* cfgmgr_get_publisher_by_name(app_cfg_t* self, const char* name)
-    pub_cfg_t* cfgmgr_get_publisher_by_index(app_cfg_t* app_cfg, int index)
-    sub_cfg_t* cfgmgr_get_subscriber_by_name(app_cfg_t* self, const char* name)
-    sub_cfg_t* cfgmgr_get_subscriber_by_index(app_cfg_t* app_cfg, int index)
-    server_cfg_t* cfgmgr_get_server_by_name(app_cfg_t* self, const char* name)
-    server_cfg_t* cfgmgr_get_server_by_index(app_cfg_t* app_cfg, int index)
-    client_cfg_t* cfgmgr_get_client_by_name(app_cfg_t* self, const char* name)
-    client_cfg_t* cfgmgr_get_client_by_index(app_cfg_t* app_cfg, int index)
-    app_cfg_t* app_cfg_new()
-    void app_cfg_config_destroy(app_cfg_t *app_cfg_config)
+    # watch APIs
+    void cfgmgr_watch(cfgmgr_ctx_t* cfgmgr, const char* key, cfgmgr_watch_callback_t watch_callback, void* user_data)
+    void cfgmgr_watch_prefix(cfgmgr_ctx_t* cfgmgr, char* prefix, cfgmgr_watch_callback_t watch_callback, void* user_data)
 
     # config_value_t APIs
     size_t config_value_array_len(const config_value_t* arr)

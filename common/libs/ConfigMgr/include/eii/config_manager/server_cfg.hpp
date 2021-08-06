@@ -35,8 +35,7 @@
 #include "eii/utils/json_config.h"
 #include "eii/config_manager/kv_store_plugin/kv_store_plugin.h"
 #include "eii/config_manager/app_cfg.hpp"
-#include "eii/config_manager/util_cfg.h"
-#include "eii/config_manager/cfg_mgr.h"
+#include "eii/config_manager/cfgmgr.h"
 
 
 namespace eii {
@@ -44,18 +43,27 @@ namespace eii {
 
         class ServerCfg : public AppCfg {
             private:
-                // server_cfg_t object
-                server_cfg_t* m_serv_cfg;
 
-                // app_cfg_t object
-                app_cfg_t* m_app_cfg;
+                // cfgmgr_interface_t object
+                cfgmgr_interface_t* m_cfgmgr_interface;
+
+                /**
+                 * Private @c ServerCfg copy constructor.
+                 */
+                ServerCfg(const ServerCfg& src);
+
+                /**
+                 * Private @c SubscriberCfg assignment operator.
+                 */
+                ServerCfg& operator=(const ServerCfg& src);
             public:
                 /**
                 * ServerCfg Constructor
-                * @param server_config - The config associated with a server
-                * @param app_cfg       - app_cfg_t pointer
+                * This constructor is not to be directly called since it is only used
+                * internally by the ConfigMgr
+                * @param cfgmgr_interface - The interface associated with a server
                 */
-                explicit ServerCfg(server_cfg_t* serv_cfg, app_cfg_t* app_cfg);
+                explicit ServerCfg(cfgmgr_interface_t* cfgmgr_interface);
 
                 /**
                  * Constructs message bus config for Server
@@ -87,14 +95,9 @@ namespace eii {
                 std::vector<std::string> getAllowedClients() override;
 
                 /**
-                * server_cfg_t getter to get private m_serv_cfg
+                * cfgmgr_interface_t getter to get server interface
                 */
-                server_cfg_t* getServCfg();
-
-                /**
-                * app_cfg_t getter to get private m_app_cfg
-                */
-                app_cfg_t* getAppCfg();
+                cfgmgr_interface_t* getServCfg();
 
                 /**
                 * Destructor

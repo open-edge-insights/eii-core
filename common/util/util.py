@@ -27,6 +27,7 @@ import json
 from jsonschema import validate
 from distutils.util import strtobool
 
+
 class Util:
 
     @staticmethod
@@ -54,8 +55,6 @@ class Util:
             time.sleep(0.1)
         return portUp
 
-
-
     @staticmethod
     def delete_certs(file_list):
         for file in file_list:
@@ -74,8 +73,8 @@ class Util:
                     file_name = os.path.basename(file_path)
                     fd.write(base64.b64decode(file_data[file_name]))
             except Exception as e:
-                log.debug("Failed creating file: {}, Error: {} ".format(file_name,
-                                                                        e))
+                log.debug("Failed creating file: {}, Error: {} "
+                          .format(file_name, e))
 
     @staticmethod
     def get_crypto_dict(app_name):
@@ -87,7 +86,7 @@ class Util:
 
         dev_mode = bool(strtobool(os.environ["DEV_MODE"]))
 
-        if not dev_mode :
+        if not dev_mode:
             configmgr_cert = "/run/secrets/etcd_" + app_name + "_cert"
             configmgr_key = "/run/secrets/etcd_" + app_name + "_key"
             configmgr_cacert = "/run/secrets/ca_etcd"

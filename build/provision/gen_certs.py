@@ -30,7 +30,7 @@ import paths
 import argparse
 import subprocess
 import yaml
-
+import re
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Tool Used for Generating\
@@ -110,7 +110,8 @@ def generate(opts, root_ca_needed=True):
     for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
         os.environ["SAN"] = \
-                "IP:127.0.0.1,DNS:etcd,DNS:*,DNS:localhost,URI:urn:unconfigured:application"
+            "IP:127.0.0.1,DNS:etcd,DNS:ia_etcd,DNS:*," + \
+            "DNS:localhost,URI:urn:unconfigured:application"
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
                 outform = cert_opts['output_format']
@@ -125,6 +126,20 @@ def generate(opts, root_ca_needed=True):
                 else:
                     os.environ["SAN"] = "IP:" + \
                         os.environ["HOST_IP"] + "," + os.environ["SAN"]
+
+                if os.environ["ETCD_HOST"] != "":
+                    pattern = "^\d{1,3}.\d{1,3}.\d{1,3}.\d{1,3}$"
+                    match = re.match(pattern, os.environ["ETCD_HOST"])
+                    if match:
+                        print("ETCD_HOST env value is IP")
+                        os.environ["SAN"] = "IP:" + \
+                                            os.environ["ETCD_HOST"] + "," + \
+                                            os.environ["SAN"]
+                    else:
+                        print("Etcd host env value is DNS")
+                        os.environ["SAN"] = "DNS:" + \
+                                            os.environ["ETCD_HOST"] + "," + \
+                                            os.environ["SAN"]
                 cert_core.generate_server_certificate_and_key_pair(component,
                                                                    cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("server",
@@ -134,6 +149,8 @@ def generate(opts, root_ca_needed=True):
                                                             cert_opts)
                 cert_core.copy_leaf_cert_and_key_pair("client",
                                                       component, outform)
+
+
 def clean():
     for trees in [paths.root_ca_path(), paths.leaf_pair_path("server"),
                   paths.result_path(),
@@ -143,28 +160,7 @@ def clean():
             shutil.rmtree(trees)
         except FileNotFoundError:
             pass
-def generate_k8s_secrets():
-    try:
-       subprocess.run (["kubectl" , "create" , "secret" , "generic" , "ca-etcd" , "--from-file=Certificates/ca/ca_certificate.pem" ])
-       cmd1 = subprocess.run (["kubectl" , "get" , "secret" , "ca-etcd" , "--namespace=default" , "-o" ,"yaml" ],stdout=subprocess.PIPE, check=False)
-       cmd2 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ] , input=cmd1.stdout,stdout=subprocess.PIPE, check=False)
-       subprocess.run(["kubectl", "apply", "--namespace=eii", "-f","-"] , input=cmd2.stdout, check=False)
-       for key,value in data.items():
-           for var in value:
-               for k,v in var.items():
-                   k1 = k.replace("_","-").lower()
-                   cs = list(v)[0].split("_")[0]
-                   subprocess.run (["kubectl", "create", "secret", "generic" ,k1+"-cert","--from-file=Certificates/"+k+"/"+k+"_"+cs+"_certificate.pem"])
-                   subprocess.run (["kubectl", "create", "secret", "generic" ,k1+"-key", "--from-file=Certificates/"+k+"/"+k+"_"+cs+"_key.pem"])
-                   cmd3 = subprocess.run (["kubectl", "get", "secret", k1+"-cert", "--namespace=default", "-o", "yaml"],stdout=subprocess.PIPE, check=False)
-                   cmd4 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ],input=cmd3.stdout,stdout=subprocess.PIPE, check=False)
-                   subprocess.run ([ "kubectl", "apply", "--namespace=eii", "-f", "-"] , input=cmd4.stdout, check=False)
-                   cmd5 = subprocess.run (["kubectl", "get", "secret", k1+"-key", "--namespace=default", "-o", "yaml"],stdout=subprocess.PIPE, check=False)
-                   cmd6 = subprocess.run (["grep" , "-v" , "^\s*namespace:\s" ], input=cmd5.stdout,stdout=subprocess.PIPE, check=False)
-                   subprocess.run (["kubectl", "apply", "--namespace=eii", "-f", "-"],input=cmd6.stdout, check=False)
-    except Exception as err:
-          print("Exception Occured in generating k8s secrets" + str(err))
-          sys.exit(1)
+
 
 if __name__ == '__main__':
     try:
@@ -182,7 +178,5 @@ if __name__ == '__main__':
             generate(data, False)   # re use existing root CA
         else:
             generate(data, True)  # Generate new root CA
-        if os.environ['PROVISION_MODE'] == "k8s":
-           generate_k8s_secrets()
     except Exception as err:
         print("Exception Occured in certificates generation" + str(err))

@@ -44,7 +44,7 @@ extern "C" {
  * @param value         updated value
  * @param cb_user_data  user data passed
  */
-typedef void (*callback_t)(const char *key, config_t* value, void *cb_user_data);
+typedef void (*kv_store_watch_callback_t)(const char *key, config_t* value, void *cb_user_data);
 
 
 /*
@@ -72,11 +72,11 @@ typedef struct {
 
         // function pointer to watch for any changes of a key, registers user_callback,
         // notify user if any change on key occured
-        void (*watch) (void* handle, char *key, callback_t cb, void* user_data);
+        void (*watch) (void* handle, char *key, kv_store_watch_callback_t cb, void* user_data);
 
         // function pointer to watch for any changes of a key prefix, registers user_callback,
         // notify user if any change on key occured
-        void (*watch_prefix) (void* handle, char *key, callback_t cb, void* user_data);
+        void (*watch_prefix) (void* handle, char *key, kv_store_watch_callback_t cb, void* user_data);
 
         // function pointer to delete respective kv_store
         void (*deinit)(void* handle);

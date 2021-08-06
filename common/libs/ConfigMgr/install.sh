@@ -48,7 +48,7 @@ function check_error() {
     fi
 }
 
-INSTALL_PATH="/usr/local/lib"
+INSTALL_PATH="$CMAKE_INSTALL_PREFIX/lib"
 cjson_version="1.7.12"
 
 # Installing cJSON dependency
@@ -92,7 +92,7 @@ else
     check_error "Failed to change to build directory"
 
     log_info "Configuring cJSON for compilation"
-    cmake ..
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} ..
     check_error "Failed to configure cJSON"
 
     log_info "Compiling cJSON library"

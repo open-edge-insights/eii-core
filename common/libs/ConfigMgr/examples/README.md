@@ -1,3 +1,11 @@
+**Contents**
+
+- [ConfigMgr cpp examples](#configmgr-cpp-examples)
+  - [Pre-requisites](#pre-requisites)
+  - [Running C API examples](#running-c-api-examples)
+  - [Running Cpp API examples](#running-cpp-api-examples)
+
+
 # ConfigMgr cpp examples
 
 ## Pre-requisites
@@ -19,7 +27,39 @@
         $ "EndPoint": ".socks"
     ```
 
-## Running examples
+## Running C API examples
+
+1. Running the Publisher example:
+
+    ```sh
+        $ ./pub_c
+    ```
+
+2. Running the Subscriber example:
+
+    ```sh
+        $ ./sub_c
+    ```
+
+3. Running the Server example:
+
+    ```sh
+        $ ./server_c
+    ```
+
+4. Running the Client example:
+
+    ```sh
+        $ ./client_c
+    ```
+
+5. Running the KV store example:
+
+    ```sh
+        $ ./kv_store_etcd ./etcd_kv_store_config.json
+    ```
+
+## Running Cpp API examples
 
 1. Running the Publisher example:
 
@@ -49,10 +89,4 @@
 
     ```sh
         $ ./sample_app
-    ```
-
-6. Running the KV store example:
-
-    ```sh
-        $ ./kv_store_etcd ./etcd_kv_store_config.json
     ```

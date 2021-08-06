@@ -36,11 +36,11 @@ static std::string get_file_contents(const char *fpath) {
 
 // Forward declaration of internally used locally defined functions
 void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
-                         WatchRequest watch_req, callback_t user_callback,
+                         WatchRequest watch_req, kv_store_watch_callback_t user_callback,
                          void *user_data);
 
 bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
-                    WatchRequest watch_req, callback_t user_callback,
+                    WatchRequest watch_req, kv_store_watch_callback_t user_callback,
                     void *user_data);
 
 EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
@@ -49,7 +49,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
 
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
     // TODO: Add port check availability function
-    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    snprintf(address, ADDRESS_LEN, "%s:%s", host.c_str(), port.c_str());
     
     try {
         kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
@@ -63,7 +63,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port, const s
                        const std::string& key_file, const std::string ca_file) {
     LOG_INFO("Initialize EtcdClient in Prod mode");
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
-    sprintf(address, "%s:%s", host.c_str(), port.c_str());
+    snprintf(address, ADDRESS_LEN, "%s:%s", host.c_str(), port.c_str());
     const char* croot = ca_file.c_str();
     const char* ckey = key_file.c_str();
     const char* ccert = cert_file.c_str();
@@ -157,7 +157,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
             }
         }
         get_request.set_key(key_prefix);
-       
+
         int ascii = (int)range_end[range_end.length()-1];
         range_end.back() = ascii+1;
 
@@ -191,7 +191,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
 }
 
 void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
-                         WatchRequest watch_req, callback_t user_callback,
+                         WatchRequest watch_req, kv_store_watch_callback_t user_callback,
                          void *user_data) {
     bool watch_registered = true;
     // Register watch once and check for watch expired conditions
@@ -209,7 +209,7 @@ void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
 }
 
 bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
-                    WatchRequest watch_req, callback_t user_callback, void *user_data) {
+                    WatchRequest watch_req, kv_store_watch_callback_t user_callback, void *user_data) {
     WatchResponse reply;
     mvccpb::KeyValue kvs;
     ClientContext context;
@@ -265,7 +265,7 @@ bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 
                     // cJSON to config_t conversion
                     config_t* config = config_new(
-                        (void*) val_json, free_json, get_config_value);
+                        (void*) val_json, free_json, get_config_value, set_config_value);
                     if (config == NULL) {
                         cJSON_Delete(val_json);
                         config_destroy(config);
@@ -291,7 +291,7 @@ bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
 */
-void EtcdClient::watch_prefix(std::string& key, callback_t user_callback, void *user_data) {
+void EtcdClient::watch_prefix(std::string& key, kv_store_watch_callback_t user_callback, void *user_data) {
     LOG_DEBUG_0("In watch_prefix() API");
     LOG_DEBUG("Register the prefix of the the key %s to watch on", key.c_str());
 
@@ -339,7 +339,7 @@ void EtcdClient::watch_prefix(std::string& key, callback_t user_callback, void *
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
 */
-void EtcdClient::watch(std::string& key, callback_t user_callback, void *user_data) {
+void EtcdClient::watch(std::string& key, kv_store_watch_callback_t user_callback, void *user_data) {
     LOG_DEBUG_0("In watch() API");
     LOG_DEBUG("Register the key %s to watch on", key.c_str());
 

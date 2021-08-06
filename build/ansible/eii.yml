@@ -1,0 +1,199 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Executes roles in all nodes
+
+- hosts: control
+  pre_tasks:
+    - name: "Get the Hostnode timeZone"
+      shell: timedatectl | grep "zone" | awk '{print $3}'
+      register: controlnodetimezone
+      tags:
+        - always
+
+    - name: "Setting Fact of the timezone"
+      set_fact: controlnodetimezone="{{ controlnodetimezone.stdout }}"
+      tags:
+        - always
+
+    - name: "Getting the Hostnode Universal time"
+      shell: "timedatectl | grep 'Universal time' | awk -F 'time: ' '{print $2}'"
+      register: controlnodeuniversaltime
+      tags:
+        - always
+
+    - name: "Setting Fact of the Control Node Universal time"
+      set_fact: controlnodeuniversaltime="{{ controlnodeuniversaltime.stdout }}"
+      tags:
+        - always
+
+- hosts: all
+  pre_tasks:
+    - name: Include vars of ansible/vars/vars.yaml
+      include_vars: vars.yml
+
+    - name: "Getting Current user name"
+      shell: "whoami"
+      register: username
+      tags:
+          - always
+
+    - name: "Verify Sudo Access is there"
+      block:
+      - name: "Executing Sudo Command"
+        shell: "sudo -l -U {{ username.stdout }}"
+        become: yes
+        register: command_out
+        tags:
+          - always
+
+      - name: "User Access"
+        ansible.builtin.debug:
+          msg: "Access details of Username: {{ username.stdout }} {{ command_out.stdout }}"
+        tags:
+          - always
+      rescue:
+      - name: "Update your Sudoes File using 'sudo"
+        ansible.builtin.debug:
+          msg: "Please Append your current user name to sudoers file as `<username>  ALL=(ALL:ALL) NOPASSWD: ALL"
+        tags:
+          - always
+      - meta: end_play
+
+    - name: Setting NTP to False
+      become: yes
+      shell: "timedatectl set-ntp false"
+      tags:
+        - always
+
+    - name: "Set control node time to all nodes"
+      become: yes
+      shell: "timedatectl set-time '{{ hostvars['control']['controlnodeuniversaltime'] }}' && timedatectl set-timezone '{{ hostvars['control']['controlnodetimezone'] }}'"
+      tags:
+        - always
+
+  roles:
+    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname == 'control' }
+    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname != 'control' and multi_node == true }
+
+  tasks:
+    - name: Remove deploy bundles
+      become: yes
+      shell: "rm -rf {{ EII_DEPLOY_PATH }}"
+      tags: [deploy]
+# Executes roles only control machine
+- hosts: control
+  roles:
+    - role: load_env
+      tags: [load_env]
+    - role: build
+      tags: [build]
+    - role: gen_certs
+      tags: [gen_certs]
+    - role: delete_bundles
+      tags: [delete_bundles]
+    - {
+        role: gen_leader_provision_bundle,
+        tags: [gen_leader_provision_bundle],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: gen_worker_provision_bundle,
+        tags: [gen_worker_provision_bundle],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: gen_bundles,
+        tags: [gen_bundles],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: helm_k8s_prerequisites,
+        tags: ["helm_k8s_prerequisites"],
+        when: DEPLOYMENT_MODE == "k8s"
+      }
+
+# Executes roles only in leader nodes
+- hosts: leader
+  roles:
+    - {
+        role: leader_provision,
+        tags: [leader_provision],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: helm_k8s_deploy,
+        tags: ["helm_k8s_deploy"],
+        when: DEPLOYMENT_MODE == "k8s"
+
+      }
+
+# Executes roles in worker machines
+- hosts: targets[2:]
+  roles:
+    - role: worker_provision
+      tags: [worker_provision]
+
+# Executes roles only in control nodes
+- hosts: control
+  roles:
+    - {
+        role: etcd_provision,
+        tags: [etcd_provision],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+
+# Executes roles in worker machines
+- hosts: targets[1:]
+  roles:
+    - {
+        role: deploy,
+        tags: [deploy],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+
+- hosts: control
+  tags: [helm_deploy]
+  tasks:
+    - name: "Setting Back the Certificats to Protected"
+      become: yes
+      ansible.builtin.file:
+        path: "{{ EII_SOURCE_PATH }}/build/provision/Certificates/"
+        state: directory
+        recurse: yes
+        mode: "0750"
+      when: DEPLOYMENT_MODE == "k8s"
+
+    - name: "Setting Back the Certificats to Protected"
+      become: yes
+      ansible.builtin.file:
+        path: "{{ EII_SOURCE_PATH }}/build/provision/rootca/"
+        state: directory
+        recurse: yes
+        mode: "0750"
+      when: DEPLOYMENT_MODE == "k8s"
+
+    - name: "Removing the Certificates from HELM EII"
+      become: yes
+      shell: "rm -rf Certificates/"
+      args:
+        chdir: "{{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
+      when: DEPLOYMENT_MODE == "k8s"

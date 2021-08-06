@@ -1,0 +1,120 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+- name: pip3 install requirements.txt
+  become: yes
+  shell: "pip3 install -r requirements.txt"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: "Generating docker-compose file & config files builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
+  shell: "python3 builder.py"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: usecase == 'all' 
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+  when: usecase == 'all'
+
+- name: "Generating docker-compose file & config file using builder for the usecase {{ usecase }} using {{ usecase }}.yml file"
+  shell: "python3 builder.py -f usecases/{{ usecase }}.yml -v {{ instances }}"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: usecase != 'all'
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+  when: usecase != 'all'
+
+- name: "Make sure docker service is running"
+  become: yes
+  service:
+    name=docker
+    state=started
+    enabled=yes
+
+- debug:
+    msg: "Building containers based on the `builder` generated files & configs for {{ usecase }} usecase "
+
+- debug:
+    msg: "EII build stage will take longer depending on the machine configuration"
+
+- name: "Building containers for {{ usecase }} usecase"
+  shell: "docker-compose -f docker-compose-build.yml build"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: no_cache == false and build == true
+
+- debug:
+    msg: "Status of building containers {{ command_out.stdout }}"
+  when: no_cache == false and build == true
+
+- name: "Building containers for {{ usecase }} usecase"
+  shell: "docker-compose -f docker-compose-build.yml build --no-cache"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: no_cache == true and build == true
+
+- debug:
+    msg: "Status of building containers {{ command_out.stdout }}"
+  when: no_cache == true and build == true
+
+- name: docker login in leader node
+  shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry != "" and docker_login_user != "" and docker_login_passwd != ""
+
+- name: docker login in leader node to docker hub
+  shell: "docker login -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
+  register: command_out
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Status of docker login, {{ command_out.stdout }}"
+  when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
+
+- debug:
+    msg: "Push images to the docker_registry will take some time"
+  when: docker_registry != "" and build == true
+
+- name: "Push Containers to the registry {{ docker_registry }}"
+  shell: "docker-compose -f docker-compose-push.yml push"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: docker_registry != "" and build == true
+
+- debug:
+    msg: "docker push containers {{ command_out.stdout }}"
+  when: docker_registry != "" and build == true

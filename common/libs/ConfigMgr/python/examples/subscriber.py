@@ -36,13 +36,14 @@ try:
     # create ConfigMgr object
     ctx = cfg.ConfigMgr()
 
-    print('[INFO] Total number of subscribers in interface is {}'.format(ctx.get_num_subscribers()))
+    print('[INFO] Total number of subscribers in interface is {}'
+          .format(ctx.get_num_subscribers()))
 
     # get the subscriber object where server's interface 'Name' is 'default'
     sub_ctx = ctx.get_subscriber_by_name("default")
 
-    # get 0th subscriber interface object  
-    #sub_ctx = ctx.get_subscriber_by_index(0)
+    # get 0th subscriber interface object
+    # sub_ctx = ctx.get_subscriber_by_index(0)
 
     # get subscriber msgbus config for application to communicate over EII message bus
     config = sub_ctx.get_msgbus_config()
@@ -57,7 +58,8 @@ try:
 
     # get Endpoint of a subscriber interface
     print('[INFO] Obtained endpoint is {}'.format(sub_ctx.get_endpoint()))
-    new_topics = ["camera2_stream_results", "camera3_stream_results", "camera4_stream_results"]
+    new_topics = ["camera2_stream_results", "camera3_stream_results",
+                  "camera4_stream_results"]
 
     # Update new set of topic for subscriber's interface
     print('[INFO] Topics set {}'.format(sub_ctx.set_topics(new_topics)))

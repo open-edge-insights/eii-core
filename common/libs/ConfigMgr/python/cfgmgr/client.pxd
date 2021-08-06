@@ -20,15 +20,14 @@
 """EII ConfigManager Client wrapper object Cython declaration
 """
 
-from .libeiiconfigmanager cimport client_cfg_t
-from .libeiiconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport cfgmgr_interface_t
+
 
 
 cdef class Client:
     """EII ConfigManager Client object
     """
-    cdef app_cfg_t* app_cfg
-    cdef client_cfg_t* client_cfg
+    cdef cfgmgr_interface_t* cfgmgr_interface
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, client_cfg_t* client_cfg)
+    cdef create(cfgmgr_interface_t* cfgmgr_interface)

@@ -33,7 +33,8 @@ services:
           EII_VERSION: ${EII_VERSION}
           HOST_TIME_ZONE: ${HOST_TIME_ZONE}
           GO_VERSION: ${GO_VERSION}
-    image: ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION}
+          PYTHON_VERSION: ${PYTHON_VERSION}
+    image: ia_eiibase:${EII_VERSION}
     ipc: "none"
 
   ## Define ia_common service
@@ -44,16 +45,23 @@ services:
       context: $PWD/../common
       dockerfile: $PWD/../common/dockerfiles/Dockerfile.common
       args:
+          GO_VERSION: ${GO_VERSION}
           EII_VERSION: ${EII_VERSION}
           # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
           CMAKE_BUILD_TYPE: "Release"
+          CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
           RUN_TESTS: "OFF"
           DOCKER_REGISTRY: ${DOCKER_REGISTRY}
     read_only: true
-    image: ${DOCKER_REGISTRY}ia_common:${EII_VERSION}
+    image: ia_common:${EII_VERSION}
     ipc: "none"
 
   ##----End: EII Base Images---- -- This Base images must be included for building any EII servcies ----
+
+networks:
+  eii:
+    external:
+      name: eii
 
 volumes:
   vol_eii_socket:
@@ -62,12 +70,6 @@ volumes:
       type: local
       o: bind
       device: ${EII_INSTALL_PATH}/sockets
-
-  vol_etcd_keeper:
-    driver: local
-    driver_opts:
-      type: tmpfs
-      device: tmpfs
 
 secrets:
   ca_etcd:

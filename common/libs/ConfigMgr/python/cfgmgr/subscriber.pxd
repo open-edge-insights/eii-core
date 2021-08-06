@@ -20,16 +20,14 @@
 """EII ConfigManager Subscriber wrapper object Cython declaration
 """
 
-from .libeiiconfigmanager cimport sub_cfg_t
-from .libeiiconfigmanager cimport app_cfg_t
+from .libeiiconfigmanager cimport cfgmgr_interface_t
 
 
 cdef class Subscriber:
     """EII ConfigManager Subscriber object
     """
-    cdef app_cfg_t* app_cfg
-    cdef sub_cfg_t* sub_cfg
+    cdef cfgmgr_interface_t* cfgmgr_interface
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, sub_cfg_t* sub_cfg)
+    cdef create(cfgmgr_interface_t* cfgmgr_interface)
 

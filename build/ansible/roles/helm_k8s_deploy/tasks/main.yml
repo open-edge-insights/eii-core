@@ -1,0 +1,203 @@
+---
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+- debug:
+    msg: "Installing Helm base in K8s leader node"
+
+- name: Cleaning directory {{ EII_DEPLOY_PATH }} if it exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: absent
+
+- name: Cleaning directory {{ EII_INSTALL_PATH }}/data if it exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/data"
+    state: absent
+
+- name: Ensure group "{{ EII_USER_NAME }}" exists with correct gid "{{ EII_UID }}"
+  become: yes
+  ansible.builtin.group:
+    name: "{{ EII_USER_NAME }}"
+    gid: "{{ EII_UID }}"
+    state: present
+
+- name: Ensure user "{{ EII_USER_NAME }}" exists with correct uid "{{ EII_UID }}"
+  become: yes
+  ansible.builtin.user:
+    name: "{{ EII_USER_NAME }}"
+    uid: "{{ EII_UID }}"
+    group: "{{ EII_USER_NAME }}"
+    state: present
+
+- name: Create EII Installation {{ EII_INSTALL_PATH }}/data/influxdata directory if it does not exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/data/influxdata"
+    state: directory
+
+- name: Create EII Installation {{ EII_INSTALL_PATH }}/sockets directory if it does not exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}/sockets"
+    state: directory
+
+- name: Updating User & Group OWnership for {{ EII_INSTALL_PATH }} directory for {{ EII_USER_NAME }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_INSTALL_PATH }}"
+    owner: "{{ EII_USER_NAME }}"
+    group: "{{ EII_USER_NAME }}"
+
+- name: "Adding helm key"
+  become: yes
+  shell: "curl https://baltocdn.com/helm/signing.asc | sudo apt-key add - && sudo apt-get install apt-transport-https --yes"
+
+- name: "Adding helm url to apt source list"
+  become: yes
+  shell: "echo 'deb https://baltocdn.com/helm/stable/debian/ all main' | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list"
+
+- name: "Installing Helm"
+  become: yes
+  apt: update_cache=yes name=helm state=latest
+
+- name: Create directory {{ EII_DEPLOY_PATH }}/helm if it does not exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}/helm"
+    state: directory
+    mode: '0755'
+
+- name: Copy helm charts from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/helm-eii"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/"
+    follow: yes
+
+- name: Copy docker-compose yml from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/docker-compose.yml"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    follow: yes
+
+- name: Copy eii_config.json from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/provision/config/eii_config.json"
+    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    follow: yes
+
+- name: Getting Existing eii-deploy status
+  shell: "helm list -q | grep eii-deploy | wc -l"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_deploy
+
+- debug:
+    msg: "{{ helm_eii_deploy.stdout }}"
+
+- name: Stopping/Uninstalling existing helm eii-deploy chart
+  shell: "helm uninstall eii-deploy"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_deploy_uninstall_status
+  when: helm_eii_deploy.stdout != "0"
+
+- name: Getting Existing eii-provision status
+  shell: "helm list -q | grep eii-provision | wc -l"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_provision
+
+- debug:
+    msg: "{{ helm_eii_provision.stdout }}"
+
+- name: Stopping/Uninstalling existing helm eii-provision chart
+  shell: "helm uninstall eii-provision"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: helm_eii_provision_uninstall_status
+  when: helm_eii_provision.stdout != "0"
+
+- name: Get the ia-etcd container name
+  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: get_etcd_container_name
+  when: helm_eii_provision.stdout != "0"
+
+- debug:
+    msg: "Waiting for Terminating Existing ia-etcd container"
+  when: helm_eii_provision.stdout != "0"
+
+- name: "Wait for ia-etcd container in Terminated/deleted state"
+  shell: "kubectl wait --for=delete pod/{{ get_etcd_container_name.stdout }} --timeout=60s"
+  when: helm_eii_provision.stdout != "0"
+
+- debug:
+    msg: "Old ia_etcd container is terminated succesfully"
+
+- name: "Provisioning EII Using Helm"
+  shell: "helm install eii-provision eii-provision/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: Get the ia-etcd container name
+  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+  register: get_ia_etcd_name
+
+- debug:
+    msg: "Waiting for ia-etcd container to up"
+
+- name: "Wait for ia-etcd container to be in running state"
+  shell: "kubectl wait --for=condition=ready pod/{{ get_ia_etcd_name.stdout }} --timeout=-1s"
+
+- debug:
+    msg: "ia-etcd container is up and running fine"
+
+- name: "Deploy EII Using Helm"
+  shell: "helm install eii-deploy eii-deploy/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii"
+  register: command_out
+
+- debug:
+    msg: "{{ command_out.stdout }}"
+
+- name: Removing Certificates from helm directory
+  become: yes
+  shell: "rm -rf Certificates/"
+  args:
+    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+  register: command_out
+  when: retain_certs_in_k8s_leader_machine == false
+
+- debug:
+    msg: "{{ command_out.stdout }}"

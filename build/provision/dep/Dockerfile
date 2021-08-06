@@ -17,26 +17,21 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-FROM ubuntu:18.04
+ARG UBUNTU_IMAGE_VERSION
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as builder
 
 # Setting python dev env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common curl && \
-    add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends python3.6 \
-                                               python3-pip && \
-    python3.6 -m pip install -U pip && \
-    ln -sf /usr/bin/pip /usr/bin/pip3
+    apt-get install -y --no-install-recommends software-properties-common curl
 
-RUN  apt update && \
-     apt install -y curl
 ARG ETCD_VERSION
 RUN mkdir -p /EII/etcd/data
 RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -o /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz && \
     tar -xvf /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz -C /EII/etcd --strip 1 && \
     rm -f /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
+
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+COPY --from=builder /EII/etcd /EII/etcd/
 WORKDIR /EII/etcd/
 COPY dep/start_etcd.sh .
 RUN chmod +x start_etcd.sh

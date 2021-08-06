@@ -1,3 +1,9 @@
+**Contents**
+
+- [**Configuring the Host as per Docker security recommendations.**](#configuring-the-host-as-per-docker-security-recommendations)
+- [Configuring the Docker Daemon as per Docker security recommendations](#configuring-the-docker-daemon-as-per-docker-security-recommendations)
+
+
 ## **Configuring the Host as per Docker security recommendations.**
 
 **1) Ensure a separate partition for containers has been created**
@@ -63,15 +69,23 @@ Install and configure auditd to enable auditing of some of Docker's files, direc
 Place the following snippet at the bottom of the file “/etc/audit/audit.rules”
 
 ```
-  	    -w /usr/bin/docker -p wa
-	    -w /var/lib/docker -p wa
-	    -w /etc/docker -p wa
-	    -w /lib/systemd/system/docker.service -p wa
-	    -w /lib/systemd/system/docker.socket -p wa
-	    -w /etc/default/docker -p wa
-	    -w /etc/docker/daemon.json -p wa
-	    -w /usr/bin/docker-containerd -p wa
-	    -w /usr/bin/docker-runc -p wa
+	-w /usr/bin/docker -p wa
+	-w /var/lib/docker -p wa
+	-w /etc/docker -p wa
+	-w /lib/systemd/system/docker.service -p wa
+	-w /lib/systemd/system/docker.socket -p wa
+	-w /etc/default/docker -p wa
+	-w /etc/docker/daemon.json -p wa
+	-w /usr/bin/docker-containerd -p wa
+	-w /usr/bin/docker-runc -p wa
+	-w /run/containerd -p wa
+	-w /usr/bin/dockerd -p wa
+	-w /etc/containerd/config.toml -p wa
+	-w /usr/bin/containerd -p wa
+	-w /usr/bin/containerd-shim -p wa
+	-w /usr/bin/containerd-shim-runc-v1 -p wa
+	-w /usr/bin/containerd-shim-runc-v2 -p wa
+        -w /usr/bin/runc -p wa
 ```
  
 
@@ -92,18 +106,12 @@ This will present you with a blank text file. Paste in the following:
 
 ```
     {
-    
-    "icc": false,
-    
-    "log-driver": "syslog",
-    
-    "disable-legacy-registry": true,
-    
-    "live-restore": true,
-    
-    "userland-proxy": false,
-    
-    "no-new-privileges": true
+        "icc": false,
+	"log-driver": "syslog",
+	"live-restore": true,
+	"userland-proxy": false,
+	"no-new-privileges": true,
+	"userns-remap": "default"
     
     }
 
@@ -116,7 +124,42 @@ Save and close the file, then restart the Docker daemon so it picks up this new 
 
 **Ensure that authorization for Docker client commands is enabled**
 
-If you need to allow network access to the Docker socket you should consult the official Docker documentation to find out how to set up the certificates and keys necessary to do so securely. https://docs.docker.com/engine/security/https/
+If you need to allow network access to the Docker socket you should run the docker daemon with [authorization-plugin](https://docs.docker.com/engine/extend/plugins_authorization/) by following the steps below. 
+
+1) Create an empty policy definition that will allow all requests.
+
+```
+mkdir -p /etc/docker/policies
+cat >>  /etc/docker/policies/authz.rego << EOF
+package docker.authz
+
+allow = true
+EOF
+```
+
+2) Install a plugin or [create one plugin](https://docs.docker.com/engine/reference/commandline/plugin_create/).
+
+```
+docker plugin install <plugin>
+for eg:
+docker plugin install openpolicyagent/opa-docker-authz-v2:0.4 opa-args="-policy-file /opa/policies/authz.rego"
+```
+
+3) Configure the Docker daemon to use the plugin for authorization by appending following in /etc/docker/daemon.json.
+
+```
+
+{
+    "authorization-plugins": ["<plugin_name>"]
+}
+
+```
+
+4) Restart the docker daemon.
+
+```
+sudo systemctl restart docker
+```
 
 Please find more information about Docker bench security below. The Docker Bench for Security is a script that checks for dozens of common best-practices around deploying Docker containers in production.
 

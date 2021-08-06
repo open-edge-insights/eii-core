@@ -41,23 +41,19 @@ cdef class Publisher:
     def __cinit__(self, *args, **kwargs):
         """Cython base constructor
         """
-        self.app_cfg = NULL
-        self.pub_cfg = NULL
+        self.cfgmgr_interface = NULL
 
     @staticmethod
-    cdef create(app_cfg_t* app_cfg, pub_cfg_t* pub_cfg):
+    cdef create(cfgmgr_interface_t* cfgmgr_interface):
         """Helper method for initializing the client object.
 
-        :param app_cfg: Applications config struct
-        :type: struct
-        :param pub_cfg: Publisher config struct
+        :param cfgmgr_interface: Publisher config struct
         :type: struct
         :return: Publisher class object
         :rtype: obj
         """
         p = Publisher()
-        p.app_cfg = app_cfg
-        p.pub_cfg = pub_cfg
+        p.cfgmgr_interface = cfgmgr_interface
         return p
 
     def __dealloc__(self):
@@ -68,8 +64,8 @@ cdef class Publisher:
     def destroy(self):
         """Destroy the publisher.
         """
-        if self.pub_cfg != NULL:
-            pub_cfg_config_destroy(self.pub_cfg)
+        if self.cfgmgr_interface != NULL:
+            cfgmgr_interface_destroy(self.cfgmgr_interface)
 
     def get_msgbus_config(self):
         """Constructs message bus config for Publisher
@@ -80,7 +76,7 @@ cdef class Publisher:
         cdef char* config
         cdef config_t* msgbus_config
         try:
-            msgbus_config = self.pub_cfg.cfgmgr_get_msgbus_config_pub(self.app_cfg.base_cfg, self.pub_cfg)
+            msgbus_config = cfgmgr_get_msgbus_config(self.cfgmgr_interface)
             if msgbus_config is NULL:
                 raise Exception("[Publisher] Getting msgbus config from base c layer failed")
 
@@ -107,7 +103,7 @@ cdef class Publisher:
         cdef char* config
         try:
             interface_value = None
-            value = self.pub_cfg.cfgmgr_get_interface_value_pub(self.pub_cfg, key.encode('utf-8'))
+            value = cfgmgr_get_interface_value(self.cfgmgr_interface, key.encode('utf-8'))
             if value is NULL:
                 raise Exception("[Publisher] Getting interface value from base c layer failed")
                 
@@ -131,7 +127,7 @@ cdef class Publisher:
         cdef config_value_t* ep
         cdef char* c_endpoint
         try:
-            ep = self.pub_cfg.cfgmgr_get_endpoint_pub(self.pub_cfg)
+            ep = cfgmgr_get_endpoint(self.cfgmgr_interface)
             if ep is NULL:
                 raise Exception("[Publisher] Getting end point from base c layer failed")
 
@@ -172,7 +168,7 @@ cdef class Publisher:
         cdef char* c_topic_value
 
         try:
-            topics = self.pub_cfg.cfgmgr_get_topics_pub(self.pub_cfg)
+            topics = cfgmgr_get_topics(self.cfgmgr_interface)
             if topics is NULL:
                 raise Exception("[Publisher] Getting topics from base c layer failed")
             
@@ -209,7 +205,7 @@ cdef class Publisher:
         cdef char* c_client_value
 
         try:
-            clients = self.pub_cfg.cfgmgr_get_allowed_clients_pub(self.pub_cfg)
+            clients = cfgmgr_get_allowed_clients(self.cfgmgr_interface)
             if clients is NULL:
                 raise Exception("[Publisher] Getting alowed clients from base c layer failed")
 
@@ -253,9 +249,9 @@ cdef class Publisher:
                 topics_list[i] = topics_list[i].encode()
                 topics_to_be_set[i] = topics_list[i]
 
-            # Calling the base C cfgmgr_set_topics_pub() API
-            topics_set = self.pub_cfg.cfgmgr_set_topics_pub(topics_to_be_set, len(topics_list), self.app_cfg.base_cfg, self.pub_cfg)
-            if topics_set is not 0 :
+            # Calling the base C cfgmgr_set_topics() API
+            topics_set = cfgmgr_set_topics(self.cfgmgr_interface, topics_to_be_set, len(topics_list))
+            if not topics_set :
                 raise Exception("[Publisher] Set Topics in base c layer failed")
             free(topics_to_be_set)
             return topics_set

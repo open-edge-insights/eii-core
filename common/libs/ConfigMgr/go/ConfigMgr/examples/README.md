@@ -1,3 +1,10 @@
+**Contents**
+
+- [ConfigMgr cpp examples](#configmgr-cpp-examples)
+  - [Pre-requisites](#pre-requisites)
+  - [Running examples](#running-examples)
+
+
 # ConfigMgr cpp examples
 
 ## Pre-requisites

@@ -24,8 +24,9 @@ project(eii-configmanager VERSION 1.0.0 LANGUAGES C CXX)
 # Define CMake options
 
 option(WITH_EXAMPLES "Compile with examples" OFF)
-option(WITH_GO "Compile Go Bindings" OFF)
-option(WITH_TESTS "Compile with tests" OFF)
+option(WITH_GO       "Compile Go Bindings" OFF)
+option(WITH_PYTHON   "Compile with Python bindings" OFF)
+option(WITH_TESTS    "Compile with tests" OFF)
 
 # Globals
 set(EII_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../../cmake")
@@ -75,6 +76,7 @@ endif()
 
 # Include header directories
 include_directories(
+    ${CMAKE_INSTALL_PREFIX}/include/
     include/
     ${GRPC_INCLUDE_DIRS}
     ${PROTOBUF_INCLUDE_DIRS}
@@ -85,6 +87,7 @@ include_directories(
 # Get all source files
 file(GLOB SOURCES "src/*.c" "cpp/*.cpp" "src/*/*.c" "src/*/etcd_client/*.c" "src/*/etcd_client/*.cpp" "src/*/etcd_client/*/*.cpp")
 set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE C)
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 add_library(eiiconfigmanager_static STATIC ${SOURCES})
 add_library(eiiconfigmanager SHARED ${SOURCES})
@@ -114,6 +117,10 @@ endif()
 
 if(WITH_EXAMPLES)
     add_subdirectory(examples/)
+endif()
+
+if(WITH_PYTHON)
+    add_subdirectory(python/)
 endif()
 
 if(WITH_TESTS)

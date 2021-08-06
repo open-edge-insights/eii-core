@@ -29,33 +29,40 @@
 using namespace eii::config_manager;
 
 // Constructor
-ServerCfg::ServerCfg(server_cfg_t* serv_cfg, app_cfg_t* app_cfg):AppCfg(NULL) {
-    m_serv_cfg = serv_cfg;
-    m_app_cfg = app_cfg;
+ServerCfg::ServerCfg(cfgmgr_interface_t* cfgmgr_interface):AppCfg(NULL) {
+    m_cfgmgr_interface = cfgmgr_interface;
 }
 
-// m_cli_cfg getter
-server_cfg_t* ServerCfg::getServCfg() {
-    return m_serv_cfg;
+ServerCfg::ServerCfg(const ServerCfg& src) :
+    AppCfg(NULL)
+{
+    throw "This object should not be copied";
+}
+
+ServerCfg& ServerCfg::operator=(const ServerCfg& src) {
+    return *this;
+}
+
+// m_cfgmgr_interface getter
+cfgmgr_interface_t* ServerCfg::getServCfg() {
+    return m_cfgmgr_interface;
 }
 
 // getMsgBusConfig of ServerCfg class
 config_t* ServerCfg::getMsgBusConfig() {
     // Calling the base C get_msgbus_config_server() API
-    config_t* server_config = m_serv_cfg->cfgmgr_get_msgbus_config_server(m_app_cfg->base_cfg, m_serv_cfg);
+    config_t* server_config = cfgmgr_get_msgbus_config(m_cfgmgr_interface);
     if (server_config == NULL) {
-        LOG_ERROR_0("Unable to fetch server msgbus config");
-        return NULL;
+        throw "Unable to fetch server msgbus config";
     }
     return server_config;
 }
 
 // Get the Interface Value of Server.
 config_value_t* ServerCfg::getInterfaceValue(const char* key){
-    config_value_t* interface_value = m_serv_cfg->cfgmgr_get_interface_value_server(m_serv_cfg, key);
-    if(interface_value == NULL){
-        LOG_DEBUG_0("[Server]:Getting interface value from base c layer failed");
-        return NULL;
+    config_value_t* interface_value = cfgmgr_get_interface_value(m_cfgmgr_interface, key);
+    if (interface_value == NULL){
+        throw "Getting interface value from base c layer failed";
     }
     return interface_value;
 }
@@ -63,17 +70,15 @@ config_value_t* ServerCfg::getInterfaceValue(const char* key){
 // To fetch endpoint from config
 std::string ServerCfg::getEndpoint() {
     // Calling the base C get_endpoint_server() API
-    config_value_t* ep = m_serv_cfg->cfgmgr_get_endpoint_server(m_serv_cfg);
+    config_value_t* ep = cfgmgr_get_endpoint(m_cfgmgr_interface);
     if (ep == NULL) {
-        LOG_ERROR_0("Endpoint not found");
-        return "";
+        throw "Endpoint not found";
     }
-    
+
     char* value;
     value = cvt_obj_str_to_char(ep);
-    if(value == NULL){
-        LOG_ERROR_0("Endpoint object to string conversion failed");
-        return "";
+    if (value == NULL) {
+        throw "Endpoint object to string conversion failed";
     }
 
     std::string s(value);
@@ -88,24 +93,21 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
 
     std::vector<std::string> client_list;
     // Calling the base C get_topics() API
-    config_value_t* clients = m_serv_cfg->cfgmgr_get_allowed_clients_server(m_serv_cfg);
+    config_value_t* clients = cfgmgr_get_allowed_clients(m_cfgmgr_interface);
     if (clients == NULL) {
-        LOG_ERROR_0("clients initialization failed");
-        return {};
+        throw "clients initialization failed";
     }
     config_value_t* client_value;
 
     size_t arr_len = config_value_array_len(clients);
-    if(arr_len == 0){
-        LOG_ERROR_0("Empty array is not supported, atleast one value should be given.");
-        return {};
+    if (arr_len == 0) {
+        throw "Empty array is not supported, atleast one value should be given.";
     }
 
     for (size_t i = 0; i < arr_len; i++) {
         client_value = config_value_array_get(clients, i);
         if (client_value == NULL) {
-            LOG_ERROR_0("client_value initialization failed");
-            return {};
+            throw "client_value initialization failed";
         }
         client_list.push_back(client_value->body.string);
         // Destroying client_value
@@ -118,8 +120,8 @@ std::vector<std::string> ServerCfg::getAllowedClients() {
 
 // Destructor
 ServerCfg::~ServerCfg() {
-    if(m_serv_cfg) {
-        server_cfg_config_destroy(m_serv_cfg);
+    if (m_cfgmgr_interface) {
+        cfgmgr_interface_destroy(m_cfgmgr_interface);
     }
     LOG_INFO_0("ServerCfg destructor");
 }
