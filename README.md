@@ -54,7 +54,7 @@ EII software will run on the below mentioned Intel platforms:
 * At least 16GB RAM
 * At least 64GB hard drive
 * An internet connection
-* Ubuntu 18.04
+* Ubuntu 18.04 / Ubuntu 20.04
 ```
 
 For performing Video Analytics, a 16GB of RAM is recommended.
@@ -187,7 +187,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII services via helm                                      |
 | Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII services via helm               |
 
-> **NOTE**:
+> **NOTE**
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
      or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
      the EII stack to ensure that the changes done reflect in the required consolidated files.
@@ -271,7 +271,8 @@ optional arguments:
   $ python3 builder.py -v 3 -f usecases/video-streaming.yml
   ```
 
-  > **NOTE**: This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > **NOTE**
+  > This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
 
 ### Running builder to generate benchmarking configs:
 
@@ -281,14 +282,14 @@ optional arguments:
   $ python3 builder.py -d benchmarking
   ```
 
-  > **Note:**
+  > **Note**
   > * If using the override directory feature of builder, it is recommended to include set of all 3 files mentioned above. Failing to provide any of the files in the override directory results in builder not including that service in the generated final config.
   > * If user wishes to spawn a single Subscriber/Client container subscribing/receiving on multiple Publisher/Server containers, he can do so by adding the AppName of Subscriber/Client container in **subscriber_list** of [builder_config.json](build/builder_config.json) ensuring the Publisher/Server container **AppName** is added in the **publisher_list** of [builder_config.json](build/builder_config.json). For services not mentioned in **subscriber_list**, multiple containers specified by the **-v** flag are spawned.
   For eg: If builder is run with **-v 3** option and **Visualizer** isn't added in **subscriber_list** of [builder_config.json](build/builder_config.json), 3 **Visualizer** instances are spawned, each of them subscribing to 3 **VideoAnalytics** services. If **Visualizer** is added in **subscriber_list** of [builder_config.json](build/builder_config.json), a single **Visualizer** instance subscribing to 3 multiple **VideoAnalytics** is spawned.
 
 ## Adding new EII service so it gets picked up by Builder
 
-> **NOTE**:
+> **NOTE**
 > Please refer EII sample apps at [Samples](https://github.com/open-edge-insights/eii-samples/blob/master/README.md) written in C++, python and golang using EII Core libraries for more details on adding new EII services
 
 Since the builder takes care of registering and running any service present in it's own directory in the [IEdgeInsights](./) directory, this section describes on how to add any new service into the EII stack, subscribe to [VideoAnalytics](https://github.com/open-edge-insights/video-analytics) and publish on a new port.
@@ -401,8 +402,8 @@ location which consists of source code of GPL/LGPL/AGPL components of EII stack.
 
 # Provision
 
-<b>`By default EII is provisioned in Secure mode`</b>.
-]
+<b>By default EII is provisioned in Secure mode</b>.
+
 Follow below steps to provision. Provisioning must be done before deploying EII on any node. It will start ETCD as a container and load it with configuration required to run EII for single node or multi node cluster set up.
 
 Please follow below steps to provision in Developer mode. Developer mode will have all security disabled.
@@ -435,7 +436,8 @@ $ # eq. $ sudo -E ./provision.sh ../docker-compose.yml
 $ sudo -E ./provision.sh <path_to_eii_docker_compose_file> --build
 $ # eq. $ sudo -E ./provision.sh ../docker-compose.yml --build
 ```
->**Note**: The above command only `build` the provisioining images, will not do any other functions of provisioning script.
+>**Note**
+> The above command only `build` the provisioining images, will not do any other functions of provisioning script.
 
 **Optional:** For capturing the data back from Etcd to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
 
@@ -446,7 +448,7 @@ $ ./etcd_capture.sh
 # Build and Run EII video/timeseries use cases
 
   ---
-  > **Note:**
+  > **Note**
   > * For running EII services in IPC mode, make sure that the same user should be there in publisher and subscriber.
      If publisher is running as root (eg: VI, VA), then the subscriber also need to run as root.
      In `build/docker-compose.yml` if `user: ${EII_UID}` is in publisher service, then the
@@ -472,7 +474,7 @@ yaml file.
 
 ## Build EII stack
 
-> **NOTE**:
+> **NOTE**
 >
 > 1. This step is optional if one wants to use the EII pre-built
 >    container images itself and doesn't want to build from source.
@@ -494,7 +496,7 @@ $ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 
 ## Run EII services
 
-> **NOTE**:
+> **NOTE**
 >
 > If the images tagged with EII_VERSION as in [build/.env](build/.env) does not exist locally on the system,
 > they would be pulled if those images exist int he docker hub during `docker-compose up`.
@@ -555,7 +557,8 @@ key. The `device` field in UDF config of `udfs` key in `VideoIngestion` and `Vid
 before provisioning (or re-provision it again after the change to the apps config.json, re-running `builder.py` script and then re-running the provisioning script) or at run-time via EtcdUI. For more details on the udfs config,
 check [common/udfs/README.md](https://github.com/open-edge-insights/video-common/blob/master/udfs/README.md).
 
-**Note**: There is an initial delay of upto ~30s while running inference on `GPU` (only for the first frame) as dynamically certain packages get created during runtime.
+> **Note**
+> There is an initial delay of upto ~30s while running inference on `GPU` (only for the first frame) as dynamically certain packages get created during runtime.
 
 ### **To run on USB devices**
 
@@ -572,7 +575,8 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
       - "/dev/video1:/dev/video1"
 ```
 
-> **Note**: /dev/dri is needed for Graphic drivers
+> **Note**
+> /dev/dri is needed for Graphic drivers
 
 ### **To run on MYRIAD devices**
 
@@ -677,7 +681,8 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
         https://docs.openvinotoolkit.org/2021.4/index.html
 ### **To run on Intel(R) Processor Graphics (GPU/iGPU)**
 
-  > **Note**: The below step is required only for 11th gen Intel Processors
+  > **Note**
+  > The below step is required only for 11th gen Intel Processors
 
   Upgrade the kernel version to 5.8 and install the required drivers from the below OpenVINO link:
   https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps
