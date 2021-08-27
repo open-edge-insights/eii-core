@@ -49,7 +49,4 @@ else
 	export ETCD_CLIENT_CERT_AUTH="true"
 	
 fi
-export no_proxy="$no_proxy,0.0.0.0:$ETCD_CLIENT_PORT,0.0.0.0:$ETCD_PEER_PORT"
-export NO_PROXY="$no_proxy"
-
 ./etcd
