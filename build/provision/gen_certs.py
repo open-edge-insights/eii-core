@@ -57,6 +57,10 @@ def parse_yml(filepath):
                         for key, value in value.items():
                             if key == "environment":
                                 if 'AppName' in value.keys():
+                                    if value['AppName'] == "OpcuaExport":
+                                        data["certs"].append({"opcua":
+                                            {"client_alt_name": "",
+                                            "output_format": "DER"}})
                                     existingCert = False
                                     for keyValue in data["certs"]:
                                         if value['AppName'] in keyValue.keys():
@@ -109,9 +113,15 @@ def generate(opts, root_ca_needed=True):
     copy_certificates_to_results_folder()
     for cert in opts["certs"]:
         print("Generating Certificate for.......... " + str(cert) + "\n\n")
-        os.environ["SAN"] = \
-            "IP:127.0.0.1,DNS:etcd,DNS:ia_etcd,DNS:*," + \
-            "DNS:localhost,URI:urn:unconfigured:application"
+        if 'opcua' not in cert:
+            os.environ["SAN"] = \
+                "IP:127.0.0.1,DNS:etcd,DNS:ia_etcd,DNS:*," + \
+                "DNS:localhost,URI:urn:open62541.server.application"
+        else:
+            os.environ["SAN"] = \
+                "IP:127.0.0.1,DNS:etcd,DNS:ia_etcd,DNS:*," + \
+                "DNS:localhost,URI:urn:open62541.client.application"
+
         for component, cert_opts in cert.items():
             if 'output_format' in cert_opts:
                 outform = cert_opts['output_format']
