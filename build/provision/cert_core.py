@@ -107,11 +107,19 @@ def copy_leaf_cert_and_key_pair(source, target, outform=None):
 
 def openssl_req(opts, *args, **kwargs):
     cnf_path = get_openssl_cnf_path(opts)
-    print("=>\t[openssl_req]")
-    xs = ["openssl", "req", "-config", cnf_path] + list(args)
-    run(xs, **kwargs)
-
-
+    if opts["common_name"] not in ["OpcuaExport_Server","opcua"]:
+        print("=>\t[openssl_req]")
+        xs = ["openssl", "req", "-config", cnf_path] + list(args)
+        run(xs, **kwargs)
+    else:
+        print("=>\t[openssl_req]")
+        req_args = list(args)
+        req_args.append("-addext")
+        req_args.append("subjectAltName = {}".format(os.getenv("SAN")))
+        req_args.append("-addext")
+        req_args.append("keyUsage = Digital Signature, Non Repudiation, Key Encipherment, Data Encipherment, Certificate Sign")
+        xs = ["openssl", "req", "-x509", "-sha256"] + list(req_args)
+        run(xs, **kwargs)
 def openssl_x509(*args, **kwargs):
     print("=>\t[openssl_x509]")
     xs = ["openssl", "x509"] + list(args)
@@ -216,22 +224,33 @@ def generate_cert_and_key_pair(key, peer, opts,
                 "-subj", "/CN={}/O={}/L=$$$/".format(opts["common_name"],
                                                      peer),
                 "-nodes")
-    openssl_ca(opts,
-               "-days",    str(3650),
-               "-cert",    pa_cert_path,
-               "-keyfile", pa_key_path,
-               "-in",      req_pem_path,
-               "-out",     cert_path,
-               "-outdir",  pa_certs_path,
-               "-notext",
-               "-batch",
-               "-extensions", "{}_extensions".format(peer))
+    if opts["common_name"] not in ["OpcuaExport_Server","opcua"]:
+        openssl_ca(opts,
+                   "-days",    str(3650),
+                   "-cert",    pa_cert_path,
+                   "-keyfile", pa_key_path,
+                   "-in",      req_pem_path,
+                   "-out",     cert_path,
+                   "-outdir",  pa_certs_path,
+                   "-notext",
+                   "-batch",
+                   "-extensions", "{}_extensions".format(peer))
     if 'output_format' in opts:
         print("Generating the DER file......")
-        openssl_x509("-in",      cert_path,
-                     "-out",     paths.leaf_certificate_der_path(peer),
-                     "-outform", "DER")
-        openssl_rsa("-in",  privkey_path,
-                    "-out", paths.leaf_key_der_path(peer),
-                    "-inform", "PEM",
-                    "-outform", "DER")
+        if opts["common_name"] not in ["OpcuaExport_Server","opcua"]:
+            openssl_x509("-in",      cert_path,
+                         "-out",     paths.leaf_certificate_der_path(peer),
+                         "-outform", "DER")
+            openssl_rsa("-in",  privkey_path,
+                        "-out", paths.leaf_key_der_path(peer),
+                        "-inform", "PEM",
+                        "-outform", "DER")
+        else:
+            openssl_x509("-in",      req_pem_path,
+                         "-out",     paths.leaf_certificate_der_path(peer),
+                         "-outform", "DER")
+            openssl_rsa("-in",  privkey_path,
+                        "-out", paths.leaf_key_der_path(peer),
+                        "-inform", "PEM",
+                        "-outform", "DER")
+
