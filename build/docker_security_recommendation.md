@@ -87,7 +87,19 @@ Place the following snippet at the bottom of the file â€œ/etc/audit/audit.rulesâ
 	-w /usr/bin/containerd-shim-runc-v2 -p wa
         -w /usr/bin/runc -p wa
 ```
- 
+**3) Enable execute access to the docker cli binary to only the current user / admin **
+
+Change the user ownership of Docker binary 
+
+```
+    sudo chown $USER /usr/bin/docker
+```
+
+Change the permission of Docker binary
+
+```
+    sudo chmod 744 /usr/bin/docker
+```
 
 ## Configuring the Docker Daemon as per Docker security recommendations
  
