@@ -1,4 +1,11 @@
-EII distributed services centralized logging using ELK
+#EII distributed services centralized logging using ELK
+
+##Pre-requisites
+* Generate the certificates required to run the Kibana Server using the following command
+    ```
+    $ ./generate_testserver_cert.sh test-server-ip
+    ```
+
 1. The EII centralized logging architecture can be visualized as eii-containers--->rsyslog--->logstash--->elasticsearch--->kibana
 
 2. The eii-containers logs has to be forwarded to the rsyslog, running onto the local system. 
