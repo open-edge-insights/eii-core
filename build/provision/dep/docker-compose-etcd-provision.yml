@@ -27,6 +27,8 @@ services:
     volumes:
       - "../config:/EII/etcd/config/"
       - "../docker-compose.yml:/EII/etcd/docker-compose.yml"
+    security_opt:
+      - no-new-privileges
     environment:
       ETCDCTL_API: 3
       DEV_MODE: ${DEV_MODE}
