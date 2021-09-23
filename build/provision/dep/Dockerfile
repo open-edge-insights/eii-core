@@ -31,9 +31,13 @@ RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etc
     rm -f /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
 
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+ARG EII_UID
 COPY --from=builder /EII/etcd /EII/etcd/
 WORKDIR /EII/etcd/
 COPY dep/start_etcd.sh .
 RUN chmod +x start_etcd.sh
+RUN chown -R ${EII_UID}:${EII_UID} /EII/etcd/data && \
+    chmod 760 /EII/etcd/data
+
 HEALTHCHECK NONE
 ENTRYPOINT ["./start_etcd.sh"]
