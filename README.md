@@ -193,6 +193,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
      the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use [build/builder.py](build/builder.py) script to generate the conslidated ones.
+> 3. This [build/builder.py](build/builder.py) script removes the subscriber or client interface for EII service/app(s) configuration in consolidated [eii_config.json](build/provision/config/eii_config.json) if the corresponding publisher or server interface in any EII service/app(s) is missing.
 
 ## Using builder script
 
