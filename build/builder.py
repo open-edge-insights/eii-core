@@ -423,9 +423,35 @@ def json_parser(app_list, args):
                 # Merging individual app configs & interfaces into one json
                 config_json = merge(config_json, data)
 
+    temp = copy.deepcopy(config_json)
+    # removing subscriber interface where publisher app is not present
+    for key, value in config_json.items():
+        if "Subscribers" in value:
+            for subscriber in value["Subscribers"]:
+                if subscriber["Type"] == "zmq_tcp":
+                    # Ignoring ZmqBroker as PublisherAppName is "*" for subscriber
+                    if subscriber["PublisherAppName"] != "*":
+                        if("/" + subscriber["PublisherAppName"] + \
+                            "/interfaces" not in config_json.keys()):
+                            temp[key]["Subscribers"].remove(subscriber)
+                            if not temp[key]["Subscribers"]:
+                                del temp[key]["Subscribers"]
+
+    # removing client interface where server app is not present
+    for key, value in config_json.items():
+        if "Clients" in value:
+            for client in value["Clients"]:
+                if client["Type"] == "zmq_tcp":
+                    if("/" + client["ServerAppName"] + \
+                        "/interfaces" not in config_json.keys()):
+                        temp[key]["Clients"].remove(client)
+                        if not temp[key]["Clients"]:
+                            del temp[key]["Clients"]
+
+
     # Writing consolidated json into desired location
     with open(eii_config_path, "w") as json_file:
-        json_file.write(json.dumps(config_json, sort_keys=True, indent=4))
+        json_file.write(json.dumps(temp, sort_keys=True, indent=4))
 
 
 def get_available_port(curr_port, ports_dict):
