@@ -101,6 +101,14 @@ Change the permission of Docker binary
     sudo chmod 744 /usr/bin/docker
 ```
 
+**4) Selectively mount only the required devices from `/dev` as mounting whole `/dev` is not recommended for production deployment
+
+Following devices under /dev filesystem will be needed based on use case for video ingestion
+and video analytics containers:
+* /dev/dri - GPU
+* /dev/ion - VPU
+* /dev/video* - USB camera devices
+
 ## Configuring the Docker Daemon as per Docker security recommendations
  
 
