@@ -23,6 +23,7 @@ AppContexts:
 - Grafana
 - OpcuaExport
 - RestDataExport
+- FactoryControlApp
 - ZmqBroker
 - tools/EmbPublisher
 - tools/TimeSeriesProfiler
