@@ -25,7 +25,10 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
 
   > **Note**:
  
-  > K8s installation on single or multi node should be done as pre-requisite to continue the following deployment.
+  > K8s installation on single or multi node should be done as pre-requisite to continue the following deployment. Please note we
+  have tried the kubernetes cluster setup with `kubeadm`, `kubectl` and `kubelet` packages on single and multi nodes with `v1.22.2`.
+  One can refer tutorials like https://adamtheautomator.com/install-kubernetes-ubuntu/#Installing_Kubernetes_on_the_Master_and_Worker_Nodes and many other
+  online tutorials to setup kubernetes cluster on the web with host OS as ubuntu 18.04/20.04.
   
   > builder.py need to be executed with the preferred usecase for generating the consolidated helm charts for the provisioning and deployment.
 

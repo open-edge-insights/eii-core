@@ -87,7 +87,8 @@ Place the following snippet at the bottom of the file â€œ/etc/audit/audit.rulesâ
 	-w /usr/bin/containerd-shim-runc-v2 -p wa
         -w /usr/bin/runc -p wa
 ```
-**3) Enable execute access to the docker cli binary to only the current user / admin **
+
+**4) Enable execute access to the docker cli binary to only the current user / admin **
 
 Change the user ownership of Docker binary 
 
@@ -101,13 +102,16 @@ Change the permission of Docker binary
     sudo chmod 744 /usr/bin/docker
 ```
 
-**4) Selectively mount only the required devices from `/dev` as mounting whole `/dev` is not recommended for production deployment
+**5) Selectively mount only the required devices from `/dev` as mounting whole `/dev` is not recommended for production deployment
 
 Following devices under /dev filesystem will be needed based on use case for video ingestion
 and video analytics containers:
 * /dev/dri - GPU
 * /dev/ion - VPU
 * /dev/video* - USB camera devices
+
+**6) On the production system, please have the right firewall policies set for the containers port(s) that are getting published on the host machine
+     and are accessible outside. For more details, please refer guide like https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-20-04
 
 ## Configuring the Docker Daemon as per Docker security recommendations
  
