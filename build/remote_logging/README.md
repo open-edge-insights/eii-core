@@ -3,7 +3,7 @@
 ##Pre-requisites
 * Generate the certificates required to run the Kibana Server using the following command
     ```
-    $ ./generate_testserver_cert.sh test-server-ip
+    $ ./generate_kibana_certs.sh test-server-ip
     ```
 
 1. The EII centralized logging architecture can be visualized as eii-containers--->rsyslog--->logstash--->elasticsearch--->kibana
