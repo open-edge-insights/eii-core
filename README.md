@@ -174,7 +174,7 @@ The section assumes the EII software is already downloaded from the release pack
 
 Run all the below commands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
-## Generating consolidated docker-compose.yml and eii_config.json files:
+## Generating consolidated deployment and configuration files:
 
 EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
@@ -702,6 +702,10 @@ The following are the two Custom Udfs workflow which EII supports:
    For running custom udfs either in VI or VA one must refer [VideoIngestion/docs/custom_udfs_doc.md](https://github.com/open-edge-insights/video-ingestion/blob/master/docs/custom_udfs_doc.md)
 
 # Time-series Analytics
+
+> **NOTE**:
+> By default, `ia_telegraf` uses the mqtt plugin to talk to the `ia_mqtt_broker` service, so please make sure `ia_mqtt_broker` service is running and you are publishing the sample sensor data by
+> following the guide at https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md. If one does not want to run MQTT broker, please make sure to comment/remove the `[[inputs.mqtt_consumer]]` sections to avoid DNS queries on `ia_mqtt_broker`
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
