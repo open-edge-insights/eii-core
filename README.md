@@ -711,7 +711,7 @@ The following are the two Custom Udfs workflow which EII supports:
 
 > **NOTE**:
 > By default, `ia_telegraf` uses the mqtt plugin to talk to the `ia_mqtt_broker` service, so please make sure `ia_mqtt_broker` service is running and you are publishing the sample sensor data by
-> following the guide at https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md. If one does not want to run MQTT broker, please make sure to comment/remove the `[[inputs.mqtt_consumer]]` sections to avoid DNS queries on `ia_mqtt_broker`
+> following the guide at https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md. If one does not want to run MQTT broker, please make sure to comment/remove the `[[inputs.mqtt_consumer]]` sections to avoid DNS queries on `ia_mqtt_broker` in the [respective conf files](https://github.com/open-edge-insights/ts-telegraf/tree/master/config/Telegraf) based on DEV or PROD mode.
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
