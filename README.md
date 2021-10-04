@@ -176,6 +176,20 @@ Run all the below commands in this section from `[WORKDIR]/IEdgeInsights/build/`
 
 ## Generating consolidated deployment and configuration files:
 
+> **NOTE**
+> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
+     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
+     the EII stack to ensure that the changes done reflect in the required consolidated files.
+> 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
+     respective files in EII app/service directories and use [build/builder.py](build/builder.py) script to generate the conslidated ones.
+> 3. This [build/builder.py](build/builder.py) script removes the subscriber or client interface for EII service/app(s) configuration in consolidated [eii_config.json](build/provision/config/eii_config.json)
+     if the corresponding publisher or server interface in any EII service/app(s) is missing based on the default `builder.py` execution or `builder.py` execution with `-f` switch.
+     **Please note if one runs into issues where the DNS server is being overwhelmed with DNS queries for the EII service/app name, most likely this would be happening if those EII services are intentionally
+     stopped, please ensure to restart those EII services/app(s). If the intention is to not have that application/service running, please execute the `builder.py` by providing usecase yml file with that application/service not     
+     listed, so the corresponding subscriber/client interfaces from other EII service/app(s) are automatically removed before provisioning and deployment of EII stack. Please check    
+     [#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services) for selectively choosing required
+     EII services**
+
 EII is equipped with [builder](build/builder.py), a robust python tool to auto-generate the required configuration files to deploy EII services on single/multiple nodes. The tool is    capable of auto-generating the following consolidated files by fetching the respective files from EII service directories which are required to bring up different EII use-cases:
 
 | file name                    | Description   |
@@ -187,14 +201,6 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 | eii_config.json              | Consolidated `config.json` of every app which will be put into etcd during provisioning                                                                              |
 | values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy EII services via helm                                      |
 | Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy EII services via helm               |
-
-> **NOTE**
-> 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
-     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
-     the EII stack to ensure that the changes done reflect in the required consolidated files.
-> 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
-     respective files in EII app/service directories and use [build/builder.py](build/builder.py) script to generate the conslidated ones.
-> 3. This [build/builder.py](build/builder.py) script removes the subscriber or client interface for EII service/app(s) configuration in consolidated [eii_config.json](build/provision/config/eii_config.json) if the corresponding publisher or server interface in any EII service/app(s) is missing.
 
 ## Using builder script
 
