@@ -23,7 +23,7 @@ services:
   ia_etcd_provision:
     container_name: ia_etcd_provision
     read_only: true
-    image: openedgeinsights/ia_etcd_provision:$EII_VERSION
+    image: ${DOCKER_REGISTRY}openedgeinsights/ia_etcd_provision:$EII_VERSION
     volumes:
       - "../config:/EII/etcd/config/"
       - "../docker-compose.yml:/EII/etcd/docker-compose.yml"
