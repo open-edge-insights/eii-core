@@ -1,6 +1,6 @@
-#EII distributed services centralized logging using ELK
+# EII distributed services centralized logging using ELK
 
-##Pre-requisites
+## Pre-requisites
 * Generate the certificates required to run the Kibana Server using the following command
     ```
     $ ./generate_kibana_certs.sh test-server-ip
@@ -25,7 +25,7 @@
    DOCKER_KEY_PATH : Docker key path
 
 3. The rsyslog has to forward the received logs from containers to logstash.
-   The file named 'eii.conf' has to be copyied into the directory name '/etc/rsyslog.d/'
+   The file named 'eii.conf' has to be copied into the directory name '/etc/rsyslog.d/'
    After copying this file, install rsyslog module using the below command(The rsyslog module
    installation is one time activity).
    ```sh
@@ -66,13 +66,15 @@
 
    ```
 
-   Pleas visit [https://localhost:5601](https://localhost:5601) for viewing the logs in KIBANA.
-   Note:
+   Please visit [https://<host-ip>:5601](https://<host-ip>:5601) for viewing the logs in KIBANA UI.
+   Create new index pattern with the elasticsearch indices`logstash` pattern
+   
   > **NOTE**: The certificate attached to kibana is self signed and has to be accepted in
   > browser as an exception. The attached certificates are sample certificates only and need to
   > be replaced for production environment.
-
-  > To access Kibana UI in external machines, replace 'localhost' in [.env](./env) with the
-  > actual IP address of the machine where kibana is running.
+  > host-ip : Actual IP address of the machine where kibana is running
 
 5. After above 4 steps, please start/restart the EII services.
+   Note:
+  > **NOTE**: In case of logs are not showing in the KIBANA UI, restart the rsyslog service
+  > using the command `sudo systemctl restart rsyslog`
