@@ -5,7 +5,7 @@
 - [EII Prerequisites installation](#eii-prerequisites-installation)
 - [Generate deployment and configuration files](#generate-deployment-and-configuration-files)
   - [1. Generating consolidated docker-compose.yml and eii_config.json files:](#generating-consolidated-docker-composeyml-and-eii_configjson-files)
-  - [2. Using builder script](#2-using-builder-script)
+  - [2. Using builder script](#using-builder-script)
     - [2.1 Running builder to generate the above listed consolidated files for all applicable EII services](#running-builder-to-generate-the-above-listed-consolidated-files-for-all-applicable-eii-services)
     - [2.2 Running builder to generate the above listed consolidated files for a subset of EII services:](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services)
     - [2.3 Running builder to generate multi instance configs:](#running-builder-to-generate-multi-instance-configs)
@@ -357,20 +357,6 @@ can be found at [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigM
 
 EII services are available as pre-built container images in docker hub at https://hub.docker.com/u/openedgeinsights
 
-and for the ones not listed there, one needs to do the build from source before running `docker-compose up -d` command.
-
-Eg:
-```sh
-$ cd [WORKDIR]/IEdgeInsights/build
-$ # Base images that needs to be built
-$ docker-compose -f docker-compose-build.yml build ia_eiibase
-$ docker-compose -f docker-compose-build.yml build ia_common
-$ # Assuming here that the `python3 builder.py` step is been executed and ia_kapacitor
-$ # service exists in the generated compose files and also, provisioning step is done
-$ docker-compose -f docker-compose-build.yml build ia_kapacitor
-$ docker-compose up -d
-```
-
 Below are the list of pre-built container images that are accessible at https://hub.docker.com/u/openedgeinsights:
 
 1. **Provisioning images**
@@ -401,6 +387,26 @@ Below are the list of pre-built container images that are accessible at https://
 
 Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at the above docker hub
 location which consists of source code of GPL/LGPL/AGPL components of EII stack.
+
+For the EII docker images not listed on docker hub at above location, one needs to do the build from source 
+before running `docker-compose up -d` command or bringing up the pod in kubernetes cluster on the build/development
+node.
+
+Eg:
+```sh
+$ # Update the DOCKER_REGISTRY value in [WORKDIR]/IEdgeInsights/build/.env as DOCKER_RESISTRY=<docker_registry> (Make sure `docker login <docker_registry>` to the docker reigstry works)
+$ cd [WORKDIR]/IEdgeInsights/build
+$ # Base images that needs to be built
+$ docker-compose -f docker-compose-build.yml build ia_eiibase
+$ docker-compose -f docker-compose-build.yml build ia_common
+$ # Assuming here that the `python3 builder.py` step is been executed and ia_kapacitor
+$ # service exists in the generated compose files and also, provisioning step is done
+$ docker-compose -f docker-compose-build.yml build ia_kapacitor
+$ docker-compose up -d
+$ # Push all the applicable EII images to <docker_registry>. Ensure to use the same DOCKER_REGISTRY value on the deployment machine while deployment
+$ docker-compose -f docker-compose-push.yml push
+```
+
 
 # Provision
 
