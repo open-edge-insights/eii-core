@@ -22,7 +22,7 @@
     "Clients": [
         {
             "Name": "VideoIngestion",
-            "AppName": "VideoIngestion1",
+            "ServerAppName": "VideoIngestion1",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:9006"
         }
