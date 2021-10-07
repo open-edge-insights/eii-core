@@ -24,7 +24,7 @@ import json
 import os
 import argparse
 from distutils.util import strtobool
-
+import shlex
 
 def parse_args():
     """Parse command line arguments.
@@ -58,14 +58,14 @@ def main():
     args = parse_args()
     if dev_mode:
         cmd = _execute_cmd(["./etcd/etcdctl", "get",
-                            "--endpoints", args.etcd_endpoints,
+                            "--endpoints", shlex.quote(args.etcd_endpoints),
                             "--from-key", "''", "--keys-only"])
     else:
         cmd = _execute_cmd(["./etcd/etcdctl",
-                            "--endpoints", args.etcd_endpoints,
-                            "--cacert", args.ca_etcd,
-                            "--cert", args.etcd_root_cert,
-                            "--key", args.etcd_root_key, "get",
+                            "--endpoints", shlex.quote(args.etcd_endpoints),
+                            "--cacert", shlex.quote(args.ca_etcd),
+                            "--cert", shlex.quote(args.etcd_root_cert),
+                            "--key", shlex.quote(args.etcd_root_key), "get",
                             "--from-key", "''", "--keys-only"])
     keys = str(cmd, encoding='utf-8')
     key_list = keys.split()
@@ -81,14 +81,14 @@ def main():
     for key in key_list:
         if dev_mode:
             cmd = _execute_cmd(["./etcd/etcdctl", "get",
-                                "--endpoints", args.etcd_endpoints,
+                                "--endpoints", shlex.quote(args.etcd_endpoints),
                                 "--print-value-only", key])
         else:
             cmd = _execute_cmd(["./etcd/etcdctl",
-                                "--endpoints", args.etcd_endpoints,
-                                "--cacert", args.ca_etcd,
-                                "--cert", args.etcd_root_cert,
-                                "--key", args.etcd_root_key, "get",
+                                "--endpoints", shlex.quote(args.etcd_endpoints),
+                                "--cacert", shlex.quote(args.ca_etcd),
+                                "--cert", shlex.quote(args.etcd_root_cert),
+                                "--key", shlex.quote(args.etcd_root_key), "get",
                                 "--print-value-only", key])
         value = json.loads(cmd.decode('utf-8'))
         value_list.append(value)

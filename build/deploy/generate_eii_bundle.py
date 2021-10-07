@@ -29,7 +29,7 @@ from urllib.parse import unquote
 import ast
 import yaml
 import os
-
+import shlex
 USER = "eiiuser:eiiuser"
 
 
@@ -267,18 +267,18 @@ class EiiBundleGenerator:
     def main(self, args):
         """main function
         """
-        self.bundle_tag_name = args.bundle_tag_name
-        self.docker_file_path = args.compose_file_path
-        self.bundle_folder = args.bundle_folder
+        self.bundle_tag_name = shlex.quote(args.bundle_tag_name)
+        self.docker_file_path = shlex.quote(args.compose_file_path)
+        self.bundle_folder = shlex.quote(args.bundle_folder)
 
         if args.eii_version:
-            self.eii_version = args.eii_version
+            self.eii_version = shlex.quote(args.eii_version)
         if args.leader:
             self.generate_provision_bundle("leader")
         elif args.worker:
             self.generate_provision_bundle("worker")
         elif args.config:
-            config_services = args.config
+            config_services = shlex.quote(args.config)
             str_config = config_services.replace("\'", "\"")
             config = json.loads(str_config)
             self.include_services = config['include_services']
