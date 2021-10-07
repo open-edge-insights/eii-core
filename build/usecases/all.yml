@@ -37,3 +37,4 @@ AppContexts:
 - Samples/go_sample_app/subscriber
 - Samples/python_sample_app/publisher
 - Samples/python_sample_app/subscriber
+- build/remote_logging

@@ -27,12 +27,18 @@ services:
     hostname: elasticsearch
     networks:
       - eii
+    security_opt:
+      - no-new-privileges
     environment:
-      - node.name=es01
-      - cluster.initial_master_nodes=es01
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      AppName: "remote_logging"
+      node.name: es01
+      cluster.initial_master_nodes: es01
+      cluster.name: docker-cluster
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
     ports:
       - 9200:9200
     ulimits:
@@ -48,12 +54,18 @@ services:
     hostname: logstash
     networks:
       - eii
+    security_opt:
+      - no-new-privileges
     environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      AppName: "remote_logging"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
     ports:
       - 5700:5700
     volumes:
-     - ./log-receiver.conf:/usr/share/logstash/pipeline/log-receiver.conf
+     - ./remote_logging/log-receiver.conf:/usr/share/logstash/pipeline/log-receiver.conf
     links:
      - elk_elasticsearch:elasticsearch
     logging:
@@ -65,27 +77,28 @@ services:
     hostname: kibana
     networks:
       - eii
+    security_opt:
+      - no-new-privileges
     environment:
-      - "ELASTICSEARCH_HOSTS=http://elasticsearch:9200"
-      - "SERVER_HOST=${SERVER_HOST}"
+      AppName: "remote_logging"
+      ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
+      SERVER_HOST: ${KIBANA_SERVER_HOST}
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m
     ports:
       - 5601:5601
     volumes:
-      - ./kibana_prod.yml:/usr/share/kibana/config/kibana.yml
+      - ./remote_logging/kibana_prod.yml:/usr/share/kibana/config/kibana.yml
     logging:
       driver: local
     secrets:
       - etcd_kibana_cert
       - etcd_kibana_key
 
-networks:
-  eii:
-    external:
-      name: eii
-
 secrets:
   etcd_kibana_cert:
-    file: kibana_certs/kibana_server_certificate.pem
+    file: remote_logging/kibana_certs/kibana_server_certificate.pem
   etcd_kibana_key:
-    file: kibana_certs/kibana_server_key.pem
+    file: remote_logging/kibana_certs/kibana_server_key.pem
 
