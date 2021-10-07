@@ -113,7 +113,9 @@ and video analytics containers:
 **6) On the production system, please have the right firewall policies set for the containers port(s) that are getting published on the host machine
      and are accessible outside. For more details, please refer guide like https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-20-04
 
-## Configuring the Docker Daemon as per Docker security recommendations
+---------
+
+## Configuring as per Docker security recommendations
  
 
 **Ensure security related parameter exists for Docker Daemon**
@@ -185,9 +187,23 @@ docker plugin install openpolicyagent/opa-docker-authz-v2:0.4 opa-args="-policy-
 sudo systemctl restart docker
 ```
 
-Please find more information about Docker bench security below. The Docker Bench for Security is a script that checks for dozens of common best-practices around deploying Docker containers in production.
+**Ensure Content trust for Docker is Enabled**
 
-https://github.com/docker/docker-bench-security
+User can verify images pull or deploy from a registry server by setting following env variables :
+
+```sh
+
+$ export DOCKER_CONTENT_TRUST=1
+$ export DOCKER_BUILDKIT=1
+
+```
+
+**Note** 
+> Please find more information about Docker bench security below. The Docker Bench for Security is a script that checks for dozens of common best-practices around deploying Docker containers in production.
+
+> https://github.com/docker/docker-bench-security
+
+----------
 
 **Secure Docker registries**
 
