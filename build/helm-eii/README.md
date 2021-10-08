@@ -16,10 +16,8 @@
 For deployment of EII, helm charts are provided for both provision and deployment.
 
 > **Note**:
-
-> Same procedure has to be followed for single or multi node.
-
-> Please login/configure docker registry before running helm. This would be required when not using public docker hub for accessing images.
+> * Same procedure has to be followed for single or multi node.
+> * Please login/configure docker registry before running helm. This would be required when not using public docker hub for accessing images.
 
 ## Pre requisites
 

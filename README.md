@@ -525,6 +525,11 @@ A successful run will open Visualizer UI with results of video analytics for all
 
 ## Push required EII images to docker registry
 
+> **NOTE**
+> By default, the images gets published to hub.docker.com if DOCKER_REGISTRY is empty in [build/.env](build/.env). Please make sure to take off
+> `openedgeinsights/` org from the image name(s) while pushing to docker hub as it doesn't support repository/image name having multiple slashes.
+> This limitation doesn't exist in other docker registries like Azure Container Registry(ACR), Harbor registry etc.,
+
 Pushes all the EII service docker images in the `build/docker-compose-push.yml`. Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
 ```sh
 $ docker-compose -f docker-compose-push.yml push
