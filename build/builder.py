@@ -51,7 +51,6 @@ dev_override_list, app_list, helm_app_list = \
     ([] for _ in range(3))
 used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
 
-
 def source_env(file):
     """Method to source an env file
 
@@ -140,10 +139,12 @@ def increment_rtsp_port(appname, config, i):
     return config
 
 
-def create_multi_instance_interfaces(config, i, bm_apps_list):
+def create_multi_instance_interfaces(config, default_config, i, bm_apps_list):
     """Generate multi instance interfaces for a given config
 
-    :param config: app config
+    :param config: app config of the multi_instance subdirectory file config.json
+    :type config: json
+    :param default_config: app config of the parent directory file config.json
     :type config: json
     :param i: number of instance
     :type i: int
@@ -156,64 +157,71 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
     for k, v in config["interfaces"].items():
         for x in config["interfaces"][k]:
             # Updating Name section of all interfaces
+            y = default_config["interfaces"][k][0]
             if "Name" in x.keys():
-                x["Name"] = x["Name"] + str(i+1)
+                if (y["Name"] == x["Name"]):
+                    x["Name"] = x["Name"] + str(i+1)
             # Updating Topics section of all interfaces
             if "Topics" in x.keys():
-                for index, topic in enumerate(x["Topics"]):
-                    if bool(re.search(r'\d', x["Topics"][index])):
-                        x["Topics"][index] = re.sub(r'\d+', str(i+1),
+                if (y["Topics"] == x["Topics"]):
+                    for index, topic in enumerate(x["Topics"]):
+                        if bool(re.search(r'\d', x["Topics"][index])):
+                           x["Topics"][index] = re.sub(r'\d+', str(i+1),
                                                     x["Topics"][index])
-                    else:
-                        x["Topics"][index] = x["Topics"][index] +\
+                        else:
+                            x["Topics"][index] = x["Topics"][index] +\
                                                 str(i+1)
             # Updating AllowedClients section of all interfaces
             if "AllowedClients" in x.keys():
-                for index, topic in enumerate(x["AllowedClients"]):
-                    if x["AllowedClients"][index] in bm_apps_list:
-                        # Update AllowedClients AppName if they are not
-                        # in subscriber list
-                        if x["AllowedClients"][index] not in subscriber_list:
-                            if bool(re.search(r'\d', x["AllowedClients"
+                if (x["AllowedClients"] == y["AllowedClients"]):
+                    for index, topic in enumerate(x["AllowedClients"]):
+                        if x["AllowedClients"][index] in bm_apps_list:
+                            # Update AllowedClients AppName if they are not
+                            # in subscriber list
+                            if x["AllowedClients"][index] not in subscriber_list:
+                                if bool(re.search(r'\d', x["AllowedClients"
                                                        ][index])):
-                                x["AllowedClients"][index] = \
-                                    re.sub(r'\d+', str(i+1),
-                                           x["AllowedClients"][index])
-                            else:
-                                x["AllowedClients"][index] = \
-                                    x["AllowedClients"][index] + str(i+1)
+                                    x["AllowedClients"][index] = \
+                                        re.sub(r'\d+', str(i+1),
+                                        x["AllowedClients"][index])
+                                else:
+                                    x["AllowedClients"][index] = \
+                                        x["AllowedClients"][index] + str(i+1)
             # Updating PublisherAppName section of all interfaces
             if "PublisherAppName" in x.keys():
                 if x["PublisherAppName"] in bm_apps_list:
-                    if bool(re.search(r'\d', x["PublisherAppName"])):
-                        x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
+                    if (x["PublisherAppName"] == y["PublisherAppName"]):
+                        if bool(re.search(r'\d', x["PublisherAppName"])):
+                            x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
                                                        x["PublisherAppName"])
-                    else:
-                        x["PublisherAppName"] = x["PublisherAppName"] +\
+                        else:
+                            x["PublisherAppName"] = x["PublisherAppName"] +\
                                                       str(i+1)
             # Updating ServerAppName section of all interfaces
             if "ServerAppName" in x.keys():
                 if x["ServerAppName"] in bm_apps_list:
-                    if bool(re.search(r'\d', x["ServerAppName"])):
-                        x["ServerAppName"] = re.sub(r'\d+', str(i+1),
+                    if (x["ServerAppName"] == y["ServerAppName"]):
+                        if bool(re.search(r'\d', x["ServerAppName"])):
+                            x["ServerAppName"] = re.sub(r'\d+', str(i+1),
                                                     x["ServerAppName"])
-                    else:
-                        x["ServerAppName"] = x["ServerAppName"] +\
+                        else:
+                            x["ServerAppName"] = x["ServerAppName"] +\
                                                       str(i+1)
             # Updating Type section of all interfaces
             if "Type" in x.keys():
                 if "tcp" in x["Type"]:
-                    # If tcp mode, increment port numbers
-                    port = x["EndPoint"].split(':')[1]
-                    new_port = str(int(port) + (i))
-                    x["EndPoint"] = x["EndPoint"].replace(port, new_port)
-                    # Update IP if it is not localhost/127.0.0.1
-                    ip = x["EndPoint"].split(":")[0]
-                    new_ip = None
-                    if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
-                        new_ip = ip + str(i+1)
-                    if new_ip is not None:
-                        x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
+                    if (x["EndPoint"] == y["EndPoint"]):
+                        # If tcp mode, increment port numbers
+                        port = x["EndPoint"].split(':')[1]
+                        new_port = str(int(port) + (i))
+                        x["EndPoint"] = x["EndPoint"].replace(port, new_port)
+                        # Update IP if it is not localhost/127.0.0.1
+                        ip = x["EndPoint"].split(":")[0]
+                        new_ip = None
+                        if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
+                            new_ip = ip + str(i+1)
+                        if new_ip is not None:
+                            x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
     return config
 
 
@@ -358,13 +366,19 @@ def json_parser(app_list, args):
             # TODO: Support AzureBridge multi instance creation if applicable
             if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "AzureBridge" not in app_path:
                 for i in range(num_multi_instances):
-                    with open(app_path + '/config.json', "rb") as infile:
+                    # path to the multi_instance subdirectory
+                    path = os.path.join(multi_inst_path , dirname + str(i+1))
+                    # Open the config.json within the parent directory
+                    with open(app_path + '/config.json' , "rb") as defile:
+                        default_config = json.load(defile)  
+                    # Open the config.json within the multi_instance subdirectory    
+                    with open(path + '/config.json', "rb") as infile:
                         head = json.load(infile)
                         # Increments rtsp port number if required
                         head = increment_rtsp_port(app_name, head, i)
                         # Create multi instance interfaces
                         head = \
-                            create_multi_instance_interfaces(head,
+                            create_multi_instance_interfaces(head, default_config,
                                                              i,
                                                              bm_apps_list)
                         # merge config of multi instance config
@@ -378,6 +392,9 @@ def json_parser(app_list, args):
                                 head['interfaces']
                         # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
+                        # Writing the changes to the config.json file in the multi_instance subdirectory
+                        with open(path + "/config.json", "w") as multi_instance_json_file:
+                            multi_instance_json_file.write(json.dumps(head, sort_keys=True, indent=4))
             # This condition is to handle not creating multi instance for
             # subscriber services
             else:
@@ -616,11 +633,14 @@ def helm_yaml_merger(app_list, args):
         ruamel.yaml.round_trip_dump(helm_dict, value_file)
 
 
-def create_multi_instance_yml_dict(data, i):
+def create_multi_instance_yml_dict(mi_data, data, i):
     """Method to generate boilerplate
        yamls
 
-    :param data: input yaml
+    :param mi_data: input yaml from multi_instance subdirectory
+    :type mi_data: ordered dict
+    :type data: ordered dict
+    :param data: input yaml from parent directory
     :type data: ordered dict
     :param i: number of required instances
     :type i: int
@@ -634,79 +654,89 @@ def create_multi_instance_yml_dict(data, i):
         bm_apps_list.append(appname)
 
     # deep copy to avoid issues during iteration
-    temp = copy.deepcopy(data)
+    temp = copy.deepcopy(mi_data)
     for k, v in temp['services'].items():
-        # Update yaml main key name
-        k_new = re.sub(r'\d+', '', k) + str(i)
-        temp['services'][k_new] = v
-        del temp['services'][k]
+        for k1 , _ in data['services'].items():
+            k1 = re.sub(r'\d+', '', k1)
+        if (k == k1):
+            # Update yaml main key name
+            k_new = re.sub(r'\d+', '', k) + str(i)
+            temp['services'][k_new] = v
+            del temp['services'][k]
         # Iterating throught the yaml to update
         # all keys & values
         for k2, v2 in v.items():
-            # Update container_name
+            x = data['services'][k1]
+            # Update container name
             if k2 == 'container_name':
-                v['container_name'] = re.sub(r'\d+', '', v2) + str(i)
+                if (x['container_name'] == v2):
+                    v['container_name'] = re.sub(r'\d+', '', v2) + str(i)
             # Update hostname
             elif k2 == 'hostname':
-                v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
+                if (x['hostname'] == v2):
+                    v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
             # Update ports
             elif k2 == 'ports':
-                # Iterate through all ports
-                for j in list(v['ports']):
-                    # Update new ports & remove
-                    # existing ports to avoid duplication
-                    port = j.split(':')[0]
-                    new_port = str(int(port) + (i-1))
-                    v['ports'].append(new_port+':'+new_port)
-                    v['ports'].remove(port+':'+port)
+                if (x['ports'] == v2):
+                    # Iterate through all ports
+                    for j in list(v['ports']):
+                        # Update new ports & remove
+                        # existing ports to avoid duplication
+                        port = j.split(':')[0]
+                        new_port = str(int(port) + (i-1))
+                        v['ports'].append(new_port+':'+new_port)
+                        v['ports'].remove(port+':'+port)
             # Update secrets section of yml
             elif k2 == 'secrets':
-                for v3 in v['secrets']:
-                    if 'cert' in v3:
-                        cert_temp = v3.split('_cert')[0]
-                        new_cert = re.sub(r'\d+', '', cert_temp) +\
-                            str(i) + '_cert'
-                        v['secrets'].remove(cert_temp+'_cert')
-                        v['secrets'].insert(1, new_cert)
-                    if 'key' in v3:
-                        key_temp = v3.split('_key')[0]
-                        new_key = re.sub(r'\d+', '', key_temp) +\
-                            str(i) + '_key'
-                        v['secrets'].remove(key_temp+'_key')
-                        v['secrets'].insert(2, new_key)
+                if (set(v['secrets']) == set(x['secrets'])):
+                    for v3 in x['secrets']:
+                        if 'cert' in v3:
+                            cert_temp = v3.split('_cert')[0]
+                            new_cert = re.sub(r'\d+', '', cert_temp) +\
+                                 str(i) + '_cert'
+                            v['secrets'].remove(cert_temp+'_cert')
+                            v['secrets'].insert(1, new_cert)
+                        if 'key' in v3:
+                            key_temp = v3.split('_key')[0]
+                            new_key = re.sub(r'\d+', '', key_temp) +\
+                                str(i) + '_key'
+                            v['secrets'].remove(key_temp+'_key')
+                            v['secrets'].insert(2, new_key)
             # Update all env key, value pairs of yml
             elif k2 == 'environment':
                 for k4, v4 in list(v['environment'].items()):
                     # Update AppName
                     if k4 == 'AppName':
-                        v['environment'][k4] = v4 + str(i)
-                        app_name = v4
-                        new_app_name = v4 + str(i)
+                        if (x['environment']['AppName'] == v4):
+                            v['environment'][k4] = v4 + str(i)
+                            app_name = v4
+                            new_app_name = v4 + str(i)
 
     # Update outer secrets section
     if not dev_mode:
         if 'secrets' in temp.keys():
-            for k, v in list(temp['secrets'].items()):
-                if 'cert' in k:
-                    cert_temp = k.split('_cert')[0]
-                    new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
-                    for k2 in v.items():
-                        yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file',
-                                       list(k2)[1].replace(app_name,
-                                                           new_app_name))
-                    temp['secrets'][new_cert] = yml_map
-                    del temp['secrets'][k]
-                if 'key' in k:
-                    key_temp = k.split('_key')[0]
-                    new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
-                    for k2 in v.items():
-                        yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file',
-                                       list(k2)[1].replace(app_name,
-                                                           new_app_name))
-                    temp['secrets'][new_key] = yml_map
-                    del temp['secrets'][k]
+            if (temp['secrets'] == data['secrets']):
+                for k, v in list(temp['secrets'].items()):
+                    if 'cert' in k:
+                        cert_temp = k.split('_cert')[0]
+                        new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
+                        for k2 in v.items():
+                            yml_map = ruamel.yaml.comments.CommentedMap()
+                            yml_map.insert(1, 'file',
+                                           list(k2)[1].replace(app_name,
+                                                               new_app_name))
+                        temp['secrets'][new_cert] = yml_map
+                        del temp['secrets'][k]
+                    if 'key' in k:
+                        key_temp = k.split('_key')[0]
+                        new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
+                        for k2 in v.items():
+                            yml_map = ruamel.yaml.comments.CommentedMap()
+                            yml_map.insert(1, 'file',
+                                           list(k2)[1].replace(app_name,
+                                                               new_app_name))
+                        temp['secrets'][new_key] = yml_map
+                        del temp['secrets'][k]
 
     return temp
 
@@ -758,8 +788,38 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         appname != "common" and
                         appname != "AzureBridge"):
                     for i in range(num_multi_instances):
-                        data_two = create_multi_instance_yml_dict(data, i+1)
-                        yaml_files_dict.append(data_two)
+                        # Path to the multi_instance subdirectory
+                        path_app = os.path.join(multi_inst_path, appname + str(i+1))
+                        # Create subdirectories VideoIngestion1, VideoIngestion2, ...if not created
+                        if (not(os.path.isdir(path_app))):
+                            os.mkdir(path_app)
+                        # Copy default config.json and docker-compose.yml files to the subdirectory if not present    
+                        if (not(os.path.isfile(path_app + "/docker-compose.yml") and 
+                            os.path.isfile (path_app +  "/config.json"))):
+                            origin = os.path.join (k , "docker-compose.yml")
+                            dest = os.path.join (path_app , "docker-compose.yml")
+                            shutil.copy(origin, dest)
+                            origin = os.path.join(k, "config.json")
+                            dest = os.path.join (path_app , "config.json")
+                            shutil.copy(origin, dest)
+
+                        if dev_mode:
+                            # Copy docker-compose-dev.override.yml file if not already present
+                            if (not(os.path.isfile(path_app + '/docker-compose-dev.override.yml'))):
+                                origin = os.path.join (k , "docker-compose-dev.override.yml")
+                                dest = os.path.join (path_app , "docker-compose-dev.override.yml")
+                                shutil.copy(origin, dest)
+
+                        # Open the docker-compose.yml file within the subdirectory
+                        with open(path_app + '/' + file_to_pick, 'r') as docker_compose_file:
+                            mi_data = ruamel.yaml.round_trip_load(docker_compose_file,
+                                                                  preserve_quotes = True)
+                            data_two = create_multi_instance_yml_dict(mi_data, data, i+1)
+                            # Write the changes to the existing docker-compose.yml file within multi_instance directory
+                            with open(path_app + "/" + file_to_pick, 'w') as docker_compose_file:
+                                ruamel.yaml.round_trip_dump(data_two, docker_compose_file)
+                            yaml_files_dict.append(data_two)    
+
                 # To create single instance for subscriber services
                 else:
                     yaml_files_dict.append(data)
@@ -994,6 +1054,14 @@ def yaml_parser(args):
                 dev_mode = util.strtobool(dev_mode)
                 break
 
+    # Create build/multi_instance directory if num_multi_instances is greater than 1
+    if (num_multi_instances > 1):
+        global multi_inst_path
+        multi_inst_path = os.path.join(os.getcwd(), 'multi_instance')
+        if (not(os.path.isdir(multi_inst_path))):
+            os.mkdir(multi_inst_path) 
+
+
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
     temp = copy.deepcopy(yml_dict)
 
@@ -1019,19 +1087,7 @@ def yaml_parser(args):
 
     temp = copy.deepcopy(yml_dict)
     build_params.remove("image")
-    # Writing docker-compose.yml file.
-    for k, v in yml_dict.items():
-        if(k == "services"):
-            for service, service_dict in v.items():
-                for service_keys, _ in list(service_dict.items()):
-                    if(service_keys in build_params):
-                        del temp["services"][service][service_keys]
-                if(service in run_exclude_images):
-                    del temp["services"][service]
-
-    with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
-        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
-
+    
     # Writing docker-compose-push.yml file.
     for k, v in temp.items():
         if(k == "services"):
@@ -1042,6 +1098,19 @@ def yaml_parser(args):
                 temp["services"][service].move_to_end("build", last=False)
     with open(DOCKER_COMPOSE_PUSH_PATH, 'w') as docker_compose_file:
         ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
+    # Writing docker-compose.yml file.
+    for k, v in yml_dict.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                for service_keys, _ in list(service_dict.items()):
+                    if(service_keys in build_params):
+                        del temp["services"][service][service_keys]
+                if(service in run_exclude_images):
+                    del temp["services"][service]
+    with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
+         ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+    
 
     dev_mode_str = "PROD"
     if dev_mode:

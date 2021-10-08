@@ -272,14 +272,47 @@ optional arguments:
 
   If user wants to generate boiler plate config for multiple stream use cases, he can do so by using the **-v or video_pipeline_instances** flag of builder. This flag creates multi stream boiler plate config for docker-compose.yml, eii_config.json files respectively.
 
+  When the user runs the multi instance config, a `build/multi_instance` directory will be created in the build directory. Based on the number of the video_pipeline_instances provided, those many directories of VideoIngestion and VideoAnalytics will be created in the `build/multi_instance` directory. 
+
   An example for running builder to generate multi instance boiler plate config for 3 streams of **video-streaming** use case has been provided below:
 
   ```sh
   $ python3 builder.py -v 3 -f usecases/video-streaming.yml
   ```
 
+  Eg. Using the above command for 3 instances, the `build/multi_instance` directory will contain VideoIngestion1, VideoIngestion2, VideoIngestion3 and VideoAnalytics1, VideoAnalytics2 , VideoAnalytics3 directories. Each of these directories initially will have the default config.json and docker-compose.yml files that are present within the VideoIngestion and VideoAnalytics directory. 
+
+  ```
+    ./build/multi_instance/
+    |-- VideoAnalytics1
+    |   |-- config.json
+    |   `-- docker-compose.yml
+    |-- VideoAnalytics2
+    |   |-- config.json
+    |   `-- docker-compose.yml
+    |-- VideoAnalytics3
+    |   |-- config.json
+    |   `-- docker-compose.yml
+    |-- VideoIngestion1
+    |   |-- config.json
+    |   `-- docker-compose.yml
+    |-- VideoIngestion2
+    |   |-- config.json
+    |   `-- docker-compose.yml
+    `-- VideoIngestion3
+        |-- config.json
+        `-- docker-compose.yml
+  ```
+
+  The user can edit the configs of each of these streams within the `build/multi_instance` directory and rerun the builder.py to generate the consolidated docker compose and eii_config.json files. 
+
   > **NOTE**
-  > This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > * This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number.
+  > * If the user is running multi instance config for the first time, it is recommended  for the user to not to make changes to the default config.json file and docker-compose.yml file present within the VideoIngestion and VideoAnalytics directory.
+  > * If the user is not running multi instance config for the first time, the existing config.json and docker-compose.yml files within the `build/multi_instance` directory will be used to generate the consolidated eii-config.json and docker-compose files. 
+  > * The docker-compose.yml files present withn the `build/multi_instance` directory will have the updated service_name, container_name, hostname, AppName, ports and secrets for that respective instance.
+  > * The config.json files present within the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.  
+
 
 ### Running builder to generate benchmarking configs:
 
