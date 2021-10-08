@@ -185,8 +185,8 @@ Run all the below commands in this section from `[WORKDIR]/IEdgeInsights/build/`
 > 3. This [build/builder.py](build/builder.py) script removes the subscriber or client interface for EII service/app(s) configuration in consolidated [eii_config.json](build/provision/config/eii_config.json)
      if the corresponding publisher or server interface in any EII service/app(s) is missing based on the default `builder.py` execution or `builder.py` execution with `-f` switch.
      **Please note if one runs into issues where the DNS server is being overwhelmed with DNS queries for the EII service/app name, most likely this would be happening if those EII services are intentionally
-     stopped, please ensure to restart those EII services/app(s). If the intention is to not have that application/service running, please execute the `builder.py` by providing usecase yml file with that application/service not     
-     listed, so the corresponding subscriber/client interfaces from other EII service/app(s) are automatically removed before provisioning and deployment of EII stack. Please check    
+     stopped, please ensure to restart those EII services/app(s). If the intention is to not have that application/service running, please execute the `builder.py` by providing usecase yml file with that application/service not
+     listed, so the corresponding subscriber/client interfaces from other EII service/app(s) are automatically removed before provisioning and deployment of EII stack. Please check
      [#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services) for selectively choosing required
      EII services**
 
@@ -394,7 +394,7 @@ Below are the list of pre-built container images that are accessible at https://
 Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at the above docker hub
 location which consists of source code of GPL/LGPL/AGPL components of EII stack.
 
-For the EII docker images not listed on docker hub at above location, one needs to do the build from source 
+For the EII docker images not listed on docker hub at above location, one needs to do the build from source
 before running `docker-compose up -d` command or bringing up the pod in kubernetes cluster on the build/development
 node.
 
@@ -634,6 +634,9 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
     * The below link can be referred in case user observes `global mutex initialization failed` during device initialization of NCS2 stick
       https://www.intel.com/content/www/us/en/support/articles/000033390/boards-and-kits.html
 
+    * For VPU troubleshooting refer the below link:
+      https://docs.openvinotoolkit.org/2021.4/openvino_docs_install_guides_installing_openvino_linux_ivad_vpu.html#troubleshooting
+
 ### **To run on HDDL devices**
 
   * Download the full package for OpenVINO toolkit for Linux version "2021.4"
@@ -688,11 +691,16 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
 
       * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
+      * For VPU troubleshooting refer the below link:
+        https://docs.openvinotoolkit.org/2021.4/openvino_docs_install_guides_installing_openvino_linux_ivad_vpu.html#troubleshooting
+
       * Please refer OpenVINO 2021.4 release notes in the below link for new features and changes from the previous versions.
         https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
       * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
         https://docs.openvinotoolkit.org/2021.4/index.html
+
+
 ### **To run on Intel(R) Processor Graphics (GPU/iGPU)**
 
   > **Note**
