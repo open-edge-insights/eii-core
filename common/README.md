@@ -36,11 +36,13 @@ This script installs all the EII libraries & their respective required dependenc
         $ sudo git clean -xdf
     ```
 
-3. Please follow the below steps to set the required env variables.
+3. Please follow the below steps to set the required env variables while running in baremetal.
 
     a. For updating the $LD_LIBRARY_PATH env variable:
     ```sh
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib
+        export PATH=$PATH:/usr/local/go/bin
+        export GOPATH=~/go
     ```
 
     **Note**: `$LD_LIBRARY_PATH` should be appended by `$CMAKE_INSTALL_PREFIX/lib`. In the above installation CMAKE_INSTALL_PREFIX is `/opt/intel/eii` and hence LD_LIBRARY_PATH appended with /opt/intel/eii/lib

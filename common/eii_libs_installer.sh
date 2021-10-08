@@ -81,15 +81,17 @@ install_go_dependencies () {
 }
 
 install_go () {
-
+    source ../build/.env
     apt-get update && \
         apt-get install -y build-essential \
                         git \
                         g++ \
                         pkg-config \
                         wget  && \
+        rm -rf go${GO_VERSION}.linux-amd64.tar.gz && \
         wget -q --show-progress https://dl.google.com/go/go${GO_VERSION}.linux-amd64.tar.gz && \
         tar -C /usr/local -xzf go${GO_VERSION}.linux-amd64.tar.gz
+
     export GOPATH=$HOME/go
     log_info "----GOPATH: $GOPATH----"
     mkdir -p $GOPATH/src
