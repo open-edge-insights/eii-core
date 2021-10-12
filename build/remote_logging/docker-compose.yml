@@ -82,7 +82,7 @@ services:
     environment:
       AppName: "remote_logging"
       ELASTICSEARCH_HOSTS: "http://elasticsearch:9200"
-      SERVER_HOST: ${KIBANA_SERVER_HOST}
+      SERVER_HOST: "0.0.0.0"
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m
