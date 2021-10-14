@@ -30,6 +30,7 @@ import ast
 import yaml
 import os
 import shlex
+
 USER = "eiiuser:eiiuser"
 
 
@@ -137,6 +138,7 @@ class EiiBundleGenerator:
             it generates the bundle
         '''
         eii_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
+        provision_certs = "../provision/Certificates/"
         cmdlist = []
         cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
         cmdlist.append(["cp", "../.env", self.bundle_tag_name])
@@ -157,9 +159,18 @@ class EiiBundleGenerator:
                 if "ia_etcd_ui" in self.include_services:
                     cmdlist.append(["cp", "-rf", "../provision/Certificates/root", eii_cert_dir])
 
+                if "ia_opcua_export" in self.include_services:
+                    cmdlist.append(["cp", "-rf", "../provision/Certificates/opcua", eii_cert_dir])
+
                 cmdlist.append(["mkdir", "-p", service_dir])
                 cert_dir = "../provision/Certificates/" + servicename
+
+                for file in os.listdir(provision_certs):
+                    if file.startswith(servicename):
+                        cert_file = provision_certs + "" + file
+                        cmdlist.append(["cp", "-rf", cert_file, eii_cert_dir])
                 cmdlist.append(["cp", "-rf", cert_dir, eii_cert_dir])
+
             print("Here Appending Certificates")
             cmdlist.append(["cp", "-rf", "../provision/Certificates/ca",
                             eii_cert_dir])
