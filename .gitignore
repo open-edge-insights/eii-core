@@ -42,6 +42,8 @@ common/util/c/
 common/libs/EIIMessageBus/
 common/libs/EIIMsgEnv/
 common/libs/DynLibLoad/
+DeploymentToolBackend/
+DeploymentToolFrontend/
 EtcdUI/
 FactoryControlApp/
 Grafana/
