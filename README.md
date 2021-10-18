@@ -34,6 +34,7 @@
   - [**Without orchestrator**](#without-orchestrator)
   - [**With k8s orchestrator**](#with-k8s-orchestrator)
 - [EII tools](#eii-tools)
+- [ELK usage for centralized logging of EII services logs](#elk-usage-for-centralized-logging-of-eii-services-logs)
 - [EII Uninstaller](#eii-uninstaller)
 - [Debugging options](#debugging-options)
 - [Troubleshooting guide](#troubleshooting-guide)
@@ -774,6 +775,10 @@ EII stack has below set of tools which run as containers too:
 * [SWTriggerUtility](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/README.md)
 * [TimeSeriesProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/TimeSeriesProfiler/README.md)
 * [VideoProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/VideoProfiler/README.md)
+
+# ELK usage for centralized logging of EII services logs
+
+Please find more details about this capability at [build/remote_logging/README.md](build/remote_logging/README.md)
 
 # EII Uninstaller
 
