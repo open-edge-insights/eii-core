@@ -289,7 +289,7 @@ class EiiBundleGenerator:
         elif args.worker:
             self.generate_provision_bundle("worker")
         elif args.config:
-            config_services = shlex.quote(args.config)
+            config_services = args.config
             str_config = config_services.replace("\'", "\"")
             config = json.loads(str_config)
             self.include_services = config['include_services']
