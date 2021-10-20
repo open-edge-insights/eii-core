@@ -22,7 +22,14 @@ FROM ubuntu:$UBUNTU_IMAGE_VERSION as builder
 
 # Setting python dev env
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common curl
+    apt-get install -y --no-install-recommends software-properties-common curl python3-pip && \
+    python3 -m pip install -U pip && \
+    ln -sf /usr/bin/pip /usr/bin/pip3
+
+COPY dep/requirements.txt .
+RUN pip3 install --user -r requirements.txt && \
+    rm -rf requirements.txt
+
 
 ARG ETCD_VERSION
 RUN mkdir -p /EII/etcd/data
@@ -31,10 +38,22 @@ RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etc
     rm -f /EII/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
 
 FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+# Setting python runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3-distutils python3-minimal
+
+ENV PYTHONPATH $PYTHONPATH:/EII/etcd/.local/lib/python3.8/site-packages:/EII/etcd
+COPY --from=builder /root/.local/lib .local/lib
+
 ARG EII_UID
+RUN chown -R ${EII_UID} .local/lib/python3.8
+
 COPY --from=builder /EII/etcd /EII/etcd/
 WORKDIR /EII/etcd/
 COPY dep/start_etcd.sh .
+COPY dep/etcd_config_update.py .
+COPY etcd_capture.py .
+COPY dep/util.py .
 RUN chmod +x start_etcd.sh
 RUN chown -R ${EII_UID}:${EII_UID} /EII/etcd/data && \
     chmod 760 /EII/etcd/data

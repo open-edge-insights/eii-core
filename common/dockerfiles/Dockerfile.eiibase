@@ -59,8 +59,7 @@ ENV PATH="$PATH:/usr/local/go/bin"
 
 # Setting python dev env
 ARG PYTHON_VERSION
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --no-install-recommends python${PYTHON_VERSION} \
                        python${PYTHON_VERSION}-dev \
                        python3-distutils \

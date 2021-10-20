@@ -26,6 +26,11 @@ services:
         - ca_etcd
         - etcd_server_cert
         - etcd_server_key
+        - etcd_root_cert
+        - etcd_root_key
+    volumes:
+        - "../Certificates:/EII/etcd/Certificates"
+
     environment:
       ETCD_CIPHER_SUITES: $TLS_CIPHERS
 
@@ -36,4 +41,7 @@ secrets:
     file:  ../Certificates/etcdserver/etcdserver_server_certificate.pem
   etcd_server_key:
     file:  ../Certificates/etcdserver/etcdserver_server_key.pem
-
+  etcd_root_cert:
+    file:  ../Certificates/root/root_client_certificate.pem
+  etcd_root_key:
+    file:  ../Certificates/root/root_client_key.pem

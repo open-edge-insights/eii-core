@@ -31,13 +31,13 @@ def parse_args():
     """
     a_p = argparse.ArgumentParser()
     a_p.add_argument('--ca_etcd',
-                     default='./Certificates/ca/ca_certificate.pem',
+                     default="/run/secrets/ca_etcd",
                      help='ca Certificate')
     a_p.add_argument('--etcd_root_cert',
-                     default="./Certificates/root/root_client_certificate.pem",
+                     default="/run/secrets/etcd_root_cert",
                      help='root cert')
     a_p.add_argument('--etcd_root_key',
-                     default="./Certificates/root/root_client_key.pem",
+                     default="/run/secrets/etcd_root_key",
                      help='root key')
     a_p.add_argument('--etcd_endpoints',
                      default="127.0.0.1:2379",
@@ -57,11 +57,11 @@ def main():
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
     args = parse_args()
     if dev_mode:
-        cmd = _execute_cmd(["./etcd/etcdctl", "get",
+        cmd = _execute_cmd(["../etcd/etcdctl", "get",
                             "--endpoints", shlex.quote(args.etcd_endpoints),
                             "--from-key", "''", "--keys-only"])
     else:
-        cmd = _execute_cmd(["./etcd/etcdctl",
+        cmd = _execute_cmd(["../etcd/etcdctl",
                             "--endpoints", shlex.quote(args.etcd_endpoints),
                             "--cacert", shlex.quote(args.ca_etcd),
                             "--cert", shlex.quote(args.etcd_root_cert),
@@ -80,11 +80,11 @@ def main():
 
     for key in key_list:
         if dev_mode:
-            cmd = _execute_cmd(["./etcd/etcdctl", "get",
+            cmd = _execute_cmd(["../etcd/etcdctl", "get",
                                 "--endpoints", shlex.quote(args.etcd_endpoints),
                                 "--print-value-only", key])
         else:
-            cmd = _execute_cmd(["./etcd/etcdctl",
+            cmd = _execute_cmd(["../etcd/etcdctl",
                                 "--endpoints", shlex.quote(args.etcd_endpoints),
                                 "--cacert", shlex.quote(args.ca_etcd),
                                 "--cert", shlex.quote(args.etcd_root_cert),
@@ -95,7 +95,7 @@ def main():
 
     etcd_dict = dict(zip(key_list, value_list))
 
-    with open('etcd_capture_data.json', 'w') as json_file:
+    with open('./data/etcd_capture_data.json', 'w') as json_file:
         json.dump(etcd_dict, json_file, sort_keys=True, indent=4)
 
 

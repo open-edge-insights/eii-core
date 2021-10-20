@@ -485,11 +485,22 @@ $ # eq. $ sudo -E ./provision.sh ../docker-compose.yml --build
 >**Note**
 > The above command only `build` the provisioining images, will not do any other functions of provisioning script.
 
-**Optional:** For capturing the data back from Etcd to a JSON file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. This can be achieved using the following command:
+**Optional:**
+1. For capturing the data back from ETCD Cluster to a JSON file, can be achieved using the following command:
 
-```sh
-$ ./etcd_capture.sh
-```
+  To run etcd_capture:
+  ```sh
+  $ docker exec -it ia_etcd python3 etcd_capture.py 
+  ```
+  ### Note:
+  etcd_capture_data.json will be stored in /opt/intel/eii/data/etcd directory.
+
+2. Any change in EII config values in json file located at [build/provision/config/eii_config.json](build/provision/config/eii_config.json) can be updated in etcd in a single step without doing the provisioning again. This can be done using following command:
+
+  To run etcd_config_update:
+  ```sh
+  $ docker exec -it ia_etcd python3 etcd_config_update.py
+  ```
 
 # Build and Run EII video/timeseries use cases
 

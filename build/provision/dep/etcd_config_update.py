@@ -116,27 +116,19 @@ def load_data_etcd(file, apps, etcdctl_path, certificates_dir_path, dev_mode):
 if __name__ == "__main__":
     source_env("../../.env")
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
-    if not os.environ['ETCD_HOST']:
-        os.environ['ETCD_HOST'] = 'localhost'
-    if not os.environ['ETCD_CLIENT_PORT']:
-        os.environ['ETCD_CLIENT_PORT'] = '2379'
 
-    os.environ['ETCDCTL_ENDPOINTS'] = os.getenv('ETCD_HOST') \
-        + ':' + os.getenv('ETCD_CLIENT_PORT')
+    os.environ['ETCDCTL_ENDPOINTS'] = os.getenv('ETCD_HOST', 'localhost') \
+        + ':' + os.getenv('ETCD_CLIENT_PORT', '2379')
     if not dev_mode:
-        if os.path.isdir('../Certificates') is False:
-            print('Certificate directory is missing')
-            sys.exit(-1)
-
         os.environ["ETCDCTL_CACERT"] = \
             os.environ.get("ETCD_TRUSTED_CA_FILE",
-                           "../Certificates/ca/ca_certificate.pem")
+                           "/run/secrets/ca_etcd")
         os.environ["ETCDCTL_CERT"] = \
             os.environ.get("ETCD_ROOT_CERT",
-                           "../Certificates/root/root_client_certificate.pem")
+                           "/run/secrets/etcd_root_cert")
         os.environ["ETCDCTL_KEY"] = \
             os.environ.get("ETCD_ROOT_KEY",
-                           "../Certificates/root/root_client_key.pem")
-    apps = get_appname("../../docker-compose.yml")
-    load_data_etcd("../config/eii_config.json", apps,
-                   "../etcd/etcdctl", "../Certificates/", dev_mode)
+                           "/run/secrets/etcd_root_key")
+    apps = get_appname("docker-compose.yml")
+    load_data_etcd("./config/eii_config.json", apps,
+                   "../etcd/etcdctl", "./Certificates/", dev_mode)
