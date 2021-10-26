@@ -64,9 +64,11 @@ if __name__ == "__main__":
 
         with open('/opt/nginx/server_cert.pem', 'w') as f:
             f.write(server_cert)
+        os.chmod("/opt/nginx/server_cert.pem", 0o400)
 
         with open('/opt/nginx/server_key.pem', 'w') as f:
             f.write(server_key)
+        os.chmod("/opt/nginx/server_key.pem", 0o400)
     cmd1 = subprocess.run(["hostname", "-I"], stdout=subprocess.PIPE,
                           check=False)
     cmd2 = subprocess.run(["awk", '{print $1}'], input=cmd1.stdout,
