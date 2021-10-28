@@ -40,5 +40,10 @@ RUN curl -L https://github.com/coreos/etcd/releases/download/${ETCD_VERSION}/etc
 WORKDIR /EII/etcd/
 COPY dep/start_etcd.sh .
 RUN chmod +x start_etcd.sh
+
+ARG EII_UID
+RUN chown -R ${EII_UID}:${EII_UID} /EII/etcd/data && \
+    chmod 760 /EII/etcd/data
+
 HEALTHCHECK NONE
 ENTRYPOINT ["./start_etcd.sh"]
