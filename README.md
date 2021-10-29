@@ -153,7 +153,7 @@ EII is equipped with [builder](build/builder.py), a robust python tool to auto-g
 
 > **NOTE**:
 > 1. Whenever we make changes to individual EII app/service directories files as mentioned above in the description column
-     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running 
+     or in the [build/.env](build/.env) file, it is required to re-run the `builder.py` script before provisioning and running
      the EII stack to ensure that the changes done reflect in the required consolidated files.
 > 2. Manual editing of above consolidated files is not recommended and we would recommend to do the required changes to
      respective files in EII app/service directories and use Builder script to generate the conslidated ones.
@@ -439,23 +439,23 @@ check [common/udfs/README.md](common/udfs/README.md).
 
 * **To run on HDDL devices**
 
-  * Download the full package for OpenVINO toolkit for Linux version "2021.3" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
+  * Download the full package for OpenVINO toolkit for Linux version "2021.4" (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
   (https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux).
 
   Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
 
   1. OpenVINO install:
-     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux.html#install-openvino
+     https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux.html#install-openvino
   2. HDDL daemon setup:
-     https://docs.openvinotoolkit.org/2021.3/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
+     https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html
 
-     **NOTE**: OpenVINO 2021.3 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
+     **NOTE**: OpenVINO 2021.4 installation creates a symbolic link to latest installation with filename as `openvino_2021` instead of `openvino`. Hence one can create a symbolic link with filename as `openvino` to the latest installation using the below steps.
 
      ```sh
      $ cd /opt/intel
      $ sudo ln -s <OpenVINO latest installation> openvino
 
-       Eg: sudo ln -s openvino_2021.3.394 openvino
+       Eg: sudo ln -s openvino_2021.4.689 openvino
 
      In case there are older versions of OpenVINO installed on the host system please un-install them.
 
@@ -476,14 +476,14 @@ check [common/udfs/README.md](common/udfs/README.md).
                  - "/dev/dri"
                  - "/dev/ion:/dev/ion"
     ```
-    
+
 *   **Running on Intel(R) Processor Graphics (GPU/iGPU)**
-     
+
     **Note**: The below step is required only for 11th gen Intel Processors
-  
+
     Upgrade the kernel version to 5.8 and install the required drivers from the below OpenVINO link:
     https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps
-      
+
 **Note**:
 ----
 
@@ -518,11 +518,11 @@ check [common/udfs/README.md](common/udfs/README.md).
 
   * Please verify the hddldaemon started on host m/c to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). One could enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on host m/c to get the complete snapshot of the hddl device.
 
-  * Please refer OpenVINO 2021.3 release notes in the below link for new features and changes from the previous versions.
+  * Please refer OpenVINO 2021.4 release notes in the below link for new features and changes from the previous versions.
     https://software.intel.com/content/www/us/en/develop/articles/openvino-relnotes.html
 
   * Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
-    https://docs.openvinotoolkit.org/2021.3/index.html
+    https://docs.openvinotoolkit.org/2021.4/index.html
 
 ----
 
@@ -639,7 +639,7 @@ Usage: ./eii_uninstaller.sh [-h] [-d]
     -h show the help
     -d triggers the deletion of docker images (by default it will not trigger)
 
- Example: 
+ Example:
   1) Deleting only EII Containers and Volumes
     $ ./eii_uninstaller.sh
 
