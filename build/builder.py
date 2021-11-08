@@ -131,6 +131,8 @@ def increment_rtsp_port(appname, config, i):
         if 'rtspsrc' in config['config']['ingestor']['pipeline']:
             port = config['config']['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
+            port = re.findall(r'\d+', port)
+            port = port[-1]
             new_port = str(int(port) + i)
             config['config']['ingestor']['pipeline'] =\
                 config['config']['ingestor']['pipeline'].\
