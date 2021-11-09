@@ -114,8 +114,9 @@ EIIMessageBus="$CUR_DIR/libs/EIIMessageBus"
 ConfigMgr="$CUR_DIR/libs/ConfigMgr"
 LIBS_INSTALL_PATH="/usr/local/lib"
 
-CMAKE_EXISTS=`cmake --version`
-if [ $? -ne 0 ]; then
+if service_exists cmake; then
+    log_info "----cmake already installed----"
+else
     log_info "----Installing cmake----"
     wget -O- https://cmake.org/files/v3.15/cmake-3.15.0-Linux-x86_64.tar.gz | \
         tar --strip-components=1 -xz -C /usr/local
