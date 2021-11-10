@@ -160,6 +160,36 @@ EII Orchestration using k8s Orchestrator.
     ```sh
     $  kubectl -n eii get pods
     ```
+
+### Note:
+  1. If user wants to pull the images from private registry. User needs to create registry secret as following:
+  ```sh
+    $ kubectl create secret docker-registry registryauth --docker-server=<registry-server> --docker-username=<username> --docker-password=<password> -n eii
+  ```
+  Use 'https://index.docker.io/v1/' as registry-server for Dockerhub private registry.
+
+  2. Add 'imagePullSecrets' in 'k8s-service.yml' file of the eii services which will pull the image from private registry as following:
+  ```
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    .............
+    namespace: eii
+
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+      ...........
+    template:
+      metadata:
+      spec:
+        imagePullSecrets:
+        - name: registryauth
+        containers:
+        .........
+      
+  ```
 ## Accessing Web Visualizer and EtcdUI
   In K8s Environment EtcdUI & WebVisualizer will be running in Following ports. 
   * EtcdUI
