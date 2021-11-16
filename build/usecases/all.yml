@@ -17,6 +17,7 @@ AppContexts:
 - CustomUdfs/PySafetyGearIngestion
 - CustomUdfs/PyMultiClassificationIngestion
 - CustomUdfs/GVASafetyGearIngestion
+- CustomUdfs/NativeOneAPIIngestion
 - Telegraf
 - InfluxDBConnector
 - Kapacitor
