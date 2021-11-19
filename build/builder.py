@@ -900,7 +900,7 @@ def yaml_parser(args):
     # Fetching EII directory path
     eii_dir = os.getcwd() + '/../'
     dir_list = []
-    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base"]
+    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base", "uwc_common"]
     build_params = ["depends_on", "build", "image"]
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
