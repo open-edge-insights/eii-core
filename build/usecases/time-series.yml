@@ -11,3 +11,5 @@ AppContexts:
 - Grafana
 - OpcuaExport
 - RestDataExport
+- tools/mqtt/broker
+- tools/mqtt/publisher

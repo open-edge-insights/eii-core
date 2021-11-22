@@ -21,3 +21,5 @@ AppContexts:
 - Telegraf
 - Kapacitor
 - Grafana
+- tools/mqtt/broker
+- tools/mqtt/publisher

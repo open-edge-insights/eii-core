@@ -39,3 +39,5 @@ AppContexts:
 - Samples/python_sample_app/publisher
 - Samples/python_sample_app/subscriber
 - build/remote_logging
+- tools/mqtt/broker
+- tools/mqtt/publisher
