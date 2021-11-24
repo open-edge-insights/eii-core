@@ -21,6 +21,7 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 > [EII Pre-requisites](../../README.md#eii-pre-requisites)
 
 > **NOTE**:
+>
 > * EII services can run on leader as well as worker nodes
 > * Leader node should have the entire repo/source code present
 > * Leader node is the primary administative node and has following attributes:
@@ -29,21 +30,21 @@ Perform the below steps  to achieve provisioning & deployment on multiple nodes
 >   3. Generating bundles to provision new nodes.
 >   4. Generating bundles to deploy EII services on new/worker nodes.
 
-
 For running EII in multi node, we have to identify one node to run ETCD server (this node is called as `leader` node). For a leader node, ETCD_NAME in [build/.env](../.env) must be set to `leader`. Rest other nodes are `Worker` nodes which doesn't run ETCD server, instead all the worker nodes remotely connect to the ETCD server running on the `Leader` node only. Make sure the `date` and `time` are in sync in all nodes.
 
 Provision the Leader node using the below command:
 
 ```sh
-$ cd [WORK_DIR]/IEdgeInsights/build/provision
-$ sudo -E ./provision.sh <path_to_eii_docker_compose_file>
+cd [WORK_DIR]/IEdgeInsights/build/provision
+sudo -E ./provision.sh <path_to_eii_docker_compose_file>
 
-$ # eq. $ sudo -E ./provision.sh ../docker-compose.yml
+# eq. $ sudo -E ./provision.sh ../docker-compose.yml
 ```
 
 This creates the ETCD server (Container ia_etcd) on the leader edge node.
 
 # Step 2 Set up Docker Registry URL then Build and Push Images
+
 EII Deployment on multiple node must be done using a docker registry.
 
 Follow below steps:
@@ -57,7 +58,7 @@ Follow below steps:
       docker-compose -f docker-compose-push.yml push
       ```
 
-# Step 3 Choosing the EII services to run on worker node.
+# Step 3 Choosing the EII services to run on worker node
 
 >Note: This deployment bundle generated can be used to provision and also to deploy EII stack on new node
 
@@ -73,7 +74,9 @@ Follow below steps:
 
         }
       ```
+
     ***Note***:
+    >
     > 1. Please validate the json.
 
     > 2. Please ensure that you have updated the DOCKER_REGISTRY in [build/.env](../.env) file
@@ -102,6 +105,7 @@ Follow below steps:
 ```
 
 # Step 5 Creating eii bundle for worker node
+
 > **NOTE**: Before proceeding this step, please make sure, you have followed steps 1-4.
 
 ```
@@ -116,6 +120,7 @@ Follow below steps:
     This will generate the .tar.gz which has all the required artifacts by which eii services
     can be started on worker node.
 ```
+
 ***Note***:
 
     1. Default Values of Bundle Name is "eii_bundle.tar.gz" and the tag name is "eii_bundle"
@@ -136,7 +141,6 @@ For more help:
     optional arguments:
         -h, --help            show this help message and exit
         -t BUNDLE_TAG_NAME    Tag Name used for Bundle Generation (default:eii_bundle)
-
 
 Now this bundle can be used to deploy an eii on worker node. This bundle has all the required artifacts to start the eii
 services on worker node.

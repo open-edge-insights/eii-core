@@ -1,5 +1,7 @@
-# ConfigMgr 
+# ConfigMgr
+
 ConfigMgr (Config manager) provides CPP/Python/Golang APIs to:
+
 - fetch an applications configs values from the KV store.
 - fetch an applications interface values from KV store for pub, sub, server and client.
 - watch on application's config changes.
@@ -18,7 +20,7 @@ of CMake and other ConfigMgr dependencies, please follow [eii_libs_installer REA
 CMAKE_INSTALL_PREFIX needs to be set for the installation:
 
 ```sh
-    $ export CMAKE_INSTALL_PREFIX="/opt/intel/eii"
+    export CMAKE_INSTALL_PREFIX="/opt/intel/eii"
 ```
 
 ConfigMgr installs to `/opt/intel/eii/lib/`. On some platforms this is not included in the `LD_LIBRARY_PATH` by default. As a result, you must add this directory to your `LD_LIBRARY_PATH`,
@@ -26,21 +28,21 @@ otherwise you will encounter issues using the ConfigMgr. This can
 be accomplished with the following `export`:
 
 ```sh
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib/
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib/
 ```
 
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag. If different installation path is given via `CMAKE_INSTALL_PREFIX`, then `$LD_LIBRARY_PATH` should be appended by $CMAKE_INSTALL_PREFIX/lib.
 
-## Install ConfigMgr with Python bindings, Go bindings, Examples, Test suits and Debug Build.
+## Install ConfigMgr with Python bindings, Go bindings, Examples, Test suits and Debug Build
 
 ```sh
-$ rm -rf build
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON -DWITH_GO=ON -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
-$ make
-$ sudo make install
+rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON -DWITH_GO=ON -DWITH_EXAMPLES=ON -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Debug ..
+make
+sudo make install
 ```
 
 `WITH_PYTHON=ON`, `WITH_GO=ON`, `WITH_EXAMPLES=ON`, `WITH_TESTS=ON` and `CMAKE_BUILD_TYPE=Debug` to compile ConfigMgr with Python bindings, Go bindings, Examples, Unit Tests and Debug mode respectively.
@@ -48,7 +50,7 @@ $ sudo make install
 # Interfaces
 
 ConfigMgr parses the data from the kv store (eg: etcd) and the application environment variables for its functionality.
-It supports Publisher, Subscriber, Server and Client interfaces. Below are the examples for providing 
+It supports Publisher, Subscriber, Server and Client interfaces. Below are the examples for providing
 different interfaces and different usecases.
 
 Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-given-in-different-ways:)
@@ -93,7 +95,6 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 | `Topics`            | `array`   | Yes                  | Specifying the topics on which data will be published on. Multiple elements in this array can denote multiple topics published on the same endpoint   |
 | `AllowedClients`    | `array`   | Yes                  | Specifying who can subscribe to the the topic on which data is published. If AllowedClients is "*", then all the provisioned services can receive the data published.                  |
 
-
 ### **Subscriber Interface**
 
 ```javascript
@@ -136,7 +137,6 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 |`PublisherAppName`   | `string`  | Yes                  | Specifies the publisher's AppName through which data will be received|
 | `Topics`            | `array`   | Yes                  | Specifying the topics on which data will be published on. If Topics is "*", the subscriber receives all the data published on the endpoint, irrespective of the topic names data is published on. Multiple elements in this array can denote multiple topics subscribed on the same endpoint   |
 
-
 ### **Server Interface**
 
 ```javascript
@@ -172,7 +172,6 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 | `EndPoint`          | `string` or `object`  | Yes                  | In case of TCP or IPC (socket directory only), endpoint should be string as shown in the above examples. In case IPC explicitly specifying socket file, either object or string can be used for EndPoint. Please refer [Different ways of specifying endpoint](###**Note**-"endpoint"-can-be-given-in-different-ways:) |
 | `AllowedClients`    | `array`   | Yes                  | Specifying who can get data is from the Server. If AllowedClients is "*", then all the provisioned services can connect to Server.                                                |
 
-
 ### **Client Interface**
 
 ```javascript
@@ -205,8 +204,7 @@ Please refer [different ways of giving endpoints](###**Note**-"endpoint"-can-be-
 | `Type`              | `string`  | Yes                  | Specifies ZeroMQ protocol ("zmq_tcp" or "zmq_ipc") through which client connection is established   |
 | `EndPoint`          | `string` or `object`  | Yes                  | In case of TCP or IPC (socket directory only), endpoint should be string as shown in the above examples. In case IPC explicitly specifying socket file, either object or string can be used for EndPoint. Please refer [Different ways of specifying endpoint](###**Note**-"endpoint"-can-be-given-in-different-ways:) |
 
-
-## Overriding of Type and EndPoint:
+## Overriding of Type and EndPoint
 
 In a given publisher, subscriber, client or server interfaces, the "Type" and "Endpoint" values mentioned in the respective interfaces can be overriden by setting them as env variables.
 
@@ -247,6 +245,7 @@ Let's say we want to override the Type ("zmq_ipc") and Endpoint ("/EII/sockets")
 export PUBLISHER_default_TYPE="zmq_tcp"
 export PUBLISHER_default_ENDPOINT="127.0.0.1:65013"
 ```
+
 In the above command `default` is the `Name` of the interface.
 
 Similarly, we can override subscriber's, client's and server's Type and Endpoint.
@@ -261,7 +260,6 @@ export SERVER_default_ENDPOINT="127.0.0.1:65013"
 export CLIENT_default_TYPE="zmq_tcp"
 export CLIENT_default_ENDPOINT="127.0.0.1:65013"
 ```
-
 
 Let's take publisher as an example having single endpoint and below is its interface:
 
@@ -280,7 +278,7 @@ Let's take publisher as an example having single endpoint and below is its inter
             ]
         }
 }
-``` 
+```
 
 If we want to override the Type ("zmq_ipc") and Endpoint ("/EII/sockets") of publisher's interface, then env variable should be set with below syntax.
 
@@ -302,7 +300,6 @@ export CLIENT_TYPE="zmq_tcp"
 export CLIENT_ENDPOINT="127.0.0.1:65013"
 ```
 
-
 Overriding feature of ConfigMgr will be used in orchestrated scenarios including Kubernetes.
 
 ## Broker Usecase
@@ -311,7 +308,7 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
 
 ## zmq_tcp Protocol usecase
 
-### ZmqBroker:
+### ZmqBroker
 
 ```javascript
 {
@@ -391,10 +388,9 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
 
 ```
 
-
 ## zmq_ipc Protocol usecase
 
-### ZmqBroker:
+### ZmqBroker
 
 ```javascript
 {
@@ -485,24 +481,23 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
 | `brokered`          | `boolean` | Yes                   | (Required if publishing via ZmqBroker) Specifies if publisher is using broker or not. use "brokered": true for use with broker. |
 | `BrokerAppName`     | `string`  | Yes                   | (Required if publishing via ZmqBroker) Specifies ZeroMQ Broker app name|
 
+### **Note** "Endpoint" can be given in different ways
 
-### **Note** "Endpoint" can be given in different ways:
-
-* zmq_tcp Endpoint should look like below:
+- zmq_tcp Endpoint should look like below:
 
     ```javascript
     "Endpoint":"127.0.0.1:65013"
     ```
 
-* zmq_ipc Endpoint have different ways of giving.
+- zmq_ipc Endpoint have different ways of giving.
 
-    - Specifying just socket directory
+  - Specifying just socket directory
 
         ```javascript
         "Endpoint":"/EII/sockets"
         ```
 
-    - Specifying socket directory and socket file
+  - Specifying socket directory and socket file
 
         ```javascript
         "Endpoint":{
@@ -515,33 +510,32 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
         "Endpoint":"/EII/sockets, socketfile"
         ```
 
-
-
 ## Running Examples
 
-The ConfigMgr library also supports Cpp APIs and Python & Go bindings. These APIs/bindings can be used in Cpp and Python/Go services in the EII stack to fetch required config/interfaces/msgbus config. 
+The ConfigMgr library also supports Cpp APIs and Python & Go bindings. These APIs/bindings can be used in Cpp and Python/Go services in the EII stack to fetch required config/interfaces/msgbus config.
 
 Examples will only be compiled if the `WITH_EXAMPLES=ON` option is specified while running CMake.
-Please refer [Examples installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.) 
+Please refer [Examples installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.)
 
 Refer the interfaces of publisher and server in [./examples/configs/VideoIngestion_interfaces.json](./examples/configs/VideoIngestion_interfaces.json) and for subscriber and client, refer [./examples/configs/VideoAnalytics_interfaces.json](./examples/configs/VideoAnalytics_interfaces.json)
 
 Examples on demonstrating the usage of these APIs in the bindings have been given in respective sections below.
-* [CPP Examples](###-cpp-examples)
-* [Python Examples](###-python-examples)
-* [Go Examples](###-go-examples)
 
+- [CPP Examples](###-cpp-examples)
+
+- [Python Examples](###-python-examples)
+- [Go Examples](###-go-examples)
 
 ### CPP Examples
 
 ```sh
-$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
-$ sudo rm -rf build
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_EXAMPLES=ON ..
-$ make
-$ sudo make install
+Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
+sudo rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_EXAMPLES=ON ..
+make
+sudo make install
 ```
 
 There are currently 5 CPP examples:
@@ -556,45 +550,51 @@ All of the Cpp example executables are in the `build/examples/` directory. To ru
 them, execute the following command:
 
 Before executing any of the examples, please run below command from `build/examples/`
+
 ```sh
  cd ../../examples/ && source ./env.sh && cd -
 ```
 
 Publisher example.
+
 ```sh
-$ ./pub
+./pub
 ```
 
 Subscriber example.
+
 ```sh
-$ ./sub
+./sub
 ```
 
 Server example.
+
 ```sh
-$ ./server
+./server
 ```
 
 Client example.
+
 ```sh
-$ ./client
+./client
 ```
 
 Sample_getvalue used to get the values from application's config
+
 ```sh
-$ ./sample_app
+./sample_app
 ```
 
 ### Python Examples
 
 ```sh
-$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
-$ sudo rm -rf build
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON ..
-$ make
-$ sudo make install
+Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr
+sudo rm -rf build
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_PYTHON=ON ..
+make
+sudo make install
 ```
 
 There are currently 5 Python examples:
@@ -609,42 +609,48 @@ All of the py examples are in `python/examples/` directory. To run
 them, execute the following command:
 
 Before executing any of the examples, please run below command from `python/examples/`
+
 ```sh
  cd ../../examples/ && source ./env.sh && cd -
 ```
 
 Publisher example.
+
 ```sh
-$ python3 publisher.py
+python3 publisher.py
 ```
 
 Subscriber example.
+
 ```sh
-$ python3 subscriber.py
+python3 subscriber.py
 ```
 
 Server example.
+
 ```sh
-$ python3 echo_service.py
+python3 echo_service.py
 ```
 
 Client example.
+
 ```sh
-$ python3 echo_client.py
+python3 echo_client.py
 ```
 
 sample_get_value used to get the values from application's config
+
 ```sh
-$ python3 sample_get_value.py
+python3 sample_get_value.py
 ```
 
 ### Go Examples
 
 ```sh
-$ Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr/go
-$ cp -r ConfigMgr/ $GOPATH/src
-$ cd ConfigMgr/examples
-$ source go_env.sh
+Navigate to [WORKDIR]/IEdgeInsights/common/libs/ConfigMgr/go
+cp -r ConfigMgr/ $GOPATH/src
+cd ConfigMgr/examples
+source go_env.sh
 ```
 
 There are currently 5 Go examples:
@@ -659,60 +665,69 @@ All of the go examples are in `go/examples/` directory. To run
 them, execute the following command:
 
 Before executing any of the examples, please run below command from `go/ConfigMgr/examples/`
+
 ```sh
  cd ../../../examples/ && source ./env.sh && cd -
  source ./go_env.sh
 ```
 
 Publisher example.
+
 ```sh
-$ go build publisher.go
-$ ./publisher
+go build publisher.go
+./publisher
 ```
 
 Subscriber example.
+
 ```sh
-$ go build subscriber.go
-$ ./subscriber
+go build subscriber.go
+./subscriber
 ```
 
 Server example.
+
 ```sh
-$ go build echo_service.go
-$ ./echo_service
+go build echo_service.go
+./echo_service
 ```
 
 Client example.
+
 ```sh
-$ go build echo_client.go
-$ ./echo_client
+go build echo_client.go
+./echo_client
 ```
 
 app_config used to get the values from application's config
+
 ```sh
-$ go build app_config.go
-$ ./app_config
+go build app_config.go
+./app_config
 ```
 
 ## Running Unit Tests
 
 > **NOTE:**
 
-* The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
+- The unit tests will only be compiled if the `WITH_TESTS=ON` option is specified when running CMake.
 Please refer [Unit Test installation](###-install-configMgr-with-examples,-test-suits-and-debug-build-enabled.) installation.
 
-* Provisioning should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
+- Provisioning should be done to start etcd server in dev/prod mode and to generate application specific certificates(only in prod mode).
 
 Before executing any of the test files, please run below command from `build/tests/`
+
 ```sh
  cd ../../examples/ && source ./env.sh && cd -
 ```
 
-* To run ConfigMgr unit tests
+- To run ConfigMgr unit tests
+
 ```
-$ ./config_manager_unit_tests
-$ ./kvstore_client-tests
+./config_manager_unit_tests
+./kvstore_client-tests
 ```
+
 ## Creation of grpc .deb file (Optional)
 
 **Note**: This is an optional as we have already created .deb file in the repo.
@@ -721,7 +736,7 @@ If user wants to create .deb file freshly, then one has to follow this step.
 Navigate to `[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr` and run the `grpc_deb.sh`
 
 ```sh
-$ sudo ./grpc_deb.sh
+sudo ./grpc_deb.sh
 ```
 
 By executing the above script, `grpc-1.29.0-Linux.deb` will be created in

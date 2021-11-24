@@ -5,7 +5,6 @@
   - [Running C API examples](#running-c-api-examples)
   - [Running Cpp API examples](#running-cpp-api-examples)
 
-
 # ConfigMgr cpp examples
 
 ## Pre-requisites
@@ -24,7 +23,7 @@
 4. For running the examples having IPC endpoints, please ensure the required sockets directory mentioned in the Endpoints are created. Eg: Create a directory called **.socks** within **build/examples** if the Endpoint provided is:
 
     ```sh
-        $ "EndPoint": ".socks"
+        "EndPoint": ".socks"
     ```
 
 ## Running C API examples
@@ -32,31 +31,31 @@
 1. Running the Publisher example:
 
     ```sh
-        $ ./pub_c
+        ./pub_c
     ```
 
 2. Running the Subscriber example:
 
     ```sh
-        $ ./sub_c
+        ./sub_c
     ```
 
 3. Running the Server example:
 
     ```sh
-        $ ./server_c
+        ./server_c
     ```
 
 4. Running the Client example:
 
     ```sh
-        $ ./client_c
+        ./client_c
     ```
 
 5. Running the KV store example:
 
     ```sh
-        $ ./kv_store_etcd ./etcd_kv_store_config.json
+        ./kv_store_etcd ./etcd_kv_store_config.json
     ```
 
 ## Running Cpp API examples
@@ -64,29 +63,29 @@
 1. Running the Publisher example:
 
     ```sh
-        $ ./pub
+        ./pub
     ```
 
 2. Running the Subscriber example:
 
     ```sh
-        $ ./sub
+        ./sub
     ```
 
 3. Running the Server example:
 
     ```sh
-        $ ./server
+        ./server
     ```
 
 4. Running the Client example:
 
     ```sh
-        $ ./client
+        ./client
     ```
 
 5. Running the GetConfig & watchCallback example:
 
     ```sh
-        $ ./sample_app
+        ./sample_app
     ```

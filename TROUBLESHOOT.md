@@ -5,7 +5,6 @@
   - [1. "host" network_mode is incompatible with port_bindings during docker-compose up](#1-host-network_mode-is-incompatible-with-port_bindings-during-docker-compose-up)
   - [2. eii_libs_installer.sh script failing during bare-metal execution](#2-eii_libs_installersh-script-failing-during-bare-metal-execution)
 
-
 # Troubleshooting
 
 The troubleshooting guide here talks about the useful tips to address some of the EII configuration and installation issues.
@@ -36,17 +35,16 @@ The troubleshooting guide here talks about the useful tips to address some of th
 
         docker-compose might have been installed using "pip" where version mismatch might be causing the issue.
 
-
 - Solution:
 
   Installation of docker-compose using "curl" as mentiond in [Installing_docker_pre_requisites.md](./Installing_docker_pre_requisites.md) will solve the
   issue. Also, following the below command should solve the issue.
 
   ```sh
-  $ sudo rm /usr/local/bin/docker-compose
-  $ pip3 uninstall docker-compose
-  $ sudo curl L https://github.com/docker/compose/releases/download/1.27.4/docker-compose-`uname -s``uname -m` -o /usr/local/bin/docker-compose
-  $ sudo chmod +x /usr/local/bin/docker-compose
+  sudo rm /usr/local/bin/docker-compose
+  pip3 uninstall docker-compose
+  sudo curl L https://github.com/docker/compose/releases/download/1.27.4/docker-compose-`uname -s``uname -m` -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
   ```
 
 ## 2. eii_libs_installer.sh script failing during bare-metal execution
@@ -88,5 +86,5 @@ The troubleshooting guide here talks about the useful tips to address some of th
   environment variable with appropriate path.
 
   ```sh
-  $ export GOPATH=<path_to_where_GO_is_installed>
+  export GOPATH=<path_to_where_GO_is_installed>
   ```

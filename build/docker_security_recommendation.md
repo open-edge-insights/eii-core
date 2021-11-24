@@ -3,7 +3,6 @@
 - [**Configuring the Host as per Docker security recommendations.**](#configuring-the-host-as-per-docker-security-recommendations)
 - [Configuring the Docker Daemon as per Docker security recommendations](#configuring-the-docker-daemon-as-per-docker-security-recommendations)
 
-
 ## **Configuring the Host as per Docker security recommendations.**
 
 **1) Ensure a separate partition for containers has been created**
@@ -14,49 +13,48 @@ After installing docker, in order to steps:
 
 Remove all Docker containers and images.
 
-``` 
-	docker rm -f $(docker ps -aq); docker rmi -f $(docker images -q) 
+```
+ docker rm -f $(docker ps -aq); docker rmi -f $(docker images -q) 
 ```
 
 Stop the Docker service.
 
-``` 
-	sudo systemctl stop docker 
+```
+ sudo systemctl stop docker 
 ```
 
  Remove the Docker storage directory.
 
- ``` 
- 	rm -rf /var/lib/docker
+ ```
+  rm -rf /var/lib/docker
  ```
 
 Create a new /var/lib/docker storage directory.
 
-``` 
-	mkdir /var/lib/docker
+```
+ mkdir /var/lib/docker
 ```
 
 Use bind mount to set the new location. For example, to set the new location as /mnt/docker run the following commands:
 
 ```
-	mkdir /mnt/docker
+ mkdir /mnt/docker
     
-	mount --rbind /mnt/docker /var/lib/docker
+ mount --rbind /mnt/docker /var/lib/docker
 ```
   
 Start the Docker service.
 
-``` 
-  	sudo systemctl start docker
+```
+   sudo systemctl start docker
 ```
 
 • Please find below instruction for creating new partition
 
-[Ubuntu]- https://help.ubuntu.com/community/HowtoPartition/CreatingPartitions
+[Ubuntu]- <https://help.ubuntu.com/community/HowtoPartition/CreatingPartitions>
 
 [Clear Linux]-
-https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install/cgdisk-manual-install
- 
+<https://clearlinux.org/documentation/clear-linux/get-started/bare-metal-install/cgdisk-manual-install>
 
 **2) Ensure Docker is up to Date**
 
@@ -64,33 +62,33 @@ Check which version is the current stable release by visiting the Docker CE rele
 
 **3) Ensure auditing is configured for various Docker files**
 
-Install and configure auditd to enable auditing of some of Docker's files, directories, and sockets. Auditd is a Linux access monitoring and accounting subsystem that logs noteworthy system operations at the kernel level. More info https://www.systutorials.com/docs/linux/man/7-audit.rules/
+Install and configure auditd to enable auditing of some of Docker's files, directories, and sockets. Auditd is a Linux access monitoring and accounting subsystem that logs noteworthy system operations at the kernel level. More info <https://www.systutorials.com/docs/linux/man/7-audit.rules/>
 
 Place the following snippet at the bottom of the file “/etc/audit/audit.rules”
 
 ```
-	-w /usr/bin/docker -p wa
-	-w /var/lib/docker -p wa
-	-w /etc/docker -p wa
-	-w /lib/systemd/system/docker.service -p wa
-	-w /lib/systemd/system/docker.socket -p wa
-	-w /etc/default/docker -p wa
-	-w /etc/docker/daemon.json -p wa
-	-w /usr/bin/docker-containerd -p wa
-	-w /usr/bin/docker-runc -p wa
-	-w /run/containerd -p wa
-	-w /usr/bin/dockerd -p wa
-	-w /etc/containerd/config.toml -p wa
-	-w /usr/bin/containerd -p wa
-	-w /usr/bin/containerd-shim -p wa
-	-w /usr/bin/containerd-shim-runc-v1 -p wa
-	-w /usr/bin/containerd-shim-runc-v2 -p wa
+ -w /usr/bin/docker -p wa
+ -w /var/lib/docker -p wa
+ -w /etc/docker -p wa
+ -w /lib/systemd/system/docker.service -p wa
+ -w /lib/systemd/system/docker.socket -p wa
+ -w /etc/default/docker -p wa
+ -w /etc/docker/daemon.json -p wa
+ -w /usr/bin/docker-containerd -p wa
+ -w /usr/bin/docker-runc -p wa
+ -w /run/containerd -p wa
+ -w /usr/bin/dockerd -p wa
+ -w /etc/containerd/config.toml -p wa
+ -w /usr/bin/containerd -p wa
+ -w /usr/bin/containerd-shim -p wa
+ -w /usr/bin/containerd-shim-runc-v1 -p wa
+ -w /usr/bin/containerd-shim-runc-v2 -p wa
         -w /usr/bin/runc -p wa
 ```
 
-**4) Enable execute access to the docker cli binary to only the current user / admin **
+**4) Enable execute access to the docker cli binary to only the current user / admin**
 
-Change the user ownership of Docker binary 
+Change the user ownership of Docker binary
 
 ```
     sudo chown $USER /usr/bin/docker
@@ -106,17 +104,18 @@ Change the permission of Docker binary
 
 Following devices under /dev filesystem will be needed based on use case for video ingestion
 and video analytics containers:
-* /dev/dri - GPU
-* /dev/ion - VPU
-* /dev/video* - USB camera devices
+
+- /dev/dri - GPU
+
+- /dev/ion - VPU
+- /dev/video* - USB camera devices
 
 **6) On the production system, please have the right firewall policies set for the containers port(s) that are getting published on the host machine
-     and are accessible outside. For more details, please refer guide like https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-20-04
+     and are accessible outside. For more details, please refer guide like <https://www.digitalocean.com/community/tutorials/how-to-set-up-a-firewall-with-ufw-on-ubuntu-20-04>
 
 ---------
 
 ## Configuring as per Docker security recommendations
- 
 
 **Ensure security related parameter exists for Docker Daemon**
 
@@ -125,7 +124,7 @@ This section deals with the configuration of the Docker daemon. Create a configu
 To begin, open up the configuration file in your favorite editor:
 
 ```
-	sudo nano /etc/docker/daemon.json
+ sudo nano /etc/docker/daemon.json
 ```
 
 This will present you with a blank text file. Paste in the following:
@@ -133,24 +132,25 @@ This will present you with a blank text file. Paste in the following:
 ```
     {
         "icc": false,
-	"log-driver": "syslog",
-	"live-restore": true,
-	"userland-proxy": false,
-	"no-new-privileges": true,
-	"userns-remap": "default"
-    
+        "log-driver": "syslog",
+        "live-restore": true,
+        "userland-proxy": false,
+        "no-new-privileges": true,
+        "userns-remap": "default"
+  
     }
 
  ```
+
 Save and close the file, then restart the Docker daemon so it picks up this new configuration:
 
-``` 
-	sudo systemctl restart docker
+```
+ sudo systemctl restart docker
 ```
 
 **Ensure that authorization for Docker client commands is enabled**
 
-If you need to allow network access to the Docker socket you should run the docker daemon with [authorization-plugin](https://docs.docker.com/engine/extend/plugins_authorization/) by following the steps below. 
+If you need to allow network access to the Docker socket you should run the docker daemon with [authorization-plugin](https://docs.docker.com/engine/extend/plugins_authorization/) by following the steps below.
 
 1) Create an empty policy definition that will allow all requests.
 
@@ -193,15 +193,15 @@ User can verify images pull or deploy from a registry server by setting followin
 
 ```sh
 
-$ export DOCKER_CONTENT_TRUST=1
-$ export DOCKER_BUILDKIT=1
+export DOCKER_CONTENT_TRUST=1
+export DOCKER_BUILDKIT=1
 
 ```
 
-**Note** 
+**Note**
 > Please find more information about Docker bench security below. The Docker Bench for Security is a script that checks for dozens of common best-practices around deploying Docker containers in production.
 
-> https://github.com/docker/docker-bench-security
+> <https://github.com/docker/docker-bench-security>
 
 ----------
 
@@ -258,7 +258,7 @@ The container (process) would have set of restrictions as defined in AppArmor pr
 
 Restrict the container from acquiring additional privileges via suid or sgid bits.no_new_priv prevents LSMs like SELinux from transitioning to process labels that have access not allowed to the current process.
 
-This can be achieved by configuring the flag no-new-privileges in the docker daemon as mentioned in the documentation: https://docs.docker.com/engine/reference/commandline/dockerd/
+This can be achieved by configuring the flag no-new-privileges in the docker daemon as mentioned in the documentation: <https://docs.docker.com/engine/reference/commandline/dockerd/>
 
 **Only allow trusted users to control the Docker daemon**
 
@@ -268,6 +268,7 @@ Remove any users from the 'docker' group that are not trusted. Additionally, do 
 
 Follow these guidelines to audit Docker daemon and important Docker files and directories:
 Audit Docker daemon.
+
 ```
 Audit /var/lib/docker directory: It holds all the information about containers.
 Audit /etc/docker directory: It holds various certificates and keys used for TLS communication between Docker daemon and Docker client.
@@ -278,11 +279,10 @@ Audit /etc/docker/daemon.json file: It holds various parameters for Docker daemo
 Audit /usr/bin/docker-containerd file: Docker now relies on containerd and runC to spawn containers.
 Audit /usr/bin/docker-runc file: Docker now relies on containerd and runC to spawn containers.
 ```
+
 Note 1: Auditing generates quite big log files. Ensure to rotate and archive them periodically. Also, create a separate partition of audit to avoid filling root file system.
 Note 2: By default, Docker related files and directories are not audited. Some of these files may not be available on the system. In that case, the recommendations are not applicable.
 
 **Enable live restore**
 
-Enable --live-restore for full support of daemon-less containers in docker. It ensures that docker does not stop containers on shutdown or restore and properly reconnects to the container when restarted. This can be enabled by following the guide https://docs.docker.com/config/containers/live-restore/ .
-
-
+Enable --live-restore for full support of daemon-less containers in docker. It ensures that docker does not stop containers on shutdown or restore and properly reconnects to the container when restarted. This can be enabled by following the guide <https://docs.docker.com/config/containers/live-restore/> .

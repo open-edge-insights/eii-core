@@ -6,7 +6,6 @@
     - [Minimum requirements for a MR](#minimum-requirements-for-a-mr)
     - [Review Process](#review-process)
 
-
 # Contributing to IEdgeInsights
 
 ## Merge Requests
@@ -21,8 +20,8 @@ The following points will be especially looked at during the review.
 1. **master** is the default branch, it is advised always to work on a new
    feature/bug fix developer branch by keeping your local **master** branch
    untouched. The below convention while naming our branches can be followed:
-   * Feature branches - feature/idsid/feature_name
-   * Bugfix branch - bugfix/idsid/jira_bug_ids
+   - Feature branches - feature/idsid/feature_name
+   - Bugfix branch - bugfix/idsid/jira_bug_ids
 
    More details on best git branching model
    [https://nvie.com/posts/a-successful-git-branching-model/](https://nvie.com/posts/a-successful-git-branching-model/)
@@ -30,7 +29,7 @@ The following points will be especially looked at during the review.
 2. Once your branch is created by following the above convention
    (`git checkout -b <branch_name>`) and it's ready with the changes,
    run the below commands:
-   * `git commit -s` - commit the message just like the old fashioned
+   - `git commit -s` - commit the message just like the old fashioned
      way with one liner and the body. Commit message
      format below:
 
@@ -45,16 +44,16 @@ The following points will be especially looked at during the review.
      Here, `module_name` loosely refers to the folder name where the major
      change is been introduced.
 
-   * `git push origin <branch_name>` - pushes your changes to the remote
+   - `git push origin <branch_name>` - pushes your changes to the remote
      branch name (orgin/<branch_name>)
-   * Create a merge request in gitlab
-   * If one notices any conflicts after creating a pull request, just
+   - Create a merge request in gitlab
+   - If one notices any conflicts after creating a pull request, just
      apply the latest master to your <branch_name> by running commands:
-      * `git checkout master` - with your current branch being <branch_name>
-      * `git pull` - pull latest remote master commits to your local master
+      - `git checkout master` - with your current branch being <branch_name>
+      - `git pull` - pull latest remote master commits to your local master
         branch
-      * `git checkout <branch_name>` - Get back to your branch
-      * `git rebase master` - rebase your branch with latest master
+      - `git checkout <branch_name>` - Get back to your branch
+      - `git rebase master` - rebase your branch with latest master
 
 3. After addressing code review comments, do a `git commit --amend` to amend
    the commit message and do a `git push -f origin <branch_name>` to forcely
@@ -84,14 +83,14 @@ branch when the two diverge.
 
 Below are some additional stuff that developers should adhere to:
 
-* Please batch all your comments by adding to `review` by clicking on `Start a
+- Please batch all your comments by adding to `review` by clicking on `Start a
   review` to start and add all further comments by clicking on `Add to review`.
   Once done adding all the review comments, click on `Finish review` and
   subsequently on `Submit review` buttons to submit all of your review comments.
   This way all the reviewers involved will get notified only once through an email
   notification.
 
-* In a merge request (i.e., on a feature/bugfix branch) one can have as many
+- In a merge request (i.e., on a feature/bugfix branch) one can have as many
   commits as possible. If all the commits are related to a single feature (eg:
   one has addressed review comments or fixed something etc.,), just ensure the
   `Title` and `Description` of the merge-request is up-to-date with respect to
@@ -107,7 +106,7 @@ Below are some additional stuff that developers should adhere to:
   well as gitlab allows to compare the force pushed changes with the previous
   version which will be very helpful for reviewers.
 
-* Whenever one sees any failure in the pre-merge build, just check if “rebasing”
+- Whenever one sees any failure in the pre-merge build, just check if “rebasing”
   your merge-request branch with latest master and re-push can fix the issue.
   If not, please apply access to CI environment(check [CITests repo README.md](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests/blob/master/README.md))
   to see the reason behind failure.

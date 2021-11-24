@@ -4,7 +4,6 @@
   - [Pre-requisites](#pre-requisites)
   - [Running examples](#running-examples)
 
-
 # ConfigMgr cpp examples
 
 ## Pre-requisites
@@ -16,7 +15,7 @@
 3. Run this command from the build/examples directory after installing ConfigMgr WITH_EXAMPLES set to ON:
 
     ```sh
-        $ source ./go_env.sh
+        source ./go_env.sh
     ```
 
 ## Running examples
@@ -24,29 +23,29 @@
 1. Running the Publisher example:
 
     ```sh
-        $ go run publisher.go
+        go run publisher.go
     ```
 
 2. Running the Subscriber example:
 
     ```sh
-        $ go run subscriber.go
+        go run subscriber.go
     ```
 
 3. Running the Server example:
 
     ```sh
-        $ go run echo_service.go
+        go run echo_service.go
     ```
 
 4. Running the Client example:
 
     ```sh
-        $ go run echo_client.go
+        go run echo_client.go
     ```
 
 5. Running the GetConfig example:
 
     ```sh
-        $ go run app_config.go
+        go run app_config.go
     ```

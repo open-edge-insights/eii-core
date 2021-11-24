@@ -2,23 +2,22 @@
 
 - [Manual steps to install docker daemon and docker-compose with proxy settings configuration](#manual-steps-to-install-docker-daemon-and-docker-compose-with-proxy-settings-configuration)
 
-
 ## Manual steps to install docker daemon and docker-compose with proxy settings configuration
 
-1. Install latest docker cli/docker daemon by following    
+1. Install latest docker cli/docker daemon by following
    https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce. Follow `Install using
    the repository` and `Install Docker CE` (follow first 2 steps) sections there. Also, follow the
-   manage docker as a non-root user section at   
+   manage docker as a non-root user section at
    https://docs.docker.com/install/linux/linux-postinstall/ to run docker without sudo
 
-2. Please follow the below steps only if the node/system on which the docker setup is tried out is   
+2. Please follow the below steps only if the node/system on which the docker setup is tried out is
    running behind a HTTP proxy server. If that's not the case, this step can be skipped.
 
-   * Configure proxy settings for docker client to connect to internet and for containers to access
-     internet by following https://docs.docker.com/network/proxy/. Sample proxy 
+   - Configure proxy settings for docker client to connect to internet and for containers to access
+     internet by following https://docs.docker.com/network/proxy/. Sample proxy
      config that could be going into ~/.docker/config.json would look like below
      with appropriate proxy server and ports added.
-   
+
         ```json
         {
             "proxies":
@@ -33,12 +32,12 @@
         }
         ```
 
-   * Configure proxy settings for docker daemon by following the steps at 
-     https://docs.docker.com/config/daemon/systemd/#httphttps-proxy. Use the values for http proxy 
+   - Configure proxy settings for docker daemon by following the steps at
+     https://docs.docker.com/config/daemon/systemd/#httphttps-proxy. Use the values for http proxy
      and https proxy as used in previous step.
 
      The correct DNS servers need to be updated to the /etc/resolv.conf
-     
+
      ```
      A. Ubuntu 16.04 and earlier
 

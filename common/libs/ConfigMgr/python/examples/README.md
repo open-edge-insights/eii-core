@@ -4,7 +4,6 @@
   - [Pre-requisites](#pre-requisites)
   - [Running examples](#running-examples)
 
-
 # ConfigMgr python examples
 
 ## Pre-requisites
@@ -25,29 +24,29 @@
 1. Running the Publisher example:
 
     ```sh
-        $ python3 publisher.py
+        python3 publisher.py
     ```
 
 2. Running the Subscriber example:
 
     ```sh
-        $ python3 subscriber.py
+        python3 subscriber.py
     ```
 
 3. Running the Server example:
 
     ```sh
-        $ python3 echo_service.py
+        python3 echo_service.py
     ```
 
 4. Running the Client example:
 
     ```sh
-        $ python3 echo_client.py
+        python3 echo_client.py
     ```
 
 5. Running the GetConfig example:
 
     ```sh
-        $ python3 sample_get_value.py
+        python3 sample_get_value.py
     ```

@@ -21,6 +21,7 @@ Etcd secrets(certs) for all the services of docker compose file will be generate
 Post provisioning this secrets should be mentioned in following two places for each service.
 
 1) in the `secrets` section at the bottom of `build/docker-compose.yml`:
+
     ```
     secrets:
       etcd_ca_certificate:
@@ -30,9 +31,11 @@ Post provisioning this secrets should be mentioned in following two places for e
       app_private_key_for_etcd:
         file: [path_to_pem_file]
     ```
+
 2) In the `secrets` section in for each service.
 
 > **NOTE**: The secret name must follow proper naming convention and file path as below
+
    ```
 
     etcd_<AppName>_cert:
@@ -41,6 +44,7 @@ Post provisioning this secrets should be mentioned in following two places for e
       file: provision/Certificates/<AppName>/<AppName>_client_key.pem
    
    ```
+
   For example, if the AppName is `VideoIngestion1`, secrets must be mentioned as below
 
   ```
@@ -53,9 +57,10 @@ Post provisioning this secrets should be mentioned in following two places for e
 
   ---
   **NOTE**:
-  * `Telegraf` service must use `InfluxDBConnector` secrets as it needs access to InfluxDBConnector certs and configs. To enable this please mention InfluxDBConnector AppName as `InfluxDBAppName` in environment section of Telegraf app. Also use secrets of InfluxDBConnector app for Telegraf Service. A seperate certificates for Telegraf app is also generated during provisioning and can be used if needed for storing Telegraf service related configurations.
 
-  * `socket_dir_name` where unix socket files are created. If `<protocol>` is
+* `Telegraf` service must use `InfluxDBConnector` secrets as it needs access to InfluxDBConnector certs and configs. To enable this please mention InfluxDBConnector AppName as `InfluxDBAppName` in environment section of Telegraf app. Also use secrets of InfluxDBConnector app for Telegraf Service. A seperate certificates for Telegraf app is also generated during provisioning and can be used if needed for storing Telegraf service related configurations.
+
+* `socket_dir_name` where unix socket files are created. If `<protocol>` is
     `zmq/tcp`, then `<endpoint>` has to be the combination of `<hostname>:<port>`.
   
   ---
@@ -73,4 +78,3 @@ If any of the Services needs to generate other X509 Certificates(pem or der form
       CertType: "pem" or "der"
   
   ```
-
