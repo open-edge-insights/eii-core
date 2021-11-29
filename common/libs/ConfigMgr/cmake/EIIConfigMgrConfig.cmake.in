@@ -28,4 +28,4 @@ if(NOT TARGET EIIConfigMgr)
 endif()
 
 set(EIIConfigMgr_LIBRARIES eiiconfigmanager)
-set(EIIConfigMgr_INCLUDE ${INSTALL_LIBDIR}/include)
+set(EIIConfigMgr_INCLUDE "@CMAKE_INSTALL_FULL_INCLUDEDIR@")

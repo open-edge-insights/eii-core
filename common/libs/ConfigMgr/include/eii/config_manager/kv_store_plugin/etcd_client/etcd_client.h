@@ -35,7 +35,6 @@
 #include <thread>
 #include <sstream>
 #include <fstream>
-#include <cjson/cJSON.h>
 #include "eii/utils/json_config.h"
 #include <grpcpp/grpcpp.h>
 #include <grpc++/security/credentials.h>
@@ -85,15 +84,15 @@ class EtcdClient {
         * @param port      - port at which etcd server has started
         * @param cert_file - etcd_client certificate file
         * @param key_file  - etcd_client private key file
-        * @param ca_file   - ca_certificate file 
+        * @param ca_file   - ca_certificate file
         */
         EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file, const std::string& key_file, const std::string ca_file);
-       
+
         /**
         * Destructor
         */
         ~EtcdClient();
-        
+
         /**
         * Sends a get request to etcd server
         * @param key is the key to be read
@@ -118,8 +117,8 @@ class EtcdClient {
         int put(std::string& key, std::string& value);
 
         /**
-        * Watches for changes of a key, registers user_callback and notify 
-        * user if any change on key occured 
+        * Watches for changes of a key, registers user_callback and notify
+        * user if any change on key occured
         * @param key is the value or directory to be watched
         * @param user_callback user_call back to register for a key
         * @param user_data user_data to be passed, it can be NULL also
@@ -127,14 +126,14 @@ class EtcdClient {
         void watch(std::string& key, kv_store_watch_callback_t user_cb, void *user_data);
 
         /**
-        * Watches for changes of a prefix of a key and register user_callback and notify 
-        * the user if any change on directory(prefix of key) occured 
+        * Watches for changes of a prefix of a key and register user_callback and notify
+        * the user if any change on directory(prefix of key) occured
         * @param key is the value or directory to be watched
         * @param user_callback user_call back to register for a key
         * @param user_data user_data to be passed, it can be NULL also
         */
         void watch_prefix(std::string& key, kv_store_watch_callback_t user_cb, void *user_data);
-        
+
     private:
         char address[ADDRESS_LEN];
         grpc::SslCredentialsOptions ssl_opts;

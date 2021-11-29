@@ -28,7 +28,6 @@
 #define _EII_CH_PUBLISHER_CFG_H
 
 #include <string.h>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <vector>
 #include <safe_lib.h>

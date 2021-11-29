@@ -143,17 +143,14 @@ set -e
 # Install ConfigMgr requirements
 log_info "----Installing ConfigMgr dependencies----"
 cd $ConfigMgr &&
-rm -rf deps && \
-./install.sh
+rm -rf deps
 
 log_info "----Installing EIIMessageBus lib dependencies----"
 cd $EIIMessageBus &&
-   rm -rf deps && \
-   ./install.sh --cython
+   rm -rf deps
 
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
-   ./install.sh && \
    rm -rf build && \
    mkdir build && \
    cd build && \
@@ -170,6 +167,11 @@ cd $EIIMessageBus/../../util/c/ &&
 check_error "----Failed to install Util lib----"
 
 log_info "----Installing EIIMessageBus library----"
+
+log_info "Installing Cython for Python bindings"
+pip3 install --user -r $EIIMessageBus/python/requirements.txt
+check_error "Failed to install Cython"
+
 cd $EIIMessageBus && \
     rm -rf build/ && \
     mkdir build/ && \

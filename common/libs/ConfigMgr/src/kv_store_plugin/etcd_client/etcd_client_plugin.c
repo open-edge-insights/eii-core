@@ -18,6 +18,7 @@
 // FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
+#include <stdint.h>
 #include <eii/utils/config.h>
 #include <eii/utils/string.h>
 #include <stdlib.h>
@@ -49,7 +50,7 @@ bool create_cert_copy(char **dest_cert, char *src_cert, unsigned int src_len) {
         *dest_cert = "";
         return true;
     }
-    
+
     *dest_cert = (char*)calloc((src_len + 1), sizeof(char));
     if (*dest_cert == NULL){
         LOG_ERROR_0("Failed to allocate memory for certificate string");
@@ -71,7 +72,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
     char *etcd_host = NULL, *etcd_port = NULL, *src_etcd_host = NULL, *src_etcd_port = NULL;
     config_value_t* conf_obj = NULL;
     char* c_etcd_endpoint = NULL;
-    
+
     cert_file = key_file = ca_file = NULL;
 
     etcd_config = (etcd_config_t*)malloc(sizeof(etcd_config_t));
@@ -184,14 +185,14 @@ kv_store_client_t* create_etcd_client(config_t *config) {
                 int ret = snprintf(c_etcd_endpoint, str_len, "%s", etcd_endpoint);
                 if (ret < 0){
                     LOG_ERROR_0("snprintf failed for etcd endpoint");
-                    goto err; 
+                    goto err;
                 }
                 LOG_DEBUG("ETCD endpoint: %s", c_etcd_endpoint);
 
                 char** host_port = get_host_port(c_etcd_endpoint);
                 if (host_port == NULL){
                     LOG_ERROR_0("get_host_port failed to get host and port");
-                    goto err; 
+                    goto err;
                 }
                 host = host_port[0];
                 trim(host);
@@ -245,7 +246,7 @@ kv_store_client_t* create_etcd_client(config_t *config) {
         } else {
             LOG_DEBUG("uit is wrong");
         }
-        
+
         if (!ret_cert_copy) {
             LOG_ERROR_0("create_etcd_client: Failed to allocated and copy cert-file");
             goto err;

@@ -28,7 +28,6 @@
 #define _EII_CH_CLIENT_CFG_H
 
 #include <string.h>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <safe_lib.h>
 #include <eii/utils/logger.h>
@@ -68,7 +67,7 @@ namespace eii {
                  * Constructs message bus config for Client
                  * @return config_t* - On Success, returns JSON msg bus server config of type config_t
                  *                   - On Failure, returns NULL
-                 */ 
+                 */
                 config_t* getMsgBusConfig() override;
 
                 /**
@@ -76,7 +75,7 @@ namespace eii {
                  * @param key - Key on which interface value is extracted.
                  * @return config_value_t* - On Success, config_value_t object
                  *                         - On Failure, returns NULL
-                 */ 
+                 */
                 config_value_t* getInterfaceValue(const char* key) override;
 
                 /**

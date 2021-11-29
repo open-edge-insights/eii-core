@@ -24,6 +24,8 @@
  */
 
 #include <stdarg.h>
+#include <stdint.h>
+#include <cjson/cJSON.h>
 #include "eii/config_manager/cfgmgr.h"
 
 // function to generate kv_store_config from env
@@ -955,7 +957,7 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
         trim(host);
         port = host_port[1];
         trim(port);
-        __int64_t i_port = atoi(port);
+        int64_t i_port = atoi(port);
         // Creating empty config object
         zmq_tcp_publish_cvt = json_config_new_from_buffer("{}");
         if (zmq_tcp_publish_cvt == NULL) {
@@ -993,7 +995,7 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
             bool ret_val;
 
             // Checking if Publisher is using Broker to publish or not and constructing
-            // the publisher messagebus config based on the check. 
+            // the publisher messagebus config based on the check.
             broker_app_name = config_value_object_get(pub_config, BROKER_APPNAME);
             if(broker_app_name != NULL){
 
@@ -1002,8 +1004,8 @@ config_t* cfgmgr_get_msgbus_config_pub(cfgmgr_interface_t* ctx) {
                     goto err;
                 }
                 // If a publisher is using broker to communicate with its respective subscriber
-                // then publisher will act as a subscriber to X-SUB, hence publishers 
-                // message bus config looks like a subscriber one.  
+                // then publisher will act as a subscriber to X-SUB, hence publishers
+                // message bus config looks like a subscriber one.
                 ret_val = add_keys_to_config(zmq_tcp_publish_cvt, app_name, kv_store_client, kv_store_handle, broker_app_name, pub_config);
                 if(!ret_val) {
                     LOG_ERROR_0("Failed to add respective cert keys");
@@ -1632,7 +1634,7 @@ config_t* cfgmgr_get_msgbus_config_server(cfgmgr_interface_t* ctx) {
         trim(host);
         char* port = host_port[1];
         trim(port);
-        __int64_t i_port = atoi(port);
+        int64_t i_port = atoi(port);
 
         zmq_tcp_host = config_value_new_string(host);
         if (zmq_tcp_host == NULL) {
@@ -2074,7 +2076,7 @@ config_t* cfgmgr_get_msgbus_config_client(cfgmgr_interface_t* ctx) {
         trim(host);
         port = host_port[1];
         trim(port);
-        __int64_t i_port = atoi(port);
+        int64_t i_port = atoi(port);
         zmq_tcp_host = config_value_new_string(host);
         if (zmq_tcp_host == NULL) {
             LOG_ERROR_0("Get zmq_tcp_host failed");

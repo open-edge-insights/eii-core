@@ -23,6 +23,7 @@
  * @brief KV Store Plugin implementation
  */
 
+#include <stdint.h>
 #include <eii/config_manager/kv_store_plugin/kv_store_plugin.h>
 #include <eii/config_manager/kv_store_plugin/etcd_client/etcd_client_plugin.h>
 
@@ -35,7 +36,7 @@ kv_store_client_t* create_kv_client(config_t* config){
     kv_store_client_t* kv_store_client = NULL;
 
     config_value_t* value = config->get_config_value(config->cfg, "type");
-        
+
     if(value == NULL) {
         LOG_ERROR_0("Config missing 'type' key");
         goto err;
@@ -44,7 +45,7 @@ kv_store_client_t* create_kv_client(config_t* config){
     if(value->type != CVT_STRING) {
         LOG_ERROR_0("Config 'type' value MUST be a string");
         goto err;
-    }   
+    }
 
     int ind_etcd;
     strcmp_s(value->body.string, strlen(KV_ETCD), KV_ETCD, &ind_etcd);
@@ -61,7 +62,7 @@ kv_store_client_t* create_kv_client(config_t* config){
     if(value != NULL){
         config_value_destroy(value);
     }
-    
+
     return kv_store_client;
 err:
     if(value != NULL)

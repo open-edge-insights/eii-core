@@ -24,6 +24,7 @@
  */
 
 #include <stdarg.h>
+#include <cjson/cJSON.h>
 #include "eii/config_manager/cfgmgr_util.h"
 
 #define MAX_CONFIG_KEY_LENGTH 250
@@ -121,7 +122,7 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
             LOG_ERROR_0("Malloc failed for sock_file");
             goto err;
         }
-    
+
         strcmp_s(socketfile_cvt->body.string, strlen(socketfile_cvt->body.string), "*", &ret);
         if (ret != 0) {
             ret = strncpy_s(sock_file, strlen(socketfile_cvt->body.string) + 1, socketfile_cvt->body.string, strlen(socketfile_cvt->body.string));
@@ -235,7 +236,7 @@ bool get_ipc_config(config_t* c_json, config_value_t* config, const char* end_po
                 //            }
                 //    }
                 //
-                // Hence copying "*" string to last topic, so that the code for constructing 
+                // Hence copying "*" string to last topic, so that the code for constructing
                 // config when topic is "*" can be re-used
                 if (flag) {
                     const char* topic_star = "*";

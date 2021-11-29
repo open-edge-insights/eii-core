@@ -28,7 +28,6 @@
 #define _EII_CH_APP_CFG_H
 
 #include <string.h>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -45,7 +44,7 @@ namespace eii {
 
         /**
          * AppCfg class
-         */  
+         */
         class AppCfg {
             private:
 
@@ -150,7 +149,7 @@ namespace eii {
                  * Get msgbus configuration for application to communicate over EII message bus
                  * @return config_t* - JSON msg bus server config of type config_t
                  *                   - On Failure, returns NULL
-                 */ 
+                 */
                 virtual config_t* getMsgBusConfig();
 
                 /**

@@ -28,7 +28,6 @@
 #define _EII_CH_SUBSCRIBER_CFG_H
 
 #include <string.h>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <safe_lib.h>
 #include <eii/utils/logger.h>

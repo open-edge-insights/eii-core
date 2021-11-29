@@ -21,6 +21,7 @@
 #include <exception>
 #include <thread>
 #include <stdlib.h>
+#include <cjson/cJSON.h>
 
 #include <safe_lib.h>
 #include <eii/utils/logger.h>
@@ -50,7 +51,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
     // TODO: Add port check availability function
     snprintf(address, ADDRESS_LEN, "%s:%s", host.c_str(), port.c_str());
-    
+
     try {
         kv_stub = KV::NewStub(grpc::CreateChannel(address, grpc::InsecureChannelCredentials()));
     }catch(...) {
@@ -59,7 +60,7 @@ EtcdClient::EtcdClient(const std::string& host, const std::string& port) {
     }
 }
 
-EtcdClient::EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file, 
+EtcdClient::EtcdClient(const std::string& host, const std::string& port, const std::string& cert_file,
                        const std::string& key_file, const std::string ca_file) {
     LOG_INFO("Initialize EtcdClient in Prod mode");
     LOG_DEBUG("host:%s and port:%s", host.c_str(), port.c_str());
@@ -116,7 +117,7 @@ std::string EtcdClient::get(std::string& key) {
                 kvs.CopyFrom(reply.kvs(0));
             }
         } else {
-            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d",
                 status.error_message().c_str(), status.error_code());
             return "(NULL)";
         }
@@ -176,7 +177,7 @@ std::vector<std::string> EtcdClient::get_prefix(std::string& key_prefix) {
                 }
             }
         } else {
-            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d", 
+            LOG_ERROR("get() API Failed with Error:%s and Error Code: %d",
                 status.error_message().c_str(), status.error_code());
         }
     } catch(std::exception const & ex) {
@@ -210,7 +211,7 @@ void register_watch_loop(char* address, grpc::SslCredentialsOptions ssl_opts,
     } while (!watch_registered);
 }
 
-bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts, 
+bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
                     WatchRequest watch_req, kv_store_watch_callback_t user_callback, void *user_data) {
     WatchResponse reply;
     mvccpb::KeyValue kvs;
@@ -287,8 +288,8 @@ bool register_watch(char* address, grpc::SslCredentialsOptions ssl_opts,
 }
 
 /**
-* Watches for changes of a prefix of a key and register user_callback and notify 
-* the user if any change on directory(prefix of key) occured 
+* Watches for changes of a prefix of a key and register user_callback and notify
+* the user if any change on directory(prefix of key) occured
 * @param key is the value or directory to be watched
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
@@ -305,7 +306,7 @@ void EtcdClient::watch_prefix(std::string& key, kv_store_watch_callback_t user_c
 
     int revision = 0;
     std::string& range_end = key;
-    
+
     try{
         char* etcd_prefix = getenv("ETCD_PREFIX");
         if (etcd_prefix == NULL) {
@@ -335,8 +336,8 @@ void EtcdClient::watch_prefix(std::string& key, kv_store_watch_callback_t user_c
 }
 
 /**
-* Watches for changes of a key, registers user_callback and notify 
-* user if any change on key occured 
+* Watches for changes of a key, registers user_callback and notify
+* user if any change on key occured
 * @param key is the value or directory to be watched
 * @param user_callback user_call back to register for a key
 * @param user_data user_data to be passed, it can be NULL also
@@ -392,7 +393,7 @@ int EtcdClient::put(std::string& key, std::string& value) {
     PutResponse reply;
     Status status;
     ClientContext context;
-   
+
     LOG_DEBUG("Store the value %s for the key %s", value.c_str(), key.c_str());
 
     try {
@@ -410,7 +411,7 @@ int EtcdClient::put(std::string& key, std::string& value) {
         put_request.set_prev_kv(false);
         put_request.set_lease(leaseid);
         status = kv_stub->Put(&context,put_request,&reply);
-    
+
         if (!status.ok()) {
             LOG_ERROR("Failed to put value %s for key %s", value.c_str(), key.c_str());
             LOG_ERROR("put() API Failed with Error:%s", status.error_message().c_str());

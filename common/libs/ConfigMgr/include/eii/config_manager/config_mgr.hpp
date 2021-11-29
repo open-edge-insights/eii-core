@@ -28,7 +28,6 @@
 #define _EII_CH_CONFIGMAGR_H
 
 #include <string.h>
-#include <cjson/cJSON.h>
 #include <iostream>
 #include <safe_lib.h>
 #include <eii/utils/logger.h>
@@ -46,7 +45,7 @@ namespace eii {
 
         /**
          * ConfigMgr class
-         */        
+         */
         class ConfigMgr {
             private:
                 // AppCfg handler
@@ -72,7 +71,7 @@ namespace eii {
                 * To instantiate main ConfigMgr object
                 */
                 ConfigMgr();
-             
+
                 /**
                  * gets app related configs from ConfigManager
                  * @return AppCfg* - AppCfg class object
@@ -170,7 +169,7 @@ namespace eii {
                  * @return SubscriberCfg* - SubscriberCfg class object
                  */
                 SubscriberCfg* getSubscriberByName(const char* name);
-                
+
                 /**
                 * Destructor
                 */
