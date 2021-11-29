@@ -1108,6 +1108,9 @@ def yaml_parser(args):
                 for service_keys, _ in list(service_dict.items()):
                     if(service_keys in build_params):
                         del temp["services"][service][service_keys]
+                # Removing unnecessary build clause in docker-compose.yml
+                if "build" in temp["services"][service]:
+                    del temp["services"][service]["build"]
                 if(service in run_exclude_images):
                     del temp["services"][service]
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
