@@ -60,8 +60,7 @@ services:
 
 networks:
   eii:
-    external:
-      name: eii
+    driver: bridge
 
 volumes:
   vol_eii_socket:
@@ -70,7 +69,3 @@ volumes:
       type: local
       o: bind
       device: ${EII_INSTALL_PATH}/sockets
-
-secrets:
-  ca_etcd:
-    file: provision/Certificates/ca/ca_certificate.pem

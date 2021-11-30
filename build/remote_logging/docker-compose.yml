@@ -92,13 +92,3 @@ services:
       - ./remote_logging/kibana_prod.yml:/usr/share/kibana/config/kibana.yml
     logging:
       driver: local
-    secrets:
-      - etcd_kibana_cert
-      - etcd_kibana_key
-
-secrets:
-  etcd_kibana_cert:
-    file: remote_logging/kibana_certs/kibana_server_certificate.pem
-  etcd_kibana_key:
-    file: remote_logging/kibana_certs/kibana_server_key.pem
-

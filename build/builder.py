@@ -42,6 +42,8 @@ DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
 DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
 SCAN_DIR = ".."
 dev_mode = False
+# List to store list of AppNames
+appname_list = []
 # Initializing multi instance related variables
 num_multi_instances = 0
 used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
@@ -353,7 +355,7 @@ def json_parser(app_list, args):
                 bm_appname = x.split("/")[-2]
         bm_apps_list.append(bm_appname)
 
-    eii_config_path = "./provision/config/eii_config.json"
+    eii_config_path = "../ConfigMgrAgent/config/eii_config.json"
     for app_path in app_list:
         data = {}
         # Creating multi instance config if num_multi_instances > 1
@@ -392,6 +394,10 @@ def json_parser(app_list, args):
                             data['/' + app_name + str(i+1) +
                                 '/interfaces'] = \
                                 head['interfaces']
+                        # merge cert_type of multi instance config
+                        if 'cert_type' in head.keys():
+                            data['/' + app_name + str(i+1) + '/cert_type'] = \
+                                head['cert_type']
                         # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
                         # Writing the changes to the config.json file in the multi_instance subdirectory
@@ -439,6 +445,8 @@ def json_parser(app_list, args):
                     data['/' + app_name + '/config'] = head['config']
                 if 'interfaces' in head.keys():
                     data['/' + app_name + '/interfaces'] = head['interfaces']
+                if 'cert_type' in head.keys():
+                    data['/' + app_name + '/cert_type'] = head['cert_type']
                 # Merging individual app configs & interfaces into one json
                 config_json = merge(config_json, data)
 
@@ -688,22 +696,6 @@ def create_multi_instance_yml_dict(mi_data, data, i):
                         new_port = str(int(port) + (i-1))
                         v['ports'].append(new_port+':'+new_port)
                         v['ports'].remove(port+':'+port)
-            # Update secrets section of yml
-            elif k2 == 'secrets':
-                if (set(v['secrets']) == set(x['secrets'])):
-                    for v3 in x['secrets']:
-                        if 'cert' in v3:
-                            cert_temp = v3.split('_cert')[0]
-                            new_cert = re.sub(r'\d+', '', cert_temp) +\
-                                 str(i) + '_cert'
-                            v['secrets'].remove(cert_temp+'_cert')
-                            v['secrets'].insert(1, new_cert)
-                        if 'key' in v3:
-                            key_temp = v3.split('_key')[0]
-                            new_key = re.sub(r'\d+', '', key_temp) +\
-                                str(i) + '_key'
-                            v['secrets'].remove(key_temp+'_key')
-                            v['secrets'].insert(2, new_key)
             # Update all env key, value pairs of yml
             elif k2 == 'environment':
                 for k4, v4 in list(v['environment'].items()):
@@ -713,32 +705,6 @@ def create_multi_instance_yml_dict(mi_data, data, i):
                             v['environment'][k4] = v4 + str(i)
                             app_name = v4
                             new_app_name = v4 + str(i)
-
-    # Update outer secrets section
-    if not dev_mode:
-        if 'secrets' in temp.keys():
-            if (temp['secrets'] == data['secrets']):
-                for k, v in list(temp['secrets'].items()):
-                    if 'cert' in k:
-                        cert_temp = k.split('_cert')[0]
-                        new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
-                        for k2 in v.items():
-                            yml_map = ruamel.yaml.comments.CommentedMap()
-                            yml_map.insert(1, 'file',
-                                           list(k2)[1].replace(app_name,
-                                                               new_app_name))
-                        temp['secrets'][new_cert] = yml_map
-                        del temp['secrets'][k]
-                    if 'key' in k:
-                        key_temp = k.split('_key')[0]
-                        new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
-                        for k2 in v.items():
-                            yml_map = ruamel.yaml.comments.CommentedMap()
-                            yml_map.insert(1, 'file',
-                                           list(k2)[1].replace(app_name,
-                                                               new_app_name))
-                        temp['secrets'][new_key] = yml_map
-                        del temp['secrets'][k]
 
     return temp
 
@@ -774,12 +740,18 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
             data = ruamel.yaml.round_trip_load(docker_compose_file,
                                                preserve_quotes=True)
 
+            # Fetching AppNames of all services
+            appname = fetch_appname(k)
+            if args.override_directory is not None:
+                if args.override_directory in k:
+                    appname = k.split("/")[-2]
+
+            # Append valid AppNames to appname_list
+            if (appname != "video" and appname != "common" and appname != None):
+                appname_list.append(appname)
+
             # Create multi instance compose if num_multi_instances is > 1
             if num_multi_instances > 1:
-                appname = k.split("/")[-1]
-                if args.override_directory is not None:
-                    if args.override_directory in k:
-                        appname = k.split("/")[-2]
                 # Create single instance only for services in subscriber_list
                 # and for corner case of common/video,
                 # create multi instance otherwise
@@ -829,35 +801,30 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
             else:
                 yaml_files_dict.append(data)
 
+    # Update SERVICES of config-agent with AppNames of all services
+    config_agent_service = ""
+    for var in yaml_files_dict[1:]:
+        if "ia_configmgr_agent" in var["services"]:
+            config_agent_service = \
+                var["services"]["ia_configmgr_agent"]["environment"]["SERVICES"]
+            for appname in appname_list:
+                if appname != "ConfigMgrAgent":
+                    config_agent_service = config_agent_service + appname + ','
+            var["services"]["ia_configmgr_agent"]["environment"]["SERVICES"] = \
+                config_agent_service.rsplit(',', 1)[0]
+
     # Updating final yaml dict
     yaml_dict = yaml_files_dict[0]
     for var in yaml_files_dict[1:]:
         for k in var:
-            try:
-                # Update the values from current compose
-                # file to previous compose file
-                for i in var[k]:
-                    if(k == "version"):
-                        pass
-                    else:
-                        yaml_dict[k].update({i: var[k][i]})
-            # If secrets is not existing, add it to the dict
-            except KeyError:
-                if (k == "secrets"):
-                    yaml_dict[k] = var[k]
+            # Update the values from current compose
+            # file to previous compose file
+            for i in var[k]:
+                if(k == "version"):
+                    pass
+                else:
+                    yaml_dict[k].update({i: var[k][i]})
 
-    # Updating yaml dict for dev mode
-    if dev_mode:
-        for k, v in yaml_dict.items():
-            # Deleting the main secrets section
-            if(k == "secrets"):
-                del yaml_dict[k]
-            # Deleting secrets section for individual services
-            elif(k == "services"):
-                for _, service_dict in v.items():
-                    for service_keys, _ in list(service_dict.items()):
-                        if(service_keys == "secrets"):
-                            del service_dict[service_keys]
     return yaml_dict
 
 
@@ -1139,7 +1106,7 @@ def yaml_parser(args):
     * Required docker compose files: `docker-compose-build.yml`
       `docker-compose.yml` and `docker-compose-push.yml`
     * Consolidated config json of required EII services in
-      `docker-compose.yml` at ./provision/config/eii_config.json
+      `docker-compose.yml` at ../ConfigMgrAgent/agent/config/eii_config.json
     Please run the below commands to bring up the EII stack:
     Run:
     # provision the node to run EII
