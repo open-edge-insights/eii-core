@@ -48,6 +48,7 @@ check_exists("CMAKE_BUILD_TYPE" "" TRUE)
 check_exists("CMAKE_PROJECT_DESCRIPTION" "" TRUE)
 check_exists("PROJECT_HOMEPAGE_URL" "" FALSE)
 check_exists("PROJECT_LICENSE" "" TRUE)
+check_exists("APKBUILD_ALPINE_VERSION" "3.14" FALSE)
 check_exists("APKBUILD_DEPENDS" "" TRUE)
 check_exists("APKBUILD_DEPENDS_DEV" "" TRUE)
 check_exists("APKBUILD_DEPENDS_MAKE" "" TRUE)
@@ -80,7 +81,7 @@ if("${IMAGE_RESULT}" STREQUAL "")
     # NOTE: --no-cache is used to build the container so that a new build key
     # is generated for each apkbuilder container on the system.
     execute_process(
-        COMMAND ${DOCKER} build --no-cache -t ${APKBUILD_IMAGE} .
+        COMMAND ${DOCKER} build --no-cache --build-arg ALPINE_VERSION=${APKBUILD_ALPINE_VERSION} -t ${APKBUILD_IMAGE} .
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake/apkbuilder/"
         RESULT_VARIABLE DOCKER_BUILD_RESULT)
     if(${DOCKER_BUILD_RESULT})
@@ -95,7 +96,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/apkbuilder/src/build)
 # NOTE: --no-cache is used to build the container so that a new build key is
 # generated for each apkbuilder container on the system.
 add_custom_target(apkbuilder
-    COMMAND ${DOCKER} build --no-cache -t ${APKBUILD_IMAGE} .
+    COMMAND ${DOCKER} build --no-cache --build-arg ALPINE_VERSION=${APKBUILD_ALPINE_VERSION} -t ${APKBUILD_IMAGE} .
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/cmake/apkbuilder/"
     VERBATIM)
 
@@ -119,7 +120,7 @@ if(${APKBUILD_REQUIRE_EXTERNAL_APKS})
     add_custom_target(package-apk
         COMMENT "Generating APK"
         COMMAND rm -rf ${CMAKE_BINARY_DIR}/apkbuilder/src/build/
-        COMMAND tar -C ${CMAKE_SOURCE_DIR} -czf ${CMAKE_BINARY_DIR}/apkbuilder/apkbuild_source.tar.gz --exclude=${BASENAME_BINARY_DIR} ./
+        COMMAND tar -C ${CMAKE_SOURCE_DIR} -czf ${CMAKE_BINARY_DIR}/apkbuilder/apkbuild_source.tar.gz --exclude=${BASENAME_BINARY_DIR} --exclude=build/* ./
         COMMAND ${DOCKER} run --rm -it
             -e PACKAGE_NAME=${APKBUILD_APK_FILENAME}
             -e EXTERNAL_APKS=${APKBUILD_EXTERNAL_APKS}
@@ -132,7 +133,7 @@ else()
     add_custom_target(package-apk
         COMMENT "Generating APK"
         COMMAND rm -rf ${CMAKE_BINARY_DIR}/apkbuilder/src/build/
-        COMMAND tar -C ${CMAKE_SOURCE_DIR} -czf ${CMAKE_BINARY_DIR}/apkbuilder/apkbuild_source.tar.gz --exclude=${BASENAME_BINARY_DIR} ./
+        COMMAND tar -C ${CMAKE_SOURCE_DIR} -czf ${CMAKE_BINARY_DIR}/apkbuilder/apkbuild_source.tar.gz --exclude=${BASENAME_BINARY_DIR} --exclude=build/* ./
         COMMAND ${DOCKER} run --rm -it
             -e PACKAGE_NAME=${APKBUILD_APK_FILENAME}
             -v ${CMAKE_BINARY_DIR}/apkbuilder:/package

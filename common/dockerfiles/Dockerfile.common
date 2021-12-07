@@ -70,10 +70,6 @@ COPY libs/ConfigMgr libs/ConfigMgr
 COPY eii_libs_installer.sh .
 RUN ./eii_libs_installer.sh
 
-RUN cp -R /usr/local/bin/protoc* /usr/local/bin/grpc* ${CMAKE_INSTALL_PREFIX}/bin/ && \
-    cp -R /usr/local/lib/* ${CMAKE_INSTALL_PREFIX}/lib/ && \
-    cp -R /usr/local/include/* ${CMAKE_INSTALL_PREFIX}/include/
-
 # Re-copying everything here to not miss any of the subfolders
 COPY libs libs
 COPY util util

@@ -49,7 +49,6 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" "${EII_COMMON_CMAKE}")
 
 # Finding libraries
-find_package(cJSON REQUIRED)
 find_package(Threads REQUIRED)
 find_package(EIIUtils REQUIRED)
 find_package(EIIMsgEnv REQUIRED)
@@ -57,7 +56,8 @@ find_package(IntelSafeString REQUIRED)
 
 # Set gRPC_INSTALL to ON so that the gRPC targets get installed with the
 # EII Config Manager targets.
-set(gRPC_INSTALL ON)
+set(gRPC_INSTALL ON CACHE BOOL "" FORCE)
+set(gRPC_ZLIB_PROVIDER "package" CACHE STRING "" FORCE)
 
 # Fetch GRPC dependency
 include(FetchContent)
@@ -111,7 +111,7 @@ target_link_libraries(eiiconfigmanager
         pthread
     PRIVATE
         grpc++
-        ${CJSON_LIBRARIES}
+        cjson
         ${PROTOBUF_LIBRARIES}
         ${EIIMsgEnv_LIBRARIES}
         ${EIIUtils_LIBRARIES}
@@ -122,7 +122,7 @@ target_link_libraries(eiiconfigmanager_static
         pthread
     PRIVATE
         grpc++
-        ${CJSON_LIBRARIES}
+        cjson
         ${PROTOBUF_LIBRARIES}
         ${EIIMsgEnv_LIBRARIES}
         ${EIIUtils_LIBRARIES}
@@ -157,18 +157,17 @@ set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/open-edge-insights/eii-core")
 
 # Debian package dependencies
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Intel Corporation")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcjson1 (>= 1.7.10), eii-utils (>= 2.6.0), eii-messagebus (>=2.6.0)")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libcjson1 (>= 1.7.10), eii-utils (>= 2.6.0), eii-messagebus (>=2.6.0), zlib1g (>=1.2.11)")
 
 # RPM package specific settings
-set(CPACK_RPM_PACKAGE_REQUIRES "cjson >= 1.7.14, eii-utils >= 2.6.0, eii-messagebus >= 2.6.0")
+set(CPACK_RPM_PACKAGE_REQUIRES "cjson >= 1.7.14, eii-utils >= 2.6.0, eii-messagebus >= 2.6.0, zlib >= 1.2.11")
 
 # APK specific settings
-set(APKBUILD_DEPENDS "zeromq eii-utils eii-messagebus cjson")
+set(APKBUILD_DEPENDS "zeromq eii-utils eii-messagebus cjson zlib")
 set(APKBUILD_DEPENDS_DEV "")
-set(APKBUILD_DEPENDS_MAKE "zeromq-dev eii-utils eii-messagebus cjson-dev libtool autoconf pkgconf linux-headers")
+set(APKBUILD_DEPENDS_MAKE "zeromq-dev eii-utils eii-messagebus cjson-dev libtool autoconf pkgconf linux-headers zlib-dev")
 set(APKBUILD_REQUIRE_EXTERNAL_APKS TRUE)
 set(APKBUILD_EXTERNAL_APKS "eii-utils,eii-messagebus")
-set(APKBUILD_CMAKE_FLAGS "-DgRPC_ZLIB_PROVIDER=package")
 
 # Include packaging utility
 include(cmake/Package.cmake)

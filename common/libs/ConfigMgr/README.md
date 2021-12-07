@@ -13,7 +13,41 @@ All these data are stored into the kv store of EII during the provisioning phase
 
 ## Installation
 
-The EIIUtils depends on CMake version 3.11+. For Ubuntu 18.04 this is not
+The EII Config Manager library can be installed in two different ways.
+
+1. Through published Debian, Fedora, or Alpine APK packages
+2. Installing form source
+
+If you are installing from one of the packages, select the package you wish to
+install from the releases assets, and then run one of the following depending
+on the OS you are installing on:
+
+```sh
+# Debian
+sudo apt install libcjson1 libzmq5 zlib1g
+sudo dpkg -i <debian package>
+
+# Fedora
+sudo dnf install cjson zeromq zlib
+sudo rpm -i <rpm package>
+
+# Alpine (NOTE: the depencies get automatically installed by the apk command)
+sudo apk add --allow-untrusted <apk package>
+```
+
+In the above commands, installing the cJSON and ZeroMQ dependencies
+is required, however, in general, installation of the dev module is not required
+(i.e. the OS packages which include all of the headers for the libraries). If
+you are compiling an application that is linking to this library, then it is
+recommended that you install the dev versions of the libraries. For Ubuntu this
+would mean installing `libcjson-dev libzmq3-dev zlib1g-dev`. For Fedora the
+packages would be `cjson-devel zeromq-devel zlib-devel`. In Alpine, the packages
+would be `cjson-dev zeromq-dev zlib-dev`.
+
+If you want to compile the EII Config Manager from source, follow the
+intructions below.
+
+The EIIConfigMgr depends on CMake version 3.11+. For Ubuntu 18.04 this is not
 the default version installed via `apt-get`. To install the correct version
 of CMake and other ConfigMgr dependencies, please follow [eii_libs_installer README](../../README.md)
 
@@ -33,6 +67,109 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/intel/eii/lib/
 
 > **NOTE:** You can also specify a different library prefix to CMake through
 > the `CMAKE_INSTALL_PREFIX` flag. If different installation path is given via `CMAKE_INSTALL_PREFIX`, then `$LD_LIBRARY_PATH` should be appended by $CMAKE_INSTALL_PREFIX/lib.
+
+To install the remaining dependencies for the message bus execute the following
+command:
+
+**Note**: It is highly recommended that you use a python virtual environment to
+install the python packages, so that the system python installation doesn't
+get altered. Details on setting up and using python virtual environment can
+be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
+
+```sh
+sudo apt install libcjson-dev libzmq5 zlib1g-dev
+```
+
+> **NOTE:** For Fedora, the packages should be `cjson-devel zeromq-devel zlib-devel` and for
+> Alpine it is `cjson-dev zeromq-dev zlib-dev`.
+
+If you wish to compile the Python binding as well, then you must also install
+the Python requirements. To do this, execute the following `pip` command:
+
+```sh
+pip3 install --user -r ./python/requirements.txt
+```
+
+## Packaging
+
+This library supports being packaged as a Debian, RPM, or Alpine APK packages.
+This is all accomplished via CMake. By default, packaging is disabled. To
+enable packaging, add the `-DPACKAGING=ON` flag to your CMake command (see
+Compilation section above). This command will look something like:
+
+```sh
+cmake -DPACKAGING=ON ..
+```
+
+By default, the packaging utilities will scan the system for the required
+toolchains it needs to build each package type (Deb, RPM, and APK). If it does
+not find the required toolsets, then it will disable that form of packaging.
+The packaging utilities provide CMake flags to force packaging as any of the
+supported package types. If a given package type, ex. APK, is set to be enabled
+manually by its CMake flag and its required packaging toolchain does not exist,
+then CMake will raise a fatal error.
+
+The table below provides the required toolchains for each package type as well
+as the CMake flag to set to `ON` to manually enable a packaging type:
+
+| Package Type | Required Tools | Manual Package Flag |
+| :----------: | :------------: | :-----------------: |
+| `deb`        | `dpkg-deb`     | `PACKAGE_DEB`       |
+| `rpm`        | `rpmbuild`     | `PACKAGE_RPM`       |
+| `apk`        | `docker`       | `PACKAGE_APK`       |
+
+> **NOTE:** Manually setting a given package type to be built (e.g. setting
+> `-DPACKAGE_DEB=ON`) still requires that the `-DPACKAGING=ON` to be set.
+
+After the required toolchains have been installed and CMake has been run with
+some combination of the packaging flags, the library can be packaged with the
+following commands:
+
+```sh
+make package
+```
+
+The command above will build the Debian and RPM packages (depending on the
+specified CMake flags).
+
+To build the Alpine APK package, execute the following command:
+
+```sh
+make package-apk
+```
+
+**IMPORTANT:**
+
+The EII Config Manager depends on the EII Utils and EII Message Bus libraries.
+In order to compile the Alpine APK package for the EII Config Manager it must
+have the APK packages for the EII Utils and EII Message Bus modules.
+
+To provide this, you must first build or download the Alpine APK package for the
+EII Utils library (see it's repo [here](https://github.com/open-edge-insights/eii-c-utils)
+to obtain the library) and also for the EII Message Bus (see it's repo
+[here](https://github.com/open-edge-insights/eii-messagebus) to obtain the library).
+
+Once you have the APKs, create an, "apks" directory at the top level of this
+repository.
+
+```sh
+mkdir apks/
+```
+
+Next, place the EII Utils and EII Message Bus APK packages into the, "apks",
+directory. Then execute the `make package-apk` command. If this is not done,
+then the build will fail.
+
+### A Note on Alpine APK Packaging
+
+In order to package the library as an Alpine APK package, the packaging utility
+must use a Docker container to have access to the proper Alpine APK toolchains.
+This container will automatically be built when the CMake command is ran to
+configure your build environment.
+
+By default, Alpine 3.14 is used to build the package. However, this version
+can be changed by setting the `APKBUILD_ALPINE_VERSION` CMake flag to the
+version of Alpine you wish to use (ex. `-DAPKBUILD_ALPINE_VERSION=3.12`).
 
 ## Install ConfigMgr with Python bindings, Go bindings, Examples, Test suits and Debug Build
 
@@ -355,7 +492,7 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:5568",
 
-            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase
             "PublisherAppName": "ZmqBroker",
             "Topics": [
                 "*"
@@ -436,7 +573,7 @@ If publisher and subscriber wants to communicate via broker(ZmqBroker), i.e., if
                 "SocketFile": "backend-socket"
             },
 
-            // PublisherAppName will be "ZmqBroker" in case of brokered usecase 
+            // PublisherAppName will be "ZmqBroker" in case of brokered usecase
             "PublisherAppName": "ZmqBroker",
 
             // Topics cannot be "*", if the only IPC directory is given

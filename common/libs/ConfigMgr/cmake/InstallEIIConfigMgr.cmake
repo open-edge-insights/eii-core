@@ -45,26 +45,97 @@ install(TARGETS eiiconfigmanager
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
-# gRPC is dynamically linked to the static config manager target.
-# Exporting a statically linked target means the person linking to the
-# static library needs to know how to link its dynamically linked dependencies,
-# so all the target info for grpc must be exposed to whoever's linking the
-# static library
-install(TARGETS
-    libprotobuf libprotoc
-    zlibstatic absl_algorithm absl_inlined_vector_internal  absl_log_severity
+set(targets
+    # libprotobuf libprotoc
+
+    absl_algorithm
+    absl_inlined_vector_internal
+    absl_log_severity
+    absl_strings
+    absl_optional
     absl_atomic_hook absl_base absl_meta absl_bits absl_str_format
     absl_compressed_tuple absl_span  absl_dynamic_annotations
     absl_spinlock_wait absl_str_format_internal absl_errno_saver
     absl_base_internal absl_time_zone absl_throw_delegate
     absl_bad_optional_access absl_utility absl_inlined_vector absl_civil_time
     absl_config absl_int128 absl_raw_logging_internal absl_strings_internal
-    absl_type_traits absl_endian absl_core_headers absl_time absl_memory ssl
-    crypto c-ares absl_optional absl_strings address_sorting gpr grpc
+    absl_type_traits absl_endian absl_core_headers absl_time absl_memory
+
+    # absl_numeric_representation
+    # absl_synchronization
+    # absl_status
+    # absl_flat_hash_map
+    # absl_bind_front
+    # absl_statusor
+    # absl_graphcycles_internal
+    # absl_kernel_timeout_internal
+    # absl_malloc_internal
+    # absl_stacktrace
+    # absl_symbolize
+    # absl_cord
+    # absl_container_memory
+    # absl_hash_function_defaults
+    # absl_raw_hash_map
+    # absl_algorithm_container
+    # absl_variant
+    # absl_debugging_internal
+    # absl_fixed_array
+    # absl_function_ref
+    # absl_hash
+    # absl_raw_hash_set
+    # absl_bad_variant_access
+    # absl_demangle_internal
+    # absl_city
+    # absl_wyhash
+    # absl_container_common
+    # absl_hash_policy_traits
+    # absl_hashtable_debug_hooks
+    # absl_have_sse
+    # absl_layout
+    # absl_hashtablez_sampler
+    # absl_exponential_biased
+    # absl_optional
+    # absl_strings
+
+    ## v1.42.0
+    # re2
+    # base
+    # core_headers
+    # memory
+    # status
+    # cord
+    # str_format
+    # strings
+    # synchronization
+    # time
+    # optional
+    # flat_hash_map
+    # inlined_vector
+    # bind_front
+    # hash
+    # statusor
+    # variant
+    # utility
+    ##
+
+    ssl
+    crypto c-ares   address_sorting gpr grpc
     grpc_unsecure grpc++ grpc++_alts grpc++_error_details grpc++_reflection
     grpc++_unsecure grpc_plugin_support grpcpp_channelz upb grpc_cpp_plugin
     grpc_csharp_plugin grpc_node_plugin grpc_objective_c_plugin grpc_php_plugin
-    grpc_python_plugin grpc_ruby_plugin eiiconfigmanager_static
+    grpc_python_plugin grpc_ruby_plugin
+    eiiconfigmanager_static)
+
+#jif(${gRPC_ZLIB_PROVIDER} STREQUAL "module")
+#     list(APPEND targets zlibstatic)
+    #endif()
+
+# gRPC is dynamically linked to the static config manager target.
+# Exporting a statically linked target means the person linking to the
+# static library needs to know how to link its dynamically linked dependencies,
+# so all the target info for grpc must be exposed to whoever's linking the
+# static library
+install(TARGETS ${targets}
     EXPORT eiiconfigmanager_static-targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
