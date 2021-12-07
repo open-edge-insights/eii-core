@@ -1109,10 +1109,8 @@ def yaml_parser(args):
       `docker-compose.yml` at ../ConfigMgrAgent/agent/config/eii_config.json
     Please run the below commands to bring up the EII stack:
     Run:
-    # provision the node to run EII
-    $ cd provision && sudo -E ./provision.sh ../docker-compose.yml
     # For building EII services
-    $ cd .. && docker-compose -f docker-compose-build.yml build
+    $ docker-compose -f docker-compose-build.yml build
     # For running EII services
     $ docker-compose up -d
     # For pushing EII docker images to registry

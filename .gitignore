@@ -42,7 +42,9 @@ common/util/c/
 common/libs/EIIMessageBus/
 common/libs/EIIMsgEnv/
 common/libs/DynLibLoad/
-ConfigAgent/
+common/libs/ConfigMgr/
+VideoAnalyticsServing/
+ConfigMgrAgent/
 DeploymentToolBackend/
 DeploymentToolFrontend/
 EtcdUI/
