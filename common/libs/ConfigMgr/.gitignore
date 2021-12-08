@@ -1,9 +1,0 @@
-src/build
-src/deps
-src/kv_store_plugin/deps
-compile_commands.json
-build/
-**/*.swo
-**/*.swp
-**/__pycache__
-apks/
