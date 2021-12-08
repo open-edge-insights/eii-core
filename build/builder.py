@@ -987,6 +987,9 @@ def yaml_parser(args):
         print("Parsing through directory to fetch required services...")
         dir_list = [f.name for f in os.scandir(eii_dir) if
                     (f.is_dir() or os.path.islink(f))]
+        # Extend the dir_list to include the subdirectories from the 
+        # file builder_config.json- include_services key
+        dir_list.extend(include_services)
         dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
@@ -1210,6 +1213,8 @@ if __name__ == '__main__':
         publisher_list = builder_cfg['publisher_list']
         # list of subscribers
         subscriber_list = builder_cfg['subscriber_list']
+        # list of services to include mandatorily
+        include_services = builder_cfg['include_services']
 
     # Parse command line arguments
     args = parse_args()

@@ -11,5 +11,6 @@
         "VideoAnalytics": "outputVA",
         "InfluxDBConnector": "pointClsOutput"
     },
-    "increment_rtsp_port": true
+    "increment_rtsp_port": true,
+    "include_services": ["tools/mqtt/broker", "tools/mqtt/publisher"]
 }
