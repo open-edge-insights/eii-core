@@ -990,6 +990,11 @@ def yaml_parser(args):
         # Extend the dir_list to include the subdirectories from the 
         # file builder_config.json- include_services key
         dir_list.extend(include_services)
+        # Exclude the services mentioned in the file
+        # builder_config.json- exclude_services key
+        for service in exclude_services:
+            if service in dir_list:
+                dir_list.remove(service)
         dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
@@ -1215,6 +1220,8 @@ if __name__ == '__main__':
         subscriber_list = builder_cfg['subscriber_list']
         # list of services to include mandatorily
         include_services = builder_cfg['include_services']
+        # list of services to exclude mandatorily
+        exclude_services = builder_cfg['exclude_services']
 
     # Parse command line arguments
     args = parse_args()

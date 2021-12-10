@@ -247,7 +247,8 @@ optional arguments:
 > - The [builder_config.json](./build/builder_config.json) contains keys `subscriber_list`, `publisher_list`, `include_services` and `increment_rtsp_port`.
 > - The `subscriber_list` contains a list of services that act as a subscriber to the stream being published.
 > - The `publisher_list` contains a list of services that publishes a stream of data.
-> - The `include_services` contains the mandatory list of services that are required to be included. 
+> - The `include_services` contains the mandatory list of services that are required to be included when builder is run without the -f flag. 
+> - The `exclude_services` contains the mandatory list of services that are required to be excluded when builder is run without the -f flag.
 > - The `increment_rtsp_port` is a boolean key used for incrementing the port number for RTSP stream pipelines.
 
 ### Running builder to generate the above listed consolidated files for a subset of EII services

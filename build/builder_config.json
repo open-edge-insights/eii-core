@@ -12,5 +12,6 @@
         "InfluxDBConnector": "pointClsOutput"
     },
     "increment_rtsp_port": true,
-    "include_services": ["tools/mqtt/broker", "tools/mqtt/publisher"]
+    "include_services": ["tools/mqtt/broker", "tools/mqtt/publisher"],
+    "exclude_services": ["ZmqBroker", "CustomUdfs"]
 }
