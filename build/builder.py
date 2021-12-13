@@ -394,11 +394,7 @@ def json_parser(app_list, args):
                             data['/' + app_name + str(i+1) +
                                 '/interfaces'] = \
                                 head['interfaces']
-                        # merge cert_type of multi instance config
-                        if 'cert_type' in head.keys():
-                            data['/' + app_name + str(i+1) + '/cert_type'] = \
-                                head['cert_type']
-                        # merge multi instance generated json to eii config
+                        # # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
                         # Writing the changes to the config.json file in the multi_instance subdirectory
                         with open(path + "/config.json", "w") as multi_instance_json_file:
@@ -445,9 +441,6 @@ def json_parser(app_list, args):
                     data['/' + app_name + '/config'] = head['config']
                 if 'interfaces' in head.keys():
                     data['/' + app_name + '/interfaces'] = head['interfaces']
-                if 'cert_type' in head.keys():
-                    data['/' + app_name + '/cert_type'] = head['cert_type']
-                # Merging individual app configs & interfaces into one json
                 config_json = merge(config_json, data)
 
     temp = copy.deepcopy(config_json)
