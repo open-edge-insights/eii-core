@@ -5,7 +5,8 @@
         "VideoProfiler": "",
         "EtcdUI": "",
         "ImageStore": "",
-        "InfluxDBConnector": ""
+        "InfluxDBConnector": "",
+        "Grafana": ""
     },
     "publisher_list": {
         "VideoAnalytics": "outputVA",
