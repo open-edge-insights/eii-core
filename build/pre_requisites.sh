@@ -495,6 +495,21 @@ proxy_settings()
 }
 
 #------------------------------------------------------------------------------
+# add_user_to_docker_group
+#
+# Description:
+#        Adds the current user to the docker group
+# Usage:
+#        add_user_to_docker_group
+#------------------------------------------------------------------------------
+add_user_to_docker_group()
+{
+    echo "${INFO}Adding current user to docker group...${NC}"
+    groupadd docker
+    usermod -aG docker ${SUDO_USER}
+}
+
+#------------------------------------------------------------------------------
 # docker_install
 #
 # Description:
@@ -549,8 +564,7 @@ docker_install()
     apt-get install -y docker-ce docker-ce-cli containerd.io
     check_for_errors "$?" "Docker CE installation failed. Please check logs" \
                     "${GREEN}Installed Docker CE successfully.${NC}"
-    groupadd docker
-    usermod -aG docker ${SUDO_USER}
+    add_user_to_docker_group
 	echo "${GREEN}docker installation is done...${NC}"
     return 0
 }
@@ -699,6 +713,7 @@ docker_verification_installation()
 		echo "${INFO}docker needs to be Installed.${NC} "
 		docker_install
 	else
+                add_user_to_docker_group
 		testvercomp $cur_v $REQ_DOCKER_VERSION ">"
 		ret=$?
 		if [ "$ret" -eq 0 ]; then
