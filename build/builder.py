@@ -368,7 +368,10 @@ def json_parser(app_list, args):
                     dirname = app_path.split("/")[-2]
             # Ignoring EtcdUI & common/video service to not create multi instance
             # TODO: Support AzureBridge multi instance creation if applicable
-            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "AzureBridge" not in app_path:
+            if (app_name not in subscriber_list and
+                dirname != "video" and
+                dirname != "EtcdUI" and
+                "AzureBridge" and "ConfigMgrAgent" not in app_path):
                 for i in range(num_multi_instances):
                     # path to the multi_instance subdirectory
                     path = os.path.join(multi_inst_path , dirname + str(i+1))
@@ -698,6 +701,16 @@ def create_multi_instance_yml_dict(mi_data, data, i):
                             v['environment'][k4] = v4 + str(i)
                             app_name = v4
                             new_app_name = v4 + str(i)
+            # Update the volumes section
+            elif k2 == 'volumes':
+                for v3 in v['volumes']:
+                    if "./Certificates" in v3 and "rootca" not in v3:
+                        index = v['volumes'].index(v3)
+                        v['volumes'].remove(v3)
+                        appname = (v3.split(":")[-1]).split("/")[-1]
+                        new_appname = re.sub(r'\d+', '', appname)
+                        v3 = v3.replace(appname, new_appname + str(i))
+                        v['volumes'].insert(index, v3)
 
     return temp
 
@@ -753,7 +766,9 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 if (appname not in subscriber_list.keys() and
                         appname != "video" and
                         appname != "common" and
-                        appname != "AzureBridge"):
+                        appname != "AzureBridge" and
+                        appname != "ConfigMgrAgent" and
+                        appname != None):
                     for i in range(num_multi_instances):
                         # Path to the multi_instance subdirectory
                         path_app = os.path.join(multi_inst_path, appname + str(i+1))
