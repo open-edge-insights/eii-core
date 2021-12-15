@@ -769,6 +769,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         appname != "AzureBridge" and
                         appname != "ConfigMgrAgent" and
                         appname != None):
+                    appname_list.remove(appname)
                     for i in range(num_multi_instances):
                         # Path to the multi_instance subdirectory
                         path_app = os.path.join(multi_inst_path, appname + str(i+1))
@@ -792,6 +793,8 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                                 dest = os.path.join (path_app , "docker-compose-dev.override.yml")
                                 shutil.copy(origin, dest)
 
+                        # Update appname_list for current service
+                        appname_list.append(appname + str(i+1))
                         # Open the docker-compose.yml file within the subdirectory
                         with open(path_app + '/' + file_to_pick, 'r') as docker_compose_file:
                             mi_data = ruamel.yaml.round_trip_load(docker_compose_file,
