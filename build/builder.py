@@ -355,7 +355,7 @@ def json_parser(app_list, args):
                 bm_appname = x.split("/")[-2]
         bm_apps_list.append(bm_appname)
 
-    eii_config_path = "../ConfigMgrAgent/config/eii_config.json"
+    eii_config_path = "eii_config.json"
     for app_path in app_list:
         data = {}
         # Creating multi instance config if num_multi_instances > 1
@@ -1114,7 +1114,7 @@ def yaml_parser(args):
     * Required docker compose files: `docker-compose-build.yml`
       `docker-compose.yml` and `docker-compose-push.yml`
     * Consolidated config json of required EII services in
-      `docker-compose.yml` at ../ConfigMgrAgent/agent/config/eii_config.json
+      `docker-compose.yml` at ./eii_config.json
     Please run the below commands to bring up the EII stack:
     Run:
     # For building EII services
