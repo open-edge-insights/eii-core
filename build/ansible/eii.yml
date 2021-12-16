@@ -20,7 +20,6 @@
 # SOFTWARE.
 
 # Executes roles in all nodes
-
 - hosts: control
   pre_tasks:
     - name: "Get the Hostnode timeZone"
@@ -47,9 +46,6 @@
 
 - hosts: all
   pre_tasks:
-    - name: Include vars of ansible/vars/vars.yaml
-      include_vars: vars.yml
-
     - name: "Getting Current user name"
       shell: "whoami"
       register: username
@@ -92,7 +88,7 @@
 
   roles:
     - { role: prerequisites, tags: [prerequisites], when: inventory_hostname == 'control' }
-    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname != 'control' and multi_node == true }
+    - { role: prerequisites, tags: [prerequisites], when: inventory_hostname != 'control' and remote_node == true }
 
   tasks:
     - name: Remove deploy bundles
@@ -106,94 +102,9 @@
       tags: [load_env]
     - role: build
       tags: [build]
-    - role: gen_certs
-      tags: [gen_certs]
-    - role: delete_bundles
-      tags: [delete_bundles]
-    - {
-        role: gen_leader_provision_bundle,
-        tags: [gen_leader_provision_bundle],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-    - {
-        role: gen_worker_provision_bundle,
-        tags: [gen_worker_provision_bundle],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-    - {
-        role: gen_bundles,
-        tags: [gen_bundles],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-    - {
-        role: helm_k8s_prerequisites,
-        tags: ["helm_k8s_prerequisites"],
-        when: DEPLOYMENT_MODE == "k8s"
-      }
-
-# Executes roles only in leader nodes
+    - role: gen_bundles
+      tags: [gen_bundles]
 - hosts: leader
   roles:
-    - {
-        role: leader_provision,
-        tags: [leader_provision],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-    - {
-        role: helm_k8s_deploy,
-        tags: ["helm_k8s_deploy"],
-        when: DEPLOYMENT_MODE == "k8s"
-
-      }
-
-# Executes roles in worker machines
-- hosts: targets[2:]
-  roles:
-    - role: worker_provision
-      tags: [worker_provision]
-
-# Executes roles only in control nodes
-- hosts: control
-  roles:
-    - {
-        role: etcd_provision,
-        tags: [etcd_provision],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-
-# Executes roles in worker machines
-- hosts: targets[1:]
-  roles:
-    - {
-        role: deploy,
-        tags: [deploy],
-        when: DEPLOYMENT_MODE == "docker-compose"
-      }
-
-- hosts: control
-  tags: [helm_deploy]
-  tasks:
-    - name: "Setting Back the Certificats to Protected"
-      become: yes
-      ansible.builtin.file:
-        path: "{{ EII_SOURCE_PATH }}/build/provision/Certificates/"
-        state: directory
-        recurse: yes
-        mode: "0750"
-      when: DEPLOYMENT_MODE == "k8s"
-
-    - name: "Setting Back the Certificats to Protected"
-      become: yes
-      ansible.builtin.file:
-        path: "{{ EII_SOURCE_PATH }}/build/provision/rootca/"
-        state: directory
-        recurse: yes
-        mode: "0750"
-      when: DEPLOYMENT_MODE == "k8s"
-
-    - name: "Removing the Certificates from HELM EII"
-      become: yes
-      shell: "rm -rf Certificates/"
-      args:
-        chdir: "{{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
-      when: DEPLOYMENT_MODE == "k8s"
+    - role: deploy
+      tags: [deploy]

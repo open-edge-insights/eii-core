@@ -37,6 +37,7 @@ USER = "eiiuser:eiiuser"
 class EiiBundleGenerator:
     """EiiBundleGenerator class
     """
+
     def __init__(self):
         '''
             Intial Configuration will be initialised here.
@@ -107,10 +108,11 @@ class EiiBundleGenerator:
             sys.exit(0)
 
     """ docker save images to ./docker_images folder """
+
     def docker_save(self, docker_load=False):
         cmdlist = []
         pwd = os.getcwd()
-        self.docker_images_dir =  pwd + "/" + self.bundle_tag_name + "/docker_images"
+        self.docker_images_dir = pwd + "/" + self.bundle_tag_name + "/docker_images"
         try:
             cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
             cmdlist.append(["mkdir", "-p", self.docker_images_dir])
@@ -119,14 +121,30 @@ class EiiBundleGenerator:
                 if "openedgeinsights" in self.config['services'][service]['image']:
                     image_name = "openedgeinsights/" + service
                 cmdlist.append(["docker", "save", "-o",
-                        self.docker_images_dir + "/" + service + ".tar",
-                        image_name + ":" + self.eii_version])
+                                self.docker_images_dir + "/" + service + ".tar",
+                                image_name + ":" + self.eii_version])
 
             if docker_load:
-                cmdlist.append(["cp", "-rf", "docker_load.py", self.bundle_tag_name])
+                cmdlist.append(
+                    ["cp", "-rf", "docker_load.py", self.bundle_tag_name])
             for cmd in cmdlist:
                 print(cmd)
                 subprocess.check_output(cmd)
+        except Exception as err:
+            print("Exception Occured ", str(err))
+            sys.exit(0)
+
+    def generate_eii_raw_bundle(self):
+        cmdlist = []
+        cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
+        cmdlist.append(["cp", "../.env", self.bundle_tag_name])
+        cmdlist.append(["cp", "../docker-compose.yml", self.bundle_tag_name])
+        tar_file = self.bundle_tag_name + ".tar.gz"
+        cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
+        try:
+            for cmd in cmdlist:
+                subprocess.check_output(cmd)
+            print("Raw Bundle Generated Succesfully")
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
@@ -157,10 +175,12 @@ class EiiBundleGenerator:
 
                 # TODO: enable etcd_ui only in leader node
                 if "ia_etcd_ui" in self.include_services:
-                    cmdlist.append(["cp", "-rf", "../provision/Certificates/root", eii_cert_dir])
+                    cmdlist.append(
+                        ["cp", "-rf", "../provision/Certificates/root", eii_cert_dir])
 
                 if "ia_opcua_export" in self.include_services:
-                    cmdlist.append(["cp", "-rf", "../provision/Certificates/opcua", eii_cert_dir])
+                    cmdlist.append(
+                        ["cp", "-rf", "../provision/Certificates/opcua", eii_cert_dir])
 
                 cmdlist.append(["mkdir", "-p", service_dir])
                 cert_dir = "../provision/Certificates/" + servicename
@@ -183,7 +203,7 @@ class EiiBundleGenerator:
             with open(self.bundle_tag_name + "/.env", "r") as env:
                 filedata = env.read()
             filedata = filedata.replace("ETCD_NAME=leader",
-                                    "ETCD_NAME=worker")
+                                        "ETCD_NAME=worker")
             with open(self.bundle_tag_name + "/.env", "w") as env:
                 env.write(filedata)
 
@@ -220,7 +240,7 @@ class EiiBundleGenerator:
         cmdlist.append(["mkdir", "-p", provision_tag_name])
         cmdlist.append(["cp", "../.env", provision_tag_name])
         cmdlist.append(["mkdir", "-p", provision_dir])
-        
+
         try:
             if node == 'leader':
                 cmdlist.append(["mkdir", "-p", dep_dir])
@@ -250,10 +270,9 @@ class EiiBundleGenerator:
                 env = open(provision_tag_name + "/.env", "r+")
                 envdata = env.read()
                 newenvdata = envdata.replace("ETCD_NAME=leader",
-                                            "ETCD_NAME=worker")
+                                             "ETCD_NAME=worker")
                 env.write(newenvdata)
                 env.close()
-
 
             cmdlist = []
             tar_file = provision_tag_name + ".tar.gz"
@@ -281,7 +300,9 @@ class EiiBundleGenerator:
         self.bundle_tag_name = shlex.quote(args.bundle_tag_name)
         self.docker_file_path = shlex.quote(args.compose_file_path)
         self.bundle_folder = shlex.quote(args.bundle_folder)
-
+        if args.generatebundle:
+            self.generate_eii_raw_bundle()
+            exit()
         if args.eii_version:
             self.eii_version = shlex.quote(args.eii_version)
         if args.leader:
@@ -330,6 +351,11 @@ if __name__ == '__main__':
                         '--provisioning',
                         action='store_true',
                         help='Generates provisioning bundle')
+
+    parser.add_argument('-gb',
+                        '--generatebundle',
+                        action='store_true',
+                        help='Generate bundle of docker-compose yml and .env file only')
 
     parser.add_argument('-w',
                         '--worker',

@@ -28,12 +28,12 @@ instances: 1
 
 # default deployment will be in single node,
 # set true to enable multi node deployment without kubernetes
-multi_node: false
+remote_node: false
 
 # Enable/ Disable docker images build from source
 # set build to false to skip docker build push
 # Set to false to use default images from docker hub
-build: true
+build: false
 
 # Set to true to build docker conatiners with --no-cache option
 no_cache: false
@@ -67,7 +67,7 @@ no_proxy: ""
 EII_VERSION: "2.6.1"
 # EII USER & EII GROUP ID
 EII_USER_NAME: "eiiuser"
-EII_UID: 5315
+EII_UID: 1999
 
 # docker-compose version
 docker_compose_version: "1.29.0"

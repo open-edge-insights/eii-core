@@ -8,14 +8,13 @@
   - [Configure Sudoers file to accept NO PASSWORD for sudo operation.](#configure-sudoers-file-to-accept-no-password-for-sudo-operation)
 - [Updating the leader & worker node's information for using remote hosts](#updating-the-leader--worker-nodes-information-for-using-remote-hosts)
 - [Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables](#updating-the-eii-source-folder-usecase--proxy-settings-in-group-variables)
-- [Non-orchestrated multi node deployment (without k8s)](#non-orchestrated-multi-node-deployment-without-k8s)
-- [Select EII services to run on a particular node in multinode deployment](#select-eii-services-to-run-on-a-particular-node-in-multinode-deployment)
-- [Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes](#execute-ansible-playbook-from-eii_workdiriedgeinsightsbuildansible-control-node-to-deploy-eii-services-in-singlemulti-nodes)
-  - [Deploying EII Using Helm in Kubernetes (k8s) environment](#deploying-eii-using-helm-in-kubernetes-k8s-environment)
+- [Remote node deployment)](#remote-node-deployment)
+- [Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in nodes](#execute-ansible-playbook-from-eii_workdir-iedgeinsights-build-ansible-control-node-to-deploy-eii-services-in-nodes)
+- [Deploying EII Using Helm in Kubernetes (k8s) environment](#deploying-eii-using-helm-in-kubernetes-k8s-environment)
 
 ## Ansible based EII Prequisites setup, provisioning, build & deployment
 
-Ansible is the automation engine which can enable EII deployment across single/multi nodes.
+Ansible is the automation engine which can enable EII deployment across single nodes.
 We need one control node where ansible is installed and optional hosts. We can also use the control node itself to deploy EII
 
 > **Note**
@@ -139,12 +138,12 @@ Update `sudoers` file
    > **Note**
    > The same procedure applies to all other nodes where ansible connection is involved.
 
-## Updating the leader & worker node's information for using remote hosts
+## Updating the leader information for using remote hosts
 
 >**Note**
 > By `default` both control/leader node `ansible_connection` will be `localhost` in single node deployment.
 
-Please follow below steps to update the details of leader/worker nodes for multi node scenario.
+Please follow below steps to update the details of leader node for remote node scenario.
 
 - Update the hosts information in the inventory file `hosts`
 
@@ -166,7 +165,7 @@ Please follow below steps to update the details of leader/worker nodes for multi
     > - The above information is used by ansible to establish ssh connection to the nodes.
     > - control node will always be `ansible_connection=local`, **don't update the control node's information**
     > - To deploy EII in single , `ansible_connection=local` and `ansible_host=localhost`
-    > - To deploy EII on multiple nodes, add hosts(worker1, worker2 etc..) details to the inventory file
+    > - To deploy EII on remote node, `ansible_connection=ssh` and `ansible_host=<remote_node_ip>` and `ansible_user`=<username>
 
 ## Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables
 
@@ -203,11 +202,11 @@ Please follow below steps to update the details of leader/worker nodes for multi
 4. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
 5. Update other optional variables provided if required
 
-## Non-orchestrated multi node deployment (without k8s)
+## Remote node deployment
 
-Below configuration changes need to be made for multi node deployment without k8s
+Below configuration changes need to be made for remote node deployment without k8s
 
-1. Set `multi_node: true` in `group_vars/all.yml` to enable multinode deployment and `false` to enable single node deployment. Update `vars/vars.yml` to the services to run on a specific node in case of multi_node deployment by following [this](#Select-EII-services-to-run-on-a-particular-node-in-multinode-deployment), where in single node deployment all the services based on the `usecase` chosen will be deployed.
+1. Single node deployment all the services based on the `usecase` chosen will be deployed.
 2. Update `docker` registry details in following section if using a custom/private registry
 
     ``` sh
@@ -221,38 +220,9 @@ Below configuration changes need to be made for multi node deployment without k8
     >
     > - Update `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
     > - Unset `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
-    >
 3. If you are using images from docker hub, then set `build: false` and unset `docker_registry` details
 
-## Select EII services to run on a particular node in multinode deployment
-
-- Edit `vars/vars.yml` -> under `nodes` add a specific a node which was defined in the inventory file(`hosts`) and add EII services to `include_services` list
-
-    Eg. if you want leader to run ia_video_ingestion, `vars/vars.yml` should be
-
-    ```yml
-        nodes:
-          leader:
-            include_services:
-                - ia_video_ingestion
-    ```
-
-- If you want to add `worker1` to `nodes` and bring up `ia_visualizer` in `worker1`:
-
-    ```yml
-    nodes:
-      leader:
-        include_services:
-            - ia_video_ingestion
-      worker1:
-        include_services:
-            - ia_visualizer
-    ```
-
-> **Note**
-> If a service is not added to `include_services` list, that service will not deployed on a particular node
-
-## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in single/multi nodes
+## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in control node/remote node
 
  > **Note**
  >
@@ -262,7 +232,7 @@ Below configuration changes need to be made for multi node deployment without k8
 **For Single Point of Execution**
 
    > **Note**:
-   > This will execute all the steps of EII as prequisite, build, provision, deploy & setup leader node for multinode deployement usecase in one shot sequentialy.
+   > This will execute all the steps of EII as prequisite, build, provision, deploy & setup all nodes for deployement usecase in one shot sequentialy.
 
     ```sh
     $ ansible-playbook eii.yml
@@ -291,49 +261,13 @@ Below configuration changes need to be made for multi node deployment without k8
     ansible-playbook eii.yml --tags "build"
     ```
 
-- To generate Certificates in control node
-
-    ```sh
-    ansible-playbook eii.yml --tags "gen_certs"
-    ```
-
-- To generate provision bundle for leader
-
-    ```sh
-    ansible-playbook eii.yml --tags "gen_leader_provision_bundle"
-    ```
-
-- To generate provision bundle for worker nodes
-
-    ```sh
-    ansible-playbook eii.yml --tags "gen_worker_provision_bundle"
-    ```
-
-- To generate eii bundles for leader, worker nodes
+- To generate eii bundles for deployment
 
     ```sh
     ansible-playbook eii.yml --tags "gen_bundles"
     ```
 
-- Provision leader and bring up ETCD server
-
-    ```sh
-    ansible-playbook eii.yml --tags "leader_provision"
-    ```
-
-- Provision worker node
-
-    ```sh
-    ansible-playbook eii.yml --tags "worker_provsion"
-    ```
-
-- Provision EIS Config values to etcd
-
-    ```sh
-    ansible-playbook eii.yml --tags "etcd_provision"
-    ```
-
-- To generate deploy selected services to leader, worker nodes
+- To deploy the eii modules
 
     ```sh
     ansible-playbook eii.yml --tags "deploy"
@@ -346,7 +280,7 @@ Below configuration changes need to be made for multi node deployment without k8
 >   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
 >   2. You need update the `k8s` leader machine as leader node in `hosts` file.
 >   3. Non `k8s` leader machine the `helm` deployment will fail.
->   4. For `helm` deployment `ansible-multinode` parameters will not applicable, Since
+>   4. For `helm` deployment `ansible-remotenode` parameters will not applicable, Since
 >   node selection & pod selection will be done by `k8s` orchestrator.
 >   5. Make sure you are deleting `/opt/intel/eii/data` when switch from `prod` mode to
 >   `dev` mode in all your `k8s` `worker` nodes.
