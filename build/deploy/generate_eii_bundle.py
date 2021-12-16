@@ -139,6 +139,7 @@ class EiiBundleGenerator:
         cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
         cmdlist.append(["cp", "../.env", self.bundle_tag_name])
         cmdlist.append(["cp", "../docker-compose.yml", self.bundle_tag_name])
+        cmdlist.append(["cp", "../eii_config.json", self.bundle_tag_name])
         tar_file = self.bundle_tag_name + ".tar.gz"
         cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
         try:
