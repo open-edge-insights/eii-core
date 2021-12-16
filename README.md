@@ -247,7 +247,7 @@ optional arguments:
 > - The [builder_config.json](./build/builder_config.json) contains keys `subscriber_list`, `publisher_list`, `include_services` and `increment_rtsp_port`.
 > - The `subscriber_list` contains a list of services that act as a subscriber to the stream being published.
 > - The `publisher_list` contains a list of services that publishes a stream of data.
-> - The `include_services` contains the mandatory list of services that are required to be included when builder is run without the -f flag. 
+> - The `include_services` contains the mandatory list of services that are required to be included when builder is run without the -f flag.
 > - The `exclude_services` contains the mandatory list of services that are required to be excluded when builder is run without the -f flag.
 > - The `increment_rtsp_port` is a boolean key used for incrementing the port number for RTSP stream pipelines.
 
@@ -331,7 +331,7 @@ optional arguments:
   > - If the user is running multi instance config for the first time, it is recommended  for the user to not to make changes to the default config.json file and docker-compose.yml file present within the VideoIngestion and VideoAnalytics directory.
   > - If the user is not running multi instance config for the first time, the existing config.json and docker-compose.yml files within the `build/multi_instance` directory will be used to generate the consolidated eii-config.json and docker-compose files.
   > - The docker-compose.yml files present withn the `build/multi_instance` directory will have the updated service_name, container_name, hostname, AppName, ports and secrets for that respective instance.
-  > - The config.json files present within the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.  
+  > - The config.json files present within the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.
 
 ### Running builder to generate benchmarking configs
 
@@ -516,7 +516,7 @@ sudo -E ./provision.sh <path_to_eii_docker_compose_file> --build
   To run etcd_capture:
 
   ```sh
-  docker exec -it ia_etcd python3 etcd_capture.py 
+  docker exec -it ia_etcd python3 etcd_capture.py
   ```
 
 ### Note
@@ -720,7 +720,7 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
 
 ### **To run on HDDL devices**
 
-- Download the full package for OpenVINO toolkit for Linux version "2021.4"
+- Download the full package for OpenVINO toolkit for Linux version "2021 4.2 LTS"
     (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
     (<https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux>).
     Please refer to the OpenVINO links below for to install and running the HDDL daemon on host.
@@ -740,7 +740,7 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
         sudo ln -s <OpenVINO latest installation> openvino
         ```
 
-        Eg: sudo ln -s openvino_2021.4.582 openvino
+        Eg: sudo ln -s openvino_2021.4.752 openvino
 
         In case there are older versions of OpenVINO installed on the host system please un-install them.
 
