@@ -1208,3 +1208,10 @@ if __name__ == '__main__':
 
     # Start yaml parser
     yaml_parser(args)
+    try:
+        subprocess.check_output('./source.sh', stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+                f'{" ".join(cmd)} failed: '
+                f'{exc.output.decode("utf-8")}') from exc
+
