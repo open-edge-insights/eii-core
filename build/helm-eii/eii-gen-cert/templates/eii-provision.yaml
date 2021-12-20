@@ -1,0 +1,89 @@
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: gen-cert
+  name: ia-gen-cert
+  namespace: {{ .Values.namespace }}
+
+spec:
+  restartPolicy: Never
+  {{- if and .Values.DOCKER_USERNAME .Values.DOCKER_PASSWORD }}
+  imagePullSecrets:
+  - name: registryauth
+  {{- end }}
+  containers:
+  - name: ia-gen-cert
+    image: {{ .Values.DOCKER_REGISTRY }}ia_configmgr_agent:{{ .Values.EII_VERSION }}
+    imagePullPolicy: {{ .Values.imagePullPolicy }}
+    volumeMounts:
+    {{ if eq .Values.env.DEV_MODE false}}
+    - name: certs
+      mountPath: /EII/Certificates/
+    {{ end }}
+    - name: eii-config
+      mountPath: /EII/etcd/config/eii_config.json
+      subPath: eii_config.json
+
+    env:
+    - name: SERVICES
+      value: "{{  .Values.env.config_agent_service }}"
+    - name: AppName
+      value: "ConfigAgent"
+    - name: ETCD_HOST
+      value: "{{ .Values.env.etcd_host }}"
+    - name: DEV_MODE
+      value: "{{ .Values.env.DEV_MODE }}"
+    - name: ETCD_CLIENT_PORT
+      value: "{{ .Values.network.etcd.client_port }}"
+    - name: ETCD_PEER_PORT
+      value: "{{ .Values.network.etcd.peer_port }}"
+    - name: ETCD_NAME
+      value: "leader"
+    - name: HOST_IP
+      value: "{{  .Values.env.HOST_IP }}"
+    - name: ETCD_INITIAL_CLUSTER_STATE
+      value: "new"
+    - name: ETCDCTL_API
+      value: "3"
+    - name: no_proxy
+      value: localhost,127.0.0.1,0.0.0.0:{{ .Values.network.etcd.client_port }},0.0.0.0:{{ .Values.network.etcd.peer_port }}
+    - name: NO_PROXY
+      value: localhost,127.0.0.1,0.0.0.0:{{ .Values.network.etcd.client_port }},0.0.0.0:{{ .Values.network.etcd.peer_port }}
+    - name: ETCD_PREFIX
+      value: "{{ .Values.env.etcd_prefix }}"
+    - name: ETCD_ROOT_PASSWORD
+      value: eii123
+    - name: GENCERT
+      value: 'true'
+
+  volumes:
+  - name: certs
+    hostPath:
+      path: {{ .Values.env.EII_HOME_DIR }}build/helm-eii/eii-deploy/Certificates
+
+  - name: eii-config
+    configMap:
+      name: etcd-provision-input
+
+

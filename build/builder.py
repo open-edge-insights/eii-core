@@ -44,6 +44,8 @@ SCAN_DIR = ".."
 dev_mode = False
 # List to store list of AppNames
 appname_list = []
+# Initializing config agent service list
+config_agent_service = ""
 # Initializing multi instance related variables
 num_multi_instances = 0
 used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
@@ -513,14 +515,18 @@ def helm_yaml_merger(app_list, args):
     pvc_merged_yaml = ""
     helm_values_dict = []
     value_keys = ["env", "config", "volumes"]
-    helm_provision_values_dict = []
+    helm_gen_cert_values_dict = []
     ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
     helm_deploy_dir = "./helm-eii/eii-deploy/"
-    helm_provision_dir = "./helm-eii/eii-provision"
+    helm_gen_cert_dir = "./helm-eii/eii-gen-cert"
+    global config_agent_service
+    os.environ["config_agent_service"] = config_agent_service.rsplit(',', 1)[0]
     # Load the common values.yaml
+
     if os.path.isdir(helm_deploy_dir + "templates"):
         shutil.rmtree(helm_deploy_dir + "templates")
     os.mkdir(helm_deploy_dir + "templates")
+
     with open(helm_deploy_dir +"../common-values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
@@ -537,6 +543,7 @@ def helm_yaml_merger(app_list, args):
         data = pvc_yaml_file.read()
         pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
+
     app_list.extend(override_helm_apps_list)
     for app_path in app_list:
         helm_app_path = os.path.join(app_path + "/helm")
@@ -544,7 +551,7 @@ def helm_yaml_merger(app_list, args):
         if args.override_directory is not None:
             if args.override_directory in helm_app_path:
                 app_name = app_path.split("/")[-2]
-
+        
         # Copying all templates files of each eii modules to
         # ./helm-eii/eii-deploy/templates.
         yaml_files = os.listdir(helm_app_path + "/templates")
@@ -554,6 +561,11 @@ def helm_yaml_merger(app_list, args):
                 not in ignore_template_copy:
                 shutil.copy(helm_yaml_file, helm_deploy_dir + "templates")
 
+        shutil.copy("./helm-eii/common-eii-provision.yaml", helm_deploy_dir + "templates/eii-provision.yaml")
+        shutil.copy("./helm-eii/common-secrets.yaml", helm_deploy_dir + "templates/secrets.yaml")
+        shutil.copy("./eii_config.json", helm_gen_cert_dir + "/eii_config.json")
+
+        
         # Load the required values.yaml files
         with open(helm_app_path + "/values.yaml", 'r') as values_file:
             data = ruamel.yaml.round_trip_load(values_file,
@@ -584,29 +596,29 @@ def helm_yaml_merger(app_list, args):
 
 
     # Updating values.yaml for provision
-    with open(helm_provision_dir +"/values.yaml", 'r') as \
+    with open(helm_gen_cert_dir +"/values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
-        helm_provision_values_dict.append(data)
+        helm_gen_cert_values_dict.append(data)
 
     # helm_provision_dict contains the provisioning values for helm
-    helm_provision_dict = helm_provision_values_dict[0]
-    for var in helm_provision_dict:
+    helm_gen_cert_dict = helm_gen_cert_values_dict[0]
+    for var in helm_gen_cert_dict:
         if var not in value_keys:
             if os.environ.get(var) is not None:
                 # Updating outer variables in values yaml file for provision
-                helm_provision_dict.update({var: os.getenv(var)})
+                helm_gen_cert_dict.update({var: os.getenv(var)})
         elif var == "env":
-            for i in helm_provision_dict[var]:
+            for i in helm_gen_cert_dict[var]:
                 # Updating environment variables inside env key in values yaml file for provision
                 if os.environ.get(i) is not None:
                     if i == "DEV_MODE" or i == "PROFILING_MODE":
-                        helm_provision_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                        helm_gen_cert_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
                     else:
-                        helm_provision_dict[var].update({i: os.getenv(i)})
-    with open(helm_provision_dir +"/values.yaml", 'w') as value_file:
-        ruamel.yaml.round_trip_dump(helm_provision_dict, value_file)
+                        helm_gen_cert_dict[var].update({i: os.getenv(i)})
+    with open(helm_gen_cert_dir +"/values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_gen_cert_dict, value_file)
 
 
 
@@ -813,7 +825,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 yaml_files_dict.append(data)
 
     # Update SERVICES of config-agent with AppNames of all services
-    config_agent_service = ""
+    global config_agent_service
     for var in yaml_files_dict[1:]:
         if "ia_configmgr_agent" in var["services"]:
             config_agent_service = \

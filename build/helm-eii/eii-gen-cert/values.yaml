@@ -24,22 +24,27 @@ DOCKER_REGISTRY:
 DOCKER_USERNAME:
 DOCKER_PASSWORD:
 imagePullPolicy: IfNotPresent
-storageClassName: manual
-
 env:
   DEV_MODE:
-  etcd_root_password: eii123
+  etcd_root_password:
+  etcd_prefix:
+  etcd_host:
+  EII_INSTALL_PATH:
+  HOST_IP:
+  config_agent_service:
+  EII_HOME_DIR:
 
 network:
-    etcd:
-      client_port: 8379
-      peer_port: 8380
-      ext:
-        client_port: 32379
+  etcd:
+    client_port: 8379
+    peer_port: 8380
+    ext:
+      client_port: 32379
 
 volumes:
-  etcd_data:
-    name: etcd-data
-    size: 20Mi
-    location: "/EII/etcd/data/"
-    hostpath: "/opt/intel/eii/data"
+  eii_socket:
+    name: vol-eii-socket
+    size: 10Mi
+    location: "/EII/sockets"
+    hostpath: "/opt/intel/eii/sockets"
+

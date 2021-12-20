@@ -18,16 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
----
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: ConfigMap
 metadata:
   namespace: {{ .Values.namespace }}
-  name: {{ .Values.volumes.etcd_data.name }}
-spec:
-  storageClassName: {{ .Values.storageClassName }}
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: {{ .Values.volumes.etcd_data.size }}
+  name: etcd-provision-input
+data:
+  eii_config.json: |-
+{{ .Files.Get "eii_config.json" | indent 4 }}

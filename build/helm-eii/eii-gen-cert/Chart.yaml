@@ -19,8 +19,8 @@
 # SOFTWARE.
 
 apiVersion: v2
-name: eii-provision
-description: A Helm chart for EII provisioning
+name: eii-gen-cert
+description: A Helm chart for EII generate cert and create configmap
 
 # A chart can be either an 'application' or a 'library' chart.
 #
