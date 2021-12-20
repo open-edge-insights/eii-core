@@ -48,8 +48,8 @@ server.host: "${SERVER_HOST}"
 # Enables SSL and paths to the PEM-format SSL certificate and SSL key files, respectively.
 # These settings enable SSL for outgoing requests from the Kibana server to the browser.
 server.ssl.enabled: true
-server.ssl.certificate: /run/secrets/etcd_kibana_cert
-server.ssl.key: /run/secrets/etcd_kibana_key
+server.ssl.certificate: /run/secrets/remote_logging/kibana_server_certificate.pem
+server.ssl.key: /run/secrets/remote_logging/kibana_server_key.pem
 
 # Optional settings that provide the paths to the PEM-format SSL certificate and key files.
 # These files validate that your Elasticsearch backend uses the same key files.
