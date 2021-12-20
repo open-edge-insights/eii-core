@@ -372,6 +372,7 @@ Using the previous command for 3 instances, the `build/multi_instance` directory
   > - If the user is not running multi instance config for the first time, the existing config.json and docker-compose.yml files within the `build/multi_instance` directory will be used to generate the consolidated eii-config.json and docker-compose files.
   > - The docker-compose.yml files present withn the `build/multi_instance` directory will have the updated service_name, container_name, hostname, AppName, ports and secrets for that respective instance.
   > - The config.json files present within the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.
+  > - The user needs to ensure that all the containers are down before running the multi-instance configuration. Please run `docker-compose down` before running `builder.py` for multi-instance configuration.
 
 ### Generate benchmarking configs using builder
 
