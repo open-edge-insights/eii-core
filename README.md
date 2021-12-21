@@ -596,6 +596,8 @@ Use the following command to run all the EII services in the `docker-compose.yml
 
 ```sh
 xhost +
+docker-compose up -d ia_configmgr_agent # workaround for now, we are exploring on getting this and the sleep avoided
+sleep 30 # If any failures like configmgr data store client certs or msgbus certs failures, please increase this time to a higher value
 docker-compose up -d
 ```
 

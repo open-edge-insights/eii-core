@@ -1123,6 +1123,8 @@ def yaml_parser(args):
     # For building EII services
     $ docker-compose -f docker-compose-build.yml build
     # For running EII services
+    $ docker-compose up -d ia_configmgr_agent # workaround for now, we are exploring on getting this and the sleep avoided
+    $ sleep 30 # If any failures like configmgr data store client certs or msgbus certs failures, please increase this time to a higher value
     $ docker-compose up -d
     # For pushing EII docker images to registry
     (useful in multi-node deployment scenarios)
