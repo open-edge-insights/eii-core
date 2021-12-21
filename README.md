@@ -16,10 +16,9 @@
     - [Generate multi-instance configs using builder](#generate-multi-instance-configs-using-builder)
     - [Generate benchmarking configs using builder](#generate-benchmarking-configs-using-builder)
     - [Add EII services](#add-eii-services)
-  - [Task 4: Provision EII](#task-4-provision-eii)
     - [Distribute the EII container images](#distribute-the-eii-container-images)
     - [List of EII services](#list-of-eii-services)
-  - [Task 5: Build and run the EII video and timeseries use cases](#task-5-build-and-run-the-eii-video-and-timeseries-use-cases)
+  - [Task 4: Build and run the EII video and timeseries use cases](#task-4-build-and-run-the-eii-video-and-timeseries-use-cases)
     - [Build EII stack](#build-eii-stack)
     - [Run EII services](#run-eii-services)
     - [Push required EII images to docker registry](#push-required-eii-images-to-docker-registry)
@@ -33,8 +32,7 @@
   - [Custom User Defined Functions](#custom-user-defined-functions)
 - [Time-series analytics](#time-series-analytics)
 - [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
-  - [**Without orchestrator**](#without-orchestrator)
-  - [**With k8s orchestrator**](#with-k8s-orchestrator)
+    - [**With k8s orchestrator**](#with-k8s-orchestrator)
 - [EII tools](#eii-tools)
 - [EII uninstaller](#eii-uninstaller)
 - [Debugging options](#debugging-options)
@@ -70,8 +68,7 @@ To install EII, perform the tasks in the following order:
 - [Task 1: Get EII codebase from GitHub](#task-1--get-eii-codebase-from-github)  
 - [Task 2: Install prerequisites](#task-2--install-prerequisites)  
 - [Task 3: Generate deployment and configuration files](#task-3--generate-deployment-and-configuration-files)  
-- [Task 4: Provision EII](#task-4--provision-EII)  
-- [Task 5: Build and run the EII video and timeseries use cases](#task-5-build-and-run-the-eii-video-and-timeseries-use-cases)
+- [Task 4: Build and run the EII video and timeseries use cases](#task-4-build-and-run-the-eii-video-and-timeseries-use-cases)
 
 ## Task 1: Get EII codebase from GitHub
 
@@ -106,7 +103,7 @@ To get the EII codebase complete the following steps:
 
 ## Task 2: Install prerequisites
 
-The `pre_requisites.sh` script automates the installation and configuration of all the prerequisites required for provisioning, building, and running the EII stack. The prerequisites are as follows:
+The `pre_requisites.sh` script automates the installation and configuration of all the prerequisites required for building and running the EII stack. The prerequisites are as follows:
 
 - docker daemon
 - docker client
@@ -272,7 +269,7 @@ Table: Consolidated files
 
 > **Note**
 >
-> - If you modify an individual EII app, service directories files, or the `build/.env` file then run the `builder.py` script before provisioning and running the EII stack. The changes are saved in the consolidated files.
+> - If you modify an individual EII app, service directories files, or the `build/.env` file then run the `builder.py` script before running the EII stack. The changes are saved in the consolidated files.
 > - Manual editing is not recommended for modifying the consolidated files.Instead make changes to the respective files in the EII app or services directories and use the `build` or `builder.py` script to generate the consolidated files.
 
 To generate the consolidated files, run the following command:
@@ -396,7 +393,7 @@ This section provides information about adding a new service, subscribing to the
 
 Add a service to the EII stack as a new directory in the [IEdgeInsights](./) directory. The builder registers and runs any service present in its own directory in the [IEdgeInsights](./) directory. The directory should contain the following:
 
-- A `docker-compose.yml` file to deploy the service as a docker container. The `AppName` is present in the `environment` section in the `docker-compose.yml` file. Before adding the `AppName` to the main `build/provision/config/eii_config.json`, it is appended to the `config` and `interfaces` as `/AppName/config` and `/AppName/interfaces`.
+- A `docker-compose.yml` file to deploy the service as a docker container. The `AppName` is present in the `environment` section in the `docker-compose.yml` file. Before adding the `AppName` to the main `build/eii_config.json`, it is appended to the `config` and `interfaces` as `/AppName/config` and `/AppName/interfaces`.
 - A `config.json` file that contains the required config for the service to run after it is deployed. The `config.json` mainly consists of the following:
   - A `config` section, which includes the configuration-related parameters that are required to run the application.
   - An `interfaces` section, which includes the configuration of how the service interacts with other services of the EII stack.
@@ -459,89 +456,6 @@ The `config.json` file consists of the following key and values:
 > - For more information on the `interfaces` key responsible for the EII MessageBus endpoint configuration, refer [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces).
 > For more details on the Etcd secrets configuration, refer [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md).
 
-## Task 4: Provision EII
-
-You must provision EII before deploying it on any node. Provisioning starts the etcd as a container and loads it with the required configuration to run EII on single node or multi-node cluster setup.
-
-Provisioning consists of the following actions:
-
-- loading initial the etcd values from json file located at `build/provision/config/eii_config.json`.
-- for secure mode, generating ZMQ secret/public keys for each app and putting them in the etcd.
-- generating the required X509 certs and putting them in etcd.
-- all server certificates are generated with 127.0.0.1, localhost, and HOST_IP mentioned in build/.env.
-- the `HOST_IP` will be automatically detected when the server certificates are generated, if `HOST_IP` is blank in `build/.env`.
-
-### Start EII in Dev mode
-
-> **Note**
-> By default EII is provisioned in the secure mode.
-> It is recommended to not use EII in the Dev mode in a production environment because all the security feaures are disabled in the Dev mode.
-
-Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
-
-To provision EII in the developer mode, complete the following steps:  
-
-- Step 1. Update DEV_MODE=true in build/.env.  
-- Step 2. Rerun the build/builder.py to regenerate the consolidated files
-
-### Start EII in Profiling mode
-
-The Profiling mode is used for collecting the performance statistics in EII. In this mode, each EII component makes a record of the time needed for processing any single frame. These statistics are collected in the visualizer where System Integrtors (SI) can see the end-to-end processing time and the end-to-end average time for individual frames.
-
-To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file, set the environment variable `PROFILING` to `True`.
-
-**Optional:**
-
-1. For capturing the data back from the etcd cluster to a json file, run the following command:
-
-  To run etcd_capture:
-  
-  ```sh
-  docker exec -it ia_etcd python3 etcd_capture.py 
-  ```
-  
-  > Note: etcd_capture_data.json will be stored in /opt/intel/eii/data/etcd directory.
-
-2. Any change in EII config values in the json file located at [build/provision/config/eii_config.json](build/provision/config/eii_config.json) can be updated in the etcd in a single step without doing the provisioning again. This can be done using following command:
-
-  To run etcd_config_update:
-  
-  ```sh
-  docker exec -it ia_etcd python3 etcd_config_update.py
-  ```
-
-For each EII services defined in the `[WORK_DIR]/IEdgeInsights/build/docker-compose.yml` file, there is an `ENV` to determine whether `PROFILING` should be enabled based on the setting in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The following figure provides an example from the Visualizer service.
-
-![example of the Profiling mode for the visualizer service](img/profiling-mode.png)
-
-> **Note**
->
-> - **Optional** During provisioning, if any existing volumes-related error occurs, then remove the existing volumes by running the EII uninstaller script `eii_uninstaller.sh`.
-> - Run all commands mentioned in this section from the `[WORKDIR]/IEdgeInsights/build/provision` directory.
-
-The following script starts `etcd` as a container and provisions. Provide the `docker-compose` file as an argument for which provisioning will be done.
-
-   ```sh
-    cd [WORKDIR]/IEdgeInsights/build/provision
-    sudo -E ./provision.sh <path_to_eii_docker_compose_file>
-    # eq. sudo -E ./provision.sh ../docker-compose.yml
-   ```
-
-- **Optional**: By default, the provisioning step will pull the provisioning images from the docker registry. To build the images, provide the `--build` flag in the provisioning command. For example,
-
- ```sh
- sudo -E ./provision.sh <path_to_eii_docker_compose_file> --build
- # eq. sudo -E ./provision.sh ../docker-compose.yml --build
- ```
-
-This command will only build the provisioining images and it will not do any other functions of the provisioning script.
-
-- **Optional:** For capturing the data from the etcd to a json file, run the [etcd_capture.sh](build/provision/etcd_capture.sh) script. Run the following command to complete this action:
-
-```sh
- ./etcd_capture.sh
-```
-
 ### Distribute the EII container images
 
 The EII services are available as pre-built container images in the Docker Hub at https://hub.docker.com/u/openedgeinsights. To access the services that are not available in the Docker Hub, build from source before running the `docker-compose up -d` command.
@@ -555,7 +469,7 @@ cd [WORKDIR]/IEdgeInsights/build
 docker-compose -f docker-compose-build.yml build ia_eiibase
 docker-compose -f docker-compose-build.yml build ia_common
 # Assuming here that the `python3 builder.py` step has been executed and ia_kapacitor
-# Service exists in the generated compose files and also, provisioning step is done
+# Service exists in the generated compose files
 docker-compose -f docker-compose-build.yml build ia_kapacitor
 docker-compose up -d
 # Push all the applicable EII images to <docker_registry>. Ensure to use the same DOCKER_REGISTRY value on the deployment machine while deployment
@@ -565,8 +479,7 @@ docker-compose -f docker-compose-push.yml push
 The list of pre-built container images that are accessible at https://hub.docker.com/u/openedgeinsights is as follows:
 
 - **Provisioning images**
-  - openedgeinsights/ia_etcd_provision
-  - openedgeinsights/ia_etcd
+  - openedgeinsights/ia_configmgr_agent
 - **Common EII images applicable for video and timeseries use cases**
   - openedgeinsights/ia_etcd_ui
   - openedgeinsights/ia_influxdbconnector
@@ -609,7 +522,7 @@ Based on requirement, you can include or exclude the following EII services in t
   - [Grafana](https://github.com/open-edge-insights/ts-grafana/blob/master/README.md)
   - [ZMQ Broker](https://github.com/open-edge-insights/eii-zmq-broker/blob/master/README.md)
 
-## Task 5: Build and run the EII video and timeseries use cases
+## Task 4: Build and run the EII video and timeseries use cases
 
   > **Note**
   >
@@ -655,6 +568,30 @@ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 >
 > If the images tagged with `EII_VERSION` label as in the [build/.env](build/.env) do not exist locally in the system but are available in the Docker Hub the images will be pulled during the `docker-compose up`command.
 
+### EII Provisioning
+
+The EII provisioning is taken care by the `ia_configmgr_agent` service which gets lauched as part of the EII stack.
+For more details on the ConfigMgr Agent component, please refer: [https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-configmgr-agent/-/blob/feature/pumpkincreek/README.md](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-configmgr-agent/-/blob/feature/pumpkincreek/README.md)
+
+#### Start EII in Dev mode
+
+> **Note**
+> By default EII is provisioned in the secure mode.
+> It is recommended to not use EII in the Dev mode in a production environment because all the security feaures are disabled in the Dev mode.
+
+Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
+
+To provision EII in the developer mode, complete the following steps:  
+
+- Step 1. Update DEV_MODE=true in build/.env.  
+- Step 2. Re-run the build/builder.py to regenerate the consolidated files
+
+#### Start EII in Profiling mode
+
+The Profiling mode is used for collecting the performance statistics in EII. In this mode, each EII component makes a record of the time needed for processing any single frame. These statistics are collected in the visualizer where System Integrtors (SI) can see the end-to-end processing time and the end-to-end average time for individual frames.
+
+To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file, set the environment variable `PROFILING` to `true`.
+
 Use the following command to run all the EII services in the `docker-compose.yml` file
 
 ```sh
@@ -685,7 +622,10 @@ For detailed description on configuring different types of cameras and filter al
 
 ### Use video accelerators in ingestion and analytics containers
 
-EII supports running inference on `CPU`, `GPU`, `MYRIAD (NCS2)`, and `HDDL` devices by accepting the `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"), part of the `udf` object configuration in the `udfs` key. The `device` field in the UDF config of `udfs` key in the `VideoIngestion` and `VideoAnalytics` configs can either be changed in the `build/provision/config/eii_config.json` before provisioning (or re-provision it after the change to the app's `config.json`, re-running `builder.py` script and then re-running the provisioning script) or at the run-time via EtcdUI.
+EII supports running inference on `CPU`, `GPU`, `MYRIAD (NCS2)`, and `HDDL` devices by accepting the `device` value ("CPU"|"GPU"|"MYRIAD"|"HDDL"),
+part of the `udf` object configuration in the `udfs` key. The `device` field in the UDF config of `udfs` key in the `VideoIngestion` and `VideoAnalytics`
+configs can be updated at runtime via [EtcdUI](https://github.com/open-edge-insights/eii-etcd-ui) interface, the `VideoIngestion` and `VideoAnalytics`
+services will auto-restart.
 
 For more details on the UDF config, refer [common/udfs/README.md](https://github.com/open-edge-insights/video-common/blob/master/udfs/README.md).
 
@@ -840,23 +780,14 @@ EII supports the following custom User Defined Functions (UDFs):
 
 For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
 
-The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated `docker-compose.yml` and consolidated `build/provision/config/eii_config.json` of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
+The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated `docker-compose.yml` and consolidated `build/eii_config.json` of the EII stack for timeseries use case when built via `builder.py` as called out in previous steps.
 
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
 
 The sample temperature sensor can be simulated using the [tools/mqtt/README.md](https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md) application.
 
-## EII multi node cluster provision and deployment
-
-### **Without orchestrator**
-
-By default EII is provisioned with single node cluster.
-
-One of the below options could be tried out:
-
-- [`Recommended`] For deploying through ansible playbook on multiple nodes automatically, prefer [build/ansible/README.md](build/ansible/README.md#updating-the-eii-source-folder-usecase--proxy-settings-in-group-variables)
-- To deploy EII on multiple nodes using docker registry and provision etcd, refer [build/deploy/README.md](build/deploy/README.md).
+## EII multi node cluster deployment
 
 ### **With k8s orchestrator**
 
