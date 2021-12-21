@@ -102,9 +102,26 @@
       tags: [load_env]
     - role: build
       tags: [build]
-    - role: gen_bundles
-      tags: [gen_bundles]
+    - {
+        role: gen_bundles,
+        tags: [gen_bundles],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
 - hosts: leader
   roles:
-    - role: deploy
-      tags: [deploy]
+    - {
+        role: deploy,
+        tags: [deploy],
+        when: DEPLOYMENT_MODE == "docker-compose"
+      }
+    - {
+        role: helm_k8s_prerequisites,
+        tags: ["helm_k8s_prerequisites"],
+        when: DEPLOYMENT_MODE == "k8s"
+      }
+    - {
+        role: helm_k8s_deploy,
+        tags: ["helm_k8s_deploy"],
+        when: DEPLOYMENT_MODE == "k8s"
+
+      }

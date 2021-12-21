@@ -1,23 +1,13 @@
 ---
 
-- name: Set Directory permission for Certificates as accesible to leader
+- name: "Adding helm key"
   become: yes
-  ansible.builtin.file:
-    path: "{{ EII_SOURCE_PATH }}/build/provision/Certificates/"
-    state: directory
-    recurse: yes
-    mode: '0755'
-    
-- name: Set Directory permission for Certificates as accesible to leader
+  shell: "curl https://baltocdn.com/helm/signing.asc | sudo apt-key add - && sudo apt-get install apt-transport-https --yes"
+
+- name: "Adding helm url to apt source list"
   become: yes
-  ansible.builtin.file:
-    path: "{{ EII_SOURCE_PATH }}/build/provision/rootca/"
-    state: directory
-    recurse: yes
-    mode: '0755'
-    
-- name: Copy Certificates to eii-helm provision
+  shell: "echo 'deb https://baltocdn.com/helm/stable/debian/ all main' | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list"
+
+- name: "Installing Helm"
   become: yes
-  shell: "cp -rf Certificates/ {{ EII_SOURCE_PATH }}/build/helm-eii/eii-provision/"
-  args:
-    chdir: "{{ EII_SOURCE_PATH }}/build/provision/"
+  apt: update_cache=yes name=helm state=latest

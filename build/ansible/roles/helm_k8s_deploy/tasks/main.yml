@@ -20,12 +20,12 @@
 # SOFTWARE.
 
 - debug:
-    msg: "Installing Helm base in K8s leader node"
+    msg: "Deploying helmchart in HELM/k8s Leader Node"
 
-- name: Cleaning directory {{ EII_DEPLOY_PATH }} if it exist in {{ inventory_hostname }}
+- name: Cleaning directory {{ EII_DEPLOY_PATH }}/build if it exist in {{ inventory_hostname }}
   become: yes
   ansible.builtin.file:
-    path: "{{ EII_DEPLOY_PATH }}"
+    path: "{{ EII_DEPLOY_PATH }}/build"
     state: absent
 
 - name: Cleaning directory {{ EII_INSTALL_PATH }}/data if it exists
@@ -68,22 +68,10 @@
     owner: "{{ EII_USER_NAME }}"
     group: "{{ EII_USER_NAME }}"
 
-- name: "Adding helm key"
-  become: yes
-  shell: "curl https://baltocdn.com/helm/signing.asc | sudo apt-key add - && sudo apt-get install apt-transport-https --yes"
-
-- name: "Adding helm url to apt source list"
-  become: yes
-  shell: "echo 'deb https://baltocdn.com/helm/stable/debian/ all main' | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list"
-
-- name: "Installing Helm"
-  become: yes
-  apt: update_cache=yes name=helm state=latest
-
-- name: Create directory {{ EII_DEPLOY_PATH }}/helm if it does not exist in {{ inventory_hostname }}
+- name: Create directory {{ EII_DEPLOY_PATH }}/build/helm if it does not exist in {{ inventory_hostname }}
   become: yes
   ansible.builtin.file:
-    path: "{{ EII_DEPLOY_PATH }}/helm"
+    path: "{{ EII_DEPLOY_PATH }}/build/"
     state: directory
     mode: '0755'
 
@@ -91,27 +79,27 @@
   become: yes
   ansible.builtin.copy:
     src: "{{ EII_SOURCE_PATH }}/build/helm-eii"
-    dest: "{{ EII_DEPLOY_PATH }}/helm/"
-    follow: yes
-
-- name: Copy docker-compose yml from control node to leader node
-  become: yes
-  ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/docker-compose.yml"
-    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    dest: "{{ EII_DEPLOY_PATH }}/build/"
     follow: yes
 
 - name: Copy eii_config.json from control node to leader node
   become: yes
   ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/provision/config/eii_config.json"
-    dest: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
+    src: "{{ EII_SOURCE_PATH }}/build/eii_config.json"
+    dest: "{{ EII_DEPLOY_PATH }}/build/helm-eii/eii-gen-cert"
+    follow: yes
+
+- name: Copy eii_config.json from control node to leader node
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/eii_config.json"
+    dest: "{{ EII_DEPLOY_PATH }}/build/helm-eii/eii-deploy"
     follow: yes
 
 - name: Getting Existing eii-deploy status
   shell: "helm list -q | grep eii-deploy | wc -l"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_deploy
 
 - debug:
@@ -120,84 +108,67 @@
 - name: Stopping/Uninstalling existing helm eii-deploy chart
   shell: "helm uninstall eii-deploy"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_deploy_uninstall_status
   when: helm_eii_deploy.stdout != "0"
 
-- name: Getting Existing eii-provision status
-  shell: "helm list -q | grep eii-provision | wc -l"
+- name: Getting Existing eii-gen-cert status
+  shell: "helm list -q | grep eii-gen-cert | wc -l"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_provision
 
 - debug:
     msg: "{{ helm_eii_provision.stdout }}"
 
-- name: Stopping/Uninstalling existing helm eii-provision chart
-  shell: "helm uninstall eii-provision"
+- name: Stopping/Uninstalling existing helm eii-gen-cert chart
+  shell: "helm uninstall eii-gen-cert"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_provision_uninstall_status
   when: helm_eii_provision.stdout != "0"
 
-- name: Get the ia-etcd container name
-  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
-  args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
-  register: get_etcd_container_name
-  when: helm_eii_provision.stdout != "0"
-
-- debug:
-    msg: "Waiting for Terminating Existing ia-etcd container"
-  when: helm_eii_provision.stdout != "0"
-
-- name: "Wait for ia-etcd container in Terminated/deleted state"
-  shell: "kubectl wait --for=delete pod/{{ get_etcd_container_name.stdout }} --timeout=60s"
-  when: helm_eii_provision.stdout != "0"
-
-- debug:
-    msg: "Old ia_etcd container is terminated succesfully"
-
 - name: "Provisioning EII Using Helm"
-  shell: "helm install eii-provision eii-provision/"
+  shell: "helm install eii-gen-cert eii-gen-cert/"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: command_out
 
 - debug:
     msg: "{{ command_out.stdout }}"
 
-- name: Get the ia-etcd container name
-  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-etcd | head -n 1"
+- name: Get the ia-gen-cert container name
+  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-gen-cert | head -n 1"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/"
-  register: get_ia_etcd_name
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
+  register: get_ia_gen_cert
 
 - debug:
-    msg: "Waiting for ia-etcd container to up"
+    msg: "Waiting for ia-gen-cert container to up"
 
-- name: "Wait for ia-etcd container to be in running state"
-  shell: "kubectl wait --for=condition=ready pod/{{ get_ia_etcd_name.stdout }} --timeout=-1s"
+- name: "Wait for ia-gen-cert container to be in running state"
+  shell: "kubectl wait --for=condition=ready pod/{{ get_ia_gen_cert.stdout }} --timeout=10s"
 
 - debug:
-    msg: "ia-etcd container is up and running fine"
+    msg: "ia-gen-cert container is up and running fine"
+
+- name: Wait for 10 seconds for generating Certificates
+  wait_for:
+    timeout: 10
+
+- name: Set Directory permission for Certificates as accesible to leader
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}/build/helm-eii/eii-deploy/Certificates/"
+    state: directory
+    recurse: yes
+    mode: '0777'
 
 - name: "Deploy EII Using Helm"
   shell: "helm install eii-deploy eii-deploy/"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii"
+    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii"
   register: command_out
-
-- debug:
-    msg: "{{ command_out.stdout }}"
-
-- name: Removing Certificates from helm directory
-  become: yes
-  shell: "rm -rf Certificates/"
-  args:
-    chdir: "{{ EII_DEPLOY_PATH }}/helm/helm-eii/eii-provision/"
-  register: command_out
-  when: retain_certs_in_k8s_leader_machine == false
 
 - debug:
     msg: "{{ command_out.stdout }}"
