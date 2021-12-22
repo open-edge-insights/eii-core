@@ -28,7 +28,19 @@ This script installs all the EII libraries & their respective required dependenc
 
     ```sh
     sudo apt-get update
-    sudo apt-get install -y libcjson-dev libzmq5-dev zlib1g-dev
+    ```
+
+    For Ubuntu-20.04 
+    ```sh
+    sudo apt-get install -y libcjson-dev libzmq5-dev zlib1g-dev`
+    ```
+
+    For Ubuntu-18.04 
+    ```sh
+    sudo apt-get install -y libjson-c-dev libzmq3-dev zlib1g-dev
+    ```
+
+    ```sh
     mkdir -p /opt/intel/eii/
     sudo -E CMAKE_INSTALL_PREFIX="/opt/intel/eii" ./eii_libs_installer.sh
     ```
