@@ -1088,17 +1088,6 @@ def yaml_parser(args):
 
     temp = copy.deepcopy(yml_dict)
     build_params.remove("image")
-    
-    # Writing docker-compose-push.yml file.
-    for k, v in temp.items():
-        if(k == "services"):
-            for service, service_dict in v.items():
-                # The docker-compose-push.yml contains the dummy build: . key
-                # which is required to push the EII service docker images
-                temp["services"][service]["build"] = "."
-                temp["services"][service].move_to_end("build", last=False)
-    with open(DOCKER_COMPOSE_PUSH_PATH, 'w') as docker_compose_file:
-        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
 
     # Writing docker-compose.yml file.
     for k, v in yml_dict.items():
@@ -1115,6 +1104,16 @@ def yaml_parser(args):
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
          ruamel.yaml.round_trip_dump(temp, docker_compose_file)
     
+    # Writing docker-compose-push.yml file.
+    for k, v in temp.items():
+        if(k == "services"):
+            for service, service_dict in v.items():
+                # The docker-compose-push.yml contains the dummy build: . key
+                # which is required to push the EII service docker images
+                temp["services"][service]["build"] = "."
+                temp["services"][service].move_to_end("build", last=False)
+    with open(DOCKER_COMPOSE_PUSH_PATH, 'w') as docker_compose_file:
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
 
     dev_mode_str = "PROD"
     if dev_mode:
