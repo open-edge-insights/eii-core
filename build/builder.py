@@ -977,9 +977,10 @@ def yaml_parser(args):
         print("Parsing through directory to fetch required services...")
         dir_list = [f.name for f in os.scandir(eii_dir) if
                     (f.is_dir() or os.path.islink(f))]
-        # Extend the dir_list to include the subdirectories from the 
-        # file builder_config.json- include_services key
-        dir_list.extend(include_services)
+        # Extend the dir_list for time-series usecase to include the subdirectories
+        # from the file builder_config.json- include_services key
+        if "Telegraf" in dir_list:
+            dir_list.extend(include_services)
         # Exclude the services mentioned in the file
         # builder_config.json- exclude_services key
         for service in exclude_services:
