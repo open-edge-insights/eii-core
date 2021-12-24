@@ -22,7 +22,7 @@ version: '3.6'
 
 services:
   elk_elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.4.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
     container_name: elk_elasticsearch
     hostname: elasticsearch
     security_opt:
@@ -47,7 +47,7 @@ services:
       driver: local
 
   elk_logstash:
-    image: docker.elastic.co/logstash/logstash:7.4.1
+    image: docker.elastic.co/logstash/logstash:6.8.22
     container_name: elk_logstash
     hostname: logstash
     security_opt:
@@ -68,7 +68,7 @@ services:
       driver: local
 
   elk_kibana:
-    image: docker.elastic.co/kibana/kibana:7.4.1
+    image: docker.elastic.co/kibana/kibana:6.8.22
     container_name: elk_kibana
     hostname: kibana
     network_mode: host
