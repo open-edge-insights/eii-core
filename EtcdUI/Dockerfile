@@ -41,7 +41,7 @@ RUN chown -R ${EII_UID}:${EII_UID} /var/log/nginx/ && \
 
 
 COPY etcdkeeper ./etcdkeeper/
-
+ENV GOPROXY "https://proxy.golang.org"
 RUN cd ./etcdkeeper/src/etcdkeeper \
     && go build -o etcdkeeper main.go \
     && mv etcdkeeper ../../
