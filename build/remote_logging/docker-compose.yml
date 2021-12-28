@@ -49,7 +49,7 @@ services:
       driver: local
 
   elk_logstash:
-    image: docker.elastic.co/logstash/logstash:6.8.22
+    image: docker.elastic.co/logstash/logstash:7.16.2
     container_name: elk_logstash
     hostname: logstash
     networks:
@@ -72,7 +72,7 @@ services:
       driver: local
 
   elk_kibana:
-    image: docker.elastic.co/kibana/kibana:6.8.22
+    image: docker.elastic.co/kibana/kibana:7.16.2
     container_name: elk_kibana
     hostname: kibana
     networks:
