@@ -107,6 +107,23 @@ class EiiBundleGenerator:
             print("Exception Occured", err)
             sys.exit(0)
 
+    def generate_config_json(self):
+        self.inc_services = []
+        self.update_config_file = {}
+        for service in self.config['services'].keys():
+            self.inc_services.append(self.config['services']
+                    [service]['environment']['AppName'])
+        with open('../eii_config.json','r') as cnf:
+            self.cnf_file = json.load(cnf)
+        self.conf_keys = self.cnf_file.keys()
+        self.update_config_file.update({"/GlobalEnv/": self.cnf_file["/GlobalEnv/"]})
+        for app_name_key in self.inc_services:
+            for config_key in self.conf_keys:
+                if app_name_key in config_key:
+                    self.update_config_file.update({config_key: self.cnf_file[config_key]})
+        with open('eii_config.json', 'w') as config:
+            json.dump(self.update_config_file, config, indent=4)
+
     """ docker save images to ./docker_images folder """
 
     def docker_save(self, docker_load=False):
@@ -133,80 +150,19 @@ class EiiBundleGenerator:
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
-
-    def generate_eii_raw_bundle(self):
-        cmdlist = []
-        cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
-        cmdlist.append(["cp", "../.env", self.bundle_tag_name])
-        cmdlist.append(["cp", "../docker-compose.yml", self.bundle_tag_name])
-        cmdlist.append(["cp", "../eii_config.json", self.bundle_tag_name])
-        tar_file = self.bundle_tag_name + ".tar.gz"
-        cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-        try:
-            for cmd in cmdlist:
-                subprocess.check_output(cmd)
-            print("Raw Bundle Generated Succesfully")
-        except Exception as err:
-            print("Exception Occured ", str(err))
-            sys.exit(0)
-
     def generate_eii_bundle(self):
         '''
             generate_eii_bundle helps to execute set of pre
             commands which are required for Bundle and finally
             it generates the bundle
         '''
-        eii_cert_dir = "./" + self.bundle_tag_name + "/provision/Certificates/"
-        provision_certs = "../provision/Certificates/"
         cmdlist = []
         cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
         cmdlist.append(["cp", "../.env", self.bundle_tag_name])
         cmdlist.append(["mv", "docker-compose.yml", self.bundle_tag_name])
-        if self.env["DEV_MODE"] == "false":
-            cmdlist.append(["mkdir", "-p", eii_cert_dir + "/ca"])
-            for service in self.config['services'].keys():
-                if 'environment' not in self.config['services'][service]:
-                    print("'environment' is not set in dokcer-compose for the service {}\
-                            ".format(service))
-                    continue
-
-                servicename =\
-                    self.config['services'][service]['environment']['AppName']
-                service_dir = eii_cert_dir + servicename
-
-                # TODO: enable etcd_ui only in leader node
-                if "ia_etcd_ui" in self.include_services:
-                    cmdlist.append(
-                        ["cp", "-rf", "../provision/Certificates/root", eii_cert_dir])
-
-                if "ia_opcua_export" in self.include_services:
-                    cmdlist.append(
-                        ["cp", "-rf", "../provision/Certificates/opcua", eii_cert_dir])
-
-                cmdlist.append(["mkdir", "-p", service_dir])
-                cert_dir = "../provision/Certificates/" + servicename
-
-                for file in os.listdir(provision_certs):
-                    if file.startswith(servicename):
-                        cert_file = provision_certs + "" + file
-                        cmdlist.append(["cp", "-rf", cert_file, eii_cert_dir])
-                cmdlist.append(["cp", "-rf", cert_dir, eii_cert_dir])
-
-            print("Here Appending Certificates")
-            cmdlist.append(["cp", "-rf", "../provision/Certificates/ca",
-                            eii_cert_dir])
-            ca_key_file = eii_cert_dir + "ca/ca_key.pem"
-            cmdlist.append(["rm", ca_key_file])
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
-
-            with open(self.bundle_tag_name + "/.env", "r") as env:
-                filedata = env.read()
-            filedata = filedata.replace("ETCD_NAME=leader",
-                                        "ETCD_NAME=worker")
-            with open(self.bundle_tag_name + "/.env", "w") as env:
-                env.write(filedata)
 
             cmdlist = []
 
@@ -223,70 +179,26 @@ class EiiBundleGenerator:
             print("Exception Occured ", str(err))
             sys.exit(0)
 
-    def generate_provision_bundle(self, node='worker'):
-        '''
-            generate_provision bundle helps to execute set of pre
-            commands which are required for provision Bundle and finally
-            it generates the bundle
-        '''
-        provision_tag_name = 'leader_provisioning'
-        if node == 'worker':
-            provision_tag_name = 'worker_provisioning'
 
-        provision_dir = "./" + provision_tag_name + "/provision/"
-        eii_cert_dir = "./" + provision_tag_name + "/provision/Certificates/"
-        dep_dir = "./" + provision_tag_name + "/provision/dep/"
+    def generate_eii_raw_bundle(self):
         cmdlist = []
-        cmdlist.append(["rm", "-rf", provision_tag_name])
-        cmdlist.append(["mkdir", "-p", provision_tag_name])
-        cmdlist.append(["cp", "../.env", provision_tag_name])
-        cmdlist.append(["mkdir", "-p", provision_dir])
-
+        cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
+        cmdlist.append(["cp", "../.env", self.bundle_tag_name])
+        cmdlist.append(["cp", "../docker-compose.yml", self.bundle_tag_name])
+        cmdlist.append(["cp", "../eii_config.json", self.bundle_tag_name])
+        tar_file = self.bundle_tag_name + ".tar.gz"
+        cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
+        if self.bundle_folder == False:
+            cmdlist.append(["rm", "-rf", self.bundle_tag_name])
+        
         try:
-            if node == 'leader':
-                cmdlist.append(["mkdir", "-p", dep_dir])
-                cmdlist.append(["cp", "-f", "../provision/dep/docker-compose-etcd.yml",
-                                dep_dir])
-                cmdlist.append(["cp", "-f", "../provision/dep/Dockerfile",
-                                dep_dir])
-                cmdlist.append(["cp", "-f", "../provision/dep/start_etcd.sh",
-                                dep_dir])
-
-                if self.env["DEV_MODE"] == "false":
-                    cmdlist.append(["mkdir", "-p", eii_cert_dir + "/ca"])
-                    cmdlist.append(["cp", "-rf", "../provision/Certificates/ca/ca_certificate.pem",
-                                    eii_cert_dir + "/ca"])
-                    cmdlist.append(["cp", "-rf", "../provision/Certificates/etcdserver",
-                                    eii_cert_dir])
-                    cmdlist.append(["cp", "-f", "../provision/dep/docker-compose-etcd.override.prod.yml",
-                                    dep_dir])
-            cmdlist.append(["cp", "-f", "../provision/provision.sh",
-                            provision_dir])
-            cmdlist.append(["chmod", "+x", provision_dir + "provision.sh"])
-
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
-
-            if node == 'worker':
-                env = open(provision_tag_name + "/.env", "r+")
-                envdata = env.read()
-                newenvdata = envdata.replace("ETCD_NAME=leader",
-                                             "ETCD_NAME=worker")
-                env.write(newenvdata)
-                env.close()
-
-            cmdlist = []
-            tar_file = provision_tag_name + ".tar.gz"
-            cmdlist.append(["tar", "-czvf", tar_file, provision_tag_name])
-            if self.bundle_folder == False:
-                cmdlist.append(["rm", "-rf", provision_tag_name])
-
-            for cmd in cmdlist:
-                subprocess.check_output(cmd)
-            print("Provisioning Bundle Generated Succesfully")
+            print("Raw Bundle Generated Succesfully")
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
+
 
     def add_docker_save_option(self, dock_save, dock_load):
         if dock_save:
@@ -300,33 +212,31 @@ class EiiBundleGenerator:
         """
         self.bundle_tag_name = shlex.quote(args.bundle_tag_name)
         self.docker_file_path = shlex.quote(args.compose_file_path)
-        self.bundle_folder = shlex.quote(args.bundle_folder)
+        self.bundle_folder = args.bundle_folder
         if args.generatebundle:
             self.generate_eii_raw_bundle()
             exit()
         if args.eii_version:
             self.eii_version = shlex.quote(args.eii_version)
-        if args.leader:
-            self.generate_provision_bundle("leader")
-        elif args.worker:
-            self.generate_provision_bundle("worker")
         elif args.config:
             config_services = shlex.quote(args.config)
-            str_config = config_services.replace("\'", "\"")
-            config = json.loads(str_config)
+            str_config_path = config_services.replace("\'", "\"")
+            with open(str_config_path) as config_file:
+                str_config_file = config_file.read()
+            config = json.loads(str_config_file)
             self.include_services = config['include_services']
             self.generate_docker_composeyml()
+            self.generate_config_json()
             self.add_docker_save_option(args.docker_save, args.docker_load)
             self.generate_eii_bundle()
         elif args.usecase:
             self.generate_docker_composeyml(usecase=True)
+            self.generate_config_json()
             self.add_docker_save_option(args.docker_save, args.docker_load)
             self.generate_eii_bundle()
         else:
             self.generate_docker_composeyml()
-            if args.provisioning:
-                self.generate_provision_bundle()
-                sys.exit(0)
+            self.generate_config_json()
             self.add_docker_save_option(args.docker_save, args.docker_load)
             self.generate_eii_bundle()
 
@@ -348,25 +258,12 @@ if __name__ == '__main__':
                         default=False,
                         help='This Flag is set not to generate bundle_tag_name\
                         folder, only bundle_tag_name.tar.gz file')
-    parser.add_argument('-p',
-                        '--provisioning',
-                        action='store_true',
-                        help='Generates provisioning bundle')
 
     parser.add_argument('-gb',
                         '--generatebundle',
                         action='store_true',
                         help='Generate bundle of docker-compose yml and .env file only')
 
-    parser.add_argument('-w',
-                        '--worker',
-                        action='store_true',
-                        help='Generate eii_bundle for worker node')
-
-    parser.add_argument('-l',
-                        '--leader',
-                        action='store_true',
-                        help='Generate provision_bundle for leader node')
 
     parser.add_argument('-c',
                         '--config',
