@@ -172,6 +172,7 @@ Different use cases...
 # Generate deployment and configuration files
 
 The section assumes the EII software is already downloaded from the release package or from git.
+
 Run all the below commands in this section from `[WORKDIR]/IEdgeInsights/build/` directory.
 
 ## Generating consolidated deployment and configuration files:
