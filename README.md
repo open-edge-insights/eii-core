@@ -4,13 +4,13 @@
 - [Minimum System Requirements](#minimum-system-requirements)
 - [EII Prerequisites installation](#eii-prerequisites-installation)
 - [Generate deployment and configuration files](#generate-deployment-and-configuration-files)
-  - [1. Generating consolidated docker-compose.yml and eii_config.json files:](#generating-consolidated-docker-composeyml-and-eii_configjson-files)
-  - [2. Using builder script](#using-builder-script)
-    - [2.1 Running builder to generate the above listed consolidated files for all applicable EII services](#running-builder-to-generate-the-above-listed-consolidated-files-for-all-applicable-eii-services)
-    - [2.2 Running builder to generate the above listed consolidated files for a subset of EII services:](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services)
-    - [2.3 Running builder to generate multi instance configs:](#running-builder-to-generate-multi-instance-configs)
-    - [2.4 Running builder to generate benchmarking configs:](#running-builder-to-generate-benchmarking-configs)
-  - [3. Adding new EII service so it gets picked up by Builder](#adding-new-eii-service-so-it-gets-picked-up-by-builder)
+  - [Generating consolidated deployment and configuration files:](#generating-consolidated-deployment-and-configuration-files)
+  - [Using builder script](#using-builder-script)
+    - [Running builder to generate the above listed consolidated files for all applicable EII services](#running-builder-to-generate-the-above-listed-consolidated-files-for-all-applicable-eii-services)
+    - [Running builder to generate the above listed consolidated files for a subset of EII services:](#running-builder-to-generate-the-above-listed-consolidated-files-for-a-subset-of-eii-services)
+    - [Running builder to generate multi instance configs:](#running-builder-to-generate-multi-instance-configs)
+    - [Running builder to generate benchmarking configs:](#running-builder-to-generate-benchmarking-configs)
+  - [Adding new EII service so it gets picked up by Builder](#adding-new-eii-service-so-it-gets-picked-up-by-builder)
 - [Distribution of EII container images](#distribution-of-eii-container-images)
 - [Provision](#provision)
 - [Build and Run EII video/timeseries use cases](#build-and-run-eii-videotimeseries-use-cases)
@@ -281,7 +281,7 @@ optional arguments:
   ```
 
   > **NOTE**
-  > This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number
+  > This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** and so on. Also, it doesn't work for cases without `-f` switch. In other words, only the above example works with `-v` taking in any +ve number. To learn more about using this feature with the DiscoverHistory tool, see [Multi-instance feature support for the builder script with the DiscoverHistory tool](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md#multi-instance-feature-support-for-the-builder-script-with-the-discoverhistory-tool).
 
 ### Running builder to generate benchmarking configs:
 
@@ -636,6 +636,7 @@ Eg: Mount the two USB cameras connected to the host m/c with device node as `vid
       [ 3831.283438] usb 3-4: Manufacturer: Movidius Ltd.
       [ 3831.283439] usb 3-4: SerialNumber: 03e72485
       [ 3906.460590] usb 3-4: USB disconnect, device number 11
+      ```
 
     * The below link can be referred in case user observes `global mutex initialization failed` during device initialization of NCS2 stick
       https://www.intel.com/content/www/us/en/support/articles/000033390/boards-and-kits.html
