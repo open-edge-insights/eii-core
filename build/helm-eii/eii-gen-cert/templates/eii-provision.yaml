@@ -49,7 +49,7 @@ spec:
     - name: SERVICES
       value: "{{  .Values.env.config_agent_service }}"
     - name: AppName
-      value: "ConfigAgent"
+      value: "ConfigMgrAgent"
     - name: ETCD_HOST
       value: "{{ .Values.env.etcd_host }}"
     - name: DEV_MODE

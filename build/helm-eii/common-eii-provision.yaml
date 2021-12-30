@@ -21,11 +21,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: configagent
+  name: configmgragent
   namespace: {{ .Values.namespace }}
 spec:
   selector:
-    app: configagent
+    app: configmgragent
   type: NodePort
   ports:
     - name: tcp
@@ -37,25 +37,25 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: configagent
-  name: ia-config-agent
+    app: configmgragent
+  name: ia-configmgr-agent
   namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: configagent
+      app: configmgragent
   template:
     metadata:
       labels:
-        app: configagent
+        app: configmgragent
     spec:
       {{- if and .Values.DOCKER_USERNAME .Values.DOCKER_PASSWORD }}
       imagePullSecrets:
       - name: registryauth
       {{- end }}
       containers:
-      - name: ia-etcd
+      - name: ia-configmgr-agent
         image: {{ .Values.DOCKER_REGISTRY }}ia_configmgr_agent:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         volumeMounts:
@@ -71,7 +71,7 @@ spec:
         - name: SERVICES
           value: "{{  .Values.env.config_agent_service }}"
         - name: AppName
-          value: "ConfigAgent"
+          value: "ConfigMgrAgent"
         - name: ETCD_HOST
           value: "{{ .Values.env.etcd_host }}"
         - name: DEV_MODE

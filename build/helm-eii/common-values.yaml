@@ -38,7 +38,7 @@ env:
   config_agent_service:
 config:
     etcd:
-      name: configagent
+      name: configmgragent
       client_port: 8379
       peer_port: 8380
       ext:
