@@ -135,7 +135,7 @@ The EII is now successfully deployed.
 Do helm install of provision and deploy charts as per previous section.
 
 > **Note**:
-> During re-deploy(`helm uninstall` and `helm install`) of helm chart for eii-provision and eii-deploy wait for all the pervious pods to terminated successfully.
+> During re-deployment (`helm uninstall` and `helm install`) of helm charts, wait for all the pervious pods to terminate.
 
 ## Steps to enable Accelarators
 
