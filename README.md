@@ -69,11 +69,11 @@ The following are the minimum system requirements to run EII:
 
 You can download and install EII from the [Open Edge Insights GitHub repository](https://github.com/open-edge-insights/). For more information on manifest files, refer [Readme](https://github.com/open-edge-insights/eii-manifests/blob/master/README.md).
 
-To install EII, perform the tasks in the following order:  
+To install EII, perform the tasks in the following order:
 
-- [Task 1: Get EII codebase from GitHub](#task-1--get-eii-codebase-from-github)  
-- [Task 2: Install prerequisites](#task-2--install-prerequisites)  
-- [Task 3: Generate deployment and configuration files](#task-3--generate-deployment-and-configuration-files)  
+- [Task 1: Get EII codebase from GitHub](#task-1--get-eii-codebase-from-github)
+- [Task 2: Install prerequisites](#task-2--install-prerequisites)
+- [Task 3: Generate deployment and configuration files](#task-3--generate-deployment-and-configuration-files)
 - [Task 4: Build and run the EII video and timeseries use cases](#task-4-build-and-run-the-eii-video-and-timeseries-use-cases)
 
 ## Task 1: Get EII codebase from GitHub
@@ -146,12 +146,12 @@ To run the pre-requisite script, execute the following commands:
   ```sh
     cd [WORKDIR]/IEdgeInsights/build
     sudo -E ./pre_requisites.sh --help
-      
+
       Usage :: sudo -E ./pre_requisites.sh [OPTION...]
       List of available options...
       --proxy         proxies, required when the gateway/edge node running EII (or any of EII profile) is connected behind proxy
       --help / -h         display this help and exit
-      
+
   ```
 
 > **Note**
@@ -172,8 +172,8 @@ To run the pre-requisite script, execute the following commands:
 ### Optional steps
 
 - If required, you can enable full security for production deployments. Ensure that the host machine and docker daemon are configured per the security recommendation. For more info, see [build/docker_security_recommendation.md](https://github.com/open-edge-insights/eii-core/blob/master/build/docker_security_recommendation.md).
-  
-- If required, you can enable log rotation for docker containers using any of the following methods:  
+
+- If required, you can enable log rotation for docker containers using any of the following methods:
 
 ### Method 1
 
@@ -252,7 +252,7 @@ Run the following command to use the builder script:
                             configs to be present in each app directory. Eg:
                             python3 builder.py -d benchmarking (default:
                             None)
-    
+
 ```
 
 ### Generate consolidated files for all applicable EII services
@@ -303,7 +303,7 @@ To include only a certain number of services in the EII stack, you can add the -
 
   The following example shows running Builder with the -f flag :
 
-    ```sh  
+    ```sh
        python3 builder.py -f usecases/video-streaming.yml
 
     ```
@@ -328,7 +328,7 @@ To include only a certain number of services in the EII stack, you can add the -
 | Video streaming and custom udfs        | [build/usecases/video-streaming-all-udfs.yml](build/usecases/video-streaming-all-udfs.yml)|
 
 When you run the multi-instance config, a `build/multi_instance` directory is created in the build directory. Based on the number of `video_pipeline_instances` specified, that many directories of VideoIngestion and VideoAnalytics is created in the `build/multi_instance` directory.
-  
+
 The next section provides an example for running builder to generate multi-instance boiler plate config for 3 streams of **video-streaming** use case.
 
 ### Generate multi-instance configs using builder
@@ -343,7 +343,7 @@ The following example shows running builder to generate the multi-instance boile
   ```
 
 Using the previous command for 3 instances, the `build/multi_instance` directory consists of VideoIngestion1, VideoIngestion2, VideoIngestion3 and VideoAnalytics1, VideoAnalytics2 , VideoAnalytics3 directories. Each of these directories initially will have the default `config.json` and the `docker-compose.yml` files that are present within the `VideoIngestion` and the `VideoAnalytics` directories.
-  
+
   ```example
     ./build/multi_instance/
     |-- VideoAnalytics1
@@ -367,7 +367,7 @@ Using the previous command for 3 instances, the `build/multi_instance` directory
   ```
 
  You can edit the configs of each of these streams within the `build/multi_instance` directory. To generate the consolidated `docker compose` and `eii_config.json` file, rerun the `builder.py` command.
-  
+
   > **Note**
   >
   > - The multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** and so on. Also, it doesn't work for cases without the `-f` switch. The previous example will work with any positive number for `-v`. To learn more about using the multi-instance feature with the DiscoverHistory tool, see [Multi-instance feature support for the builder script with the DiscoverHistory tool](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md#multi-instance-feature-support-for-the-builder-script-with-the-discoverhistory-tool).
@@ -466,7 +466,7 @@ The `config.json` file consists of the following key and values:
 
 The EII services are available as pre-built container images in the Docker Hub at https://hub.docker.com/u/openedgeinsights. To access the services that are not available in the Docker Hub, build from source before running the `docker-compose up -d` command.
 
-For example:  
+For example:
 
 ```sh
 # Update the DOCKER_REGISTRY value in [WORKDIR]/IEdgeInsights/build/.env as DOCKER_RESISTRY=<docker_registry> (Make sure `docker login <docker_registry>` to the docker reigstry works)
@@ -507,7 +507,7 @@ The list of pre-built container images that are accessible at https://hub.docker
 
 ## List of EII services
 
-Based on requirement, you can include or exclude the following EII services in the `docker-compose` file:  
+Based on requirement, you can include or exclude the following EII services in the `docker-compose` file:
 
 - Common EII services
   - [EtcdUI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md)
@@ -587,9 +587,9 @@ For more details on the ConfigMgr Agent component, please refer: [https://gitlab
 
 Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
 
-To provision EII in the developer mode, complete the following steps:  
+To provision EII in the developer mode, complete the following steps:
 
-- Step 1. Update DEV_MODE=true in build/.env.  
+- Step 1. Update DEV_MODE=true in build/.env.
 - Step 2. Re-run the build/builder.py to regenerate the consolidated files
 
 #### Start EII in Profiling mode
@@ -660,15 +660,35 @@ For example, mount the two USB cameras connected to the host machine with device
 
 ### To run on MYRIAD devices
 
-To run inference on `MYRIAD` device `root` user permissions needs to be used at runtime. To enable root user at runtime in either `ia_video_ingestion`, `ia_video_analytics` or any of the custom UDF services, add the `user: root` command in the respective `docker-compose.yml` file.
+To run inference on `MYRIAD` device `root` user permissions needs to be used at runtime.
 
-For example, to use `MYRAID` device in the `ia_video_analytics` service, refer to the following:
+To enable root user at runtime in `ia_video_ingestion` or any of the custom UDF services based on `ia_video_ingestion`, set `RUN_AS_USER` env variable to `root` in the respective `docker-compose.yml` file.
+
+For example refer the below snip:
+
+
+  ```yaml
+  ia_video_ingestion:
+    ...
+    environment:
+    ...
+      # Set RUN_AS_USER env variable to root.
+      RUN_AS_USER: "root"
+      # RUN_AS_USER env variable can be used to run VideoIngestion service with the specified user privileges.
+    ...
+  ```
+
+To enable root user at runtime in `ia_video_analytics` or any of the custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file.
+
+For example refer the below snip:
 
   ```yaml
     ia_video_analytics:
       ...
       user: root
    ```
+
+> Note: In IPC mode when publisher(e.g. ia_video_ingestion or ia_video_analytics) is running as root then the subscriber(e.g. ia_visualizer) should also run as root.
 
 #### Troubleshooting issues for MYRIAD(NCS2) devices
 
@@ -723,7 +743,7 @@ Complete the following steps to run inference on HDDL devices:
    > Example: sudo ln -s openvino_2021.4.752 openvino
    >
    > Uninstall the older versions of OpenVINO, if it is installed on the host system.
-  
+
   3. Run the following command to run the HDDL Daemon image after the setup is complete. The HDDL Daemon should run in a different terminal or in the background on the host system where inference performed.
 
       ```sh
@@ -751,6 +771,8 @@ Complete the following steps to run inference on HDDL devices:
                   - "/dev/ion:/dev/ion"
       ```
 
+> Note: HDDL Plugin can have ION driver compatibility issues with certain Linux kernel version. Refer [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html) for verifying the supported kernel version. ION driver needs to be succesfully installed in order to run inference on HDDL device.
+
 #### Troubleshooting issues for HDDL devices
 
 - Check if the HDDL Daemon started on the host machine to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). Enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on the host machine to get the complete snapshot of the HDDL device.
@@ -766,7 +788,35 @@ Complete the following steps to run inference on HDDL devices:
 
 ### To run on Intel(R) Processor Graphics (GPU/iGPU)
 
+To run inference on `GPU` device `root` user permissions needs to be used at runtime.
+
+To enable root user at runtime in `ia_video_ingestion` or any of the custom UDF services based on `ia_video_ingestion`, set `RUN_AS_USER` env variable to `root` in the respective `docker-compose.yml` file.
+
+For example refer the below snip:
+
+  ```yaml
+  ia_video_ingestion:
+    ...
+    environment:
+    ...
+      # Set RUN_AS_USER env variable to root.
+      RUN_AS_USER: "root"
+      # RUN_AS_USER env variable can be used to run VideoIngestion service with the specified user privileges.
+    ...
+  ```
+
+To enable root user at runtime in `ia_video_analytics` or any of the custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file.
+
+For example refer the below snip:
+
+  ```yaml
+    ia_video_analytics:
+      ...
+      user: root
+   ```
+
   > **Note**
+  > In IPC mode when publisher(e.g. ia_video_ingestion or ia_video_analytics) is running as root then the subscriber(e.g. ia_visualizer) should also run as root.
   > The below step is required only for the 11th gen Intel Processors
 
   Upgrade the kernel version to 5.8 and install the required drivers from the following OpenVINO link:
@@ -847,7 +897,7 @@ Where:
 Example:
 
 - Run the following command to delete the EII containers and volumes:
-  
+
   ```sh
       ./eii_uninstaller.sh
   ```
