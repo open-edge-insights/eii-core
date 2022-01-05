@@ -1,8 +1,9 @@
 # Contents
 
-- [About Intel® Edge Insights for Industrial](#about-intel-edge-insights-for-industrial)
-- [Minimum System Requirements](#minimum-system-requirements)
-- [Install Intel® Edge Insights for Industrial from GitHub](#install-intel-edge-insights-for-industrial-from-github)
+- [Contents](#contents)
+  - [About Intel® Edge Insights for Industrial](#about-intel-edge-insights-for-industrial)
+  - [Minimum system requirements](#minimum-system-requirements)
+  - [Install Intel® Edge Insights for Industrial from GitHub](#install-intel-edge-insights-for-industrial-from-github)
   - [Task 1: Get EII codebase from GitHub](#task-1-get-eii-codebase-from-github)
   - [Task 2: Install prerequisites](#task-2-install-prerequisites)
     - [Run the pre-requisite script](#run-the-pre-requisite-script)
@@ -21,22 +22,27 @@
   - [Task 4: Build and run the EII video and timeseries use cases](#task-4-build-and-run-the-eii-video-and-timeseries-use-cases)
     - [Build EII stack](#build-eii-stack)
     - [Run EII services](#run-eii-services)
-    - [Push required EII images to docker registry](#push-required-eii-images-to-docker-registry)
-- [Video pipeline Analytics](#video-pipeline-analytics)
-  - [Enable camera based Video Ingestion](#enable-camera-based-video-ingestion)
-  - [Using video accelerators in ingestion/analytics containers](#using-video-accelerators-in-ingestionanalytics-containers)
-    - [**To run on USB devices**](#to-run-on-usb-devices)
-    - [**To run on MYRIAD devices**](#to-run-on-myriad-devices)
-    - [**To run on HDDL devices**](#to-run-on-hddl-devices)
-    - [**To run on Intel(R) Processor Graphics (GPU/iGPU)**](#to-run-on-intelr-processor-graphics-gpuigpu)
-  - [Custom User Defined Functions](#custom-user-defined-functions)
-- [Time-series analytics](#time-series-analytics)
-- [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
+      - [EII Provisioning](#eii-provisioning)
+        - [Start EII in Dev mode](#start-eii-in-dev-mode)
+        - [Start EII in Profiling mode](#start-eii-in-profiling-mode)
+    - [Push the required EII images to docker registry](#push-the-required-eii-images-to-docker-registry)
+  - [Video pipeline analytics](#video-pipeline-analytics)
+    - [Enable camera-based video ingestion](#enable-camera-based-video-ingestion)
+    - [Use video accelerators in ingestion and analytics containers](#use-video-accelerators-in-ingestion-and-analytics-containers)
+      - [To run on USB devices](#to-run-on-usb-devices)
+      - [To run on MYRIAD devices](#to-run-on-myriad-devices)
+        - [Troubleshooting issues for MYRIAD(NCS2) devices](#troubleshooting-issues-for-myriadncs2-devices)
+      - [To run on HDDL devices](#to-run-on-hddl-devices)
+        - [Troubleshooting issues for HDDL devices](#troubleshooting-issues-for-hddl-devices)
+      - [To run on Intel(R) Processor Graphics (GPU/iGPU)](#to-run-on-intelr-processor-graphics-gpuigpu)
+    - [Custom User Defined Functions](#custom-user-defined-functions)
+  - [Time-series analytics](#time-series-analytics)
+  - [Debugging options](#debugging-options)
+  - [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
     - [**With k8s orchestrator**](#with-k8s-orchestrator)
-- [EII tools](#eii-tools)
-- [EII uninstaller](#eii-uninstaller)
-- [Debugging options](#debugging-options)
-- [Troubleshooting guide](#troubleshooting-guide)
+  - [EII tools](#eii-tools)
+  - [EII uninstaller](#eii-uninstaller)
+  - [Troubleshooting guide](#troubleshooting-guide)
 
 ## About Intel® Edge Insights for Industrial
 
@@ -360,16 +366,16 @@ Using the previous command for 3 instances, the `build/multi_instance` directory
         `-- docker-compose.yml
   ```
 
- The user can edit the configs of each of these streams within the `build/multi_instance` directory. To generate the consolidated `docker compose` and `eii_config.json` file, rerun the `builder.py` command.
+ You can edit the configs of each of these streams within the `build/multi_instance` directory. To generate the consolidated `docker compose` and `eii_config.json` file, rerun the `builder.py` command.
   
-  > **NOTE**
+  > **Note**
   >
-  > - This multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** etc., Also, it doesn't work for cases without `-f` switch too. In other words, only the above example works with `-v` taking in any +ve number.
-  > - If the user is running multi instance config for the first time, it is recommended  for the user to not to make changes to the default config.json file and docker-compose.yml file present within the VideoIngestion and VideoAnalytics directory.
-  > - If the user is not running multi instance config for the first time, the existing config.json and docker-compose.yml files within the `build/multi_instance` directory will be used to generate the consolidated eii-config.json and docker-compose files.
+  > - The multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** and so on. Also, it doesn't work for cases without the `-f` switch. The previous example will work with any positive number for `-v`. To learn more about using the multi-instance feature with the DiscoverHistory tool, see [Multi-instance feature support for the builder script with the DiscoverHistory tool](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md#multi-instance-feature-support-for-the-builder-script-with-the-discoverhistory-tool).
+  > - If you are running the multi-instance config for the first time, it is recommended to not change the default config.json file and docker-compose.yml file in the VideoIngestion and VideoAnalytics directories.
+  > - If you are not running the multi-instance config for the first time, the existing config.json and docker-compose.yml files in the `build/multi_instance` directory will be used to generate the consolidated eii-config.json and docker-compose files.
   > - The docker-compose.yml files present withn the `build/multi_instance` directory will have the updated service_name, container_name, hostname, AppName, ports and secrets for that respective instance.
-  > - The config.json files present within the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.
-  > - The user needs to ensure that all the containers are down before running the multi-instance configuration. Please run `docker-compose down` before running `builder.py` for multi-instance configuration.
+  > - The config.json file in the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.
+  > - Ensure that all the containers are down before running the multi-instance configuration. Run `docker-compose down` before running `builder.py` for multi-instance configuration.
 
 ### Generate benchmarking configs using builder
 
@@ -664,7 +670,7 @@ For example, to use `MYRAID` device in the `ia_video_analytics` service, refer t
       user: root
    ```
 
-### Troubleshooting issues for MYRIAD(NCS2) devices
+#### Troubleshooting issues for MYRIAD(NCS2) devices
 
 If the `NC_ERROR` occurs during device initialization of NCS2 stick then use the following workaround. Replug the device for the init, if the NCS2 devices fails to initialize during running EII. To check if initialization is successful, run ***dmesg*** and ***lsusb*** as follows:
 
@@ -688,13 +694,13 @@ lsusb | grep "03e7" (03e7 is the VendorID and 2485 is one of the  productID for 
       [ 3831.283438] usb 3-4: Manufacturer: Movidius Ltd.
       [ 3831.283439] usb 3-4: SerialNumber: 03e72485
       [ 3906.460590] usb 3-4: USB disconnect, device number 11
-      ```
+```
 
 - If you notice `global mutex initialization failed` during device initialization of NCS2 stick, then refer to the following link: <https://www.intel.com/content/www/us/en/support/articles/000033390/boards-and-kits.html>
 
 - For VPU troubleshooting, refer the following link: <https://docs.openvinotoolkit.org/2021.4/openvino_docs_install_guides_installing_openvino_linux_ivad_vpu.html#troubleshooting>
 
-### **To run on HDDL devices**
+### To run on HDDL devices
 
 Complete the following steps to run inference on HDDL devices:
 
@@ -745,7 +751,7 @@ Complete the following steps to run inference on HDDL devices:
                   - "/dev/ion:/dev/ion"
       ```
 
-  - **Troubleshooting issues for HDDL devices**
+#### Troubleshooting issues for HDDL devices
 
 - Check if the HDDL Daemon started on the host machine to verify if it is using the libraries of the correct OpenVINO version used in [build/.env](build/.env). Enable the `device_snapshot_mode` to `full` in $HDDL_INSTALL_DIR/config/hddl_service.config on the host machine to get the complete snapshot of the HDDL device.
 
@@ -758,7 +764,7 @@ Complete the following steps to run inference on HDDL devices:
 - Refer OpenVINO website in the below link to skim through known issues, limitations and troubleshooting
 <https://docs.openvinotoolkit.org/2021.4/index.html>
 
-### **To run on Intel(R) Processor Graphics (GPU/iGPU)**
+### To run on Intel(R) Processor Graphics (GPU/iGPU)
 
   > **Note**
   > The below step is required only for the 11th gen Intel Processors
@@ -791,7 +797,7 @@ The sample temperature sensor can be simulated using the [tools/mqtt/README.md](
 
 ## EII multi node cluster deployment
 
-### **With k8s orchestrator**
+### With k8s orchestrator
 
 One of the below options could be tried out:
 
