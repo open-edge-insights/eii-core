@@ -146,12 +146,6 @@
 - debug:
     msg: "Waiting for ia-gen-cert container to up"
 
-- name: "Wait for ia-gen-cert container to be in running state"
-  shell: "kubectl wait --for=condition=ready pod/{{ get_ia_gen_cert.stdout }} --timeout=10s"
-
-- debug:
-    msg: "ia-gen-cert container is up and running fine"
-
 - name: Wait for 10 seconds for generating Certificates
   wait_for:
     timeout: 10
