@@ -278,6 +278,9 @@ To generate the consolidated files, run the following command:
   python3 builder.py
   ```
 
+> **NOTE**
+> User has to key-in certain secret credentials if applicable for particular OEI services. The credentials that are mandatorily required are reported by the builder once its run and the same can be updated in [.env](build/.env)
+
 > Note
 >
 > - The [builder_config.json](./build/builder_config.json) contains keys `subscriber_list`, `publisher_list`, `include_services` and `increment_rtsp_port`.

@@ -23,6 +23,9 @@
    and AppSpec json
 """
 import argparse
+import dotenv
+import random
+import string
 import os
 import json
 import subprocess
@@ -41,7 +44,7 @@ DOCKER_COMPOSE_PATH = './docker-compose.yml'
 DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
 DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
 SCAN_DIR = ".."
-dev_mode = False
+
 # List to store list of AppNames
 appname_list = []
 # Initializing config agent service list
@@ -54,6 +57,15 @@ override_apps_list, override_helm_apps_list = \
 dev_override_list, app_list, helm_app_list = \
     ([] for _ in range(3))
 used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
+
+dev_mode = False
+# Fetching dev_mode from .env
+with open(".env") as f:
+    for line in f:
+        if line.startswith('DEV_MODE'):
+            dev_mode = line.strip().split('=')[1]
+            dev_mode = bool(util.strtobool(dev_mode))
+            break
 
 def source_env(file):
     """Method to source an env file
@@ -1047,15 +1059,6 @@ def yaml_parser(args):
     if os.path.isdir(eii_dir + 'common/video'):
         app_list.insert(0, eii_dir + 'common/video')
 
-    # Fetching DEV_MODE from .env
-    dev_mode = False
-    with open(".env") as f:
-        for line in f:
-            if line.startswith('DEV_MODE'):
-                dev_mode = line.strip().split('=')[1]
-                dev_mode = util.strtobool(dev_mode)
-                break
-
     # Create build/multi_instance directory if num_multi_instances is greater than 1
     if (num_multi_instances > 1):
         global multi_inst_path
@@ -1192,6 +1195,27 @@ def parse_args():
     return arg_parse.parse_args()
 
 
+def verify_secrets():
+    """Generate random alphanumeric characters for all EII secrets
+    """
+    secrets_list = ["ETCDROOT_PASSWORD"]
+
+    if "InfluxDBConnector" in appname_list:
+        secrets_list.extend(["INFLUXDB_USERNAME", "INFLUXDB_PASSWORD"])
+    if "ImageStore" in appname_list and not dev_mode:
+        secrets_list.extend(["MINIO_ACCESS_KEY", "MINIO_SECRET_KEY"])
+    if "WebVisualizer" in appname_list and not dev_mode:
+        secrets_list.extend(["WEBVISUALIZER_USERNAME", "WEBVISUALIZER_PASSWORD"])
+    
+    dotenv_file = dotenv.find_dotenv()
+    dotenv.load_dotenv(dotenv_file)
+
+    # Write changes to .env file
+    for secret in secrets_list:
+        if dotenv.get_key(dotenv_file, secret) == "":
+            raise KeyError(f"Value not found for {secret}")
+
+
 if __name__ == '__main__':
 
     # fetching builder config
@@ -1222,10 +1246,17 @@ if __name__ == '__main__':
 
     # Start yaml parser
     yaml_parser(args)
+
+    try:
+        verify_secrets()
+    except KeyError as exc:
+        print("Runtime exception: {}".format(exc))
+        sys.exit(1)
+
+    # Source
     try:
         subprocess.check_output('./source.sh', stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(
                 f'{" ".join(cmd)} failed: '
                 f'{exc.output.decode("utf-8")}') from exc
-
