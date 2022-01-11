@@ -582,8 +582,12 @@ For more details on the ConfigMgr Agent component, please refer: [https://gitlab
 #### Start EII in Dev mode
 
 > **Note**
-> By default EII is provisioned in the secure mode.
-> It is recommended to not use EII in the Dev mode in a production environment because all the security feaures are disabled in the Dev mode.
+> 1. By default, EII is provisioned in the secure mode.
+>    It is recommended to not use EII in the Dev mode in a production environment because all 
+>    the security feaures are disabled in the Dev mode.
+> 2. By default, EII empty certificates folder ([WORKDIR]/IEdgeInsights/build/Certificates]) 
+>    will be created in DEV mode. This behavior is because of docker bind mounts but it is not
+>    an issue.
 
 Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
 
