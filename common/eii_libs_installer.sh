@@ -192,10 +192,13 @@ check_error "----Failed to install EIIMessageBus Golang binding----"
 
 log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
+   cd grpc-package/ && \
+   apt install ./grpc-1.29.0-Linux.deb && \
+   cd .. && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
+   cmake -DSYSTEM_GRPC=ON -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
 check_error "----Failed to install ConfigMgr C and golang libs----"
 
