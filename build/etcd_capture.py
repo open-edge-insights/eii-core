@@ -57,11 +57,11 @@ def main():
     dev_mode = bool(strtobool(os.environ['DEV_MODE']))
     args = parse_args()
     if dev_mode:
-        cmd = _execute_cmd(["../etcd/etcdctl", "get",
+        cmd = _execute_cmd(["./etcd/etcdctl", "get",
                             "--endpoints", shlex.quote(args.etcd_endpoints),
                             "--from-key", "''", "--keys-only"])
     else:
-        cmd = _execute_cmd(["../etcd/etcdctl",
+        cmd = _execute_cmd(["./etcd/etcdctl",
                             "--endpoints", shlex.quote(args.etcd_endpoints),
                             "--cacert", shlex.quote(args.ca_etcd),
                             "--cert", shlex.quote(args.etcd_root_cert),
@@ -80,11 +80,11 @@ def main():
 
     for key in key_list:
         if dev_mode:
-            cmd = _execute_cmd(["../etcd/etcdctl", "get",
+            cmd = _execute_cmd(["./etcd/etcdctl", "get",
                                 "--endpoints", shlex.quote(args.etcd_endpoints),
                                 "--print-value-only", key])
         else:
-            cmd = _execute_cmd(["../etcd/etcdctl",
+            cmd = _execute_cmd(["./etcd/etcdctl",
                                 "--endpoints", shlex.quote(args.etcd_endpoints),
                                 "--cacert", shlex.quote(args.ca_etcd),
                                 "--cert", shlex.quote(args.etcd_root_cert),

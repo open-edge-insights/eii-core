@@ -1143,9 +1143,8 @@ def yaml_parser(args):
     $ docker-compose -f docker-compose-push.yml push
     """
     print(log_msg)
-    # Sourcing required env from .env & provision/.env
+    # Sourcing required env from .env
     source_env("./.env")
-    source_env("./provision/.env")
 
     try:
         helm_yaml_merger(helm_app_list, args)

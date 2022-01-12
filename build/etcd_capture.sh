@@ -40,7 +40,7 @@ function helpFunction {
 
 function etcdCapture {
     set -a
-    source ../.env
+    source .env
     set +a
     if [ -z $ETCD_HOST ]; then
         unset ETCD_HOST
@@ -57,7 +57,9 @@ function etcdCapture {
             rm -f ./etcd/etcd-${ETCD_VERSION}-linux-amd64.tar.gz
     fi
 
+    mkdir -p data
     python3 etcd_capture.py $@
+    echo "etcd captured data will be found at ./data/etcd_capture_data.json"
 }
 
 if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
