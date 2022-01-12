@@ -37,11 +37,11 @@
       - [To run on Intel(R) Processor Graphics (GPU/iGPU)](#to-run-on-intelr-processor-graphics-gpuigpu)
     - [Custom User Defined Functions](#custom-user-defined-functions)
   - [Time-series analytics](#time-series-analytics)
-  - [Debugging options](#debugging-options)
-  - [EII multi node cluster provision and deployment](#eii-multi-node-cluster-provision-and-deployment)
-    - [**With k8s orchestrator**](#with-k8s-orchestrator)
+  - [EII multi-node cluster deployment](#eii-multi-node-cluster-deployment)
+    - [With k8s orchestrator](#with-k8s-orchestrator)
   - [EII tools](#eii-tools)
-  - [EII uninstaller](#eii-uninstaller)
+  - [EII Uninstaller](#eii-uninstaller)
+  - [Debugging options](#debugging-options)
   - [Troubleshooting guide](#troubleshooting-guide)
 
 ## About Intel® Edge Insights for Industrial
@@ -692,7 +692,7 @@ For example refer the below snip:
       user: root
    ```
 
-> Note: In IPC mode when publisher(e.g. ia_video_ingestion or ia_video_analytics) is running as root then the subscriber(e.g. ia_visualizer) should also run as root.
+> Note: In the IPC mode when publisher (ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (ia_visualizer) should also run as root.
 
 #### Troubleshooting issues for MYRIAD(NCS2) devices
 
@@ -849,18 +849,18 @@ More details on enabling this mode can be referred from [Kapacitor/README.md](ht
 
 The sample temperature sensor can be simulated using the [tools/mqtt/README.md](https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md) application.
 
-## EII multi node cluster deployment
+## EII multi-node cluster deployment
 
 ### With k8s orchestrator
 
-One of the below options could be tried out:
+You can use any of the following options to deploy EII on a multi-node cluster:
 
-- [`Recommended`] For deploying through ansible playbook on multiple nodes automatically, please refer [build/ansible/README.md](build/ansible/README.md##deploying-eii-using-helm-in-kubernetes-k8s-environment)
-- Please refer [build/helm-eii/README.md](build/helm-eii/README.md) on using helm charts to provision the node and deploy EII services
+- [`Recommended`] For deploying through ansible playbook on multiple nodes automatically, refer [`build/ansible/README.md`](build/ansible/README.md#deploying-eii-using-helm-in-kubernetes-k8s-environment)
+- Using helm charts to provision the node and deploy the EII services refer [`build/helm-eii/README.md`](build/helm-eii/README.md)
 
 ## EII tools
 
-EII stack has below set of tools which run as containers too:
+The EII stack consists of the following set of tools that also run as containers:
 
 - Benchmarking
   - [Video Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/video-benchmarking-tool/README.md)
@@ -878,14 +878,14 @@ EII stack has below set of tools which run as containers too:
 
 ## EII Uninstaller
 
-The uninstaller script automates the removal of all the EII Docker configuration installed on a system. This uninstaller will perform the following tasks:
+The EII uninstaller script automates the removal of all the EII Docker configuration that are installed on a system. The uninstaller performs the following tasks:
 
-1. **Stops and removes all EII running and stopped containers**
-2. **Removes all EII docker volumes**
-3. **Removes all EII docker images \[Optional\]**
-4. **Removes all EII install directory**
+- Stops and removes all the EII running and stopped containers.
+- Removes all the EII docker volumes.
+- Removes all the EII docker images \[Optional\]
+- Removes all EII install directory
 
-Run the following commmand from the `[WORKDIR]/IEdgeInsights/build/` directory
+To run the uninstaller script, run the following commmand from the `[WORKDIR]/IEdgeInsights/build/` directory
 
 ```sh
 ./eii_uninstaller.sh -h
@@ -893,7 +893,7 @@ Run the following commmand from the `[WORKDIR]/IEdgeInsights/build/` directory
 
 Usage: ./eii_uninstaller.sh [-h] [-d]
 
-This script uninstalls previous EII version.
+This script uninstalls the previous EII version.
 Where:
     -h show the help
     -d triggers the deletion of docker images (by default it will not trigger)
@@ -906,7 +906,7 @@ Example:
       ./eii_uninstaller.sh
   ```
 
-- Run the following command to delete the EII containers, volumes, and images
+- Run the following command to delete the EII containers, volumes, and images:
 
   ```sh
     export EII_VERSION=2.4
@@ -917,46 +917,54 @@ The commands in the example will delete version 2.4 EII containers, volumes, and
 
 ## Debugging options
 
-1. To check if all the EII images are built successfully, use cmd: `docker images|grep ia` and
-   to check if all containers are running, use cmd: `docker ps` (`one should see all the dependency containers and EII containers up and running`). If you see issues where the build is failing due to non-reachability to Internet, please ensure you have correctly configured proxy settings and restarted docker service.
+Perform the following steps for debugging:
 
-2. `docker ps` should list all the enabled containers which are included in docker-compose.yml
+1. Run the following command to check if all the EII images are built successfully:
 
-3. To verify if the default video pipeline with EII is working fine i.e., from video ingestion->video analytics->visualizer, please check the visualizer UI
+```sh
+ `docker images|grep ia`
+```
 
-4. `/opt/intel/eii` root directory gets created - This is the installation path for EII:
+2. You can view all the dependency containers and EII containers that are up and running. Run the following command to check if all containers are running:
+
+```sh
+ `docker ps`
+```
+
+3. Ensure that the proxy settings are correctly configured and restart the docker service if the build fails due to no internet connectivity.
+
+4. Run the `docker ps` command to list all the enabled containers that are included in the `docker-compose.yml` file.
+5. From video ingestion>video analytics>visualizer, check the visualizer UI to check if the default video pipeline with EII is working fine.
+
+6. The `/opt/intel/eii` root directory gets created - This is the installation path for EII:
      - `data/` - stores the backup data for persistent imagestore and influxdb
      - `sockets/` - stores the IPC ZMQ socket files
 
----
+The following table displays useful docker-compose and docker commands:
 
-> Note
->
->- Few useful docker-compose and docker commands:
-> - `docker-compose -f docker-compose-build.yml build` - builds all the service containers. To build a single service container, use `docker-compose -f docker-compose-build.yml build [serv_cont_name]`
-> - `docker-compose down` - stops and removes the service containers
-> - `docker-compose up -d` - brings up the service containers by picking the changes done in `docker-compose.yml`
-> - `docker ps` - check running containers
-> - `docker ps -a` - check running and stopped containers
-> - `docker stop $(docker ps -a -q)` - stops all the containers
-> - `docker rm $(docker ps -a -q)` - removes all the containers. Useful when you run into issue of already container is in use.
-> - [docker compose cli](https://docs.docker.com/compose/reference/overview/)
-> - [docker compose reference](https://docs.docker.com/compose/compose-file/)
-> - [docker cli](https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)
->
->- If you want to run the docker images separately i.e, one by one, run the command `docker-compose run --no-deps [service_cont_name]` Eg: `docker-compose run --name ia_video_ingestion --no-deps      ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up it's dependencies mentioned in the docker-compose file. If the container is not launching, there could be some issue with entrypoint program which could be overrided by providing this extra switch `--entrypoint /bin/bash` before the service container name in the docker-compose run command above, this would let one inside the container and run the actual entrypoint program from the container's terminal to rootcause the issue. If the container is running and one wants to get inside, use cmd: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`
->
->- Best way to check logs of containers is to use command: `docker logs -f [cont_name]`. If one wants to see all the docker-compose service container logs at once, then just run
-   `docker-compose logs -f`
-
----
+|  Command      |  Description     |
+|  :---  |  :---                                                               |
+|   `docker-compose -f docker-compose-build.yml build`| Builds all the service containers|
+| `docker-compose -f docker-compose-build.yml build [serv_cont_name]`| Builds a single service container      |
+| `docker-compose down`      | Stops and removes the service containers|
+| `docker-compose up -d`      | Brings up the service containers by picking the changes done in the `docker-compose.yml` file|
+| `docker ps`      | Checks the running containers|
+| `docker ps -a`       | Checks the running and stopped containers      |
+| `docker stop $(docker ps -a -q)`      | Stops all the containers      |
+| `docker rm $(docker ps -a -q)`      | Removes all the containers. This is useful when you run into issue of already container is in use|
+| `[docker compose cli]`      | For more information refer, (https://docs.docker.com/compose/reference/overview/)      |
+| `[docker compose reference]`      | For more information refer, (https://docs.docker.com/compose/compose-file/)      |
+|`[docker cli]`       | For more information refer, (https://docs.docker.com/engine/reference/commandline/cli/#configuration-files)      |
+| `docker-compose run --no-deps [service_cont_name]`| To run the docker images separately or one by one. For example: `docker-compose run --name ia_video_ingestion --no-deps   ia_video_ingestion` to run VI container and the switch `--no-deps` will not bring up its dependencies mentioned in the docker-compose file. If the container does not launch, there could be some issue with the entrypoint program. You can override by providing the extra switch `--entrypoint /bin/bash` before the service container name in the `docker-compose run` command. This will let you access the container and run the actual entrypoint program from the container's terminal to root cause the issue. If the container is running and you want to access it then, run the command: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`|
+| `docker logs -f [cont_name]`| Use this command to check logs of containers      |
+| `docker-compose logs -f` | To see all the docker-compose service container logs at once |
 
 ## Troubleshooting guide
 
-1. Please refer to [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation
-2. If any issues are observed w.r.t the python package installation then manually install the python packages as shown below :
+1. Refer to the [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide for any troubleshooting tips related to EII configuration and installation.
+2. If you observe any issues with the Python package installation then manually install the Python packages as follows:
 
-   **Note**: It is highly recommended that you use a python virtual environment to install the python packages, so that the system python installation doesn't get altered. Details on setting up and using python virtual environment can be found here: <https://www.geeksforgeeks.org/python-virtual-environment/>
+   **Note**: It is highly recommended that you use a Python virtual environment to install the Python packages, so that the system Python installation doesn't get altered. Details on setting up and using the Python virtual environment is available here: <https://www.geeksforgeeks.org/python-virtual-environment/>
 
     ```sh
     cd [WORKDIR]/IEdgeInsights/build
