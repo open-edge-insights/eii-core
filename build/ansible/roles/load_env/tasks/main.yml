@@ -31,8 +31,3 @@
   template:
     src: env.j2
     dest: "{{ EII_SOURCE_PATH }}/build/.env"
-
-- name: Loading provisioning env template & updating build/provision/.env
-  template:
-    src: provision_env.j2
-    dest: "{{ EII_SOURCE_PATH }}/build/provision/.env"
