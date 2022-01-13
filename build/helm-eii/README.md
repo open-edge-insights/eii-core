@@ -198,7 +198,7 @@ Do helm install of provision and deploy charts as per previous section.
   ```
 
 5. set device as "MYRIAD" in case of ncs2 and as HDDL in case of hddl in the [VA config](https://github.com/open-edge-insights/video-analytics/blob/master/config.json)
-  
+
 - In case of ncs2.
 
   ```yml
@@ -219,7 +219,7 @@ Do helm install of provision and deploy charts as per previous section.
     .
     "device": "HDDL"
     }]
-  ```  
+  ```
 
 6. Run the `[WORKDIR]/IEdgeInsights/build/builder.py` for generating latest consolidated `deploy` yml file based on your `nodeSelector` changes set in the respective Modules.
 
@@ -284,7 +284,7 @@ Do helm install of provision and deploy charts as per previous section.
   gige_camera: true
   .
   .
-  .      
+  .
   ```
 
   4. Follow the [Deployment Steps](#provision-and-deploy-in-the-kubernetes-node)
@@ -292,12 +292,10 @@ Do helm install of provision and deploy charts as per previous section.
   5. Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
 
   ```sh
-  kubectl -n eii exec -it <pod_name> -- ip -d address      
+  kubectl -n eii exec -it <pod_name> -- ip -d address
   ```
 
-**Note:**
-
- User needs to deploy as root user for MYRIAD(NCS2) device and GenICam USB3.0 interface cameras.
+>**Note:**User needs to deploy as root user for GPU device, MYRIAD(NCS2) device and GenICam USB3.0 interface cameras.
 
 ```
 apiVersion: apps/v1
