@@ -80,14 +80,17 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-4. To generate only Certificates by provisioning.
+4. Below steps are required only in PROD mode:
+   
+   a. Generate certificates needed for EII provisioning
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii
   helm install eii-gen-cert eii-gen-cert/
   ```
 
-5. Change permissiom of the Certificates dir.
+   b. Update permission of certificates dir
+  
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii/
   sudo chmod -R 777 eii-deploy/Certificates
