@@ -26,7 +26,6 @@ DOCKER_PASSWORD:
 imagePullPolicy: IfNotPresent
 env:
   DEV_MODE:
-  etcd_root_password:
   etcd_prefix:
   etcd_host:
   EII_INSTALL_PATH:

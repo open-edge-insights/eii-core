@@ -72,7 +72,7 @@ spec:
       value: localhost,127.0.0.1,0.0.0.0:{{ .Values.network.etcd.client_port }},0.0.0.0:{{ .Values.network.etcd.peer_port }}
     - name: ETCD_PREFIX
       value: "{{ .Values.env.etcd_prefix }}"
-    - name: ETCD_ROOT_PASSWORD
+    - name: ETCDROOT_PASSWORD
       value: eii123
     - name: GENCERT
       value: 'true'
