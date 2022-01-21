@@ -583,9 +583,9 @@ For more details on the ConfigMgr Agent component, please refer: [https://gitlab
 
 > **Note**
 > 1. By default, EII is provisioned in the secure mode.
->    It is recommended to not use EII in the Dev mode in a production environment because all 
+>    It is recommended to not use EII in the Dev mode in a production environment because all
 >    the security feaures are disabled in the Dev mode.
-> 2. By default, EII empty certificates folder ([WORKDIR]/IEdgeInsights/build/Certificates]) 
+> 2. By default, EII empty certificates folder ([WORKDIR]/IEdgeInsights/build/Certificates])
 >    will be created in DEV mode. This behavior is because of docker bind mounts but it is not
 >    an issue.
 
@@ -666,7 +666,7 @@ For example, mount the two USB cameras connected to the host machine with device
 
 To run inference on `MYRIAD` device `root` user permissions needs to be used at runtime.
 
-To enable root user at runtime in `ia_video_ingestion` or any of the custom UDF services based on `ia_video_ingestion`, set `RUN_AS_USER` env variable to `root` in the respective `docker-compose.yml` file.
+To enable root user at runtime in `ia_video_ingestion` or `ia_video_analytics` or any of the custom UDF services add `user: root` in the respective `docker-compose.yml` file.
 
 For example refer the below snip:
 
@@ -674,25 +674,10 @@ For example refer the below snip:
   ```yaml
   ia_video_ingestion:
     ...
-    environment:
-    ...
-      # Set RUN_AS_USER env variable to root.
-      RUN_AS_USER: "root"
-      # RUN_AS_USER env variable can be used to run VideoIngestion service with the specified user privileges.
-    ...
+    user: root
   ```
 
-To enable root user at runtime in `ia_video_analytics` or any of the custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file.
-
-For example refer the below snip:
-
-  ```yaml
-    ia_video_analytics:
-      ...
-      user: root
-   ```
-
-> Note: In the IPC mode when publisher (ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (ia_visualizer) should also run as root.
+> Note: In the IPC mode when publisher (e.g. ia_video_ingestion/ia_video_analytics/custom_udfs) is running with `root` user permissions then the subscribers (e.g ia_visuzlier/ia_imagestore/ia_influxdbconnector) should also run as root.
 
 #### Troubleshooting issues for MYRIAD(NCS2) devices
 
@@ -794,33 +779,19 @@ Complete the following steps to run inference on HDDL devices:
 
 To run inference on `GPU` device `root` user permissions needs to be used at runtime.
 
-To enable root user at runtime in `ia_video_ingestion` or any of the custom UDF services based on `ia_video_ingestion`, set `RUN_AS_USER` env variable to `root` in the respective `docker-compose.yml` file.
+To enable root user at runtime in `ia_video_ingestion` or `ia_video_analytics` or any of the custom UDF services add `user: root` in the respective `docker-compose.yml` file.
 
 For example refer the below snip:
+
 
   ```yaml
   ia_video_ingestion:
     ...
-    environment:
-    ...
-      # Set RUN_AS_USER env variable to root.
-      RUN_AS_USER: "root"
-      # RUN_AS_USER env variable can be used to run VideoIngestion service with the specified user privileges.
-    ...
+    user: root
   ```
-
-To enable root user at runtime in `ia_video_analytics` or any of the custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file.
-
-For example refer the below snip:
-
-  ```yaml
-    ia_video_analytics:
-      ...
-      user: root
-   ```
-
+  
   > **Note**
-  > In IPC mode when publisher(e.g. ia_video_ingestion or ia_video_analytics) is running as root then the subscriber(e.g. ia_visualizer) should also run as root.
+  >  In the IPC mode when publisher (e.g. ia_video_ingestion/ia_video_analytics/custom_udfs) is running with `root` user permissions then the subscribers (e.g ia_visuzlier/ia_imagestore/ia_influxdbconnector) should also run as root.
   > The below step is required only for the 11th gen Intel Processors
 
   Upgrade the kernel version to 5.8 and install the required drivers from the following OpenVINO link:
