@@ -803,7 +803,8 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                             if (not(os.path.isfile(path_app + '/docker-compose-dev.override.yml'))):
                                 origin = os.path.join (k , "docker-compose-dev.override.yml")
                                 dest = os.path.join (path_app , "docker-compose-dev.override.yml")
-                                shutil.copy(origin, dest)
+                                if os.path.exists(origin):
+                                    shutil.copy(origin, dest)
 
                         # Update appname_list for current service
                         appname_list.append(appname + str(i+1))
