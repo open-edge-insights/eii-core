@@ -760,7 +760,9 @@ Complete the following steps to run inference on HDDL devices:
                   - "/dev/ion:/dev/ion"
       ```
 
-> Note: HDDL Plugin can have ION driver compatibility issues with certain Linux kernel version. Refer [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html) for verifying the supported kernel version. ION driver needs to be succesfully installed in order to run inference on HDDL device.
+> **Note**
+> - HDDL Plugin can have ION driver compatibility issues with certain Linux kernel version. Refer [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html) for verifying the supported kernel version. In case ION driver is not successfuly installed HDDL uses shared memory. There could be permission issues while using shared memory. To fix the permission issues with shared memory configure and start the HDDL daemon with root rights.
+> - HDDL usecases tested on hostsystem with Ubuntu 20.04 Kernel 5.11.0-27-generic by configuring and running HDDL daemon with `root` user rights.
 
 #### Troubleshooting issues for HDDL devices
 
@@ -783,13 +785,12 @@ To enable root user at runtime in `ia_video_ingestion` or `ia_video_analytics` o
 
 For example refer the below snip:
 
-
   ```yaml
   ia_video_ingestion:
     ...
     user: root
   ```
-  
+
   > **Note**
   >  In the IPC mode when publisher (e.g. ia_video_ingestion/ia_video_analytics/custom_udfs) is running with `root` user permissions then the subscribers (e.g ia_visuzlier/ia_imagestore/ia_influxdbconnector) should also run as root.
   > The below step is required only for the 11th gen Intel Processors
