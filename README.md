@@ -21,10 +21,12 @@
     - [List of EII services](#list-of-eii-services)
   - [Task 4: Build and run the EII video and timeseries use cases](#task-4-build-and-run-the-eii-video-and-timeseries-use-cases)
     - [Build EII stack](#build-eii-stack)
-    - [Run EII services](#run-eii-services)
+    - [Run EII Provisioning and other services](#run-eii-provisioning-and-other-services)
       - [EII Provisioning](#eii-provisioning)
         - [Start EII in Dev mode](#start-eii-in-dev-mode)
         - [Start EII in Profiling mode](#start-eii-in-profiling-mode)
+        - [Run EII Provisioning service](#run-eii-provisioning-service)
+      - [Run rest of EII services](#run-rest-of-eii-services)
     - [Push the required EII images to docker registry](#push-the-required-eii-images-to-docker-registry)
   - [Video pipeline analytics](#video-pipeline-analytics)
     - [Enable camera-based video ingestion](#enable-camera-based-video-ingestion)
@@ -507,8 +509,10 @@ The list of pre-built container images that are accessible at https://hub.docker
 
 ## List of EII services
 
-Based on requirement, you can include or exclude the following EII services in the `docker-compose` file:
+Based on requirement, you can include or exclude the following EII services in the `[WORKDIR]/IEdgeInsights/build/docker-compose.yml` file:
 
+- Provisioning Service (`This service is a pre-requisite and cannot be excluded from **docker-compose.yml** file`)
+  - [ConfigMgrAgent](https://github.com/open-edge-insights/eii-configmgr-agent/blob/master/README.md)
 - Common EII services
   - [EtcdUI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md)
   - [InfluxDBConnector](https://github.com/open-edge-insights/eii-influxdb-connector/blob/master/README.md)
@@ -568,7 +572,7 @@ If any of the services fails during the build then run the following command to 
 docker-compose -f docker-compose-build.yml build --no-cache <service name>
 ```
 
-## Run EII services
+## Run EII provisioning and other services
 
 > **NOTE**
 >
@@ -579,7 +583,9 @@ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 The EII provisioning is taken care by the `ia_configmgr_agent` service which gets lauched as part of the EII stack.
 For more details on the ConfigMgr Agent component, please refer: [https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-configmgr-agent/-/blob/feature/pumpkincreek/README.md](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-configmgr-agent/-/blob/feature/pumpkincreek/README.md)
 
-#### Start EII in Dev mode
+#### Configuration
+
+##### Start EII in Dev mode
 
 > **Note**
 > 1. By default, EII is provisioned in the secure mode.
@@ -589,26 +595,48 @@ For more details on the ConfigMgr Agent component, please refer: [https://gitlab
 >    will be created in DEV mode. This behavior is because of docker bind mounts but it is not
 >    an issue.
 
-Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
+Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. 
 
 To provision EII in the developer mode, complete the following steps:
 
 - Step 1. Update DEV_MODE=true in build/.env.
 - Step 2. Re-run the build/builder.py to regenerate the consolidated files
 
-#### Start EII in Profiling mode
+##### Start EII in Profiling mode
 
 The Profiling mode is used for collecting the performance statistics in EII. In this mode, each EII component makes a record of the time needed for processing any single frame. These statistics are collected in the visualizer where System Integrtors (SI) can see the end-to-end processing time and the end-to-end average time for individual frames.
 
 To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file, set the environment variable `PROFILING` to `true`.
 
-Use the following command to run all the EII services in the `docker-compose.yml` file
+#### Run EII provisioning service
+
+> **NOTE**
+> Please use [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the 
+> changes to service configs post starting the EII services.
 
 ```sh
+# Run `docker-compose down` command if 
+# 1. We are switching from DEV to PROD mode OR
+# 2. Want to restart provisioning service with updated `[WORKDIR]/build/eii_config.json` file
+docker-compose up -d ia_configmgr_agent
+```
+
+## Run rest of EII services
+
+Use the following command to run rest of the EII services in the `docker-compose.yml` file. 
+
+> **NOTE**
+> The `ia_configmgr_agent` service will not be brought up here as it's been brought up in the previous stage.
+
+```sh
+# To start the native visualizer service, run this command once in the terminal
 xhost +
-docker-compose up -d ia_configmgr_agent # workaround for now, we are exploring on getting this and the sleep avoided
-sleep 30 # If any failures like configmgr data store client certs or msgbus certs failures, please increase this time to a higher value
+# Required only in the PROD mode to have the required configmgr data store client certificates generated.
+# If errors related to these certificates are seen in OEI services, increase
+# the sleep duration. A 30 seconds duration should suffice.
+sleep 30
 docker-compose up -d
+
 ```
 
 If the run is successful then the Visualizer UI is displayed with results of video analytics for all video use cases.
