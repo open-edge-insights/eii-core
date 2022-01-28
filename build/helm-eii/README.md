@@ -80,8 +80,8 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-4. Below steps are required only in PROD mode:
-   
+4. Below steps are required only in `PROD` mode:
+
    a. Generate certificates needed for EII provisioning
 
   ```sh
@@ -90,7 +90,7 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   ```
 
    b. Update permission of certificates dir
-  
+
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii/
   sudo chmod -R 777 eii-deploy/Certificates
@@ -109,6 +109,8 @@ Copy the helm charts in helm-eii/ directory to the node.
   cd [WORKDIR]/IEdgeInsights/build/helm-eii/
   helm install eii-deploy eii-deploy/
   ```
+
+  > **Note:** ConfigMgrAgent service needs to be initialized before other services during runtime. In case other services are initialized before ConfigMgrAgent one might notice "cfgmgr initialization failed" exception. After generating this exception the services should restart and continue to run.
 
   Verify all the pod are running:
 
@@ -166,7 +168,7 @@ Do helm install of provision and deploy charts as per previous section.
   kubectl label nodes <node-name> ncs2=true
   ```
 
->**Note**: Here the node-name is your worker node machine hostname
+> **Note**: Here the node-name is your worker node machine hostname
 
 3. Open the `[WORKDIR]/IEdgeInsights/VideoIngestion/helm/values.yaml` or `[WORKDIR]/IEdgeInsights/VideoAnalytics/helm/values.yaml` file.
 
@@ -177,11 +179,9 @@ Do helm install of provision and deploy charts as per previous section.
   ```yml
   config:
     video_ingestion:
-       .
-       .
-       .
-      accelerator: "hddl"
       .
+      .
+      accelerator: "hddl"
       .
       .
   ```
@@ -191,11 +191,9 @@ Do helm install of provision and deploy charts as per previous section.
   ```yml
   config:
     video_ingestion:
-       .
-       .
-       .
-      accelerator: "ncs2"
       .
+      .
+      accelerator: "ncs2"
       .
       .
   ```
@@ -283,9 +281,7 @@ Do helm install of provision and deploy charts as per previous section.
   $ vi [WORKDIR]/IEdgeInsights/VideoIngestion/helm/values.yaml
   .
   .
-  .
   gige_camera: true
-  .
   .
   .
   ```
@@ -298,8 +294,9 @@ Do helm install of provision and deploy charts as per previous section.
   kubectl -n eii exec -it <pod_name> -- ip -d address
   ```
 
->**Note:**User needs to deploy as root user for GPU device, MYRIAD(NCS2) device and GenICam USB3.0 interface cameras.
-
+> **Note**
+> - User needs to deploy with `root` user rights for GPU device, MYRIAD(NCS2) device and GenICam USB3.0 interface cameras.
+> - Refer the below configuration file snip to deploy with `root` user rights using `runAsUser` field.
 ```
 apiVersion: apps/v1
 kind: Deployment
@@ -312,7 +309,6 @@ spec:
         ....
         securityContext:
           runAsUser: 0
-
 ```
 
 ## Accessing Web Visualizer and EtcdUI

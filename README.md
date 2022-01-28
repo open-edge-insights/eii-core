@@ -595,7 +595,7 @@ For more details on the ConfigMgr Agent component, please refer: [https://gitlab
 >    will be created in DEV mode. This behavior is because of docker bind mounts but it is not
 >    an issue.
 
-Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. 
+Starting EII in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels.
 
 To provision EII in the developer mode, complete the following steps:
 
@@ -611,11 +611,11 @@ To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file,
 #### Run EII provisioning service
 
 > **NOTE**
-> Please use [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the 
+> Please use [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the
 > changes to service configs post starting the EII services.
 
 ```sh
-# Run `docker-compose down` command if 
+# Run `docker-compose down` command if
 # 1. We are switching from DEV to PROD mode OR
 # 2. Want to restart provisioning service with updated `[WORKDIR]/build/eii_config.json` file
 docker-compose up -d ia_configmgr_agent
@@ -623,7 +623,7 @@ docker-compose up -d ia_configmgr_agent
 
 ## Run rest of EII services
 
-Use the following command to run rest of the EII services in the `docker-compose.yml` file. 
+Use the following command to run rest of the EII services in the `docker-compose.yml` file.
 
 > **NOTE**
 > The `ia_configmgr_agent` service will not be brought up here as it's been brought up in the previous stage.
@@ -789,7 +789,7 @@ Complete the following steps to run inference on HDDL devices:
       ```
 
 > **Note**
-> - HDDL Plugin can have ION driver compatibility issues with certain Linux kernel version. Refer [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html) for verifying the supported kernel version. In case ION driver is not successfuly installed HDDL uses shared memory. There could be permission issues while using shared memory. To fix the permission issues with shared memory configure and start the HDDL daemon with root rights.
+> - HDDL Plugin can have ION driver compatibility issues with certain Linux kernel version. Refer [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html) for verifying the supported kernel version. In case ION driver is not successfuly installed HDDL uses shared memory. There could be permission issues while using shared memory. To fix the permission issues with shared memory configure and start the HDDL daemon with `root` user rights.
 > - HDDL usecases tested on hostsystem with Ubuntu 20.04 Kernel 5.11.0-27-generic by configuring and running HDDL daemon with `root` user rights.
 
 #### Troubleshooting issues for HDDL devices
