@@ -25,6 +25,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.16.2
     container_name: elk_elasticsearch
     hostname: elasticsearch
+    read_only: true
     networks:
       - eii
     security_opt:
@@ -52,6 +53,7 @@ services:
     image: docker.elastic.co/logstash/logstash:7.16.2
     container_name: elk_logstash
     hostname: logstash
+    read_only: true
     networks:
       - eii
     security_opt:
