@@ -8,6 +8,7 @@
   - [Steps to enable Accelarators](#steps-to-enable-accelarators)
   - [Steps for Enabling GiGE Camera with helm](#steps-for-enabling-gige-camera-with-helm)
   - [Accessing Web Visualizer and EtcdUI](#accessing-web-visualizer-and-etcdui)
+  - [Pre requisites on K8s MultiNode Cluster Environment](#pre-requisistes-on-k8s-multinode-cluster-environment)
 
 # EII provision and deployment
 
@@ -320,3 +321,17 @@ spec:
 - WebVisualizer
   - PROD Mode --  `https://master-nodeip:30007/`
   - DEV Mode -- `http://master-nodeip:30009/`
+
+## Pre requisites on K8s MultiNode Cluster Environment
+
+>**Note**:
+> 1. For running EII in Prod Mode, it is required to have self-signed certificates that are getting
+>    generated need to go in as kubernetes secrets. To make this happen, it is mandatory that 
+>    ConfigManager Agent Pod & generating Certs Pod gets scheduled in k8s Cluster's Master/Control Plane node
+> 2. By default, EII deployment charts are deployed in PROD mod and only ConfigManager Agent & generating Certs pods
+>    gets scheduled on Master/Control Plane node of K8s Cluster
+
+* Please make sure the Master Node is *tainted* to schedule the pod
+  ```sh
+  $ kubectl taint nodes --all node-role.kubernetes.io/master-
+  ```

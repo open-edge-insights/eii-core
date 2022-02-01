@@ -50,6 +50,10 @@ spec:
       labels:
         app: configmgragent
     spec:
+      {{- if eq .Values.env.DEV_MODE false}}
+      nodeSelector:
+              node-role.kubernetes.io/master: ""
+      {{- end }}
       {{- if and .Values.DOCKER_USERNAME .Values.DOCKER_PASSWORD }}
       imagePullSecrets:
       - name: registryauth
