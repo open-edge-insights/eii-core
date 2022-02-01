@@ -10,3 +10,4 @@ AppContexts:
 - VideoAnalytics
 - Visualizer
 - WebVisualizer
+- Grafana

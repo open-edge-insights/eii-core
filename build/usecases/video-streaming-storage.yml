@@ -12,3 +12,4 @@ AppContexts:
 - WebVisualizer
 - ImageStore
 - InfluxDBConnector
+- Grafana

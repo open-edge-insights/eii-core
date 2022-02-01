@@ -16,3 +16,4 @@ AppContexts:
 - OpcuaExport
 - RestDataExport
 - AzureBridge
+- Grafana
