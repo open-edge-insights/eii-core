@@ -184,7 +184,9 @@ Please follow below steps to update the details of leader node for remote node s
         no_proxy: <managed_node ip>,<controller node ip>,<worker nodes ip>,localhost,127.0.0.1
     ```
 
-3. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
+3. Update the `EII Secrets` username & passwords in `group_vars/all.yml` required to run few EII Services in `PROD` mode only   
+
+4. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
 
 > **Note**
 >
@@ -199,8 +201,8 @@ Please follow below steps to update the details of leader node for remote node s
         usecase: <time-series>
     ```
 
-4. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
-5. Update other optional variables provided if required
+5. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
+6. Update other optional variables provided if required
 
 ## Remote node deployment
 

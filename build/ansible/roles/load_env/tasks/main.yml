@@ -27,6 +27,34 @@
 - debug:
     msg: "host ip: {{ host_ip.stdout }} "
 
+- debug:
+    msg: "INFLUXDB_USERNAME is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: INFLUXDB_USERNAME == "" and DEV_MODE == false
+
+- debug:
+    msg: "INFLUXDB_PASSWORD is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: INFLUXDB_PASSWORD == "" and DEV_MODE == false
+
+- debug:
+    msg: "WEBVISUALIZER_USERNAME is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: WEBVISUALIZER_USERNAME == "" and DEV_MODE == false
+
+- debug:
+    msg: "WEBVISUALIZER_PASSWORD is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: WEBVISUALIZER_PASSWORD == "" and DEV_MODE == false
+
+- debug:
+    msg: "MINIO_ACCESS_KEY is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: MINIO_ACCESS_KEY == "" and DEV_MODE == false
+
+- debug:
+    msg: "MINIO_SECRET_KEY is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: MINIO_SECRET_KEY == "" and DEV_MODE == false
+
+- debug:
+    msg: "ETCDROOT_PASSWORD is empty in group_vars/all.yml. Please Update group_vars/all.yml"
+  when: ETCDROOT_PASSWORD == "" and DEV_MODE == false
+
 - name: Loading env template & updating build/.env
   template:
     src: env.j2

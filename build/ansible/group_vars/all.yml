@@ -64,7 +64,7 @@ no_proxy: ""
 ## Below params are for advanced users and are not recommended to edit for normal deployments.
 
 # EII version number
-EII_VERSION: "3.0-RC2"
+EII_VERSION: "3.0-RC3"
 # EII USER & EII GROUP ID
 EII_USER_NAME: "eiiuser"
 EII_UID: 1999
@@ -80,3 +80,12 @@ EII_INSTALL_PATH: "/opt/intel/eii/"
 EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
 ## Enable this to true, if you want retain the certificates in k8s leader machine
 retain_certs_in_k8s_leader_machine: false
+
+## EII Service Credentials
+INFLUXDB_USERNAME: ""
+INFLUXDB_PASSWORD: ""
+WEBVISUALIZER_USERNAME: ""
+WEBVISUALIZER_PASSWORD: ""
+MINIO_ACCESS_KEY: ""
+MINIO_SECRET_KEY: ""
+ETCDROOT_PASSWORD: ""
