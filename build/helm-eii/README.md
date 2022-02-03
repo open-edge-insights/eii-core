@@ -67,22 +67,24 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
 
 1. Edit the "EII_HOME_DIR" in [.env](../.env) with /home/username/\<dir\>/IEdgeInsights/.
 
-2. Run following command to update HOST_IP:
+2. Make sure you have updated the EII Service Secrets Username & password in [.env](../.env) file
+
+3. Run following command to update HOST_IP:
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build
   source ./source.sh
   ```
 
-3. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
+4. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-4. Below steps are required only in `PROD` mode:
-
+5. Below steps are required only in PROD mode:
+   
    a. Generate certificates needed for EII provisioning
 
   ```sh

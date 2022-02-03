@@ -36,6 +36,13 @@ env:
   SOCKET_DIR:
   HOST_IP:
   config_agent_service:
+  INFLUXDB_USERNAME:
+  INFLUXDB_PASSWORD:
+  WEBVISUALIZER_USERNAME:
+  WEBVISUALIZER_PASSWORD:
+  MINIO_ACCESS_KEY:
+  MINIO_SECRET_KEY:
+  ETCDROOT_PASSWORD:
 config:
     etcd:
       name: configmgragent

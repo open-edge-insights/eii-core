@@ -32,6 +32,7 @@ env:
   HOST_IP:
   config_agent_service:
   EII_HOME_DIR:
+  ETCDROOT_PASSWORD:
 
 network:
   etcd:
