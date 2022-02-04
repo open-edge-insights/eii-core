@@ -1215,7 +1215,7 @@ def verify_secrets():
     for secret in secrets_list:
         if dotenv.get_key(dotenv_file, secret) == "":
             missing_secrets_list.append(secret)
-    if len(missing_secrets_list) > 1:
+    if len(missing_secrets_list) > 0:
         raise KeyError(f"Value not found for {missing_secrets_list}")
 
 
