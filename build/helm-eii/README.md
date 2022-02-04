@@ -30,10 +30,14 @@ For deployment of EII, helm charts are provided for both provision and deploymen
    online tutorials to setup kubernetes cluster on the web with host OS as ubuntu 18.04/20.04.
 - For helm installation, please refer [helm website](https://helm.sh/docs/intro/install/)
 
+> For time series usecase make sure ia_mqtt_broker & ia_mqtt_publisher are running.
+> Make sure 'MQTT_BROKER_HOST' Environment Variable is updated with HOST IP address of the system where MQTT Broker is running.
+
 -----
 
 For preparing the necessary files required for the provision and deployment, user needs to execute the build and provision steps on an Ubuntu 18.04 / 20.04 machine.
 Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build and Run EII mentioned in [README.md](../../README.md) on the Ubuntu dev machine.
+
 
 - To run EII services with helm in fresh system where EII services are going to run for the first time(no `eiiuser` is present on that system), user needs to run below steps:
 
