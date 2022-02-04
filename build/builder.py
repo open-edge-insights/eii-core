@@ -1211,9 +1211,12 @@ def verify_secrets():
     dotenv.load_dotenv(dotenv_file)
 
     # Write changes to .env file
+    missing_secrets_list = []
     for secret in secrets_list:
         if dotenv.get_key(dotenv_file, secret) == "":
-            raise KeyError(f"Value not found for {secret}")
+            missing_secrets_list.append(secret)
+    if len(missing_secrets_list) > 1:
+        raise KeyError(f"Value not found for {missing_secrets_list}")
 
 
 if __name__ == '__main__':
