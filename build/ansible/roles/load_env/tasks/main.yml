@@ -29,11 +29,11 @@
 
 - debug:
     msg: "INFLUXDB_USERNAME is empty in group_vars/all.yml. Please Update group_vars/all.yml"
-  when: INFLUXDB_USERNAME == "" and DEV_MODE == false
+  when: INFLUXDB_USERNAME == ""
 
 - debug:
     msg: "INFLUXDB_PASSWORD is empty in group_vars/all.yml. Please Update group_vars/all.yml"
-  when: INFLUXDB_PASSWORD == "" and DEV_MODE == false
+  when: INFLUXDB_PASSWORD == ""
 
 - debug:
     msg: "WEBVISUALIZER_USERNAME is empty in group_vars/all.yml. Please Update group_vars/all.yml"
@@ -53,7 +53,7 @@
 
 - debug:
     msg: "ETCDROOT_PASSWORD is empty in group_vars/all.yml. Please Update group_vars/all.yml"
-  when: ETCDROOT_PASSWORD == "" and DEV_MODE == false
+  when: ETCDROOT_PASSWORD == ""
 
 - name: Loading env template & updating build/.env
   template:
