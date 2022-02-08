@@ -56,7 +56,8 @@ override_apps_list, override_helm_apps_list = \
     ([] for _ in range(2))
 dev_override_list, app_list, helm_app_list = \
     ([] for _ in range(3))
-used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
+used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
+
 
 dev_mode = False
 # Fetching dev_mode from .env
@@ -184,8 +185,8 @@ def create_multi_instance_interfaces(config, default_config, i, bm_apps_list):
                 if (y["Topics"] == x["Topics"]):
                     for index, topic in enumerate(x["Topics"]):
                         if bool(re.search(r'\d', x["Topics"][index])):
-                           x["Topics"][index] = re.sub(r'\d+', str(i+1),
-                                                    x["Topics"][index])
+                            x["Topics"][index] = re.sub(r'\d+', str(i+1),
+                                                        x["Topics"][index])
                         else:
                             x["Topics"][index] = x["Topics"][index] +\
                                                 str(i+1)
@@ -201,7 +202,7 @@ def create_multi_instance_interfaces(config, default_config, i, bm_apps_list):
                                                        ][index])):
                                     x["AllowedClients"][index] = \
                                         re.sub(r'\d+', str(i+1),
-                                        x["AllowedClients"][index])
+                                               x["AllowedClients"][index])
                                 else:
                                     x["AllowedClients"][index] = \
                                         x["AllowedClients"][index] + str(i+1)
@@ -211,7 +212,7 @@ def create_multi_instance_interfaces(config, default_config, i, bm_apps_list):
                     if (x["PublisherAppName"] == y["PublisherAppName"]):
                         if bool(re.search(r'\d', x["PublisherAppName"])):
                             x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
-                                                       x["PublisherAppName"])
+                                                           x["PublisherAppName"])
                         else:
                             x["PublisherAppName"] = x["PublisherAppName"] +\
                                                       str(i+1)
@@ -388,11 +389,11 @@ def json_parser(app_list, args):
                 "AzureBridge" and "ConfigMgrAgent" not in app_path):
                 for i in range(num_multi_instances):
                     # path to the multi_instance subdirectory
-                    path = os.path.join(multi_inst_path , dirname + str(i+1))
+                    path = os.path.join(multi_inst_path, dirname + str(i+1))
                     # Open the config.json within the parent directory
-                    with open(app_path + '/config.json' , "rb") as defile:
-                        default_config = json.load(defile)  
-                    # Open the config.json within the multi_instance subdirectory    
+                    with open(app_path + '/config.json', "rb") as defile:
+                        default_config = json.load(defile)
+                    # Open the config.json within the multi_instance subdirectory
                     with open(path + '/config.json', "rb") as infile:
                         head = json.load(infile)
                         # Increments rtsp port number if required
@@ -413,7 +414,8 @@ def json_parser(app_list, args):
                                 head['interfaces']
                         # # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
-                        # Writing the changes to the config.json file in the multi_instance subdirectory
+                        # Writing the changes to the config.json file in the
+                        # multi_instance subdirectory
                         with open(path + "/config.json", "w") as multi_instance_json_file:
                             multi_instance_json_file.write(json.dumps(head, sort_keys=True, indent=4))
             # This condition is to handle not creating multi instance for
@@ -468,7 +470,7 @@ def json_parser(app_list, args):
                 if subscriber["Type"] == "zmq_tcp":
                     # Ignoring ZmqBroker as PublisherAppName is "*" for subscriber
                     if subscriber["PublisherAppName"] != "*":
-                        if("/" + subscriber["PublisherAppName"] + \
+                        if ("/" + subscriber["PublisherAppName"] + \
                             "/interfaces" not in config_json.keys()):
                             temp[key]["Subscribers"].remove(subscriber)
                             if not temp[key]["Subscribers"]:
@@ -484,7 +486,6 @@ def json_parser(app_list, args):
                         temp[key]["Clients"].remove(client)
                         if not temp[key]["Clients"]:
                             del temp[key]["Clients"]
-
 
     # Writing consolidated json into desired location
     with open(eii_config_path, "w") as json_file:
@@ -539,7 +540,7 @@ def helm_yaml_merger(app_list, args):
         shutil.rmtree(helm_deploy_dir + "templates")
     os.mkdir(helm_deploy_dir + "templates")
 
-    with open(helm_deploy_dir +"../common-values.yaml", 'r') as \
+    with open(helm_deploy_dir + "../common-values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
@@ -555,7 +556,6 @@ def helm_yaml_merger(app_list, args):
         data = pvc_yaml_file.read()
         pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
-
     app_list.extend(override_helm_apps_list)
     for app_path in app_list:
         helm_app_path = os.path.join(app_path + "/helm")
@@ -563,7 +563,7 @@ def helm_yaml_merger(app_list, args):
         if args.override_directory is not None:
             if args.override_directory in helm_app_path:
                 app_name = app_path.split("/")[-2]
-        
+
         # Copying all templates files of each eii modules to
         # ./helm-eii/eii-deploy/templates.
         yaml_files = os.listdir(helm_app_path + "/templates")
@@ -577,7 +577,7 @@ def helm_yaml_merger(app_list, args):
         shutil.copy("./helm-eii/common-secrets.yaml", helm_deploy_dir + "templates/secrets.yaml")
         shutil.copy("./eii_config.json", helm_gen_cert_dir + "/eii_config.json")
 
-        
+
         # Load the required values.yaml files
         with open(helm_app_path + "/values.yaml", 'r') as values_file:
             data = ruamel.yaml.round_trip_load(values_file,
@@ -606,9 +606,8 @@ def helm_yaml_merger(app_list, args):
         with open(helm_deploy_dir + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
             final_pvc_yaml.write(pvc_merged_yaml)
 
-
     # Updating values.yaml for provision
-    with open(helm_gen_cert_dir +"/values.yaml", 'r') as \
+    with open(helm_gen_cert_dir + "/values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
@@ -629,7 +628,7 @@ def helm_yaml_merger(app_list, args):
                         helm_gen_cert_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
                     else:
                         helm_gen_cert_dict[var].update({i: os.getenv(i)})
-    with open(helm_gen_cert_dir +"/values.yaml", 'w') as value_file:
+    with open(helm_gen_cert_dir + "/values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_gen_cert_dict, value_file)
 
 
@@ -659,7 +658,7 @@ def helm_yaml_merger(app_list, args):
                 helm_dict[k].update({i: var[k][i]})
 
     # Writing consolidated values.yaml file to ./helm-eii/eii-deploy/ dir
-    with open(helm_deploy_dir +"values.yaml", 'w') as value_file:
+    with open(helm_deploy_dir + "values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_dict, value_file)
 
 
@@ -686,7 +685,7 @@ def create_multi_instance_yml_dict(mi_data, data, i):
     # deep copy to avoid issues during iteration
     temp = copy.deepcopy(mi_data)
     for k, v in temp['services'].items():
-        for k1 , _ in data['services'].items():
+        for k1, _ in data['services'].items():
             k1 = re.sub(r'\d+', '', k1)
         if (k == k1):
             # Update yaml main key name
@@ -777,7 +776,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                     appname = k.split("/")[-2]
 
             # Append valid AppNames to appname_list
-            if (appname != "video" and appname != "common" and appname != None):
+            if (appname != "video" and appname != "common" and appname is not None):
                 appname_list.append(appname)
 
             # Create multi instance compose if num_multi_instances is > 1
@@ -792,7 +791,7 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         appname != "common" and
                         appname != "AzureBridge" and
                         appname != "ConfigMgrAgent" and
-                        appname != None):
+                        appname is not None):
                     appname_list.remove(appname)
                     for i in range(num_multi_instances):
                         # Path to the multi_instance subdirectory
@@ -800,21 +799,22 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         # Create subdirectories VideoIngestion1, VideoIngestion2, ...if not created
                         if (not(os.path.isdir(path_app))):
                             os.mkdir(path_app)
-                        # Copy default config.json and docker-compose.yml files to the subdirectory if not present    
+                        # Copy default config.json and docker-compose.yml files to the subdirectory
+                        # if not present
                         if (not(os.path.isfile(path_app + "/docker-compose.yml") and 
-                            os.path.isfile (path_app +  "/config.json"))):
-                            origin = os.path.join (k , "docker-compose.yml")
-                            dest = os.path.join (path_app , "docker-compose.yml")
+                            os.path.isfile(path_app + "/config.json"))):
+                            origin = os.path.join(k, "docker-compose.yml")
+                            dest = os.path.join(path_app, "docker-compose.yml")
                             shutil.copy(origin, dest)
                             origin = os.path.join(k, "config.json")
-                            dest = os.path.join (path_app , "config.json")
+                            dest = os.path.join(path_app, "config.json")
                             shutil.copy(origin, dest)
 
                         if dev_mode:
                             # Copy docker-compose-dev.override.yml file if not already present
                             if (not(os.path.isfile(path_app + '/docker-compose-dev.override.yml'))):
-                                origin = os.path.join (k , "docker-compose-dev.override.yml")
-                                dest = os.path.join (path_app , "docker-compose-dev.override.yml")
+                                origin = os.path.join(k, "docker-compose-dev.override.yml")
+                                dest = os.path.join(path_app, "docker-compose-dev.override.yml")
                                 if os.path.exists(origin):
                                     shutil.copy(origin, dest)
 
@@ -823,12 +823,13 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                         # Open the docker-compose.yml file within the subdirectory
                         with open(path_app + '/' + file_to_pick, 'r') as docker_compose_file:
                             mi_data = ruamel.yaml.round_trip_load(docker_compose_file,
-                                                                  preserve_quotes = True)
+                                                                  preserve_quotes=True)
                             data_two = create_multi_instance_yml_dict(mi_data, data, i+1)
-                            # Write the changes to the existing docker-compose.yml file within multi_instance directory
+                            # Write the changes to the existing docker-compose.yml file
+                            # within multi_instance directory
                             with open(path_app + "/" + file_to_pick, 'w') as docker_compose_file:
                                 ruamel.yaml.round_trip_dump(data_two, docker_compose_file)
-                            yaml_files_dict.append(data_two)    
+                            yaml_files_dict.append(data_two)
 
                 # To create single instance for subscriber services
                 else:
@@ -894,7 +895,7 @@ def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images)
 
 
 def get_service_dependency_tree(yml_dict, run_exclude_images):
-    """Method to generate a dict of services and services it depends on 
+    """Method to generate a dict of services and services it depends on
 
     :param yml_dict: dict generated from docker-compose yml
     :type yml_dict: dict
@@ -917,28 +918,28 @@ def get_service_dependency_tree(yml_dict, run_exclude_images):
 
 
 def update_dependency_service(service, dep_tree, req_services):
-    """Method to append the provided dict with nested dependencies of the 
+    """Method to append the provided dict with nested dependencies of the
        provided service
-    :param service: Name of the service of which the dependencies need to be 
+    :param service: Name of the service of which the dependencies need to be
                     fetched
     :type service: str
-    :param dep_tree: The dependency tree dict returned by 
+    :param dep_tree: The dependency tree dict returned by
                      get_service_dependency_tree() method
     :type dep_tree: dict
     :param req_services: The list where the dependencies names to be appended
     :type req_services: dict
-    """ 
+    """
     req_services[service] = "1"
     if service in dep_tree:
         deps = dep_tree[service]
         for i in range(len(deps)):
             update_dependency_service(deps[i], dep_tree, req_services)
-        
+
 
 def get_required_services_list(dep_tree, run_exclude_images):
     """Method to get the list of required services along with the services
        it depends on
-    :param dep_tree: The dependency tree dict returned by 
+    :param dep_tree: The dependency tree dict returned by
                      get_service_dependency_tree() method
     :type dep_tree: dict
     :param run_exclude_images: List of name of dependency services which
@@ -946,12 +947,12 @@ def get_required_services_list(dep_tree, run_exclude_images):
     :type run_exclude_images: array
     :return req_services: dict of required services
     :rtype: dict
-    """ 
+    """
     req_services = {}
     for service in dep_tree:
         if service not in run_exclude_images:
             update_dependency_service(service, dep_tree, req_services)
-        
+
     return req_services
 
 
@@ -1064,7 +1065,7 @@ def yaml_parser(args):
         global multi_inst_path
         multi_inst_path = os.path.join(os.getcwd(), 'multi_instance')
         if (not(os.path.isdir(multi_inst_path))):
-            os.mkdir(multi_inst_path) 
+            os.mkdir(multi_inst_path)
 
 
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
@@ -1074,8 +1075,8 @@ def yaml_parser(args):
     # Get the list of services that needs to be written to docker-compose-build.yml
     required_services = get_required_services_list(deps, run_exclude_images)
 
-    # Writing docker-compose-build.yml file. This yml will have services which will only
-    # contain the build_params keys for all services.
+    # Writing docker-compose-build.yml file. This yml will have services
+    # which will only contain the build_params keys for all services.
     for k, v in yml_dict.items():
         if(k == "services"):
             for service, service_dict in v.items():
@@ -1106,8 +1107,8 @@ def yaml_parser(args):
                 if(service in run_exclude_images):
                     del temp["services"][service]
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
-         ruamel.yaml.round_trip_dump(temp, docker_compose_file)
-    
+        ruamel.yaml.round_trip_dump(temp, docker_compose_file)
+
     # Writing docker-compose-push.yml file.
     for k, v in temp.items():
         if(k == "services"):

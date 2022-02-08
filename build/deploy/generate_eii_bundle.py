@@ -113,7 +113,7 @@ class EiiBundleGenerator:
         for service in self.config['services'].keys():
             self.inc_services.append(self.config['services']
                     [service]['environment']['AppName'])
-        with open('../eii_config.json','r') as cnf:
+        with open('../eii_config.json', 'r') as cnf:
             self.cnf_file = json.load(cnf)
         self.conf_keys = self.cnf_file.keys()
         self.update_config_file.update({"/GlobalEnv/": self.cnf_file["/GlobalEnv/"]})
@@ -150,6 +150,7 @@ class EiiBundleGenerator:
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
+
     def generate_eii_bundle(self):
         '''
             generate_eii_bundle helps to execute set of pre
@@ -169,7 +170,7 @@ class EiiBundleGenerator:
             tar_file = self.bundle_tag_name + ".tar.gz"
             cmdlist.append(["chown", "-R", USER, self.bundle_tag_name])
             cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-            if self.bundle_folder == False:
+            if self.bundle_folder is False:
                 cmdlist.append(["rm", "-rf", self.bundle_tag_name])
 
             for cmd in cmdlist:
@@ -179,7 +180,6 @@ class EiiBundleGenerator:
             print("Exception Occured ", str(err))
             sys.exit(0)
 
-
     def generate_eii_raw_bundle(self):
         cmdlist = []
         cmdlist.append(["mkdir", "-p", self.bundle_tag_name])
@@ -188,9 +188,9 @@ class EiiBundleGenerator:
         cmdlist.append(["cp", "../eii_config.json", self.bundle_tag_name])
         tar_file = self.bundle_tag_name + ".tar.gz"
         cmdlist.append(["tar", "-czvf", tar_file, self.bundle_tag_name])
-        if self.bundle_folder == False:
+        if self.bundle_folder is False:
             cmdlist.append(["rm", "-rf", self.bundle_tag_name])
-        
+
         try:
             for cmd in cmdlist:
                 subprocess.check_output(cmd)
@@ -198,7 +198,6 @@ class EiiBundleGenerator:
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
-
 
     def add_docker_save_option(self, dock_save, dock_load):
         if dock_save:

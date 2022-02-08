@@ -98,7 +98,7 @@ class Visualizer:
                         "level": results['encoding_level']}
         # Convert to Numpy array and reshape to frame
         if isinstance(blob, list):
-            # If multiple frames, select first frame for 
+            # If multiple frames, select first frame for
             # visualization
             blob = blob[0]
         frame = np.frombuffer(blob, dtype=np.uint8)

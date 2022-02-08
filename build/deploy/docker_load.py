@@ -24,6 +24,7 @@ import os
 import glob
 import subprocess
 
+
 """load docker images from docker_images folder"""
 def docker_load():
     cmdlist = []
@@ -40,13 +41,14 @@ def docker_load():
     except Exception as err:
         print("Exception Occured ", str(err))
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="docker load\
             ", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-dl',
-                    '--docker_load',
-                    action='store_true',
-                    help='docker load services')
+                        '--docker_load',
+                        action='store_true',
+                        help='docker load services')
     arg = parser.parse_args()
     if arg.docker_load:
         docker_load()
