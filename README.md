@@ -50,8 +50,7 @@
 
 Open Edge Insights (OEI) is a set of pre-validated ingredients for integrating video and time-series data analytics on edge compute nodes. OEI includes modules to enable data collection, storage, and analytics for both time-series and video data.
 
-> Note
->
+> **Note:**
 > In this document, you will find labels of 'Edge Insights for Industrial (EII)' for filenames, paths, code snippets, and so on. Consider the references of EII as OEI. This is due to the product name change of EII as OEI.
 
 ## Minimum system requirements
@@ -63,7 +62,7 @@ The following are the minimum system requirements to run OEI:
 |RAM       |16 GB       |
 |Hard drive       | 64 GB      |
 |Operating system       | Ubuntu 18.04 or Ubuntu 20.04      |
-> Note
+> **Note:**
 >
 > - To use OEI, ensure that you are connected to the internet.
 > - The recommended RAM capacity for video analytics pipeline is 16 GB and time-series analytics pipeline is 2 GB.
@@ -127,7 +126,7 @@ The `pre-requisites.sh` file performs the following:
 - Configures the proxy settings system-wide (/etc/environment) and for docker. If a system is running behind a proxy, then the script prompts users to enter the proxy address to configure the proxy settings.
 - Configures proxy setting for /etc/apt/apt.conf to enable apt updates and installations.
 
-> Note
+> **Note:**
 >
 > - The recommended version of the docker-compose is `1.29.0`. In versions older than 1.29.0, the video use case docker-compose.yml files and the device_cgroup_rules command may not work.
 > - To use versions older than docker-compose 1.29.0, in the `ia_video_ingestion` and `ia_video_analytics` services, comment out the `device_cgroup_rules` command.
@@ -156,7 +155,7 @@ To run the pre-requisite script, execute the following commands:
       --help / -h         display this help and exit
   ```
 
-> Note
+> **Note:**
 >
 > If the --proxy option is not provided, then script will run without proxy. Different use cases are as follows:
 >
@@ -267,28 +266,23 @@ Table: Consolidated files
 | values.yaml                  | Consolidated `values.yaml` of every app inside helm-eii/eii-deploy directory, which is required to deploy OEI services via helm                                      |
 | Template yaml files          | Files copied from helm/templates directory of every app to helm-eii/eii-deploy/templates directory, which are required to deploy OEI services via helm               |
 
-> Note
+> **Note:**
 >
-> - If you modify an individual OEI app, service directories files, or the `build/.env` file then run the `builder.py` script before running the OEI stack. The changes are saved in the consolidated files.
-> - Manual editing is not recommended for modifying the consolidated files. Instead make changes to the respective files in the OEI app or services directories and use the `build` or `builder.py` script to generate the consolidated files.
+> - If you modify an individual OEI app, service directories files, or the `build/.env` file then, run the `builder.py` script before running the OEI stack. The changes are saved in the consolidated files.
+> - Manual editing is not recommended for modifying the consolidated files. Instead make changes to the respective files in the OEI app or the services directories and use the `build` or the `builder.py` script to generate the consolidated files.
+> - Enter the secret credentials, if it is applicable for any particular OEI services. When you run the Builder, it reports the secret credentials that are mandatorily required. Update the secret credentials in the `# Service credentials` section of the [.env](build/.env) file.
+> - The [builder_config.json](./build/builder_config.json) is the config file for the `builder.py` script and it contains the following keys:
+>   - `subscriber_list`: This key contains a list of services that act as a subscriber to the stream being published.
+>   - `publisher_list`: This key contains a list of services that publishes a stream of data.
+>   - `include_services`: This key contains the mandatory list of services that are required to be included when the Builder is run without the `-f` flag.
+>   - `exclude_services`: This key contains the mandatory list of services that are required to be excluded when the Builder is run without the `-f` flag.
+>   - `increment_rtsp_port`: This is a boolean key used for incrementing the port number for the RTSP stream pipelines.
 
 To generate the consolidated files, run the following command:
 
   ```sh
   python3 builder.py
   ```
-
-> **NOTE**
-> User has to key-in certain secret credentials if applicable for particular OEI services. The credentials that are mandatorily required are reported by the builder once its run and the same can be updated in [.env](build/.env)
-
-> Note
->
-> - The [builder_config.json](./build/builder_config.json) contains keys `subscriber_list`, `publisher_list`, `include_services` and `increment_rtsp_port`.
-> - The `subscriber_list` contains a list of services that act as a subscriber to the stream being published.
-> - The `publisher_list` contains a list of services that publishes a stream of data.
-> - The `include_services` contains the mandatory list of services that are required to be included when Builder is run without the -f flag.
-> - The `exclude_services` contains the mandatory list of services that are required to be excluded when Builder is run without the -f flag.
-> - The `increment_rtsp_port` is a boolean key used for incrementing the port number for RTSP stream pipelines.
 
 ### Generate consolidated files for a subset of OEI services
 
@@ -360,7 +354,7 @@ Using the previous command for 3 instances, the `build/multi_instance` directory
 
  You can edit the configs of each of these streams within the `build/multi_instance` directory. To generate the consolidated `docker compose` and `eii_config.json` file, rerun the `builder.py` command.
 
-  > Note
+  > **Note:**
   >
   > - The multi-instance feature support of Builder works only for the video pipeline i.e., **usecases/video-streaming.yml** use case alone and not with any other use case yml files like **usecases/video-streaming-storage.yml** and so on. Also, it doesn't work for cases without the `-f` switch. The previous example will work with any positive number for `-v`. To learn more about using the multi-instance feature with the DiscoverHistory tool, see [Multi-instance feature support for the builder script with the DiscoverHistory tool](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md#multi-instance-feature-support-for-the-builder-script-with-the-discoverhistory-tool).
   > - If you are running the multi-instance config for the first time, it is recommended to not change the default `config.json` file and the `docker-compose.yml` file in the `VideoIngestion` and `VideoAnalytics` directories.
@@ -378,7 +372,7 @@ For example, to pick files from a directory named benchmarking, you can run the 
      python3 builder.py -d benchmarking
   ```
 
-> Note
+> **Note:**
 >
 > - If you use the override directory feature of the builder then include all the 3 files mentioned in the previous example. If you do not include a file in the override directory then the Builder will omit that service in the final config that is generated.
 > - Adding the `AppName` of the subscriber or client container in the `subscriber_list of builder_config.json` allows you to spawn a single subscriber or client container that is subscribing or receiving on multiple publishers or server containers.
@@ -445,7 +439,7 @@ The `config.json` file consists of the following key and values:
 - the `Publishers` value in the `interfaces` section denotes that this service publishes a stream of data after obtaining and processing it from `VideoAnalytics`. The stream is published on the endpoint mentioned in value of `EndPoint` key on topics mentioned in the value of `Topics` key.
 - the services mentioned in the value of `AllowedClients` are the only clients that can subscribe to the published stream, if it is published securely over the Message Bus.
 
-> Note
+> **Note:**
 >
 > - Like the interface keys, OEI services can also have "Servers" and "Clients" interface keys. For more information, refer [config.json](https://github.com/open-edge-insights/video-ingestion/blob/master/config.json) of the `VideoIngestion` service and [config.json](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/config.json) of SWTriggerUtility tool.
 > - For more information on the `interfaces` key responsible for the Message Bus endpoint configuration, refer [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces).
@@ -490,8 +484,7 @@ The list of pre-built container images that are accessible at <https://hub.docke
 - **Timeseries pipeline images**
   - openedgeinsights/ia_grafana
 
-> Note
->
+> **Note:**
 > Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at <https://hub.docker.com/u/openedgeinsights> which consists of source code of the GPL/LGPL/AGPL components of the OEI stack.
 
 ### List of OEI services
@@ -521,7 +514,7 @@ Based on requirement, you can include or exclude the following OEI services in t
 
 ## Task 4: Build and run the OEI video and timeseries use cases
 
-  > Note
+  > **Note:**
   >
   > - For running the OEI services in the IPC mode, ensure that the same user is mentioned in the publisher and subscriber services.
   > - If the publisher service is running as root such as `VI`, `VA`, then the subscriber service should also run as root. For example, in the `docker-compose.yml`file, if you have specified `user: ${EII_UID}` in the publisher service, then specify the same `user: ${EII_UID}` in the subscriber service. If you have not specified a user in the publisher service then don't specify the user in the subscriber service.
@@ -541,7 +534,7 @@ OEI supports the following use cases to run the services mentioned in the `docke
 
 ### Build the OEI stack
 
-> Note
+> **Note:**
 >
 > - This is an optional step if you want to use the OEI pre-built container images and don't want to build from source. For more details, refer: [Distribution of OEI container images](#distribution-of-oii-container-images)
 > - Base OEI services like `ia_eiibase`, `ia_video_common`, and so on, are needed only at the build time and not at the runtime.
@@ -559,8 +552,7 @@ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 
 ### Run OEI services
 
-> Note
->
+> **Note:**
 > If the images tagged with the `EII_VERSION` label, as in the [build/.env](build/.env) do not exist locally in the system but are available in the Docker Hub, then the images will be pulled during the `docker-compose up`command.
 
 #### OEI Provisioning
@@ -569,7 +561,7 @@ The OEI provisioning is taken care by the `ia_configmgr_agent` service which get
 
 ##### Start OEI in Dev mode
 
-> Note
+> **Note:**
 >
 > - By default, OEI is provisioned in the secure mode.
 > - It is recommended to not use OEI in the Dev mode in a production environment because all the security feaures are disabled in the Dev mode.
@@ -604,8 +596,7 @@ docker-compose up -d ia_configmgr_agent
 
 Use the following command to run the rest of the OEI services in the `docker-compose.yml` file.
 
-> Note
->
+> **Note:**
 > In the previous stage, the `ia_configmgr_agent` service is started so it will not be started again in this step.
 
 ```sh
@@ -622,8 +613,7 @@ If the run is successful then the Visualizer UI is displayed with results of vid
 
 ### Push the required OEI images to docker registry
 
-> Note
->
+> **Note:**
 > By default, if `DOCKER_REGISTRY` is empty in [build/.env](build/.env) then the images are published to hub.docker.com. Ensure to remove `openedgeinsights/` org from the image names while pushing to Docker Hub as repository or image names with multiple slashes are not supported. This limitation doesn't exist in other docker registries like Azure Container Registry(ACR), Harbor registry, and so on.
 Run the following command to push all the OEI service docker images in the `build/docker-compose-push.yml`. Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
 
@@ -647,8 +637,7 @@ configs can be updated at runtime via [EtcdUI](https://github.com/open-edge-insi
 services will auto-restart.
 For more details on the UDF config, refer [common/udfs/README.md](https://github.com/open-edge-insights/video-common/blob/master/udfs/README.md).
 
-> Note
->
+> **Note:**
 > There is an initial delay of upto ~30 seconds while running inference on `GPU` (only for the first frame) as dynamically certain packages get created during runtime.
 
 #### To run on USB devices
@@ -665,14 +654,12 @@ For example, mount the two USB cameras connected to the host machine with device
       - "/dev/video1:/dev/video1"
 ```
 
-> Note
->
-> /dev/dri is required for graphic drivers.
+> **Note:**
+> `/dev/dri` is required for graphic drivers.
 
 #### To run on MYRIAD devices
 
-> Note
->
+> **Note:**
 > In the IPC mode when publisher (example, ia_video_ingestion, ia_video_analytics, or custom_udfs) is running with the `root` user permissions then the subscribers (example, ia_visualizer,  ia_imagestore, or ia_influxdbconnector) should also run as root.
 
 At runtime, use the `root` user permissions to run inference on a `MYRIAD` device. To enable the root user at runtime in `ia_video_ingestion`, `ia_video_analytics`, or custom UDF services, add `user: root` in the respective `docker-compose.yml` file. Refer the following example:
@@ -683,8 +670,7 @@ At runtime, use the `root` user permissions to run inference on a `MYRIAD` devic
     user: root
   ```
 
-> Note
->
+> **Note:**
 > To enable root user at runtime in `ia_video_analytics` or custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file. Refer the following example:
 
   ```yaml
@@ -734,8 +720,7 @@ Complete the following steps to run inference on HDDL devices:
    - OpenVINO install: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux.html#install-openvino>
    - HDDL daemon setup: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html>
 
-    > Note
-    >
+    > **Note:**
     > OpenVINO 2021.4 installation creates a symbolic link to the latest installation with filename as `openvino_2021` instead of `openvino`. You can create a symbolic link with filename as `openvino` to the latest installation as follows:
      >
      > ```sh
@@ -773,7 +758,7 @@ Complete the following steps to run inference on HDDL devices:
                   - "/dev/ion:/dev/ion"
       ```
 
-> Note
+> **Note:**
 >  
 > - The HDDL plugin can have the ION driver compatibility issues with some versions of the Linux kernel. To check the supported Linux kernel versions, refer the [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html). HDDL uses shared memory, if the ION driver installation is not successful. While using shared memory, issues related to permissions can occur. To fix the permission issues, configure and start the HDDL daemon with root rights.
 > - HDDL usecases were tested on hostsystem with Ubuntu 20.04 Kernel 5.11.0-27-generic by configuring and running HDDL daemon with `root` user rights.
@@ -807,7 +792,7 @@ For example, refer to the following:
       user: root
    ```
 
-  > Note
+  > **Note:**
   >
   > - In the IPC mode, when the publisher (example, ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (example, ia_visualizer) should also run as root.
   > - Only, if you are using the 11th gen Intel processors then upgrade the kernel to version 5.8 and install the required drivers from the following OpenVINO link:
@@ -939,8 +924,7 @@ The following table displays useful docker-compose and docker commands:
 
 - For any troubleshooting tips related to OEI configuration and installationRefer to the [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide .
 - If you observe any issues with the Python package installation then manually install the Python packages as follows:
-   > Note
-   >
+   > **Note:**
    > To avoid any changes to the Python installation on the system, it is recommended that you use a Python virtual environment to install the Python packages. Th details for setting up and using the Python virtual environment is available here: <https://www.geeksforgeeks.org/python-virtual-environment/>.
 
     ```sh
