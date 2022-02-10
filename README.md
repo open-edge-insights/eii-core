@@ -8,8 +8,8 @@
   - [Task 2: Install prerequisites](#task-2-install-prerequisites)
     - [Run the pre-requisite script](#run-the-pre-requisite-script)
     - [Optional steps](#optional-steps)
-    - [Method 1](#method-1)
-    - [Method 2](#method-2)
+      - [Method 1](#method-1)
+      - [Method 2](#method-2)
   - [Task 3: Generate deployment and configuration files](#task-3-generate-deployment-and-configuration-files)
     - [Use the Builder script](#use-the-builder-script)
     - [Generate consolidated files for all applicable OEI services](#generate-consolidated-files-for-all-applicable-oei-services)
@@ -176,7 +176,7 @@ To run the pre-requisite script, execute the following commands:
 - If required, you can enable full security for production deployments. Ensure that the host machine and docker daemon are configured per the security recommendation. For more info, see [build/docker_security_recommendation.md](https://github.com/open-edge-insights/eii-core/blob/master/build/docker_security_recommendation.md).
 - If required, you can enable log rotation for docker containers using any of the following methods:
 
-### Method 1
+#### Method 1
 
 Set the logging driver as part of the docker daemon. This applies to all the docker containers by default.
 
@@ -204,7 +204,7 @@ Set the logging driver as part of the docker daemon. This applies to all the doc
     sudo systemctl restart docker
     ```
 
-### Method 2
+#### Method 2
 
 Set logging driver as part of docker compose which is container specific. This overwrites the 1st option (i.e /etc/docker/daemon.json). The following example shows how to enable logging driver only for the video_ingestion service:
 
@@ -268,9 +268,9 @@ Table: Consolidated files
 
 > **Note:**
 >
-> - If you modify an individual OEI app, service directories files, or the `build/.env` file then, run the `builder.py` script before running the OEI stack. The changes are saved in the consolidated files.
-> - Manual editing is not recommended for modifying the consolidated files. Instead make changes to the respective files in the OEI app or the services directories and use the `build` or the `builder.py` script to generate the consolidated files.
-> - Enter the secret credentials, if it is applicable for any particular OEI services. When you run the Builder, it reports the secret credentials that are mandatorily required. Update the secret credentials in the `# Service credentials` section of the [.env](build/.env) file.
+> - If you modify an individual OEI app/service directory files, make sure to re-run the `builder.py` script before running the OEI stack to regenerate the updated consolidated files as above.
+> - Manual editing of consolidated files is not recommended. Instead make changes to the respective files in the OEI app/service directories and use the `builder.py` script to generate the consolidated files.
+> - Enter the secret credentials in the `# Service credentials` section of the [.env](build/.env) file if you are trying to run that OEI app/service. In case the required credentials are not present, the `builder.py` script would be prompting till all the required credentails are entered. **Please protect this [.env](build/.env) file from being read by other users by applying a suitable file access mask**
 > - The [builder_config.json](./build/builder_config.json) is the config file for the `builder.py` script and it contains the following keys:
 >   - `subscriber_list`: This key contains a list of services that act as a subscriber to the stream being published.
 >   - `publisher_list`: This key contains a list of services that publishes a stream of data.
