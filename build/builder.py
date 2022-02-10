@@ -1203,7 +1203,7 @@ def verify_secrets():
 
     if "InfluxDBConnector" in appname_list:
         secrets_list.extend(["INFLUXDB_USERNAME", "INFLUXDB_PASSWORD"])
-    if "ImageStore" in appname_list and not dev_mode:
+    if "ImageStore" in appname_list:
         secrets_list.extend(["MINIO_ACCESS_KEY", "MINIO_SECRET_KEY"])
     if "WebVisualizer" in appname_list and not dev_mode:
         secrets_list.extend(["WEBVISUALIZER_USERNAME", "WEBVISUALIZER_PASSWORD"])

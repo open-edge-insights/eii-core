@@ -10,6 +10,7 @@ AppContexts:
 - VideoAnalytics
 - Visualizer
 - WebVisualizer
+- Grafana
 - CustomUdfs/NativeSafetyGearAnalytics
 - CustomUdfs/NativeSafetyGearIngestion
 - CustomUdfs/PySafetyGearAnalytics
