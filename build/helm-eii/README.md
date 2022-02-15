@@ -87,16 +87,18 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-5. Below steps are required only in PROD mode:
+5. Below steps are required both in DEV and PROD mode:
+
+  >**Note:** Make sure you have `deleted` older certificates.
    
-   a. Generate certificates needed for EII provisioning
+   a. Execute `eii-gen-cert` chart to provision EII
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii
   helm install eii-gen-cert eii-gen-cert/
   ```
 
-   b. Update permission of certificates dir
+   b. Update permission of certificates dir incase of `PROD` mode
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii/
@@ -116,13 +118,18 @@ Copy the helm charts in helm-eii/ directory to the node.
   cd [WORKDIR]/IEdgeInsights/build/helm-eii/
   helm install eii-deploy eii-deploy/
   ```
+  
+  > **NOTE:** If one wants to set the ingestion pipeline for the video ingestion pod, please install the deploy helm chart as below:
+  ```sh
+  helm install --set env.PIPELINE="<INGESTION_PIPELINE>" eii-deploy eii-deploy/
+  ```
 
   > **Note:** ConfigMgrAgent service needs to be initialized before other services during runtime. In case other services are initialized before ConfigMgrAgent one might notice "cfgmgr initialization failed" exception. After generating this exception the services should restart and continue to run.
 
   Verify all the pod are running:
 
   ```sh
-  $ kubectl get pods
+  kubectl get pods
   ```
 
 The EII is now successfully deployed.
@@ -141,7 +148,7 @@ The EII is now successfully deployed.
 2. Remove the etcd storage directory
 
   ```sh
-  $sudo rm -rf /opt/intel/eii/data/*
+  sudo rm -rf /opt/intel/eii/data/*
   ```
 
 Do helm install of provision and deploy charts as per previous section.
@@ -279,7 +286,7 @@ Do helm install of provision and deploy charts as per previous section.
   > **Note**: Verify `multus` pod is in `Running` state
   >
   > ```sh
-  >   $ kubectl get pods --all-namespaces | grep -i multus
+  >   kubectl get pods --all-namespaces | grep -i multus
   > ```
 
   3. Set gige_camera to true in values.yaml
@@ -339,5 +346,5 @@ spec:
 
 * Please make sure the Master Node is *tainted* to schedule the pod
   ```sh
-  $ kubectl taint nodes --all node-role.kubernetes.io/master-
+  kubectl taint nodes --all node-role.kubernetes.io/master-
   ```

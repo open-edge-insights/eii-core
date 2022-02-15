@@ -43,6 +43,7 @@ env:
   MINIO_ACCESS_KEY:
   MINIO_SECRET_KEY:
   ETCDROOT_PASSWORD:
+  PIPELINE:
 config:
     etcd:
       name: configmgragent

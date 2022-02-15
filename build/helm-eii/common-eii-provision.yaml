@@ -99,7 +99,7 @@ spec:
         - name: ETCD_PREFIX
           value: "{{ .Values.env.etcd_prefix }}"
         - name: ETCDROOT_PASSWORD
-          value: '{{ .Values.env.ETCDROOT_PASSWORD }}'
+          value: "{{ .Values.env.ETCDROOT_PASSWORD }}"
         - name: Provision_Mode
           value: "k8s"
 
