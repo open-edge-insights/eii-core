@@ -45,7 +45,7 @@
   - [OEI Uninstaller](#oei-uninstaller)
   - [Debugging options](#debugging-options)
   - [Troubleshooting guide](#troubleshooting-guide)
-  
+
 ## About Open Edge Insights
 
 Open Edge Insights (OEI) is a set of pre-validated ingredients for integrating video and time-series data analytics on edge compute nodes. OEI includes modules to enable data collection, storage, and analytics for both time-series and video data.
@@ -306,7 +306,7 @@ To include only a certain number of services in the OEI stack, you can add the -
 | Timeseries                 | [build/usecases/time-series.yml](build/usecases/time-series.yml)          |
 
 - **Video pipeline sub use cases**
-  
+
 | Usecase                                | yaml file                                                                                 |
 | -------------------------------------- | ----------------------------------------------------------------------------------------- |
 | Video streaming                        | [build/usecases/video-streaming.yml](build/usecases/video-streaming.yml)                  |
@@ -586,7 +586,7 @@ To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file,
 > Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to service configs post starting the OEI services.
 
 ```sh
-# Run `docker-compose down` command if 
+# Run `docker-compose down` command if
 # 1. We are switching from DEV to PROD mode or
 # 2. Want to restart provisioning service with updated `[WORKDIR]/build/eii_config.json` file
 docker-compose up -d ia_configmgr_agent
@@ -670,7 +670,9 @@ At runtime, use the `root` user permissions to run inference on a `MYRIAD` devic
     user: root
   ```
 
-> **Note:**
+> Note
+>
+> In the IPC mode when publisher (example, ia_video_ingestion, ia_video_analytics, or custom_udfs) is running with the `root` user permissions then the subscribers (For example ia_visualizer, ia_imagestore, ia_influxdbconnectorm, ia_video_profiler etc.) should also run as root by adding `user: root` in the respective docker-compose.yml file.
 > To enable root user at runtime in `ia_video_analytics` or custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file. Refer the following example:
 
   ```yaml
@@ -759,7 +761,7 @@ Complete the following steps to run inference on HDDL devices:
       ```
 
 > **Note:**
->  
+>
 > - The HDDL plugin can have the ION driver compatibility issues with some versions of the Linux kernel. To check the supported Linux kernel versions, refer the [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html). HDDL uses shared memory, if the ION driver installation is not successful. While using shared memory, issues related to permissions can occur. To fix the permission issues, configure and start the HDDL daemon with root rights.
 > - HDDL usecases were tested on hostsystem with Ubuntu 20.04 Kernel 5.11.0-27-generic by configuring and running HDDL daemon with `root` user rights.
 
@@ -794,9 +796,8 @@ For example, refer to the following:
 
   > **Note:**
   >
-  > - In the IPC mode, when the publisher (example, ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (example, ia_visualizer) should also run as root.
-  > - Only, if you are using the 11th gen Intel processors then upgrade the kernel to version 5.8 and install the required drivers from the following OpenVINO link:
-  <https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps>
+  > - In the IPC mode, when the publisher (example, ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (For example ia_visualizer, ia_imagestore, ia_influxdbconnectorm, ia_video_profiler etc.) should also run as root by adding `user: root` in the respective docker-compose.yml file.
+  > - In case one notices `Failed to create plugin for device GPU/ clGetPlatformIDs error`, please verify if the hostsystem supports GPU device. Try installing the required drivers from [OpenVINO-steps-for-GPU](https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps). Certain platforms like TGL can have compatibility issus with Ubuntu kernel version, so make sure the compatible kernel version is installed.
 
 ### Custom User Defined Functions
 
