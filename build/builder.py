@@ -730,7 +730,10 @@ def create_multi_instance_yml_dict(mi_data, data, i):
                     if "./Certificates" in v3 and "rootca" not in v3:
                         index = v['volumes'].index(v3)
                         v['volumes'].remove(v3)
-                        appname = (v3.split(":")[-1]).split("/")[-1]
+                        if v3.endswith("ro"):
+                            appname = (v3.split(":")[-2]).split("/")[-1]
+                        else:
+                            appname = (v3.split(":")[-1]).split("/")[-1]
                         new_appname = re.sub(r'\d+', '', appname)
                         v3 = v3.replace(appname, new_appname + str(i))
                         v['volumes'].insert(index, v3)
