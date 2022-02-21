@@ -86,7 +86,7 @@
   become: yes
   ansible.builtin.copy:
     src: "{{ EII_SOURCE_PATH }}/build/eii_config.json"
-    dest: "{{ EII_DEPLOY_PATH }}/build/helm-eii/eii-gen-cert"
+    dest: "{{ EII_DEPLOY_PATH }}/build/helm-eii/eii-provision"
     follow: yes
 
 - name: Copy eii_config.json from control node to leader node
@@ -112,8 +112,8 @@
   register: helm_eii_deploy_uninstall_status
   when: helm_eii_deploy.stdout != "0"
 
-- name: Getting Existing eii-gen-cert status
-  shell: "helm list -q | grep eii-gen-cert | wc -l"
+- name: Getting Existing eii-provision status
+  shell: "helm list -q | grep eii-provision | wc -l"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_provision
@@ -121,15 +121,15 @@
 - debug:
     msg: "{{ helm_eii_provision.stdout }}"
 
-- name: Stopping/Uninstalling existing helm eii-gen-cert chart
-  shell: "helm uninstall eii-gen-cert"
+- name: Stopping/Uninstalling existing helm eii-provision chart
+  shell: "helm uninstall eii-provision"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: helm_eii_provision_uninstall_status
   when: helm_eii_provision.stdout != "0"
 
 - name: "Provisioning EII Using Helm"
-  shell: "helm install eii-gen-cert eii-gen-cert/"
+  shell: "helm install eii-provision eii-provision/"
   args:
     chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
   register: command_out
@@ -137,18 +137,19 @@
 - debug:
     msg: "{{ command_out.stdout }}"
 
-- name: Get the ia-gen-cert container name
-  shell: "kubectl get pods --no-headers -o custom-columns=':metadata.name' | grep ia-gen-cert | head -n 1"
-  args:
-    chdir: "{{ EII_DEPLOY_PATH }}/build/helm-eii/"
-  register: get_ia_gen_cert
-
 - debug:
-    msg: "Waiting for ia-gen-cert container to up"
+    msg: "Waiting for eii-provsion container to up"
 
-- name: Wait for 10 seconds for generating Certificates
+- name: Wait for 10 seconds for Loading Provisioning Pod
   wait_for:
     timeout: 10
+
+- name: Wait for Provisioning is Done
+  shell: "kubectl logs -l app=configmgragent"
+  register: result
+  until: result.stdout.find("Provisioning is Done") != -1
+  retries: 5
+  delay: 5
 
 - name: Set Directory permission for Certificates as accesible to leader
   become: yes

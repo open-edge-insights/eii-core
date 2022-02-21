@@ -286,6 +286,8 @@ Below configuration changes need to be made for remote node deployment without k
 >   node selection & pod selection will be done by `k8s` orchestrator.
 >   5. Make sure you are deleting `/opt/intel/eii/data` when switch from `prod` mode to
 >   `dev` mode in all your `k8s` `worker` nodes.
+>   6. Please Ignore the following message `FAILED - RETRYING: [leader]: Wait for Provisioning is Done (5 retries left).`
+>	It occurs during waiting time. It is not error
 
 - Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
   - Open `group_vars/all.yml` file
