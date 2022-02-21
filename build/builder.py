@@ -32,6 +32,7 @@ import subprocess
 import sys
 import re
 import copy
+import math
 import distutils.util as util
 from jsonmerge import merge
 from jsonschema import validate
@@ -741,6 +742,36 @@ def create_multi_instance_yml_dict(mi_data, data, i):
     return temp
 
 
+def modify_grafana_yaml(data):
+    """Method to modify Grafana corner case yaml file
+
+    :param data: Grafana yaml data
+    :type data: yaml
+    :return: yaml dict
+    :rtype: dict
+    """
+    temp = copy.deepcopy(data)
+    port = None
+    for k, v in temp['services'].items():
+        for k2, v2 in v.items():
+            if k2 == "ports":
+                # Iterate through all ports
+                for j in list(v['ports']):
+                    if "GRAFANA_PORT" not in j:
+                        # Update new ports & remove
+                        # existing ports to avoid duplication
+                        for i in range(0, (math.ceil(num_multi_instances/6))):
+                            port = j.split(':')[0]
+                            new_port = str(int(port) + i)
+                            v['ports'].append(new_port+':'+new_port)
+                        # Remove unwanted blank lines
+                        if port+':'+port in v['ports']:
+                            v['ports'].remove(port+':'+port)
+                # Remove unwanted duplicate ports
+                v['ports'] = list(set(v['ports']))
+    return temp
+
+
 def update_yml_dict(app_list, file_to_pick, dev_mode, args):
     """Method to consolidate yml dicts and generate the
        combined yml dict. Picks the yml file specified by
@@ -836,6 +867,8 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
 
                 # To create single instance for subscriber services
                 else:
+                    if appname == "Grafana" and num_multi_instances > 1:
+                        data = modify_grafana_yaml(data)
                     yaml_files_dict.append(data)
             # To create single instance
             else:
