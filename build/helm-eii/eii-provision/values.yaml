@@ -20,9 +20,9 @@
 
 namespace: default
 EII_VERSION:
-DOCKER_REGISTRY:
-DOCKER_USERNAME:
-DOCKER_PASSWORD:
+DOCKER_REGISTRY: ''
+DOCKER_USERNAME: ''
+DOCKER_PASSWORD: ''
 imagePullPolicy: IfNotPresent
 env:
   DEV_MODE:
@@ -33,18 +33,22 @@ env:
   config_agent_service:
   EII_HOME_DIR:
   ETCDROOT_PASSWORD:
-
 network:
   etcd:
     client_port: 8379
     peer_port: 8380
     ext:
       client_port: 32379
-
+config:
+  etcd:
+    name: configmgragent
+    client_port: 8379
+    peer_port: 8380
+    ext:
+      client_port: 32379
 volumes:
   eii_socket:
     name: vol-eii-socket
     size: 10Mi
     location: "/EII/sockets"
     hostpath: "/opt/intel/eii/sockets"
-

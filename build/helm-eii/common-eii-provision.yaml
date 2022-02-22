@@ -99,14 +99,12 @@ spec:
         - name: ETCD_PREFIX
           value: "{{ .Values.env.etcd_prefix }}"
         - name: ETCDROOT_PASSWORD
-          value: "{{ .Values.env.ETCDROOT_PASSWORD }}"
-        - name: Provision_Mode
-          value: "k8s"
+          value: "{{ .Values.env.ETCDROOT_PASSWORD }}"        
 
       volumes:
       - name: certs
         hostPath:
-          path:  {{ .Values.env.EII_HOME_DIR }}build/helm-eii/eii-deploy/Certificates 
+          path:  {{ .Values.env.EII_HOME_DIR }}build/helm-eii/eii-deploy/Certificates
 
       - name: eii-config
         configMap:

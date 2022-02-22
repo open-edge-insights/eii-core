@@ -38,28 +38,6 @@ For deployment of EII, helm charts are provided for both provision and deploymen
 For preparing the necessary files required for the provision and deployment, user needs to execute the build and provision steps on an Ubuntu 18.04 / 20.04 machine.
 Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build and Run EII mentioned in [README.md](../../README.md) on the Ubuntu dev machine.
 
-
-- To run EII services with helm in fresh system where EII services are going to run for the first time(no `eiiuser` is present on that system), user needs to run below steps:
-
-   1. Create EII user if not exists:
-
-     ```sh
-     set -a
-     source ../.env
-     set +a
-     sudo groupadd $EII_USER_NAME -g $EII_UID
-     sudo useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
-     ```
-
-   2. Create required directory and change ownership to EII user
-
-     ```sh
-     sudo mkdir -p $EII_INSTALL_PATH/data/influxdata
-     sudo mkdir -p $EII_INSTALL_PATH/sockets/
-     sudo chown -R $EII_USER_NAME:$EII_USER_NAME $EII_INSTALL_PATH
-     ```
-
-- Execute [builder.py](../../README.md#using-builder-script) with the preferred usecase for generating the consolidated helm charts for the provisioning and deployment.
   As EII don't distribute all the docker images on docker hub, one would run into issues of those pods status showing `ImagePullBackOff` and few pods status like visualizer, factory ctrl etc.,
   showing `CrashLoopBackOff` due to additional configuration required. For `ImagePullBackOff` issues, please follow the steps mentioned at [../README.md#distribution-of-eii-container-images]> (../README.
   md#distribution-of-eii-container-images) to push the images that are locally built to the docker registry of choice. Please ensure to update the `DOCKER_REGISTRY` value in `[WORKDIR]/IEdgeInsights/build/.env`
@@ -73,29 +51,24 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
 
 2. Make sure you have updated the EII Service Secrets Username & password in [.env](../.env) file
 
-3. Run following command to update HOST_IP:
-
-  ```sh
-  cd [WORKDIR]/IEdgeInsights/build
-  source ./source.sh
-  ```
-
-4. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
+3. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
+   > **Note:** Execute [builder.py](../../README.md#using-builder-script) with the preferred usecase for generating the consolidated helm charts for the provisioning and deployment.
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-5. Below steps are required both in DEV and PROD mode:
+4. Below steps are required both in DEV and PROD mode:
 
+## Provision EII in the kubernetes node
   >**Note:** Make sure you have `deleted` older certificates.
    
-   a. Execute `eii-gen-cert` chart to provision EII
+   a. Execute `eii-provision` chart to provision EII
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii
-  helm install eii-gen-cert eii-gen-cert/
+  helm install eii-provision eii-provision/
   ```
 
    b. Update permission of certificates dir incase of `PROD` mode
@@ -108,7 +81,7 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   > **Note**:
   > The Certificates/ directory contains sensitive information. So post the installation of eii-provision helm chart, it is recommended to delete the Certificates from it.
 
-## Provision and deploy in the kubernetes node
+## Deploy EII in the kubernetes node
 
 Copy the helm charts in helm-eii/ directory to the node.
 
