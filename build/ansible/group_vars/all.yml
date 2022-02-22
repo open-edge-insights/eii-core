@@ -64,7 +64,7 @@ no_proxy: ""
 ## Below params are for advanced users and are not recommended to edit for normal deployments.
 
 # EII version number
-EII_VERSION: "3.0-RC3"
+EII_VERSION: "3.0-RC4"
 # EII USER & EII GROUP ID
 EII_USER_NAME: "eiiuser"
 EII_UID: 1999
