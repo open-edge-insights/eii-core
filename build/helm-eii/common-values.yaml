@@ -44,6 +44,7 @@ env:
   MINIO_SECRET_KEY:
   ETCDROOT_PASSWORD:
   PIPELINE:
+  HTTP_METHOD_FETCH_METADATA:
 config:
     etcd:
       name: configmgragent
