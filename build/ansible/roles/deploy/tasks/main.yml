@@ -95,6 +95,26 @@
     msg: "Status of docker login, {{ command_out.stdout }}"
   when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
 
+- name: "Running Config Manager"
+  shell: "docker-compose up -d ia_configmgr_agent"
+  args:
+     chdir: "{{ EII_DEPLOY_PATH }}/deploy"
+  register: command_out
+
+- debug:
+    msg: "Waiting for configmanager container to up"
+
+- name: Wait for 10 seconds for Loading ConfigManager Image on Container
+  wait_for:
+    timeout: 10
+
+- name: Wait for Provisioning is Done
+  ansible.builtin.shell: 'docker logs ia_configmgr_agent'
+  register: result
+  until: result.stdout.find("Provisioning is Done") != -1 or result.stderr_lines[-1].find("Provisioning is Done") != -1
+  retries: 5
+  delay: 5
+
 - name: "Executing docker-compose up for {{ usecase }} Usecase"
   shell: "docker-compose up -d"
   args:

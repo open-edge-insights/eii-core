@@ -147,7 +147,7 @@
 - name: Wait for Provisioning is Done
   shell: "kubectl logs -l app=configmgragent"
   register: result
-  until: result.stdout.find("Provisioning is Done") != -1
+  until: result.stdout.find("Provisioning is Done") != -1 or result.stderr_lines[-1].find("Provisioning is Done") != -1
   retries: 5
   delay: 5
 
