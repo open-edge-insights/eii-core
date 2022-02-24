@@ -32,6 +32,7 @@ import subprocess
 import sys
 import re
 import copy
+import logging
 import math
 import distutils.util as util
 from jsonmerge import merge
@@ -44,7 +45,11 @@ import shutil
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
 DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
+HELM_DEPLOY_DIR = "./helm-eii/eii-deploy/"
+HELM_PROVISION_EII_DIR = "./helm-eii/eii-provision"
 SCAN_DIR = ".."
+logger = None
+log_messages_list = []
 
 # List to store list of AppNames
 appname_list = []
@@ -69,6 +74,31 @@ with open(".env") as f:
             dev_mode = bool(util.strtobool(dev_mode))
             break
 
+
+# Initializing custom logger
+class CustomFormatter(logging.Formatter):
+
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = "%(message)s"
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: grey + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: bold_red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
+
 def source_env(file):
     """Method to source an env file
 
@@ -84,7 +114,7 @@ def source_env(file):
                     key, value = line.strip().split("=", 1)
                     os.environ[key] = value
     except Exception as err:
-        print("Exception occured {}".format(err))
+        logger.error("Exception occured {}".format(err))
         return
 
 
@@ -109,7 +139,7 @@ def env_subst(input_file, output_file, input_type=None):
             subprocess.run(["envsubst"], input=cmd.stdout,
                            stdout=outfile, check=False)
     except subprocess.CalledProcessError as err:
-        print("Subprocess error: {}, {}".format(err.returncode, err.output))
+        logger.error("Subprocess error: {}, {}".format(err.returncode, err.output))
         sys.exit(1)
 
 
@@ -531,29 +561,27 @@ def helm_yaml_merger(app_list, args):
     value_keys = ["env", "config", "volumes"]
     helm_provision_eii_values_dict = []
     ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
-    helm_deploy_dir = "./helm-eii/eii-deploy/"
-    helm_provision_eii_dir = "./helm-eii/eii-provision"
     global config_agent_service
     os.environ["config_agent_service"] = config_agent_service.rsplit(',', 1)[0]
     # Load the common values.yaml
 
-    if os.path.isdir(helm_deploy_dir + "templates"):
-        shutil.rmtree(helm_deploy_dir + "templates")
-    os.mkdir(helm_deploy_dir + "templates")
+    if os.path.isdir(HELM_DEPLOY_DIR + "templates"):
+        shutil.rmtree(HELM_DEPLOY_DIR + "templates")
+    os.mkdir(HELM_DEPLOY_DIR + "templates")
 
-    with open(helm_deploy_dir + "../common-values.yaml", 'r') as \
+    with open(HELM_DEPLOY_DIR + "../common-values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
         helm_values_dict.append(data)
 
     # Read persistent volume yaml
-    with open(helm_deploy_dir +"../common-eii-pv.yaml") as pv_yaml_file:
+    with open(HELM_DEPLOY_DIR +"../common-eii-pv.yaml") as pv_yaml_file:
         data = pv_yaml_file.read()
         pv_merged_yaml = pv_merged_yaml + "---\n" + data
 
     # Read persistent volume claim yaml
-    with open(helm_deploy_dir +"../common-eii-pvc.yaml") as pvc_yaml_file:
+    with open(HELM_DEPLOY_DIR +"../common-eii-pvc.yaml") as pvc_yaml_file:
         data = pvc_yaml_file.read()
         pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
@@ -572,11 +600,11 @@ def helm_yaml_merger(app_list, args):
             helm_yaml_file = os.path.join(helm_app_path, "templates", yaml_file)
             if os.path.isfile(helm_yaml_file) and yaml_file \
                 not in ignore_template_copy:
-                shutil.copy(helm_yaml_file, helm_deploy_dir + "templates")
+                shutil.copy(helm_yaml_file, HELM_DEPLOY_DIR + "templates")
 
-        shutil.copy("./helm-eii/common-eii-provision.yaml", helm_provision_eii_dir + "/templates/eii-provision.yaml")
-        shutil.copy("./helm-eii/common-secrets.yaml", helm_deploy_dir + "templates/secrets.yaml")
-        shutil.copy("./eii_config.json", helm_provision_eii_dir + "/eii_config.json")
+        shutil.copy("./helm-eii/common-eii-provision.yaml", HELM_PROVISION_EII_DIR + "/templates/eii-provision.yaml")
+        shutil.copy("./helm-eii/common-secrets.yaml", HELM_DEPLOY_DIR + "templates/secrets.yaml")
+        shutil.copy("./eii_config.json", HELM_PROVISION_EII_DIR + "/eii_config.json")
 
 
         # Load the required values.yaml files
@@ -594,7 +622,7 @@ def helm_yaml_merger(app_list, args):
                 pv_merged_yaml = pv_merged_yaml + "---\n" + data
 
         # Writing final persistent volume yaml file
-        with open(helm_deploy_dir + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
+        with open(HELM_DEPLOY_DIR + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
             final_pv_yaml.write(pv_merged_yaml)
 
         # Reading persistent volume claim yaml if present
@@ -604,11 +632,11 @@ def helm_yaml_merger(app_list, args):
                 pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
         # Writing final persistent volume claim yaml file
-        with open(helm_deploy_dir + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
+        with open(HELM_DEPLOY_DIR + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
             final_pvc_yaml.write(pvc_merged_yaml)
 
     # Updating values.yaml for provision
-    with open(helm_provision_eii_dir + "/values.yaml", 'r') as \
+    with open(HELM_PROVISION_EII_DIR + "/values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
@@ -629,9 +657,8 @@ def helm_yaml_merger(app_list, args):
                         helm_provision_eii_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
                     else:
                         helm_provision_eii_dict[var].update({i: os.getenv(i)})
-    with open(helm_provision_eii_dir + "/values.yaml", 'w') as value_file:
+    with open(HELM_PROVISION_EII_DIR + "/values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_provision_eii_dict, value_file)
-
 
 
     # Updating final helm values dict
@@ -659,7 +686,7 @@ def helm_yaml_merger(app_list, args):
                 helm_dict[k].update({i: var[k][i]})
 
     # Writing consolidated values.yaml file to ./helm-eii/eii-deploy/ dir
-    with open(helm_deploy_dir + "values.yaml", 'w') as value_file:
+    with open(HELM_DEPLOY_DIR + "values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_dict, value_file)
 
 
@@ -1006,7 +1033,7 @@ def yaml_parser(args):
     build_params = ["depends_on", "build", "image"]
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
-        print("Fetching required services from {}...".format(args.yml_file))
+        logger.info("Fetching required services from {}...".format(args.yml_file))
         with open(args.yml_file, 'r') as sub_dir_file:
             yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
                                                     preserve_quotes=True)
@@ -1020,11 +1047,11 @@ def yaml_parser(args):
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
                 else:
-                    print("[WARN] {0} directory doesn't exist. Skipping fetching required files"
+                    logger.warning("[WARN] {0} directory doesn't exist. Skipping fetching required files"
                           " from {0}".format(service))
     else:
         # Fetching list of subdirectories
-        print("Parsing through directory to fetch required services...")
+        logger.info("Parsing through directory to fetch required services...")
         dir_list = [f.name for f in os.scandir(eii_dir) if
                     (f.is_dir() or os.path.islink(f))]
         # Extend the dir_list for time-series usecase to include the subdirectories
@@ -1183,14 +1210,14 @@ def yaml_parser(args):
     (useful in multi-node deployment scenarios)
     $ docker-compose -f docker-compose-push.yml push
     """
-    print(log_msg)
+    log_messages_list.append(log_msg)
     # Sourcing required env from .env
     source_env("./.env")
 
     try:
         helm_yaml_merger(helm_app_list, args)
     except Exception as e:
-        print("Exception Occured at helm yml generation {}".format(e))
+        logger.error("Exception Occured at helm yml generation {}".format(e))
         sys.exit(1)
     log_msg = """
     For deployment via helm, successfully created consolidated
@@ -1199,14 +1226,14 @@ def yaml_parser(args):
     ./helm-eii/eii-deploy/templates/.
     Refer `./helm-eii/README.md` for deployment details.
     """
-    print(log_msg)
+    log_messages_list.append(log_msg)
     log_msg = """
     **NOTE**:
     Please re-run the `builder.py` whenever the individual docker-compose.yml,
     config.json files of individual services are updated
     and you need them to be considered
     """
-    print(log_msg)
+    log_messages_list.append(log_msg)
 
 
 def parse_args():
@@ -1253,10 +1280,22 @@ def verify_secrets():
         if dotenv.get_key(dotenv_file, secret) == "":
             missing_secrets_list.append(secret)
     if len(missing_secrets_list) > 0:
-        raise KeyError(f"Value not found for {missing_secrets_list}")
+        raise KeyError(f"{missing_secrets_list}")
 
 
 if __name__ == '__main__':
+
+    # create logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    ch.setFormatter(CustomFormatter())
+
+    logger.addHandler(ch)
 
     # fetching builder config
     with open('builder_config.json', 'r') as config_file,\
@@ -1266,7 +1305,7 @@ if __name__ == '__main__':
         try:
             validate(instance=builder_cfg, schema=builder_schema)
         except Exception as e:
-            print("JSON schema validation failed {}".format(e))
+            logger.error("JSON schema validation failed {}".format(e))
             sys.exit(1)
         # list of publishers and their endpoints
         publisher_list = builder_cfg['publisher_list']
@@ -1289,9 +1328,36 @@ if __name__ == '__main__':
 
     try:
         verify_secrets()
+        for message in log_messages_list:
+            logger.info(message)
     except KeyError as exc:
-        print("Runtime exception: {}".format(exc))
+        log_msg = """
+    BUILDER EXCEPTION !!!
+    Failed to generate consolidated docker-compose.yml, eii_config.json
+    and helm deployment values.yml
+    Please update .env with the secret credentials required for {}
+    and re-run the `builder.py`
+    """
+        logger.critical(log_msg.format(exc))
+        
+        # Removing all generated files in case of exception
+        DOCKER_COMPOSE_PATHS = [DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_BUILD_PATH,
+                                DOCKER_COMPOSE_PUSH_PATH]
+        for path in DOCKER_COMPOSE_PATHS:
+            if os.path.isfile(path):
+                os.remove(path)
+        if os.path.isfile(HELM_DEPLOY_DIR + "values.yaml"):
+            os.remove(HELM_DEPLOY_DIR + "values.yaml")
         sys.exit(1)
+
+    if dev_mode:
+        log_msg = """
+    ================================================================================================================
+    Running in insecure DEV mode. In the DEV mode, all components communicate over non-encrypted channels.
+    It is recommended to not use DEV mode in a production environment because all the security feaures are disabled.
+    ================================================================================================================
+    """
+        logger.warning(log_msg)
 
     # Source
     try:
