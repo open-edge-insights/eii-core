@@ -4,30 +4,30 @@
   - [About Open Edge Insights](#about-open-edge-insights)
   - [Minimum system requirements](#minimum-system-requirements)
   - [Install Open Edge Insights from GitHub](#install-open-edge-insights-from-github)
-  - [Task 1: Get OEI codebase from GitHub](#task-1-get-oei-codebase-from-github)
-  - [Task 2: Install prerequisites](#task-2-install-prerequisites)
-    - [Run the pre-requisite script](#run-the-pre-requisite-script)
-    - [Optional steps](#optional-steps)
-      - [Method 1](#method-1)
-      - [Method 2](#method-2)
-  - [Task 3: Generate deployment and configuration files](#task-3-generate-deployment-and-configuration-files)
-    - [Use the Builder script](#use-the-builder-script)
-    - [Generate consolidated files for all applicable OEI services](#generate-consolidated-files-for-all-applicable-oei-services)
-    - [Generate consolidated files for a subset of OEI services](#generate-consolidated-files-for-a-subset-of-oei-services)
-    - [Generate multi-instance configs using the Builder](#generate-multi-instance-configs-using-the-builder)
-    - [Generate benchmarking configs using Builder](#generate-benchmarking-configs-using-builder)
-    - [Add OEI services](#add-oei-services)
-    - [Distribute the OEI container images](#distribute-the-oei-container-images)
-    - [List of OEI services](#list-of-oei-services)
-  - [Task 4: Build and run the OEI video and timeseries use cases](#task-4-build-and-run-the-oei-video-and-timeseries-use-cases)
-    - [Build the OEI stack](#build-the-oei-stack)
-    - [Run OEI services](#run-oei-services)
-      - [OEI Provisioning](#oei-provisioning)
-        - [Start OEI in Dev mode](#start-oei-in-dev-mode)
-        - [Start OEI in Profiling mode](#start-oei-in-profiling-mode)
-        - [Run EII provisioning service](#run-eii-provisioning-service)
-      - [Run rest of the OEI services](#run-rest-of-the-oei-services)
-    - [Push the required OEI images to docker registry](#push-the-required-oei-images-to-docker-registry)
+    - [Task 1: Get OEI codebase from GitHub](#task-1-get-oei-codebase-from-github)
+    - [Task 2: Install prerequisites](#task-2-install-prerequisites)
+      - [Run the pre-requisite script](#run-the-pre-requisite-script)
+      - [Optional steps](#optional-steps)
+        - [Method 1](#method-1)
+        - [Method 2](#method-2)
+    - [Task 3: Generate deployment and configuration files](#task-3-generate-deployment-and-configuration-files)
+      - [Use the Builder script](#use-the-builder-script)
+      - [Generate consolidated files for all applicable OEI services](#generate-consolidated-files-for-all-applicable-oei-services)
+      - [Generate consolidated files for a subset of OEI services](#generate-consolidated-files-for-a-subset-of-oei-services)
+      - [Generate multi-instance configs using the Builder](#generate-multi-instance-configs-using-the-builder)
+      - [Generate benchmarking configs using Builder](#generate-benchmarking-configs-using-builder)
+      - [Add OEI services](#add-oei-services)
+      - [Distribute the OEI container images](#distribute-the-oei-container-images)
+      - [List of OEI services](#list-of-oei-services)
+    - [Task 4: Build and run the OEI video and timeseries use cases](#task-4-build-and-run-the-oei-video-and-timeseries-use-cases)
+      - [Build the OEI stack](#build-the-oei-stack)
+      - [Run OEI services](#run-oei-services)
+        - [OEI Provisioning](#oei-provisioning)
+          - [Start OEI in Dev mode](#start-oei-in-dev-mode)
+          - [Start OEI in Profiling mode](#start-oei-in-profiling-mode)
+          - [Run EII provisioning service](#run-eii-provisioning-service)
+        - [Run rest of the OEI services](#run-rest-of-the-oei-services)
+      - [Push the required OEI images to docker registry](#push-the-required-oei-images-to-docker-registry)
   - [Video pipeline analytics](#video-pipeline-analytics)
     - [Enable camera-based video ingestion](#enable-camera-based-video-ingestion)
     - [Use video accelerators in ingestion and analytics containers](#use-video-accelerators-in-ingestion-and-analytics-containers)
@@ -79,7 +79,7 @@ To install OEI, perform the tasks in the following order:
 - [Task 3: Generate deployment and configuration files](#task-3--generate-deployment-and-configuration-files)
 - [Task 4: Build and run the OEI video and timeseries use cases](#task-4-build-and-run-the-oei-video-and-timeseries-use-cases)
 
-## Task 1: Get OEI codebase from GitHub
+### Task 1: Get OEI codebase from GitHub
 
 To get the OEI codebase complete the following steps:
 
@@ -110,7 +110,7 @@ To get the OEI codebase complete the following steps:
     repo sync
     ```
 
-## Task 2: Install prerequisites
+### Task 2: Install prerequisites
 
 The `pre_requisites.sh` script automates the installation and configuration of all the prerequisites required for building and running the OEI stack. The prerequisites are as follows:
 
@@ -142,7 +142,7 @@ The `pre-requisites.sh` file performs the following:
 >
 > After modifying the `docker-compose.yml` file, refer to the `Using the Builder script` section. Before running the services using the `docker-compose up` command, rerun the `builder.py` script.
 
-### Run the pre-requisite script
+#### Run the pre-requisite script
 
 To run the pre-requisite script, execute the following commands:
 
@@ -171,12 +171,12 @@ To run the pre-requisite script, execute the following commands:
 >     sudo -E ./pre_requisites.sh --proxy="proxy.intel.com:891"
 >     ```
 
-### Optional steps
+#### Optional steps
 
 - If required, you can enable full security for production deployments. Ensure that the host machine and docker daemon are configured per the security recommendation. For more info, see [build/docker_security_recommendation.md](https://github.com/open-edge-insights/eii-core/blob/master/build/docker_security_recommendation.md).
 - If required, you can enable log rotation for docker containers using any of the following methods:
 
-#### Method 1
+##### Method 1
 
 Set the logging driver as part of the docker daemon. This applies to all the docker containers by default.
 
@@ -204,7 +204,7 @@ Set the logging driver as part of the docker daemon. This applies to all the doc
     sudo systemctl restart docker
     ```
 
-#### Method 2
+##### Method 2
 
 Set logging driver as part of docker compose which is container specific. This overwrites the 1st option (i.e /etc/docker/daemon.json). The following example shows how to enable logging driver only for the video_ingestion service:
 
@@ -219,11 +219,11 @@ Set logging driver as part of docker compose which is container specific. This o
   max-file: 5
   ```
 
-## Task 3: Generate deployment and configuration files
+### Task 3: Generate deployment and configuration files
 
 After downloading OEI from the release package or Git, run the commands mentioned in this section from the `[WORKDIR]/IEdgeInsights/build/` directory.
 
-### Use the Builder script
+#### Use the Builder script
 
 Run the following command to use the Builder script:
 
@@ -248,7 +248,7 @@ Run the following command to use the Builder script:
                             None)
 ```
 
-### Generate consolidated files for all applicable OEI services
+#### Generate consolidated files for all applicable OEI services
 
 Using the Builder tool, OEI auto-generates the configuration files that are required for deploying the OEI services on a single or multiple nodes. The Builder tool auto-generates the consolidated files by getting the relevant files from the OEI service directories that are required for different OEI use-cases. The Builder tool parses the top-level directories under the `IEdgeInsights` directory to generate the consolidated files.
 
@@ -284,7 +284,7 @@ To generate the consolidated files, run the following command:
   python3 builder.py
   ```
 
-### Generate consolidated files for a subset of OEI services
+#### Generate consolidated files for a subset of OEI services
 
 Builder uses a yml file for configuration. The config yml file consists of a list of services to include. You can mention the service name as the path relative to `IEdgeInsights` or full path to the service in the config yml file.
 To include only a certain number of services in the OEI stack, you can add the -f or yml_file flag of builder.py. You can find the examples of yml files for different use cases as follows:
@@ -318,7 +318,7 @@ When you run the multi-instance config, a `build/multi_instance` directory is cr
 
 The next section provides an example for running the Builder to generate multi-instance boiler plate config for 3 streams of **video-streaming** use case.
 
-### Generate multi-instance configs using the Builder
+#### Generate multi-instance configs using the Builder
 
 If required, you can generate the multi-instance `docker-compose.yml` and `config.json` files using the Builder. You can use the `-v` or `video_pipeline_instances` flag of the Builder to generate boiler plate config for the multiple -stream use cases. The `-v` or `video_pipeline_instances` flag creates the multi-stream boiler plate config for the `docker-compose.yml` and `eii_config.json` files.
 
@@ -363,7 +363,7 @@ Using the previous command for 3 instances, the `build/multi_instance` directory
   > - The config.json file in the `build/multi_instance` directory will have the updated Name, Type, Topics, Endpoint, PublisherAppname, ServerAppName and AllowedClients for the interfaces section and incremented rtsp port number for the config section of that respective instance.
   > - Ensure that all the containers are down before running the multi-instance configuration. Run the `docker-compose down` command before running `builder.py` for the multi-instance configuration.
 
-### Generate benchmarking configs using Builder
+#### Generate benchmarking configs using Builder
 
 Use the `-d` or the `override_directory` flag to provide a different set of `docker-compose.yml` and `config.json` files other than the existing files in every service directory. The `-d` or the `override_directory` flag indicates to search for the required set of files within a directory provided by the flag.
 For example, to pick files from a directory named benchmarking, you can run the following command:
@@ -378,7 +378,7 @@ For example, to pick files from a directory named benchmarking, you can run the 
 > - Adding the `AppName` of the subscriber or client container in the `subscriber_list of builder_config.json` allows you to spawn a single subscriber or client container that is subscribing or receiving on multiple publishers or server containers.
 > - Multiple containers specified by the `-v` flag is spawned for services that are not mentioned in the `subscriber_list`. For example, if you run Builder with `–v 3` option and `Visualizer` is not added in the `subscriber_list` of `builder_config.json` then 3 instances of Visualizer are spawned. Each instance subscribes to 3 VideoAnalytics services. If Visualizer is added in the `subscriber_list` of `builder_config.json`, a single Visualizer instance subscribing to 3 multiple VideoAnalytics is spawned.
 
-### Add OEI services
+#### Add OEI services
 
 This section provides information about adding a new service, subscribing to the [VideoAnalytics](https://github.com/open-edge-insights/video-analytics), and publishing it on a new port.
 Add a service to the OEI stack as a new directory in the [IEdgeInsights](./) directory. The Builder registers and runs any service present in its own directory in the [IEdgeInsights](./) directory. The directory should contain the following:
@@ -445,7 +445,7 @@ The `config.json` file consists of the following key and values:
 > - For more information on the `interfaces` key responsible for the Message Bus endpoint configuration, refer [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces).
 > For more details on the Etcd secrets configuration, refer [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md).
 
-### Distribute the OEI container images
+#### Distribute the OEI container images
 
 The OEI services are available as pre-built container images in the Docker Hub at <https://hub.docker.com/u/openedgeinsights>. To access the services that are not available in the Docker Hub, build from source before running the `docker-compose up -d` command.
 For example:
@@ -487,7 +487,7 @@ The list of pre-built container images that are accessible at <https://hub.docke
 > **Note:**
 > Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at <https://hub.docker.com/u/openedgeinsights> which consists of source code of the GPL/LGPL/AGPL components of the OEI stack.
 
-### List of OEI services
+#### List of OEI services
 
 Based on requirement, you can include or exclude the following OEI services in the `[WORKDIR]/IEdgeInsights/build/docker-compose.yml` file:
 
@@ -512,7 +512,7 @@ Based on requirement, you can include or exclude the following OEI services in t
   - [Grafana](https://github.com/open-edge-insights/ts-grafana/blob/master/README.md)
   - [ZMQ Broker](https://github.com/open-edge-insights/eii-zmq-broker/blob/master/README.md)
 
-## Task 4: Build and run the OEI video and timeseries use cases
+### Task 4: Build and run the OEI video and timeseries use cases
 
   > **Note:**
   >
@@ -532,7 +532,7 @@ Based on requirement, you can include or exclude the following OEI services in t
 Run all the following OEI build and commands from the `[WORKDIR]/IEdgeInsights/build/` directory.
 OEI supports the following use cases to run the services mentioned in the `docker_compose.yml` file. Refer to Task 2 to generate the docker_compose.yml file based on a specific use case. For more information and configuration, refer to the `[WORK_DIR]/IEdgeInsights/README.md` file.
 
-### Build the OEI stack
+#### Build the OEI stack
 
 > **Note:**
 >
@@ -550,16 +550,16 @@ If any of the services fails during the build, then run the following command to
 docker-compose -f docker-compose-build.yml build --no-cache <service name>
 ```
 
-### Run OEI services
+#### Run OEI services
 
 > **Note:**
 > If the images tagged with the `EII_VERSION` label, as in the [build/.env](build/.env) do not exist locally in the system but are available in the Docker Hub, then the images will be pulled during the `docker-compose up`command.
 
-#### OEI Provisioning
+##### OEI Provisioning
 
 The OEI provisioning is taken care by the `ia_configmgr_agent` service which gets lauched as part of the OEI stack. For more details on the ConfigMgr Agent component, refer to the [Readme](https://github.com/open-edge-insights/eii-configmgr-agent/blob/master/README.md).
 
-##### Start OEI in Dev mode
+###### Start OEI in Dev mode
 
 > **Note:**
 >
@@ -574,44 +574,33 @@ To provision OEI in the developer mode, complete the following steps:
 1. Update `DEV_MODE=true` in `[WORK_DIR]/IEdgeInsights/build/.env`.
 2. Rerun the `build/builder.py` to regenerate the consolidated files.
 
-##### Start OEI in Profiling mode
+###### Start OEI in Profiling mode
 
 The Profiling mode is used for collecting the performance statistics in OEI. In this mode, each OEI component makes a record of the time needed for processing any single frame. These statistics are collected in the visualizer where System Integrtors (SI) can see the end-to-end processing time and the end-to-end average time for individual frames.
 
 To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file, set the environment variable `PROFILING` to `true`.
 
-##### Run EII provisioning service
+###### Run EII provisioning service and rest of the EII stack services
 
 > **NOTE**
 > Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to service configs post starting the OEI services.
 
 ```sh
-# Run `docker-compose down` command if
-# 1. We are switching from DEV to PROD mode or
-# 2. Want to restart provisioning service with updated `[WORKDIR]/build/eii_config.json` file
-docker-compose up -d ia_configmgr_agent
+# The optional TIMEOUT argument passed below is in seconds and if not provided it will wait
+# till the "Provisioning is Done" message show up in `ia_configmgr_agent` logs before
+# bringing up rest of the EII stack
+cd [WORK_DIR]/IEdgeInsights/build
+./eii_start.sh [TIMEOUT]
 ```
-
-#### Run rest of the OEI services
-
-Use the following command to run the rest of the OEI services in the `docker-compose.yml` file.
-
-> **Note:**
-> In the previous stage, the `ia_configmgr_agent` service is started so it will not be started again in this step.
-
 ```sh
 # To start the native visualizer service, run this command once in the terminal
 xhost +
-# Required only in the PROD mode to have the required configmgr data store client certificates generated.
-# If errors related to these certificates are seen in OEI services, increase
-# the sleep duration. A 30 seconds duration should suffice.
-sleep 30
-docker-compose up -d
+
 ```
 
-If the run is successful then the Visualizer UI is displayed with results of video analytics for all video use cases.
+If the run is successful, then the Visualizer UI is displayed with results of video analytics for all video use cases.
 
-### Push the required OEI images to docker registry
+#### Push the required OEI images to docker registry
 
 > **Note:**
 > By default, if `DOCKER_REGISTRY` is empty in [build/.env](build/.env) then the images are published to hub.docker.com. Ensure to remove `openedgeinsights/` org from the image names while pushing to Docker Hub as repository or image names with multiple slashes are not supported. This limitation doesn't exist in other docker registries like Azure Container Registry(ACR), Harbor registry, and so on.
@@ -920,6 +909,10 @@ The following table displays useful docker-compose and docker commands:
 | `docker-compose run --no-deps [service_cont_name]`| To run the docker images separately or one by one. For example: `docker-compose run --name ia_video_ingestion --no-deps   ia_video_ingestion` to run the VI container and the switch `--no-deps` will not bring up its dependencies mentioned in the `docker-compose` file. If the container does not launch, there could be some issue with the entrypoint program. You can override by providing the extra switch `--entrypoint /bin/bash` before the service container name in the `docker-compose run` command. This will let you access the container and run the actual entrypoint program from the container's terminal to root cause the issue. If the container is running and you want to access it then, run the command: `docker-compose exec [service_cont_name] /bin/bash` or `docker exec -it [cont_name] /bin/bash`|
 | `docker logs -f [cont_name]`| Use this command to check logs of containers      |
 | `docker-compose logs -f` | To see all the docker-compose service container logs at once |
+
+## EII Deployment Tool
+
+To learn about launching and using EII Deployment Tool, please refer to the [EII Deployment Tool Wiki](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-core/-/wikis/EII-WebUI-Deployment-Tool)
 
 ## Troubleshooting guide
 
