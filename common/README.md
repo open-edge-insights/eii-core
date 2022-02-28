@@ -33,7 +33,7 @@ This script installs all the EII libraries & their respective required dependenc
 
     For Ubuntu-20.04 
     ```sh
-    sudo apt-get install -y libcjson-dev libzmq3-dev zlib1g-dev`
+    sudo apt-get install -y libcjson-dev libzmq3-dev zlib1g-dev
     ```
 
     For Ubuntu-18.04 
