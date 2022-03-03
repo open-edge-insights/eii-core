@@ -583,7 +583,8 @@ To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file,
 ###### Run EII provisioning service and rest of the EII stack services
 
 > **NOTE**
-> Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to service configs post starting the OEI services.
+> * Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to service configs post starting the OEI services.
+> * As could be seen in [build/eii_start.sh](build/eii_start.sh), EII provisioning and deployment happens in a 2 step process where one needs to wait for the initialization of the provisioning container (`ia_configmgr_agent`) before bringing up the rest of the stack. So please don't use commands like `docker-compose restart` as it will randomly restart all the services leading to issues. If you are interested to restart any service, please use command like `docker-compose restart [container_name]` or `docker restart [container_name]`.
 
 ```sh
 # The optional TIMEOUT argument passed below is in seconds and if not provided it will wait
