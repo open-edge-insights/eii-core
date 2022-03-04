@@ -41,26 +41,26 @@
 
 # Introduction
 
-Edge Insights for Industrial from Intel is a set of pre-validated ingredients for integrating video and time-series data analytics on edge compute nodes.
+Edge Insights for Industrial (EII) from Intel is a set of pre-validated ingredients for integrating video and time-series data analytics on edge compute nodes.
 Edge Insights for Industrial helps to address various industrial and manufacturing usages, which include data collection, storage, and analytics on a variety of hardware nodes across the factory floor.
 
 # Minimum System Requirements
 
-EII software will run on the below mentioned Intel platforms:
+The following are the minimum system requirements to run EII:
 
-```
-* 6th generation Intel® CoreTM processor onwards OR
-  6th generation Intel® Xeon® processor onwards OR
-  Pentium® processor N4200/5, N3350/5, N3450/5 with Intel® HD Graphics
-* At least 16GB RAM
-* At least 64GB hard drive
-* An internet connection
-* Ubuntu 18.04 / Ubuntu 20.04
-```
+|System Requirement       |  Details     |
+|---    |---    |
+|Processor       | 8th generation Intel® CoreTM processor onwards with Intel® HD Graphics or Intel® Xeon® processor |
+|RAM       | Minimum 16 GB       |
+|Hard drive       | Minimum 256 GB      |
+|Operating system       | Ubuntu 18.04 or Ubuntu 20.04      |
 
-For performing Video Analytics, a 16GB of RAM is recommended.
-For time-series ingestion and analytics, a 2GB RAM is sufficient.
-The EII is validated on Ubuntu 18.04 and though it can run on other platforms supporting docker, it is not recommended.
+> **Note:**
+>
+> - To use EII, ensure that you are connected to the internet.
+> - The recommended RAM capacity for video analytics pipeline is 16 GB. The recommended RAM for time-series analytics pipeline is 4 GB with Intel® Atom processors.
+> - EII is validated on Ubuntu 18.04 and Ubuntu 20.04 but you can install EII stack on other Linux distributions with support for docker-ce and docker-compose tools.
+
 
 # EII Prerequisites installation
 
