@@ -1297,6 +1297,14 @@ if __name__ == '__main__':
 
     logger.addHandler(ch)
 
+    # Source .env file using source.sh
+    try:
+        subprocess.check_output('./source.sh', stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+                f'{" ".join(cmd)} failed: '
+                f'{exc.output.decode("utf-8")}') from exc
+
     # fetching builder config
     with open('builder_config.json', 'r') as config_file,\
          open('builder_schema.json', 'r') as schema_file:
@@ -1357,12 +1365,4 @@ if __name__ == '__main__':
     It is recommended to not use DEV mode in a production environment because all the security feaures are disabled.
     ================================================================================================================
     """
-        logger.warning(log_msg)
-
-    # Source
-    try:
-        subprocess.check_output('./source.sh', stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as exc:
-        raise RuntimeError(
-                f'{" ".join(cmd)} failed: '
-                f'{exc.output.decode("utf-8")}') from exc
+        logger.warning(log_msg)    
