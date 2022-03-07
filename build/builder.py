@@ -50,6 +50,10 @@ HELM_PROVISION_EII_DIR = "./helm-eii/eii-provision"
 SCAN_DIR = ".."
 logger = None
 log_messages_list = []
+not_allowed_special_characters_list = ['~', ':', "'", '+', '[', '/', '@', '^',
+                                       '{', '%', '(', '-', '"', '*', '|', ',',
+                                       '&', '<', '`', '}', '.', '_', '=', ']',
+                                       '!', '>', ';', '?', '#', '$', ')', '\\']
 
 # List to store list of AppNames
 appname_list = []
@@ -1279,6 +1283,14 @@ def verify_secrets():
     for secret in secrets_list:
         if dotenv.get_key(dotenv_file, secret) == "":
             missing_secrets_list.append(secret)
+        # Check if INFLUXDB credentials have special characters
+        if "INFLUXDB" in secret and dotenv.get_key(dotenv_file, secret) != "" and \
+            any(special_char in dotenv.get_key(dotenv_file, secret) \
+            for special_char in not_allowed_special_characters_list):
+            raise AttributeError("Non-allowed special characters found")
+        if secret == "MINIO_SECRET_KEY" and len(dotenv.get_key(dotenv_file, secret)) < 8:
+            raise ValueError("MINIO secret key length less than minimum")
+
     if len(missing_secrets_list) > 0:
         raise KeyError(f"{missing_secrets_list}")
 
@@ -1357,6 +1369,24 @@ if __name__ == '__main__':
         if os.path.isfile(HELM_DEPLOY_DIR + "values.yaml"):
             os.remove(HELM_DEPLOY_DIR + "values.yaml")
         sys.exit(1)
+    except AttributeError:
+        not_allowed_special_characters_string = "".join(not_allowed_special_characters_list)
+        log_msg = f"""
+    BUILDER EXCEPTION !!!
+    Special characters \"{not_allowed_special_characters_string}\" not allowed in INFLUXDB credentials.
+    Please ensure to update INFLUXDB credentials by removing the special
+    characters and re-run the `builder.py`
+    """
+        logger.critical(log_msg)
+    except ValueError:
+        log_msg = """
+    BUILDER EXCEPTION !!!
+    Minimum character length requirement for MINIO_SECRET_KEY is 8 characters.
+    Please ensure to update MINIO_SECRET_KEY value to 8 or higher char limit
+    and re-run the `builder.py`
+    """
+        logger.critical(log_msg)
+
 
     if dev_mode:
         log_msg = """
