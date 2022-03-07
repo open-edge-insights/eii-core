@@ -58,6 +58,9 @@ ARG CMAKE_INSTALL_PREFIX
 ENV CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}
 ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 
+RUN apt-get update && \
+    apt-get install -y zip
+
 COPY util/requirements.txt util/requirements.txt
 RUN pip3 install --user -r util/requirements.txt
 
