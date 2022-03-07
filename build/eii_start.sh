@@ -54,7 +54,7 @@ fi
 running_conts=$(docker ps -qf name=ia_*)
 if ! [ "$running_conts" == "" ];then
     echo "${RED}Stopping${NC} containers..."
-    docker stop "$running_conts"
+    docker stop $(docker ps -qf name=ia_*)
     if [ "$?" -ne 0 ];then
         echo "${RED}Some errors occured while stopping containers!${NC}"
     fi
@@ -62,7 +62,7 @@ fi
 all_conts=$(docker ps -qaf name=ia_*)
 if ! [ "$all_conts" == "" ];then
     echo "${RED}Removing${NC} containers..."
-    docker rm "$all_conts"
+    docker rm $(docker ps -qaf name=ia_*)
     if [ "$?" -ne 0 ];then
         echo "${RED}Some errors occured while removing containers!${NC}"
     fi
