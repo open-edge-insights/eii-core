@@ -25,8 +25,7 @@
         - [OEI Provisioning](#oei-provisioning)
           - [Start OEI in Dev mode](#start-oei-in-dev-mode)
           - [Start OEI in Profiling mode](#start-oei-in-profiling-mode)
-          - [Run EII provisioning service](#run-eii-provisioning-service)
-        - [Run rest of the OEI services](#run-rest-of-the-oei-services)
+          - [Run EII provisioning service and rest of the EII stack services](#run-eii-provisioning-service-and-rest-of-the-eii-stack-services)
       - [Push the required OEI images to docker registry](#push-the-required-oei-images-to-docker-registry)
   - [Video pipeline analytics](#video-pipeline-analytics)
     - [Enable camera-based video ingestion](#enable-camera-based-video-ingestion)
@@ -44,6 +43,7 @@
   - [OEI tools](#oei-tools)
   - [OEI Uninstaller](#oei-uninstaller)
   - [Debugging options](#debugging-options)
+  - [EII Deployment Tool](#eii-deployment-tool)
   - [Troubleshooting guide](#troubleshooting-guide)
 
 ## About Open Edge Insights
@@ -56,16 +56,18 @@ Open Edge Insights (OEI) is a set of pre-validated ingredients for integrating v
 ## Minimum system requirements
 
 The following are the minimum system requirements to run OEI:
+
 |System Requirement       |  Details     |
 |---    |---    |
-|Processor       | Any of the following processor: <ul><li>6th generation Intel® CoreTM processor onwards</li><li>6th generation Intel® Xeon® processor onwards</li><li>Pentium® processor N4200/5, N3350/5, N3450/5 with Intel® HD Graphics</li></ul>      |
-|RAM       |16 GB       |
-|Hard drive       | 64 GB      |
+|Processor       | 8th generation Intel® CoreTM processor onwards with Intel® HD Graphics or Intel® Xeon® processor |
+|RAM       | Minimum 16 GB       |
+|Hard drive       | Minimum 256 GB      |
 |Operating system       | Ubuntu 18.04 or Ubuntu 20.04      |
+
 > **Note:**
 >
 > - To use OEI, ensure that you are connected to the internet.
-> - The recommended RAM capacity for video analytics pipeline is 16 GB and time-series analytics pipeline is 2 GB.
+> - The recommended RAM capacity for video analytics pipeline is 16 GB. The recommended RAM for time-series analytics pipeline is 4 GB with Intel® Atom processors.
 > - OEI is validated on Ubuntu 18.04 and Ubuntu 20.04 but you can install OEI stack on other Linux distributions with support for docker-ce and docker-compose tools.
 
 ## Install Open Edge Insights from GitHub
@@ -81,9 +83,9 @@ To install OEI, perform the tasks in the following order:
 
 ### Task 1: Get OEI codebase from GitHub
 
-To get the OEI codebase complete the following steps:
+To get the OEI codebase, complete the following steps:
 
-1. Run the following commands to install the repo tool.
+1. To install the repo tool, run the following commands:
 
     ```sh
     curl https://storage.googleapis.com/git-repo-downloads/repo > repo
@@ -91,20 +93,20 @@ To get the OEI codebase complete the following steps:
     sudo chmod a+x /bin/repo
     ```
 
-2. Run the following command to create a working directory
+2. To create a working directory, run the following command:
 
     ```sh
     mkdir -p <work-dir>
     ```
 
-3. Run the following commands to initialize the working directory using the repo tool.
+3. To initialize the working directory using the repo tool, run the following commands:
 
     ```sh
     cd <work-dir>
     repo init -u "https://github.com/open-edge-insights/eii-manifests.git"
     ```
 
-4. Run the following command to pull all the projects mentioned in the manifest xml file with the default or specific revision mentioned for each project.
+4. To pull all the projects mentioned in the manifest xml file, with the default or specific revision mentioned for each project, run the following command:
 
     ```sh
     repo sync
@@ -206,7 +208,7 @@ Set the logging driver as part of the docker daemon. This applies to all the doc
 
 ##### Method 2
 
-Set logging driver as part of docker compose which is container specific. This overwrites the 1st option (i.e /etc/docker/daemon.json). The following example shows how to enable logging driver only for the video_ingestion service:
+Set logging driver as part of docker compose which is container specific. This overwrites the 1st option (i.e /etc/docker/daemon.json). The following example shows how to enable the logging driver only for the video_ingestion service:
 
   ```json
     ia_video_ingestion:
@@ -225,7 +227,7 @@ After downloading OEI from the release package or Git, run the commands mentione
 
 #### Use the Builder script
 
-Run the following command to use the Builder script:
+To use the Builder script, run the following command:
 
 ```sh
     python3 builder.py -h
@@ -316,7 +318,7 @@ To include only a certain number of services in the OEI stack, you can add the -
 
 When you run the multi-instance config, a `build/multi_instance` directory is created in the build directory. Based on the number of `video_pipeline_instances` specified, that many directories of VideoIngestion and VideoAnalytics is created in the `build/multi_instance` directory.
 
-The next section provides an example for running the Builder to generate multi-instance boiler plate config for 3 streams of **video-streaming** use case.
+The following section provides an example for running the Builder to generate the multi-instance boiler plate config for 3 streams of **video-streaming** use case.
 
 #### Generate multi-instance configs using the Builder
 
@@ -589,23 +591,25 @@ To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file,
 ```sh
 # The optional TIMEOUT argument passed below is in seconds and if not provided it will wait
 # till the "Provisioning is Done" message show up in `ia_configmgr_agent` logs before
-# bringing up rest of the EII stack
+# bringing up rest of the OEI stack
 cd [WORK_DIR]/IEdgeInsights/build
 ./eii_start.sh [TIMEOUT]
 ```
+
 ```sh
 # To start the native visualizer service, run this command once in the terminal
 xhost +
 
 ```
 
-If the run is successful, then the Visualizer UI is displayed with results of video analytics for all video use cases.
+On successful run, the Visualizer UI is displays the results of video analytics for all video use cases.
 
 #### Push the required OEI images to docker registry
 
 > **Note:**
-> By default, if `DOCKER_REGISTRY` is empty in [build/.env](build/.env) then the images are published to hub.docker.com. Ensure to remove `openedgeinsights/` org from the image names while pushing to Docker Hub as repository or image names with multiple slashes are not supported. This limitation doesn't exist in other docker registries like Azure Container Registry(ACR), Harbor registry, and so on.
-Run the following command to push all the OEI service docker images in the `build/docker-compose-push.yml`. Ensure to update the DOCKER_REGISTRY value in [.env](build/.env) file.
+> By default, if `DOCKER_REGISTRY` is empty in [build/.env](build/.env) then the images are published to hub.docker.com. Ensure to remove `openedgeinsights/` org from the image names while pushing to Docker Hub, as the repository or image names with multiple slashes are not supported. This limitation doesn't exist in other docker registries like the Azure Container Registry (ACR), Harbor registry, and so on.
+
+Run the following command to push all the OEI service docker images in the `build/docker-compose-push.yml`. Ensure to update the `DOCKER_REGISTRY` value in the [.env](build/.env) file.
 
 ```sh
 docker-compose -f docker-compose-push.yml push
