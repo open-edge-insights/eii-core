@@ -49,6 +49,5 @@ AppContexts:
 - Samples/subscriber/go/alpine
 - Samples/publisher/go/fedora
 - Samples/subscriber/go/fedora
-- build/remote_logging
 - tools/mqtt/broker
 - tools/mqtt/publisher

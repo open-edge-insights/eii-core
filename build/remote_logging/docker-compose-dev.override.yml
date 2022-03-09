@@ -1,6 +1,0 @@
-version: '3.6'
-services:
-  elk_kibana:
-    volumes:
-      - ./remote_logging/kibana.yml:/usr/share/kibana/config/kibana.yml
-
