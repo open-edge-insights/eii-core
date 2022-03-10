@@ -572,8 +572,10 @@ The OEI provisioning is taken care by the `ia_configmgr_agent` service which get
 > **Note:**
 >
 > - By default, OEI is provisioned in the secure mode.
-> - It is recommended to not use OEI in the Dev mode in a production environment because all the security feaures are disabled in the Dev mode.
-> - By default, the OEI empty certificates folder ([WORKDIR]/IEdgeInsights/build/Certificates]) will be created in the DEV mode. This happens because of docker bind mounts but it is not an issue.
+> - It is recommended to not use OEI in the Dev mode in a production environment because all the security features
+>   (communication to and from etcd server over gRPC protocol and communication between EII services/apps over zmq protocol) are disabled in the Dev mode.
+> - By default, the OEI empty certificates folder [Certificates]([WORKDIR]/IEdgeInsights/build/Certificates]) will be created in the DEV mode. This happens because of docker bind mounts but it is not an issue.
+> - Please note the `EII_INSTALL_PATH` in [build/.env](build/.env) remains protected both in DEV and PROD mode with linux group permissions 
 
 Starting OEI in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
 
