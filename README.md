@@ -445,7 +445,13 @@ The `config.json` file consists of the following key and values:
 >
 > - Like the interface keys, OEI services can also have "Servers" and "Clients" interface keys. For more information, refer [config.json](https://github.com/open-edge-insights/video-ingestion/blob/master/config.json) of the `VideoIngestion` service and [config.json](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/config.json) of SWTriggerUtility tool.
 > - For more information on the `interfaces` key responsible for the Message Bus endpoint configuration, refer [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces).
-> For more details on the Etcd secrets configuration, refer [Etcd_Secrets_Configuration](./Etcd_Secrets_Configuration.md).
+> For Etcd secrets configuration, please add the below volume mounts with the right `AppName` env value in the new EII service/app `docker-compose.yml` file:
+> ```yaml
+> ...
+>  volumes:
+>    - ./Certificates/[AppName]:/run/secrets/[AppName]:ro
+>    - ./Certificates/rootca/cacert.pem:/run/secrets/rootca/cacert.pem:ro
+> ```
 
 #### Distribute the OEI container images
 
