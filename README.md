@@ -776,10 +776,6 @@ EII stack has below set of tools which run as containers too:
 * [TimeSeriesProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/TimeSeriesProfiler/README.md)
 * [VideoProfiler](https://github.com/open-edge-insights/eii-tools/blob/master/VideoProfiler/README.md)
 
-# ELK usage for centralized logging of EII services logs
-
-Please find more details about this capability at [build/remote_logging/README.md](build/remote_logging/README.md)
-
 # EII Uninstaller
 
 The uninstaller script automates the removal of all the EII Docker configuration installed on a system. This uninstaller will perform the following tasks:
