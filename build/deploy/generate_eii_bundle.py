@@ -146,7 +146,7 @@ class EiiBundleGenerator:
                     ["cp", "-rf", "docker_load.py", self.bundle_tag_name])
             for cmd in cmdlist:
                 print(cmd)
-                subprocess.check_output(cmd)
+                proc = subprocess.run(cmd)
         except Exception as err:
             print("Exception Occured ", str(err))
             sys.exit(0)
@@ -163,7 +163,7 @@ class EiiBundleGenerator:
         cmdlist.append(["mv", "docker-compose.yml", self.bundle_tag_name])
         try:
             for cmd in cmdlist:
-                subprocess.check_output(cmd)
+                proc = subprocess.run(cmd)
 
             cmdlist = []
 
@@ -174,7 +174,7 @@ class EiiBundleGenerator:
                 cmdlist.append(["rm", "-rf", self.bundle_tag_name])
 
             for cmd in cmdlist:
-                subprocess.check_output(cmd)
+                proc = subprocess.run(cmd)
             print("Bundle Generated Succesfully")
         except Exception as err:
             print("Exception Occured ", str(err))
@@ -193,7 +193,7 @@ class EiiBundleGenerator:
 
         try:
             for cmd in cmdlist:
-                subprocess.check_output(cmd)
+                proc = subprocess.run(cmd)
             print("Raw Bundle Generated Succesfully")
         except Exception as err:
             print("Exception Occured ", str(err))
