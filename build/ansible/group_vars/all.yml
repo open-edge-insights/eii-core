@@ -81,6 +81,13 @@ EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
 ## Enable this to true, if you want retain the certificates in k8s leader machine
 retain_certs_in_k8s_leader_machine: false
 
+## Waiting time for ConfigManager Container is up 
+wait_time_for_config_mgr: 20
+
+## RestDataExport Settings for enabling/disabling POST call to external server.
+## By default RestDataExport enabled in "GET" only.
+HTTP_METHOD_FETCH_METADATA: "GET"
+
 ## EII Service Credentials
 INFLUXDB_USERNAME: ""
 INFLUXDB_PASSWORD: ""

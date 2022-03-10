@@ -25,7 +25,7 @@ For deployment of EII, helm charts are provided for both provision and deploymen
 **Note**:
 
 - K8s installation on single or multi node should be done as pre-requisite to continue the following deployment. Please note we
-   have tried the kubernetes cluster setup with `kubeadm`, `kubectl` and `kubelet` packages on single and multi nodes with `v1.22.2`.
+   have tried the kubernetes cluster setup with `kubeadm`, `kubectl` and `kubelet` packages on single and multi nodes with `v1.23.4`.
    One can refer tutorials like <https://adamtheautomator.com/install-kubernetes-ubuntu/#Installing_Kubernetes_on_the_Master_and_Worker_Nodes> and many other
    online tutorials to setup kubernetes cluster on the web with host OS as ubuntu 18.04/20.04.
 - For helm installation, please refer [helm website](https://helm.sh/docs/intro/install/)
@@ -82,6 +82,9 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   > The Certificates/ directory contains sensitive information. So post the installation of eii-provision helm chart, it is recommended to delete the Certificates from it.
 
 ## Deploy EII in the kubernetes node
+> **Note:**
+>  1. EII helm/k8s deployment does not support native visualizer. Please remove `visualizer.yml` template if exists as a part of your usecase from `EII_HOME_DIR/build/helm-eii/eii-deploy/templates/visualizer.yml`
+> 2. EII helm/k8s deployment `Grafana` application is not enabled for `Video` usecases. Only `timeseries` usecases are supported
 
 Copy the helm charts in helm-eii/ directory to the node.
 
@@ -278,7 +281,7 @@ Do helm install of provision and deploy charts as per previous section.
   5. Verify `pod`ip & `host` ip are same as per Configured `Ethernet` interface by using below command.
 
   ```sh
-  kubectl -n eii exec -it <pod_name> -- ip -d address
+  kubectl exec -it <pod_name> -- ip -d address
   ```
 
 > **Note**

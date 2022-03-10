@@ -230,6 +230,8 @@ Below configuration changes need to be made for remote node deployment without k
  >
  >- Updating messagebus endpoints to connect to interfaces is still the manual process. Make sure to update Application specific endpoints in `[AppName]/config.json`
  >- After `pre-requisites` are successfully installed, please do logout and login to apply the changes
+ >- By Default `wait_time_for_config_mgr` for waiting confimgr to up with provisioning done status will be set to `20` seconds
+ >- If your system is slow or execution is delaying you can increase or decrease `wait_time_for_config_mgr` in `group_vars/all.yml`
 
 **For Single Point of Execution**
 

@@ -109,7 +109,7 @@
     timeout: 10
 
 - name: Wait for Provisioning is Done
-  ansible.builtin.shell: 'docker logs ia_configmgr_agent'
+  shell: 'docker logs ia_configmgr_agent'
   register: result
   until: result.stdout.find("Provisioning is Done") != -1 or result.stderr_lines[-1].find("Provisioning is Done") != -1
   retries: 5

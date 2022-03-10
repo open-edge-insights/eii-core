@@ -140,9 +140,9 @@
 - debug:
     msg: "Waiting for eii-provsion container to up"
 
-- name: Wait for 10 seconds for Loading Provisioning Pod
+- name: Wait for {{ wait_time_for_config_mgr }} seconds for Loading Provisioning Pod
   wait_for:
-    timeout: 10
+    timeout: "{{ wait_time_for_config_mgr }}"
 
 - name: Wait for Provisioning is Done
   shell: "kubectl logs -l app=configmgragent"
