@@ -711,40 +711,42 @@ Complete the following steps to run inference on HDDL devices:
 1. Download the full package for OpenVINO toolkit for Linux version "2021 4.2 LTS"
     (`OPENVINO_IMAGE_VERSION` used in [build/.env](build/.env)) from the official website
     (<https://software.intel.com/en-us/openvino-toolkit/choose-download/free-download-linux>).
-2. Refer to the following links for OpenVINO to install and run the HDDL daemon on host.
+2. Refer to the following link to install OpenVINO on the hostsystem
 
    - OpenVINO install: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux.html#install-openvino>
-   - HDDL daemon setup: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html>
 
     > **Note:**
     > OpenVINO 2021.4 installation creates a symbolic link to the latest installation with filename as `openvino_2021` instead of `openvino`. You can create a symbolic link with filename as `openvino` to the latest installation as follows:
-     >
-     > ```sh
-     >  cd /opt/intel
-     >  sudo ln -s <OpenVINO latest installation> openvino
-     > ```
-     >
-     > Example: sudo ln -s openvino_2021.4.752 openvino
-     >
-     > Uninstall the older versions of OpenVINO if it is installed on the host system.
+    >
+    > ```sh
+    >  cd /opt/intel
+    >  sudo ln -s <OpenVINO latest installation> openvino
+    > ```
+    >
+    > Example: sudo ln -s openvino_2021.4.752 openvino
+    >
+    > Uninstall the older versions of OpenVINO if it is installed on the host system.
 
-3. Run the following command to run the HDDL Daemon image after the setup is complete. The HDDL Daemon should run in a different terminal or in the background on the host system where inference performed.
+
+3. Refer the below link and configure HDDL with `root` user rights
+
+   - HDDL daemon setup: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html>
+
+4. Once HDDL setup is complete run the below command with `root` user rights.
 
     ```sh
         source /opt/intel/openvino/bin/setupvars.sh
         $HDDL_INSTALL_DIR/bin/hddldaemon
     ```
 
-4. Change the ownership of HDDL files on the host system.
-      Before running inference with OEI, change the ownership of the Hddl files to the value of `EII_USER_NAME` key set in [build/.env](build/.env).
-      Refer the following command to set the ownership of hddl files on the host system.`EII_USER_NAME=eiiuser` in [build/.env](build/.env).
-
-      ```sh
-      sudo chown -R eiiuser /var/tmp/hddl_*
-      ```
-
-    For actual deployment you can choose to mount only the required devices for services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in `docker-compose.yml` file.
-    For example, mount only the Graphics and HDDL ion device for the `ia_video_anaytics` service
+> **Note:**
+>
+> - HDDL Daemon should run in a different terminal or in the background on the host system where inference performed.
+> - HDDL usecases was tested on hostsystem with Ubuntu 20.04 kernel 5.13.0-27-generic by configuring and running HDDL daemon with `root` user rights.
+> - HDDL plugin can have the ION driver compatibility issues with some versions of the Ubuntu kernel. If there are compatibility issues then ION driver may not be installed and hddldaemon will make use of shared memory. In order to work with shared memory in docker environment we need to configure and run HDDL with `root` user rights.
+> - To check the supported Ubuntu kernel versions, refer the [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html).
+> - For actual deployment, mount only the required devices for services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in `docker-compose.yml` file.
+> -  For example, mount only the Graphics and HDDL ion device for the `ia_video_anaytics` service
 
       ```sh
         ia_video_analytics:
@@ -753,11 +755,6 @@ Complete the following steps to run inference on HDDL devices:
                   - "/dev/dri"
                   - "/dev/ion:/dev/ion"
       ```
-
-> **Note:**
->
-> - The HDDL plugin can have the ION driver compatibility issues with some versions of the Linux kernel. To check the supported Linux kernel versions, refer the [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html). HDDL uses shared memory, if the ION driver installation is not successful. While using shared memory, issues related to permissions can occur. To fix the permission issues, configure and start the HDDL daemon with root rights.
-> - HDDL usecases were tested on hostsystem with Ubuntu 20.04 Kernel 5.11.0-27-generic by configuring and running HDDL daemon with `root` user rights.
 
 ##### Troubleshooting issues for HDDL devices
 
