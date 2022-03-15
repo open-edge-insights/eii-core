@@ -561,6 +561,9 @@ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 #### Run OEI services
 
 > **Note:**
+> Ensure to run `docker-compose down` from  [build](build) directory prior to bringing up EII stack 
+> in order to remove running containers and avoid sync issues where other services have come up before `ia_configmgr_agent`
+> container has completed the provisioning step
 > If the images tagged with the `EII_VERSION` label, as in the [build/.env](build/.env) do not exist locally in the system but are available in the Docker Hub, then the images will be pulled during the `docker-compose up`command.
 
 ##### OEI Provisioning
