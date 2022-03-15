@@ -25,7 +25,7 @@
         - [OEI Provisioning](#oei-provisioning)
           - [Start OEI in Dev mode](#start-oei-in-dev-mode)
           - [Start OEI in Profiling mode](#start-oei-in-profiling-mode)
-          - [Run EII provisioning service and rest of the EII stack services](#run-eii-provisioning-service-and-rest-of-the-eii-stack-services)
+          - [Run OEI provisioning service and rest of the OEI stack services](#run-oei-provisioning-service-and-rest-of-the-oei-stack-services)
       - [Push the required OEI images to docker registry](#push-the-required-oei-images-to-docker-registry)
   - [Video pipeline analytics](#video-pipeline-analytics)
     - [Enable camera-based video ingestion](#enable-camera-based-video-ingestion)
@@ -43,7 +43,7 @@
   - [OEI tools](#oei-tools)
   - [OEI Uninstaller](#oei-uninstaller)
   - [Debugging options](#debugging-options)
-  - [EII Deployment Tool](#eii-deployment-tool)
+  - [Web Deployment Tool](#web-deployment-tool)
   - [Troubleshooting guide](#troubleshooting-guide)
 
 ## About Open Edge Insights
@@ -445,7 +445,8 @@ The `config.json` file consists of the following key and values:
 >
 > - Like the interface keys, OEI services can also have "Servers" and "Clients" interface keys. For more information, refer [config.json](https://github.com/open-edge-insights/video-ingestion/blob/master/config.json) of the `VideoIngestion` service and [config.json](https://github.com/open-edge-insights/eii-tools/blob/master/SWTriggerUtility/config.json) of SWTriggerUtility tool.
 > - For more information on the `interfaces` key responsible for the Message Bus endpoint configuration, refer [common/libs/ConfigMgr/README.md#interfaces](common/libs/ConfigMgr/README.md#interfaces).
-> For Etcd secrets configuration, please add the below volume mounts with the right `AppName` env value in the new EII service/app `docker-compose.yml` file:
+> - For the etcd secrets configuration, in the new OEI service or app `docker-compose.yml` file, add the following volume mounts with the right `AppName` env value:
+>
 > ```yaml
 > ...
 >  volumes:
@@ -513,7 +514,7 @@ Based on requirement, you can include or exclude the following OEI services in t
   - [WebVisualizer](https://github.com/open-edge-insights/video-web-visualizer/blob/master/README.md)
   - [ImageStore](https://github.com/open-edge-insights/video-imagestore/blob/master/README.md)
   - [AzureBridge](https://github.com/open-edge-insights/eii-azure-bridge/blob/master/README.md)
-  - [FactoryControlApp](https://github.com/open-edge-insights/eii-factoryctrl/blob/master/README.md) - Optional service to read from the VideoAnalytics container if one wants to control the light based on defective/non-defective data
+  - [FactoryControlApp](https://github.com/open-edge-insights/eii-factoryctrl/blob/master/README.md) - Optional service to read from the VideoAnalytics container if you want to control the light based on the defective or non-defective data
 - Timeseries-related services
   - [Telegraf](https://github.com/open-edge-insights/ts-telegraf/blob/master/README.md)
   - [Kapacitor](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
@@ -561,7 +562,7 @@ docker-compose -f docker-compose-build.yml build --no-cache <service name>
 #### Run OEI services
 
 > **Note:**
-> Ensure to run `docker-compose down` from  [build](build) directory prior to bringing up EII stack 
+> Ensure to run `docker-compose down` from  [build](build) directory prior to bringing up OEI stack
 > in order to remove running containers and avoid sync issues where other services have come up before `ia_configmgr_agent`
 > container has completed the provisioning step
 > If the images tagged with the `EII_VERSION` label, as in the [build/.env](build/.env) do not exist locally in the system but are available in the Docker Hub, then the images will be pulled during the `docker-compose up`command.
@@ -575,10 +576,9 @@ The OEI provisioning is taken care by the `ia_configmgr_agent` service which get
 > **Note:**
 >
 > - By default, OEI is provisioned in the secure mode.
-> - It is recommended to not use OEI in the Dev mode in a production environment because all the security features
->   (communication to and from etcd server over gRPC protocol and communication between EII services/apps over zmq protocol) are disabled in the Dev mode.
+> - It is recommended to not use OEI in the Dev mode in a production environment. In the Dev mode, all security features, communication to and from the etcd server over the gRPC protocol, and the communication between the OEI services/apps over the ZMQ protocol are disabled.
 > - By default, the OEI empty certificates folder [Certificates]([WORKDIR]/IEdgeInsights/build/Certificates]) will be created in the DEV mode. This happens because of docker bind mounts but it is not an issue.
-> - Please note the `EII_INSTALL_PATH` in [build/.env](build/.env) remains protected both in DEV and PROD mode with linux group permissions 
+> - The `EII_INSTALL_PATH` in the [build/.env](build/.env) remains protected both in the DEV and the PROD mode with the Linux group permissions.
 
 Starting OEI in the Dev mode eases the development phase for System Integrators (SI). In the Dev mode, all components communicate over non-encrypted channels. To enable the Dev mode, set the environment variable `DEV_MODE` to `true` in the `[WORK_DIR]/IEdgeInsights/build/.env` file. The default value of this variable is `false`.
 
@@ -593,11 +593,12 @@ The Profiling mode is used for collecting the performance statistics in OEI. In 
 
 To enable the Profiling mode, in the `[WORK_DIR]/IEdgeInsights/build/.env` file, set the environment variable `PROFILING` to `true`.
 
-###### Run EII provisioning service and rest of the EII stack services
+###### Run OEI provisioning service and rest of the OEI stack services
 
 > **NOTE**
-> * Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to service configs post starting the OEI services.
-> * As could be seen in [build/eii_start.sh](build/eii_start.sh), EII provisioning and deployment happens in a 2 step process where one needs to wait for the initialization of the provisioning container (`ia_configmgr_agent`) before bringing up the rest of the stack. So please don't use commands like `docker-compose restart` as it will randomly restart all the services leading to issues. If you are interested to restart any service, please use command like `docker-compose restart [container_name]` or `docker restart [container_name]`.
+>
+> - Use the [Etcd UI](https://github.com/open-edge-insights/eii-etcd-ui/blob/master/README.md) to make the changes to the service configs post starting the OEI services.
+> - As seen in the [build/eii_start.sh](build/eii_start.sh), OEI provisioning and deployment happens in a 2 step process where you need to wait for the initialization of the provisioning container (`ia_configmgr_agent`) before bringing up the rest of the stack. Don't use commands like `docker-compose restart` as it will randomly restart all the services leading to issues. To restart any service, use command like `docker-compose restart [container_name]` or `docker restart [container_name]`.
 
 ```sh
 # The optional TIMEOUT argument passed below is in seconds and if not provided it will wait
@@ -675,7 +676,7 @@ At runtime, use the `root` user permissions to run inference on a `MYRIAD` devic
     user: root
   ```
 
-> Note
+> **Note:**
 >
 > In the IPC mode when publisher (example, ia_video_ingestion, ia_video_analytics, or custom_udfs) is running with the `root` user permissions then the subscribers (For example ia_visualizer, ia_imagestore, ia_influxdbconnectorm, ia_video_profiler etc.) should also run as root by adding `user: root` in the respective docker-compose.yml file.
 > To enable root user at runtime in `ia_video_analytics` or custom UDF services based on `ia_video_analytics`, set `user: root` in the respective `docker-compose.yml` file. Refer the following example:
@@ -738,7 +739,6 @@ Complete the following steps to run inference on HDDL devices:
     >
     > Uninstall the older versions of OpenVINO if it is installed on the host system.
 
-
 3. Refer the below link and configure HDDL with `root` user rights
 
    - HDDL daemon setup: <https://docs.openvinotoolkit.org/2021.4/_docs_install_guides_installing_openvino_linux_ivad_vpu.html>
@@ -757,15 +757,15 @@ Complete the following steps to run inference on HDDL devices:
 > - HDDL plugin can have the ION driver compatibility issues with some versions of the Ubuntu kernel. If there are compatibility issues then ION driver may not be installed and hddldaemon will make use of shared memory. In order to work with shared memory in docker environment we need to configure and run HDDL with `root` user rights.
 > - To check the supported Ubuntu kernel versions, refer the [OpenVINO-Release-Notes](https://www.intel.com/content/www/us/en/developer/articles/release-notes/openvino-relnotes.html).
 > - For actual deployment, mount only the required devices for services using OpenVINO with HDDL (`ia_video_analytics` or `ia_video_ingestion`) in `docker-compose.yml` file.
-> -  For example, mount only the Graphics and HDDL ion device for the `ia_video_anaytics` service
+> - For example, mount only the Graphics and HDDL ion device for the `ia_video_anaytics` service. Refer to the following code snippet:
 
-      ```sh
-        ia_video_analytics:
-          ...
-          devices:
-                  - "/dev/dri"
-                  - "/dev/ion:/dev/ion"
-      ```
+  ```sh
+    ia_video_analytics:
+      ...
+      devices:
+              - "/dev/dri"
+              - "/dev/ion:/dev/ion"
+  ```
 
 ##### Troubleshooting issues for HDDL devices
 
@@ -799,7 +799,7 @@ For example, refer to the following:
   > **Note:**
   >
   > - In the IPC mode, when the publisher (example, ia_video_ingestion or ia_video_analytics) is running as root then the subscriber (For example ia_visualizer, ia_imagestore, ia_influxdbconnectorm, ia_video_profiler etc.) should also run as root by adding `user: root` in the respective docker-compose.yml file.
-  > - In case one notices `Failed to create plugin for device GPU/ clGetPlatformIDs error`, please verify if the hostsystem supports GPU device. Try installing the required drivers from [OpenVINO-steps-for-GPU](https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps). Certain platforms like TGL can have compatibility issus with Ubuntu kernel version, so make sure the compatible kernel version is installed.
+  > - If you get a `Failed to create plugin for device GPU/ clGetPlatformIDs error` message then check if the hostsystem supports GPU device. Try installing the required drivers from [OpenVINO-steps-for-GPU](https://docs.openvinotoolkit.org/latest/openvino_docs_install_guides_installing_openvino_linux.html#additional-GPU-steps). Certain platforms like TGL can have compatibility issus with the Ubuntu kernel version. Esure the compatible kernel version is installed.
 
 ### Custom User Defined Functions
 
@@ -923,19 +923,22 @@ The following table displays useful docker-compose and docker commands:
 | `docker logs -f [cont_name]`| Use this command to check logs of containers      |
 | `docker-compose logs -f` | To see all the docker-compose service container logs at once |
 
-## EII Deployment Tool
+## Web Deployment Tool
 
-To learn about launching and using EII Deployment Tool, please refer to the [EII Deployment Tool Wiki](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-core/-/wikis/EII-WebUI-Deployment-Tool)
+You can use the Web Deployment Tool's GUI to provision video use cases. To learn about launching and using the Web Deployment Tool, refer to the following:
+
+- [Web Deployment Tool back end ReadMe](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-deployment-tool-backend/-/blob/master/README.md)
+- [Web Deployment Tool front end ReadMe](https://gitlab.devtools.intel.com/Indu/edge-insights-industrial/eii-deployment-tool-frontend/-/blob/master/README.md)
 
 ## Troubleshooting guide
 
-- For any troubleshooting tips related to OEI configuration and installationRefer to the [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide .
+- For any troubleshooting tips related to the OEI configuration and installation, refer to the [TROUBLESHOOT.md](./TROUBLESHOOT.md) guide.
 - If you observe any issues with the Python package installation then manually install the Python packages as follows:
-   > **Note:**
-   > To avoid any changes to the Python installation on the system, it is recommended that you use a Python virtual environment to install the Python packages. Th details for setting up and using the Python virtual environment is available here: <https://www.geeksforgeeks.org/python-virtual-environment/>.
+  > **Note:**
+  > To avoid any changes to the Python installation on the system, it is recommended that you use a Python virtual environment to install the Python packages. Th details for setting up and using the Python virtual environment is available here: <https://www.geeksforgeeks.org/python-virtual-environment/>.
 
-    ```sh
-    cd [WORKDIR]/IEdgeInsights/build
-    # Install requirements for builder.py
-    pip3 install -r requirements.txt
-    ```
+  ```sh
+  cd [WORKDIR]/IEdgeInsights/build
+  # Install requirements for builder.py
+  pip3 install -r requirements.txt
+  ```
