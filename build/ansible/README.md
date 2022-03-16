@@ -1,26 +1,28 @@
-**Contents**
+# Contents
 
-- [Ansible based EII Prequisites setup, provisioning, build & deployment](#ansible-based-eii-prequisites-setup-provisioning-build--deployment)
-- [Installing Ansible on Ubuntu {Control node}](#installing-ansible-on-ubuntu-control-node)
-- [Prerequisite step needed for all the control/worker nodes.](#prerequisite-step-needed-for-all-the-controlworker-nodes)
-  - [Generate SSH KEY for all nodes](#generate-ssh-key-for-all-nodes)
-- [Adding SSH Authorized Key from control node to all the nodes](#adding-ssh-authorized-key-from-control-node-to-all-the-nodes)
-  - [Configure Sudoers file to accept NO PASSWORD for sudo operation.](#configure-sudoers-file-to-accept-no-password-for-sudo-operation)
-- [Updating the leader & worker node's information for using remote hosts](#updating-the-leader--worker-nodes-information-for-using-remote-hosts)
-- [Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables](#updating-the-eii-source-folder-usecase--proxy-settings-in-group-variables)
-- [Remote node deployment)](#remote-node-deployment)
-- [Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in nodes](#execute-ansible-playbook-from-eii_workdir-iedgeinsights-build-ansible-control-node-to-deploy-eii-services-in-nodes)
-- [Deploying EII Using Helm in Kubernetes (k8s) environment](#deploying-eii-using-helm-in-kubernetes-k8s-environment)
+- [Contents](#contents)
+  - [Ansible based OEI Prequisites setup, provisioning, build & deployment](#ansible-based-oei-prequisites-setup-provisioning-build--deployment)
+  - [Installing Ansible on Ubuntu {Control node}](#installing-ansible-on-ubuntu-control-node)
+  - [Prerequisite step needed for all the control/worker nodes](#prerequisite-step-needed-for-all-the-controlworker-nodes)
+    - [Generate SSH KEY for all nodes](#generate-ssh-key-for-all-nodes)
+  - [Adding SSH Authorized Key from control node to all the nodes](#adding-ssh-authorized-key-from-control-node-to-all-the-nodes)
+    - [Configure Sudoers file to accept NO PASSWORD for sudo operation](#configure-sudoers-file-to-accept-no-password-for-sudo-operation)
+  - [Updating the leader information for using remote hosts](#updating-the-leader-information-for-using-remote-hosts)
+  - [Updating the OEI Source Folder, Usecase & Proxy Settings in Group Variables](#updating-the-oei-source-folder-usecase--proxy-settings-in-group-variables)
+  - [Remote node deployment](#remote-node-deployment)
+  - [Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy OEI services in control node/remote node](#execute-ansible-playbook-from-eii_workdiriedgeinsightsbuildansible-control-node-to-deploy-oei-services-in-control-noderemote-node)
+    - [For Single Point of Execution](#for-single-point-of-execution)
+    - [Deploying OEI Using Helm in Kubernetes (k8s) environment](#deploying-oei-using-helm-in-kubernetes-k8s-environment)
 
-## Ansible based EII Prequisites setup, provisioning, build & deployment
+## Ansible based OEI Prequisites setup, provisioning, build & deployment
 
-Ansible is the automation engine which can enable EII deployment across single nodes.
-We need one control node where ansible is installed and optional hosts. We can also use the control node itself to deploy EII
+Ansible is the automation engine which can enable Open Edge Insights (OEI) deployment across single nodes. We need one control node where ansible is installed and optional hosts. We can also use the control node itself to deploy OEI.
 
 > **Note**
 >
+> - In this document, you will find labels of 'Edge Insights for Industrial (EII)' for filenames, paths, code snippets, and so on. Consider the references of EII as OEI. This is due to the product name change of EII as OEI.
 > - Ansible can execute the tasks on control node based on the playbooks defined
-> - There are 3 types of nodes - control node where ansible must be installed, EII leader node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on leader node. Control node and EII leader node can be same.
+> - There are 3 types of nodes - control node where ansible must be installed, OEI leader node where ETCD server will be running and optional worker nodes, all worker nodes remotely connect to ETCD server running on leader node. Control node and OEI leader node can be same.
 
 ## Installing Ansible on Ubuntu {Control node}
 
@@ -147,14 +149,14 @@ Please follow below steps to update the details of leader node for remote node s
 
 - Update the hosts information in the inventory file `hosts`
 
-    ```
+    ```sh
         [group_name]
         <nodename> ansible_connection=ssh ansible_host=<ipaddress> ansible_user=<machine_user_name>
     ```
 
     For Eg:
 
-    ```
+    ```sh
     [targets]
     leader ansible_connection=ssh ansible_host=192.0.0.1  ansible_user=user1
     ```
@@ -164,10 +166,10 @@ Please follow below steps to update the details of leader node for remote node s
     > - `ansible_connection=ssh` is mandatory when you are updating any remote hosts, which makes ansible to connect via `ssh`.
     > - The above information is used by ansible to establish ssh connection to the nodes.
     > - control node will always be `ansible_connection=local`, **don't update the control node's information**
-    > - To deploy EII in single , `ansible_connection=local` and `ansible_host=localhost`
-    > - To deploy EII on remote node, `ansible_connection=ssh` and `ansible_host=<remote_node_ip>` and `ansible_user`=<username>
+    > - To deploy OEI in single , `ansible_connection=local` and `ansible_host=localhost`
+    > - To deploy OEI on remote node, `ansible_connection=ssh` and `ansible_host=<remote_node_ip>` and `ansible_user`=<username>
 
-## Updating the EII Source Folder, Usecase & Proxy Settings in Group Variables
+## Updating the OEI Source Folder, Usecase & Proxy Settings in Group Variables
 
 1. Open `group_vars/all.yml` file
 
@@ -184,24 +186,25 @@ Please follow below steps to update the details of leader node for remote node s
         no_proxy: <managed_node ip>,<controller node ip>,<worker nodes ip>,localhost,127.0.0.1
     ```
 
-3. Update the `EII Secrets` username & passwords in `group_vars/all.yml` required to run few EII Services in `PROD` mode only   
+3. Update the `EII Secrets` username & passwords in `group_vars/all.yml` required to run few OEI Services in `PROD` mode only
 
-4. Update the `usecase` variable, based on the usecase `builder.py` generates the EII deployment & config files.
+4. Update the `usecase` variable, based on the usecase `builder.py` generates the OEI deployment and config files.
 
-> **Note**
->
-> 1. By default it will be `video-streaming`, For other usecases refer the `../usecases` folder and update only names without `.yml` extension
-> 2. For `all` usecase, it will bring up all `default` services of eii.
-> 3. `ia_kapacitor` and `ia_telegraf` container images are not distributed via docker hub, so one won't be able to pull these images
->    for time-series use case upon using [../usecases/time-series.yml](../usecases/time-series.yml`) for deployment. For more details,
->    refer: [../README.md#distribution-of-eii-container-images]> (../README.md#distribution-of-eii-container-images).
+   > **Note**
+   >
+   > 1. By default it will be `video-streaming`, For other usecases refer the `../usecases` folder and update only names without `.yml` extension
+   > 2. For `all` usecase, it will bring up all `default` services of eii.
+   > 3. `ia_kapacitor` and `ia_telegraf` container images are not distributed via docker hub, so one won't be able to pull these images
+   >    for time-series use case upon using [../usecases/time-series.yml](../usecases/time-series.yml`) for deployment. For more details,
+   >    refer to [../README.md#distribution-of-eii-container-images]> (../README.md#distribution-of-eii-container-images).
+  
+   For Example, if you want build & deploy for `../usecases/time-series.yml` update the `usecase` key value as `time-series`
+  
+   ```sh
+   usecase: <time-series>
+   ```
 
-    For Eg. If you want build & deploy for `../usecases/time-series.yml` update the `usecase` key value as `time-series`
-    ```sh
-        usecase: <time-series>
-    ```
-
-5. Optionally you can choose number of video pipeline instances to be created by updating `instances` variable
+5. Optionally, you can choose number of video pipeline instances to be created by updating `instances` variable
 6. Update other optional variables provided if required
 
 ## Remote node deployment
@@ -218,13 +221,14 @@ Below configuration changes need to be made for remote node deployment without k
     ```
 
     > **Note**
-    > Use of `docker_registry` and `build` flags
+    > Use of `docker_registry` and `build` flags are as follows:
     >
-    > - Update `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
-    > - Unset `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
+    > - Update the `docker_registry` details to use docker images from custom registry, optionally set `build: true` to push docker images to this registry
+    > - Unset the `docker_registry` details if you don't want to use custom registry and set `build: true` to save and load docker images from one node to another node
+
 3. If you are using images from docker hub, then set `build: false` and unset `docker_registry` details
 
-## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy EII services in control node/remote node
+## Execute ansible Playbook from [EII_WORKDIR]/IEdgeInsights/build/ansible {Control node} to deploy OEI services in control node/remote node
 
  > **Note**
  >
@@ -233,14 +237,13 @@ Below configuration changes need to be made for remote node deployment without k
  >- By Default `wait_time_for_config_mgr` for waiting confimgr to up with provisioning done status will be set to `20` seconds
  >- If your system is slow or execution is delaying you can increase or decrease `wait_time_for_config_mgr` in `group_vars/all.yml`
 
-**For Single Point of Execution**
+### For Single Point of Execution
 
-   > **Note**:
-   > This will execute all the steps of EII as prequisite, build, provision, deploy & setup all nodes for deployement usecase in one shot sequentialy.
+> **Note:** This will execute all the steps of OEI as prequisite, build, provision, deploy & setup all nodes for deployement usecase in one shot sequentialy.
 
-    ```sh
-    $ ansible-playbook eii.yml
-    ```
+ ```sh
+   ansible-playbook eii.yml
+ ```
   
 **Below steps are the individual execution of setups.**
 
@@ -250,7 +253,7 @@ Below configuration changes need to be made for remote node deployment without k
     ansible-playbook eii.yml --tags "load_env"
     ```
 
-- For EII Prequisite Setup
+- For OEI Prequisite Setup
 
     ```sh
     ansible-playbook eii.yml --tags "prerequisites"
@@ -277,19 +280,16 @@ Below configuration changes need to be made for remote node deployment without k
     ansible-playbook eii.yml --tags "deploy"
     ```
 
-### Deploying EII Using Helm in Kubernetes (k8s) environment
+### Deploying OEI Using Helm in Kubernetes (k8s) environment
 
 > **Note**
 >
->   1. To Deploy EII using helm in k8s aenvironment, `k8s` setup is a prerequisite.
->   2. You need update the `k8s` leader machine as leader node in `hosts` file.
->   3. Non `k8s` leader machine the `helm` deployment will fail.
->   4. For `helm` deployment `ansible-remotenode` parameters will not applicable, Since
->   node selection & pod selection will be done by `k8s` orchestrator.
->   5. Make sure you are deleting `/opt/intel/eii/data` when switch from `prod` mode to
->   `dev` mode in all your `k8s` `worker` nodes.
->   6. Please Ignore the following message `FAILED - RETRYING: [leader]: Wait for Provisioning is Done (5 retries left).`
->	It occurs during waiting time. It is not error
+> - To Deploy OEI using helm in k8s aenvironment, `k8s` setup is a prerequisite.
+> - You need update the `k8s` leader machine as leader node in `hosts` file.
+> - Non `k8s` leader machine the `helm` deployment will fail.
+> - For `helm` deployment `ansible-remotenode` parameters will not applicable, Since node selection & pod selection will be done by `k8s` orchestrator.
+> - Make sure you are deleting `/opt/intel/eii/data` when switch from `prod` mode to `dev` mode in all your `k8s` `worker` nodes.
+> - Ignore the following message `FAILED - RETRYING: [leader]: Wait for Provisioning is Done (5 retries left).`. It occurs during waiting time. It is not an error
 
 - Update the `DEPLOYMENT_MODE` flag as `k8s` in `group_vars/all.yml` file:
   - Open `group_vars/all.yml` file
@@ -309,7 +309,7 @@ Below configuration changes need to be made for remote node deployment without k
 
 - For Single Point of Execution
    > **Note**
-   > This will execute all the steps of EII as prequisite, build, provision, deploy for a usecase in one shot sequentialy.
+   > This will execute all the steps of OEI as prequisite, build, provision, deploy for a usecase in one shot sequentialy.
 
     ```sh
     ansible-playbook eii.yml
@@ -324,13 +324,13 @@ Below configuration changes need to be made for remote node deployment without k
     ansible-playbook eii.yml --tags "load_env"
     ```
 
-- For EII Prequisite Setup
+- For OEI Prequisite Setup
 
     ```sh
     ansible-playbook eii.yml --tags "prerequisites"
     ```
 
-- For building EII containers
+- For building OEI containers
 
     ```sh
     ansible-playbook eii.yml --tags "build"
@@ -342,13 +342,13 @@ Below configuration changes need to be made for remote node deployment without k
     ansible-playbook eii.yml --tags "gen_certs"
     ```
 
-- Prerequisites for deploy EII using Ansible helm environment.
+- Prerequisites for deploy OEI using Ansible helm environment.
 
     ```sh
     ansible-playbook eii.yml --tags "helm_k8s_prerequisites"
     ```
 
-- Provision & Deploy EII Using Ansible helm environment
+- Provision and Deploy OEI Using Ansible helm environment
 
     ```sh
     ansible-playbook eii.yml --tags "helm_k8s_deploy"
