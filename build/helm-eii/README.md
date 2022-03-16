@@ -1,27 +1,30 @@
-**Contents**
+# Contents
 
-- [EII provision and deployment](#eii-provision-and-deployment)
-  - [Pre requisites](#pre-requisites)
+- [Contents](#contents)
+  - [OEI provision and deployment](#oei-provision-and-deployment)
+  - [Prerequisites](#prerequisites)
   - [Update the helm charts directory](#update-the-helm-charts-directory)
-  - [Provision and deploy in the kubernetes node.](#provision-and-deploy-in-the-kubernetes-node)
+  - [Provision OEI in the kubernetes node](#provision-oei-in-the-kubernetes-node)
+  - [Deploy OEI in the kubernetes node](#deploy-oei-in-the-kubernetes-node)
   - [Provision and deploy mode in times switching between dev and prod mode OR changing the usecase](#provision-and-deploy-mode-in-times-switching-between-dev-and-prod-mode-or-changing-the-usecase)
   - [Steps to enable Accelarators](#steps-to-enable-accelarators)
   - [Steps for Enabling GiGE Camera with helm](#steps-for-enabling-gige-camera-with-helm)
+    - [Setting up Multus CNI and Enabling it](#setting-up-multus-cni-and-enabling-it)
   - [Accessing Web Visualizer and EtcdUI](#accessing-web-visualizer-and-etcdui)
-  - [Pre requisites on K8s MultiNode Cluster Environment](#pre-requisistes-on-k8s-multinode-cluster-environment)
+  - [Pre requisites on K8s MultiNode Cluster Environment](#pre-requisites-on-k8s-multinode-cluster-environment)
 
-# EII provision and deployment
+## OEI provision and deployment
 
-For deployment of EII, helm charts are provided for both provision and deployment.
+For deployment of Open Edge Insights (OEI), helm charts are provided for both provision and deployment.
 
 > **Note**:
 >
+> - In this document, you will find labels of 'Edge Insights for Industrial (EII)' for filenames, paths, code snippets, and so on. Consider the references of EII as OEI. This is due to the product name change of EII as OEI.
 > - Same procedure has to be followed for single or multi node.
 > - Please login/configure docker registry before running helm. This would be required when not using public docker hub for accessing images.
 
-## Pre requisites
+## Prerequisites
 
------
 **Note**:
 
 - K8s installation on single or multi node should be done as pre-requisite to continue the following deployment. Please note we
@@ -33,23 +36,19 @@ For deployment of EII, helm charts are provided for both provision and deploymen
 > For time series usecase make sure ia_mqtt_broker & ia_mqtt_publisher are running.
 > Make sure 'MQTT_BROKER_HOST' Environment Variable is updated with HOST IP address of the system where MQTT Broker is running.
 
------
-
 For preparing the necessary files required for the provision and deployment, user needs to execute the build and provision steps on an Ubuntu 18.04 / 20.04 machine.
-Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build and Run EII mentioned in [README.md](../../README.md) on the Ubuntu dev machine.
+Follow the Docker prerequisites, OEI Prerequisites, Provision OEI and Build and Run OEI mentioned in [README.md](../../README.md) on the Ubuntu dev machine.
 
-  As EII don't distribute all the docker images on docker hub, one would run into issues of those pods status showing `ImagePullBackOff` and few pods status like visualizer, factory ctrl etc.,
+  As OEI don't distribute all the docker images on docker hub, one would run into issues of those pods status showing `ImagePullBackOff` and few pods status like visualizer, factory ctrl etc.,
   showing `CrashLoopBackOff` due to additional configuration required. For `ImagePullBackOff` issues, please follow the steps mentioned at [../README.md#distribution-of-eii-container-images]> (../README.
-  md#distribution-of-eii-container-images) to push the images that are locally built to the docker registry of choice. Please ensure to update the `DOCKER_REGISTRY` value in `[WORKDIR]/IEdgeInsights/build/.env`
+  md#distribution-of-eii-container-images) to push the images that are locally built to the docker registry of choice. Ensure to update the `DOCKER_REGISTRY` value in `[WORKDIR]/IEdgeInsights/build/.env`
   file and re-run the [../builder.py](../builder.py) script to regenerate the helm charts for provision and deployment.
-
-------
 
 ## Update the helm charts directory
 
 1. Edit the "EII_HOME_DIR" in [.env](../.env) with /home/username/\<dir\>/IEdgeInsights/.
 
-2. Make sure you have updated the EII Service Secrets Username & password in [.env](../.env) file
+2. Make sure you have updated the OEI Service Secrets Username and password in [.env](../.env) file.
 
 3. Run builder to copy templates file to eii-deploy/templates directory and generate consolidated values.yaml file for eii-services:
    > **Note:** Execute [builder.py](../../README.md#using-builder-script) with the preferred usecase for generating the consolidated helm charts for the provisioning and deployment.
@@ -59,12 +58,13 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   python3 builder.py -f usecases/<usecase>.yml
   ```
 
-4. Below steps are required both in DEV and PROD mode:
+4. Following steps are required both in DEV and PROD mode:
 
-## Provision EII in the kubernetes node
+## Provision OEI in the kubernetes node
+  
   >**Note:** Make sure you have `deleted` older certificates.
    
-   a. Execute `eii-provision` chart to provision EII
+   a. Execute `eii-provision` chart to provision OEI
 
   ```sh
   cd [WORKDIR]/IEdgeInsights/build/helm-eii
@@ -78,13 +78,15 @@ Follow the Docker pre-requisites, EII Pre-requisites, Provision EII and Build an
   sudo chmod -R 777 eii-deploy/Certificates
   ```
 
-  > **Note**:
+  > **Note:**
   > The Certificates/ directory contains sensitive information. So post the installation of eii-provision helm chart, it is recommended to delete the Certificates from it.
 
-## Deploy EII in the kubernetes node
+## Deploy OEI in the kubernetes node
+
 > **Note:**
->  1. EII helm/k8s deployment does not support native visualizer. Please remove `visualizer.yml` template if exists as a part of your usecase from `EII_HOME_DIR/build/helm-eii/eii-deploy/templates/visualizer.yml`
-> 2. EII helm/k8s deployment `Grafana` application is not enabled for `Video` usecases. Only `timeseries` usecases are supported
+>
+> - OEI helm/k8s deployment does not support native visualizer. Remove `visualizer.yml` template, if exists as a part of your usecase from `EII_HOME_DIR/build/helm-eii/eii-deploy/templates/visualizer.yml`
+> - OEI helm/k8s deployment `Grafana` application is not enabled for `Video` usecases. Only `timeseries` usecases are supported
 
 Copy the helm charts in helm-eii/ directory to the node.
 
@@ -95,7 +97,7 @@ Copy the helm charts in helm-eii/ directory to the node.
   helm install eii-deploy eii-deploy/
   ```
   
-  > **NOTE:** If one wants to set the ingestion pipeline for the video ingestion pod, please install the deploy helm chart as below:
+  > **Note:** If one wants to set the ingestion pipeline for the video ingestion pod, please install the deploy helm chart as below:
   ```sh
   helm install --set env.PIPELINE="<INGESTION_PIPELINE>" eii-deploy eii-deploy/
   ```
@@ -108,7 +110,7 @@ Copy the helm charts in helm-eii/ directory to the node.
   kubectl get pods
   ```
 
-The EII is now successfully deployed.
+OEI is now successfully deployed.
 
 ## Provision and deploy mode in times switching between dev and prod mode OR changing the usecase
 
@@ -313,14 +315,12 @@ spec:
 
 ## Pre requisites on K8s MultiNode Cluster Environment
 
->**Note**:
-> 1. For running EII in Prod Mode, it is required to have self-signed certificates that are getting
->    generated need to go in as kubernetes secrets. To make this happen, it is mandatory that 
->    ConfigManager Agent Pod & generating Certs Pod gets scheduled in k8s Cluster's Master/Control Plane node
-> 2. By default, EII deployment charts are deployed in PROD mod and only ConfigManager Agent & generating Certs pods
->    gets scheduled on Master/Control Plane node of K8s Cluster
+>**Note:**
+>
+> - For running OEI in Prod Mode, it is required to have self-signed certificates that are getting generated need to go in as kubernetes secrets. To make this happen, it is mandatory that ConfigManager Agent Pod & generating Certs Pod gets scheduled in k8s Cluster's Master/Control Plane node
+> - By default, OEI deployment charts are deployed in PROD mod and only ConfigManager Agent & generating Certs pods gets scheduled on Master/Control Plane node of K8s Cluster
+>- Ensure that the Master Node is *tainted* to schedule the pod
 
-* Please make sure the Master Node is *tainted* to schedule the pod
   ```sh
   kubectl taint nodes --all node-role.kubernetes.io/master-
   ```
