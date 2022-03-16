@@ -88,7 +88,7 @@ cd $EIIMessageBus &&
    mkdir apks && \
    cp $Utils/build/*.apk apks/ && \
    cd build && \
-   cmake -DPACKAGING=ON -DPACKAGE_RPM=ON -DPACKAGE_APK=ON .. && \
+   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DPACKAGING=ON -DPACKAGE_RPM=ON -DPACKAGE_APK=ON .. && \
    make package && \
    make package-apk && \
    cp *.deb $DEBs && \

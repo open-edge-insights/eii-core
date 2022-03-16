@@ -13,8 +13,8 @@ This script installs all the EII libraries & their respective required dependenc
 
 **Note** :
 
-- The installer needs specific versions of grpc and protobuf to be installed. 
-  If these libraries are already present in the `/usr/local/lib` or at the CMAKE_INSTALL_PREFIX env location, 
+- The installer needs specific versions of grpc and protobuf to be installed.
+  If these libraries are already present in the `/usr/local/lib` or at the CMAKE_INSTALL_PREFIX env location,
   the installation will skip build and install of these.  It is recommended to remove grpc before proceeding
   as it can cause version conflicts.
 
@@ -31,12 +31,12 @@ This script installs all the EII libraries & their respective required dependenc
     sudo apt-get update
     ```
 
-    For Ubuntu-20.04 
+    For Ubuntu-20.04
     ```sh
     sudo apt-get install -y libcjson-dev libzmq3-dev zlib1g-dev
     ```
 
-    For Ubuntu-18.04 
+    For Ubuntu-18.04
     ```sh
     sudo apt-get install -y libjson-c-dev libzmq3-dev zlib1g-dev
     ```
@@ -102,7 +102,7 @@ The script libs_package_generator.sh when run natively on ubuntu 20.04 OS system
     ```sh
         sudo apt install -y rpm
         pip3 install wheel==0.37.1
-    
+
     ```
 3. Below are the dependencies for python fedora packages:
 
@@ -117,9 +117,9 @@ The script libs_package_generator.sh when run natively on ubuntu 20.04 OS system
 
 
 4. Removal of root build folders of libraries.
-    
+
     ```sh
-        sudo rm -rf util/c/build libs/EIIMessageBus/build libs/ConfigMgr/build
+        sudo rm -rf util/c/build libs/EIIMessageBus/build libs/ConfigMgr/build libs/ConfigMgr/python/build libs/EIIMessageBus/python/build
     ```
 
 ### Steps:
@@ -127,7 +127,7 @@ The script libs_package_generator.sh when run natively on ubuntu 20.04 OS system
 1. After pre-requisites, below script needs to be executed
 
 ```sh
-    ./libs_package_generator.sh
+    CMAKE_INSTALL_PREFIX="/opt/intel/eii" ./libs_package_generator.sh
 ```
 
 2. After successful execution of above script, all the packages will be available under the folder `./packages`
