@@ -25,7 +25,6 @@
 #
 # Usage: ./eii_start.sh [timeout-in-seconds]
 #
-echo off
 # Accept timeout (in seconds) as parameter for config manager agent to come up, 
 # defaults to 60 seconds
 
@@ -36,21 +35,28 @@ NC=$(tput sgr0)
 BOLD=$(tput bold)
 INFO=$(tput setaf 3)   # YELLOW (used for informative messages)
 
+# Default timeout value (in seconds)
+default_timeout=60
+timeout="$default_timeout"
+echo
 if [ "$1" == "" ];then
-    timeout=60
+    echo "Using default timeout value of $default_timeout seconds${NC}..."
 else
-    timeout="$1"
+    # Validate the user provided timeout value
+    case $1 in
+        ''|*[!0-9]*) echo "${INFO}WARNING: User provided timeout value is INVALID! Using default timeout value of $default_timeout seconds${NC}..." ;;
+        *) timeout="$1" ;;
+    esac
+    if [ "$timeout" -lt "$default_timeout" ];then
+        echo "${INFO}WARNING: User provided timeout value is too low! Using default timeout value of $default_timeout seconds${NC}..."
+        timeout="$default_timeout"
+    fi
 fi
-echo 
+echo
 echo "======================================"
 echo "Bringing ${RED}down${NC} the eii containers..."
 echo "======================================"
 
-docker-compose down
-if [ "$?" -ne 0 ];then
-    echo "${RED}Some errors occured while bringing down containers!${NC}"
-fi
-# Bring down all the eii orphan containers as well
 running_conts=$(docker ps -qf name=ia_*)
 if ! [ "$running_conts" == "" ];then
     echo "${RED}Stopping${NC} containers..."
@@ -67,6 +73,9 @@ if ! [ "$all_conts" == "" ];then
         echo "${RED}Some errors occured while removing containers!${NC}"
     fi
 fi
+# Remove all dangling/unused docker networks
+docker network prune -f
+echo
 echo "======================================"
 echo "Bringing ${GREEN}up${NC} Config Manager Agent..."
 echo "======================================"
@@ -74,6 +83,7 @@ docker-compose up -d ia_configmgr_agent
 if [ "$?" -ne 0 ];then
     echo "${RED}Some errors occured while bringing up ia_configmgr_agent!${NC}"
 fi
+echo
 echo "=================================================="
 echo "${INFO}Waiting${NC} for Config Manager Agent to initialize..."
 echo "=================================================="
@@ -106,7 +116,8 @@ while [ "$c" -lt "$timeout" ];do
     echo -ne "."
 done
 # Return failure
-echo " "
+echo
+docker logs ia_configmgr_agent
 echo "${RED}=========================================================${NC}"
 echo "${RED}Config Manager Agent initialization has FAILED/timed out${NC}"
 echo "${RED}=========================================================${NC}"
