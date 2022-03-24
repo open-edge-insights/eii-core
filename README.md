@@ -824,8 +824,8 @@ The sample temperature sensor can be simulated using the [tools/mqtt/README.md](
 
 You can use any of the following options to deploy OEI on a multi-node cluster:
 
-- [`Recommended`] For deploying through ansible playbook on multiple nodes automatically, refer [`build/ansible/README.md`](build/ansible/README.md#deploying-eii-using-helm-in-kubernetes-k8s-environment)
-- For information about using helm charts to provision the node and deploy the OEI services, refer [`build/helm-eii/README.md`](build/helm-eii/README.md)
+- [`Recommended`] For deploying through ansible playbook on multiple nodes automatically, refer [build/ansible/README.md](build/ansible/README.md#deploying-eii-using-helm-in-kubernetes-k8s-environment)
+- For information about using helm charts to provision the node and deploy the OEI services, refer [build/helm-eii/README.md](build/helm-eii/README.md)
 
 ## OEI tools
 
@@ -906,8 +906,9 @@ Perform the following steps for debugging:
      - `sockets/` - stores the IPC ZMQ socket files
 
 The following table displays useful docker-compose and docker commands:
-|  Command      |  Description     |
-|  :---  |  :---                                                               |
+
+|  Command  |  Description |
+| :---:     | :---:        |
 |   `docker-compose -f docker-compose-build.yml build`| Builds all the service containers|
 | `docker-compose -f docker-compose-build.yml build [serv_cont_name]`| Builds a single service container      |
 | `docker-compose down`      | Stops and removes the service containers|
