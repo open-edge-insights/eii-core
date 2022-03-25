@@ -28,12 +28,12 @@ instances: 1
 
 # default deployment will be in single node,
 # set true to enable multi node deployment without kubernetes
-multi_node: false
+remote_node: false
 
 # Enable/ Disable docker images build from source
 # set build to false to skip docker build push
 # Set to false to use default images from docker hub
-build: true
+build: false
 
 # Set to true to build docker conatiners with --no-cache option
 no_cache: false
@@ -64,10 +64,10 @@ no_proxy: ""
 ## Below params are for advanced users and are not recommended to edit for normal deployments.
 
 # EII version number
-EII_VERSION: "2.6.1"
+EII_VERSION: "3.0"
 # EII USER & EII GROUP ID
 EII_USER_NAME: "eiiuser"
-EII_UID: 5315
+EII_UID: 1999
 
 # docker-compose version
 docker_compose_version: "1.29.0"
@@ -80,3 +80,19 @@ EII_INSTALL_PATH: "/opt/intel/eii/"
 EII_DEPLOY_PATH: "/opt/intel/eii/deploy/"
 ## Enable this to true, if you want retain the certificates in k8s leader machine
 retain_certs_in_k8s_leader_machine: false
+
+## Waiting time for ConfigManager Container is up 
+wait_time_for_config_mgr: 20
+
+## RestDataExport Settings for enabling/disabling POST call to external server.
+## By default RestDataExport enabled in "GET" only.
+HTTP_METHOD_FETCH_METADATA: "GET"
+
+## EII Service Credentials
+INFLUXDB_USERNAME: ""
+INFLUXDB_PASSWORD: ""
+WEBVISUALIZER_USERNAME: ""
+WEBVISUALIZER_PASSWORD: ""
+MINIO_ACCESS_KEY: ""
+MINIO_SECRET_KEY: ""
+ETCDROOT_PASSWORD: ""

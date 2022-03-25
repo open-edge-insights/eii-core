@@ -143,17 +143,14 @@ set -e
 # Install ConfigMgr requirements
 log_info "----Installing ConfigMgr dependencies----"
 cd $ConfigMgr &&
-rm -rf deps && \
-./install.sh
+rm -rf deps
 
 log_info "----Installing EIIMessageBus lib dependencies----"
 cd $EIIMessageBus &&
-   rm -rf deps && \
-   ./install.sh --cython
+   rm -rf deps
 
 log_info "----Installing Util lib----"
 cd $EIIMessageBus/../../util/c/ &&
-   ./install.sh && \
    rm -rf build && \
    mkdir build && \
    cd build && \
@@ -170,6 +167,11 @@ cd $EIIMessageBus/../../util/c/ &&
 check_error "----Failed to install Util lib----"
 
 log_info "----Installing EIIMessageBus library----"
+
+log_info "Installing Cython for Python bindings"
+pip3 install --user -r $EIIMessageBus/python/requirements.txt
+check_error "Failed to install Cython"
+
 cd $EIIMessageBus && \
     rm -rf build/ && \
     mkdir build/ && \
@@ -190,12 +192,13 @@ check_error "----Failed to install EIIMessageBus Golang binding----"
 
 log_info "----Installing ConfigMgr C and golang libs----"
 cd $ConfigMgr && \
-   # Installing grpc from DEB package
-   apt install ./grpc-1.29.0-Linux.deb && \
+   cd grpc-package/ && \
+   unzip grpc-1.29.0-Linux.zip -d / && \
+   cd .. && \
    rm -rf build && \
    mkdir build && \
    cd build && \
-   cmake -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
+   cmake -DSYSTEM_GRPC=ON -DCMAKE_INSTALL_INCLUDEDIR=$CMAKE_INSTALL_PREFIX/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DWITH_TESTS=${RUN_TESTS} -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE -DWITH_GO=ON .. && \
    make install
 check_error "----Failed to install ConfigMgr C and golang libs----"
 

@@ -1,0 +1,13 @@
+AppContexts:
+- ConfigMgrAgent
+- EtcdUI
+- Samples/publisher/cpp/ubuntu
+- Samples/subscriber/cpp/ubuntu
+- Samples/publisher/cpp/alpine
+- Samples/subscriber/cpp/alpine
+- Samples/publisher/python/ubuntu
+- Samples/subscriber/python/ubuntu
+- Samples/publisher/go/ubuntu
+- Samples/subscriber/go/ubuntu
+- Samples/publisher/go/alpine
+- Samples/subscriber/go/alpine

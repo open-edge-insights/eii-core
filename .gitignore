@@ -23,6 +23,7 @@ __pycache__/
 # consolidated docker-compose file and consolidated
 # app spec json for CSL
 build/docker-compose.yml
+build/eii_config.json
 build/docker-compose.override.yml
 build/docker-compose-build.yml
 build/docker-compose-push.yml
@@ -42,6 +43,11 @@ common/util/c/
 common/libs/EIIMessageBus/
 common/libs/EIIMsgEnv/
 common/libs/DynLibLoad/
+common/libs/ConfigMgr/
+VideoAnalyticsServing/
+ConfigMgrAgent/
+DeploymentToolBackend/
+DeploymentToolFrontend/
 EtcdUI/
 FactoryControlApp/
 Grafana/

@@ -20,47 +20,62 @@
 # SOFTWARE.
 
 
+- name: Cleaning directory {{ EII_DEPLOY_PATH }} if it exist in {{ inventory_hostname }}
+  become: yes
+  ansible.builtin.file:
+    path: "{{ EII_DEPLOY_PATH }}"
+    state: absent
+
+- name: Copy configmgr image from control node to all nodes
+  become: yes
+  ansible.builtin.copy:
+    src: "{{ EII_SOURCE_PATH }}/build/ia_configmgr_agent.tar.gz"
+    dest: "{{ EII_DEPLOY_PATH }}"
+    follow: yes
+  when: remote_node == true and build == false
+  
 - name: Copy eii_bundle.tar.gz from control node to all nodes
   become: yes
   ansible.builtin.copy:
-    src: "{{ EII_SOURCE_PATH }}/build/deploy/{{ inventory_hostname }}.tar.gz"
+    src: "{{ EII_SOURCE_PATH }}/build/deploy/deploy.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     follow: yes
 
 - name: Extract eii_bundle.tar.gz to "{{ EII_DEPLOY_PATH }}"
   become: yes
   ansible.builtin.unarchive:
-    src: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}.tar.gz"
+    src: "{{ EII_DEPLOY_PATH }}/deploy.tar.gz"
     dest: "{{ EII_DEPLOY_PATH }}"
     remote_src: yes
 
-- name: Change permission of Certificates to 750
+- name: docker load configmgr image of {{ EII_VERSION }}
   become: yes
-  shell: "chmod -R 0750 Certificates/"
+  shell: "docker load < ia_configmgr_agent.tar.gz"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}/provision"
-  when: DEV_MODE == false
+    chdir: "{{ EII_DEPLOY_PATH }}"
+  register: command_out
+  when: remote_node == true and build == false
 
 - name: "Bring down all containers"
   shell: "docker-compose down"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_DEPLOY_PATH }}/deploy"
   register: command_out
 
-# This task load the docker containers to the deployment nodes when multi_node and build flag set to true.
+# This task load the docker containers to the deployment nodes when remote_node and build flag set to true.
 # If docker_registry is set, docker load task will not be executed
-# if build is set to false and multi_node is set to true, then also this task will not be executed
+# if build is set to false and remote_node is set to true, then also this task will not be executed
 - name: docker load
   become: yes
   shell: " python3 docker_load.py -dl"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_DEPLOY_PATH }}/deploy"
   register: command_out
-  when: multi_node == true and docker_registry == "" and build == true
+  when: remote_node == true and docker_registry == "" and build == true
 
 - debug:
     msg: "{{ command_out.stdout }}"
-  when: multi_node == true and docker_registry == "" and build == true
+  when: remote_node == true and docker_registry == "" and build == true
 
 - name: docker login
   shell: "docker login {{ docker_registry }} -u {{ docker_login_user }} -p {{ docker_login_passwd }}"
@@ -80,10 +95,30 @@
     msg: "Status of docker login, {{ command_out.stdout }}"
   when: docker_registry == "" and docker_login_user != "" and docker_login_passwd != ""
 
+- name: "Running Config Manager"
+  shell: "docker-compose up -d ia_configmgr_agent"
+  args:
+     chdir: "{{ EII_DEPLOY_PATH }}/deploy"
+  register: command_out
+
+- debug:
+    msg: "Waiting for configmanager container to up"
+
+- name: Wait for 10 seconds for Loading ConfigManager Image on Container
+  wait_for:
+    timeout: 10
+
+- name: Wait for Provisioning is Done
+  shell: 'docker logs ia_configmgr_agent'
+  register: result
+  until: result.stdout.find("Provisioning is Done") != -1 or result.stderr_lines[-1].find("Provisioning is Done") != -1
+  retries: 5
+  delay: 5
+
 - name: "Executing docker-compose up for {{ usecase }} Usecase"
   shell: "docker-compose up -d"
   args:
-    chdir: "{{ EII_DEPLOY_PATH }}/{{ inventory_hostname }}"
+    chdir: "{{ EII_DEPLOY_PATH }}/deploy"
   register: command_out
 
 - debug:

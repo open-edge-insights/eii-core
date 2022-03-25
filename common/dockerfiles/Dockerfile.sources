@@ -27,70 +27,62 @@ WORKDIR /thirdparty
 ARG INSTALL_SOURCES="yes"
 
 # EtcdUI
-ARG ETCDUI_APT_DEPS="curl \
-                    procps \
-                    fontconfig-config \
+ARG EII_APT_DEPS="build-essential \
+                    dpkg-dev \
                     fonts-dejavu-core \
                     iproute2 \
-                    libbsd0 \
                     libcap2 \
                     libcap2-bin \
                     libelf1 \
-                    libfontconfig1 \
                     libfreetype6 \
                     libgd3 \
-                    libicu66 \
                     libjbig0 \
                     libjpeg-turbo8 \
                     libjpeg8 \
+                    libmbedcrypto3 \
+                    libmbedtls-dev \
+                    libmbedtls12 \
+                    libmbedx509-0 \
                     libmnl0 \
-                    libnginx-mod-http-image-filter  \
-                    libnginx-mod-http-xslt-filter \
-                    libnginx-mod-mail \
-                    libnginx-mod-stream \
+                    libmpdec2 \
+                    libpgm-5.2-0 \
                     libpng16-16 \
-                    libtiff5 \
-                    libwebp6 \
-                    libx11-6 \
-                    libx11-data \
-                    libxau6 \
-                    libxcb1 \
-                    libxdmcp6 \
-                    libxml2 \
-                    libxpm4 \
-                    libxslt1.1 \
+                    libreadline8 \
+                    libsodium23 \
                     libxtables12 \
-                    nginx-common \
-                    nginx-core \
-                    tzdata \
-                    ucf"
+                    libzmq5 \
+                    make \
+                    net-tools \
+                    readline-common \
+                    ucf \
+                    wget"
+                    
+                    
+# ConfigMgrAgent
+ARG CONFIGMGRAGENT_GPL_LGPL_DEPS="https://github.com/zeromq/pyzmq"
 
 # Imagestore
-ARG MINIO_GPL_LGPL_AGPL_DEPS="https://github.com/minio/minio.git \
-                              https://github.com/OpenPeeDeeP/depguard \
-                              https://github.com/golangci/check \
-                              https://github.com/golangci/golangci-lint \
-                              https://github.com/minio/console \
-                              https://github.com/minio/direct-csi \
-                              https://github.com/minio/kes \
-                              https://github.com/minio/mc \
-                              https://github.com/minio/operator \
-                              https://github.com/minio/pkg"
+ARG MINIO_GPL_LGPL_AGPL_DEPS="https://github.com/minio/minio.git"
 
-# InfluxDBConnector
-ARG INFLUX_GPL_DEPS="https://github.com/golang/freetype"
+#Common
+ARG COMMON_GPL_DEPS="https://github.com/zeromq/libzmq"
 
-# libzmq dependency for EIIMessageBus
-ARG LIBZMQ_GPL_DEPS="https://github.com/zeromq/libzmq"
+# Kapacitor
+ARG KAPACITOR_GPL_DEPS="https://github.com/conda-forge/binutils-feedstock \
+			https://github.com/conda-forge/ctng-compilers-feedstock \
+			https://github.com/conda-forge/readline-feedstock \
+			https://github.com/conda-forge/xz-feedstock"
+			
+			
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends ${ETCDUI_APT_DEPS} git ca-certificates && \
+    apt-get install -y --no-install-recommends ${EII_APT_DEPS} git ca-certificates && \
     sed -Ei 's/# deb-src /deb-src /' /etc/apt/sources.list && \
     apt-get update && \
     root_dir=$PWD && \
-    mkdir -p ./apt-sources/EtcdUI && cd ./apt-sources/EtcdUI && \
-    for line in $(echo $ETCDUI_APT_DEPS | xargs -n1); \
+    mkdir -p ./apt-sources/EII && cd ./apt-sources/EII && \
+    for line in $(echo $EII_APT_DEPS | xargs -n1); \
     do \
     package=$(echo $line); \
     grep -l GPL /usr/share/doc/${package}/copyright; \
@@ -104,11 +96,15 @@ RUN apt-get update && \
     mkdir -p ./github-sources/minio && cd ./github-sources/minio && \
     for f in `echo $MINIO_GPL_LGPL_AGPL_DEPS | xargs -n1`; do `git clone $f`; done && \
     cd ../ && \
-    echo "Cloning libzmq repo..." && \
-    git clone $LIBZMQ_GPL_DEPS && \
-    mkdir -p influxdb && cd influxdb && \
-    echo "Cloning influxdb github deps..." && \
-    git clone $INFLUX_GPL_DEPS && \
+    echo "Cloning zeromq repo..." && \
+    git clone $COMMON_GPL_DEPS && \
+    mkdir -p configmgragent && cd configmgragent && \
+    echo "Cloning configmgragent github deps..." && \
+    git clone $CONFIGMGRAGENT_GPL_LGPL_DEPS && \
+    cd ../ && \
+    mkdir -p kapacitor && cd kapacitor && \
+    echo "Cloning kapacitor github dependency" && \
+    for f in `echo $KAPACITOR_GPL_DEPS | xargs -n1`; do `git clone $f`; done && \
     cd $root_dir && \
     echo "Download source for $(ls | wc -l) third-party packages: $(du -sh)"; \
     rm -rf /var/lib/apt/lists/*

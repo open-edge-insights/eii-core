@@ -1,0 +1,803 @@
+Open Edge Insights (OEI) VideoIngestion's Third Party Programs File
+
+This file contains the list of third party software (“third party programs”) contained in the Intel software and their required notices and/or license terms. This third party software, even if included with the distribution of the Intel software, may be governed by separate license terms, including without limitation, third party license terms, other Intel software license terms, and open source software license terms. These separate license terms govern your use of the third party programs as set forth in the “third-party-programs.txt” or other similarly-named text file.
+
+Third party programs and their corresponding required notices and/or license terms are listed below.
+
+=============================================================
+
+1) gencamsrc
+
+Copyright (c) 2020, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+	without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+=============================================================
+
+2) libcjson1
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cJSON
+Source: https://github.com/DaveGamble/cJSON
+
+Files: *
+Copyright: 2009-2017, Dave Gamble and cJSON contributors
+License: MIT
+
+Files: debian/*
+Copyright: 2018, Yanhao Mo <yanhaocs@gmail.com>
+License: MIT
+
+Files: cJSON.h
+       cJSON_Utils.h
+       cJSON_Utils.c
+       cJSON.c
+       test.c
+Copyright: 2009-2017, Dave Gamble and cJSON contributors
+License: MIT
+
+Files: tests/json-patch-tests/*
+Copyright: 2014, Mike McCabe and other authors
+License: Apache-2.0
+
+License: MIT
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+
+License: Apache-2.0
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ .
+ http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ .
+ On Debian systems, the complete text of the Apache version 2.0 license
+ can be found in "/usr/share/common-licenses/Apache-2.0".
+
+=============================================================
+
+3) build-essential
+
+This package contains an informational list of Build-Essential Debian
+packages.
+
+Copyright Â© 2003-2005 Scott James Remnant <scott@netsplit.com>
+Copyright Â© 2003 Colin Walters <walters@debian.org>
+Copyright Â© 1999-2002 Antti-Juhani Kaijanaho <ajk@debian.org>
+Copyright Â© 2006-2016 Matthas Klose <doko@debian.org>
+
+
+License:
+
+The files in this package are free software; you can redistribute them
+and/or modify them under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2, or (at
+your option) any later version.
+
+The files in this package are distributed in the hope that they will
+be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+On Debian GNU/Linux systems, the complete text of the GNU General Public
+License can be found in `/usr/share/common-licenses/GPL'.
+
+=============================================================
+
+4) dpkg-dev
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: dpkg
+
+Files: *
+Copyright:
+ Copyright Â© 1994 Ian Murdock <imurdock@debian.org>
+ Copyright Â© 1994 Matt Welsh <mdw@sunsite.unc.edu>
+ Copyright Â© 1994 Carl Streeter <streeter@cae.wisc.edu>
+ Copyright Â© 1994-1999, 2008 Ian Jackson <ijackson@chiark.greenend.org.uk>
+ Copyright Â© 1995 Bruce Perens <bruce@pixar.com>
+ Copyright Â© 1995-1996 Erick Branderhorst <branderhorst@heel.fgg.eur.nl>
+ Copyright Â© 1996 Michael Shields <shields@crosslink.net>
+ Copyright Â© 1996 Klee Dienes <klee@debian.org>
+ Copyright Â© 1996 Kim-Minh Kaplan <kkaplan@cdfhp3.in2p3.fr>
+ Copyright Â© 1996-1998 Miquel van Smoorenburg <miquels@cistron.nl>
+ Copyright Â© 1997-1998 Charles Briscoe-Smith <cpbs@debian.org>
+ Copyright Â© 1997-1998 Juho Vuori <javuori@cc.helsinki.fi>
+ Copyright Â© 1998 Koichi Sekido <sekido@mbox.kyoto-inet.or.jp>
+ Copyright Â© 1998 Jim Van Zandt <jrv@vanzandt.mv.com>
+ Copyright Â© 1998 Juan Cespedes <cespedes@debian.org>
+ Copyright Â© 1998 Nils Rennebarth <nils@debian.org>
+ Copyright Â© 1998 Heiko Schlittermann <hs@schlittermann.de>
+ Copyright Â© 1998-1999, 2001, 2003, 2006 Martin Schulze <joey@infodrom.org>
+ Copyright Â© 1999 Roderick Shertler <roderick@argon.org>
+ Copyright Â© 1999 Ben Collins <bcollins@debian.org>
+ Copyright Â© 1999 Richard Kettlewell <rjk@sfere.greenend.org.uk>
+ Copyright Â© 1999-2001 Marcus Brinkmann <brinkmd@debian.org>
+ Copyright Â© 1999-2002 Wichert Akkerman <wakkerma@debian.org>
+ Copyright Â© 2001, 2007, 2010 Joey Hess <joeyh@debian.org>
+ Copyright Â© 2004-2005, 2007-2008, 2010 Canonical Ltd.
+ Copyright Â© 2004-2005 Scott James Remnant <scott@netsplit.com>
+ Copyright Â© 2006-2008 Frank Lichtenheld <djpig@debian.org>
+ Copyright Â© 2006-2015 Guillem Jover <guillem@debian.org>
+ Copyright Â© 2007-2012 RaphaÃ«l Hertzog <hertzog@debian.org>
+ Copyright Â© 2007 Nicolas FranÃ§ois <nicolas.francois@centraliens.net>
+ Copyright Â© 2007 Don Armstrong <don@donarmstrong.com>
+ Copyright Â© 2007 Colin Watson <cjwatson@debian.org>
+ Copyright Â© 2007, 2008 Tollef Fog Heen <tfheen@err.no>
+ Copyright Â© 2008 Zack Weinberg <zackw@panix.com>
+ Copyright Â© 2008 Pierre Habouzit <madcoder@debian.org>
+ Copyright Â© 2009 Romain Francoise <rfrancoise@debian.org>
+ Copyright Â© 2009-2010 Modestas Vainius <modax@debian.org>
+ Copyright Â© 2009-2011 Kees Cook <kees@debian.org>
+License: GPL-2+
+
+Files:
+ lib/compat/getopt*
+ lib/compat/gettext.h
+ lib/compat/obstack.*
+ lib/compat/strnlen.c
+Copyright:
+ Copyright Â© 1987-2006 Free Software Foundation, Inc.
+License: GPL-2+
+
+Files:
+ dselect/methods/Dselect/Ftp.pm
+ dselect/methods/ftp/*
+Copyright:
+ Copyright Â© 1996 Andy Guy <awpguy@acs.ucalgary.ca>
+ Copyright Â© 1998 Martin Schulze <joey@infodrom.org>
+ Copyright Â© 1999-2001, 2005-2006, 2009 RaphaÃ«l Hertzog <hertzog@debian.org>
+License: GPL-2
+
+Files:
+ scripts/Dpkg/Gettext.pm
+Copyright:
+ Copyright Â© 2000 Joey Hess <joeyh@debian.org>
+ Copyright Â© 2007, 2009-2010, 2012-2015 Guillem Jover <guillem@debian.org>
+License: BSD-2-clause
+
+Files:
+ utils/start-stop-daemon.c
+Copyright:
+ Copyright Â© 1999 Marek Michalkiewicz <marekm@i17linuxb.ists.pwr.wroc.pl>
+ Copyright Â© 1999 Christian Schwarz <schwarz@monet.m.isar.de>
+ Copyright Â© 1999 Klee Dienes <klee@debian.org>
+ Copyright Â© 1999 Ben Collins <bcollins@debian.org>
+ Copyright Â© 1999-2002 Wichert Akkerman <wakkerma@debian.org>
+ Copyright Â© 2000-2003 Adam Heath <doogie@debian.org>
+ Copyright Â© 2001 Sontri Tomo Huynh <huynh.29@osu.edu>
+ Copyright Â© 2001 Andreas Schuldei <andreas@schuldei.org>
+ Copyright Â© 2001 Ian Jackson <ijackson@chiark.greenend.org.uk>
+ Copyright Â© 2004-2005 Scott James Remnant <keybuk@debian.org>
+ Copyright Â© 2006-2014 Guillem Jover <guillem@debian.org>
+ Copyright Â© 2008 Samuel Thibault <samuel.thibault@ens-lyon.org>
+ Copyright Â© 2008 Andreas PÃ¥hlsson <andreas.pahlsson@xcerion.com>
+ Copyright Â© 2009 Chris Coulson <chrisccoulson@googlemail.com>
+ Copyright Â© 2012 Carsten Hey <carsten@debian.org>
+ Copyright Â© 2014 Nir Soffer <nirs@hyperms.com>
+License: public-domain-s-s-d
+ Written by Marek Michalkiewicz <marekm@i17linuxb.ists.pwr.wroc.pl>,
+ public domain.  Based conceptually on start-stop-daemon.pl, by Ian
+ Jackson <ijackson@gnu.ai.mit.edu>.  May be used and distributed
+ freely for any purpose.  Changes by Christian Schwarz
+ <schwarz@monet.m.isar.de>, to make output conform to the Debian
+ Console Message Standard, also placed in public domain.  Minor
+ changes by Klee Dienes <klee@debian.org>, also placed in the Public
+ Domain.
+ .
+ Changes by Ben Collins <bcollins@debian.org>, added --chuid, --background
+ and --make-pidfile options, placed in public domain as well.
+
+Files: lib/compat/md5.*
+Copyright:
+ Copyright Â© 1993 Colin Plumb
+License: public-domain-md5
+ This code implements the MD5 message-digest algorithm.
+ The algorithm is due to Ron Rivest.  This code was
+ written by Colin Plumb in 1993, no copyright is claimed.
+ This code is in the public domain; do with it what you wish.
+ .
+ Equivalent code is available from RSA Data Security, Inc.
+ This code has been tested against that, and is equivalent,
+ except that you don't need to include two pages of legalese
+ with every copy.
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+Comment:
+ On Debian systems, the complete text of the GNU General Public License
+ can be found in â€˜/usr/share/common-licenses/GPL-2â€™ or in the dpkg source
+ as the file â€˜COPYINGâ€™.
+
+License: GPL-2
+ This is free software; you can redistribute it and/or modify
+ it under the terms of version 2 of the GNU General Public
+ License version 2 as published by the Free Software Foundation.
+ .
+ This is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+License: BSD-2-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ 1. Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+ .
+ THIS SOFTWARE IS PROVIDED BY AUTHORS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHORS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.
+
+=============================================================
+
+5) iproute2
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: iproute2
+Source: https://www.kernel.org/pub/linux/utils/net/iproute2/
+Comment:
+ The former upstream was:
+ http://devresources.linuxfoundation.org/dev/iproute2/download/
+ http://developer.osdl.org/dev/iproute2
+ ftp://ftp.inr.ac.ru/ip-routing/iproute2-2.4.7-now-ss010824.tar.gz
+
+Files: *
+Copyright: 1996-2001 Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+           1996-2017 Stephen Hemminger <stephen@networkplumber.org>
+           1999 Pavel Golubev <pg@ksi-linux.com>
+           2001-2004 Lubomir Bulej <pallas@kadan.cz>
+           2001 Robert Olsson <robert.olsson@its.uu.se>
+           2000-2002 Joakim Axelsson <gozem@linux.nu>
+           2000-2002 J Hadi Salim <hadi@cyberus.ca>
+           2002-2007 Volkswagen Group Electronic Research
+           2003-2010 Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+           2004 Harald Welte <laforge@gnumonks.org>
+           2004-2007 USAGI/WIDE Project
+           2006,2008 Junio C Hamano
+           2008 Intel Corporation.
+           2009 Wolfgang Grandegger <wg@grandegger.com>
+           2011 Czech Technical University in Prague
+           2011 Volkswagen Group Research
+           2011-2012 Kathleen Nichols <nichols@pollere.com>
+           2011-2012 Van Jacobson <van@pollere.com>
+           2012 Michael D. Taht <dave.taht@bufferbloat.net>
+           2012 Eric Dumazet <edumazet@google.com>
+License: GPL-2
+
+Files: debian/*
+Copyright: 1996 Tom Lees <tom@lpsg.demon.co.uk>
+           1998 Christoph Lameter <christoph@lameter.com>
+           1998-1999 Roberto Lumbreras <rover@debian.org>
+           1999-2003 Juan Cespedes <cespedes@debian.org>
+           2005-2017 Alexander Wirt <formorer@debian.org>
+           2008-2015 Andreas Henriksson <andreas@fatal.se>
+           2017 Luca Boccassi <bluca@debian.org>
+License: GPL-2
+
+License: GPL-2
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License version 2 as
+ published by the Free Software Foundation.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this package; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the complete text of the GNU General Public License version
+ 2 can be found in `/usr/share/common-licenses/GPL-2'.
+
+=============================================================
+
+6) libmnl0
+
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libmnl
+Upstream-Contact: Pablo Neira Ayuso <pablo@netfilter.org>
+Source: http://www.netfilter.org/projects/libmnl/files
+
+Files: *
+Copyright: 2008-2012, Pablo Neira Ayuso <pablo@netfilter.org>
+License: LGPL-2.1
+
+Files: debian/*
+Copyright: 2010-2016, Anibal Monsalve Salazar <anibal@debian.org>
+           2012-2016, Neutron Soutmun <neutrons@debian.org>
+License: GPL-2+
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this package; if not, write to the Free Software Foundation, Inc.,
+ 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the complete text of the GNU General Public License
+ version 2 can be found in "/usr/share/common-licenses/GPL-2".
+
+License: LGPL-2.1
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public License
+ version 2.1 can be found in "/usr/share/common-licenses/LGPL-2.1".
+
+=============================================================
+
+7) libxtables12
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: iptables
+Upstream-Contact: Netfilter Developer List <netfilter@vger.kernel.org>
+Source: https://www.netfilter.org/
+
+Files: *
+Copyright: 2000-2002, the netfilter coreteam <coreteam@netfilter.org>
+                      Paul 'Rusty' Russell <rusty@rustcorp.com.au>
+                      Marc Boucher <marc+nf@mbsi.ca>
+                      James Morris <jmorris@intercode.com.au>
+                      Harald Welte <laforge@gnumonks.org>
+                      Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+License: GPL-2
+
+Files: extensions/libebt_802_3.c
+Copyright: 2003 Chris Vitale <csv@bluetail.com>
+License: GPL-2
+
+Files: extensions/libebt_ip.c extensions/libebt_log.c extensions/libebt_mark*.c
+Copyright: 2002 Bart De Schuymer <bdschuym@pandora.be>
+License: GPL-2
+
+Files: extensions/libebt_limit.c
+Copyright: 2003 Tom Marshall <tommy@home.tig-grr.com>
+License: GPL-2
+
+Files: extensions/libebt_nflog.c
+Copyright: 2008 Peter Warasin <peter@endian.com>
+License: GPL-2
+
+Files: extensions/libip6t_DNAT.c
+Copyright: 2011, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_DNPT.c
+Copyright: 2012-2013, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_MASQUERADE.c
+Copyright: 2011, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_NETMAP.c
+Copyright: 2011, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_REDIRECT.c
+Copyright: 2011, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_REJECT.c
+Copyright: 2000, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+License: GPL-2
+
+Files: extensions/libip6t_SNAT.c
+Copyright: 2011, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_SNPT.c
+Copyright: 2012-2013, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libip6t_mh.c
+Copyright: 2006, USAGI/WIDE Project
+License: GPL-2
+
+Files: extensions/libipt_CLUSTERIP.c
+Copyright: 2003, Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libipt_ECN.c
+Copyright: 2002, by Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libipt_REJECT.c
+Copyright: 2000, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+License: GPL-2
+
+Files: extensions/libipt_TTL.c
+Copyright: 2000, Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libipt_ULOG.c
+Copyright: 2000, Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libipt_ttl.c
+Copyright: 2000, Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libxt_AUDIT.c
+Copyright: 2010-2011, Thomas Graf <tgraf@redhat.com>
+           2010-2011, Red Hat, Inc.
+License: GPL-2
+
+Files: extensions/libxt_CHECKSUM.c
+Copyright: 2002, Harald Welte <laforge@gnumonks.org>
+           2010, Red Hat, Inc
+License: GPL-2
+
+Files: extensions/libxt_CLASSIFY.c
+Copyright: 2003-2013, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libxt_CONNMARK.c
+Copyright: 2002, 2004, MARA Systems AB <http://www.marasystems.com> by Henrik Nordstrom <hno@marasystems.com>
+License: GPL-2
+
+Files: extensions/libxt_CONNSECMARK.c
+Copyright: 2006, Red Hat, Inc., James Morris <jmorris@redhat.com>
+License: GPL-2
+
+Files: extensions/libxt_CT.c
+Copyright: 2010-2013, Patrick McHardy <kaber@trash.net>
+License: GPL-2
+
+Files: extensions/libxt_DSCP.c
+Copyright: 2000-2002, Matthew G. Marsh <mgm@paktronix.com>
+                      Harald Welte <laforge@gnumonks.org>
+License: GPL-2
+
+Files: extensions/libxt_HMARK.c
+Copyright: 2012, Hans Schillstrom <hans.schillstrom@ericsson.com>
+           2012, Pablo Neira Ayuso <pablo@netfilter.org>
+License: GPL-2
+
+Files: extensions/libxt_IDLETIMER.c
+Copyright: 2010, Nokia Corporation
+License: GPL-2
+
+Files: extensions/libxt_LED.c
+Copyright: 2008, Adam Nielsen <a.nielsen@shikadi.net>
+License: GPL-2
+
+Files: extensions/libxt_NFQUEUE.c
+Copyright: 2005, by Harald Welte <laforge@netfilter.org>
+License: GPL-2
+
+Files: extensions/libxt_RATEEST.c
+Copyright: 2008-2013, Patrick McHardy <kaber@tr
+
+=============================================================
+
+8) make
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: make
+Upstream-Contact: help-make@gnu.org
+Sources: git://git.savannah.gnu.org/make.git
+Comment: This is the Debian GNU/Linux prepackaged version of GNU Make.  GNU Make
+         was written by Richard Stallman and Roland McGrath. This package was put
+         together by Ian Murdock <imurdock@debian.org>
+         Changes:
+           * added Debian GNU/Linux package maintenance system files
+           * Pared down the package to just the documentation bits, and some
+             build infrastructure.
+         Parts of the GNU Make build structure remain in this package.
+
+Files: *
+Copyright: 1988-2014 Free Software Foundation, Inc.
+ GNU Make is free software; you can redistribute it and/or modify it under the
+ terms of the GNU General Public License as published by the Free Software
+ Foundation; either version 3 of the License, or (at your option) any later
+ version.
+ .
+ GNU Make is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+ A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+License: GPL-3+
+
+Files: debian/*
+Copyright: 1997-2009, 2014-2016  Manoj Srivastava <srivasta@debian.org>
+License: GPL-3+
+
+License: GPL-3+
+ This package is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License can be found in "/usr/share/common-licenses/GPL-3".
+
+=============================================================
+
+9) net-tools
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: net-tools
+Upstream-Contact: Phil Blundell <philb@gnu.org>
+                  Bernd Eckenfels <net-tools@lina.inka.de>
+Source: http://sourceforge.net/projects/net-tools/
+
+Files: *
+Copyright: Â© 1988-1994 MicroWalt Corporation
+ Â© 1995-1996 Bernd Eckenfels
+ Â© 1997-2000 Andi Kleen
+ Â© 1997-2000 Donald Becker
+License: GPL-2+
+
+Files: debian/*
+Copyright: Â© 2008-2009 Luk Claes, MartÃ­n Ferrari
+ Â© 2000-2007 Bernd Eckenfels
+ Â© 2000 Anthony Towns
+License: GPL-2+
+Comment:
+ It is assumed that all contributors put their work under the same license
+ as the module itself.
+
+Files: debian/iptunnel.8
+Copyright: Â© 2018 Sergio Durigan Junior
+License: GPL-2+
+
+License: GPL-2+
+ The copyright attribution has been derived from individual files' text, but
+ each file may have different copyright holders, and some may be missing. See
+ the source code for details.
+ .
+ This program is free software; you can redistribute it and/or modify it under
+ the terms of  the GNU General Public  License as  published by  the  Free
+ Software Foundation;  either  version 2 of the License, or  (at your option)
+ any later version.
+ .
+ On Debian GNU/Linux systems, the complete text of the GNU General Public
+ License can be found in `/usr/share/common-licenses/GPL-2'
+
+=============================================================
+
+10) wget
+
+This package was debianized by
+Christian Schwarz <schwarz@monet.m.isar.de> on Mon, 18 Nov 1996 00:59:57 +0100
+J. Ramos Goncalves <ramos@debian.org> on Thu, 13 Feb 1997 23:15:18 +0000
+NicolÃ¡s Lichtmaier <nick@debian.org> on Sat, 18 Oct 1997 21:23:12 -0300
+NoÃ«l KÃ¶the <noel@debian.org> on Mon, 18 Feb 2002 09:53:00 +0100
+
+It was downloaded from ftp://ftp.gnu.org/gnu/wget/
+	Homepage: http://www.gnu.org/directory/wget.html
+		  http://www.gnu.org/software/wget/wget.html
+
+Upstream Author: Giuseppe Scrivano <gscrivano@gnu.org>
+
+Copyright: (C) 2007 Free Software Foundation, Inc.
+
+Released under the terms of the GPL; see
+/usr/share/common-licenses/GPL-3.
+
+"In addition, as a special exception, the Free Software Foundation
+gives permission to link the code of its release of Wget with the
+OpenSSL project's "OpenSSL" library (or with modified versions of it
+that use the same license as the "OpenSSL" library), and distribute
+the linked executables.  You must obey the GNU General Public License
+in all respects for all of the code used other than "OpenSSL".  If you
+modify this file, you may extend this exception to your version of the
+file, but you are not obligated to do so.  If you do not wish to do
+so, delete this exception statement from your version."
+
+The wget(1) manpage and the wget info page are distributed under the
+terms of the GNU Free Documentation License ; see
+/usr/share/common-licenses/GFDL-1.2
+
+=============================================================
+
+11) Components from ia_common and ia_video_common and video-analytics application binary
+
+MIT License
+
+Copyright (c) 2021
+
+This license applies to the non-Windows portions of this library. The Windows
+portion maintains its own Apache 2.0 license.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+=============================================================
+
+12) Matrix Vision Impact Acquire SDK
+
+Licenses
+GenICam comes in two versions
+~ a runtime version
+~ a development version.
+
+The runtime version comes under the following license:
+
+  Copyright (c) EMVA and contributors (see source files)
+  All rights reserved
+
+  Redistribution and use in source and binary forms, without  modification,
+  are permitted provided that the following conditions are met:
+
+  ~ Redistributions of source code must retain the above copyright notice,
+    this list of conditions and the following disclaimer.
+
+  ~ Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+
+  ~ Neither the name of the GenICam standard group nor the names of its contributors
+    may be used to endorse or promote products derived from this software without
+    specific prior written permission.
+
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+  SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+The development version comes under the GenICam license (see below).
+
+
+GenICam uses the following 3rd party software packages:
+
+Package     License         Internet
+==================================================================================
+Mathparser  LGPL            http://kirya.narod.ru/mathparser.html
+                            http://www.sama.ru/~despair/ccalc/
+Log4Cpp     LGPL            http://log4cpp.sourceforge.net
+CppUnit     LGPL            http://cppunit.sourceforge.net
+CLSerAll    NI              http://sourceforge.net/projects/clallserial
+xs3p        DSTC            http://xml.fiforms.org/xs3p/index.html
+xxhash      New BSD         https://code.google.com/p/xxhash/
+XSLTProc    MIT license     http://xmlsoft.org/XSLT/xsltproc2.html
+XSDe        Proprietary     NA
+PCRE2       BSD license     http://www.pcre.org/
+
+Note that the XSDe license was purchased by one of the members of the committee but
+allows all members to re-compile the parser as long as only the GenApi XML vocabulary is used.
+The XSDe free proprietary license is used for the firmware update module.
+
+All license texts come as part of the GenICam distribution in the licenses
+subdiretory. If not, you can download them from the internet.
+
+License     File                    Where to find the license texts
+==================================================================================
+LGPL        LGPL.txt                http://www.gnu.org/licenses/lgpl.html
+GenICam     GenICam_License.pdf     http://www.genicam.org
+CLSerAll    CLSerAll_LICENSE.txt    http://sourceforge.net/projects/clallserial
+xs3p        xs3p_License.mht        http://xml.fiforms.org/xs3p/index.html
+xxhash      xxhash_License.txt      http://opensource.org/licenses/BSD-3-Clause
+XSLTProc    MIT_License.txt         http://opensource.org/licenses/mit-license.html
+XSDe        XSDe License.pdf        NA
+XSDe        Free                    NA
+            Proprietary
+            License
+PCRE2       pcre2_License.txt       http://www.pcre.org/licence.txt
+
+Last but not least GenICam redistributes the C/C++ runtime DLLs of the
+Microsoft Visual C++ compiler in the version 12.0

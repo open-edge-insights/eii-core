@@ -98,7 +98,7 @@ class Visualizer:
                         "level": results['encoding_level']}
         # Convert to Numpy array and reshape to frame
         if isinstance(blob, list):
-            # If multiple frames, select first frame for 
+            # If multiple frames, select first frame for
             # visualization
             blob = blob[0]
         frame = np.frombuffer(blob, dtype=np.uint8)
@@ -265,35 +265,42 @@ class Visualizer:
         :param topic: Topic the message was published on
         :type: str
         """
-        self.logger.info('Initializing message bus context')
+        subscriber = None
+        try:
+            self.logger.info('Initializing message bus context')
 
-        msgbus = mb.MsgbusContext(msgbus_cfg)
+            msgbus = mb.MsgbusContext(msgbus_cfg)
 
-        self.logger.info(f'Initializing subscriber for topic \'{topic}\'')
-        subscriber = msgbus.new_subscriber(topic)
+            self.logger.info(f'Initializing subscriber for topic \'{topic}\'')
+            subscriber = msgbus.new_subscriber(topic)
 
-        stream_label = None
+            stream_label = None
 
-        for key in self.labels:
-            if key == topic:
-                stream_label = self.labels[key]
-                break
+            for key in self.labels:
+                if key == topic:
+                    stream_label = self.labels[key]
+                    break
 
-        while True:
-            metadata, blob = subscriber.recv()
+            while True:
+                metadata, blob = subscriber.recv()
 
-            if metadata is not None and blob is not None:
-                frame = self.decode_frame(metadata, blob)
+                if metadata is not None and blob is not None:
+                    frame = self.decode_frame(metadata, blob)
 
-                self.logger.debug(f'Metadata is : {metadata}')
+                    self.logger.debug(f'Metadata is : {metadata}')
 
-                if(self.draw_results):
-                    self.draw_defect(metadata, frame, stream_label)
+                    if(self.draw_results):
+                        self.draw_defect(metadata, frame, stream_label)
 
-                if self.save_image:
-                    self.save_images(metadata, frame)
+                    if self.save_image:
+                        self.save_images(metadata, frame)
 
-                self.queue_publish(topic, frame)
-            else:
-                self.logger.debug(f'Non Image Data Subscription\
-                                 : Classifier_results: {metadata}')
+                    self.queue_publish(topic, frame)
+                else:
+                    self.logger.debug(f'Non Image Data Subscription\
+                                    : Classifier_results: {metadata}')
+        except Exception as e:
+            self.logger.exception(f'Exception occured: {e}')
+        finally:
+            if subscriber is not None:
+                subscriber.close()

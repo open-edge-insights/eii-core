@@ -26,5 +26,3 @@ metadata:
 data:
   eii_config.json: |-
 {{ .Files.Get "eii_config.json" | indent 4 }}
-  docker-compose.yml: |-
-{{ .Files.Get "docker-compose.yml" | indent 4 }}

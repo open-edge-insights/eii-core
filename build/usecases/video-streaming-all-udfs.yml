@@ -4,17 +4,21 @@
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
+- ConfigMgrAgent
 - EtcdUI
 - VideoIngestion
 - VideoAnalytics
 - Visualizer
 - WebVisualizer
+- Grafana
 - CustomUdfs/NativeSafetyGearAnalytics
 - CustomUdfs/NativeSafetyGearIngestion
 - CustomUdfs/PySafetyGearAnalytics
 - CustomUdfs/PySafetyGearIngestion
 - CustomUdfs/PyMultiClassificationIngestion
 - CustomUdfs/GVASafetyGearIngestion
+- CustomUdfs/NativeOneAPIIngestion
+
 # For running NativePclIngestion service a physical
 # realsense depth camera needs to be connected.
 # After connecting realsense camera uncomment below line.

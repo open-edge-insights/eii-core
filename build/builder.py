@@ -23,12 +23,17 @@
    and AppSpec json
 """
 import argparse
+import dotenv
+import random
+import string
 import os
 import json
 import subprocess
 import sys
 import re
 import copy
+import logging
+import math
 import distutils.util as util
 from jsonmerge import merge
 from jsonschema import validate
@@ -40,8 +45,20 @@ import shutil
 DOCKER_COMPOSE_PATH = './docker-compose.yml'
 DOCKER_COMPOSE_BUILD_PATH = './docker-compose-build.yml'
 DOCKER_COMPOSE_PUSH_PATH = './docker-compose-push.yml'
+HELM_DEPLOY_DIR = "./helm-eii/eii-deploy/"
+HELM_PROVISION_EII_DIR = "./helm-eii/eii-provision"
 SCAN_DIR = ".."
-dev_mode = False
+logger = None
+log_messages_list = []
+not_allowed_special_characters_list = ['~', ':', "'", '+', '[', '/', '@', '^',
+                                       '{', '%', '(', '-', '"', '*', '|', ',',
+                                       '&', '<', '`', '}', '.', '_', '=', ']',
+                                       '!', '>', ';', '?', '#', '$', ')', '\\']
+
+# List to store list of AppNames
+appname_list = []
+# Initializing config agent service list
+config_agent_service = ""
 # Initializing multi instance related variables
 num_multi_instances = 0
 used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
@@ -49,7 +66,41 @@ override_apps_list, override_helm_apps_list = \
     ([] for _ in range(2))
 dev_override_list, app_list, helm_app_list = \
     ([] for _ in range(3))
-used_ports_dict = {"send_ports":[], "recv_ports":[], "srvc_ports":[] }
+used_ports_dict = {"send_ports": [], "recv_ports": [], "srvc_ports": []}
+
+
+dev_mode = False
+# Fetching dev_mode from .env
+with open(".env") as f:
+    for line in f:
+        if line.startswith('DEV_MODE'):
+            dev_mode = line.strip().split('=')[1]
+            dev_mode = bool(util.strtobool(dev_mode))
+            break
+
+
+# Initializing custom logger
+class CustomFormatter(logging.Formatter):
+
+    grey = "\x1b[38;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = "%(message)s"
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: grey + format + reset,
+        logging.WARNING: yellow + format + reset,
+        logging.ERROR: red + format + reset,
+        logging.CRITICAL: bold_red + format + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
 
 
 def source_env(file):
@@ -67,7 +118,7 @@ def source_env(file):
                     key, value = line.strip().split("=", 1)
                     os.environ[key] = value
     except Exception as err:
-        print("Exception occured {}".format(err))
+        logger.error("Exception occured {}".format(err))
         return
 
 
@@ -92,7 +143,7 @@ def env_subst(input_file, output_file, input_type=None):
             subprocess.run(["envsubst"], input=cmd.stdout,
                            stdout=outfile, check=False)
     except subprocess.CalledProcessError as err:
-        print("Subprocess error: {}, {}".format(err.returncode, err.output))
+        logger.error("Subprocess error: {}, {}".format(err.returncode, err.output))
         sys.exit(1)
 
 
@@ -132,6 +183,8 @@ def increment_rtsp_port(appname, config, i):
         if 'rtspsrc' in config['config']['ingestor']['pipeline']:
             port = config['config']['ingestor']['pipeline'].\
                 split(":", 2)[2].split("/")[0]
+            port = re.findall(r'\d+', port)
+            port = port[-1]
             new_port = str(int(port) + i)
             config['config']['ingestor']['pipeline'] =\
                 config['config']['ingestor']['pipeline'].\
@@ -140,10 +193,12 @@ def increment_rtsp_port(appname, config, i):
     return config
 
 
-def create_multi_instance_interfaces(config, i, bm_apps_list):
+def create_multi_instance_interfaces(config, default_config, i, bm_apps_list):
     """Generate multi instance interfaces for a given config
 
-    :param config: app config
+    :param config: app config of the multi_instance subdirectory file config.json
+    :type config: json
+    :param default_config: app config of the parent directory file config.json
     :type config: json
     :param i: number of instance
     :type i: int
@@ -156,64 +211,71 @@ def create_multi_instance_interfaces(config, i, bm_apps_list):
     for k, v in config["interfaces"].items():
         for x in config["interfaces"][k]:
             # Updating Name section of all interfaces
+            y = default_config["interfaces"][k][0]
             if "Name" in x.keys():
-                x["Name"] = x["Name"] + str(i+1)
+                if (y["Name"] == x["Name"]):
+                    x["Name"] = x["Name"] + str(i+1)
             # Updating Topics section of all interfaces
             if "Topics" in x.keys():
-                for index, topic in enumerate(x["Topics"]):
-                    if bool(re.search(r'\d', x["Topics"][index])):
-                        x["Topics"][index] = re.sub(r'\d+', str(i+1),
-                                                    x["Topics"][index])
-                    else:
-                        x["Topics"][index] = x["Topics"][index] +\
+                if (y["Topics"] == x["Topics"]):
+                    for index, topic in enumerate(x["Topics"]):
+                        if bool(re.search(r'\d', x["Topics"][index])):
+                            x["Topics"][index] = re.sub(r'\d+', str(i+1),
+                                                        x["Topics"][index])
+                        else:
+                            x["Topics"][index] = x["Topics"][index] +\
                                                 str(i+1)
             # Updating AllowedClients section of all interfaces
             if "AllowedClients" in x.keys():
-                for index, topic in enumerate(x["AllowedClients"]):
-                    if x["AllowedClients"][index] in bm_apps_list:
-                        # Update AllowedClients AppName if they are not
-                        # in subscriber list
-                        if x["AllowedClients"][index] not in subscriber_list:
-                            if bool(re.search(r'\d', x["AllowedClients"
+                if (x["AllowedClients"] == y["AllowedClients"]):
+                    for index, topic in enumerate(x["AllowedClients"]):
+                        if x["AllowedClients"][index] in bm_apps_list:
+                            # Update AllowedClients AppName if they are not
+                            # in subscriber list
+                            if x["AllowedClients"][index] not in subscriber_list:
+                                if bool(re.search(r'\d', x["AllowedClients"
                                                        ][index])):
-                                x["AllowedClients"][index] = \
-                                    re.sub(r'\d+', str(i+1),
-                                           x["AllowedClients"][index])
-                            else:
-                                x["AllowedClients"][index] = \
-                                    x["AllowedClients"][index] + str(i+1)
+                                    x["AllowedClients"][index] = \
+                                        re.sub(r'\d+', str(i+1),
+                                               x["AllowedClients"][index])
+                                else:
+                                    x["AllowedClients"][index] = \
+                                        x["AllowedClients"][index] + str(i+1)
             # Updating PublisherAppName section of all interfaces
             if "PublisherAppName" in x.keys():
                 if x["PublisherAppName"] in bm_apps_list:
-                    if bool(re.search(r'\d', x["PublisherAppName"])):
-                        x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
-                                                       x["PublisherAppName"])
-                    else:
-                        x["PublisherAppName"] = x["PublisherAppName"] +\
+                    if (x["PublisherAppName"] == y["PublisherAppName"]):
+                        if bool(re.search(r'\d', x["PublisherAppName"])):
+                            x["PublisherAppName"] = re.sub(r'\d+', str(i+1),
+                                                           x["PublisherAppName"])
+                        else:
+                            x["PublisherAppName"] = x["PublisherAppName"] +\
                                                       str(i+1)
             # Updating ServerAppName section of all interfaces
             if "ServerAppName" in x.keys():
                 if x["ServerAppName"] in bm_apps_list:
-                    if bool(re.search(r'\d', x["ServerAppName"])):
-                        x["ServerAppName"] = re.sub(r'\d+', str(i+1),
+                    if (x["ServerAppName"] == y["ServerAppName"]):
+                        if bool(re.search(r'\d', x["ServerAppName"])):
+                            x["ServerAppName"] = re.sub(r'\d+', str(i+1),
                                                     x["ServerAppName"])
-                    else:
-                        x["ServerAppName"] = x["ServerAppName"] +\
+                        else:
+                            x["ServerAppName"] = x["ServerAppName"] +\
                                                       str(i+1)
             # Updating Type section of all interfaces
             if "Type" in x.keys():
                 if "tcp" in x["Type"]:
-                    # If tcp mode, increment port numbers
-                    port = x["EndPoint"].split(':')[1]
-                    new_port = str(int(port) + (i))
-                    x["EndPoint"] = x["EndPoint"].replace(port, new_port)
-                    # Update IP if it is not localhost/127.0.0.1
-                    ip = x["EndPoint"].split(":")[0]
-                    new_ip = None
-                    if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
-                        new_ip = ip + str(i+1)
-                    if new_ip is not None:
-                        x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
+                    if (x["EndPoint"] == y["EndPoint"]):
+                        # If tcp mode, increment port numbers
+                        port = x["EndPoint"].split(':')[1]
+                        new_port = str(int(port) + (i))
+                        x["EndPoint"] = x["EndPoint"].replace(port, new_port)
+                        # Update IP if it is not localhost/127.0.0.1
+                        ip = x["EndPoint"].split(":")[0]
+                        new_ip = None
+                        if ip != "localhost" and ip != "127.0.0.1" and not re.search(r'\d', ip):
+                            new_ip = ip + str(i+1)
+                        if new_ip is not None:
+                            x["EndPoint"] = x["EndPoint"].replace(ip, new_ip)
     return config
 
 
@@ -343,7 +405,7 @@ def json_parser(app_list, args):
                 bm_appname = x.split("/")[-2]
         bm_apps_list.append(bm_appname)
 
-    eii_config_path = "./provision/config/eii_config.json"
+    eii_config_path = "eii_config.json"
     for app_path in app_list:
         data = {}
         # Creating multi instance config if num_multi_instances > 1
@@ -356,15 +418,24 @@ def json_parser(app_list, args):
                     dirname = app_path.split("/")[-2]
             # Ignoring EtcdUI & common/video service to not create multi instance
             # TODO: Support AzureBridge multi instance creation if applicable
-            if app_name not in subscriber_list and dirname != "video" and dirname != "EtcdUI" and "AzureBridge" not in app_path:
+            if (app_name not in subscriber_list and
+                dirname != "video" and
+                dirname != "EtcdUI" and
+                "AzureBridge" and "ConfigMgrAgent" not in app_path):
                 for i in range(num_multi_instances):
-                    with open(app_path + '/config.json', "rb") as infile:
+                    # path to the multi_instance subdirectory
+                    path = os.path.join(multi_inst_path, dirname + str(i+1))
+                    # Open the config.json within the parent directory
+                    with open(app_path + '/config.json', "rb") as defile:
+                        default_config = json.load(defile)
+                    # Open the config.json within the multi_instance subdirectory
+                    with open(path + '/config.json', "rb") as infile:
                         head = json.load(infile)
                         # Increments rtsp port number if required
                         head = increment_rtsp_port(app_name, head, i)
                         # Create multi instance interfaces
                         head = \
-                            create_multi_instance_interfaces(head,
+                            create_multi_instance_interfaces(head, default_config,
                                                              i,
                                                              bm_apps_list)
                         # merge config of multi instance config
@@ -376,8 +447,12 @@ def json_parser(app_list, args):
                             data['/' + app_name + str(i+1) +
                                 '/interfaces'] = \
                                 head['interfaces']
-                        # merge multi instance generated json to eii config
+                        # # merge multi instance generated json to eii config
                         config_json = merge(config_json, data)
+                        # Writing the changes to the config.json file in the
+                        # multi_instance subdirectory
+                        with open(path + "/config.json", "w") as multi_instance_json_file:
+                            multi_instance_json_file.write(json.dumps(head, sort_keys=True, indent=4))
             # This condition is to handle not creating multi instance for
             # subscriber services
             else:
@@ -420,7 +495,6 @@ def json_parser(app_list, args):
                     data['/' + app_name + '/config'] = head['config']
                 if 'interfaces' in head.keys():
                     data['/' + app_name + '/interfaces'] = head['interfaces']
-                # Merging individual app configs & interfaces into one json
                 config_json = merge(config_json, data)
 
     temp = copy.deepcopy(config_json)
@@ -431,7 +505,7 @@ def json_parser(app_list, args):
                 if subscriber["Type"] == "zmq_tcp":
                     # Ignoring ZmqBroker as PublisherAppName is "*" for subscriber
                     if subscriber["PublisherAppName"] != "*":
-                        if("/" + subscriber["PublisherAppName"] + \
+                        if ("/" + subscriber["PublisherAppName"] + \
                             "/interfaces" not in config_json.keys()):
                             temp[key]["Subscribers"].remove(subscriber)
                             if not temp[key]["Subscribers"]:
@@ -447,7 +521,6 @@ def json_parser(app_list, args):
                         temp[key]["Clients"].remove(client)
                         if not temp[key]["Clients"]:
                             del temp[key]["Clients"]
-
 
     # Writing consolidated json into desired location
     with open(eii_config_path, "w") as json_file:
@@ -490,27 +563,29 @@ def helm_yaml_merger(app_list, args):
     pvc_merged_yaml = ""
     helm_values_dict = []
     value_keys = ["env", "config", "volumes"]
-    helm_provision_values_dict = []
+    helm_provision_eii_values_dict = []
     ignore_template_copy = ["eii-pv.yaml", "eii-pvc.yaml"]
-    helm_deploy_dir = "./helm-eii/eii-deploy/"
-    helm_provision_dir = "./helm-eii/eii-provision"
+    global config_agent_service
+    os.environ["config_agent_service"] = config_agent_service.rsplit(',', 1)[0]
     # Load the common values.yaml
-    if os.path.isdir(helm_deploy_dir + "templates"):
-        shutil.rmtree(helm_deploy_dir + "templates")
-    os.mkdir(helm_deploy_dir + "templates")
-    with open(helm_deploy_dir +"../common-values.yaml", 'r') as \
+
+    if os.path.isdir(HELM_DEPLOY_DIR + "templates"):
+        shutil.rmtree(HELM_DEPLOY_DIR + "templates")
+    os.mkdir(HELM_DEPLOY_DIR + "templates")
+
+    with open(HELM_DEPLOY_DIR + "../common-values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
         helm_values_dict.append(data)
 
     # Read persistent volume yaml
-    with open(helm_deploy_dir +"../common-eii-pv.yaml") as pv_yaml_file:
+    with open(HELM_DEPLOY_DIR +"../common-eii-pv.yaml") as pv_yaml_file:
         data = pv_yaml_file.read()
         pv_merged_yaml = pv_merged_yaml + "---\n" + data
 
     # Read persistent volume claim yaml
-    with open(helm_deploy_dir +"../common-eii-pvc.yaml") as pvc_yaml_file:
+    with open(HELM_DEPLOY_DIR +"../common-eii-pvc.yaml") as pvc_yaml_file:
         data = pvc_yaml_file.read()
         pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
@@ -529,7 +604,12 @@ def helm_yaml_merger(app_list, args):
             helm_yaml_file = os.path.join(helm_app_path, "templates", yaml_file)
             if os.path.isfile(helm_yaml_file) and yaml_file \
                 not in ignore_template_copy:
-                shutil.copy(helm_yaml_file, helm_deploy_dir + "templates")
+                shutil.copy(helm_yaml_file, HELM_DEPLOY_DIR + "templates")
+
+        shutil.copy("./helm-eii/common-eii-provision.yaml", HELM_PROVISION_EII_DIR + "/templates/eii-provision.yaml")
+        shutil.copy("./helm-eii/common-secrets.yaml", HELM_DEPLOY_DIR + "templates/secrets.yaml")
+        shutil.copy("./eii_config.json", HELM_PROVISION_EII_DIR + "/eii_config.json")
+
 
         # Load the required values.yaml files
         with open(helm_app_path + "/values.yaml", 'r') as values_file:
@@ -546,7 +626,7 @@ def helm_yaml_merger(app_list, args):
                 pv_merged_yaml = pv_merged_yaml + "---\n" + data
 
         # Writing final persistent volume yaml file
-        with open(helm_deploy_dir + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
+        with open(HELM_DEPLOY_DIR + "templates/eii-pv.yaml", 'w') as final_pv_yaml:
             final_pv_yaml.write(pv_merged_yaml)
 
         # Reading persistent volume claim yaml if present
@@ -556,35 +636,33 @@ def helm_yaml_merger(app_list, args):
                 pvc_merged_yaml = pvc_merged_yaml + "---\n" + data
 
         # Writing final persistent volume claim yaml file
-        with open(helm_deploy_dir + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
+        with open(HELM_DEPLOY_DIR + "templates/eii-pvc.yaml", 'w') as final_pvc_yaml:
             final_pvc_yaml.write(pvc_merged_yaml)
 
-
     # Updating values.yaml for provision
-    with open(helm_provision_dir +"/values.yaml", 'r') as \
+    with open(HELM_PROVISION_EII_DIR + "/values.yaml", 'r') as \
         values_file:
         data = ruamel.yaml.round_trip_load(values_file,
                                            preserve_quotes=True)
-        helm_provision_values_dict.append(data)
+        helm_provision_eii_values_dict.append(data)
 
     # helm_provision_dict contains the provisioning values for helm
-    helm_provision_dict = helm_provision_values_dict[0]
-    for var in helm_provision_dict:
+    helm_provision_eii_dict = helm_provision_eii_values_dict[0]
+    for var in helm_provision_eii_dict:
         if var not in value_keys:
             if os.environ.get(var) is not None:
                 # Updating outer variables in values yaml file for provision
-                helm_provision_dict.update({var: os.getenv(var)})
+                helm_provision_eii_dict.update({var: os.getenv(var)})
         elif var == "env":
-            for i in helm_provision_dict[var]:
+            for i in helm_provision_eii_dict[var]:
                 # Updating environment variables inside env key in values yaml file for provision
                 if os.environ.get(i) is not None:
                     if i == "DEV_MODE" or i == "PROFILING_MODE":
-                        helm_provision_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
+                        helm_provision_eii_dict[var].update({i: bool(util.strtobool(os.getenv(i)))})
                     else:
-                        helm_provision_dict[var].update({i: os.getenv(i)})
-    with open(helm_provision_dir +"/values.yaml", 'w') as value_file:
-        ruamel.yaml.round_trip_dump(helm_provision_dict, value_file)
-
+                        helm_provision_eii_dict[var].update({i: os.getenv(i)})
+    with open(HELM_PROVISION_EII_DIR + "/values.yaml", 'w') as value_file:
+        ruamel.yaml.round_trip_dump(helm_provision_eii_dict, value_file)
 
 
     # Updating final helm values dict
@@ -612,15 +690,18 @@ def helm_yaml_merger(app_list, args):
                 helm_dict[k].update({i: var[k][i]})
 
     # Writing consolidated values.yaml file to ./helm-eii/eii-deploy/ dir
-    with open(helm_deploy_dir +"values.yaml", 'w') as value_file:
+    with open(HELM_DEPLOY_DIR + "values.yaml", 'w') as value_file:
         ruamel.yaml.round_trip_dump(helm_dict, value_file)
 
 
-def create_multi_instance_yml_dict(data, i):
+def create_multi_instance_yml_dict(mi_data, data, i):
     """Method to generate boilerplate
        yamls
 
-    :param data: input yaml
+    :param mi_data: input yaml from multi_instance subdirectory
+    :type mi_data: ordered dict
+    :type data: ordered dict
+    :param data: input yaml from parent directory
     :type data: ordered dict
     :param i: number of required instances
     :type i: int
@@ -634,80 +715,91 @@ def create_multi_instance_yml_dict(data, i):
         bm_apps_list.append(appname)
 
     # deep copy to avoid issues during iteration
-    temp = copy.deepcopy(data)
+    temp = copy.deepcopy(mi_data)
     for k, v in temp['services'].items():
-        # Update yaml main key name
-        k_new = re.sub(r'\d+', '', k) + str(i)
-        temp['services'][k_new] = v
-        del temp['services'][k]
+        for k1, _ in data['services'].items():
+            k1 = re.sub(r'\d+', '', k1)
+        if (k == k1):
+            # Update yaml main key name
+            k_new = re.sub(r'\d+', '', k) + str(i)
+            temp['services'][k_new] = v
+            del temp['services'][k]
         # Iterating throught the yaml to update
         # all keys & values
         for k2, v2 in v.items():
-            # Update container_name
+            x = data['services'][k1]
+            # Update container name
             if k2 == 'container_name':
-                v['container_name'] = re.sub(r'\d+', '', v2) + str(i)
+                if (x['container_name'] == v2):
+                    v['container_name'] = re.sub(r'\d+', '', v2) + str(i)
             # Update hostname
             elif k2 == 'hostname':
-                v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
+                if (x['hostname'] == v2):
+                    v['hostname'] = re.sub(r'\d+', '', v2) + str(i)
             # Update ports
             elif k2 == 'ports':
-                # Iterate through all ports
-                for j in list(v['ports']):
-                    # Update new ports & remove
-                    # existing ports to avoid duplication
-                    port = j.split(':')[0]
-                    new_port = str(int(port) + (i-1))
-                    v['ports'].append(new_port+':'+new_port)
-                    v['ports'].remove(port+':'+port)
-            # Update secrets section of yml
-            elif k2 == 'secrets':
-                for v3 in v['secrets']:
-                    if 'cert' in v3:
-                        cert_temp = v3.split('_cert')[0]
-                        new_cert = re.sub(r'\d+', '', cert_temp) +\
-                            str(i) + '_cert'
-                        v['secrets'].remove(cert_temp+'_cert')
-                        v['secrets'].insert(1, new_cert)
-                    if 'key' in v3:
-                        key_temp = v3.split('_key')[0]
-                        new_key = re.sub(r'\d+', '', key_temp) +\
-                            str(i) + '_key'
-                        v['secrets'].remove(key_temp+'_key')
-                        v['secrets'].insert(2, new_key)
+                if (x['ports'] == v2):
+                    # Iterate through all ports
+                    for j in list(v['ports']):
+                        # Update new ports & remove
+                        # existing ports to avoid duplication
+                        port = j.split(':')[0]
+                        new_port = str(int(port) + (i-1))
+                        v['ports'].append(new_port+':'+new_port)
+                        v['ports'].remove(port+':'+port)
             # Update all env key, value pairs of yml
             elif k2 == 'environment':
                 for k4, v4 in list(v['environment'].items()):
                     # Update AppName
                     if k4 == 'AppName':
-                        v['environment'][k4] = v4 + str(i)
-                        app_name = v4
-                        new_app_name = v4 + str(i)
+                        if (x['environment']['AppName'] == v4):
+                            v['environment'][k4] = v4 + str(i)
+                            app_name = v4
+                            new_app_name = v4 + str(i)
+            # Update the volumes section
+            elif k2 == 'volumes':
+                for v3 in v['volumes']:
+                    if "./Certificates" in v3 and "rootca" not in v3:
+                        index = v['volumes'].index(v3)
+                        v['volumes'].remove(v3)
+                        if v3.endswith("ro"):
+                            appname = (v3.split(":")[-2]).split("/")[-1]
+                        else:
+                            appname = (v3.split(":")[-1]).split("/")[-1]
+                        new_appname = re.sub(r'\d+', '', appname)
+                        v3 = v3.replace(appname, new_appname + str(i))
+                        v['volumes'].insert(index, v3)
 
-    # Update outer secrets section
-    if not dev_mode:
-        if 'secrets' in temp.keys():
-            for k, v in list(temp['secrets'].items()):
-                if 'cert' in k:
-                    cert_temp = k.split('_cert')[0]
-                    new_cert = re.sub(r'\d+', '', cert_temp) + str(i) + '_cert'
-                    for k2 in v.items():
-                        yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file',
-                                       list(k2)[1].replace(app_name,
-                                                           new_app_name))
-                    temp['secrets'][new_cert] = yml_map
-                    del temp['secrets'][k]
-                if 'key' in k:
-                    key_temp = k.split('_key')[0]
-                    new_key = re.sub(r'\d+', '', key_temp) + str(i) + '_key'
-                    for k2 in v.items():
-                        yml_map = ruamel.yaml.comments.CommentedMap()
-                        yml_map.insert(1, 'file',
-                                       list(k2)[1].replace(app_name,
-                                                           new_app_name))
-                    temp['secrets'][new_key] = yml_map
-                    del temp['secrets'][k]
+    return temp
 
+
+def modify_grafana_yaml(data):
+    """Method to modify Grafana corner case yaml file
+
+    :param data: Grafana yaml data
+    :type data: yaml
+    :return: yaml dict
+    :rtype: dict
+    """
+    temp = copy.deepcopy(data)
+    port = None
+    for k, v in temp['services'].items():
+        for k2, v2 in v.items():
+            if k2 == "ports":
+                # Iterate through all ports
+                for j in list(v['ports']):
+                    if "GRAFANA_PORT" not in j:
+                        # Update new ports & remove
+                        # existing ports to avoid duplication
+                        for i in range(0, (math.ceil(num_multi_instances/6))):
+                            port = j.split(':')[0]
+                            new_port = str(int(port) + i)
+                            v['ports'].append(new_port+':'+new_port)
+                        # Remove unwanted blank lines
+                        if port+':'+port in v['ports']:
+                            v['ports'].remove(port+':'+port)
+                # Remove unwanted duplicate ports
+                v['ports'] = list(set(v['ports']))
     return temp
 
 
@@ -742,12 +834,18 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
             data = ruamel.yaml.round_trip_load(docker_compose_file,
                                                preserve_quotes=True)
 
+            # Fetching AppNames of all services
+            appname = fetch_appname(k)
+            if args.override_directory is not None:
+                if args.override_directory in k:
+                    appname = k.split("/")[-2]
+
+            # Append valid AppNames to appname_list
+            if (appname != "video" and appname != "common" and appname is not None):
+                appname_list.append(appname)
+
             # Create multi instance compose if num_multi_instances is > 1
             if num_multi_instances > 1:
-                appname = k.split("/")[-1]
-                if args.override_directory is not None:
-                    if args.override_directory in k:
-                        appname = k.split("/")[-2]
                 # Create single instance only for services in subscriber_list
                 # and for corner case of common/video,
                 # create multi instance otherwise
@@ -756,46 +854,81 @@ def update_yml_dict(app_list, file_to_pick, dev_mode, args):
                 if (appname not in subscriber_list.keys() and
                         appname != "video" and
                         appname != "common" and
-                        appname != "AzureBridge"):
+                        appname != "AzureBridge" and
+                        appname != "ConfigMgrAgent" and
+                        appname is not None):
+                    appname_list.remove(appname)
                     for i in range(num_multi_instances):
-                        data_two = create_multi_instance_yml_dict(data, i+1)
-                        yaml_files_dict.append(data_two)
+                        # Path to the multi_instance subdirectory
+                        path_app = os.path.join(multi_inst_path, appname + str(i+1))
+                        # Create subdirectories VideoIngestion1, VideoIngestion2, ...if not created
+                        if (not(os.path.isdir(path_app))):
+                            os.mkdir(path_app)
+                        # Copy default config.json and docker-compose.yml files to the subdirectory
+                        # if not present
+                        if (not(os.path.isfile(path_app + "/docker-compose.yml") and 
+                            os.path.isfile(path_app + "/config.json"))):
+                            origin = os.path.join(k, "docker-compose.yml")
+                            dest = os.path.join(path_app, "docker-compose.yml")
+                            shutil.copy(origin, dest)
+                            origin = os.path.join(k, "config.json")
+                            dest = os.path.join(path_app, "config.json")
+                            shutil.copy(origin, dest)
+
+                        if dev_mode:
+                            # Copy docker-compose-dev.override.yml file if not already present
+                            if (not(os.path.isfile(path_app + '/docker-compose-dev.override.yml'))):
+                                origin = os.path.join(k, "docker-compose-dev.override.yml")
+                                dest = os.path.join(path_app, "docker-compose-dev.override.yml")
+                                if os.path.exists(origin):
+                                    shutil.copy(origin, dest)
+
+                        # Update appname_list for current service
+                        appname_list.append(appname + str(i+1))
+                        # Open the docker-compose.yml file within the subdirectory
+                        with open(path_app + '/' + file_to_pick, 'r') as docker_compose_file:
+                            mi_data = ruamel.yaml.round_trip_load(docker_compose_file,
+                                                                  preserve_quotes=True)
+                            data_two = create_multi_instance_yml_dict(mi_data, data, i+1)
+                            # Write the changes to the existing docker-compose.yml file
+                            # within multi_instance directory
+                            with open(path_app + "/" + file_to_pick, 'w') as docker_compose_file:
+                                ruamel.yaml.round_trip_dump(data_two, docker_compose_file)
+                            yaml_files_dict.append(data_two)
+
                 # To create single instance for subscriber services
                 else:
+                    if appname == "Grafana" and num_multi_instances > 1:
+                        data = modify_grafana_yaml(data)
                     yaml_files_dict.append(data)
             # To create single instance
             else:
                 yaml_files_dict.append(data)
 
+    # Update SERVICES of config-agent with AppNames of all services
+    global config_agent_service
+    for var in yaml_files_dict[1:]:
+        if "ia_configmgr_agent" in var["services"]:
+            config_agent_service = \
+                var["services"]["ia_configmgr_agent"]["environment"]["SERVICES"]
+            for appname in appname_list:
+                if appname != "ConfigMgrAgent":
+                    config_agent_service = config_agent_service + appname + ','
+            var["services"]["ia_configmgr_agent"]["environment"]["SERVICES"] = \
+                config_agent_service.rsplit(',', 1)[0]
+
     # Updating final yaml dict
     yaml_dict = yaml_files_dict[0]
     for var in yaml_files_dict[1:]:
         for k in var:
-            try:
-                # Update the values from current compose
-                # file to previous compose file
-                for i in var[k]:
-                    if(k == "version"):
-                        pass
-                    else:
-                        yaml_dict[k].update({i: var[k][i]})
-            # If secrets is not existing, add it to the dict
-            except KeyError:
-                if (k == "secrets"):
-                    yaml_dict[k] = var[k]
+            # Update the values from current compose
+            # file to previous compose file
+            for i in var[k]:
+                if(k == "version"):
+                    pass
+                else:
+                    yaml_dict[k].update({i: var[k][i]})
 
-    # Updating yaml dict for dev mode
-    if dev_mode:
-        for k, v in yaml_dict.items():
-            # Deleting the main secrets section
-            if(k == "secrets"):
-                del yaml_dict[k]
-            # Deleting secrets section for individual services
-            elif(k == "services"):
-                for _, service_dict in v.items():
-                    for service_keys, _ in list(service_dict.items()):
-                        if(service_keys == "secrets"):
-                            del service_dict[service_keys]
     return yaml_dict
 
 
@@ -829,7 +962,7 @@ def create_docker_compose_override(app_list, dev_mode, args, run_exclude_images)
 
 
 def get_service_dependency_tree(yml_dict, run_exclude_images):
-    """Method to generate a dict of services and services it depends on 
+    """Method to generate a dict of services and services it depends on
 
     :param yml_dict: dict generated from docker-compose yml
     :type yml_dict: dict
@@ -852,28 +985,28 @@ def get_service_dependency_tree(yml_dict, run_exclude_images):
 
 
 def update_dependency_service(service, dep_tree, req_services):
-    """Method to append the provided dict with nested dependencies of the 
+    """Method to append the provided dict with nested dependencies of the
        provided service
-    :param service: Name of the service of which the dependencies need to be 
+    :param service: Name of the service of which the dependencies need to be
                     fetched
     :type service: str
-    :param dep_tree: The dependency tree dict returned by 
+    :param dep_tree: The dependency tree dict returned by
                      get_service_dependency_tree() method
     :type dep_tree: dict
     :param req_services: The list where the dependencies names to be appended
     :type req_services: dict
-    """ 
+    """
     req_services[service] = "1"
     if service in dep_tree:
         deps = dep_tree[service]
         for i in range(len(deps)):
             update_dependency_service(deps[i], dep_tree, req_services)
-        
+
 
 def get_required_services_list(dep_tree, run_exclude_images):
     """Method to get the list of required services along with the services
        it depends on
-    :param dep_tree: The dependency tree dict returned by 
+    :param dep_tree: The dependency tree dict returned by
                      get_service_dependency_tree() method
     :type dep_tree: dict
     :param run_exclude_images: List of name of dependency services which
@@ -881,12 +1014,12 @@ def get_required_services_list(dep_tree, run_exclude_images):
     :type run_exclude_images: array
     :return req_services: dict of required services
     :rtype: dict
-    """ 
+    """
     req_services = {}
     for service in dep_tree:
         if service not in run_exclude_images:
             update_dependency_service(service, dep_tree, req_services)
-        
+
     return req_services
 
 
@@ -900,11 +1033,11 @@ def yaml_parser(args):
     # Fetching EII directory path
     eii_dir = os.getcwd() + '/../'
     dir_list = []
-    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base"]
+    run_exclude_images = ["ia_eiibase", "ia_common", "ia_video_common", "ia_openvino_base", "uwc_common"]
     build_params = ["depends_on", "build", "image"]
     if args.yml_file is not None:
         # Fetching list of subdirectories from yaml file
-        print("Fetching required services from {}...".format(args.yml_file))
+        logger.info("Fetching required services from {}...".format(args.yml_file))
         with open(args.yml_file, 'r') as sub_dir_file:
             yaml_data = ruamel.yaml.round_trip_load(sub_dir_file,
                                                     preserve_quotes=True)
@@ -918,13 +1051,22 @@ def yaml_parser(args):
                 if os.path.isdir(prefix_path) or os.path.islink(prefix_path):
                     dir_list.append(service)
                 else:
-                    print("[WARN] {0} directory doesn't exist. Skipping fetching required files"
+                    logger.warning("[WARN] {0} directory doesn't exist. Skipping fetching required files"
                           " from {0}".format(service))
     else:
         # Fetching list of subdirectories
-        print("Parsing through directory to fetch required services...")
+        logger.info("Parsing through directory to fetch required services...")
         dir_list = [f.name for f in os.scandir(eii_dir) if
                     (f.is_dir() or os.path.islink(f))]
+        # Extend the dir_list for time-series usecase to include the subdirectories
+        # from the file builder_config.json- include_services key
+        if "Telegraf" in dir_list:
+            dir_list.extend(include_services)
+        # Exclude the services mentioned in the file
+        # builder_config.json- exclude_services key
+        for service in exclude_services:
+            if service in dir_list:
+                dir_list.remove(service)
         dir_list = sorted(dir_list)
 
     # Adding video folder manually since it's not a direct sub-directory
@@ -985,14 +1127,13 @@ def yaml_parser(args):
     if os.path.isdir(eii_dir + 'common/video'):
         app_list.insert(0, eii_dir + 'common/video')
 
-    # Fetching DEV_MODE from .env
-    dev_mode = False
-    with open(".env") as f:
-        for line in f:
-            if line.startswith('DEV_MODE'):
-                dev_mode = line.strip().split('=')[1]
-                dev_mode = util.strtobool(dev_mode)
-                break
+    # Create build/multi_instance directory if num_multi_instances is greater than 1
+    if (num_multi_instances > 1):
+        global multi_inst_path
+        multi_inst_path = os.path.join(os.getcwd(), 'multi_instance')
+        if (not(os.path.isdir(multi_inst_path))):
+            os.mkdir(multi_inst_path)
+
 
     yml_dict = update_yml_dict(app_list, 'docker-compose.yml', dev_mode, args)
     temp = copy.deepcopy(yml_dict)
@@ -1001,8 +1142,8 @@ def yaml_parser(args):
     # Get the list of services that needs to be written to docker-compose-build.yml
     required_services = get_required_services_list(deps, run_exclude_images)
 
-    # Writing docker-compose-build.yml file. This yml will have services which will only
-    # contain the build_params keys for all services.
+    # Writing docker-compose-build.yml file. This yml will have services
+    # which will only contain the build_params keys for all services.
     for k, v in yml_dict.items():
         if(k == "services"):
             for service, service_dict in v.items():
@@ -1019,6 +1160,7 @@ def yaml_parser(args):
 
     temp = copy.deepcopy(yml_dict)
     build_params.remove("image")
+
     # Writing docker-compose.yml file.
     for k, v in yml_dict.items():
         if(k == "services"):
@@ -1026,9 +1168,11 @@ def yaml_parser(args):
                 for service_keys, _ in list(service_dict.items()):
                     if(service_keys in build_params):
                         del temp["services"][service][service_keys]
+                # Removing unnecessary build clause in docker-compose.yml
+                if "build" in temp["services"][service]:
+                    del temp["services"][service]["build"]
                 if(service in run_exclude_images):
                     del temp["services"][service]
-
     with open(DOCKER_COMPOSE_PATH, 'w') as docker_compose_file:
         ruamel.yaml.round_trip_dump(temp, docker_compose_file)
 
@@ -1057,28 +1201,27 @@ def yaml_parser(args):
     * Required docker compose files: `docker-compose-build.yml`
       `docker-compose.yml` and `docker-compose-push.yml`
     * Consolidated config json of required EII services in
-      `docker-compose.yml` at ./provision/config/eii_config.json
+      `docker-compose.yml` at ./eii_config.json
     Please run the below commands to bring up the EII stack:
     Run:
-    # provision the node to run EII
-    $ cd provision && sudo -E ./provision.sh ../docker-compose.yml
     # For building EII services
-    $ cd .. && docker-compose -f docker-compose-build.yml build
+    $ docker-compose -f docker-compose-build.yml build
     # For running EII services
+    $ docker-compose up -d ia_configmgr_agent # workaround for now, we are exploring on getting this and the sleep avoided
+    $ sleep 30 # If any failures like configmgr data store client certs or msgbus certs failures, please increase this time to a higher value
     $ docker-compose up -d
     # For pushing EII docker images to registry
     (useful in multi-node deployment scenarios)
     $ docker-compose -f docker-compose-push.yml push
     """
-    print(log_msg)
-    # Sourcing required env from .env & provision/.env
+    log_messages_list.append(log_msg)
+    # Sourcing required env from .env
     source_env("./.env")
-    source_env("./provision/.env")
 
     try:
         helm_yaml_merger(helm_app_list, args)
     except Exception as e:
-        print("Exception Occured at helm yml generation {}".format(e))
+        logger.error("Exception Occured at helm yml generation {}".format(e))
         sys.exit(1)
     log_msg = """
     For deployment via helm, successfully created consolidated
@@ -1087,14 +1230,14 @@ def yaml_parser(args):
     ./helm-eii/eii-deploy/templates/.
     Refer `./helm-eii/README.md` for deployment details.
     """
-    print(log_msg)
+    log_messages_list.append(log_msg)
     log_msg = """
     **NOTE**:
     Please re-run the `builder.py` whenever the individual docker-compose.yml,
     config.json files of individual services are updated
     and you need them to be considered
     """
-    print(log_msg)
+    log_messages_list.append(log_msg)
 
 
 def parse_args():
@@ -1120,7 +1263,59 @@ def parse_args():
     return arg_parse.parse_args()
 
 
+def verify_secrets():
+    """Generate random alphanumeric characters for all EII secrets
+    """
+    secrets_list = ["ETCDROOT_PASSWORD"]
+
+    if "InfluxDBConnector" in appname_list:
+        secrets_list.extend(["INFLUXDB_USERNAME", "INFLUXDB_PASSWORD"])
+    if "ImageStore" in appname_list:
+        secrets_list.extend(["MINIO_ACCESS_KEY", "MINIO_SECRET_KEY"])
+    if "WebVisualizer" in appname_list and not dev_mode:
+        secrets_list.extend(["WEBVISUALIZER_USERNAME", "WEBVISUALIZER_PASSWORD"])
+    
+    dotenv_file = dotenv.find_dotenv()
+    dotenv.load_dotenv(dotenv_file)
+
+    # Write changes to .env file
+    missing_secrets_list = []
+    for secret in secrets_list:
+        if dotenv.get_key(dotenv_file, secret) == "":
+            missing_secrets_list.append(secret)
+        # Check if INFLUXDB credentials have special characters
+        if "INFLUXDB" in secret and dotenv.get_key(dotenv_file, secret) != "" and \
+            any(special_char in dotenv.get_key(dotenv_file, secret) \
+            for special_char in not_allowed_special_characters_list):
+            raise AttributeError("Non-allowed special characters found")
+        if secret == "MINIO_SECRET_KEY" and len(dotenv.get_key(dotenv_file, secret)) < 8:
+            raise ValueError("MINIO secret key length less than minimum")
+
+    if len(missing_secrets_list) > 0:
+        raise KeyError(f"{missing_secrets_list}")
+
+
 if __name__ == '__main__':
+
+    # create logger
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+
+    ch.setFormatter(CustomFormatter())
+
+    logger.addHandler(ch)
+
+    # Source .env file using source.sh
+    try:
+        subprocess.check_output('./source.sh', stderr=subprocess.STDOUT)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+                f'{" ".join(cmd)} failed: '
+                f'{exc.output.decode("utf-8")}') from exc
 
     # fetching builder config
     with open('builder_config.json', 'r') as config_file,\
@@ -1130,12 +1325,16 @@ if __name__ == '__main__':
         try:
             validate(instance=builder_cfg, schema=builder_schema)
         except Exception as e:
-            print("JSON schema validation failed {}".format(e))
+            logger.error("JSON schema validation failed {}".format(e))
             sys.exit(1)
         # list of publishers and their endpoints
         publisher_list = builder_cfg['publisher_list']
         # list of subscribers
         subscriber_list = builder_cfg['subscriber_list']
+        # list of services to include mandatorily
+        include_services = builder_cfg['include_services']
+        # list of services to exclude mandatorily
+        exclude_services = builder_cfg['exclude_services']
 
     # Parse command line arguments
     args = parse_args()
@@ -1146,3 +1345,54 @@ if __name__ == '__main__':
 
     # Start yaml parser
     yaml_parser(args)
+
+    try:
+        verify_secrets()
+        for message in log_messages_list:
+            logger.info(message)
+    except KeyError as exc:
+        log_msg = """
+    BUILDER EXCEPTION !!!
+    Failed to generate consolidated docker-compose.yml, eii_config.json
+    and helm deployment values.yml
+    Please update .env with the secret credentials required for {}
+    and re-run the `builder.py`
+    """
+        logger.critical(log_msg.format(exc))
+        
+        # Removing all generated files in case of exception
+        DOCKER_COMPOSE_PATHS = [DOCKER_COMPOSE_PATH, DOCKER_COMPOSE_BUILD_PATH,
+                                DOCKER_COMPOSE_PUSH_PATH]
+        for path in DOCKER_COMPOSE_PATHS:
+            if os.path.isfile(path):
+                os.remove(path)
+        if os.path.isfile(HELM_DEPLOY_DIR + "values.yaml"):
+            os.remove(HELM_DEPLOY_DIR + "values.yaml")
+        sys.exit(1)
+    except AttributeError:
+        not_allowed_special_characters_string = "".join(not_allowed_special_characters_list)
+        log_msg = f"""
+    BUILDER EXCEPTION !!!
+    Special characters \"{not_allowed_special_characters_string}\" not allowed in INFLUXDB credentials.
+    Please ensure to update INFLUXDB credentials by removing the special
+    characters and re-run the `builder.py`
+    """
+        logger.critical(log_msg)
+    except ValueError:
+        log_msg = """
+    BUILDER EXCEPTION !!!
+    Minimum character length requirement for MINIO_SECRET_KEY is 8 characters.
+    Please ensure to update MINIO_SECRET_KEY value to 8 or higher char limit
+    and re-run the `builder.py`
+    """
+        logger.critical(log_msg)
+
+
+    if dev_mode:
+        log_msg = """
+    ================================================================================================================
+    Running in insecure DEV mode. In the DEV mode, all components communicate over non-encrypted channels.
+    It is recommended to not use DEV mode in a production environment because all the security feaures are disabled.
+    ================================================================================================================
+    """
+        logger.warning(log_msg)    

@@ -4,8 +4,10 @@
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
+- ConfigMgrAgent
 - EtcdUI
 - VideoIngestion
 - VideoAnalytics
 - Visualizer
 - WebVisualizer
+- Grafana

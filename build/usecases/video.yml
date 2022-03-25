@@ -4,6 +4,7 @@
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
+- ConfigMgrAgent
 - EtcdUI
 - VideoIngestion
 - VideoAnalytics
@@ -15,3 +16,4 @@ AppContexts:
 - OpcuaExport
 - RestDataExport
 - AzureBridge
+- Grafana

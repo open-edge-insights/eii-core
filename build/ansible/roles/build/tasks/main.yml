@@ -64,6 +64,20 @@
 - debug:
     msg: "EII build stage will take longer depending on the machine configuration"
 
+- name: docker build config manager agent
+  shell: "docker-compose -f docker-compose-build.yml build ia_configmgr_agent"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+
+- name: docker save configmgr image of {{ EII_VERSION }}
+  become: yes
+  shell: "docker save openedgeinsights/ia_configmgr_agent:{{ EII_VERSION }} > ia_configmgr_agent.tar.gz"
+  args:
+    chdir: "{{ EII_SOURCE_PATH }}/build"
+  register: command_out
+  when: remote_node == true and build == false
+
 - name: "Building containers for {{ usecase }} usecase"
   shell: "docker-compose -f docker-compose-build.yml build"
   args:

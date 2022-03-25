@@ -4,6 +4,8 @@
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
+# ConfigMgrAgent service
+- ConfigMgrAgent
 # Common video and time-series services
 - EtcdUI
 - OpcuaExport
@@ -21,3 +23,5 @@ AppContexts:
 - Telegraf
 - Kapacitor
 - Grafana
+- tools/mqtt/broker
+- tools/mqtt/publisher

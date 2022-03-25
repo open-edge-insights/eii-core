@@ -31,12 +31,27 @@ env:
   DEV_MODE:
   PROFILING_MODE:
   EII_INSTALL_PATH:
+  EII_USER_NAME:
+  EII_HOME_DIR:
   SOCKET_DIR:
+  HOST_IP:
+  config_agent_service:
+  INFLUXDB_USERNAME:
+  INFLUXDB_PASSWORD:
+  WEBVISUALIZER_USERNAME:
+  WEBVISUALIZER_PASSWORD:
+  MINIO_ACCESS_KEY:
+  MINIO_SECRET_KEY:
+  ETCDROOT_PASSWORD:
+  PIPELINE:
+  HTTP_METHOD_FETCH_METADATA:
 config:
     etcd:
-      name: etcd
+      name: configmgragent
       client_port: 8379
       peer_port: 8380
+      ext:
+        client_port: 32379
 volumes:
   eii_socket:
     name: vol-eii-socket

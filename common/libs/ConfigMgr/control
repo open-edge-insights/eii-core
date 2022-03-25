@@ -1,8 +1,0 @@
-Package: grpc
-Version: 1.29.0
-Section: base
-Priority: optional
-Architecture: all
-Depends: debconf (>= 0.2.26)
-Maintainer: EII
-Description: gRPC and Protobuf installation

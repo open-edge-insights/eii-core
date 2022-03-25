@@ -4,6 +4,7 @@
 # builder looks for docker-compose.yml & config.json
 # in the below directories to include in the build
 AppContexts:
+- ConfigMgrAgent
 - EtcdUI
 - VideoIngestion
 - VideoAnalytics
@@ -17,6 +18,7 @@ AppContexts:
 - CustomUdfs/PySafetyGearIngestion
 - CustomUdfs/PyMultiClassificationIngestion
 - CustomUdfs/GVASafetyGearIngestion
+- CustomUdfs/NativeOneAPIIngestion
 - Telegraf
 - InfluxDBConnector
 - Kapacitor
@@ -31,10 +33,15 @@ AppContexts:
 - tools/JupyterNotebook
 - tools/SWTriggerUtility
 - tools/VideoProfiler
-- Samples/cpp_sample_app/publisher
-- Samples/cpp_sample_app/subscriber
-- Samples/go_sample_app/publisher
-- Samples/go_sample_app/subscriber
-- Samples/python_sample_app/publisher
-- Samples/python_sample_app/subscriber
-- build/remote_logging
+- Samples/publisher/cpp/ubuntu
+- Samples/subscriber/cpp/ubuntu
+- Samples/publisher/cpp/alpine
+- Samples/subscriber/cpp/alpine
+- Samples/publisher/python/ubuntu
+- Samples/subscriber/python/ubuntu
+- Samples/publisher/go/ubuntu
+- Samples/subscriber/go/ubuntu
+- Samples/publisher/go/alpine
+- Samples/subscriber/go/alpine
+- tools/mqtt/broker
+- tools/mqtt/publisher
