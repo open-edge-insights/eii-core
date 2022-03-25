@@ -1,21 +1,20 @@
-**Contents**
+# Contributing to open-edge-insights
 
-- [Contributing to IEdgeInsights](#contributing-to-iedgeinsights)
-  - [Merge Requests](#merge-requests)
-    - [Commit and MR Hygiene](#commit-and-mr-hygiene)
-    - [Minimum requirements for a MR](#minimum-requirements-for-a-mr)
-    - [Review Process](#review-process)
+## Pull Requests
 
-# Contributing to IEdgeInsights
-
-## Merge Requests
-
-Everybody can propose a merge request (MR) but only the
+Everybody can propose a pull request (PR) but only the
 core-maintainers of the project can merge it.
 
-### Commit and MR Hygiene
+### Forking the github project(s) for contributing
 
-The following points will be especially looked at during the review.
+Please refer to the `The Github Flow` at https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project
+for contributing to the open-edge-insights projects. In this link, one can find a detailed explanation on 
+how to fork the original projects, create pull request in original project to merge your forked project branch
+and how to keep up with the original project (aka upstream remote)
+
+### Commit and Pull Requests Hygiene
+
+The following points will be looked at during the review.
 
 1. **master** is the default branch, it is advised always to work on a new
    feature/bug fix developer branch by keeping your local **master** branch
@@ -38,7 +37,7 @@ The following points will be especially looked at during the review.
 
       Additional details about the commit message
 
-      Signed-off by: abc <abc@intel.com>
+      Signed-off by: abc <abc@xyz.com>
      ```
 
      Here, `module_name` loosely refers to the folder name where the major
@@ -46,8 +45,9 @@ The following points will be especially looked at during the review.
 
    - `git push origin <branch_name>` - pushes your changes to the remote
      branch name (orgin/<branch_name>)
-   - Create a merge request in gitlab
-   - If one notices any conflicts after creating a pull request, just
+   * Refer the link https://git-scm.com/book/en/v2/GitHub-Contributing-to-a-Project on 
+     creating the pull request into the original project
+   * If one notices any conflicts after creating a pull request, just
      apply the latest master to your <branch_name> by running commands:
       - `git checkout master` - with your current branch being <branch_name>
       - `git pull` - pull latest remote master commits to your local master
@@ -56,57 +56,49 @@ The following points will be especially looked at during the review.
       - `git rebase master` - rebase your branch with latest master
 
 3. After addressing code review comments, do a `git commit --amend` to amend
-   the commit message and do a `git push -f origin <branch_name>` to forcely
-   push your changes. This is needed as we want to maintain a single commit.
+   the commit message and do a `git push -f origin <branch_name>` to 
+   forcefully push your changes. This is needed as we want to maintain a single commit.
 
-### Minimum requirements for a MR
+### Minimum requirements for a PR
 
-The following are the minimal requirements that every MR should meet.
+The following are the minimal requirements that every PR should meet.
 
-- **Pass Continuous Integration (pre-merge build)**: Every MR has to pass
-  our CI. Below are the scripts in [CITests repo](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests?nav_source=navbar) that would be invoked
-  by the pre-merge build:
-  1. `pre_recieve_hook.sh` - does linting for changed go and python files
-      w.r.t latest master
-  2. `pre_merge_and_nightly_build_script.sh` - builds and runs the pre-merge
-      build
-  3. We are in the process of adding the `pre-merge` testsuite to perform
-     santiy testing
+- **Pass Continuous Integration (pre-merge build)**: Every PR has to pass our CI
 
 ### Review Process
 
-The reviewers may be busy. If they take especially long to react, feel free to
-trigger them by additional comments in the MR thread.
+The reviewers may be busy. If they take long time to respond, feel free to
+trigger them by additional comments in the PR thread.
 
-It is the job of the developer that posts the MR to rebase the MR on the target
+It is the job of the developer that posts the PR to rebase the PR on the target
 branch when the two diverge.
 
 Below are some additional stuff that developers should adhere to:
 
-- Please batch all your comments by adding to `review` by clicking on `Start a
-  review` to start and add all further comments by clicking on `Add to review`.
-  Once done adding all the review comments, click on `Finish review` and
-  subsequently on `Submit review` buttons to submit all of your review comments.
-  This way all the reviewers involved will get notified only once through an email
-  notification.
+* Please batch all your comments by adding to `review` by clicking on `Start a
+  review` to start and add all further comments by clicking on `Add review comment`.
+  Once done adding all the review comments, click on `Finish your review` and
+  accordingly choose the appropriate option in the popup window to submit.
 
-- In a merge request (i.e., on a feature/bugfix branch) one can have as many
+* In a pull request (i.e., on a feature/bugfix branch) one can have as many
   commits as possible. If all the commits are related to a single feature (eg:
   one has addressed review comments or fixed something etc.,), just ensure the
-  `Title` and `Description` of the merge-request is up-to-date with respect to
+  `Title` and `Description` of the pull-request is up-to-date with respect to
   what is been added/modified/removed etc., This way, the maintainer
-  during merging your merge request will squash all your commits into one and
+  during merging your pull request will squash all your commits into one and
   modify the squashed commit message to have both the `Title` and `Description`
-  of the merge request.
+  of the pull request.
 
-  If merge-request has a single commit, then automatically it gets picked up in
-  your merge-request description.
+  If pull-request has a single commit, then automatically it gets picked up in
+  your pull-request description.
 
-  If one wants to just keep ammending the single commit, he/she can do so as
-  well as gitlab allows to compare the force pushed changes with the previous
-  version which will be very helpful for reviewers.
+* Whenever one sees any failure in the pre-merge build, just check if “rebasing”
+  your pull-request branch with latest master and re-push can fix the issue.
+  If this is till failing, request the reviewers/maintainers to point out the 
+  required compliance needed for passing the CI build for your PR.
 
-- Whenever one sees any failure in the pre-merge build, just check if “rebasing”
-  your merge-request branch with latest master and re-push can fix the issue.
-  If not, please apply access to CI environment(check [CITests repo README.md](https://gitlab.devtools.intel.com/Indu/IEdgeInsights/CITests/blob/master/README.md))
-  to see the reason behind failure.
+### Merge code
+
+Merging will be done as a 'Merge and Rebase' to avoid extraneous merge commits on the master branch
+* Special case 'Squash and Merge' will be used sparingly and only as needed
+  

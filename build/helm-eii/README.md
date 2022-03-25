@@ -112,6 +112,29 @@ Copy the helm charts in helm-eii/ directory to the node.
 
 OEI is now successfully deployed.
 
+### For running helm charts and deploying kube pods with specific namespace
+  >**Note**: By default all our helm charts are deployed with `default` namespace, below commands will help us to deploy helm chart and kube pods with specific namespace
+  ```sh
+    helm install --set namespace=<namespace> <helm_app_name> <helm_charts_directory>/ --namespace <namespace> --create-namespace
+  ```
+  For Eg.:
+  * For Deploying `eii-provision` helm chart with `eii` namespace.
+    ```sh
+      helm install --set namespace=eii eii-provision eii-provision/ --namespace eii --create-namespace
+    ```
+  * For Deploying `eii-deploy` helm chart with `eii` namespace.
+    ```sh
+      helm install --set namespace=eii eii-deploy eii-deploy/ --namespace eii --create-namespace
+    ```
+  * Now all the `pods` and `helm` charts are deployed under `eii` namespace
+  * For listing `helm charts` deployed with specific namespace
+    ```sh
+      helm ls -n <namespace>
+    ```
+  * For listing `kube pods` deployed with specific namespace
+    ```sh
+      kubectl get pods -n <namespace>
+    ```
 ## Provision and deploy mode in times switching between dev and prod mode OR changing the usecase
 
 1. Set the DEV_MODE as "true/false" in  [.env](../.env) depending on dev or prod mode.
