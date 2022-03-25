@@ -60,7 +60,7 @@ spec:
       {{- end }}
       containers:
       - name: ia-configmgr-agent
-        image: {{ .Values.DOCKER_REGISTRY }}ia_configmgr_agent:{{ .Values.EII_VERSION }}
+        image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_configmgr_agent:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         volumeMounts:
         {{ if eq .Values.env.DEV_MODE false}}
