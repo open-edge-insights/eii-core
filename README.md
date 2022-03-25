@@ -19,7 +19,7 @@
       - [Add OEI services](#add-oei-services)
       - [Distribute the OEI container images](#distribute-the-oei-container-images)
       - [List of OEI services](#list-of-oei-services)
-    - [Task 4: Build and run the OEI video and timeseries use cases](#task-4-build-and-run-the-oei-video-and-timeseries-use-cases)
+    - [Task 4: Build and run the OEI video and time series use cases](#task-4-build-and-run-the-oei-video-and-time-series-use-cases)
       - [Build the OEI stack](#build-the-oei-stack)
       - [Run OEI services](#run-oei-services)
         - [OEI Provisioning](#oei-provisioning)
@@ -37,7 +37,7 @@
         - [Troubleshooting issues for HDDL devices](#troubleshooting-issues-for-hddl-devices)
       - [To run on Intel(R) Processor Graphics (GPU/iGPU)](#to-run-on-intelr-processor-graphics-gpuigpu)
     - [Custom User Defined Functions](#custom-user-defined-functions)
-  - [Time-series analytics](#time-series-analytics)
+  - [Time series analytics](#time-series-analytics)
   - [OEI multi-node cluster deployment](#oei-multi-node-cluster-deployment)
     - [With k8s orchestrator](#with-k8s-orchestrator)
   - [OEI tools](#oei-tools)
@@ -48,7 +48,7 @@
 
 ## About Open Edge Insights
 
-Open Edge Insights (OEI) is a set of pre-validated ingredients for integrating video and time-series data analytics on edge compute nodes. OEI includes modules to enable data collection, storage, and analytics for both time-series and video data.
+Open Edge Insights (OEI) is a set of pre-validated ingredients for integrating video and time series data analytics on edge compute nodes. OEI includes modules to enable data collection, storage, and analytics for both time series and video data.
 
 > **Note:**
 > In this document, you will find labels of 'Edge Insights for Industrial (EII)' for filenames, paths, code snippets, and so on. Consider the references of EII as OEI. This is due to the product name change of EII as OEI.
@@ -67,7 +67,7 @@ The following are the minimum system requirements to run OEI:
 > **Note:**
 >
 > - To use OEI, ensure that you are connected to the internet.
-> - The recommended RAM capacity for video analytics pipeline is 16 GB. The recommended RAM for time-series analytics pipeline is 4 GB with Intel® Atom processors.
+> - The recommended RAM capacity for video analytics pipeline is 16 GB. The recommended RAM for time series analytics pipeline is 4 GB with Intel® Atom processors.
 > - OEI is validated on Ubuntu 18.04 and Ubuntu 20.04 but you can install OEI stack on other Linux distributions with support for docker-ce and docker-compose tools.
 
 ## Install Open Edge Insights from GitHub
@@ -79,7 +79,7 @@ To install OEI, perform the tasks in the following order:
 - [Task 1: Get OEI codebase from GitHub](#task-1--get-oei-codebase-from-github)
 - [Task 2: Install prerequisites](#task-2--install-prerequisites)
 - [Task 3: Generate deployment and configuration files](#task-3--generate-deployment-and-configuration-files)
-- [Task 4: Build and run the OEI video and timeseries use cases](#task-4-build-and-run-the-oei-video-and-timeseries-use-cases)
+- [Task 4: Build and run the OEI video and time series use cases](#task-4-build-and-run-the-oei-video-and-time-series-use-cases)
 
 ### Task 1: Get OEI codebase from GitHub
 
@@ -477,7 +477,7 @@ The list of pre-built container images that are accessible at <https://hub.docke
 
 - **Provisioning images**
   - openedgeinsights/ia_configmgr_agent
-- **Common OEI images applicable for video and timeseries use cases**
+- **Common OEI images applicable for video and time series use cases**
   - openedgeinsights/ia_etcd_ui
   - openedgeinsights/ia_influxdbconnector
   - openedgeinsights/ia_rest_export
@@ -490,7 +490,7 @@ The list of pre-built container images that are accessible at <https://hub.docke
   - openedgeinsights/ia_imagestore
   - openedgeinsights/ia_azure_bridge
   - openedgeinsights/ia_azure_simple_subscriber
-- **Timeseries pipeline images**
+- **Time series pipeline images**
   - openedgeinsights/ia_grafana
 
 > **Note:**
@@ -515,13 +515,13 @@ Based on requirement, you can include or exclude the following OEI services in t
   - [ImageStore](https://github.com/open-edge-insights/video-imagestore/blob/master/README.md)
   - [AzureBridge](https://github.com/open-edge-insights/eii-azure-bridge/blob/master/README.md)
   - [FactoryControlApp](https://github.com/open-edge-insights/eii-factoryctrl/blob/master/README.md) - Optional service to read from the VideoAnalytics container if you want to control the light based on the defective or non-defective data
-- Timeseries-related services
+- Time series-related services
   - [Telegraf](https://github.com/open-edge-insights/ts-telegraf/blob/master/README.md)
   - [Kapacitor](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
   - [Grafana](https://github.com/open-edge-insights/ts-grafana/blob/master/README.md)
   - [ZMQ Broker](https://github.com/open-edge-insights/eii-zmq-broker/blob/master/README.md)
 
-### Task 4: Build and run the OEI video and timeseries use cases
+### Task 4: Build and run the OEI video and time series use cases
 
   > **Note:**
   >
@@ -810,10 +810,10 @@ OEI supports the following custom User Defined Functions (UDFs):
 - Build or run custom UDFs in VI or VA:
   - For running custom UDFs either in VI or VA, refer to the [VideoIngestion/docs/custom_udfs_doc.md](https://github.com/open-edge-insights/video-ingestion/blob/master/docs/custom_udfs_doc.md).
 
-## Time-series analytics
+## Time series analytics
 
-For time-series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
-The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated `docker-compose.yml` and consolidated `build/eii_config.json` of the OEI stack for timeseries use case when built via `builder.py` as called out in previous steps.
+For time series data, a sample analytics flow uses Telegraf for ingestion, Influx DB for storage and Kapacitor for classification. This is demonstrated with an MQTT based ingestion of sample temperature sensor data and analytics with a Kapacitor UDF which does threshold detection on the input values.
+The services mentioned in [build/usecases/time-series.yml](build/usecases/time-series.yml) will be available in the consolidated `docker-compose.yml` and consolidated `build/eii_config.json` of the OEI stack for time series use case when built via `builder.py` as called out in previous steps.
 This will enable building of Telegraf and the Kapacitor based analytics containers.
 More details on enabling this mode can be referred from [Kapacitor/README.md](https://github.com/open-edge-insights/ts-kapacitor/blob/master/README.md)
 The sample temperature sensor can be simulated using the [tools/mqtt/README.md](https://github.com/open-edge-insights/eii-tools/blob/master/mqtt/README.md) application.
@@ -833,7 +833,7 @@ The OEI stack consists of the following set of tools that also run as containers
 
 - Benchmarking
   - [Video Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/video-benchmarking-tool/README.md)
-  - [Time-series Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/time-series-benchmarking-tool/README.md)
+  - [Time series Benchmarking](https://github.com/open-edge-insights/eii-tools/blob/master/Benchmarking/time-series-benchmarking-tool/README.md)
 - [DiscoverHistory](https://github.com/open-edge-insights/eii-tools/blob/master/DiscoverHistory/README.md)
 - [EmbPublisher](https://github.com/open-edge-insights/eii-tools/blob/master/EmbPublisher/README.md)
 - [EmbSubscriber](https://github.com/open-edge-insights/eii-tools/blob/master/EmbSubscriber/README.md)
