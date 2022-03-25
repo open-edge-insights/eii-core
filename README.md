@@ -492,6 +492,8 @@ The list of pre-built container images that are accessible at <https://hub.docke
   - openedgeinsights/ia_azure_simple_subscriber
 - **Time series pipeline images**
   - openedgeinsights/ia_grafana
+  - openedgeinsights/ia_telegraf
+  - openedgeinsights/ia_kapacitor
 
 > **Note:**
 > Additionally, we have `openedgeinsights/ia_edgeinsights_src` image available at <https://hub.docker.com/u/openedgeinsights> which consists of source code of the GPL/LGPL/AGPL components of the OEI stack.
