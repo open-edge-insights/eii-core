@@ -72,7 +72,7 @@
 
 - name: docker save configmgr image of {{ EII_VERSION }}
   become: yes
-  shell: "docker save ia_configmgr_agent:{{ EII_VERSION }} > ia_configmgr_agent.tar.gz"
+  shell: "docker save openedgeinsights/ia_configmgr_agent:{{ EII_VERSION }} > ia_configmgr_agent.tar.gz"
   args:
     chdir: "{{ EII_SOURCE_PATH }}/build"
   register: command_out
