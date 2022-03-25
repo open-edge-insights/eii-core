@@ -272,7 +272,7 @@ Table: Consolidated files
 >
 > - If you modify an individual OEI app/service directory files, make sure to re-run the `builder.py` script before running the OEI stack to regenerate the updated consolidated files as above.
 > - Manual editing of consolidated files is not recommended. Instead make changes to the respective files in the OEI app/service directories and use the `builder.py` script to generate the consolidated files.
-> - Enter the secret credentials in the `# Service credentials` section of the [.env](build/.env) file if you are trying to run that OEI app/service. In case the required credentials are not present, the `builder.py` script would be prompting till all the required credentails are entered. **Please protect this [.env](build/.env) file from being read by other users by applying a suitable file access mask**
+> - Enter the secret credentials in the `# Service credentials` section of the [.env](build/.env) file if you are trying to run that OEI app/service. In case the required credentials are not present, the `builder.py` script would be prompting till all the required credentails are entered. Please protect this [.env](build/.env) file from being read by other users by applying a suitable file access mask.
 > - The [builder_config.json](./build/builder_config.json) is the config file for the `builder.py` script and it contains the following keys:
 >   - `subscriber_list`: This key contains a list of services that act as a subscriber to the stream being published.
 >   - `publisher_list`: This key contains a list of services that publishes a stream of data.
