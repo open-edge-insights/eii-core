@@ -5,6 +5,6 @@
 # in the below directories to include in the build
 AppContexts:
 - ConfigMgrAgent
-- DLStreamerPipelineServer/eii
+- EdgeVideoAnalyticsMicroservice/eii
 - Visualizer
 - WebVisualizer
