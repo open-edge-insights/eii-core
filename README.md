@@ -482,6 +482,7 @@ The list of pre-built container images that are accessible at <https://hub.docke
   - openedgeinsights/ia_influxdbconnector
   - openedgeinsights/ia_rest_export
   - openedgeinsights/ia_opcua_export
+  - openedgeinsights/ia_zmq_broker
 - **Video pipeline images**
   - openedgeinsights/ia_video_ingestion
   - openedgeinsights/ia_video_analytics
