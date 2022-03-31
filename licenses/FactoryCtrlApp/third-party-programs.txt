@@ -1,0 +1,459 @@
+Open Edge Insights (OEI) FactoryCtrlApp's Third Party Programs File
+
+This file contains the list of third party software (“third party programs”) contained in the Intel software and their required notices and/or license terms. This third party software, even if included with the distribution of the Intel software, may be governed by separate license terms, including without limitation, third party license terms, other Intel software license terms, and open source software license terms. These separate license terms govern your use of the third party programs as set forth in the “third-party-programs.txt” or other similarly-named text file.
+
+Third party programs and their corresponding required notices and/or license terms are listed below.
+
+=============================================================
+
+1) libexpat1
+
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Expat
+Upstream-Contact: Sebastian Pipping <sebastian@pipping.org>
+Source: https://github.com/libexpat/libexpat
+Copyright: Copyright (C) Expat maintainers
+
+Files: *
+Copyright:
+ Copyright (C) 1998-2000 Thai Open Source Software Center Ltd and Clark Cooper
+ Copyright (C) 2001-2017 Expat maintainers
+License: MIT
+
+Files: debian/*
+Copyright:
+ Copyright (C) 1998-2000 Adam Di Carlo <aph@debian.org>
+ Copyright (C) 2000-2007 Ardo van Rangelrooij <ardo@debian.org>
+ Copyright (C) 2008-2009 Daniel Leidert (dale) <daniel.leidert@wgdd.de>
+ Copyright (C) 2013-     Laszlo Boszormenyi (GCS) <gcs@debian.org>
+License: MIT
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to
+ deal in the Software without restriction, including without limitation the
+ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ IN THE SOFTWARE.
+
+=============================================================
+
+2) libssl1.1
+
+This package was debianized by Christoph Martin martin@uni-mainz.de on
+Fri, 22 Nov 1996 21:29:51 +0100.
+
+Copyright (c) 1998-2004 The OpenSSL Project
+Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson
+
+The upstream sources were obtained from https://www.openssl.org/
+
+
+  LICENSE ISSUES
+  ==============
+
+  The OpenSSL toolkit stays under a dual license, i.e. both the conditions of
+  the OpenSSL License and the original SSLeay license apply to the toolkit.
+  See below for the actual license texts. Actually both licenses are BSD-style
+  Open Source licenses. In case of any license issues related to OpenSSL
+  please contact openssl-core@openssl.org.
+
+  OpenSSL License
+  ---------------
+
+/* ====================================================================
+ * Copyright (c) 1998-2004 The OpenSSL Project.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. All advertising materials mentioning features or use of this
+ *    software must display the following acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit. (http://www.openssl.org/)"
+ *
+ * 4. The names "OpenSSL Toolkit" and "OpenSSL Project" must not be used to
+ *    endorse or promote products derived from this software without
+ *    prior written permission. For written permission, please contact
+ *    openssl-core@openssl.org.
+ *
+ * 5. Products derived from this software may not be called "OpenSSL"
+ *    nor may "OpenSSL" appear in their names without prior written
+ *    permission of the OpenSSL Project.
+ *
+ * 6. Redistributions of any form whatsoever must retain the following
+ *    acknowledgment:
+ *    "This product includes software developed by the OpenSSL Project
+ *    for use in the OpenSSL Toolkit (http://www.openssl.org/)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE OpenSSL PROJECT ``AS IS'' AND ANY
+ * EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE OpenSSL PROJECT OR
+ * ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ * ====================================================================
+ *
+ * This product includes cryptographic software written by Eric Young
+ * (eay@cryptsoft.com).  This product includes software written by Tim
+ * Hudson (tjh@cryptsoft.com).
+ *
+ */
+
+ Original SSLeay License
+ -----------------------
+
+/* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
+ * All rights reserved.
+ *
+ * This package is an SSL implementation written
+ * by Eric Young (eay@cryptsoft.com).
+ * The implementation was written so as to conform with Netscapes SSL.
+ *
+ * This library is free for commercial and non-commercial use as long as
+ * the following conditions are aheared to.  The following conditions
+ * apply to all code found in this distribution, be it the RC4, RSA,
+ * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
+ * included with this distribution is covered by the same copyright terms
+ * except that the holder is Tim Hudson (tjh@cryptsoft.com).
+ *
+ * Copyright remains Eric Young's, and as such any Copyright notices in
+ * the code are not to be removed.
+ * If this package is used in a product, Eric Young should be given attribution
+ * as the author of the parts of the library used.
+ * This can be in the form of a textual message at program startup or
+ * in documentation (online or textual) provided with the package.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. All advertising materials mentioning features or use of this software
+ *    must display the following acknowledgement:
+ *    "This product includes cryptographic software written by
+ *     Eric Young (eay@cryptsoft.com)"
+ *    The word 'cryptographic' can be left out if the rouines from the library
+ *    being used are not cryptographic related :-).
+ * 4. If you include any Windows specific code (or a derivative thereof) from
+ *    the apps directory (application code) you must include an acknowledgement:
+ *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
+ *
+ * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * The licence and distribution terms for any publically available version or
+ * derivative of this code cannot be changed.  i.e. this code cannot simply be
+ * copied and put under another distribution licence
+ * [including the GNU Public Licence.]
+ */
+
+=============================================================
+
+3) libcjson1
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cJSON
+Source: https://github.com/DaveGamble/cJSON
+
+Files: *
+Copyright: 2009-2017, Dave Gamble and cJSON contributors
+License: MIT
+
+Files: debian/*
+Copyright: 2018, Yanhao Mo <yanhaocs@gmail.com>
+License: MIT
+
+Files: cJSON.h
+       cJSON_Utils.h
+       cJSON_Utils.c
+       cJSON.c
+       test.c
+Copyright: 2009-2017, Dave Gamble and cJSON contributors
+License: MIT
+
+Files: tests/json-patch-tests/*
+Copyright: 2014, Mike McCabe and other authors
+License: Apache-2.0
+
+License: MIT
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
+
+License: Apache-2.0
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ .
+ http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ .
+ On Debian systems, the complete text of the Apache version 2.0 license
+ can be found in "/usr/share/common-licenses/Apache-2.0".
+
+=============================================================
+
+4) libzmq5
+
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ZeroMQ
+Source: https://github.com/zeromq/libzmq
+Comment: The upstream tarball has been repacked in order to remove the bundled
+ tarball of OpenPGM.
+
+Files: *
+Copyright: 2009-2011, 250bpm s.r.o
+ 2007-2013, iMatix Corporation
+ 2007-2011, Other contributors as noted in the AUTHORS file
+License: LGPL-3.0+
+
+Files: src/xreq.cpp
+ src/xpub.cpp
+ src/xsub.cpp
+ tests/test_reqrep_device.cpp
+ tests/test_invalid_rep.cpp
+Copyright: 2010-2011, 250bpm s.r.o
+ 2011, VMware, Inc
+ 2010-2011, Other contributors as noted in the AUTHORS file
+License: LGPL-3.0+
+
+Files: src/msg.hpp
+ src/xrep.*
+ src/options.*
+ src/req.*
+ src/socket_base.*
+ src/pipe.*
+ src/encoder.cpp
+ src/lb.cpp
+ src/session_base.*
+ src/fq.cpp
+ include/zmq.h
+Copyright: 2009-2011, 250bpm s.r.o
+ 2007-2013, iMatix Corporation
+ 2011, VMware, Inc
+ 2007-2011, Other contributors as noted in the AUTHORS file
+License: LGPL-3.0+
+
+Files: src/pgm_receiver.*
+ src/pgm_sender.*
+ src/pgm_socket.*
+Copyright: 2009-2011, 250bpm s.r.o
+ 2007-2013, iMatix Corporation
+ 2010-2011, Miru Limited
+ 2007-2011, Other contributors as noted in the AUTHORS file
+License: LGPL-3.0+
+
+Files: debian/*
+Copyright: 2014-    , Laszlo Boszormenyi (GCS) <gcs@debian.org>
+ 2012-2014, Alessandro Ghedini <ghedo@debian.org>
+ 2010-2012, Martin Lucina <martin@lucina.net>
+ 2009-2010, Adrian von Bidder <cmot@debian.org>
+ 2009-2010, Peter Busser <peter@mirabilix.nl>
+ 2012, Alessandro Ghedini <ghedo@debian.org>
+License: LGPL-2.0+
+
+Files: debian/zmq.hpp
+Copyright: 2009-2011, 250bpm s.r.o.
+ 2011, Botond Ballo
+ 2007-2013, iMatix Corporation
+License: MIT
+Comment: The C++ header was downloaded from https://github.com/zeromq/cppzmq
+
+License: LGPL-2.0+
+ This package is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License can be found in "/usr/share/common-licenses/LGPL-2".
+
+License: LGPL-3.0+
+ This package is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the complete text of the GNU Lesser General
+ Public License can be found in "/usr/share/common-licenses/LGPL-3".
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to
+ deal in the Software without restriction, including without limitation the
+ rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ IN THE SOFTWARE.
+
+=============================================================
+
+5) zlib1g
+
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: zlib
+Upstream-Contact: zlib@gzip.org
+Source: http://zlib.net/
+Comment: This is the pre-packaged Debian Linux version of the zlib compression
+ library.  It was packaged by Michael Alan Dorman <mdorman@debian.org>
+ from sources originally retrieved from ftp.uu.net in the directory
+ /pub/archiving/zip/zlib as the file zlib-1.0.4.tar.gz.
+ .
+ The deflate format used by zlib was defined by Phil Katz. The deflate
+ and zlib specifications were written by Peter Deutsch. Thanks to all the
+ people who reported problems and suggested various improvements in zlib;
+ they are too numerous to cite here.
+Files-Excluded:
+ contrib/ada
+ contrib/amd64
+ contrib/asm686
+ contrib/blast
+ contrib/delphi
+ contrib/dotzlib
+ contrib/gcc_gvmat64
+ contrib/infback9
+ contrib/inflate86
+ contrib/iostream
+ contrib/iostream2
+ contrib/iostream3
+ contrib/masmx64
+ contrib/masmx86
+ contrib/pascal
+ contrib/puff
+ contrib/testzlib
+ contrib/untgz
+ contrib/vstudio
+ doc/rfc1950.txt
+ doc/rfc1951.txt
+ doc/rfc1952.txt
+
+Files: *
+Copyright: 1995-2013 Jean-loup Gailly and Mark Adler
+License: Zlib
+
+Files: amiga/Makefile.pup
+Copyright: 1998 by Andreas R. Kleinert
+License: Zlib
+
+Files: contrib/minizip/*
+Copyright: 1998-2010 Gilles Vollant
+           2007-2008 Even Rouault
+           2009-2010 Mathias Svensson
+License: Zlib
+
+Files: debian/*
+Copyright: 2000-2017 Mark Brown
+License: Zlib
+
+License: Zlib
+ This software is provided 'as-is', without any express or implied
+ warranty.  In no event will the authors be held liable for any damages
+ arising from the use of this software.
+ .
+ Permission is granted to anyone to use this software for any purpose,
+ including commercial applications, and to alter it and redistribute it
+ freely, subject to the following restrictions:
+ .
+ 1. The origin of this software must not be misrepresented; you must not
+    claim that you wrote the original software. If you use this software
+    in a product, an acknowledgment in the product documentation would be
+    appreciated but is not required.
+ 2. Altered source versions must be plainly marked as such, and must not be
+    misrepresented as being the original software.
+ 3. This notice may not be removed or altered from any source distribution.
+ .
+ Jean-loup Gailly        Mark Adler
+ jloup@gzip.org          madler@alumni.caltech.edu
+ .
+ If you use the zlib library in a product, we would appreciate *not* receiving
+ lengthy legal documents to sign.  The sources are provided for free but without
+ warranty of any kind.  The library has been entirely written by Jean-loup
+ Gailly and Mark Adler; it does not include third-party code.
+ .
+ If you redistribute modified sources, we would appreciate that you include in
+ the file ChangeLog history information documenting your changes.  Please read
+ the FAQ for more information on the distribution of modified source versions.
