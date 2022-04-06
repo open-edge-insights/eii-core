@@ -713,16 +713,16 @@ Before executing any of the test files, please run below command from `build/tes
 $ ./config_manager_unit_tests
 $ ./kvstore_client-tests
 ```
-## Creation of grpc .deb file (Optional)
+## Creation of grpc .zip file (Optional)
 
-**Note**: This is an optional as we have already created .deb file in the repo.
-If user wants to create .deb file freshly, then one has to follow this step.
+**Note**: This is an optional as we have already created .zip file in the repo.
+If user wants to create .zip file freshly, then one has to follow this step.
 
-Navigate to `[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr` and run the `grpc_deb.sh`
+Navigate to `[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr` and run the `grpc_zip.sh`
 
 ```sh
-$ sudo ./grpc_deb.sh
+$ sudo ./grpc_zip.sh
 ```
 
-By executing the above script, `grpc-1.29.0-Linux.deb` will be created in
+By executing the above script grpc zip package will be created in
 `[WORKDIR]/IEdgeInsights/common/libs/ConfigMgr`.
