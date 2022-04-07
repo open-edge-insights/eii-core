@@ -80,10 +80,10 @@ if [ ! -d "grpc" ] ; then
     log_info "git clone of grpc"
     git clone --recurse-submodules -b $grpc_version $grpc_url
     check_error "Failed to git clone"
-    # Updating the version of libcares to 1.17.1
+    # Updating the version of libcares to 1.18.1
     # to fix the vulnerability CVE-2020-8277
     cd grpc/third_party/cares/cares
-    git checkout cares-1_17_1
+    git checkout cares-1_18_1
     cd ../../../../
 fi
 
@@ -131,7 +131,7 @@ check_error "Failed to create grpc_install_prefix directory"
 
 grpc_libs="../grpc_libs"
 
-# copy grpc's bin, lib and include to opt/intel/eii/bin, opt/intel/eii/lib 
+# copy grpc's bin, lib and include to opt/intel/eii/bin, opt/intel/eii/lib
 # and opt/intel/eii/include respectively
 cp -R $grpc_libs/bin $grpc_libs/lib $grpc_libs/include $grpc_install_prefix/.
 check_error "Failed to copy bin, lib and include to opt/intel/eii"
