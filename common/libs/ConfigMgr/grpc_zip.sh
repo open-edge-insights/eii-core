@@ -84,6 +84,10 @@ if [ ! -d "grpc" ] ; then
     # to fix the vulnerability CVE-2020-8277
     cd grpc/third_party/cares/cares
     git checkout cares-1_18_1
+    # Updating the version of zlip to 1.2.12
+    # to fix BDBA scan issue
+    cd ../../zlib/
+    git checkout v1.2.12
     cd ../../../../
 fi
 
