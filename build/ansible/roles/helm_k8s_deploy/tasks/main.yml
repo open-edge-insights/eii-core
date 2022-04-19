@@ -152,7 +152,7 @@
   when: helm_eii_provision.stdout != "0"
 
 - name: "Wait for ia-etcd container in Terminated/deleted state"
-  shell: "kubectl wait --for=delete pod/{{ get_etcd_container_name.stdout }} --timeout=60s"
+  shell: "kubectl wait --for=delete pod/{{ get_etcd_container_name.stdout }} --timeout={{ wait_time_for_ia_etcd_destroy }}"
   when: helm_eii_provision.stdout != "0"
 
 - debug:

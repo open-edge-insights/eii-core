@@ -72,6 +72,9 @@ EII_UID: 5315
 # docker-compose version
 docker_compose_version: "1.29.0"
 
+# Waiting time for ia_etcd container to be destroyed 
+wait_time_for_ia_etcd_destroy: 60s
+
 ## EII Source path
 EII_SOURCE_PATH: "{{ inventory_dir }}/../../"
 ## EII Install path
