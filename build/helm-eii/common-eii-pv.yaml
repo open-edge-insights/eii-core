@@ -25,7 +25,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   name: {{ .Values.volumes.eii_socket.name }}
   labels:
-    type: local
+    name: "sockets"
 spec:
   storageClassName: {{ .Values.storageClassName }}
   capacity:

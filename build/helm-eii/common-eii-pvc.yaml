@@ -31,3 +31,6 @@ spec:
   resources:
     requests:
       storage: {{ .Values.volumes.eii_socket.size }}
+  selector:
+    matchLabels:
+      name: "sockets"
