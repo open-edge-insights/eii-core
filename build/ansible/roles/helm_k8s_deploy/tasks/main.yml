@@ -67,6 +67,7 @@
     path: "{{ EII_INSTALL_PATH }}"
     owner: "{{ EII_USER_NAME }}"
     group: "{{ EII_USER_NAME }}"
+    recurse: yes
 
 - name: "Adding helm key"
   become: yes
