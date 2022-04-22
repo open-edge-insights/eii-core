@@ -34,7 +34,6 @@
   - [**Without orchestrator**](#without-orchestrator)
   - [**With k8s orchestrator**](#with-k8s-orchestrator)
 - [EII tools](#eii-tools)
-- [ELK usage for centralized logging of EII services logs](#elk-usage-for-centralized-logging-of-eii-services-logs)
 - [EII Uninstaller](#eii-uninstaller)
 - [Debugging options](#debugging-options)
 - [Troubleshooting guide](#troubleshooting-guide)
